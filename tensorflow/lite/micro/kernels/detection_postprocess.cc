@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -350,6 +350,57 @@ void DecreasingPartialArgSort(const float* values, int num_values,
       [&values](const int i, const int j) { return values[i] > values[j]; });
 }
 
+template <typename Compare>
+void insertion_sort(int* start, int* end, Compare compare) {
+  for (int* i = start; i != end; ++i) {
+    std::rotate(std::upper_bound(start, i, *i, compare), i, i + 1);
+  }
+}
+
+template <typename Compare>
+void top_down_merge(int* values, int* scratch, const int half_num_values,
+                    int num_values, Compare compare) {
+  int left = 0;
+  int right = half_num_values;
+
+  for (int i = 0; i < num_values; i++) {
+    if (left >= half_num_values ||
+        (right < num_values && compare(values[right], values[left]))) {
+      scratch[i] = values[right++];
+    } else {
+      scratch[i] = values[left++];
+    }
+  }
+  memcpy(values, scratch, num_values * sizeof(int));
+}
+
+template <typename Compare>
+void merge_sort(int* values, int* scratch, const int num_values,
+                Compare compare) {
+  constexpr int threshold = 20;
+
+  if (num_values < threshold) {
+    insertion_sort(values, values + num_values, compare);
+    return;
+  }
+
+  const int half_num_values = num_values / 2;
+
+  merge_sort(values, scratch, half_num_values, compare);
+  merge_sort(values + half_num_values, scratch, num_values - half_num_values,
+             compare);
+  top_down_merge(values, scratch, half_num_values, num_values, compare);
+}
+
+void DecreasingArgSort(const float* values, int num_values, int* indices,
+                       int* scratch) {
+  std::iota(indices, indices + num_values, 0);
+
+  merge_sort(indices, scratch, num_values, [&values](const int i, const int j) {
+    return values[i] > values[j];
+  });
+}
+
 int SelectDetectionsAboveScoreThreshold(const float* values, int size,
                                         const float threshold,
                                         float* keep_values, int* keep_indices) {
@@ -432,8 +483,16 @@ TfLiteStatus NonMaxSuppressionSingleClassHelper(
   int* sorted_indices = reinterpret_cast<int*>(
       context->GetScratchBuffer(context, op_data->sorted_indices_idx));
 
-  DecreasingPartialArgSort(keep_scores, num_scores_kept, num_scores_kept,
-                           sorted_indices);
+  // Reusing keep_indices for scratch buffer and write back its values
+  // after the sorting is done.
+  DecreasingArgSort(keep_scores, num_scores_kept, sorted_indices, keep_indices);
+  int counter = 0;
+  for (int i = 0; i < num_boxes; i++) {
+    if (scores[i] >= non_max_suppression_score_threshold) {
+      keep_indices[counter] = i;
+      counter++;
+    }
+  }
 
   const int num_boxes_kept = num_scores_kept;
   const int output_size = std::min(num_boxes_kept, max_detections);
