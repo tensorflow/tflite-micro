@@ -184,7 +184,7 @@ Below are some tips that might be useful and improve the development experience.
 * Add the [Refined GitHub](https://github.com/sindresorhus/refined-github)
   plugin to make the github experience even better.
 
-* Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tensorflow@master/-/tree/tensorflow/lite/micro)
+* Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tflite-micro@main)
   on Sourcegraph. And optionally install the [plugin that enables GitHub integration](https://docs.sourcegraph.com/integration/github#github-integration-with-sourcegraph).
 
 * Install [bazel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/install/install_bazel.sh) and [buildifier](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/install/install_buildifier.sh).
@@ -248,13 +248,13 @@ Below are some tips that might be useful and improve the development experience.
 
     Assuming that you forked tensorflow and added a remote called upstream with:
 
-    `git remote add upstream https://github.com/tensorflow/tensorflow.git`
+    `git remote add upstream https://github.com/tensorflow/tflite-micro.git`
 
     Fetch the latest changes from upstream and merge into your local branch.
 
     ```
     git fetch upstream
-    git merge upstream/master
+    git merge upstream/main
     ```
 
     In case of a merge conflict, resolve via:
