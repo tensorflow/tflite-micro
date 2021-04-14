@@ -1,0 +1,20 @@
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  trivial:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    name: First Pass Trigger Testing
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Show Workspace Context
+        run: echo 'Workspace is ${{ github.workspace }}'
+      - name: Nasty Hack To Get Right Docker Build Context
+        run: cp ./.github/actions/docker_action/Dockerfile . && cp ./.github/actions/docker_action/action.yml .
+      - name: Run Docker Tests
+        uses: ./
+      - name: Show commit
+        run: git show -q

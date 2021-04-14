@@ -1,0 +1,6 @@
+#Prototype Docker Action
+name: 'Prototype Docker Action'
+description: 'First pass docker action'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
