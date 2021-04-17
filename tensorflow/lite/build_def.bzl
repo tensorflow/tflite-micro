@@ -1,8 +1,3 @@
-load(
-    "//tensorflow:tensorflow.bzl",
-    "clean_dep",
-)
-
 def tflite_copts():
     """Defines common compile time flags for TFLite libraries."""
     copts = [
