@@ -57,6 +57,9 @@ git checkout \
   tensorflow/lite/kernels/internal/BUILD \
   tensorflow/lite/schema/BUILD
 
+git checkout \
+  tensorflow/lite/kernels/internal/optimized/neon_check.h
+
 rsync -r --delete /tmp/tensorflow/tensorflow/lite/micro tensorflow/lite/
 
 # TODO(b/184876027): properly handle the micro_speech example and its
