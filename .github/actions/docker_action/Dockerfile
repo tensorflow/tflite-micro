@@ -31,4 +31,4 @@ RUN /install/install_buildifier.sh
 COPY . /opt/tflm/
 WORKDIR /opt/tflm
 
-CMD ["/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_all_new.sh"]
+CMD ["/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_all.sh", "GITHUB_PREUBMIT"]

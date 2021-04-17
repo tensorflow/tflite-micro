@@ -48,6 +48,7 @@ git checkout tensorflow/lite/micro/
 
 # TfLite BUILD files are manually maintained in the TFLM repo.
 git checkout \
+  tensorflow/BUILD \
   tensorflow/lite/BUILD \
   tensorflow/lite/build_def.bzl \
   tensorflow/lite/c/BUILD \
@@ -75,6 +76,6 @@ rm -rf tensorflow/lite/micro/tools/ci_build/tflm_bazel
 # the rsync command and any files whose source of truth is the new TFLM repo
 # should be manually restored.
 git checkout \
-  tensorflow/lite/micro/tools/ci_build/test_all_new.sh \
+  tensorflow/lite/micro/tools/ci_build/test_all.sh \
   tensorflow/lite/micro/tools/ci_build/test_bazel.sh
 
