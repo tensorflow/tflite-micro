@@ -17,7 +17,7 @@ jobs:
 #          args: /bin/sh -c "/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_all.sh"
       - name: add a file for testing
         run: git show -q > .commitinfo
-      - name: Commiting CI Variables Files
+      - name: adding commit
         uses: EndBug/add-and-commit@3276c159cee23546e7fef9c8f9997e923587b543
         with:
           message: 'adding ci information'
