@@ -3,18 +3,32 @@ on:
     types: [labeled]
 
 jobs:
-  trivial:
+  base:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: First Pass Trigger Testing
+    name: Main Tests
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-      - name: Show Workspace Context
-        run: echo 'Workspace is ${{ github.workspace }}'
-      - name: Nasty Hack To Get Right Docker Build Context
-        run: cp ./.github/actions/docker_action/Dockerfile . && cp ./.github/actions/docker_action/action.yml .
-      - name: Run Docker Tests
-        uses: ./
-      - name: Show commit
-        run: git show -q
+      - name: test_all.sh running from Dockerfile.micro
+        # TODO(#11): Update the docker image to be hosted via github packages.
+        uses: docker://jpwithers/tflite-micro-tests
+
+        # uncomment below to run a subset of tests (for faster testing of the CI
+        # infrastructure).
+        # with:
+        #   args: /bin/sh -c "/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_x86.sh"
+
+      # TODO(#13): Uncomment the lines below once we can appropriately change
+      # labels from PRs created from forks.
+      # - name: Remove ci:run Tag
+      #   uses: actions/github-script@v3
+      #   with:
+      #     github-token: ${{secrets.GITHUB_TOKEN}}
+      #     script: |
+      #       github.issues.removeLabel({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         name: 'ci:run'
+      #       })
