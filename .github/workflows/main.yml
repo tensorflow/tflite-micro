@@ -1,23 +1,54 @@
+name: CI
+
 on:
   pull_request:
     types: [labeled]
 
 jobs:
-  base:
+  check_code_style:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Main Tests
+    name: Code Style
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-      - name: test_all.sh running from Dockerfile.micro
+      - uses: actions/checkout@v2
+      - name: Check
         # TODO(#11): Update the docker image to be hosted via github packages.
         uses: docker://jpwithers/tflite-micro-tests
+        with:
+          args: /bin/sh -c "/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
-        # uncomment below to run a subset of tests (for faster testing of the CI
-        # infrastructure).
-        # with:
-        #   args: /bin/sh -c "/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_x86.sh"
+  bazel_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    name: Bazel Tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Set up bazel"
+        run: |
+          sudo ci/install_bazel.sh
+      - name: "Test"
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_bazel.sh
+
+  x86_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    name: Makefile x86 tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_x86.sh
+
+  bluepill_tests:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    name: Bluepill tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_bluepill.sh
 
       # TODO(#13): Uncomment the lines below once we can appropriately change
       # labels from PRs created from forks.
