@@ -8,7 +8,7 @@ jobs:
   arduino:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Makefile x86 tests
+    name: Arduino
     steps:
       - uses: actions/checkout@v2
       - name: Test
@@ -21,10 +21,10 @@ jobs:
     name: Bazel Tests
     steps:
       - uses: actions/checkout@v2
-      - name: "Set up bazel"
+      - name: Set up bazel
         run: |
           sudo ci/install_bazel.sh
-      - name: "Test"
+      - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
 
