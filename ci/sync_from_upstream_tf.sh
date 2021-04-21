@@ -79,6 +79,6 @@ rm -rf tensorflow/lite/micro/tools/ci_build/tflm_bazel
 # the rsync command and any files whose source of truth is the new TFLM repo
 # should be manually restored.
 git checkout \
-  tensorflow/lite/micro/tools/ci_build/test_all.sh \
-  tensorflow/lite/micro/tools/ci_build/test_bazel.sh
+  tensorflow/lite/micro/tools/ci_build/test_bazel.sh \
+  tensorflow/lite/micro/tools/ci_build/test_makefile.sh
 
