@@ -1,0 +1,20 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  arduino:
+    runs-on: ubuntu-latest
+    name: Arduino Continuous Builds
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_arduino.sh
