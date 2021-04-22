@@ -1,3 +1,12 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+#
+# This file contains the workflows that are run prior to merging a pull request.
+
 name: CI
 
 on:
@@ -5,16 +14,6 @@ on:
     types: [labeled]
 
 jobs:
-  arduino:
-    runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Arduino
-    steps:
-      - uses: actions/checkout@v2
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_arduino.sh
-
   bazel_tests:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:run')
@@ -37,9 +36,6 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bluepill.sh
-          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
-          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
-          tensorflow/lite/micro/tools/ci_build/test_sparkfun.sh
           tensorflow/lite/micro/tools/ci_build/test_stm32f4.sh
 
   check_code_style:
