@@ -6,3 +6,19 @@ repository](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite
 into a standalone repo. This refactoring is currently in the initial stages and
 is expected to be completed towards the end of June 2021.
 
+
+# Build Status
+
+## Official Builds
+
+Build Type      |    Status     |
+-----------     | --------------|
+CI (Linux)      |               |
+
+## Community Supported Builds
+Build Type      |    Status     |
+-----------     | --------------|
+Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml) |
+Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
+Sparkfun Edge   | [![Sparkfun Edge](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml) |
+
