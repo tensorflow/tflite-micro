@@ -13,7 +13,7 @@ is expected to be completed towards the end of June 2021.
 
 Build Type      |    Status     |
 -----------     | --------------|
-CI (Linux)      |               |
+CI (Linux)      | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml) |
 
 ## Community Supported Builds
 Build Type      |    Status     |
