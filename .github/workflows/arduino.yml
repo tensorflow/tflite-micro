@@ -9,6 +9,9 @@ on:
   schedule:
     - cron: '0 6 * * *'
 
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
 jobs:
   arduino:
     runs-on: ubuntu-latest
