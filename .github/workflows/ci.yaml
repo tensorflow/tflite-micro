@@ -19,12 +19,37 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+
+# Setting up an environment variable to determine if a job should run or not
+# based on the combination of events that trigger a workflow as well as
+# additional factors, such as a particular label on a PR.
+#
+# Note that ideally, we would be able to have something like:
+#   job.<job_id>.if: ${SHOUL_RUN} == true
+# But that appears to not work without any error message.
+#
+# As a result, we are resorting to the more verbose approach of the first step
+# of every job running a bash if statement to check if the job should proceed or
+# not.
+env:
+  SHOULD_RUN: ${{ github.event_name == 'schedule' ||
+                  github.event_name == 'workflow_dispatch' ||
+                  (github.event_name == 'pull_request' &&
+                     contains(github.event.pull_request.labels.*.name, 'ci:run')) }}
+
 jobs:
   bazel_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Bazel Tests
     steps:
+      - name: Should job proceed
+        run: |
+          if [ "${SHOULD_RUN}" == "true" ]; then
+            exit
+          else
+            printf 'ERROR: This job should not proceed.\n'
+            exit 1
+          fi
       - uses: actions/checkout@v2
       - name: Set up bazel
         run: |
@@ -35,9 +60,16 @@ jobs:
 
   cortex_m_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Cortex-M tests
     steps:
+      - name: Should job proceed
+        run: |
+          if [ "${SHOULD_RUN}" == "true" ]; then
+            exit
+          else
+            printf 'ERROR: This job should not proceed.\n'
+            exit 1
+          fi
       - uses: actions/checkout@v2
       - name: Test
         run: |
@@ -46,9 +78,16 @@ jobs:
 
   check_code_style:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Code Style
     steps:
+      - name: Should job proceed
+        run: |
+          if [ "${SHOULD_RUN}" == "true" ]; then
+            exit
+          else
+            printf 'ERROR: This job should not proceed.\n'
+            exit 1
+          fi
       - uses: actions/checkout@v2
       - name: Check
         # TODO(#11): Update the docker image to be hosted via github packages.
@@ -58,9 +97,16 @@ jobs:
 
   project_generation:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Project generation
     steps:
+      - name: Should job proceed
+        run: |
+          if [ "${SHOULD_RUN}" == "true" ]; then
+            exit
+          else
+            printf 'ERROR: This job should not proceed.\n'
+            exit 1
+          fi
       - uses: actions/checkout@v2
       - name: Test
         run: |
@@ -71,9 +117,16 @@ jobs:
 
   x86_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Makefile x86 tests
     steps:
+      - name: Should job proceed
+        run: |
+          if [ "${SHOULD_RUN}" == "true" ]; then
+            exit
+          else
+            printf 'ERROR: This job should not proceed.\n'
+            exit 1
+          fi
       - uses: actions/checkout@v2
       - name: Test
         run: |
