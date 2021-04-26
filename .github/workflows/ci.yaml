@@ -22,7 +22,7 @@ on:
 jobs:
   bazel_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Bazel Tests
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +35,7 @@ jobs:
 
   cortex_m_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Cortex-M tests
     steps:
       - uses: actions/checkout@v2
@@ -46,7 +46,7 @@ jobs:
 
   check_code_style:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Code Style
     steps:
       - uses: actions/checkout@v2
@@ -58,7 +58,7 @@ jobs:
 
   project_generation:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Project generation
     steps:
       - uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
 
   x86_tests:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
     name: Makefile x86 tests
     steps:
       - uses: actions/checkout@v2
