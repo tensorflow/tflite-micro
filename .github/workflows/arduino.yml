@@ -4,10 +4,12 @@
 # Helpful YAML parser to clarify YAML syntax:
 # https://yaml-online-parser.appspot.com/
 
+name: Arduino
+
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 4 * * *'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
