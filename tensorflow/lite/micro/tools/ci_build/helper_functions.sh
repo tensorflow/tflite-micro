@@ -18,20 +18,12 @@
 # Collection of helper functions that can be used in the different continuous
 # integration scripts.
 
-function die() {
-  echo "$@" 1>&2 ; exit 1;
-}
-
 # A small utility to run the command and only print logs if the command fails.
 # On success, all logs are hidden. This helps to keep the log output clean and
 # makes debugging easier.
 function readable_run {
-  # Disable debug mode to avoid printing of variables here.
-  set +x
-  result=$("$@" 2>&1) || die "$result"
-  echo "$@"
+  "$@" 2>&1
   echo "Command completed successfully at $(date)"
-  set -x
 }
 
 # Check if the regex ${1} is to be found in the pathspec ${2}.
