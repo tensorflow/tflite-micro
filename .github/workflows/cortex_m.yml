@@ -15,12 +15,20 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  cortex_m_daily:
+  cortex_m_generic:
     runs-on: ubuntu-latest
-    name: Cortex-M Continuous Builds
+    name: Cortex-M Generic
     steps:
       - uses: actions/checkout@v2
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
+
+  cortex_m_corstone_300:
+    runs-on: ubuntu-latest
+    name: Cortex-M Corstone 300 (FVP)
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
