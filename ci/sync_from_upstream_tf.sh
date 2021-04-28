@@ -66,13 +66,6 @@ rsync -r --delete /tmp/tensorflow/tensorflow/lite/micro tensorflow/lite/
 # dependencies.
 rm -rf tensorflow/lite/micro/examples/micro_speech
 
-# TODO(b/184884735): enable the person_detection example. We need some of the
-# sources from the person_detection example for the benchmarks and so are
-# currently only removing the Makefile and the BUILD files.
-rm -rf tensorflow/lite/micro/examples/person_detection/Makefile
-rm -rf tensorflow/lite/micro/examples/person_detection/BUILD
-rm -rf tensorflow/lite/micro/examples/person_detection/utils/BUILD
-
 rm -rf tensorflow/lite/micro/tools/ci_build/tflm_bazel
 
 # Any TFLM-repo specific files that are not in upstream TF will be deleted with
