@@ -1,0 +1,13 @@
+name: Test Container Run
+on:
+  workflow_dispatch
+
+jobs:
+  test_run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: log in to the registry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+    - name: do the thing
+      run: docker run ghcr.io/tensorflow/trivial-action:latest

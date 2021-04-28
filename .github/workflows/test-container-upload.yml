@@ -1,0 +1,27 @@
+name: Test Container Upload
+on:
+  workflow_dispatch
+
+jobs:
+  build_test_upload:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Image build
+      run: | 
+        cd ./.github/assets
+        docker build -t ghcr.io/tensorflow/trivial-action:latest .
+    - name: log in to the regisry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+    - name: tag image
+      run: docker tag ghcr.io/tensorflow/trivial-action:latest ghcr.io/tensorflow/trivial-action:$GITHUB_SHA
+    - name: show images
+      run: docker images
+    - name: upload image
+      run: |
+        docker push ghcr.io/tensorflow/trivial-action:latest
+        docker push ghcr.io/tensorflow/trivial-action:$GITHUB_SHA
+      
+      
+     
+
