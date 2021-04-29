@@ -1,0 +1,34 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+
+name: Sync from Upstream TF
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v2
+      - name: Create TFLM tree
+        run: |
+          ./ci/sync_from_upstream_tf.sh
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
+        with:
+          branch: sync-from-upstream-tf
+          delete-branch: true
+          title: Automated sync from github.com/tensorflow/tensorflow
+          commit-message: Automated sync from github.com/tensorflow/tensorflow
+          body: ""
+          labels: ci:run
