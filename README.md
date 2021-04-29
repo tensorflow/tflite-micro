@@ -1,3 +1,14 @@
+<!--ts-->
+   * [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
+   * [Build Status](#build-status)
+      * [Official Builds](#official-builds)
+      * [Community Supported Builds](#community-supported-builds)
+   * [Additional Documentation](#additional-documentation)
+
+<!-- Added by: advaitjain, at: Thu 29 Apr 2021 12:53:08 PM PDT -->
+
+<!--te-->
+
 # TensorFlow Lite for Microcontrollers
 
 The TFLM code is currently in the process of being refactored out of the
@@ -22,3 +33,7 @@ Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml) |
 
+
+# Additional Documentation
+
+ * [Continuous Integration](docs/continuous_integration.md)
