@@ -40,14 +40,14 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             github.issues.removeLabel({
-              issue_number: ${{ steps.create-pr.pull-request-number }},
+              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
               name: 'ci:run'
             })
             github.issues.removeLabel({
-              issue_number: ${{ steps.create-pr.pull-request-number }},
+              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
               name: 'cla: no'
             })
             github.issues.addLabel({
-              issue_number: ${{ steps.create-pr.pull-request-number }},
+              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
               name: 'cla: yes'
             })
