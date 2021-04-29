@@ -33,21 +33,5 @@ jobs:
           title: Automated sync from github.com/tensorflow/tensorflow
           commit-message: Automated sync from github.com/tensorflow/tensorflow
           body: ""
+          labels: ci:run
           reviewers: advaitjain
-
-      - uses: actions/github-script@v3
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.removeLabel({
-              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
-              name: 'ci:run'
-            })
-            github.issues.removeLabel({
-              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
-              name: 'cla: no'
-            })
-            github.issues.addLabel({
-              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
-              name: 'cla: yes'
-            })
