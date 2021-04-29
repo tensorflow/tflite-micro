@@ -22,8 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Sync the code
-        run: |
-          ./ci/sync_from_upstream_tf.sh
+        run: ./ci/sync_from_upstream_tf.sh
 
       - name: Create Pull Request
         id: create-pr
@@ -34,7 +33,6 @@ jobs:
           title: Automated sync from github.com/tensorflow/tensorflow
           commit-message: Automated sync from github.com/tensorflow/tensorflow
           body: ""
-          labels: ci:run, cla:\ yes
           reviewers: advaitjain
 
       - uses: actions/github-script@v3
@@ -43,5 +41,13 @@ jobs:
           script: |
             github.issues.removeLabel({
               issue_number: ${{ steps.create-pr.pull-request-number }},
+              name: 'ci:run'
+            })
+            github.issues.removeLabel({
+              issue_number: ${{ steps.create-pr.pull-request-number }},
               name: 'cla: no'
+            })
+            github.issues.addLabel({
+              issue_number: ${{ steps.create-pr.pull-request-number }},
+              name: 'cla: yes'
             })
