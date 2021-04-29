@@ -22,9 +22,10 @@ is expected to be completed towards the end of June 2021.
 
 ## Official Builds
 
-Build Type      |    Status     |
------------     | --------------|
-CI (Linux)      | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml) |
+Build Type       |    Status     |
+-----------      | --------------|
+CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yaml) |
+Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
 ## Community Supported Builds
 Build Type      |    Status     |
