@@ -20,10 +20,13 @@ jobs:
     steps:
       - uses: actions/setup-python@v2
       - uses: actions/checkout@v2
-      - name: Create TFLM tree
+
+      - name: Sync the code
         run: |
           ./ci/sync_from_upstream_tf.sh
+
       - name: Create Pull Request
+        id: create-pr
         uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
         with:
           branch: sync-from-upstream-tf
@@ -31,4 +34,14 @@ jobs:
           title: Automated sync from github.com/tensorflow/tensorflow
           commit-message: Automated sync from github.com/tensorflow/tensorflow
           body: ""
-          labels: ci:run
+          labels: ci:run, cla: yes
+          reviewers: advaitjain
+
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.removeLabel({
+              issue_number: ${{ steps.create-pr.pull-request-number }},
+              name: 'cla: no'
+            })
