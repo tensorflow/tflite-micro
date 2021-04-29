@@ -5,7 +5,7 @@
 # https://yaml-online-parser.appspot.com/
 #
 
-name: Sync
+name: Sync from Upstream TF
 
 on:
   schedule:
