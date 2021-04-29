@@ -23,7 +23,7 @@ jobs:
   bazel_tests:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Bazel Tests
+    name: Bazel (presubmit)
     steps:
       - uses: actions/checkout@v2
       - name: Set up bazel
@@ -36,7 +36,7 @@ jobs:
   cortex_m_tests:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Cortex-M tests
+    name: Cortex-M (presubmit)
     steps:
       - uses: actions/checkout@v2
       - name: Test
@@ -47,7 +47,7 @@ jobs:
   check_code_style:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Code Style
+    name: Code Style (presubmit)
     steps:
       - uses: actions/checkout@v2
       - name: Check
@@ -59,7 +59,7 @@ jobs:
   project_generation:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Project generation
+    name: Project Generation (presubmit)
     steps:
       - uses: actions/checkout@v2
       - name: Test
@@ -72,7 +72,7 @@ jobs:
   x86_tests:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
-    name: Makefile x86 tests
+    name: Makefile x86 (presubmit)
     steps:
       - uses: actions/checkout@v2
       - name: Test
