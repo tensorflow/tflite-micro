@@ -1,0 +1,48 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+
+name: Sync from Upstream TF
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v2
+      - name: Create TFLM tree
+        run: |
+          ./ci/sync_from_upstream_tf.sh
+      - name: Create PR
+        run: |
+          if [[ $(git status --porcelain | wc -l) == 0 ]]; then
+            echo "No changes in upstream TF."
+          else
+            git add *
+            gh pr create --head --title "Sync from upstream TF" --body ""
+          fi
+
+
+      # TODO(#13): Uncomment the lines below once we can appropriately change
+      # labels from PRs created from forks.
+      # - name: Remove ci:run Tag
+      #   uses: actions/github-script@v3
+      #   with:
+      #     github-token: ${{secrets.GITHUB_TOKEN}}
+      #     script: |
+      #       github.issues.removeLabel({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         name: 'ci:run'
+      #       })
