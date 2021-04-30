@@ -1,0 +1,66 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+#
+# This workflow is used to modify labels for the PR that is automatically
+# created to sync code from the tensorflow repo. The goal is to make it easier
+# and faster to review and merge the PR.
+
+name: Sync Labeler
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  modify_labels_for_sync_pr:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'bot:sync-tf')
+    name: Remove CLA:No label for Sync PR
+    steps:
+      - uses: actions/github-script@v4
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'cla: no'
+            })
+      - uses: actions/github-script@v4
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['cla: yes']
+            })
+      - uses: actions/github-script@v4
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: |
+                'Automatically applying cla:yes for a PR that is syncing code from '
+                'github.com/tensorflow/tensorflow which has the same CLA requirement '
+                'as the current repository.'
+            })
+      - uses: actions/github-script@v4
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['ci:run']
+            })

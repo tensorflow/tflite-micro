@@ -33,7 +33,12 @@ jobs:
           git config user.name "Advait Jain"
           git config user.email "advaitjain@users.noreply.github.com"
           git add *
-          git commit -m "Adding new files as a result of the sync."
+
+          if [[ $(git status --porcelain | wc -l) == 0 ]]; then
+            echo "no changes"
+          else
+            git commit -m "Sync from upstream TF."
+          fi
 
       - name: Create Pull Request
         id: create-pr
@@ -44,5 +49,5 @@ jobs:
           title: Automated sync from github.com/tensorflow/tensorflow
           commit-message: Automated sync from github.com/tensorflow/tensorflow
           body: ""
-          labels: ci:run
+          labels: ci:run, bot:sync-tf
           reviewers: advaitjain
