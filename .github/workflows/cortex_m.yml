@@ -17,6 +17,11 @@ on:
 jobs:
   cortex_m_generic:
     runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Cortex-M Generic
     steps:
       - uses: actions/checkout@v2
@@ -26,6 +31,11 @@ jobs:
 
   cortex_m_corstone_300:
     runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Cortex-M Corstone 300 (FVP)
     steps:
       - uses: actions/checkout@v2
