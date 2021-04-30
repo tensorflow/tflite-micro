@@ -63,10 +63,31 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'bot:sync-tf') &&
-      contains(github.event.pull_request.labels.*.name, 'cla: no')
+      contains(github.event.pull_request.labels.*.name, 'cla: no') &&
+      contains(github.event.pull_request.labels.*.name, 'ci:run')
 
     name: Label Setup
     steps:
+      - uses: actions/github-script@v4
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:run'
+            })
+      - uses: actions/github-script@v4
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Removing ci:run label so that future label changes do not trigger the CI checks again.'
+            })
       - uses: actions/github-script@v4
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
@@ -81,19 +102,10 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: ['cla: yes']
-            })
-      - uses: actions/github-script@v4
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Automatically added cla: yes for a PR that is syncing code from github.com/tensorflow/tensorflow which has the same CLA requirement as the current repository.'
+              body: 'Note that adding cla: yes for a PR that is syncing code from github.com/tensorflow/tensorflow is ok since the code has already been merged with the same CLA as the current repository.'
             })
+
