@@ -13,6 +13,11 @@ on:
 jobs:
   cortex_m_daily:
     runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Cortex-M Continuous Builds
     steps:
       - uses: actions/checkout@v2

@@ -23,7 +23,12 @@ on:
 jobs:
   bazel_tests:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Bazel (presubmit)
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +41,12 @@ jobs:
 
   cortex_m_tests:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Cortex-M (presubmit)
     steps:
       - uses: actions/checkout@v2
@@ -47,7 +57,12 @@ jobs:
 
   check_code_style:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Code Style (presubmit)
     steps:
       - uses: actions/checkout@v2
@@ -59,7 +74,12 @@ jobs:
 
   project_generation:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Project Generation (presubmit)
     steps:
       - uses: actions/checkout@v2
@@ -72,7 +92,12 @@ jobs:
 
   x86_tests:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:run')
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Makefile x86 (presubmit)
     steps:
       - uses: actions/checkout@v2

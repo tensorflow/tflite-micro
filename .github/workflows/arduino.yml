@@ -18,6 +18,11 @@ on:
 jobs:
   arduino:
     runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
     name: Arduino Continuous Builds
     steps:
       - uses: actions/checkout@v2
