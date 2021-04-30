@@ -9,7 +9,8 @@ name: Arduino
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
   schedule:
-    - cron: '0 4 * * *'
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
