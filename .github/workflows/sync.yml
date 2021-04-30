@@ -9,7 +9,8 @@ name: Sync from Upstream TF
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    # 2pm UTC is 7am or 8am PT depending on daylight savings.
+    - cron: '0 14 * * *'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
