@@ -1,6 +1,6 @@
 name: CI Tests
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
     
 jobs:
@@ -20,4 +20,7 @@ jobs:
           echo "GITHUB_REPOSITORY:  $GITHUB_REPOSITORY"
           echo "GITHUB_SHA:  $GITHUB_SHA"
           echo ${{ github.event.number }}
-      
+      - name: log in to the registry
+        run: echo ${{ secrets.CONTAINER_PAT }} | docker login ghcr.io -u advaitjain --password-stdin
+      - name: run private external container
+        run: docker run ghcr.io/advaitjain/test_container:latest      
