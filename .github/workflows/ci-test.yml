@@ -1,9 +1,8 @@
+name: CI Tests
 on:
   pull_request:
     types: [labeled]
-    branches:
-      - main
-
+    
 jobs:
   trivial:
     runs-on: ubuntu-latest
@@ -20,7 +19,5 @@ jobs:
           echo "GITHUB_REF:  $GITHUB_REF"
           echo "GITHUB_REPOSITORY:  $GITHUB_REPOSITORY"
           echo "GITHUB_SHA:  $GITHUB_SHA"
-      - name: log in to the regisry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u tensorflow --password-stdin
-      - name: run container
-        run: docker run ghcr.io/tensorflow/trivial-action:latest .
+          echo ${{ github.event.number }}
+      
