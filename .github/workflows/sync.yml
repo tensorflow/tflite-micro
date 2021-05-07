@@ -62,35 +62,3 @@ jobs:
           labels: bot:sync-tf, ci:run
           reviewers: advaitjain
 
-  modify_labels_for_sync_pr:
-    runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'pull_request' &&
-      contains(github.event.pull_request.labels.*.name, 'bot:sync-tf') &&
-      contains(github.event.pull_request.labels.*.name, 'cla: no') &&
-      contains(github.event.pull_request.labels.*.name, 'ci:run')
-
-    name: Label Setup
-    steps:
-      - uses: actions/github-script@v4
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.removeLabel({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'cla: no'
-            })
-      - uses: actions/github-script@v4
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Note that adding cla: yes for a PR that is syncing code from github.com/tensorflow/tensorflow is ok since the code has already been merged with the same CLA as the current repository.'
-            })
-

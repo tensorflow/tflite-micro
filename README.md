@@ -24,7 +24,7 @@ is expected to be completed towards the end of June 2021.
 
 Build Type       |    Status     |
 -----------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml) |
+CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml?query=event%3Aschedule) |
 Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
 ## Community Supported Builds
