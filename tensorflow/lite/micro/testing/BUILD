@@ -1,13 +1,6 @@
-load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
-
 package(
     features = ["-layering_check"],
     licenses = ["notice"],
-)
-
-package_group(
-    name = "kernel_friends",
-    packages = tflm_kernel_friends(),
 )
 
 package_group(
@@ -26,10 +19,9 @@ cc_library(
         "micro_test.h",
     ],
     visibility = [
-        ":kernel_friends",
         ":micro",
         ":microfrontend",
-    ],  # TODO(b/188226023)
+    ],
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",

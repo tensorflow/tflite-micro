@@ -1,5 +1,7 @@
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
-load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "micro_copts",
+)
 
 package(
     features = ["-layering_check"],
@@ -19,11 +21,6 @@ package_group(
 package_group(
     name = "micro_top_level",
     packages = ["//tensorflow/lite/micro"],
-)
-
-package_group(
-    name = "kernel_friends",
-    packages = tflm_kernel_friends(),
 )
 
 ####################################
@@ -248,7 +245,6 @@ cc_library(
     ],
     hdrs = ["kernel_util.h"],
     visibility = [
-        ":kernel_friends",
         ":micro",
     ],
     deps = [
