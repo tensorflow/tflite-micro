@@ -348,7 +348,7 @@ cc_library(
         ":kernel_util",
         ":micro_utils",
         ":xtensa",
-        "@flatbuffers",
+        "@flatbuffers//:runtime_cc",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -620,7 +620,7 @@ cc_test(
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
-        "@flatbuffers",
+        "@flatbuffers//:runtime_cc",
     ],
 )
 
