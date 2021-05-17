@@ -1,0 +1,66 @@
+diff --git a/tensorflow/lite/micro/kernels/BUILD b/tensorflow/lite/micro/kernels/BUILD
+index 22bcf2b1efd..6f27814f6a2 100644
+--- a/tensorflow/lite/micro/kernels/BUILD
++++ b/tensorflow/lite/micro/kernels/BUILD
+@@ -1,7 +1,5 @@
+-load(
+-    "//tensorflow/lite/micro:build_def.bzl",
+-    "micro_copts",
+-)
++load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
++load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
+ 
+ package(
+     features = ["-layering_check"],
+@@ -23,6 +21,11 @@ package_group(
+     packages = ["//tensorflow/lite/micro"],
+ )
+ 
++package_group(
++    name = "kernel_friends",
++    packages = tflm_kernel_friends(),
++)
++
+ ####################################
+ # C++ libraries
+ ####################################
+@@ -245,6 +248,7 @@ cc_library(
+     ],
+     hdrs = ["kernel_util.h"],
+     visibility = [
++        ":kernel_friends",
+         ":micro",
+     ],
+     deps = [
+diff --git a/tensorflow/lite/micro/testing/BUILD b/tensorflow/lite/micro/testing/BUILD
+index 6d8c74dd7e8..3dea5752f1e 100644
+--- a/tensorflow/lite/micro/testing/BUILD
++++ b/tensorflow/lite/micro/testing/BUILD
+@@ -1,8 +1,15 @@
++load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
++
+ package(
+     features = ["-layering_check"],
+     licenses = ["notice"],
+ )
+ 
++package_group(
++    name = "kernel_friends",
++    packages = tflm_kernel_friends(),
++)
++
+ package_group(
+     name = "micro",
+     packages = ["//tensorflow/lite/micro/..."],
+@@ -19,9 +26,10 @@ cc_library(
+         "micro_test.h",
+     ],
+     visibility = [
++        ":kernel_friends",
+         ":micro",
+         ":microfrontend",
+-    ],
++    ],  # TODO(b/188226023)
+     deps = [
+         "//tensorflow/lite/c:common",
+         "//tensorflow/lite/core/api",
