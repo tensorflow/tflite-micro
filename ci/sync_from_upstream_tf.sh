@@ -33,7 +33,12 @@ rm -rf /tmp/tflm-tree
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
-cd /tmp/tensorflow/
+# Manually apply some patches to avoid having to upstream changes to TF that
+# are very specific to the new TFLM repo.
+cp ci/temp_patches/tf_update_visibility.patch /tmp/tensorflow
+cd /tmp/tensorflow
+git apply tf_update_visibility.patch
+
 # TODO(b/184886633): the downloads should happen as part of the create_tflm_tree
 # script.
 make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
