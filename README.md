@@ -20,6 +20,8 @@ is expected to be completed towards the end of June 2021.
 
 # Build Status
 
+ * [GitHub Status](https://www.githubstatus.com/)
+
 ## Official Builds
 
 Build Type       |    Status     |
