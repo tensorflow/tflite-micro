@@ -11,6 +11,7 @@ jobs:
     name: Test Private Container
     steps:
       - run: |
+          echo "This unmerged text should not be part of the log."
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm ghcr.io/tflm-bot/test_container:latest
 
