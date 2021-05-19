@@ -1,0 +1,16 @@
+on:
+  pull_request_target:
+    types: [labeled]
+    branches:
+      - main
+
+jobs:
+  test_private_container:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:test')
+    name: Test Private Container
+    steps:
+      run: echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+      run: docker run --rm ghcr.io/tflm-bot/test_container:latest
+
+
