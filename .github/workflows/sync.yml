@@ -15,11 +15,6 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
-  # This part is to automatically set up labels for the PR that is created as a
-  # result of a sync.
-  pull_request:
-    types: [labeled]
-
 jobs:
   sync:
     runs-on: ubuntu-latest
