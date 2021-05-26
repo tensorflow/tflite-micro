@@ -63,13 +63,14 @@ git checkout \
   tensorflow/lite/schema/BUILD
 
 git checkout \
-  tensorflow/lite/kernels/internal/optimized/neon_check.h
+  tensorflow/lite/kernels/internal/optimized/neon_check.h \
+  tensorflow/lite/experimental/microfrontend
 
 rsync -r --delete /tmp/tensorflow/tensorflow/lite/micro tensorflow/lite/
 
-# TODO(b/184876027): properly handle the micro_speech example and its
-# dependencies.
-rm -rf tensorflow/lite/micro/examples/micro_speech
+
+rm -rf tensorflow/lite/experimental/microfrontend/lib
+cp -r /tmp/tensorflow/tensorflow/lite/experimental/microfrontend/lib tensorflow/lite/experimental/microfrontend/lib
 
 rm -rf tensorflow/lite/micro/tools/ci_build/tflm_bazel
 
