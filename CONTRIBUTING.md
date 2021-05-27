@@ -215,11 +215,10 @@ Below are some tips that might be useful and improve the development experience.
 * Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tflite-micro@main)
   on Sourcegraph. And optionally install the [plugin that enables GitHub integration](https://docs.sourcegraph.com/integration/github#github-integration-with-sourcegraph).
 
-* Install [bazel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/install/install_bazel.sh) and [buildifier](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/install/install_buildifier.sh).
+* Install [bazel](ci/install_bazel.sh) and [buildifier](ci/install_buildifier.sh).
 
-* Install the latest clang and clang-format. For example,
-  [here](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/Dockerfile.micro)
-  is the  what we do for the TFLM continuous integration Docker container.
+* Install the latest clang and clang-format. For example, [here](ci/Dockerfile.micro)
+  is the what we do for the TFLM continuous integration Docker container.
 
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
 
@@ -268,7 +267,7 @@ Below are some tips that might be useful and improve the development experience.
 
 1.  Do not change the git version history.
 
-    *   Always merge upstream/master (***do not rebase***) and no force-pushes
+    *   Always merge upstream/main (***do not rebase***) and no force-pushes
         please.
 
     *   Having an extra merge commit it ok as the github review tool handles
@@ -276,7 +275,9 @@ Below are some tips that might be useful and improve the development experience.
 
     Assuming that you forked tensorflow and added a remote called upstream with:
 
-    `git remote add upstream https://github.com/tensorflow/tflite-micro.git`
+    ```
+    git remote add upstream https://github.com/tensorflow/tflite-micro.git
+    ```
 
     Fetch the latest changes from upstream and merge into your local branch.
 
@@ -347,12 +348,17 @@ that can be expanded and improved as necessary.
 *   [yapf](https://github.com/google/yapf/) should be used for formatting.
 
     ```
-    yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
+    git clone https://github.com/google/yapf.git
+    PYTHONPATH=<yapf-clone-path> python <yapf-clone-path>/yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
     ```
 
 # Continuous Integration System
+  * See the [github workflow files](.github/workflows/ci.yml) for details on
+    exactly what is run as part of the GitHub Actions CI.
 
-  * All the tests can be run from within a docker container:
+  * Some [additional documentation](docs/continuous_integration.md) on the TFLM CI.
+
+  * Tests can also be run from within a docker container:
    ```
    docker build -t tflm-test -f ci/Dockerfile.micro .
    docker run --rm tflm-test
