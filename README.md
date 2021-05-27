@@ -17,6 +17,8 @@ repository](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite
 into a standalone repo. This refactoring is currently in the initial stages and
 is expected to be completed towards the end of June 2021.
 
+# Contributing
+See our [contribution documentation](CONTRIBUTING.md).
 
 # Build Status
 
