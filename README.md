@@ -17,6 +17,8 @@ repository](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite
 into a standalone repo. This refactoring is currently in the initial stages and
 is expected to be completed towards the end of June 2021.
 
+# Contributing
+See our [contribution documentation](CONTRIBUTING.md).
 
 # Build Status
 
@@ -32,9 +34,10 @@ Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflit
 ## Community Supported Builds
 Build Type      |    Status     |
 -----------     | --------------|
-Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml) |
+Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sparkfun_edge.yml) |
+Xtensa     | [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
 
 
 # Additional Documentation
