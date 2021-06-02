@@ -1,3 +1,25 @@
+/*******************************************************************************
+* Copyright (c) 2020-2021 Cadence Design Systems, Inc.
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to use this Software with Cadence processor cores only and
+* not with any other processors and platforms, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+******************************************************************************/
+
 /* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,12 +132,12 @@ void AffineQuantize(int scale_multiplier, const int32_t zero_point,
 
 #endif  // defined(HIFIMINI)
 
-#if defined(HIFIMINI) || defined(FUSION_F1)
+#if defined(HIFIMINI) || defined(FUSION_F1) || defined(HIFI5)
 TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
 #if defined(HIFIMINI)
   auto* op_data = static_cast<OpData*>(node->user_data);
-#elif defined(FUSION_F1)
+#elif defined(FUSION_F1) || defined(HIFI5)
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
 #endif
 
@@ -129,7 +151,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                    tflite::micro::GetTensorData<int16_t>(input),
                    tflite::micro::GetTensorShape(output),
                    tflite::micro::GetTensorData<int8_t>(output));
-#elif defined(FUSION_F1)
+#elif defined(FUSION_F1) || defined(HIFI5)
     int size = ElementCount(*input->dims);
     TF_LITE_ENSURE_EQ(
         context,
@@ -152,7 +174,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
     // same structs as much as possible and reduce the need for such ifdefs.
 #if defined(HIFIMINI)
     int32_t zero_point = op_data->zero_point;
-#elif defined(FUSION_F1)
+#elif defined(FUSION_F1) || defined(HIFI5)
     int32_t zero_point = op_data->quantization_params.zero_point;
 #endif
     if (input->type == kTfLiteInt16) {
@@ -176,7 +198,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFIMINI) || defined(FUSION_F1)
+#endif  // defined(HIFIMINI) || defined(FUSION_F1) || defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -218,7 +240,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFIMINI) || defined(FUSION_F1)
+#if defined(HIFIMINI) || defined(FUSION_F1) || defined(HIFI5)
   return EvalXtensa(context, node);
 #else
   return EvalQuantizeReference(context, node);

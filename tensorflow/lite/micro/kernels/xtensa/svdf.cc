@@ -1,3 +1,25 @@
+/*******************************************************************************
+* Copyright (c) 2020-2021 Cadence Design Systems, Inc.
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to use this Software with Cadence processor cores only and
+* not with any other processors and platforms, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+******************************************************************************/
+
 /* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -244,9 +266,9 @@ void EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-#elif defined(FUSION_F1)
+#elif defined(FUSION_F1) || defined(HIFI5)
 
-TfLiteStatus EvalIntegerSvdfHifi4(
+TfLiteStatus EvalIntegerSvdfHifi(
     TfLiteContext* context, TfLiteNode* node,
     const TfLiteEvalTensor* input_tensor,
     const TfLiteEvalTensor* weights_feature_tensor,
@@ -270,7 +292,11 @@ TfLiteStatus EvalIntegerSvdfHifi4(
 
   // Left shift the activation_state.
   int num_bytes = sizeof(*state_ptr) * (n_batch * n_filter * n_memory - 1);
+#if defined(HIFI5)
+  memcpy(state_ptr, state_ptr + 1, num_bytes);
+#else
   xa_nn_memmove_16(state_ptr, state_ptr + 1, num_bytes);
+#endif
 
   // Note: no need to clear the latest activation, matmul is not accumulative.
 
@@ -312,7 +338,7 @@ TfLiteStatus EvalIntegerSvdfHifi4(
   }
   return kTfLiteOk;
 }
-#endif  // defined(FUSION_F1) || defined(HIFIMINI)
+#endif  // defined(FUSION_F1) || defined(HIFIMINI) || defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
@@ -472,8 +498,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   EvalIntegerSvdfHifimini(context, node, input, weights_feature, weights_time,
                           bias, params, activation_state, output, data);
   return kTfLiteOk;
-#elif defined(FUSION_F1)
-  return EvalIntegerSvdfHifi4(context, node, input, weights_feature,
+#elif defined(FUSION_F1) || defined(HIFI5)
+  return EvalIntegerSvdfHifi(context, node, input, weights_feature,
                               weights_time, bias, params, activation_state,
                               output, data);
 #else
