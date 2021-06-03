@@ -66,6 +66,10 @@ void EvalFloatSvdfReference(
 
 TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node);
 
+// Returns a TfLiteRegistration struct for kernel variant that only supports
+// int8 input and output tensors.
+TfLiteRegistration Register_SVDF_INT8();
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_SVDF_H_

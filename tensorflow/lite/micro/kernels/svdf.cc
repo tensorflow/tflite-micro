@@ -81,6 +81,85 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus PrepareSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
+  const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
+
+  const TfLiteTensor* input = GetInput(context, node, kSvdfInputTensor);
+  const TfLiteTensor* weights_feature =
+      GetInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteTensor* weights_time =
+      GetInput(context, node, kSvdfWeightsTimeTensor);
+  const TfLiteTensor* activation_state =
+      GetInput(context, node, kSvdfInputActivationStateTensor);
+
+  // Define input constants based on input tensor definition above:
+  const int rank = params->rank;
+  const int batch_size = input->dims->data[0];
+  const int num_filters = weights_feature->dims->data[0];
+  const int num_units = num_filters / rank;
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+  OpData* data = static_cast<OpData*>(node->user_data);
+  TfLiteTensor* output = GetOutput(context, node, kSvdfOutputTensor);
+
+  const double effective_scale_1 = static_cast<double>(
+      input->params.scale * weights_feature->params.scale /
+      activation_state->params.scale);
+  const double effective_scale_2 =
+      static_cast<double>(activation_state->params.scale *
+                          weights_time->params.scale / output->params.scale);
+
+  QuantizeMultiplier(effective_scale_1, &(data->effective_scale_1_a),
+                     &(data->effective_scale_1_b));
+  QuantizeMultiplier(effective_scale_2, &(data->effective_scale_2_a),
+                     &(data->effective_scale_2_b));
+
+  data->input_zero_point = input->params.zero_point;
+  data->output_zero_point = output->params.zero_point;
+
+  TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
+  const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
+      context, batch_size * num_filters * sizeof(int32_t),
+      &(data->scratch_tensor_index));
+  TF_LITE_ENSURE_OK(context, scratch_status);
+
+  const TfLiteStatus scratch_output_status =
+      context->RequestScratchBufferInArena(
+          context, batch_size * num_units * sizeof(int32_t),
+          &(data->scratch_output_tensor_index));
+  TF_LITE_ENSURE_OK(context, scratch_output_status);
+  return kTfLiteOk;
+}
+
+TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
+  auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteEvalTensor* weights_time =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
+  const TfLiteEvalTensor* bias =
+      (NumInputs(node) == 5)
+          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
+          : nullptr;
+  TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
+      context, node, kSvdfInputActivationStateTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
+  TFLITE_DCHECK(weights_feature->type == kTfLiteInt8);
+
+  EvalIntegerSvdfReference(context, node, input, weights_feature,
+                           weights_time, bias, params, activation_state,
+                           output, data);
+  return kTfLiteOk;
+}
+
 }  // namespace
 
 TfLiteRegistration Register_SVDF() {
@@ -88,6 +167,17 @@ TfLiteRegistration Register_SVDF() {
           /*free=*/nullptr,
           /*prepare=*/PrepareSvdf,
           /*invoke=*/Eval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
+}
+
+TfLiteRegistration Register_SVDF_INT8() {
+  return {/*init=*/Init,
+          /*free=*/nullptr,
+          /*prepare=*/PrepareSvdfInt8,
+          /*invoke=*/EvalSvdfInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
