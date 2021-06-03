@@ -80,6 +80,54 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteError;
   }
 }
+
+TfLiteStatus SoftmaxPrepareInt8Int16(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(NumInputs(node) == 1);
+  TFLITE_DCHECK(NumOutputs(node) == 1);
+
+  const TfLiteTensor* input = GetInput(context, node, 0);
+  TfLiteTensor* output = GetOutput(context, node, 0);
+
+  TFLITE_DCHECK(NumDimensions(input) >= 1);
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
+  TFLITE_DCHECK(output->type == kTfLiteInt16);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+  SoftmaxParams* op_data = static_cast<SoftmaxParams*>(node->user_data);
+
+  auto* params = static_cast<TfLiteSoftmaxParams*>(node->builtin_data);
+
+  TFLITE_DCHECK(output->params.zero_point == -32768);
+
+  static const int kScaledDiffIntegerBits = 5;
+
+  int input_left_shift;
+  tflite::PreprocessSoftmaxScaling(
+      static_cast<double>(params->beta),
+      static_cast<double>(input->params.scale), kScaledDiffIntegerBits,
+      &op_data->input_multiplier, &input_left_shift);
+  op_data->input_left_shift = input_left_shift;
+  op_data->diff_min =
+      -1.0 * tflite::CalculateInputRadius(kScaledDiffIntegerBits,
+                                            op_data->input_left_shift);
+  return kTfLiteOk;
+}
+
+TfLiteStatus SoftmaxEvalInt8Int16(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
+  TFLITE_DCHECK(output->type == kTfLiteInt16);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  SoftmaxParams op_data = *static_cast<SoftmaxParams*>(node->user_data);
+      tflite::reference_ops::Softmax(
+          op_data, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int8_t>(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(output));
+  return kTfLiteOk;
+}
+
 }  // namespace
 
 TfLiteRegistration Register_SOFTMAX() {
@@ -87,6 +135,17 @@ TfLiteRegistration Register_SOFTMAX() {
           /*free=*/nullptr,
           /*prepare=*/SoftmaxPrepare,
           /*invoke=*/SoftmaxEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
+}
+
+TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
+  return {/*init=*/SoftmaxInit,
+          /*free=*/nullptr,
+          /*prepare=*/SoftmaxPrepareInt8Int16,
+          /*invoke=*/SoftmaxEvalInt8Int16,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
