@@ -262,6 +262,14 @@ ifneq ($(TARGET),xtensa)
 # Test the code for feature generation.
 $(eval $(call microlite_test,micro_features_generator_test,\
 $(MICRO_FEATURES_GENERATOR_TEST_SRCS), $(MICRO_FEATURES_GENERATOR_TEST_HDRS)))
+
+# Tests the feature provider module.
+$(eval $(call microlite_test,feature_provider_test,\
+$(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
+
+# Tests the feature provider module using the mock audio provider.
+$(eval $(call microlite_test,feature_provider_mock_test,\
+$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
 endif
 
 # Tests loading and running a speech model.
@@ -279,14 +287,6 @@ $(AUDIO_PROVIDER_TEST_SRCS),$(AUDIO_PROVIDER_TEST_HDRS)))
 # Tests the audio provider mock module.
 $(eval $(call microlite_test,audio_provider_mock_test,\
 $(AUDIO_PROVIDER_MOCK_TEST_SRCS),$(AUDIO_PROVIDER_MOCK_TEST_HDRS)))
-
-# Tests the feature provider module.
-$(eval $(call microlite_test,feature_provider_test,\
-$(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
-
-# Tests the feature provider module using the mock audio provider.
-$(eval $(call microlite_test,feature_provider_mock_test,\
-$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
 
 # Tests the command recognizer module.
 $(eval $(call microlite_test,recognize_commands_test,\
