@@ -21,7 +21,6 @@
 # of the TFLM code via this script.
 #
 
-set -x
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,56 +28,108 @@ ROOT_DIR=${SCRIPT_DIR}/..
 cd "${ROOT_DIR}"
 
 rm -rf /tmp/tensorflow
-rm -rf /tmp/tflm-tree
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
-# Manually apply some patches to avoid having to upstream changes to TF that
-# are very specific to the new TFLM repo.
-cp ci/temp_patches/tf_update_visibility.patch /tmp/tensorflow
-cd /tmp/tensorflow
-git apply tf_update_visibility.patch
+SHARED_TFL_CODE="\
+tensorflow/lite/c/common.c \
+tensorflow/lite/core/api/error_reporter.cc \
+tensorflow/lite/core/api/flatbuffer_conversions.cc \
+tensorflow/lite/core/api/op_resolver.cc \
+tensorflow/lite/core/api/tensor_utils.cc \
+tensorflow/lite/kernels/internal/quantization_util.cc \
+tensorflow/lite/kernels/kernel_util.cc \
+tensorflow/lite/schema/schema_utils.cc
+tensorflow/lite/c/builtin_op_data.h \
+tensorflow/lite/c/c_api_types.h \
+tensorflow/lite/c/common.h \
+tensorflow/lite/core/api/error_reporter.h \
+tensorflow/lite/core/api/flatbuffer_conversions.h \
+tensorflow/lite/core/api/op_resolver.h \
+tensorflow/lite/core/api/tensor_utils.h \
+tensorflow/lite/kernels/internal/common.h \
+tensorflow/lite/kernels/internal/compatibility.h \
+tensorflow/lite/kernels/internal/quantization_util.h \
+tensorflow/lite/kernels/internal/reference/add.h \
+tensorflow/lite/kernels/internal/reference/add_n.h \
+tensorflow/lite/kernels/internal/reference/arg_min_max.h \
+tensorflow/lite/kernels/internal/reference/batch_to_space_nd.h \
+tensorflow/lite/kernels/internal/reference/binary_function.h \
+tensorflow/lite/kernels/internal/reference/ceil.h \
+tensorflow/lite/kernels/internal/reference/comparisons.h \
+tensorflow/lite/kernels/internal/reference/concatenation.h \
+tensorflow/lite/kernels/internal/reference/conv.h \
+tensorflow/lite/kernels/internal/reference/cumsum.h \
+tensorflow/lite/kernels/internal/reference/depth_to_space.h \
+tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h \
+tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h \
+tensorflow/lite/kernels/internal/reference/dequantize.h \
+tensorflow/lite/kernels/internal/reference/elu.h \
+tensorflow/lite/kernels/internal/reference/exp.h \
+tensorflow/lite/kernels/internal/reference/fill.h \
+tensorflow/lite/kernels/internal/reference/floor.h \
+tensorflow/lite/kernels/internal/reference/floor_div.h \
+tensorflow/lite/kernels/internal/reference/floor_mod.h \
+tensorflow/lite/kernels/internal/reference/fully_connected.h \
+tensorflow/lite/kernels/internal/reference/hard_swish.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/add.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/conv.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/l2normalization.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/mean.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/mul.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/pooling.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h \
+tensorflow/lite/kernels/internal/reference/integer_ops/transpose_conv.h \
+tensorflow/lite/kernels/internal/reference/l2normalization.h \
+tensorflow/lite/kernels/internal/reference/leaky_relu.h \
+tensorflow/lite/kernels/internal/reference/log_softmax.h \
+tensorflow/lite/kernels/internal/reference/maximum_minimum.h \
+tensorflow/lite/kernels/internal/reference/mul.h \
+tensorflow/lite/kernels/internal/reference/neg.h \
+tensorflow/lite/kernels/internal/reference/pad.h \
+tensorflow/lite/kernels/internal/reference/pooling.h \
+tensorflow/lite/kernels/internal/reference/prelu.h \
+tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h \
+tensorflow/lite/kernels/internal/reference/quantize.h \
+tensorflow/lite/kernels/internal/reference/reduce.h \
+tensorflow/lite/kernels/internal/reference/requantize.h \
+tensorflow/lite/kernels/internal/reference/resize_bilinear.h \
+tensorflow/lite/kernels/internal/reference/resize_nearest_neighbor.h \
+tensorflow/lite/kernels/internal/reference/round.h \
+tensorflow/lite/kernels/internal/reference/softmax.h \
+tensorflow/lite/kernels/internal/reference/space_to_batch_nd.h \
+tensorflow/lite/kernels/internal/reference/space_to_depth.h \
+tensorflow/lite/kernels/internal/reference/sub.h \
+tensorflow/lite/kernels/internal/reference/logistic.h \
+tensorflow/lite/kernels/internal/reference/strided_slice.h \
+tensorflow/lite/kernels/internal/reference/tanh.h \
+tensorflow/lite/kernels/internal/reference/transpose.h \
+tensorflow/lite/kernels/internal/reference/transpose_conv.h \
+tensorflow/lite/kernels/internal/cppmath.h \
+tensorflow/lite/kernels/internal/max.h \
+tensorflow/lite/kernels/internal/min.h \
+tensorflow/lite/kernels/internal/portable_tensor.h \
+tensorflow/lite/kernels/internal/strided_slice_logic.h \
+tensorflow/lite/kernels/internal/tensor_ctypes.h \
+tensorflow/lite/kernels/internal/types.h \
+tensorflow/lite/kernels/kernel_util.h \
+tensorflow/lite/kernels/op_macros.h \
+tensorflow/lite/kernels/padding.h \
+tensorflow/lite/portable_type_to_tflitetype.h \
+tensorflow/lite/schema/schema_generated.h \
+tensorflow/lite/schema/schema_utils.h \
+"
 
-# TODO(b/184886633): the downloads should happen as part of the create_tflm_tree
-# script.
-make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
-python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py /tmp/tflm-tree
-cd -
+for filepath in ${SHARED_TFL_CODE}
+do
+  mkdir -p $(dirname ${filepath})
+  /bin/cp /tmp/tensorflow/${filepath} ${filepath}
+done
 
-rsync -r --delete /tmp/tflm-tree/tensorflow/lite tensorflow/
-
-# The entire micro directory will be copied from upstream TF (instead of being
-# copied from the output of the project generation).
-git checkout tensorflow/lite/micro/
-
-# TfLite BUILD files are manually maintained in the TFLM repo.
-git checkout \
-  tensorflow/BUILD \
-  tensorflow/lite/BUILD \
-  tensorflow/lite/build_def.bzl \
-  tensorflow/lite/c/BUILD \
-  tensorflow/lite/core/api/BUILD \
-  tensorflow/lite/kernels/BUILD \
-  tensorflow/lite/kernels/internal/BUILD \
-  tensorflow/lite/schema/BUILD
-
-git checkout \
-  tensorflow/lite/kernels/internal/optimized/neon_check.h \
-  tensorflow/lite/experimental/microfrontend
-
-rsync -r --delete /tmp/tensorflow/tensorflow/lite/micro tensorflow/lite/
-
-
+# The microfrontend is sync'd from upstream but not as part of the explicitly
+# specified SHARED_TFL_CODE since this is only needed for the examples.
 rm -rf tensorflow/lite/experimental/microfrontend/lib
 cp -r /tmp/tensorflow/tensorflow/lite/experimental/microfrontend/lib tensorflow/lite/experimental/microfrontend/lib
-
-rm -rf tensorflow/lite/micro/tools/ci_build/tflm_bazel
-
-# Any TFLM-repo specific files that are not in upstream TF will be deleted with
-# the rsync command and any files whose source of truth is the new TFLM repo
-# should be manually restored.
-git checkout \
-  tensorflow/lite/micro/tools/ci_build/helper_functions.sh \
-  tensorflow/lite/micro/tools/ci_build/test_bazel.sh \
-  tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-

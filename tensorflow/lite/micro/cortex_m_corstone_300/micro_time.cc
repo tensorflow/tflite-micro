@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,12 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/experimental/microfrontend/lib/log_scale_io.h"
-
-void LogScaleWriteMemmap(FILE* fp, const struct LogScaleState* state,
-                         const char* variable) {
-  MICROFRONTEND_FPRINTF(fp, "%s->enable_log = %d;\n", variable,
-                        state->enable_log);
-  MICROFRONTEND_FPRINTF(fp, "%s->scale_shift = %d;\n", variable,
-                        state->scale_shift);
-}
+// This file is empty to ensure that a specialized implementation of
+// micro_time.h is used (instead of the default implementation from
+// tensorflow/lite/micro/micro_time.cc).
+//
+// The actual target-specific implementation of micro_time.h is in
+// system_setup.cc since that allows us to consolidate all the target-specific
+// specializations into one source file.
