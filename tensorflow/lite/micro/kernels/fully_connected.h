@@ -65,7 +65,6 @@ TfLiteStatus CalculateOpDataFullyConnected(
 // (reference or optimized) must define this function.
 TfLiteRegistration Register_FULLY_CONNECTED();
 
-#if defined(CMSIS_NN) || defined(ARDUINO)
 // The Arduino is a special case where we use the CMSIS kernels, but because of
 // the current approach to building for Arduino, we do not support -DCMSIS_NN as
 // part of the build. As a result, we use defined(ARDUINO) as proxy for the
@@ -75,17 +74,6 @@ TfLiteRegistration Register_FULLY_CONNECTED();
 // supports int8.
 TfLiteRegistration Register_FULLY_CONNECTED_INT8();
 
-#else
-// Note that while this block gets used for both reference and optimized kernels
-// that do not have any specialized implementations, the only goal here is to
-// define fallback implementation that allow reference kernels to still be used
-// from applications that call a more specific kernel variant.
-
-inline TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
-  return Register_FULLY_CONNECTED();
-}
-
-#endif
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_FULLY_CONNECTED_H_

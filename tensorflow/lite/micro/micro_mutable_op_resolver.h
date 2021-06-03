@@ -396,8 +396,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_PRELU(), ParsePrelu);
   }
 
-  TfLiteStatus AddQuantize() {
-    return AddBuiltin(BuiltinOperator_QUANTIZE, Register_QUANTIZE(),
+  TfLiteStatus AddQuantize(
+      const TfLiteRegistration& registration = Register_QUANTIZE()) {
+    return AddBuiltin(BuiltinOperator_QUANTIZE, registration,
                       ParseQuantize);
   }
 
@@ -497,8 +498,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseSub);
   }
 
-  TfLiteStatus AddSvdf() {
-    return AddBuiltin(BuiltinOperator_SVDF, Register_SVDF(), ParseSvdf);
+  TfLiteStatus AddSvdf(const TfLiteRegistration& registration = Register_SVDF()) {
+    return AddBuiltin(BuiltinOperator_SVDF, registration, ParseSvdf);
   }
 
   TfLiteStatus AddTanh() {
