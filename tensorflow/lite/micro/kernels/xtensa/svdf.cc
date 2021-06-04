@@ -246,15 +246,14 @@ void EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
 
 #elif defined(FUSION_F1) || defined(HIFI5)
 
-TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
-                                 const TfLiteEvalTensor* input_tensor,
-                                 const TfLiteEvalTensor* weights_feature_tensor,
-                                 const TfLiteEvalTensor* weights_time_tensor,
-                                 const TfLiteEvalTensor* bias_tensor,
-                                 const TfLiteSVDFParams* params,
-                                 TfLiteEvalTensor* activation_state_tensor,
-                                 TfLiteEvalTensor* output_tensor,
-                                 const OpData& data) {
+TfLiteStatus EvalIntegerSvdfHifi(
+    TfLiteContext* context, TfLiteNode* node,
+    const TfLiteEvalTensor* input_tensor,
+    const TfLiteEvalTensor* weights_feature_tensor,
+    const TfLiteEvalTensor* weights_time_tensor,
+    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
+    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
+    const OpData& data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];
@@ -479,8 +478,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 #elif defined(FUSION_F1) || defined(HIFI5)
   return EvalIntegerSvdfHifi(context, node, input, weights_feature,
-                             weights_time, bias, params, activation_state,
-                             output, data);
+                              weights_time, bias, params, activation_state,
+                              output, data);
 #else
   EvalIntegerSvdfReference(context, node, input, weights_feature, weights_time,
                            bias, params, activation_state, output, data);
