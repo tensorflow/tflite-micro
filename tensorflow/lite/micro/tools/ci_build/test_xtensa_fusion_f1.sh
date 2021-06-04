@@ -24,6 +24,10 @@ pwd
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+
+# TODO(b/143904317): downloading first to allow for parallel builds.
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
+
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=xtensa \
   TARGET_ARCH=fusion_f1 \
