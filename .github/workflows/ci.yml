@@ -87,9 +87,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Test
         run: |
-          # TODO(b/184886633): the downloads should happen as part of the create_tflm_tree
-          # script or should optinally not be required.
-          make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
           tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
 
   x86_tests:
