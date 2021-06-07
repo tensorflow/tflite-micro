@@ -63,7 +63,6 @@ tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
-tensorflow/lite/experimental/microfrontend/lib/memory_util_fixed_pool.c \
 tensorflow/lite/experimental/microfrontend/lib/noise_reduction.c \
 tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.c \
 tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.c \
@@ -78,13 +77,11 @@ tensorflow/lite/experimental/microfrontend/lib/fft.h \
 tensorflow/lite/experimental/microfrontend/lib/fft_util.h \
 tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
-tensorflow/lite/experimental/microfrontend/lib/fprintf_shim.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
-tensorflow/lite/experimental/microfrontend/lib/memory_util.h \
 tensorflow/lite/experimental/microfrontend/lib/noise_reduction.h \
 tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.h \
 tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.h \
@@ -92,13 +89,6 @@ tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control_util.h \
 tensorflow/lite/experimental/microfrontend/lib/window.h \
 tensorflow/lite/experimental/microfrontend/lib/window_util.h \
 $(KISSFFT_LIB_HDRS)
-
-MICRO_FEATURES_LIB_MEMORY_UTIL_TEST_SRCS := \
-tensorflow/lite/experimental/microfrontend/lib/memory_util_test.c \
-$(MICRO_FEATURES_LIB_SRCS)
-
-MICRO_FEATURES_LIB_MEMORY_UTIL_TEST_HDRS := \
-$(MICRO_FEATURES_LIB_HDRS)
 
 MICRO_FEATURES_GENERATOR_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.cc \
@@ -252,25 +242,8 @@ include $(wildcard tensorflow/lite/micro/examples/micro_speech/*/Makefile.inc)
 CCFLAGS := $(filter-out $(CC_WARNINGS),$(CCFLAGS))
 
 # Test the code for feature generation.
-$(eval $(call microlite_test,micro_features_lib_memory_util_test,\
-$(MICRO_FEATURES_LIB_MEMORY_UTIL_TEST_SRCS), $(MICRO_FEATURES_LIB_MEMORY_UTIL_TEST_HDRS)))
-
-
-# TODO(#123): enable micro_features_generator_test once it passes for the Xtensa
-# target.
-ifneq ($(TARGET),xtensa)
-# Test the code for feature generation.
 $(eval $(call microlite_test,micro_features_generator_test,\
 $(MICRO_FEATURES_GENERATOR_TEST_SRCS), $(MICRO_FEATURES_GENERATOR_TEST_HDRS)))
-
-# Tests the feature provider module.
-$(eval $(call microlite_test,feature_provider_test,\
-$(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
-
-# Tests the feature provider module using the mock audio provider.
-$(eval $(call microlite_test,feature_provider_mock_test,\
-$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
-endif
 
 # Tests loading and running a speech model.
 $(eval $(call microlite_test,micro_speech_test,\
@@ -287,6 +260,14 @@ $(AUDIO_PROVIDER_TEST_SRCS),$(AUDIO_PROVIDER_TEST_HDRS)))
 # Tests the audio provider mock module.
 $(eval $(call microlite_test,audio_provider_mock_test,\
 $(AUDIO_PROVIDER_MOCK_TEST_SRCS),$(AUDIO_PROVIDER_MOCK_TEST_HDRS)))
+
+# Tests the feature provider module.
+$(eval $(call microlite_test,feature_provider_test,\
+$(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
+
+# Tests the feature provider module using the mock audio provider.
+$(eval $(call microlite_test,feature_provider_mock_test,\
+$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
 
 # Tests the command recognizer module.
 $(eval $(call microlite_test,recognize_commands_test,\
