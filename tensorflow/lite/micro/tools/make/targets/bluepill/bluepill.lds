@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 1024K
 
 /* Compute where the stack ends rather than hard coding it */
 _ld_stack_end_addr = ORIGIN(RAM) + LENGTH(RAM);
-_ld_min_stack_size = 0x8000;
+_ld_min_stack_size = 0x200;
 
 SECTIONS {
 
