@@ -117,7 +117,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // These models are outlined int the following documents:
     // https://docs.google.com/document/d/1lc_G2ZFhjiKFo02UHjBaljye1xsL0EkfybkaVELEE3Q/edit?usp=sharing
     // https://docs.google.com/document/d/1pGc42PuWyrk-Jy1-9qeqtggvsmHr1ifz8Lmqfpr2rKA/edit?usp=sharing
-    if (output->dims->data[1] == 5 || output->dims->data[1] == 13 ||
+    if (output->dims->data[1] == 5 || output->dims->data[1] == 13 || output->dims->data[1] == 25 ||
         (cb_prepare_count == 5 && output->dims->data[2] == 2 &&
          output->dims->data[3] == 96)) {
       op_data->cycles_max = 1;
