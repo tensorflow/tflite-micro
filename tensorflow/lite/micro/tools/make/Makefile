@@ -113,7 +113,8 @@ ifneq ($(CO_PROCESSOR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(CO_PROCESSOR) | tr [a-z] [A-Z])
 endif
 
-OPTIMIZATION_LEVEL := -O3
+BASE_OPTIMIZATION_LEVEL := -Os
+KERNEL_OPTIMIZATION_LEVEL := -O2
 
 CC_WARNINGS := \
   -Wsign-compare \
@@ -137,8 +138,6 @@ COMMON_FLAGS := \
   -fmessage-length=0 \
   -DTF_LITE_STATIC_MEMORY \
   -DTF_LITE_DISABLE_X86_NEON \
-  $(OPTIMIZATION_LEVEL) \
-  $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
 ifeq ($(TARGET), $(HOST_OS))
@@ -152,9 +151,16 @@ CXXFLAGS := \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
+  $(CC_WARNINGS) \
   $(COMMON_FLAGS)
 
 CCFLAGS := \
+  -Wimplicit-function-declaration \
+  -std=c11 \
+  $(CC_WARNINGS) \
+  $(COMMON_FLAGS)
+
+THIRD_PARTY_CCFLAGS := \
   -Wimplicit-function-declaration \
   -std=c11 \
   $(COMMON_FLAGS)
@@ -591,7 +597,9 @@ ALL_SRCS := \
 # Where compiled objects are stored.
 
 GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
-OBJDIR := $(GENDIR)obj/
+CORE_OBJDIR := $(GENDIR)obj/core/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
 PRJDIR := $(GENDIR)prj/
@@ -620,26 +628,40 @@ THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
 third_party_downloads: $(THIRD_PARTY_TARGETS)
 
-MICROLITE_LIB_OBJS := $(addprefix $(OBJDIR), \
+MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS))))
 
-MICROLITE_LIB_OBJS += $(addprefix $(OBJDIR), \
+MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
+MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
+
 # For normal manually-created TensorFlow C++ source files.
-$(OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(BASE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 # For normal manually-created TensorFlow C source files.
-$(OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(BASE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-# For normal manually-created TensorFlow ASM source files.
-$(OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(BASE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(THIRD_PARTY_CCFLAGS) $(BASE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(THIRD_PARTY_CCFLAGS) $(BASE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
@@ -648,11 +670,12 @@ tensorflow/lite/schema/schema_generated.h:
 	@cp -u tensorflow/lite/schema/schema_generated.h.oss tensorflow/lite/schema/schema_generated.h
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): tensorflow/lite/schema/schema_generated.h $(MICROLITE_LIB_OBJS)
+$(MICROLITE_LIB_PATH): tensorflow/lite/schema/schema_generated.h $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 	@mkdir -p $(dir $@)
-	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS)
+	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 
-$(BINDIR)%_test : $(OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
+$(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $< \
