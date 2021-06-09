@@ -54,6 +54,7 @@ tensorflow/lite/kernels/internal/reference/add.h \
 tensorflow/lite/kernels/internal/reference/add_n.h \
 tensorflow/lite/kernels/internal/reference/arg_min_max.h \
 tensorflow/lite/kernels/internal/reference/batch_to_space_nd.h \
+tensorflow/lite/kernels/internal/reference/batch_matmul.h \
 tensorflow/lite/kernels/internal/reference/binary_function.h \
 tensorflow/lite/kernels/internal/reference/ceil.h \
 tensorflow/lite/kernels/internal/reference/comparisons.h \
@@ -101,6 +102,7 @@ tensorflow/lite/kernels/internal/reference/resize_nearest_neighbor.h \
 tensorflow/lite/kernels/internal/reference/round.h \
 tensorflow/lite/kernels/internal/reference/softmax.h \
 tensorflow/lite/kernels/internal/reference/space_to_batch_nd.h \
+tensorflow/lite/kernels/internal/reference/space_to_depth.h \
 tensorflow/lite/kernels/internal/reference/sub.h \
 tensorflow/lite/kernels/internal/reference/logistic.h \
 tensorflow/lite/kernels/internal/reference/strided_slice.h \
@@ -113,6 +115,7 @@ tensorflow/lite/kernels/internal/min.h \
 tensorflow/lite/kernels/internal/portable_tensor.h \
 tensorflow/lite/kernels/internal/strided_slice_logic.h \
 tensorflow/lite/kernels/internal/tensor_ctypes.h \
+tensorflow/lite/kernels/internal/tensor_utils_common.h \
 tensorflow/lite/kernels/internal/types.h \
 tensorflow/lite/kernels/kernel_util.h \
 tensorflow/lite/kernels/op_macros.h \

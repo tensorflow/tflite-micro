@@ -1,17 +1,16 @@
+name: CI Tests
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
-    branches:
-      - main
-
+    
 jobs:
   trivial:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:test')
     name: CI Machinery Tests
     steps:
-      - name: show ci file
-        run: echo "this file is checked in main"
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: show selected vars
         run: |
           echo "GITHUB_ACTOR: $GITHUB_ACTOR"
@@ -20,3 +19,17 @@ jobs:
           echo "GITHUB_REF:  $GITHUB_REF"
           echo "GITHUB_REPOSITORY:  $GITHUB_REPOSITORY"
           echo "GITHUB_SHA:  $GITHUB_SHA"
+          echo ${{ github.event.number }}
+      - name: create json file
+        run: |
+          python3 .github/assets/write_json.py -f ./.tests/test.json
+      - name: commit ci info file
+        run: |
+          git config --local user.email "$(git log --format='%ae' HEAD^!)"
+          git config --local user.name "$(git log --format='%an' HEAD^!)"
+          git remote add github "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          git pull github ${GITHUB_REF}
+          git add .
+          git commit -m "adding ci data"
+          git push --force github HEAD:${GITHUB_HEAD_REF}
+
