@@ -158,6 +158,10 @@ if __name__ == "__main__":
       action="store_true",
       help="Do not copy files to output directory")
   parser.add_argument(
+      "--no_download",
+      action="store_true",
+      help="Do not download the TFLM third_party dependencies.")
+  parser.add_argument(
       "--print_src_files",
       action="store_true",
       help="Print the src files (i.e. files in the TFLM tree)")
@@ -180,8 +184,25 @@ if __name__ == "__main__":
       "-e hello_world -e micro_speech")
   args = parser.parse_args()
 
+  makefile_options = args.makefile_options
+  if args.no_download:
+    makefile_options += " DISABLE_DOWNLOADS=true"
+  else:
+    # TODO(b/143904317): Explicitly call make third_party_downloads. This will
+    # no longer be needed once all the downloads are switched over to bash
+    # scripts.
+    params_list = [
+        "make", "-f", "tensorflow/lite/micro/tools/make/Makefile",
+        "third_party_downloads"
+    ] + makefile_options.split()
+    process = subprocess.Popen(params_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    if process.returncode != 0:
+      raise RuntimeError("%s failed with \n\n %s" %
+                         (" ".join(params_list), stderr.decode()))
+
   src_files, dest_files = _get_src_and_dest_files(args.output_dir,
-                                                  args.makefile_options)
+                                                  makefile_options)
 
   if args.print_src_files:
     print(" ".join(src_files))
