@@ -32,7 +32,7 @@ the model buffer (represented by a .tflite-file) is allocated by the application
 using TensorFlow Lite Micro. An illustration of this can be seen in the image
 below.
 
-![Image of two blocks](images/preallocated_tensors/preallocated_tensors_bg_1.png)
+![Image of two blocks](../images/preallocated_tensors/preallocated_tensors_bg_1.png)
 
 Is some use cases it could be advantageous to place some of the EvalTensors
 outside of the tensor arena, for example: * When sensor output data is stored in
@@ -46,7 +46,7 @@ option to allow an application to provide pre-allocated buffers to TensorFlow
 Lite Micro for selected tensors. An illustration of the resulting memory layout
 with pre-allocated tensors can be seen in the figure below.
 
-![Image of three blocks](images/preallocated_tensors/preallocated_tensors_bg_2.png)
+![Image of three blocks](../images/preallocated_tensors/preallocated_tensors_bg_2.png)
 
 ## Current status
 
@@ -88,7 +88,7 @@ If multiple tensors are to be pre-allocated, multiple calls to
 RegisterPreallocatedTensor() are required. An example can be seen in the MSC
 below.
 
-![MSC](images/preallocated_tensors/preallocated_tensors_impl1.png)
+![MSC](../images/preallocated_tensors/preallocated_tensors_impl1.png)
 
 ## Performance overview
 
