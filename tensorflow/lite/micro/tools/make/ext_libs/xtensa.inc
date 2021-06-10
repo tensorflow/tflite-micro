@@ -44,7 +44,9 @@ ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
     $(NNLIB_PATH)/algo/kernels/cnn/hifi5/xa_nn_conv2d_pointwise_sym8sxasym8s.c \
     $(NNLIB_PATH)/algo/kernels/matXvec/hifi5/xa_nn_matmul_sym8sxasym8s.c \
     $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_dot_prod_16x16.c \
-    $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_elm_quantize.c
+    $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_elm_quantize.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_reduce_asym8s_asym8s.c \
+    $(NNLIB_PATH)/algo/kernels/pool/hifi5/xa_nn_inv_256_tbl.c
 
   INCLUDES += \
     -I$(NNLIB_PATH)/ \
