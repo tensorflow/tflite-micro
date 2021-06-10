@@ -24,7 +24,7 @@ either offline planned as specified in the flatbuffers metadata (described in
 this
 [RFC](https://docs.google.com/document/d/16aTSHL5wxsq99t6adVbBz1U3K8Y5tBDAvs16iroZDEU)),
 or allocated during runtime by the
-[memory planner](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/memory_planner)
+[memory planner](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/memory_planner)
 (online planned), see
 [RFC](https://docs.google.com/document/d/1akpqu0uiPQshmCrnV6dOEFgYM4tCCnI8Zce85PnjHMI).
 The tensor arena is allocated by MicroAllocator in TensorFlow Lite Micro, and
@@ -114,11 +114,11 @@ the total execution time for a reference system utilizing an ML HW accelerator.
 
 In this section we'll look at memory savings aspects of pre-allocating tensors
 outside the tensor arena. The default memory planner in TFLu is
-[GreedyPlanner](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h)
+[GreedyPlanner](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h)
 (see
 [RFC](https://docs.google.com/document/d/1akpqu0uiPQshmCrnV6dOEFgYM4tCCnI8Zce85PnjHMI)).
 One good tool for understanding tensor layout in the tensor arena is using
-[PrintMemoryPlan API](https://github.com/tensorflow/tensorflow/blob/6f89198ee3206431ec6836e1e3df54455b89ebcf/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h#L84).
+[PrintMemoryPlan API](https://github.com/tensorflow/tflite-micro/blob/73c5fa4d2bfbfd974552957818de2ab18ff42f39/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h#L84).
 If we print the calculated memory layout for the
 [person detection model](https://storage.googleapis.com/download.tensorflow.org/data/tf_lite_micro_person_data_int8_grayscale_2020_06_23.zip),
 the tensor arena looks like this at each layer: `Layer 1:
