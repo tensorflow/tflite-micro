@@ -81,7 +81,7 @@ struct OpData {
   int32_t filter_zero_point;
   int32_t output_zero_point;
 
-  void *hexagon_data;
+  void* hexagon_data;
 };
 
 TfLiteStatus CalculateOpData(TfLiteContext* context,
@@ -117,8 +117,9 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   if (data == nullptr) {
     return nullptr;
   }
-  OpData *opdata = static_cast<OpData *>(data);
-  opdata->hexagon_data = tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
+  OpData* opdata = static_cast<OpData*>(data);
+  opdata->hexagon_data =
+      tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
 
   return data;
 }
@@ -147,8 +148,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
     return tflite::hexagon_fully_connected::HexagonPrepare(context, node);
-  }
-  else {
+  } else {
     return CalculateOpData(context, params->activation, input->type, input,
                            filter, bias, output, data);
   }
@@ -159,8 +159,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* input,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
-                               TfLiteEvalTensor* output)
-{
+                               TfLiteEvalTensor* output) {
   tflite::FullyConnectedParams op_params;
   op_params.input_offset = -data.input_zero_point;
   op_params.weights_offset = -data.filter_zero_point;
@@ -277,12 +276,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
     case kTfLiteInt8:
       if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
-        return tflite::hexagon_fully_connected::HexagonEvalQuantizedInt8(context, node, node->user_data, input, filter, bias,
-                               output);
-      }
-      else {
+        return tflite::hexagon_fully_connected::HexagonEvalQuantizedInt8(
+            context, node, node->user_data, input, filter, bias, output);
+      } else {
         return EvalQuantizedInt8(context, node, data, input, filter, bias,
-                               output);
+                                 output);
       }
 
     case kTfLiteUInt8:

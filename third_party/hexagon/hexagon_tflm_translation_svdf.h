@@ -56,8 +56,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
-
-
 namespace tflite {
 namespace hexagon_svdf {
 
@@ -66,13 +64,13 @@ void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length);
 TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node);
 
 void HexagonEvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
-                     const TfLiteEvalTensor* input_tensor,
-                     const TfLiteEvalTensor* weights_feature_tensor,
-                     const TfLiteEvalTensor* weights_time_tensor,
-                     const TfLiteEvalTensor* bias_tensor,
-                     const TfLiteSVDFParams* params,
-                     TfLiteEvalTensor* activation_state_tensor,
-                     TfLiteEvalTensor* output_tensor, void *op_data);
+                            const TfLiteEvalTensor* input_tensor,
+                            const TfLiteEvalTensor* weights_feature_tensor,
+                            const TfLiteEvalTensor* weights_time_tensor,
+                            const TfLiteEvalTensor* bias_tensor,
+                            const TfLiteSVDFParams* params,
+                            TfLiteEvalTensor* activation_state_tensor,
+                            TfLiteEvalTensor* output_tensor, void* op_data);
 
 void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node);
 bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
@@ -80,4 +78,4 @@ bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
 }  // namespace hexagon_svdf
 }  // namespace tflite
 
-#endif // _HEXAGON_TFLM_TRANSLATION_SVDF_H_
+#endif  // _HEXAGON_TFLM_TRANSLATION_SVDF_H_

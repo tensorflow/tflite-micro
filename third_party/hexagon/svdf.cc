@@ -82,7 +82,7 @@ struct OpData {
   int input_zero_point;
   int output_zero_point;
 
-  void *hexagon_data;
+  void* hexagon_data;
 };
 
 /**
@@ -237,8 +237,7 @@ void EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
                      const TfLiteEvalTensor* bias_tensor,
                      const TfLiteSVDFParams* params,
                      TfLiteEvalTensor* activation_state_tensor,
-                     TfLiteEvalTensor* output_tensor, const OpData& data)
-{
+                     TfLiteEvalTensor* output_tensor, const OpData& data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];
@@ -388,8 +387,9 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   if (data == nullptr) {
     return nullptr;
   }
-  OpData *opdata = static_cast<OpData *>(data);
-  opdata->hexagon_data = tflite::hexagon_svdf::HexagonInit(context, buffer, length);
+  OpData* opdata = static_cast<OpData*>(data);
+  opdata->hexagon_data =
+      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
 
   return data;
 }
@@ -506,9 +506,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
 
     if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
-      TF_LITE_ENSURE_OK(context, tflite::hexagon_svdf::HexagonPrepare(context, node));
-    }
-    else {
+      TF_LITE_ENSURE_OK(context,
+                        tflite::hexagon_svdf::HexagonPrepare(context, node));
+    } else {
       const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
           context, batch_size * num_filters * sizeof(int32_t),
           &(data->scratch_tensor_index));
@@ -570,12 +570,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
     case kTfLiteInt8: {
       if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
-        tflite::hexagon_svdf::HexagonEvalIntegerSVDF(context, node, input, weights_feature, weights_time, bias,
-                      params, activation_state, output, node->user_data);
-      }
-      else {
-        EvalIntegerSVDF(context, node, input, weights_feature, weights_time, bias,
-                      params, activation_state, output, data);
+        tflite::hexagon_svdf::HexagonEvalIntegerSVDF(
+            context, node, input, weights_feature, weights_time, bias, params,
+            activation_state, output, node->user_data);
+      } else {
+        EvalIntegerSVDF(context, node, input, weights_feature, weights_time,
+                        bias, params, activation_state, output, data);
       }
       return kTfLiteOk;
       break;
@@ -590,7 +590,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 }  // namespace
-
 
 TfLiteRegistration Register_SVDF() {
   return {/*init=*/Init,

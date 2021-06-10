@@ -45,8 +45,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
 #define _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
 
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -55,8 +53,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-
 
 namespace tflite {
 namespace hexagon_fully_connected {
@@ -66,11 +64,11 @@ void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length);
 TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus HexagonEvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
-                               void *op_data,
-                               const TfLiteEvalTensor* input,
-                               const TfLiteEvalTensor* filter,
-                               const TfLiteEvalTensor* bias,
-                               TfLiteEvalTensor* output);
+                                      void* op_data,
+                                      const TfLiteEvalTensor* input,
+                                      const TfLiteEvalTensor* filter,
+                                      const TfLiteEvalTensor* bias,
+                                      TfLiteEvalTensor* output);
 
 void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node);
 bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
@@ -78,4 +76,4 @@ bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
 }  // namespace hexagon_fully_connected
 }  // namespace tflite
 
-#endif // _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
+#endif  // _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
