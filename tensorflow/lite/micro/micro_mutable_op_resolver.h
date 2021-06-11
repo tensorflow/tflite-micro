@@ -169,8 +169,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseConcatenation);
   }
 
-  TfLiteStatus AddConv2D() {
-    return AddBuiltin(BuiltinOperator_CONV_2D, Register_CONV_2D(), ParseConv2D);
+  TfLiteStatus AddConv2D(
+      const TfLiteRegistration& registration = Register_CONV_2D()) {
+    return AddBuiltin(BuiltinOperator_CONV_2D, registration, ParseConv2D);
   }
 
   TfLiteStatus AddCos() {
