@@ -45,50 +45,39 @@ ifneq ($(DOWNLOAD_RESULT), SUCCESS)
 endif
 
 FLOAT := soft
-GCC_TARGET_ARCH := $(TARGET_ARCH)
+MCPU_OPTION := $(TARGET_ARCH)
 
+# Linker and targets must match according to:
+# https://www.keil.com/support/man/docs/armclang_mig/armclang_mig_aya1488905345341.htm
+ARM_LDFLAGS := -Wl
 ifeq ($(TARGET_ARCH), cortex-m0)
-  CORE=M0
+  ARM_LDFLAGS += --cpu=Cortex-M0
 
 else ifeq ($(TARGET_ARCH), cortex-m3)
-  CORE=M3
-
-else ifeq ($(TARGET_ARCH), cortex-m33)
-  CORE=M33
-  FLOAT=hard
-  CMSIS_ARM_FEATURES := _DSP_DP
-
-else ifeq ($(TARGET_ARCH), cortex-m33+nodsp)
-  CORE=M33
+  ARM_LDFLAGS += --cpu=Cortex-M3
 
 else ifeq ($(TARGET_ARCH), cortex-m4)
-  CORE=M4
-  GCC_TARGET_ARCH := cortex-m4+nofp
+  ARM_LDFLAGS += --cpu=Cortex-M4.no_fp
+  MCPU_OPTION := cortex-m4+nofp
 
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
-  CORE=M4
+  ARM_LDFLAGS += --cpu=Cortex-M4
   FLOAT=hard
-  GCC_TARGET_ARCH := cortex-m4
+  MCPU_OPTION := cortex-m4
   CMSIS_ARM_FEATURES := _FP
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
-  CORE=M55
+  ARM_LDFLAGS += --cpu=8.1-M.Main.mve.fp
   FLOAT=hard
-
-else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
-  CORE=M55
-
-else ifeq ($(TARGET_ARCH), cortex-m55+nofp)
-  CORE=M55
 
 else ifeq ($(TARGET_ARCH), cortex-m7)
-  CORE=M7
-  GCC_TARGET_ARCH := cortex-m7+nofp
+  ARM_LDFLAGS += --cpu=Cortex-M7.no_fp
+  MCPU_OPTION := cortex-m7+nofp
 
 else ifeq ($(TARGET_ARCH), cortex-m7+fp)
-  CORE=M7
+  ARM_LDFLAGS += --cpu=Cortex-M7
   FLOAT=hard
-  GCC_TARGET_ARCH := cortex-m7
+  MCPU_OPTION := cortex-m7
   CMSIS_ARM_FEATURES := _DP
 
 else
@@ -102,7 +91,57 @@ ifneq ($(filter cortex-m55%,$(TARGET_ARCH)),)
   endif
 endif
 
-ifeq ($(TOOLCHAIN), gcc)
+# Filter out part of mcpu string for choosing the correct startup files
+ARM_CPU := $(subst cortex-m,ARMCM,$(MCPU_OPTION))
+ARM_CPU := $(subst +nofp,,$(ARM_CPU))
+
+ifeq ($(TOOLCHAIN), armclang)
+  CXX_TOOL  := armclang
+  CC_TOOL   := armclang
+  AR_TOOL   := armar
+  LD        := armlink
+
+  FLAGS_ARMC = \
+    --target=arm-arm-none-eabi \
+    -Wno-unused-private-field \
+    -mcpu=$(MCPU_OPTION)
+
+  ARM_LDFLAGS += --strict --summary_stderr --info summarysizes --map \
+                 --load_addr_map_info --xref --callgraph --symbols --info sizes \
+                 --info totals --info unused --info veneers \
+                 --list=${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/gen/$(TARGET).map \
+                 --entry=Reset_Handler --verbose \
+                 --scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
+
+  # Pass a hint to the linker where to find the entry point. This needs to be
+  # done since the startup object file (containing the entry point) is inside
+  # the TFLM library. See:
+  # https://developer.arm.com/documentation/ka003125/latest
+  ARM_LDFLAGS += $(LIBDIR)/$(MICROLITE_LIB_NAME)\(startup_$(ARM_CPU).o\)
+
+  # -Wl takes comma separated values, replace space with comma's
+  COMMA := ,
+  DUMMY :=
+  SPACE := $(DUMMY) $(DUMMY)
+  ARM_LDFLAGS := $(subst $(SPACE),$(COMMA),$(ARM_LDFLAGS))
+
+  CXXFLAGS += $(FLAGS_ARMC)
+  CCFLAGS += $(FLAGS_ARMC)
+  LDFLAGS := $(ARM_LDFLAGS)
+
+  MICROLITE_CC_KERNEL_SRCS := $(filter-out $(EXCLUDED_CC_SRCS),$(MICROLITE_CC_KERNEL_SRCS))
+  THIRD_PARTY_CC_HDRS := $(filter-out $(EXCLUDED_HDRS),$(THIRD_PARTY_CC_HDRS))
+  MICROLITE_CC_HDRS := $(filter-out $(EXCLUDED_KERNEL_HDRS),$(MICROLITE_CC_HDRS))
+
+  # Arm Compiler will not link the Math library (see below), therefore we're filtering it out.
+  # See Fatal error: L6450U: Cannot find library m:
+  # "Arm Compiler is designed to run in a bare metal environment,
+  # and automatically includes implementations of these functions,
+  # and so no such flag is necessary."
+  # https://developer.arm.com/documentation/100891/0611/troubleshooting/general-troubleshooting-advice
+  MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
+
+else ifeq ($(TOOLCHAIN), gcc)
   TARGET_DEFAULT_TOOLCHAIN_ROOT := $(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
   TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
   ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
@@ -113,7 +152,7 @@ ifeq ($(TOOLCHAIN), gcc)
   endif
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH) -mfpu=auto
+  FLAGS_GCC = -mcpu=$(MCPU_OPTION) -mfpu=auto
   CXXFLAGS += $(FLAGS_GCC)
   CCFLAGS += $(FLAGS_GCC)
 
@@ -140,15 +179,12 @@ PLATFORM_FLAGS = \
   -mlittle-endian \
   ${OMIT_ERRORS} \
   -fomit-frame-pointer \
-  -MD \
-  -DCPU_$(CORE)=1
+  -MD
 
 # Common + C/C++ flags
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
-ARM_CPU := $(subst cortex-m,ARMCM,$(GCC_TARGET_ARCH))
-ARM_CPU := $(subst +nofp,,$(ARM_CPU))
 CXXFLAGS += -D$(ARM_CPU)$(CMSIS_ARM_FEATURES)
 CCFLAGS += -D$(ARM_CPU)$(CMSIS_ARM_FEATURES)
 
@@ -181,9 +217,7 @@ EXCLUDED_TESTS := \
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 EXCLUDED_EXAMPLE_TESTS := \
   tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-  tensorflow/lite/micro/examples/hello_world/Makefile.inc \
-  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc
+  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh

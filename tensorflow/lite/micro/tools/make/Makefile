@@ -664,11 +664,17 @@ $(BINDIR)%.test_target: $(BINDIR)%_test
 # snease: Add %.bin rule here since BINDIR is now defined
 # These are microcontroller-specific rules for converting the ELF output
 # of the linker into a binary image that can be loaded directly.
-OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
-$(BINDIR)%.bin: $(BINDIR)%
-	@mkdir -p $(dir $@)
-	$(OBJCOPY) $< $@ -O binary
-
+ifeq ($(TOOLCHAIN), armclang)
+  FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
+  $(BINDIR)%.bin: $(BINDIR)%
+		@mkdir -p $(dir $@)
+		$(FROMELF) --bin --output=$@ $<
+else
+  OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
+  $(BINDIR)%.bin: $(BINDIR)%
+		@mkdir -p $(dir $@)
+		$(OBJCOPY) $< $@ -O binary
+endif
 
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the

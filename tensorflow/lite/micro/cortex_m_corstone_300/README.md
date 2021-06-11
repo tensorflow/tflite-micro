@@ -20,9 +20,7 @@ To fullfill the needed requirements it is depending the following projects:
 
 # General build info
 
-This target is based on the cortex_m_generic target and except that for now the
-only supported toolchain is GCC, the same general build info applies:
-tensorflow/lite/micro/cortex_m_generic/README.md.
+You can compile this target for multiple Cortex-M CPUs. See below.
 
 Required parameters:
 
@@ -32,10 +30,10 @@ Required parameters:
 
 # How to run
 
-Note that Corstone-300 is targetted for Cortex-M55 but it is backwards
-compatible. This means one could potentially run it for example with a
-Cortex-M7. Note that the clock speed would be that of an Cortex-M55. This may
-not matter when running unit tests or for debugging.
+Note that Corstone-300 emulates a Cortex-M55 system, but it is backwards
+compatible. This means one could run code compiled for e.g. a Cortex-M7.
+Note that the clock speed would be that of an Cortex-M55. This may not matter
+when running unit tests or for debugging.
 
 Some examples:
 
@@ -47,4 +45,5 @@ make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_30
 make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 test_kernel_fully_connected_test
 make -j -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m7+fp test_kernel_fully_connected_test
 make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m3 test_kernel_fully_connected_test
+make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 BUILD_TYPE=release_with_logs TOOLCHAIN=armclang test_hello_world_test
 ```
