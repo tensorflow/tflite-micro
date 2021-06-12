@@ -56,8 +56,7 @@ PersonDetectionBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
   // PersonDetectionBenchmarkRunner object.
   PersonDetectionOpResolver* op_resolver = new (op_resolver_buffer) PersonDetectionOpResolver();
   op_resolver->AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
-  //op_resolver->AddConv2D(tflite::Register_CONV_2D_INT8());
-  op_resolver->AddConv2D();
+  op_resolver->AddConv2D(tflite::Register_CONV_2D_INT8());
   op_resolver->AddDepthwiseConv2D();
   op_resolver->AddSoftmax();
   op_resolver->AddAveragePool2D();
