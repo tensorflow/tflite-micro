@@ -119,7 +119,7 @@ KERNEL_OPTIMIZATION_LEVEL := -O2
 # Warn if deprecated optimization level is set.
 OPTIMIZATION_LEVEL :=
 ifneq ($(OPTIMIZATION_LEVEL),)
-echo "OPTIMIZATION_LEVEL is no longer used."
+$(error "OPTIMIZATION_LEVEL is no longer used.")
 endif
 
 
