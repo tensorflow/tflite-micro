@@ -116,6 +116,8 @@ ASSERT_RESULT=$?
 # All checks are complete, clean up.
 ###########################################################################
 
+popd
+
 # Re-enable exit on error now that we are done with the temporary git repo.
 set -e
 
