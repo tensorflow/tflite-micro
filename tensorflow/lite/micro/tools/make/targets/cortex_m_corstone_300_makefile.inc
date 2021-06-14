@@ -130,8 +130,7 @@ endif
 
 # TODO(#47718): resolve warnings.
 OMIT_ERRORS = \
-  -Wno-implicit-fallthrough \
-  -Wno-strict-aliasing
+  -Wno-implicit-fallthrough
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
