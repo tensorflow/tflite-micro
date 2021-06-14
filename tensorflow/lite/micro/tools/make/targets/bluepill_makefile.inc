@@ -27,7 +27,6 @@ PLATFORM_FLAGS = \
   -mcpu=cortex-m3 \
   -mthumb \
   -Wno-vla \
-  -Wno-strict-aliasing \
   -Wno-shadow \
   -Wno-type-limits \
   -fomit-frame-pointer \
