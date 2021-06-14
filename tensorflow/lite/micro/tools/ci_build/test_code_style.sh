@@ -31,17 +31,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 # scripts fail with an error code.
 set +e
 
-# The pigweed scripts only work from a git repository and the Tensorflow CI
-# infrastructure does not always guarantee that. As an ugly workaround, we
-# create our own git repo when running on the CI servers.
 pushd tensorflow/lite/
-if [[ ${1} == "PRESUBMIT" ]]; then
-  git init .
-  git config user.email "tflm@google.com"
-  git config user.name "TensorflowLite Micro"
-  git add *
-  git commit -a -m "Commit for a temporary repository." > /dev/null
-fi
 
 ############################################################
 # License Check
@@ -125,9 +115,6 @@ ASSERT_RESULT=$?
 ###########################################################################
 
 popd
-if [[ ${1} == "PRESUBMIT" ]]; then
-  rm -rf tensorflow/lite/.git
-fi
 
 # Re-enable exit on error now that we are done with the temporary git repo.
 set -e
