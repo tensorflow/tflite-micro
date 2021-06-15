@@ -1,16 +1,12 @@
 name: Remove Labels
 
 on:
-  pull_request_branch:
+  pull_request_target:
     types: [labeled]
 
 jobs:
   label_cleanup:
     runs-on: ubuntu-latest
-
-    if: |
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test'))
 
     name: remove CI runner labels
     steps:
