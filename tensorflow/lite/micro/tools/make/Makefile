@@ -392,6 +392,7 @@ tensorflow/lite/micro/kernels/neg.cc \
 tensorflow/lite/micro/kernels/pack.cc \
 tensorflow/lite/micro/kernels/pad.cc \
 tensorflow/lite/micro/kernels/pooling.cc \
+tensorflow/lite/micro/kernels/pooling_common.cc \
 tensorflow/lite/micro/kernels/prelu.cc \
 tensorflow/lite/micro/kernels/quantize.cc \
 tensorflow/lite/micro/kernels/quantize_common.cc \
