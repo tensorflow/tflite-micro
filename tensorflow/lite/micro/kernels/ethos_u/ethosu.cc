@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020-2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -120,8 +120,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // the 8 first tensors
   num_tensors = std::min(num_tensors, 8);
 
-  result = ethosu_invoke_v2(cms_data, data->cms_data_size, base_addrs,
-                            base_addrs_size, num_tensors);
+  struct ethosu_driver* drv = ethosu_reserve_driver();
+  result = ethosu_invoke(drv, cms_data, data->cms_data_size, base_addrs,
+                         base_addrs_size, num_tensors);
+  ethosu_release_driver(drv);
+
   if (-1 == result) {
     return kTfLiteError;
   } else {
