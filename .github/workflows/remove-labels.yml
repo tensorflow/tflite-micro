@@ -27,4 +27,5 @@ jobs:
               repo: context.repo.repo,
               name: 'ci:test'
             })
+        # Prevent erroring out if label doesn't exist
         continue-on-error: true
