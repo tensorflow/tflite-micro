@@ -15,7 +15,9 @@
 # limitations under the License.
 # ==============================================================================
 
-
+# TODO(b/190754463): Delete this script once we have the Hexagon kernels checked
+# in and integrated for all the workflows.
+#
 # Explanation and background can be found in:
 # https://docs.google.com/document/d/1SlU5OcHEjdgs02ZCupo21mlLBJ6tE6D46FxUrQl8xUc/edit#heading=h.fshpxalu2qt4
 

@@ -132,7 +132,6 @@ endif
 # TODO(#47718): resolve warnings.
 OMIT_ERRORS = \
   -Wno-implicit-fallthrough \
-  -Wno-strict-aliasing \
   -Wno-unused-variable
 
 PLATFORM_FLAGS = \
