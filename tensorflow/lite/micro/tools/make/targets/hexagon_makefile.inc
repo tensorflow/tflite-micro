@@ -92,7 +92,9 @@ LDFLAGS += \
   -Wl,--gc-sections -lhexagon \
   $(HEXAGON_ROOT)/$(HEXAGON_TOOL_VER)/Tools/target/hexagon/lib/v66/libstdc++.a
 
+# TODO(b/190754463): Remove include path once download_hexagon is removed.
 INCLUDES += \
+  -Itensorflow/lite/micro/kernels/hexagon/inc \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/posix \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt
 
