@@ -169,8 +169,9 @@ CCFLAGS := \
 THIRD_PARTY_CCFLAGS := \
   -Wimplicit-function-declaration \
   -std=c11 \
+  $(COMMON_FLAGS) \
   -Wno-vla \
-  $(COMMON_FLAGS)
+  -Wno-strict-aliasing
 
 ARFLAGS := -r
 
