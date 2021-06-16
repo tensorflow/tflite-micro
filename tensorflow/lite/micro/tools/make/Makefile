@@ -170,13 +170,6 @@ CCFLAGS := \
   -std=c11 \
   $(COMMON_FLAGS)
 
-THIRD_PARTY_CCFLAGS := \
-  -Wimplicit-function-declaration \
-  -std=c11 \
-  $(COMMON_FLAGS) \
-  -Wno-vla \
-  -Wno-strict-aliasing
-
 ARFLAGS := -r
 
 ifeq ($(TOOLCHAIN), gcc)
@@ -666,11 +659,11 @@ $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 
 $(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(THIRD_PARTY_CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(THIRD_PARTY_CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
