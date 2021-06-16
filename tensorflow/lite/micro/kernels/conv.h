@@ -78,7 +78,7 @@ TfLiteRegistration Register_CONV_2D();
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 inputs and outputs.
 TfLiteRegistration Register_CONV_2D_INT8REF();
-#else 
+#else
 inline TfLiteRegistration Register_CONV_2D_INT8REF() {
   return Register_CONV_2D();
 }

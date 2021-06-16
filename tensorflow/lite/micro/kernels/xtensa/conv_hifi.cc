@@ -42,7 +42,8 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* filter = GetInput(context, node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
-  if (input->type == kTfLiteInt8 && output->type == kTfLiteInt8 && filter->type == kTfLiteInt8){
+  if (input->type == kTfLiteInt8 && output->type == kTfLiteInt8 &&
+      filter->type == kTfLiteInt8) {
     return ConvReferencePrepareInt8(context, node);
   }
 
