@@ -28,7 +28,7 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-// The Flexbuffer library is iniline heavy, which causes code bloat when
+// The Flexbuffer library is inline heavy, which causes code bloat when
 // custom ops are used. Wrapping with a function is a portable way to avoid
 // this bloat
 const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
