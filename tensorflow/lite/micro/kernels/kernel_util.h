@@ -18,6 +18,8 @@ limitations under the License.
 
 #include <cstdint>
 
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
+#include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -25,6 +27,20 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+
+// The Flexbuffer library is iniline heavy, which causes code bloat when
+// custom ops are used. Wrapping with a function is a portable way to avoid
+// this bloat
+const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
+                                                      size_t size);
+
+int32_t FlexbuffersWrapperAsInt32(const flexbuffers::Map& m, const char* key);
+
+bool FlexbuffersWrapperAsBool(const flexbuffers::Map& m, const char* key);
+
+float FlexbuffersWrapperAsFloat(const flexbuffers::Map& m, const char* key);
+
+bool FlexbuffersWrapperIsNull(const flexbuffers::Map& m, const char* key);
 
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
