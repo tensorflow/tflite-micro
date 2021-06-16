@@ -72,6 +72,8 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
+TfLiteRegistration Register_CONV_2D();
+
 #if defined(XTENSA)
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 inputs and outputs.

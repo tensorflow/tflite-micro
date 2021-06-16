@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
