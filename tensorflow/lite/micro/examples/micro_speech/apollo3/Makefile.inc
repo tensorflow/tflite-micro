@@ -8,7 +8,7 @@ ifeq ($(TARGET), apollo3evb)
     $(AP3_MICRO_DIR)/../simple_features/tiny_conv_simple_features_model_data.cc \
     $(APOLLO3_SDK)/devices/am_devices_led.c
   ALL_SRCS += $(PUSHBUTTON_MICRO_SPEECH_TEST_SRCS)
-  PUSHBUTTON_MICRO_SPEECH_TEST_OBJS := $(addprefix $(OBJDIR), \
+  PUSHBUTTON_MICRO_SPEECH_TEST_OBJS := $(addprefix $(CORE_OBJDIR), \
     $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(PUSHBUTTON_MICRO_SPEECH_TEST_SRCS))))
   PUSHBUTTON_MICRO_SPEECH_TEST_BINARY := $(BINDIR)pushbutton_micro_speech_test
   $(PUSHBUTTON_MICRO_SPEECH_TEST_BINARY): $(PUSHBUTTON_MICRO_SPEECH_TEST_OBJS) $(MICROLITE_LIB_PATH)
@@ -31,7 +31,7 @@ ifeq ($(TARGET), apollo3evb)
     $(APOLLO3_SDK)/devices/am_devices_led.c \
     $(CMSIS_SRCS)
   ALL_SRCS += $(PUSHBUTTON_CMSIS_SPEECH_TEST_SRCS)
-  PUSHBUTTON_CMSIS_SPEECH_TEST_OBJS := $(addprefix $(OBJDIR), \
+  PUSHBUTTON_CMSIS_SPEECH_TEST_OBJS := $(addprefix $(CORE_OBJDIR), \
     $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(PUSHBUTTON_CMSIS_SPEECH_TEST_SRCS))) \
     arm_bitreversal2.o)
   PUSHBUTTON_CMSIS_SPEECH_TEST_BINARY := $(BINDIR)pushbutton_cmsis_speech_test
@@ -55,7 +55,7 @@ ifeq ($(TARGET), apollo3evb)
     $(AP3_EXT_MICRO_DIR)/system_apollo3.c \
     $(AP3_MICRO_DIR)/_main.c
   ALL_SRCS += $(PREPROCESSOR_1K_MICRO_TEST_SRCS)
-  PREPROCESSOR_1K_MICRO_TEST_OBJS := $(addprefix $(OBJDIR), \
+  PREPROCESSOR_1K_MICRO_TEST_OBJS := $(addprefix $(CORE_OBJDIR), \
     $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(PREPROCESSOR_1K_MICRO_TEST_SRCS))))
   PREPROCESSOR_1K_MICRO_TEST_BINARY := $(BINDIR)preprocessor_1k_micro_test
   $(PREPROCESSOR_1K_MICRO_TEST_BINARY): $(PREPROCESSOR_1K_MICRO_TEST_OBJS) $(MICROLITE_LIB_PATH)
@@ -78,7 +78,7 @@ ifeq ($(TARGET), apollo3evb)
     $(CMSIS_SRCS)
   ALL_SRCS += $(PREPROCESSOR_1K_CMSIS_TEST_SRCS)
   PREPROCESSOR_1K_CMSIS_TEST_BINARY := $(BINDIR)preprocessor_1k_cmsis_test
-  PREPROCESSOR_1K_CMSIS_TEST_OBJS := $(addprefix $(OBJDIR), \
+  PREPROCESSOR_1K_CMSIS_TEST_OBJS := $(addprefix $(CORE_OBJDIR), \
     $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(PREPROCESSOR_1K_CMSIS_TEST_SRCS)))\
     arm_bitreversal2.o)
   $(PREPROCESSOR_1K_CMSIS_TEST_BINARY): $(PREPROCESSOR_1K_CMSIS_TEST_OBJS) $(MICROLITE_LIB_PATH)
@@ -94,7 +94,7 @@ ifeq ($(TARGET), apollo3evb)
   PREPROCESSOR_TEST_SRCS += \
     $(AP3_MICRO_DIR)/_main.c 
 
-  $(OBJDIR)arm_bitreversal2.o:
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $(CMSIS_SRC_DIR)/TransformFunctions/arm_bitreversal2.S -o $(OBJDIR)arm_bitreversal2.o
+  $(CORE_OBJDIR)arm_bitreversal2.o:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $(CMSIS_SRC_DIR)/TransformFunctions/arm_bitreversal2.S -o $(CORE_OBJDIR)arm_bitreversal2.o
 
 endif
