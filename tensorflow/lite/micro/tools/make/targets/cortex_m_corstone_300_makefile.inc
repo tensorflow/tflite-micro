@@ -49,33 +49,32 @@ MCPU_OPTION := $(TARGET_ARCH)
 
 # Linker and targets must match according to:
 # https://www.keil.com/support/man/docs/armclang_mig/armclang_mig_aya1488905345341.htm
-ARM_LDFLAGS := -Wl
 ifeq ($(TARGET_ARCH), cortex-m0)
-  ARM_LDFLAGS += --cpu=Cortex-M0
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M0
 
 else ifeq ($(TARGET_ARCH), cortex-m3)
-  ARM_LDFLAGS += --cpu=Cortex-M3
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M3
 
 else ifeq ($(TARGET_ARCH), cortex-m4)
-  ARM_LDFLAGS += --cpu=Cortex-M4.no_fp
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M4.no_fp
   MCPU_OPTION := cortex-m4+nofp
 
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
-  ARM_LDFLAGS += --cpu=Cortex-M4
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M4
   FLOAT=hard
   MCPU_OPTION := cortex-m4
   CMSIS_ARM_FEATURES := _FP
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
-  ARM_LDFLAGS += --cpu=8.1-M.Main.mve.fp
+  ARMC6_LDFLAGS += -Wl,--cpu=8.1-M.Main.mve.fp
   FLOAT=hard
 
 else ifeq ($(TARGET_ARCH), cortex-m7)
-  ARM_LDFLAGS += --cpu=Cortex-M7.no_fp
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M7.no_fp
   MCPU_OPTION := cortex-m7+nofp
 
 else ifeq ($(TARGET_ARCH), cortex-m7+fp)
-  ARM_LDFLAGS += --cpu=Cortex-M7
+  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M7
   FLOAT=hard
   MCPU_OPTION := cortex-m7
   CMSIS_ARM_FEATURES := _DP
@@ -106,28 +105,23 @@ ifeq ($(TOOLCHAIN), armclang)
     -Wno-unused-private-field \
     -mcpu=$(MCPU_OPTION)
 
-  ARM_LDFLAGS += --strict --summary_stderr --info summarysizes --map \
-                 --load_addr_map_info --xref --callgraph --symbols --info sizes \
-                 --info totals --info unused --info veneers \
-                 --list=${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/gen/$(TARGET).map \
-                 --entry=Reset_Handler --verbose \
-                 --scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
+  # Pass comma separated linker options to armlink
+  ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
+  ARMC6_LDFLAGS += -Wl,--load_addr_map_info,--xref,--callgraph,--symbols
+  ARMC6_LDFLAGS += -Wl,--info,sizes,--info,totals,--info,unused,--info,veneers
+  ARMC6_LDFLAGS += -Wl,--list=${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/gen/$(TARGET).map
+  ARMC6_LDFLAGS += -Wl,--entry=Reset_Handler  --verbose
+  ARMC6_LDFLAGS += -Wl,--scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
 
   # Pass a hint to the linker where to find the entry point. This needs to be
   # done since the startup object file (containing the entry point) is inside
   # the TFLM library. See:
   # https://developer.arm.com/documentation/ka003125/latest
-  ARM_LDFLAGS += $(LIBDIR)/$(MICROLITE_LIB_NAME)\(startup_$(ARM_CPU).o\)
-
-  # -Wl takes comma separated values, replace space with comma's
-  COMMA := ,
-  DUMMY :=
-  SPACE := $(DUMMY) $(DUMMY)
-  ARM_LDFLAGS := $(subst $(SPACE),$(COMMA),$(ARM_LDFLAGS))
+  ARMC6_LDFLAGS += -Wl,$(LIBDIR)/$(MICROLITE_LIB_NAME)\(startup_$(ARM_CPU).o\)
 
   CXXFLAGS += $(FLAGS_ARMC)
   CCFLAGS += $(FLAGS_ARMC)
-  LDFLAGS := $(ARM_LDFLAGS)
+  LDFLAGS := $(ARMC6_LDFLAGS)
 
   MICROLITE_CC_KERNEL_SRCS := $(filter-out $(EXCLUDED_CC_SRCS),$(MICROLITE_CC_KERNEL_SRCS))
   THIRD_PARTY_CC_HDRS := $(filter-out $(EXCLUDED_HDRS),$(THIRD_PARTY_CC_HDRS))
