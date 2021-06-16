@@ -254,6 +254,7 @@ cc_library(
         ":tflite_micro",
     ],
     deps = [
+        "@flatbuffers//:runtime_cc",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:types",
