@@ -64,6 +64,10 @@ endif
 # Specify which specialized kernel implementation should be pulled in.
 OPTIMIZED_KERNEL_DIR :=
 
+# Override this variable from the command line in case the optimized kernels are
+# in a different directory.
+OPTIMIZED_KERNEL_DIR_PREFIX := tensorflow/lite/micro/kernels
+
 # Specify which co-processor's kernel implementation should be pulled in.
 # If the same kernel is implemented in both kernels/OPTIMIZED_KERNEL_DIR and
 # kernels/CO_PROCESSOR, then the implementation from kernels/CO_PROCESSOR will
@@ -559,9 +563,10 @@ ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
 endif
 
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
+  PATH_TO_OPTIMIZED_KERNELS := $(OPTIMIZED_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
-	# reference kernels. See http://b/183546742 for more context.
-  PATH_TO_OPTIMIZED_KERNELS := tensorflow/lite/micro/kernels/$(OPTIMIZED_KERNEL_DIR)
+  # reference kernels. See http://b/183546742 for more context.
   RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
@@ -569,7 +574,9 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   include $(MAKEFILE_DIR)/ext_libs/$(OPTIMIZED_KERNEL_DIR).inc
   # Specialize for the optimized kernels
-  MICROLITE_CC_KERNEL_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_KERNEL_SRCS),$(OPTIMIZED_KERNEL_DIR))
+  MICROLITE_CC_KERNEL_SRCS := $(shell python $(MAKEFILE_DIR)/specialize_files.py \
+		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 endif
 
 # If a co-processor is specified on the command line with

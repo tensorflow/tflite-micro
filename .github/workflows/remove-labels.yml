@@ -1,0 +1,31 @@
+name: Remove Labels
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  label_cleanup:
+    runs-on: ubuntu-latest
+
+    name: remove CI runner labels
+    steps:
+      - name: remove tags
+        uses: actions/github-script@a3e7071a34d7e1f219a8a4de9a5e0a34d1ee1293
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:run'
+            })
+            github.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:test'
+            })
+        # Prevent erroring out if label doesn't exist
+        continue-on-error: true

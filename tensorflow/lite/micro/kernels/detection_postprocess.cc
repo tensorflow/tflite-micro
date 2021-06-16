@@ -15,8 +15,6 @@ limitations under the License.
 
 #include <numeric>
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
-#include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -117,34 +115,42 @@ struct OpData {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpData* op_data = nullptr;
 
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-  const flexbuffers::Map& m = flexbuffers::GetRoot(buffer_t, length).AsMap();
 
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   op_data = reinterpret_cast<OpData*>(
       context->AllocatePersistentBuffer(context, sizeof(OpData)));
 
-  op_data->max_detections = m["max_detections"].AsInt32();
-  op_data->max_classes_per_detection = m["max_classes_per_detection"].AsInt32();
-  if (m["detections_per_class"].IsNull())
+  const flexbuffers::Map& m =
+      micro::FlexbuffersWrapperGetRootAsMap(buffer_t, length);
+
+  op_data->max_detections =
+      micro::FlexbuffersWrapperAsInt32(m, "max_detections");
+  op_data->max_classes_per_detection =
+      micro::FlexbuffersWrapperAsInt32(m, "max_classes_per_detection");
+  if (micro::FlexbuffersWrapperIsNull(m, "detections_per_class"))
     op_data->detections_per_class = kNumDetectionsPerClass;
   else
-    op_data->detections_per_class = m["detections_per_class"].AsInt32();
-  if (m["use_regular_nms"].IsNull())
+    op_data->detections_per_class =
+        micro::FlexbuffersWrapperAsInt32(m, "detections_per_class");
+  if (micro::FlexbuffersWrapperIsNull(m, "use_regular_nms"))
     op_data->use_regular_non_max_suppression = false;
   else
-    op_data->use_regular_non_max_suppression = m["use_regular_nms"].AsBool();
+    op_data->use_regular_non_max_suppression =
+        micro::FlexbuffersWrapperAsBool(m, "use_regular_nms");
 
   op_data->non_max_suppression_score_threshold =
-      m["nms_score_threshold"].AsFloat();
-  op_data->intersection_over_union_threshold = m["nms_iou_threshold"].AsFloat();
-  op_data->num_classes = m["num_classes"].AsInt32();
-  op_data->scale_values.y = m["y_scale"].AsFloat();
-  op_data->scale_values.x = m["x_scale"].AsFloat();
-  op_data->scale_values.h = m["h_scale"].AsFloat();
-  op_data->scale_values.w = m["w_scale"].AsFloat();
+      micro::FlexbuffersWrapperAsFloat(m, "nms_score_threshold");
+
+  op_data->intersection_over_union_threshold =
+      micro::FlexbuffersWrapperAsFloat(m, "nms_iou_threshold");
+  op_data->num_classes = micro::FlexbuffersWrapperAsInt32(m, "num_classes");
+  op_data->scale_values.y = micro::FlexbuffersWrapperAsFloat(m, "y_scale");
+  op_data->scale_values.x = micro::FlexbuffersWrapperAsFloat(m, "x_scale");
+  op_data->scale_values.h = micro::FlexbuffersWrapperAsFloat(m, "h_scale");
+  op_data->scale_values.w = micro::FlexbuffersWrapperAsFloat(m, "w_scale");
 
   return op_data;
 }
