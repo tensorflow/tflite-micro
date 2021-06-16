@@ -35,64 +35,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 }  // namespace.
 
-TfLiteStatus ConvReferencePrepareInt8(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  OpDataConv* data = static_cast<OpDataConv*>(node->user_data);
-  const auto& params =
-      *(static_cast<const TfLiteConvParams*>(node->builtin_data));
-
-  TfLiteTensor* output = GetOutput(context, node, kConvOutputTensor);
-  TFLITE_DCHECK(output != nullptr);
-  const TfLiteTensor* input = GetInput(context, node, kConvInputTensor);
-  TFLITE_DCHECK(input != nullptr);
-  const TfLiteTensor* filter = GetInput(context, node, kConvWeightsTensor);
-  TFLITE_DCHECK(filter != nullptr);
-
-  TFLITE_DCHECK(input->type == kTfLiteInt8);
-  TFLITE_DCHECK(filter->type == kTfLiteInt8);
-  TFLITE_DCHECK(output->type == kTfLiteInt8);
-
-  const int input_width = input->dims->data[2];
-  const int input_height = input->dims->data[1];
-  const int filter_width = filter->dims->data[2];
-  const int filter_height = filter->dims->data[1];
-  const int output_width = output->dims->data[2];
-  const int output_height = output->dims->data[1];
-
-  // Dynamically allocate per-channel quantization parameters.
-  const int num_channels = filter->dims->data[kConvQuantizedDimension];
-  data->per_channel_output_multiplier =
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, num_channels * sizeof(int32_t)));
-  data->per_channel_output_shift =
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, num_channels * sizeof(int32_t)));
-
-  // All per-channel quantized tensors need valid zero point and scale arrays.
-  TF_LITE_ENSURE_EQ(context, filter->quantization.type,
-                    kTfLiteAffineQuantization);
-
-  const auto* affine_quantization =
-      static_cast<TfLiteAffineQuantization*>(filter->quantization.params);
-  TFLITE_DCHECK(affine_quantization != nullptr);
-  TFLITE_DCHECK(affine_quantization->scale != nullptr);
-  TFLITE_DCHECK(affine_quantization->zero_point != nullptr);
-
-  TFLITE_DCHECK(affine_quantization->scale->size == 1 ||
-                     affine_quantization->scale->size ==
-                         filter->dims->data[kConvQuantizedDimension]);
-  TFLITE_DCHECK(affine_quantization->scale->size ==
-                    affine_quantization->zero_point->size);
-
-  TF_LITE_ENSURE_STATUS(CalculateOpDataConv(
-      context, node, params, input_width, input_height, filter_width,
-      filter_height, output_width, output_height, input->type, data));
-
-  return kTfLiteOk;
-}
-
 TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -126,10 +68,13 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_CONV_2D_INT8() {
+// TODO(b/189981943): This variant can be used for a smaller binary
+// since the optimized conv implementation currently adds a lot to
+// the binary size (~30KB to text section).
+TfLiteRegistration Register_CONV_2D_INT8REF() {
   return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/ConvReferencePrepareInt8,
+          /*prepare=*/ConvPrepare,
           /*invoke=*/ConvReferenceEvalInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,

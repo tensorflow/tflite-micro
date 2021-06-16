@@ -75,9 +75,9 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 #if defined(XTENSA)
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 inputs and outputs.
-TfLiteRegistration Register_CONV_2D_INT8();
+TfLiteRegistration Register_CONV_2D_INT8REF();
 #else 
-inline TfLiteRegistration Register_CONV_2D_INT8() {
+inline TfLiteRegistration Register_CONV_2D_INT8REF() {
   return Register_CONV_2D();
 }
 #endif
