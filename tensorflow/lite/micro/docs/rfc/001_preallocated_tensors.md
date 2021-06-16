@@ -24,7 +24,7 @@ either offline planned as specified in the flatbuffers metadata (described in
 this
 [RFC](https://docs.google.com/document/d/16aTSHL5wxsq99t6adVbBz1U3K8Y5tBDAvs16iroZDEU)),
 or allocated during runtime by the
-[memory planner](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/memory_planner)
+[memory planner](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/memory_planner)
 (online planned), see
 [RFC](https://docs.google.com/document/d/1akpqu0uiPQshmCrnV6dOEFgYM4tCCnI8Zce85PnjHMI).
 The tensor arena is allocated by MicroAllocator in TensorFlow Lite Micro, and
@@ -32,7 +32,7 @@ the model buffer (represented by a .tflite-file) is allocated by the application
 using TensorFlow Lite Micro. An illustration of this can be seen in the image
 below.
 
-![Image of two blocks](images/preallocated_tensors/preallocated_tensors_bg_1.png)
+![Image of two blocks](../images/preallocated_tensors/preallocated_tensors_bg_1.png)
 
 Is some use cases it could be advantageous to place some of the EvalTensors
 outside of the tensor arena, for example: * When sensor output data is stored in
@@ -46,7 +46,7 @@ option to allow an application to provide pre-allocated buffers to TensorFlow
 Lite Micro for selected tensors. An illustration of the resulting memory layout
 with pre-allocated tensors can be seen in the figure below.
 
-![Image of three blocks](images/preallocated_tensors/preallocated_tensors_bg_2.png)
+![Image of three blocks](../images/preallocated_tensors/preallocated_tensors_bg_2.png)
 
 ## Current status
 
@@ -79,16 +79,18 @@ feature would introduce to the TensorFlow Lite Micro framework.
 MicroAllocator initializes all tensors to nullptr, and during the allocation
 process only allocates the tensors whose data field is nullptr. The application
 tells the MicroInterpreter which tensor is preallocated, and supplies a memory
-buffer using the RegisterPreallocatedTensor() function. The MicroInterpreter
-then assigns the pre-allocated buffer to the tensor data-field. If the tensor in
-question is marked as offline planned, as described in this
-[RFC](https://docs.google.com/document/d/16aTSHL5wxsq99t6adVbBz1U3K8Y5tBDAvs16iroZDEU),
+buffer using the RegisterPreallocatedTensor() function.
+
+The MicroInterpreter then assigns the pre-allocated buffer to the tensor
+data-field. If the tensor in question is marked as offline planned, as described
+in this [RFC](https://docs.google.com/document/d/16aTSHL5wxsq99t6adVbBz1U3K8Y5tBDAvs16iroZDEU),
 the MicroInterpreter should not pre-allocated it, and instead return an error.
+
 If multiple tensors are to be pre-allocated, multiple calls to
 RegisterPreallocatedTensor() are required. An example can be seen in the MSC
 below.
 
-![MSC](images/preallocated_tensors/preallocated_tensors_impl1.png)
+![MSC](../images/preallocated_tensors/preallocated_tensors_impl1.png)
 
 ## Performance overview
 
@@ -99,29 +101,35 @@ in relation to the total inference time for the person_detection model. The
 reason for looking closer at this model is that it has a relatively large input
 data size, which should make the cycle consumption of a memcpy() relatively
 large. Please note that these numbers are approximate and based on calculations,
-not actual benchmarking numbers. A word aligned memcpy() consumes somewhere
-between 1 - 4 bytes per cycle depending on which CPU is used. The input size for
-the person_detection model is 96x96 = 9216 bytes. On a reference system without
-accelerators one memcpy() of 9216 bytes corresponds to, in order of magnitudes,
-~0.01% of the total amount of clock cycles for one inference. The ratio will
-differ depending on the input size and the number of inferences/second. When
-using an accelerator, the total inference time will be significantly less which
-means that the memcpy()-call will consume a larger part of the total inference
-time. Approximations show that one memcpy() of 9216 bytes will consume ~1% of
-the total execution time for a reference system utilizing an ML HW accelerator.
+not actual benchmarking numbers.
+
+A word aligned memcpy() consumes somewhere between 1 - 4 bytes per cycle
+depending on which CPU is used. The input size for the person_detection model
+is 96x96 = 9216 bytes. On a reference system without accelerators one memcpy()
+of 9216 bytes corresponds to, in order of magnitudes, ~0.01% of the total amount
+of clock cycles for one inference. The ratio will differ depending on the input
+size and the number of inferences/second.
+
+When using an accelerator, the total inference time will be significantly less
+which means that the memcpy()-call will consume a larger part of the total
+inference time. Approximations show that one memcpy() of 9216 bytes will consume
+~1% of the total execution time for a reference system utilizing an ML HW
+accelerator.
 
 ### Memory aspect
 
 In this section we'll look at memory savings aspects of pre-allocating tensors
 outside the tensor arena. The default memory planner in TFLu is
-[GreedyPlanner](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h)
+[GreedyPlanner](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h)
 (see
 [RFC](https://docs.google.com/document/d/1akpqu0uiPQshmCrnV6dOEFgYM4tCCnI8Zce85PnjHMI)).
 One good tool for understanding tensor layout in the tensor arena is using
-[PrintMemoryPlan API](https://github.com/tensorflow/tensorflow/blob/6f89198ee3206431ec6836e1e3df54455b89ebcf/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h#L84).
+[PrintMemoryPlan API](https://github.com/tensorflow/tflite-micro/blob/73c5fa4d2bfbfd974552957818de2ab18ff42f39/tensorflow/lite/micro/memory_planner/greedy_memory_planner.h#L84).
 If we print the calculated memory layout for the
 [person detection model](https://storage.googleapis.com/download.tensorflow.org/data/tf_lite_micro_person_data_int8_grayscale_2020_06_23.zip),
-the tensor arena looks like this at each layer: `Layer 1:
+the tensor arena looks like this at each layer:
+
+`Layer 1:
 00000000000000000000000000tttttttttttttt........................................
 Layer 2:
 00000000000000000000000000...........................999999999999999999999999999
@@ -133,15 +141,18 @@ Layer 5:
 cccccccccccccccccccccccccc...........................bbbbbbbbbbbbb..............
 Layer 6:
 ccccccccccccccccccccccccccddddddddddddddddddddddddddd...........................`
+
 The horizontal axis shows offset from the start of the tensor arena. The
 vertical axis shows execution order. The dots are "unused" memory for that
 specific layer. The letters and numbers represent the EvalTensor index, mapped
 to 0-9, then a-z. 't' is the input tensor of layer 1 (equivalent to the input
 data to the model) and '0' is the output tensor of layer 1. Hence, '0' is also
 the input tensor to layer 2, and '9' is the output tensor of layer 2. And so on.
+
 The reason for showing this illustration is that it becomes obvious that it is
 **the largest combination of simultaneously used tensors, of your model, that
 defines how large the tensor arena needs to be.** In this example, it's Layer 3.
+
 The combined size of tensors 'a' and '9' defines the size needed for the tensors
 arena. As a consequence, to save tensor arena memory by pre-allocation, we must
 start by pre-allocating tensor 'a' or '9' outside the arena. This will make the

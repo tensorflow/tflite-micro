@@ -64,6 +64,10 @@ endif
 # Specify which specialized kernel implementation should be pulled in.
 OPTIMIZED_KERNEL_DIR :=
 
+# Override this variable from the command line in case the optimized kernels are
+# in a different directory.
+OPTIMIZED_KERNEL_DIR_PREFIX := tensorflow/lite/micro/kernels
+
 # Specify which co-processor's kernel implementation should be pulled in.
 # If the same kernel is implemented in both kernels/OPTIMIZED_KERNEL_DIR and
 # kernels/CO_PROCESSOR, then the implementation from kernels/CO_PROCESSOR will
@@ -113,7 +117,15 @@ ifneq ($(CO_PROCESSOR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(CO_PROCESSOR) | tr [a-z] [A-Z])
 endif
 
-OPTIMIZATION_LEVEL := -O3
+CORE_OPTIMIZATION_LEVEL := -Os
+KERNEL_OPTIMIZATION_LEVEL := -O2
+
+# Warn if deprecated optimization level is set.
+OPTIMIZATION_LEVEL :=
+ifneq ($(OPTIMIZATION_LEVEL),)
+$(error "OPTIMIZATION_LEVEL is no longer used.")
+endif
+
 
 CC_WARNINGS := \
   -Wsign-compare \
@@ -137,7 +149,6 @@ COMMON_FLAGS := \
   -fmessage-length=0 \
   -DTF_LITE_STATIC_MEMORY \
   -DTF_LITE_DISABLE_X86_NEON \
-  $(OPTIMIZATION_LEVEL) \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
@@ -228,6 +239,9 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
 GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+OBJDIR := $(GENDIR)obj/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
 OBJDIR := $(GENDIR)obj/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
@@ -552,9 +566,10 @@ ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
 endif
 
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
+  PATH_TO_OPTIMIZED_KERNELS := $(OPTIMIZED_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
-	# reference kernels. See http://b/183546742 for more context.
-  PATH_TO_OPTIMIZED_KERNELS := tensorflow/lite/micro/kernels/$(OPTIMIZED_KERNEL_DIR)
+  # reference kernels. See http://b/183546742 for more context.
   RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
@@ -562,7 +577,9 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   include $(MAKEFILE_DIR)/ext_libs/$(OPTIMIZED_KERNEL_DIR).inc
   # Specialize for the optimized kernels
-  MICROLITE_CC_KERNEL_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_KERNEL_SRCS),$(OPTIMIZED_KERNEL_DIR))
+  MICROLITE_CC_KERNEL_SRCS := $(shell python $(MAKEFILE_DIR)/specialize_files.py \
+		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 endif
 
 # If a co-processor is specified on the command line with
@@ -619,39 +636,48 @@ THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
 third_party_downloads: $(THIRD_PARTY_TARGETS)
 
-MICROLITE_LIB_OBJS := $(addprefix $(OBJDIR), \
+MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS))))
 
-MICROLITE_LIB_OBJS += $(addprefix $(OBJDIR), \
+MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
-# For normal manually-created TensorFlow C++ source files.
-$(OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
-# For normal manually-created TensorFlow C source files.
-$(OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-# For normal manually-created TensorFlow ASM source files.
-$(OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
-# Hack for generating schema file bypassing flatbuffer parsing
-tensorflow/lite/schema/schema_generated.h:
-	@cp -u tensorflow/lite/schema/schema_generated.h.oss tensorflow/lite/schema/schema_generated.h
-
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): tensorflow/lite/schema/schema_generated.h $(MICROLITE_LIB_OBJS)
+$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 	@mkdir -p $(dir $@)
-	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS)
+	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 
-$(BINDIR)%_test : $(OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
+$(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $< \
