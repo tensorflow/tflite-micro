@@ -93,6 +93,7 @@ LDFLAGS += \
   $(HEXAGON_ROOT)/$(HEXAGON_TOOL_VER)/Tools/target/hexagon/lib/v66/libstdc++.a
 
 INCLUDES += \
+  -Ithird_party/hexagon \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/posix \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt
 
