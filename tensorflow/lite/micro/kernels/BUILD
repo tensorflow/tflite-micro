@@ -12,8 +12,8 @@ config_setting(
 )
 
 package_group(
-    name = "micro",
-    packages = ["//tensorflow/lite/micro/..."],
+    name = "tflite_micro",
+    packages = ["//..."],
 )
 
 package_group(
@@ -65,7 +65,7 @@ cc_library(
     copts = micro_copts(),
     visibility = [
         # Kernel variants need to be visible to the examples and benchmarks.
-        ":micro",
+        ":tflite_micro",
     ],
     deps = [
         ":fixedpoint_utils",
@@ -119,7 +119,7 @@ cc_library(
     copts = micro_copts(),
     visibility = [
         # Kernel variants need to be visible to the examples and benchmarks.
-        ":micro",
+        ":tflite_micro",
     ],
     deps = [
         ":conv",
@@ -150,7 +150,7 @@ cc_library(
     copts = micro_copts(),
     visibility = [
         # Kernel variants need to be visible to the examples and benchmarks.
-        ":micro",
+        ":tflite_micro",
     ],
     deps = [
         "//tensorflow/lite/c:common",
@@ -204,7 +204,7 @@ cc_library(
     copts = micro_copts(),
     visibility = [
         # Kernel variants need to be visible to the examples and benchmarks.
-        ":micro",
+        ":tflite_micro",
     ],
     deps = [
         ":fixedpoint_utils",
@@ -251,7 +251,7 @@ cc_library(
     hdrs = ["kernel_util.h"],
     visibility = [
         ":kernel_friends",
-        ":micro",
+        ":tflite_micro",
     ],
     deps = [
         "@flatbuffers//:runtime_cc",
