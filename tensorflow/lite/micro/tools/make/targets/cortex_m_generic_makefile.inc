@@ -75,6 +75,18 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
 
+#TODO(MLBEDSW-3923): Update with official name and upstream.
+# Following case for olympus is meant to be only on hactar branch.
+# This is because olympus is an ARM internal CPU not officially
+# supported by ARMClang or GCC yet. This will change to an official
+# CPU name in the future. The corresponding flags might also need to
+# change accordingly.
+else ifeq ($(TARGET_ARCH), olympus)
+  CORE=OLYMPUS
+  ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
+  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
+  FLOAT=hard
+  GCC_TARGET_ARCH := cortex-m55
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
