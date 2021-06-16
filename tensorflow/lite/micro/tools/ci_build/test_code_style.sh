@@ -39,6 +39,7 @@ pushd tensorflow/lite/
 micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py \
   kernels/internal/reference/ \
   micro/ \
+  ../../third_party/ \
   -p copyright_notice \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
@@ -67,6 +68,7 @@ LICENSE_CHECK_RESULT=$?
 micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
   kernels/internal/reference/ \
   micro/ \
+  ../../third_party/ \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
   -e "\.inc" \
