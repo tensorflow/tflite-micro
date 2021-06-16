@@ -560,7 +560,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   include $(MAKEFILE_DIR)/ext_libs/$(OPTIMIZED_KERNEL_DIR).inc
   # Specialize for the optimized kernels
-  MICROLITE_CC_KERNEL_SRCS := $(shell python $(MAKEFILE_DIR)/specialize_files.py \
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 endif
