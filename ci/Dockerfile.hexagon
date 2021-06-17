@@ -1,0 +1,27 @@
+FROM ubuntu:bionic
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN \
+  apt update && \
+  apt install -y \
+    unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/hexagon
+
+COPY ./qualcomm_hexagon_sdk_3_5_1_linux.zip .
+
+RUN unzip qualcomm_hexagon_sdk_3_5_1_linux.zip && \
+  rm qualcomm_hexagon_sdk_3_5_1_linux.zip && \
+  cd qualcomm_hexagon_sdk_3_5_1_linux && \
+  chmod +x qualcomm_hexagon_sdk_3_5_1_eval.bin && \
+  ./qualcomm_hexagon_sdk_3_5_1_eval.bin -i silent -DDOWNLOAD_ANDROID=false -DDOWNLOAD_FULL_ANDROID=false -DDOWNLOAD_ECLIPSE=false && \
+  cd /opt/hexagon && rm -rf qualcomm_hexagon_sdk_3_5_1_linux
+
+ENV HEXAGON_CPU_VER=v66
+ENV HEXAGON_SDK_ROOT=/root/Qualcomm/Hexagon_SDK/3.5.1
+ENV HEXAGON_ROOT=${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools/
+ENV HEXAGON_TOOL_VER=8.3.07
+ENV PATH=${HEXAGON_ROOT}/${HEXAGON_TOOL_VER}/Tools/bin:${PATH}
+
+CMD hexagon-clang++
