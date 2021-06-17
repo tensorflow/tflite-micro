@@ -199,10 +199,8 @@ cc_library(
     ],
     deps = [
         ":activation_utils",
-        ":fixedpoint_utils",
         ":kernel_util",
         ":micro_utils",
-        ":xtensa",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
