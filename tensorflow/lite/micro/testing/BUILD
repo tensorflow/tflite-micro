@@ -4,8 +4,8 @@ package(
 )
 
 package_group(
-    name = "micro",
-    packages = ["//tensorflow/lite/micro/..."],
+    name = "tflite_micro",
+    packages = ["//..."],
 )
 
 package_group(
@@ -19,8 +19,8 @@ cc_library(
         "micro_test.h",
     ],
     visibility = [
-        ":micro",
         ":microfrontend",
+        ":tflite_micro",
     ],
     deps = [
         "//tensorflow/lite/c:common",
@@ -52,7 +52,7 @@ cc_library(
         "test_conv_model.h",
     ],
     visibility = [
-        ":micro",
+        ":tflite_micro",
     ],
 )
 
