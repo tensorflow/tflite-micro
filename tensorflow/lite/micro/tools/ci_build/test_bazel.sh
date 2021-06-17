@@ -27,7 +27,7 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # having build_test but that was removed with #194.
 
 CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  -build_tag_filters=-no_oss
+  --build_tag_filters=-no_oss
 CC=clang readable_run bazel test tensorflow/lite/micro/... \
   --test_tag_filters=-no_oss --build_tag_filters=-no_oss \
   --test_output=errors
