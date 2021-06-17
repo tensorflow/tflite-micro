@@ -1,5 +1,3 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
-
 package(
     features = ["-layering_check"],
     licenses = ["notice"],
@@ -74,9 +72,4 @@ cc_binary(
         "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
         "//tensorflow/lite/schema:schema_fbs",
     ],
-)
-
-build_test(
-    name = "build_test",
-    targets = [":keyword_benchmark"],
 )
