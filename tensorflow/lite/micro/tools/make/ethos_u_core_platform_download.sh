@@ -83,13 +83,17 @@ else
   # Allow tensor_arena in namespace. This will put tensor arena in SRAM intended by linker file.
   sed -i 's/tensor_arena/\*tensor_arena\*/' ${LINKER_PATH}/platform_parsed.ld
 
-  # Patch retarget.c so that g++ can find _exit symbol.
+  # Patch retarget.c so that g++ can find exit symbol.
   cat <<EOT >> ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300/retarget.c
 
+#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
+#else
 void RETARGET(exit)(int return_code) {
-  _exit(return_code);
+  RETARGET(_exit)(return_code);
   while (1) {}
 }
+#endif
+
 EOT
 
 fi
