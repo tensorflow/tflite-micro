@@ -1,0 +1,13 @@
+name: Bug Tag Check
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  find-bug-tag:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.body, 'BUG=') }}
+    steps:
+      - run: |
+          echo "PR description requires a BUG= line with issue number or none"
+          exit 1
