@@ -1,0 +1,33 @@
+name: Protect Files
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  protect-files:
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'ci:run') &&
+      ${{ !contains(github.event.pull_request.body, 'SKIP_FILE_PROTECTION') }}
+    name: Check PR Files Against List
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+    - name: Check Files
+      run: |
+        # you can test this section in parts by commenting out the URL and FILES lines below and setting the LIST_TEST
+        # call to both args being ci/upstream_list.txt to make sure it fails or the first arg to a random code file
+        # to make sure it passes.
+
+        URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
+        FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $URL | jq -r '.[] | .filename')
+        rm -rf ci/change_files.txt
+        echo "$FILES" >> ci/change_files.txt
+        
+        LIST_TEST=$(ci/protected_list.py ci/change_files.txt ci/upstream_list.txt)
+        if [ $LIST_TEST = 'fail']
+        then
+          rm change_files.txt
+          exit 1
+        fi
+        rm change_files.txt
