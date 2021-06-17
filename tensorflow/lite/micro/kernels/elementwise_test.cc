@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,6 +60,60 @@ void TestElementwiseFloat(const TfLiteRegistration& registration,
   }
 }
 
+template <typename T>
+void TestElementwiseQuantized(const TfLiteRegistration& registration,
+                              int* input_dims_data, const float* input_data,
+                              T* input_quantized, float input_scale,
+                              int32_t input_zero_point, int* output_dims_data,
+                              const float* expected_output_data, T* output_data,
+                              const float output_scale,
+                              const int output_zero_point,
+                              TfLiteStatus expected_invoke_status = kTfLiteOk) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_dims_count = ElementCount(*output_dims);
+
+  constexpr int input_size = 1;
+  constexpr int output_size = 1;
+  constexpr int tensors_size = input_size + output_size;
+
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                            input_scale, input_zero_point),
+      CreateQuantizedTensor(output_data, output_dims, output_scale,
+                            output_zero_point)};
+
+  int input_zero_points[2] = {1, input_zero_point};
+  float input_scales[2] = {1, input_scale};
+  TfLiteAffineQuantization input_quant = {
+      tflite::testing::FloatArrayFromFloats(input_scales),
+      tflite::testing::IntArrayFromInts(input_zero_points), 0};
+  tensors[0].quantization = {kTfLiteAffineQuantization, &input_quant};
+
+  int output_zero_points[2] = {1, output_zero_point};
+  float output_scales[2] = {1, output_scale};
+  TfLiteAffineQuantization output_quant = {
+      tflite::testing::FloatArrayFromFloats(output_scales),
+      tflite::testing::IntArrayFromInts(output_zero_points), 0};
+  tensors[1].quantization = {kTfLiteAffineQuantization, &output_quant};
+
+  static int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  static int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array,
+                             /*builtin_data=*/nullptr);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(expected_invoke_status, runner.Invoke());
+
+  for (int i = 0; i < output_dims_count; ++i) {
+    float f = (output_data[i] - output_zero_point) * output_scale;
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], f, input_scale);
+  }
+}
+
 void TestElementwiseBool(const TfLiteRegistration& registration,
                          int* input_dims_data, const bool* input_data,
                          int* output_dims_data,
@@ -110,6 +164,66 @@ TF_LITE_MICRO_TEST(Abs) {
   tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_ABS(),
                                         shape, input, shape, golden,
                                         output_data);
+}
+
+TF_LITE_MICRO_TEST(AbsInt8) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
+  int8_t input_quantized[8];
+
+  const float golden[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int8_t output_quantized[8];
+
+  const float abs_max = 142;
+  const float data_min = -142;
+  const float data_max = 113;
+  const float input_scale = (data_max - data_min) / 255.0f;
+  const float output_scale = abs_max / 255.0f;
+  const int input_zero_point = 127 - data_max;
+  const int output_zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_ABS(), shape, input_data, input_quantized,
+      input_scale, input_zero_point, shape, golden, output_quantized,
+      output_scale, output_zero_point);
+}
+
+TF_LITE_MICRO_TEST(AbsInt8SameScale) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
+  int8_t input_quantized[8];
+
+  const float golden[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int8_t output_quantized[8];
+
+  const float data_min = -142;
+  const float data_max = 113;
+  const float scale = (data_max - data_min) / 255.0f;
+  const int zero_point = 127 - data_max;
+  tflite::testing::TestElementwiseQuantized(
+      tflite::ops::micro::Register_ABS(), shape, input_data, input_quantized,
+      scale, zero_point, shape, golden, output_quantized, scale, -128);
+}
+
+TF_LITE_MICRO_TEST(AbsInt16) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
+  int16_t input_quantized[8];
+
+  const float golden[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int16_t output_quantized[8];
+
+  const float input_max = 142;
+  const float output_max = 150;
+  const float input_scale = input_max / std::numeric_limits<int16_t>::max();
+  const float output_scale = output_max / std::numeric_limits<int16_t>::max();
+  tflite::testing::TestElementwiseQuantized(
+      tflite::ops::micro::Register_ABS(), shape, input_data, input_quantized,
+      input_scale, /*input_zero_point*/ 0, shape, golden, output_quantized,
+      output_scale,
+      /*output_zero_point*/ 0);
 }
 
 TF_LITE_MICRO_TEST(Sin) {
@@ -165,6 +279,70 @@ TF_LITE_MICRO_TEST(Rsqrt) {
   tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_RSQRT(),
                                         shape, input, shape, golden,
                                         output_data);
+}
+
+TF_LITE_MICRO_TEST(RsqrtInt8) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int8_t input_quantized[8];
+
+  const float golden[] = {0.2582, 0.14744, 0.11323,  0.08392,
+                          1.,     0.24254, 0.142857, 0.09407};
+  int8_t output_quantized[8];
+
+  const float data_max = 142;
+  const float input_scale = 142.0 / 255.0;
+  const float output_scale = 1.0 / 255.0;
+  const int input_zero_point = 127 - data_max;
+  const int output_zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input_data, input_quantized,
+      input_scale, input_zero_point, shape, golden, output_quantized,
+      output_scale, output_zero_point);
+}
+
+TF_LITE_MICRO_TEST(RsqrtCloseTo0Int8) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., 142., 1., 0.1, 49., 113.};
+  int8_t input_quantized[8];
+
+  const float golden[] = {0.2582, 0.14744, 0.11323,  0.08392,
+                          1.,     3.16228, 0.142857, 0.09407};
+  int8_t output_quantized[8];
+
+  const float data_max = 142;
+  const float input_scale = 142.0 / 255.0;
+  const float output_scale = 3.16 / 255.0;
+  const int input_zero_point = 127 - data_max;
+  const int output_zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input_data, input_quantized,
+      input_scale, input_zero_point, shape, golden, output_quantized,
+      output_scale, output_zero_point);
+}
+
+TF_LITE_MICRO_TEST(RsqrtNanInt8) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., 142., 1., 17., -49., 113.};
+  int8_t input_quantized[8];
+
+  const float golden[] = {0.2582, 0.14744, 0.11323,  0.08392,
+                          1.,     0.24254, 0.142857, 0.09407};
+  int8_t output_quantized[8];
+
+  const float data_max = 142;
+  const float input_scale = 142.0 / 255.0;
+  const float output_scale = 1.0 / 255.0;
+  const int input_zero_point = 127 - data_max;
+  const int output_zero_point = -128;
+
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input_data, input_quantized,
+      input_scale, input_zero_point, shape, golden, output_quantized,
+      output_scale, output_zero_point, kTfLiteError);
 }
 
 TF_LITE_MICRO_TEST(Square) {
