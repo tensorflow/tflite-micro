@@ -16,6 +16,9 @@
 # ARM Cortex M makefile targeted for a FVP based on Arm Corstone-300 software.
 # For more info see: tensorflow/lite/micro/cortex_m_corstone_300/README.md
 
+# TODO(#193): Remove this.
+CORE_OPTIMIZATION_LEVEL := -O2
+
 export PATH := $(MAKEFILE_DIR)/downloads/corstone300/models/Linux64_GCC-6.4:$(PATH)
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/corstone_300_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
