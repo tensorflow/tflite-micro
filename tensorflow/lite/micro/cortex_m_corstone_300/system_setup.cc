@@ -66,7 +66,17 @@ int32_t ticks_per_second() { return kClocksPerSecond; }
 int32_t GetCurrentTimeTicks() { return KIN1_GetCycleCounter(); }
 
 #ifdef ETHOS_U
-void ethosuIrqHandler0() { ethosu_irq_handler(); }
+#if defined(ETHOSU_FAST_MEMORY_SIZE) && ETHOSU_FAST_MEMORY_SIZE > 0
+__attribute__((aligned(16), section(".bss.ethosu_scratch")))
+uint8_t ethosu0_scratch[ETHOSU_FAST_MEMORY_SIZE];
+#else
+#define ethosu0_scratch 0
+#define ETHOSU_FAST_MEMORY_SIZE 0
+#endif
+
+struct ethosu_driver ethosu0_driver;
+
+void ethosuIrqHandler0() { ethosu_irq_handler(&ethosu0_driver); }
 #endif
 
 extern "C" {
@@ -86,7 +96,8 @@ void InitializeTarget() {
   constexpr int ethosu_irq = 56;
 
   // Initialize Ethos-U NPU driver.
-  if (ethosu_init(reinterpret_cast<void*>(ethosu_base_address))) {
+  if (ethosu_init(&ethosu0_driver, reinterpret_cast<void*>(ethosu_base_address),
+                  ethosu0_scratch, ETHOSU_FAST_MEMORY_SIZE, 1, 1)) {
     MicroPrintf("Failed to initialize Ethos-U driver");
   }
   NVIC_SetVector(static_cast<IRQn_Type>(ethosu_irq),
