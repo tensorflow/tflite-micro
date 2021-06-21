@@ -53,8 +53,13 @@ class MicroProfiler {
   // event[i] <= start time of event[i+1]).
   int32_t GetTotalTicks() const;
 
-  // Prints the profiling information of each of the events.
+  // Prints the profiling information of each of the events in human readable
+  // form.
   void Log() const;
+
+  // Prints the profiling information of each of the events in CSV (Comma
+  // Separated Value) form.
+  void LogCsv() const;
 
  private:
   // Maximum number of events that this class can keep track of. If we call
