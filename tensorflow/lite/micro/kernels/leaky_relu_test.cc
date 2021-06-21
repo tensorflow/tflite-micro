@@ -33,8 +33,8 @@ struct TestLeakyReluParams {
   float alpha;  // alpha multiplier
 
   // quantization parameters
-  float data_min;   // input and output data minimum value
-  float data_max;   // input and output data maximum value
+  float scale;      // quantization scale of input and output
+  int zero_point;   // quantization zero_point of input and output
   T* input_data;    // quantized input storage
   T* output_data;   // quantized output storage
   float tolerance;  // output vs expected value tolerance
@@ -87,20 +87,17 @@ void TestLeakyReluQuantized(const TestLeakyReluParams<T>& params,
   TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
   const int output_count = ElementCount(*output_dims);
 
-  const float scale = ScaleFromMinMax<T>(params.data_min, params.data_max);
-  const int zero_point =
-      ZeroPointFromMinMax<T>(params.data_min, params.data_max);
-
   TfLiteTensor tensors[] = {
-      CreateQuantizedTensor(input_data, params.input_data, input_dims, scale,
-                            zero_point),
-      CreateQuantizedTensor(params.output_data, output_dims, scale, zero_point),
+      CreateQuantizedTensor(input_data, params.input_data, input_dims,
+                            params.scale, params.zero_point),
+      CreateQuantizedTensor(params.output_data, output_dims, params.scale,
+                            params.zero_point),
   };
   constexpr int kTensorsCount = std::extent<decltype(tensors)>::value;
-
   ExecuteLeakyReluTest(params.alpha, kTensorsCount, tensors);
 
-  Dequantize(params.output_data, output_count, scale, zero_point, output_data);
+  Dequantize(params.output_data, output_count, params.scale, params.zero_point,
+             output_data);
   const float kTolerance = params.tolerance;
   for (int i = 0; i < output_count; i++) {
     TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
@@ -148,14 +145,19 @@ void QuantizedActivationsOpTestLeakyRelu() {
   // setup quantization storage and parameters
   integer_dtype q_output_data[kOutputCount];
   integer_dtype q_input_data[kOutputCount];
+
   constexpr float kMin = -1;
   constexpr float kMax =
       std::numeric_limits<integer_dtype>::max() /
       static_cast<float>(std::numeric_limits<integer_dtype>::max() + 1);
+  // Quantize with a symmetric input / output range of {-5, 5}.
+  constexpr float kDataMin = 5 * kMin;
+  constexpr float kDataMax = 5 * kMax;
+
   TestLeakyReluParams<integer_dtype> params = {};
   params.alpha = 0.1f;
-  params.data_min = 5 * kMin;
-  params.data_max = 5 * kMax;
+  params.scale = ScaleFromMinMax<integer_dtype>(kDataMin, kDataMax);
+  params.zero_point = ZeroPointFromMinMax<integer_dtype>(kDataMin, kDataMax);
   params.input_data = q_input_data;
   params.output_data = q_output_data;
   params.tolerance = kQuantizedTolerance * 5;
@@ -179,15 +181,14 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_1) {
   // setup quantization storage and parameters
   int8_t q_output_data[kOutputCount];
   int8_t q_input_data[kOutputCount];
-  constexpr float kMin = -1;
-  constexpr float kMax = 127.f / 128.f;
+
   tflite::testing::TestLeakyReluParams<int8_t> params = {};
   params.alpha = 0.5f;
-  params.data_min = 8 * kMin;
-  params.data_max = 8 * kMax;
+  params.scale = 0.1f;
+  params.zero_point = 0;
   params.input_data = q_input_data;
   params.output_data = q_output_data;
-  params.tolerance = tflite::testing::kQuantizedTolerance * 8;
+  params.tolerance = tflite::testing::kQuantizedTolerance;
 
   tflite::testing::TestLeakyReluQuantized(params, kDims, kInput, kDims, kExpect,
                                           output_data);
@@ -195,6 +196,33 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_1) {
 
 TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_2) {
   tflite::testing::QuantizedActivationsOpTestLeakyRelu<int8_t>();
+}
+
+TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt16_1) {
+  int kDims[] = {2, 2, 3};
+  constexpr float kInput[] = {0.0f, 1.0f, 3.0f, 1.0f, -1.0f, -2.0f};
+  constexpr float kExpect[] = {0.0f, 1.0f, 3.0f, 1.0f, -0.5f, -1.0f};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  float output_data[kOutputCount];
+
+  // setup quantization storage and parameters
+  int16_t q_output_data[kOutputCount];
+  int16_t q_input_data[kOutputCount];
+
+  tflite::testing::TestLeakyReluParams<int16_t> params = {};
+  params.alpha = 0.5f;
+  params.scale = 0.01f;
+  params.zero_point = 0;
+  params.input_data = q_input_data;
+  params.output_data = q_output_data;
+  params.tolerance = tflite::testing::kQuantizedTolerance;
+
+  tflite::testing::TestLeakyReluQuantized(params, kDims, kInput, kDims, kExpect,
+                                          output_data);
+}
+
+TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt16_2) {
+  tflite::testing::QuantizedActivationsOpTestLeakyRelu<int16_t>();
 }
 
 TF_LITE_MICRO_TEST(FloatActivationsOpTestLeakyRelu) {
