@@ -211,10 +211,24 @@ TfLiteTensor CreateQuantizedBiasTensor(const float* data, int32_t* quantized,
                                        float weights_scale,
                                        bool is_variable = false);
 
+TfLiteTensor CreateQuantizedBiasTensor(const float* data,
+                                       std::int64_t* quantized,
+                                       TfLiteIntArray* dims, float input_scale,
+                                       float weights_scale,
+                                       bool is_variable = false);
+
 // Quantizes int32_t bias tensor with per-channel weights determined by input
 // scale multiplied by weight scale for each channel.
 TfLiteTensor CreatePerChannelQuantizedBiasTensor(
     const float* input, int32_t* quantized, TfLiteIntArray* dims,
+    float input_scale, float* weight_scales, float* scales, int* zero_points,
+    TfLiteAffineQuantization* affine_quant, int quantized_dimension,
+    bool is_variable = false);
+
+// Quantizes int64_t bias tensor with per-channel weights determined by input
+// scale multiplied by weight scale for each channel.
+TfLiteTensor CreatePerChannelQuantizedBiasTensor(
+    const float* input, std::int64_t* quantized, TfLiteIntArray* dims,
     float input_scale, float* weight_scales, float* scales, int* zero_points,
     TfLiteAffineQuantization* affine_quant, int quantized_dimension,
     bool is_variable = false);

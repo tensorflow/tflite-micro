@@ -44,11 +44,11 @@ T FloatToQuantizedType(const float value, const float scale, int zero_point) {
 
 template <typename T>
 T FloatToSymmetricQuantizedType(const float value, const float scale) {
-  int32_t result = round(value / scale);
-  result =
-      std::max(static_cast<int32_t>(std::numeric_limits<T>::min() + 1), result);
-  result =
-      std::min(static_cast<int32_t>(std::numeric_limits<T>::max()), result);
+  std::int64_t result = round(value / scale);
+  result = std::max(
+      static_cast<std::int64_t>(std::numeric_limits<T>::min() + 1), result);
+  result = std::min(static_cast<std::int64_t>(std::numeric_limits<T>::max()),
+                    result);
   return result;
 }
 
