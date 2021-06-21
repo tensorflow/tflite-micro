@@ -13,8 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
-#include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -76,8 +74,10 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
   if (buffer != nullptr && length > 0) {
     const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-    const flexbuffers::Map& m = flexbuffers::GetRoot(buffer_t, length).AsMap();
-    op_data->cycles_max = m["cycles_max"].AsInt32();
+    const flexbuffers::Map& m =
+        tflite::micro::FlexbuffersWrapperGetRootAsMap(buffer_t, length);
+    op_data->cycles_max =
+        tflite::micro::FlexbuffersWrapperAsInt32(m, "cycles_max");
   } else {
     op_data->cycles_max = 0;
   }
@@ -118,6 +118,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // https://docs.google.com/document/d/1lc_G2ZFhjiKFo02UHjBaljye1xsL0EkfybkaVELEE3Q/edit?usp=sharing
     // https://docs.google.com/document/d/1pGc42PuWyrk-Jy1-9qeqtggvsmHr1ifz8Lmqfpr2rKA/edit?usp=sharing
     if (output->dims->data[1] == 5 || output->dims->data[1] == 13 ||
+        output->dims->data[1] == 25 ||
         (cb_prepare_count == 5 && output->dims->data[2] == 2 &&
          output->dims->data[3] == 96)) {
       op_data->cycles_max = 1;

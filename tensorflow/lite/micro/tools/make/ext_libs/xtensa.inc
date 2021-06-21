@@ -1,9 +1,10 @@
 # Explicitly add kernel sources specific to the Xtensa optimized
 # implementations.
 MICROLITE_CC_KERNEL_SRCS += \
-  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc
+  tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc \
+  tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
+  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
 ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
 
@@ -42,7 +43,9 @@ ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
     $(NNLIB_PATH)/algo/kernels/cnn/hifi5/xa_nn_conv2d_depthwise.c \
     $(NNLIB_PATH)/algo/kernels/cnn/hifi5/xa_nn_conv2d_depthwise_sym8sxasym8s.c \
     $(NNLIB_PATH)/algo/kernels/cnn/hifi5/xa_nn_conv2d_pointwise_sym8sxasym8s.c \
-    $(NNLIB_PATH)/algo/kernels/matXvec/hifi5/xa_nn_matmul_sym8sxasym8s.c
+    $(NNLIB_PATH)/algo/kernels/matXvec/hifi5/xa_nn_matmul_sym8sxasym8s.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_dot_prod_16x16.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi5/xa_nn_elm_quantize.c
 
   INCLUDES += \
     -I$(NNLIB_PATH)/ \

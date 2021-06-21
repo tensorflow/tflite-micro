@@ -20,6 +20,27 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
+                                                      size_t size) {
+  return flexbuffers::GetRoot(buffer, size).AsMap();
+}
+
+int32_t FlexbuffersWrapperAsInt32(const flexbuffers::Map& m, const char* key) {
+  return m[key].AsInt32();
+}
+
+bool FlexbuffersWrapperAsBool(const flexbuffers::Map& m, const char* key) {
+  return m[key].AsBool();
+}
+
+float FlexbuffersWrapperAsFloat(const flexbuffers::Map& m, const char* key) {
+  return m[key].AsFloat();
+}
+
+bool FlexbuffersWrapperIsNull(const flexbuffers::Map& m, const char* key) {
+  return m[key].IsNull();
+}
+
 bool HaveSameShapes(const TfLiteEvalTensor* input1,
                     const TfLiteEvalTensor* input2) {
   TFLITE_DCHECK(input1 != nullptr);
@@ -58,6 +79,7 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteEvalTensor* eval_tensor) {
   TF_LITE_ENSURE(context, tensor != nullptr);
   TF_LITE_ENSURE(context, eval_tensor != nullptr);
+  TF_LITE_ENSURE(context, context->AllocatePersistentBuffer != nullptr);
   int ranks = tensor->dims->size;
   size_t alloc_size = TfLiteIntArrayGetSizeInBytes(ranks);
   TfLiteIntArray* new_dims = static_cast<TfLiteIntArray*>(
