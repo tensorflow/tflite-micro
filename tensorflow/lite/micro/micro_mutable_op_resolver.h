@@ -141,8 +141,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddAveragePool2D() {
     return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D,
-                      tflite::ops::micro::Register_AVERAGE_POOL_2D(),
-                      ParsePool);
+                      tflite::Register_AVERAGE_POOL_2D(), ParsePool);
   }
 
   TfLiteStatus AddBatchToSpaceNd() {
@@ -350,7 +349,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddMaxPool2D() {
     return AddBuiltin(BuiltinOperator_MAX_POOL_2D,
-                      tflite::ops::micro::Register_MAX_POOL_2D(), ParsePool);
+                      tflite::Register_MAX_POOL_2D(), ParsePool);
   }
 
   TfLiteStatus AddMean() {
