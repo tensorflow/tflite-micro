@@ -169,6 +169,7 @@ cc_library(
         "softmax.cc",
         "softmax_common.cc",
         "space_to_batch_nd.cc",
+        "space_to_depth.cc",
         "split.cc",
         "split_v.cc",
         "squeeze.cc",
@@ -953,6 +954,21 @@ cc_test(
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "space_to_depth_test",
+    srcs = [
+        "space_to_depth_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
