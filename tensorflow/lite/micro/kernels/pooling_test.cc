@@ -77,8 +77,7 @@ void TestAveragePoolFloat(int* input_dims_data, const float* input_data,
       CreateTensor(output_data, output_dims),
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_AVERAGE_POOL_2D();
+  const TfLiteRegistration registration = Register_AVERAGE_POOL_2D();
 
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
@@ -110,8 +109,7 @@ void TestAveragePoolQuantized(
                             output_zero_point),
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_AVERAGE_POOL_2D();
+  const TfLiteRegistration registration = Register_AVERAGE_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
@@ -135,8 +133,7 @@ void TestMaxPoolFloat(int* input_dims_data, const float* input_data,
       CreateTensor(output_data, output_dims),
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_MAX_POOL_2D();
+  const TfLiteRegistration registration = Register_MAX_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
@@ -166,8 +163,7 @@ void TestMaxPoolQuantized(int* input_dims_data, const T* input_data,
                             output_zero_point),
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_MAX_POOL_2D();
+  const TfLiteRegistration registration = Register_MAX_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
