@@ -28,6 +28,14 @@ namespace tflite {
 // benchmark to evaluate end-to-end performance.
 class MicroProfiler {
  public:
+  // An event keeps track of the start and end tick time.
+  struct Event {
+    uint32_t id;
+    const char* tag;
+    int32_t start_tick;
+    int32_t end_tick;
+  };
+
   MicroProfiler() = default;
   virtual ~MicroProfiler() = default;
 
@@ -56,15 +64,19 @@ class MicroProfiler {
   // Prints the profiling information of each of the events.
   void Log() const;
 
+  // Returns the number of active events that are being profiled.
+  uint32_t GetTotalEvents() const;
+
+  // Copies the active events to a supplied array of events.
+  void GetActiveEvents(Event* events) const;
+
  private:
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
   // profiling information will be overwritten.
   static constexpr int kMaxEvents = 50;
 
-  const char* tags_[kMaxEvents];
-  int32_t start_ticks_[kMaxEvents];
-  int32_t end_ticks_[kMaxEvents];
+  Event events_[kMaxEvents];
   int num_events_ = 0;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE;
