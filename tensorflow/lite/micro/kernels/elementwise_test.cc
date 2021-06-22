@@ -85,15 +85,15 @@ void TestElementwiseQuantized(const TfLiteRegistration& registration,
   int input_zero_points[2] = {1, input_zero_point};
   float input_scales[2] = {1, input_scale};
   TfLiteAffineQuantization input_quant = {
-      tflite::testing::FloatArrayFromFloats({input_scales}),
-      tflite::testing::IntArrayFromInts({input_zero_points}), 0};
+      tflite::testing::FloatArrayFromFloats(input_scales),
+      tflite::testing::IntArrayFromInts(input_zero_points), 0};
   tensors[0].quantization = {kTfLiteAffineQuantization, &input_quant};
 
   int output_zero_points[2] = {1, output_zero_point};
   float output_scales[2] = {1, output_scale};
   TfLiteAffineQuantization output_quant = {
-      tflite::testing::FloatArrayFromFloats({output_scales}),
-      tflite::testing::IntArrayFromInts({output_zero_points}), 0};
+      tflite::testing::FloatArrayFromFloats(output_scales),
+      tflite::testing::IntArrayFromInts(output_zero_points), 0};
   tensors[1].quantization = {kTfLiteAffineQuantization, &output_quant};
 
   static int inputs_array_data[] = {1, 0};
