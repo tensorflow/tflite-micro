@@ -60,8 +60,9 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteEvalTensor* bias,
                           TfLiteEvalTensor* output);
 
-TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 #endif
+
+TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
