@@ -4,8 +4,9 @@ on:
     types: [labeled]
 
 jobs:
-  find-bug-tag:
+  pr_has_bug:
     runs-on: ubuntu-latest
+    name: PR has Bug
     steps:
       - name: Check for BUG=
         if: ${{ !contains(github.event.pull_request.body, 'BUG=') }}
