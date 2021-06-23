@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_SPACE_TO_DEPTH_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_SPACE_TO_DEPTH_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
