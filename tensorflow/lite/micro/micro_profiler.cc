@@ -61,7 +61,7 @@ void MicroProfiler::Log() const {
 #endif
 }
 
-uint32_t MicroProfiler::GetTotalEvents() const { return num_events_; }
+int32_t MicroProfiler::GetTotalEvents() const { return num_events_; }
 
 void MicroProfiler::GetActiveEvents(Event* events) const {
   memcpy(events, events_, sizeof(Event) * num_events_);

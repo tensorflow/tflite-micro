@@ -65,7 +65,7 @@ class MicroProfiler {
   void Log() const;
 
   // Returns the number of active events that are being profiled.
-  uint32_t GetTotalEvents() const;
+  int32_t GetTotalEvents() const;
 
   // Copies the active events to a supplied array of events.
   void GetActiveEvents(Event* events) const;
