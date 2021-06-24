@@ -77,6 +77,10 @@ class MicroBenchmarkRunner {
     interpreter_.GetMicroAllocator().PrintAllocations();
   }
 
+  tflite::RecordingMicroInterpreter* GetInterpreter() {
+    return &interpreter_;
+  }
+
  private:
   tflite::RecordingMicroInterpreter interpreter_;
 };
