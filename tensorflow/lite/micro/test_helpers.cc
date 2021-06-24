@@ -1198,6 +1198,20 @@ TfLiteFloatArray* FloatArrayFromFloats(const float* floats) {
   return reinterpret_cast<TfLiteFloatArray*>(const_cast<float*>(floats));
 }
 
+TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
+                                       TfLiteIntArray* dims, float input_scale,
+                                       float weights_scale, bool is_variable) {
+  float bias_scale = input_scale * weights_scale;
+  tflite::SymmetricQuantize(data, quantized, ElementCount(*dims), bias_scale);
+
+  // Quantized int32_t tensors always have a zero point of 0, since the range of
+  // int32_t values is large, and because zero point costs extra cycles during
+  // processing.
+  TfLiteTensor result =
+      CreateQuantizedTensor(quantized, dims, bias_scale, 0, is_variable);
+  return result;
+}
+
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int32_t* quantized,
                                        TfLiteIntArray* dims, float input_scale,
                                        float weights_scale, bool is_variable) {
