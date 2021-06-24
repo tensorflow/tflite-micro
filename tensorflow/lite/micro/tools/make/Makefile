@@ -639,7 +639,7 @@ $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$
 third_party_downloads: $(THIRD_PARTY_TARGETS)
 
 MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
-$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS))))
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
 
 MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
@@ -652,6 +652,10 @@ $(CORE_OBJDIR)%.o: %.cc
 	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(CORE_OBJDIR)%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(CORE_OBJDIR)%.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
@@ -670,6 +674,14 @@ $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 $(KERNEL_OBJDIR)%.o: %.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.S
+	@mkdir -p $(dir $@)
+	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
