@@ -48,6 +48,10 @@ class MicroBenchmarkRunner {
     }
   }
 
+  int NumInputs() {
+    return interpreter_.inputs().size();
+  }
+
   void SetRandomInput(const int random_seed, int input_index = 0) {
     // The pseudo-random number generator is initialized to a constant seed
     std::srand(random_seed);
