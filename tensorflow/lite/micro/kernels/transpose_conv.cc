@@ -46,6 +46,9 @@ struct OpData {
 
   // A scratch buffer is required for quantized implementations.
   int scratch_buffer_index;
+
+  // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+  // 64-bit biases.
   int bias_converted_buffer_index;
 
   // Multiplier and shift arrays are required for the int8 implementation.
@@ -107,8 +110,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
         data->per_channel_output_multiplier, data->per_channel_output_shift,
         output_channels));
 
-    // Some models have int16 biases which must be converted to int64 for
-    // inference.
+    // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+    // 64-bit biases.
     if (input->type == kTfLiteInt16) {
       TFLITE_DCHECK(filter->type == kTfLiteInt8);
       TFLITE_DCHECK(output->type == kTfLiteInt16);
@@ -273,7 +276,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       std::int64_t* scratch_buffer = static_cast<int64_t*>(
           context->GetScratchBuffer(context, data.scratch_buffer_index));
-      // Handle models with int16 biases by converting to int64 on the fly.
+      // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+      // 64-bit biases.
       if (bias->type == kTfLiteInt16) {
         std::int64_t* bias_converted_buffer =
             static_cast<int64_t*>(context->GetScratchBuffer(

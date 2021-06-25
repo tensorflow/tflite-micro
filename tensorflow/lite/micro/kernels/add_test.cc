@@ -27,8 +27,8 @@ namespace testing {
 namespace {
 
 // Shapes and values for mixed broadcast tests.
-const int broadcast_output_dims_count = 36;
-const int broadcast_num_shapes = 4;
+constexpr int broadcast_output_dims_count = 36;
+constexpr int broadcast_num_shapes = 4;
 
 int broadcast_input1_shape[] = {4, 2, 3, 1, 2};
 const float broadcast_input1_values[] = {-0.3, 2.3, 0.9,  0.5, 0.8, -1.1,
@@ -46,7 +46,7 @@ const float
         {-0.1, 2.5, 1.2, 0.8, 0.4, -1.5, 1.7, 3.3, -0.6, 1.0, 1.6, -1.3},
 };
 
-const int broadcast_max_shape_size = 5;
+constexpr int broadcast_max_shape_size = 5;
 int broadcast_input2_shapes[broadcast_num_shapes][broadcast_max_shape_size] = {
     {4, 1, 1, 3, 2},
     {4, 1, 3, 1, 2},
@@ -147,11 +147,11 @@ void TestAddQuantized(int* input1_dims_data, const float* input1_data,
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(FloatAddNoActivation) {
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8};
   const float input2_values[] = {0.1, 0.2, 0.3, 0.5};
   const float golden_values[] = {-1.9, 0.4, 1.0, 1.3};
+  constexpr int output_dims_count = 4;
   float output_data[output_dims_count];
   tflite::testing::TestAddFloat(inout_shape, input1_values, inout_shape,
                                 input2_values, inout_shape, golden_values,
@@ -159,12 +159,12 @@ TF_LITE_MICRO_TEST(FloatAddNoActivation) {
 }
 
 TF_LITE_MICRO_TEST(FloatAddActivationRelu1) {
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8};
   const float input2_values[] = {0.1, 0.2, 0.3, 0.5};
   const float golden_values[] = {-1.0, 0.4, 1.0, 1.0};
 
+  constexpr int output_dims_count = 4;
   float output_data[output_dims_count];
   tflite::testing::TestAddFloat(inout_shape, input1_values, inout_shape,
                                 input2_values, inout_shape, golden_values,
@@ -172,7 +172,7 @@ TF_LITE_MICRO_TEST(FloatAddActivationRelu1) {
 }
 
 TF_LITE_MICRO_TEST(FloatAddVariousInputShapes) {
-  const int output_dims_count = 6;
+  constexpr int output_dims_count = 6;
   float output_data[output_dims_count];
 
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8, 1.1, 2.0};
@@ -196,7 +196,7 @@ TF_LITE_MICRO_TEST(FloatAddVariousInputShapes) {
 }
 
 TF_LITE_MICRO_TEST(FloatAddWithScalarBroadcast) {
-  const int output_dims_count = 6;
+  constexpr int output_dims_count = 6;
   float output_data[output_dims_count];
 
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8, 1.1, 2.0};
@@ -223,12 +223,12 @@ TF_LITE_MICRO_TEST(FloatAddWithScalarBroadcast) {
 TF_LITE_MICRO_TEST(QuantizedAddNoActivationInt8) {
   const float scales[] = {0.25, 0.5, 1.0};
   const int zero_points[] = {-10, 4, 13};
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.01, -1.01, -0.01, 0.98};
   const float input2_values[] = {1.01, 1.99, 2.99, 4.02};
   const float golden_values[] = {-1, 1, 3, 5};
 
+  constexpr int output_dims_count = 4;
   int8_t input1_quantized[output_dims_count];
   int8_t input2_quantized[output_dims_count];
   int8_t golden_quantized[output_dims_count];
@@ -244,12 +244,12 @@ TF_LITE_MICRO_TEST(QuantizedAddNoActivationInt8) {
 TF_LITE_MICRO_TEST(QuantizedAddActivationRelu1Int8) {
   const float scales[] = {0.25, 0.5, 1.0};
   const int zero_points[] = {-10, 4, 13};
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.01, -1.01, -0.01, 0.98};
   const float input2_values[] = {1.01, 1.99, 2.99, 4.02};
   const float golden_values[] = {-1, 1, 1, 1};
 
+  constexpr int output_dims_count = 4;
   int8_t input1_quantized[output_dims_count];
   int8_t input2_quantized[output_dims_count];
   int8_t golden_quantized[output_dims_count];
@@ -265,7 +265,6 @@ TF_LITE_MICRO_TEST(QuantizedAddActivationRelu1Int8) {
 TF_LITE_MICRO_TEST(QuantizedAddVariousInputShapesInt8) {
   const float scales[] = {0.1, 0.05, 0.1};
   const int zero_points[] = {-9, 5, 14};
-  const int output_dims_count = 6;
 
   constexpr int num_shapes = 4;
   constexpr int max_shape_size = 5;
@@ -280,6 +279,7 @@ TF_LITE_MICRO_TEST(QuantizedAddVariousInputShapesInt8) {
   const float input2_values[] = {0.1, 0.2, 0.3, 0.5, 1.1, 0.1};
   const float golden_values[] = {-1.9, 0.4, 1.0, 1.3, 2.2, 2.1};
 
+  constexpr int output_dims_count = 6;
   int8_t input1_quantized[output_dims_count];
   int8_t input2_quantized[output_dims_count];
   int8_t golden_quantized[output_dims_count];
@@ -309,8 +309,6 @@ TF_LITE_MICRO_TEST(QuantizedAddWithScalarBroadcastFloat) {
 }
 
 TF_LITE_MICRO_TEST(QuantizedAddWithScalarBroadcastInt8) {
-  const int output_dims_count = 6;
-
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8, 1.1, 2.0};
   int input2_shape[] = {0};
   const float input2_values[] = {0.1};
@@ -328,6 +326,7 @@ TF_LITE_MICRO_TEST(QuantizedAddWithScalarBroadcastInt8) {
   const float scales[] = {0.1, 0.05, 0.05};
   const int zero_points[] = {-8, 4, 12};
 
+  constexpr int output_dims_count = 6;
   int8_t input1_quantized[output_dims_count];
   int8_t input2_quantized[output_dims_count];
   int8_t golden_quantized[output_dims_count];
@@ -365,12 +364,12 @@ TF_LITE_MICRO_TEST(QuantizedAddWithMixedBroadcastInt8) {
 TF_LITE_MICRO_TEST(QuantizedAddNoActivationInt16) {
   const float scales[] = {0.25, 0.5, 1.0};
   const int zero_points[] = {0, 0, 0};
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.01, -1.01, -0.01, 0.98};
   const float input2_values[] = {1.01, 2.01, 3.01, 4.02};
   const float golden_values[] = {-1, 1, 3, 5};
 
+  constexpr int output_dims_count = 4;
   int16_t input1_quantized[output_dims_count];
   int16_t input2_quantized[output_dims_count];
   int16_t golden_quantized[output_dims_count];
@@ -386,12 +385,12 @@ TF_LITE_MICRO_TEST(QuantizedAddNoActivationInt16) {
 TF_LITE_MICRO_TEST(QuantizedAddActivationRelu1Int16) {
   const float scales[] = {0.25, 0.5, 1.0};
   const int zero_points[] = {0, 0, 0};
-  const int output_dims_count = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-2.01, -1.01, -0.01, 0.98};
   const float input2_values[] = {1.01, 1.99, 2.99, 4.02};
   const float golden_values[] = {-1, 1, 1, 1};
 
+  constexpr int output_dims_count = 4;
   int16_t input1_quantized[output_dims_count];
   int16_t input2_quantized[output_dims_count];
   int16_t golden_quantized[output_dims_count];
@@ -407,7 +406,6 @@ TF_LITE_MICRO_TEST(QuantizedAddActivationRelu1Int16) {
 TF_LITE_MICRO_TEST(QuantizedAddVariousInputShapesInt16) {
   const float scales[] = {0.1, 0.05, 0.1};
   const int zero_points[] = {0, 0, 0};
-  const int output_dims_count = 6;
 
   constexpr int num_shapes = 4;
   constexpr int max_shape_size = 5;
@@ -422,6 +420,7 @@ TF_LITE_MICRO_TEST(QuantizedAddVariousInputShapesInt16) {
   const float input2_values[] = {0.1, 0.2, 0.3, 0.5, 1.1, 0.1};
   const float golden_values[] = {-1.9, 0.4, 1.0, 1.3, 2.2, 2.1};
 
+  constexpr int output_dims_count = 6;
   int16_t input1_quantized[output_dims_count];
   int16_t input2_quantized[output_dims_count];
   int16_t golden_quantized[output_dims_count];
@@ -437,8 +436,6 @@ TF_LITE_MICRO_TEST(QuantizedAddVariousInputShapesInt16) {
 }
 
 TF_LITE_MICRO_TEST(QuantizedAddWithScalarBroadcastInt16) {
-  const int output_dims_count = 6;
-
   const float input1_values[] = {-2.0, 0.2, 0.7, 0.8, 1.1, 2.0};
   int input2_shape[] = {0};
   const float input2_values[] = {0.1};
@@ -456,6 +453,7 @@ TF_LITE_MICRO_TEST(QuantizedAddWithScalarBroadcastInt16) {
   const float scales[] = {0.1, 0.05, 0.05};
   const int zero_points[] = {0, 0, 0};
 
+  constexpr int output_dims_count = 6;
   int16_t input1_quantized[output_dims_count];
   int16_t input2_quantized[output_dims_count];
   int16_t golden_quantized[output_dims_count];

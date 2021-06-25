@@ -1204,8 +1204,8 @@ TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
   float bias_scale = input_scale * weights_scale;
   tflite::SymmetricQuantize(data, quantized, ElementCount(*dims), bias_scale);
 
-  // Quantized int32_t tensors always have a zero point of 0, since the range of
-  // int32_t values is large, and because zero point costs extra cycles during
+  // Quantized int16_t tensors always have a zero point of 0, since the range of
+  // int16_t values is large, and because zero point costs extra cycles during
   // processing.
   TfLiteTensor result =
       CreateQuantizedTensor(quantized, dims, bias_scale, 0, is_variable);
