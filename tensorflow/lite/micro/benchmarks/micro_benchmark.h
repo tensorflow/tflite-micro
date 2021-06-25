@@ -48,10 +48,10 @@ class MicroBenchmarkRunner {
     }
   }
 
-  void SetRandomInput(const int random_seed) {
+  void SetRandomInput(const int random_seed, int input_index = 0) {
     // The pseudo-random number generator is initialized to a constant seed
     std::srand(random_seed);
-    TfLiteTensor* input = interpreter_.input(0);
+    TfLiteTensor* input = interpreter_.input(input_index);
 
     // Pre-populate input tensor with random values.
     int input_length = input->bytes / sizeof(inputT);
@@ -64,8 +64,8 @@ class MicroBenchmarkRunner {
     }
   }
 
-  void SetInput(const inputT* custom_input) {
-    TfLiteTensor* input = interpreter_.input(0);
+  void SetInput(const inputT* custom_input, int input_index = 0) {
+    TfLiteTensor* input = interpreter_.input(input_index);
     inputT* input_buffer = tflite::GetTensorData<inputT>(input);
     int input_length = input->bytes / sizeof(inputT);
     for (int i = 0; i < input_length; i++) {
@@ -75,10 +75,6 @@ class MicroBenchmarkRunner {
 
   void PrintAllocations() const {
     interpreter_.GetMicroAllocator().PrintAllocations();
-  }
-
-  tflite::RecordingMicroInterpreter& GetInterpreter() {
-    return interpreter_;
   }
 
  private:
