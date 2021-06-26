@@ -206,6 +206,11 @@ TfLiteTensor CreateQuantizedTensor(const float* input, T* quantized,
   return CreateQuantizedTensor(quantized, dims, scale, zero_point, is_variable);
 }
 
+TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
+                                       TfLiteIntArray* dims, float input_scale,
+                                       float weights_scale,
+                                       bool is_variable = false);
+
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int32_t* quantized,
                                        TfLiteIntArray* dims, float input_scale,
                                        float weights_scale,
