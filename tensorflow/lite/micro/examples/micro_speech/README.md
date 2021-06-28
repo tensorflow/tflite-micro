@@ -18,20 +18,21 @@ kilobytes of Flash.
 
 ## Table of contents
 
--   [Deploy to ARC EM SDP](#deploy-to-arc-em-sdp)
+-   [Running on ARC](#running-on-ARC)
 -   [Deploy to Arduino](#deploy-to-arduino)
 -   [Deploy to ESP32](#deploy-to-esp32)
 -   [Deploy to SparkFun Edge](#deploy-to-sparkfun-edge)
 -   [Deploy to STM32F746](#deploy-to-STM32F746)
 -   [Deploy to NXP FRDM K66F](#deploy-to-nxp-frdm-k66f)
 -   [Deploy to HIMAX WE1 EVB](#deploy-to-himax-we1-evb)
--   [Deploy to CEVA BX1/SP500](#deploy-to-ceva-bx1)
+-   [Deploy to CEVA-BX1](#deploy-to-ceva-bx1)
 -   [Run on macOS](#run-on-macos)
 -   [Run the tests on a development machine](#run-the-tests-on-a-development-machine)
 -   [Train your own model](#train-your-own-model)
 
-## Deploy to ARC EM SDP
+## Running on ARC
 
+### **Deploy on ARC EMSDP**
 The following instructions will help you to build and deploy this example to
 [ARC EM SDP](https://www.synopsys.com/dw/ipdir.php?ds=arc-em-software-development-platform)
 board. General information and instructions on using the board with TensorFlow
@@ -78,7 +79,7 @@ reduce total size of application. It can be omitted.
 
 For more detailed information on building and running examples see the
 appropriate sections of general descriptions of the
-[ARC EM SDP usage with TFLM](/tensorflow/lite/micro/tools/make/targets/arc/README.md#ARC-EM-Software-Development-Platform-ARC-EM-SDP).
+[ARC EM SDP usage with TensorFlow Lite Micro (TFLM)](/tensorflow/lite/micro/tools/make/targets/arc/README.md#ARC-EM-Software-Development-Platform-ARC-EM-SDP).
 In the directory with generated project you can also find a
 *README_ARC_EMSDP.md* file with instructions and options on building and
 running. Here we only briefly mention main steps which are typically enough to
@@ -88,10 +89,10 @@ get it started.
     [connect the board](/tensorflow/lite/micro/tools/make/targets/arc/README.md#connect-the-board)
     and open an serial connection.
 
-2.  Go to the generated example project director
+2.  Go to the generated example project directory.
 
     ```
-    cd tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc/prj/micro_speech_mock/make
+    cd tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc_default/prj/micro_speech_mock/make
     ```
 
 3.  Build the example using
@@ -123,6 +124,66 @@ get it started.
 6.  If you have the MetaWare Debugger installed in your environment:
 
     *   To run application from the console using it type `make run`.
+    *   To stop the execution type `Ctrl+C` in the console several times.
+
+In both cases (step 5 and 6) you will see the application output in the serial
+terminal.
+
+### **Deploy on ARC VPX processor**
+
+The [embARC MLI Library 2.0](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA) enables TFLM library and examples to be used with the ARC VPX processor. This is currently an experimental feature. General information and instructions on using embARC MLI Library 2.0 with TFLM can be found in the common [ARC targets description](/tensorflow/lite/micro/tools/make/targets/arc/README.md).
+
+### Initial Setup
+
+Follow the instructions in the [Custom ARC EM/HS/VPX Platform](/tensorflow/lite/micro/tools/make/targets/arc/README.md#Custom-ARC-EMHSVPX-Platform) section to get and install all the required tools for working with the ARC VPX Processor.
+
+### Generate Example Project
+
+The example project for ARC VPX platform can be generated with the following
+command:
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom\
+ARC_TAGS=mli20_experimental \
+BUILD_LIB_DIR=<path_to_buildlib> \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+generate_micro_speech_mock_make_project
+```
+TCF file for VPX Processor can be generated using tcfgen tool which is part of [MetaWare Development Toolkit](#MetaWare-Development-Toolkit). \
+The following command can be used to generate TCF file to run applications on VPX Processor using nSIM Simulator:
+```
+tcfgen -o vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+```
+VPX Processor configuration may require a custom run-time library specified using the BUILD_LIB_DIR option. Please, check MLI Library 2.0 [documentation](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA#build-configuration-options) for more details. 
+
+### Build and Run Example
+
+For more detailed information on building and running examples see the
+appropriate sections of general descriptions of the
+[Custom ARC EM/HS/VPX Platform](/tensorflow/lite/micro/tools/make/targets/arc/README.md#Custom-ARC-EMHSVPX-Platform).
+In the directory with generated project you can also find a
+*README_ARC.md* file with instructions and options on building and
+running. Here we only briefly mention main steps which are typically enough to
+get started.
+
+1.  Go to the generated example project directory.
+
+    ```
+    cd tensorflow/lite/micro/tools/make/gen/vpx5_integer_full_mli20_arc_default/prj/micro_speech_mock/make
+    ```
+
+2.  Build the example using
+
+    ```
+    make app
+    ```
+
+3.  To run application from the MetaWare Debugger installed in your environment:
+
+    *   From the console, type `make run`.
     *   To stop the execution type `Ctrl+C` in the console several times.
 
 In both cases (step 5 and 6) you will see the application output in the serial
@@ -267,7 +328,7 @@ The following command will download the required dependencies and then compile a
 binary for the SparkFun Edge:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=sparkfun_edge OPTIMIZED_KERNEL_DIR=cmsis_nn micro_speech_bin
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=sparkfun_edge TAGS="cmsis_nn" micro_speech_bin
 ```
 
 The binary will be created in the following location:
@@ -407,27 +468,28 @@ Before we begin, you'll need the following:
 
 - STM32F7 discovery kit board
 - Mini-USB cable
-- ARM Mbed CLI ([installation instructions](https://os.mbed.com/docs/mbed-os/v6.9/quick-start/build-with-mbed-cli.html). Check it out for MacOS Catalina - [mbed-cli is broken on MacOS Catalina #930](https://github.com/ARMmbed/mbed-cli/issues/930#issuecomment-660550734))
-- Python 3 and pip3
+- ARM Mbed CLI ([installation instructions](https://os.mbed.com/docs/mbed-os/v5.12/tools/installation-and-setup.html))
+- Python 2.7 and pip
 
 Since Mbed requires a special folder structure for projects, we'll first run a
 command to generate a subfolder containing the required source files in this
 structure:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=disco_f746ng OPTIMIZED_KERNEL_DIR=cmsis_nn generate_micro_speech_mbed_project
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=mbed TAGS="CMSIS disco_f746ng" generate_micro_speech_mbed_project
 ```
 
 Running the make command will result in the creation of a new folder:
 
 ```
-tensorflow/lite/micro/tools/make/gen/disco_f746ng_cortex-m4_default/prj/micro_speech/mbed
+tensorflow/lite/micro/tools/make/gen/mbed_cortex-m4/prj/micro_speech/mbed
 ```
 
 This folder contains all of the example's dependencies structured in the correct
 way for Mbed to be able to build it.
 
-Change into the directory and run the following commands.
+Change into the directory and run the following commands, making sure you are
+using Python 2.7.15.
 
 First, tell Mbed that the current directory is the root of an Mbed project:
 
@@ -441,23 +503,16 @@ Next, tell Mbed to download the dependencies and prepare to build:
 mbed deploy
 ```
 
-Older versions of Mbed will build the project using C++98. However, TensorFlow Lite
-requires C++11. If needed, run the following Python snippet to modify the Mbed
+By default, Mbed will build the project using C++98. However, TensorFlow Lite
+requires C++11. Run the following Python snippet to modify the Mbed
 configuration files so that it uses C++11:
 
 ```
 python -c 'import fileinput, glob;
 for filename in glob.glob("mbed-os/tools/profiles/*.json"):
   for line in fileinput.input(filename, inplace=True):
-    print(line.replace("\"-std=gnu++98\"","\"-std=c++11\", \"-fpermissive\""))'
-```
+    print line.replace("\"-std=gnu++98\"","\"-std=c++11\", \"-fpermissive\"")'
 
-Note: Mbed has a dependency to an old version of arm_math.h and cmsis_gcc.h (adapted from the general [CMSIS-NN MBED example](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/kernels/cmsis_nn#example-2---mbed)). Therefore you need to copy the newer version as follows:
-```bash
-cp tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include/\
-arm_math.h mbed-os/cmsis/TARGET_CORTEX_M/arm_math.h
-cp tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include/\
-cmsis_gcc.h mbed-os/cmsis/TARGET_CORTEX_M/cmsis_gcc.h
 ```
 
 Finally, run the following command to compile:
@@ -691,27 +746,17 @@ application output in the serial terminal and lighting LED.
 ## Deploy to CEVA-BX1
 
 The following instructions will help you build and deploy the sample to the
-[CEVA-BX1](https://www.ceva-dsp.com/product/ceva-bx1-sound/) or [CEVA-SP500](https://www.ceva-dsp.com/product/ceva-senspro/)
+[CEVA-BX1](https://www.ceva-dsp.com/product/ceva-bx1-sound/)
 
 1.  Contact CEVA at [sales@ceva-dsp.com](mailto:sales@ceva-dsp.com)
-2.  For BX1:
-2.1. Download and install CEVA-BX Toolbox v18.0.2
-2.2.  Set the TARGET_TOOLCHAIN_ROOT variable in
+2.  Download and install CEVA-BX Toolbox v18.0.2 and run
+3.  Set the TARGET_TOOLCHAIN_ROOT variable in
     /tensorflow/lite/micro/tools/make/templates/ceva_bx1/ceva_app_makefile.tpl
     To your installation location. For example: TARGET_TOOLCHAIN_ROOT :=
     /home/myuser/work/CEVA-ToolBox/V18/BX
-2.3.  Generate the Makefile for the project: /tensorflow$ make -f
-    tensorflow/lite/micro/tools/make/Makefile TARGET=ceva TARGET_ARCH=CEVA_BX1
+4.  Generate the Makefile for the project: /tensorflow$ make -f
+    tensorflow/lite/micro/tools/make/Makefile TARGET=ceva TARGET_ARCH=bx1
     generate_micro_speech_make_project
-3. For SensPro (SP500):
-3.1. Download and install CEVA-SP Toolbox v20
-3.2. Set the TARGET_TOOLCHAIN_ROOT variable in
-    /tensorflow/lite/micro/tools/make/templates/ceva_SP500/ceva_app_makefile.tpl
-    To your installation location. For example: TARGET_TOOLCHAIN_ROOT :=
-    /home/myuser/work/CEVA-ToolBox/V20/SensPro
-3.3. Generate the Makefile for the project: /tensorflow$ make -f
-    tensorflow/lite/micro/tools/make/Makefile TARGET=ceva TARGET_ARCH=CEVA_SP500
-    generate_micro_speech_make_project 	
 5.  Build the project:
     /tensorflow/lite/micro/tools/make/gen/ceva_bx1/prj/micro_speech/make$ make
 6.  This should build the project and create a file called micro_speech.elf.
