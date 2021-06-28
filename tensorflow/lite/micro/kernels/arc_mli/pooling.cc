@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020-2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
 namespace pooling {
 
 namespace {
@@ -47,8 +45,8 @@ struct OpData {
   bool is_mli_applicable;
 
   // Tensors in MLI format.
-  mli_tensor* mli_in;
-  mli_tensor* mli_out;
+  mutable ops::micro::MliTensorInterface mli_in;
+  mutable ops::micro::MliTensorInterface mli_out;
   mli_pool_cfg* cfg;
 };
 
@@ -109,15 +107,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   }
 
   if (data->is_mli_applicable) {
-    data->mli_in = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
-    data->mli_out = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
+    data->mli_in = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
+    data->mli_out = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
     data->cfg = static_cast<mli_pool_cfg*>(
         context->AllocatePersistentBuffer(context, sizeof(mli_pool_cfg)));
 
-    ops::micro::ConvertToMliTensor(input, data->mli_in);
-    ops::micro::ConvertToMliTensor(output, data->mli_out);
+    ops::micro::ConvertToMliTensor(input, &data->mli_in);
+    ops::micro::ConvertToMliTensor(output, &data->mli_out);
 
     data->cfg->kernel_width = params->filter_width;
     data->cfg->kernel_height = params->filter_height;
@@ -176,8 +174,8 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
                      const MliPoolingType pooling_type) {
   mli_pool_cfg cfg_local = *data.cfg;
 
-  ops::micro::MliTensorAttachBuffer<int8_t>(input, data.mli_in);
-  ops::micro::MliTensorAttachBuffer<int8_t>(output, data.mli_out);
+  ops::micro::MliTensorAttachBuffer<int8_t>(input, &data.mli_in);
+  ops::micro::MliTensorAttachBuffer<int8_t>(output, &data.mli_out);
 
   const int height_dimension = 1;
   int in_slice_height = 0;
@@ -186,18 +184,26 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
 
   // Tensors for data in fast (local) memory and config to copy data from
   // external to local memory
-  mli_tensor in_local = *data.mli_in;
-  mli_tensor out_local = *data.mli_out;
+  mli_tensor in_local = *data.mli_in.MliTensor();
+  mli_tensor out_local = *data.mli_out.MliTensor();
+
+  ops::micro::MliTensorInterface in_local_interface(&in_local);
+  ops::micro::MliTensorInterface out_local_interface(&out_local);
+
   mli_mov_cfg_t copy_config;
   mli_mov_cfg_for_copy(&copy_config);
   TF_LITE_ENSURE_STATUS(get_arc_scratch_buffer_for_pooling_tensors(
-      context, &in_local, &out_local));
-  bool in_is_local = in_local.data == data.mli_in->data;
-  bool out_is_local = out_local.data == data.mli_out->data;
+      context, &in_local_interface, &out_local_interface));
+
+  bool in_is_local =
+      in_local_interface.Data<int8_t>() == data.mli_in.Data<int8_t>();
+  bool out_is_local =
+      out_local_interface.Data<int8_t>() == data.mli_out.Data<int8_t>();
+
   TF_LITE_ENSURE_STATUS(arc_scratch_buffer_calc_slice_size_io(
-      &in_local, &out_local, cfg_local.kernel_height, cfg_local.stride_height,
-      cfg_local.padding_top, cfg_local.padding_bottom, &in_slice_height,
-      &out_slice_height));
+      &in_local_interface, &out_local_interface, cfg_local.kernel_height,
+      cfg_local.stride_height, cfg_local.padding_top, cfg_local.padding_bottom,
+      &in_slice_height, &out_slice_height));
 
   /* mli_in tensor contains batches of HWC tensors. so it is a 4 dimensional
      tensor. because the mli kernel will process one HWC tensor at a time, the 4
@@ -206,10 +212,11 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
      for that the sliceHeight has been calculated. The tensor slicer is
      configured that it will completely slice the nBatch dimension (0) and slice
      the height dimension (1) in chunks of 'sliceHeight' */
-  TensorSlicer in_slice(data.mli_in, height_dimension, in_slice_height,
-                        cfg_local.padding_top, cfg_local.padding_bottom,
-                        overlap);
-  TensorSlicer out_slice(data.mli_out, height_dimension, out_slice_height);
+  ops::micro::TensorSlicer in_slice(data.mli_in.MliTensor(), height_dimension,
+                                    in_slice_height, cfg_local.padding_top,
+                                    cfg_local.padding_bottom, overlap);
+  ops::micro::TensorSlicer out_slice(data.mli_out.MliTensor(), height_dimension,
+                                     out_slice_height);
 
   /* is_local indicates that the tensor is already in local memory,
      so in that case the original tensor can be used,
@@ -418,6 +425,4 @@ TfLiteRegistration Register_MAX_POOL_2D() {
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
