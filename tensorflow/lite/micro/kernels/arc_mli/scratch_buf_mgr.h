@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020-2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_ARC_SCRATCH_BUF_MGR_H_
 
 #include "mli_api.h"  // NOLINT
+#include "mli_interface.h"
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
@@ -37,11 +38,9 @@ namespace micro {
  *
  * @return Tf Lite status code
  */
-TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(TfLiteContext* context,
-                                                     mli_tensor* in,
-                                                     mli_tensor* weights,
-                                                     mli_tensor* bias,
-                                                     mli_tensor* out);
+TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* weights,
+    MliTensorInterface* bias, MliTensorInterface* out);
 
 /**
  * @brief Function to allocate scratch buffers for pooling kernels with only
@@ -56,9 +55,8 @@ TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(TfLiteContext* context,
  *
  * @return Tf Lite status code
  */
-TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(TfLiteContext* context,
-                                                        mli_tensor* in,
-                                                        mli_tensor* out);
+TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* out);
 
 /**
  * @brief Function to allocate scratch buffers for the fully connect tensors
@@ -75,8 +73,8 @@ TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(TfLiteContext* context,
  * @return Tf Lite status code
  */
 TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
-    TfLiteContext* context, mli_tensor* in, mli_tensor* weights,
-    mli_tensor* bias, mli_tensor* out);
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* weights,
+    MliTensorInterface* bias, MliTensorInterface* out);
 
 /**
  * @brief Function to calculate slice size for io tensors
@@ -99,9 +97,9 @@ TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
  * @return Tf Lite status code
  */
 TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
-    const mli_tensor* in, const mli_tensor* out, const int kernelHeight,
-    const int strideHeight, const int padding_top, const int padding_bot,
-    int* in_slice_height, int* out_slice_height);
+    const MliTensorInterface* in, const MliTensorInterface* out,
+    const int kernelHeight, const int strideHeight, const int padding_top,
+    const int padding_bot, int* in_slice_height, int* out_slice_height);
 
 /**
  * @brief Function to calculate slice size for weight slicing
@@ -119,7 +117,7 @@ TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
  * @return Tf Lite status code
  */
 TfLiteStatus arc_scratch_buffer_calc_slice_size_weights(
-    const mli_tensor* weights, const mli_tensor* bias,
+    const MliTensorInterface* weights, const MliTensorInterface* bias,
     const int weight_out_ch_dimension, int* slice_channels);
 
 }  // namespace micro

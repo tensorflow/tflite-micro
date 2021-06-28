@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2019-2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,102 +17,254 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_TF_UTILS_H_
 
 #include "mli_api.h"  // NOLINT
+#include "mli_interface.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
-constexpr int kFracBitsQ15 = 15;
-constexpr int kFracBitsQ31 = 31;
+#define KRNL_C_DIM_NHWC 0  // output channels
 
 namespace tflite {
 namespace ops {
 namespace micro {
 
-inline void ConvertToMliTensorData(const TfLiteTensor* tfT, mli_tensor* mliT) {
+inline void ConvertToMliTensorData(const TfLiteTensor* tfT,
+                                   MliTensorInterface* mliT,
+                                   bool is_bias_tensor) {
   // Data is NULL until MliTensorAttachBuffer is called.
-  mliT->data = NULL;
-  if (tfT->type == kTfLiteInt8) {
-    mliT->el_type = MLI_EL_ASYM_I8;
-  } else if (tfT->type == kTfLiteInt32) {
-    mliT->el_type = MLI_EL_ASYM_I32;
-  } else {
-    TF_LITE_FATAL("Wrong data type. Expected int8_t or int32_t.");
-  }
+  mliT->SetElType(tfT->type);
+  if (tfT->type == kTfLiteInt8)
+    mliT->SetData<int8_t>(nullptr, tfT->bytes);
+  else if (tfT->type == kTfLiteInt32)
+    mliT->SetData<int32_t>(nullptr, tfT->bytes);
+  const int32_t dims_count = GetTensorShape(tfT).DimensionsCount();
+  *mliT->Rank() = is_bias_tensor ? 1 : dims_count;
 
-  mliT->capacity = tfT->bytes;
-  mliT->rank = GetTensorShape(tfT).DimensionsCount();
-  for (int i = 0; i < GetTensorShape(tfT).DimensionsCount(); i++) {
-    mliT->shape[i] = GetTensorShape(tfT).Dims(i);
+  if (is_bias_tensor) {
+    mliT->Shape()[0] = GetTensorShape(tfT).Dims(dims_count - 1);
+  } else {
+    for (int i = 0; i < dims_count; i++) {
+      mliT->Shape()[i] = GetTensorShape(tfT).Dims(i);
+    }
   }
 }
 
-inline void ConvertToMliQuantParams(const TfLiteTensor* tfT, mli_tensor* mliT) {
-  mliT->el_params.asym.dim = -1;
-  mliT->el_params.asym.zero_point.i16 = tfT->params.zero_point;
+inline void ConvertToMliQuantParams(const TfLiteTensor* tfT,
+                                    MliTensorInterface* mliT) {
+  *mliT->Dim() = -1;
+#ifdef MLI_2_0
+  *mliT->ZeroPointCapacity() = 1 * sizeof(int16_t);
+#endif
+  *mliT->ZeroPoint<int16_t*>() = tfT->params.zero_point;
   float fscale = tfT->params.scale;
-  int exp;
-  frexpf(fscale, &exp);
-  int frac_bits = kFracBitsQ31 - exp;
-  int32_t iscale = (int32_t)((1ll << frac_bits) * fscale + 0.5f);
-  mliT->el_params.asym.scale_frac_bits = frac_bits;
-  mliT->el_params.asym.scale.i32 = (int32_t)iscale;
+  mliT->SetScale(fscale);
 }
 
 inline void ConvertToMliQuantParamsPerChannel(const TfLiteTensor* tfT,
-                                              mli_tensor* mliT) {
+                                              MliTensorInterface* mliT,
+                                              bool is_bias_tensor) {
   // mli tensor scale and zero_point arrays should be allocated at this point
-  TFLITE_DCHECK_NE(mliT->el_params.asym.scale.pi16, 0);
-  TFLITE_DCHECK_NE(mliT->el_params.asym.zero_point.pi16, 0);
+#ifdef MLI_2_0
+  TFLITE_DCHECK_NE(*mliT->Scale<int16_t**>(), 0);
+  TFLITE_DCHECK_NE(*mliT->ZeroPoint<int16_t**>(), 0);
+#else
+  TFLITE_DCHECK_NE(*mliT->Scale<int32_t**>(), 0);
+  TFLITE_DCHECK_NE(*mliT->ZeroPoint<int16_t**>(), 0);
+#endif
 
   // get per channel quantization parameters
   const auto* affine_quantization =
       reinterpret_cast<TfLiteAffineQuantization*>(tfT->quantization.params);
-  mliT->el_params.asym.dim = affine_quantization->quantized_dimension;
+  int32_t quantized_dimension =
+      is_bias_tensor ? 0 : affine_quantization->quantized_dimension;
+  const int num_channels = mliT->Shape()[quantized_dimension];
 
-  // find frac_bits
-  const int num_channels =
-      mliT->shape[affine_quantization->quantized_dimension];
-  int min_frac_bits;
+  *mliT->Dim() = quantized_dimension;
+
+  // set capacities
+#ifdef MLI_2_0
+  *mliT->ScaleFracBitsCapacity() = num_channels * sizeof(int8_t);
+  *mliT->ScaleCapacity() = num_channels * sizeof(int16_t);
+  *mliT->ZeroPointCapacity() = num_channels * sizeof(int16_t);
+#endif
   float* fscale = affine_quantization->scale->data;
-  for (int i = 0; i < num_channels; i++) {
-    int exp;
-    frexpf(fscale[i], &exp);
-    int cur_frac_bits = kFracBitsQ31 - exp;
-    if (i == 0) {
-      min_frac_bits = cur_frac_bits;
-    } else {
-      min_frac_bits =
-          min_frac_bits < cur_frac_bits ? min_frac_bits : cur_frac_bits;
-    }
-  }
-  mliT->el_params.asym.scale_frac_bits = min_frac_bits;
+  mliT->SetScalePerChannel(fscale, num_channels);
 
+#ifdef MLI_2_0
+  int16_t* zero_point = *mliT->ZeroPoint<int16_t**>();
   for (int i = 0; i < num_channels; i++) {
-    int32_t iscale = (int32_t)((1ll << min_frac_bits) * fscale[i] + 0.5f);
-    mliT->el_params.asym.scale.pi32[i] = iscale;
+    zero_point[i] = tfT->params.zero_point;
   }
+#endif
 }
 
 template <typename datatype>
-inline void MliTensorAttachBuffer(const TfLiteEvalTensor* tfT,
-                                  mli_tensor* mliT) {
+inline void MliTensorAttachBuffer(const TfLiteEvalTensor*,
+                                  const MliTensorInterface*);
+
+template <>
+inline void MliTensorAttachBuffer<int8_t>(const TfLiteEvalTensor* tfT,
+                                          const MliTensorInterface* mliT) {
   // "const_cast" here used to attach const data buffer to the initially
   // non-const mli_tensor. This is required by current implementation of MLI
   // backend and planned for redesign due to this and some other aspects.
-  mliT->data = const_cast<void*>(
-      static_cast<const void*>(tflite::micro::GetTensorData<datatype>(tfT)));
+  mliT->SetData<int8_t>(
+      const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(tfT)),
+      *mliT->DataCapacity());
 }
 
-inline void ConvertToMliTensor(const TfLiteTensor* tfT, mli_tensor* mliT) {
-  ConvertToMliTensorData(tfT, mliT);
+template <>
+inline void MliTensorAttachBuffer<int32_t>(const TfLiteEvalTensor* tfT,
+                                           const MliTensorInterface* mliT) {
+  // "const_cast" here used to attach const data buffer to the initially
+  // non-const mli_tensor. This is required by current implementation of MLI
+  // backend and planned for redesign due to this and some other aspects.
+  mliT->SetData<int32_t>(
+      const_cast<int32_t*>(tflite::micro::GetTensorData<int32_t>(tfT)),
+      *mliT->DataCapacity());
+}
+
+inline void ConvertToMliTensor(const TfLiteTensor* tfT,
+                               MliTensorInterface* mliT) {
+  ConvertToMliTensorData(tfT, mliT, false);
   ConvertToMliQuantParams(tfT, mliT);
 }
 
 inline void ConvertToMliTensorPerChannel(const TfLiteTensor* tfT,
-                                         mli_tensor* mliT) {
-  ConvertToMliTensorData(tfT, mliT);
-  ConvertToMliQuantParamsPerChannel(tfT, mliT);
+                                         MliTensorInterface* mliT,
+                                         bool is_bias_tensor) {
+  ConvertToMliTensorData(tfT, mliT, is_bias_tensor);
+  ConvertToMliQuantParamsPerChannel(tfT, mliT, is_bias_tensor);
 }
+
+#ifdef MLI_2_0_KRNL_TEST
+// Reorder an array according to given indexes. If backward is true, order of
+// index array must be reversed.
+inline static void reorder(uint32_t* arr, const uint8_t index[],
+                           bool backward) {
+  uint32_t temp[MLI_MAX_RANK];
+  for (int8_t i = 0; i < MLI_MAX_RANK; i++) {
+    if (backward)
+      temp[index[i]] = arr[i];
+    else
+      temp[i] = arr[index[i]];
+  }
+  for (int8_t i = 0; i < MLI_MAX_RANK; i++) {
+    arr[i] = temp[i];
+  }
+}
+
+// Change shape of mli tensor and recalculate mem strides.
+inline void change_shape(mli_tensor* mliT, const uint8_t dim_order[]) {
+  reorder(mliT->shape, dim_order, false);
+
+  // Calculate strides for new layout
+  int mli_tensor_memstride = 1;
+  for (int shape_idx = mliT->rank - 1; shape_idx >= 0; --shape_idx) {
+    mliT->mem_stride[shape_idx] = mli_tensor_memstride;
+    mli_tensor_memstride *= mliT->shape[shape_idx];
+  }
+}
+
+inline void permute_weights(const mli_tensor* weights_src,
+                            const mli_permute_cfg* permute_cfg,
+                            mli_tensor* weights_dst,
+                            mli_data_container* buffer_data) {
+  mli_tensor buffer = {};
+  buffer.el_params = weights_dst->el_params;
+  buffer.data = *buffer_data;
+  // Compare weights tensor size and avaliable buffer capacity.
+  int buffer_size = buffer_data->capacity;
+  int weights_size = mli_hlp_count_elem_num(weights_src, 0) *
+                     mli_hlp_tensor_element_size(weights_src);
+
+  if (buffer_size >= weights_size) {
+    mli_mov_cfg_t copy_config;
+    mli_mov_cfg_for_copy(&copy_config);
+    mli_mov_tensor_sync(weights_src, &copy_config, &buffer);
+    mli_krn_permute_sa8(&buffer, permute_cfg, weights_dst);
+  } else {
+    // Weights shape is NHWC and output (buffer) shape is HWC where N_w = C_o.
+    // Buffer size (H_o * W_o) must be more or equal then the weights size (H_w
+    // * W_w * C_w). So, this is the reason, why buffer size (output tensor) is
+    // divided by channel shape.
+    uint32_t slice_size = buffer_size / weights_src->shape[KRNL_C_DIM_NHWC];
+
+    mli_mov_cfg_t copy_config = {};
+    uint32_t src_offsets[] = {0, 0, 0, 0};
+    uint32_t src_sizes[] = {0, 0, 0, 0};
+    int dst_mem_stride[] = {0, 0, 0, 0};
+
+    // Need to change shape of distanation weights buffer according to permute
+    // dimensions order to calculate slice sizes
+    change_shape(weights_dst, permute_cfg->perm_dim);
+
+    mli_tensor weights_dst_sub_tensor;
+    mli_sub_tensor_cfg sub_tensor_cfg = {};
+    sub_tensor_cfg.sub_tensor_rank = weights_src->rank;
+
+    // Calculate dimensions for slice accroding to buffer capacity.
+    // Now, after calling change_shape() function, dst weights buffer has the
+    // MLI layout (HWCN). This means, the innermost dimension (N) of dst weights
+    // tensor is equal to the innermost dimension of output tensor (N).
+    sub_tensor_cfg.size[weights_dst->rank - 1] =
+        src_sizes[weights_dst->rank - 1] = weights_src->shape[KRNL_C_DIM_NHWC];
+    // Now need to calculate other shapes for weights slice. Total slice size is
+    // H*W*C*N, so to calculate sizes for each axis, avaliable slice size is
+    // divided by shape for each axis.
+    uint32_t slice_size_left = slice_size;
+    for (uint32_t i = 0; i < weights_dst->rank - 1; i++) {
+      sub_tensor_cfg.size[i] = src_sizes[i] =
+          slice_size_left / weights_dst->shape[i] > 0 ? weights_dst->shape[i]
+                                                      : slice_size_left;
+      slice_size_left /= weights_dst->shape[i];
+      slice_size_left = slice_size_left > 0 ? slice_size_left : 1;
+    }
+    // Need to reorder src tensor sizes because it is still in TFLM format
+    // (NHWC) and src_sizes array calculated as (HWCN).
+    reorder(src_sizes, permute_cfg->perm_dim, true);
+
+    sub_tensor_cfg.offset[KRNL_C_DIM_HWCN] = src_offsets[KRNL_H_DIM_HWCN] = 0;
+    sub_tensor_cfg.offset[KRNL_H_DIM_HWCN] = src_offsets[KRNL_W_DIM_HWCN] = 0;
+    sub_tensor_cfg.offset[KRNL_W_DIM_HWCN] = src_offsets[KRNL_D_DIM_HWCN] = 0;
+    sub_tensor_cfg.offset[KRNL_D_DIM_HWCN] = src_offsets[KRNL_C_DIM_HWCN] = 0;
+    do {
+      do {
+        do {
+          do {
+            mli_mov_cfg_for_slice(&copy_config, (int*)src_offsets,
+                                  (int*)src_sizes, dst_mem_stride);
+            mli_mov_tensor_sync(weights_src, &copy_config, &buffer);
+
+            mli_hlp_create_subtensor(weights_dst, &sub_tensor_cfg,
+                                     &weights_dst_sub_tensor);
+            mli_krn_permute_sa8(&buffer, permute_cfg, &weights_dst_sub_tensor);
+
+            // For each axis, it is necessary to recalculate the offsets and
+            // slice sizes.
+            sub_tensor_cfg.offset[2] = src_offsets[3] += src_sizes[3];
+            src_sizes[3] =
+                std::min(src_sizes[3], weights_src->shape[3] - src_offsets[3]);
+          } while (src_offsets[3] < weights_src->shape[3]);
+
+          sub_tensor_cfg.offset[1] = src_offsets[2] += src_sizes[2];
+          src_sizes[2] =
+              std::min(src_sizes[2], weights_src->shape[2] - src_offsets[2]);
+        } while (src_offsets[2] < weights_src->shape[2]);
+
+        sub_tensor_cfg.offset[0] = src_offsets[1] += src_sizes[1];
+        src_sizes[1] =
+            std::min(src_sizes[1], weights_src->shape[1] - src_offsets[1]);
+      } while (src_offsets[1] < weights_src->shape[1]);
+
+      sub_tensor_cfg.offset[3] = src_offsets[0] += src_sizes[0];
+      src_sizes[0] =
+          std::min(src_sizes[0], weights_src->shape[0] - src_offsets[0]);
+    } while (src_offsets[0] < weights_src->shape[0]);
+  }
+}
+#endif
+
 }  // namespace micro
 }  // namespace ops
 }  // namespace tflite
