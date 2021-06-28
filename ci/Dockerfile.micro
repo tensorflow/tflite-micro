@@ -1,3 +1,13 @@
+# This docker container can be used to run all the TFLM CI checks.
+#
+# It is only used as part of the GitHub workflows to test for code-style. But
+# the container is available and ready for use to run all the checks locally,
+# in case that is useful for debugging.
+#
+# docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:latest .
+#    or
+# docker pull ghcr.io/tflm-bot/tflm-ci:latest
+#
 # Use a prebuilt Python image instead of base Ubuntu to speed up the build process,
 # since it has all the build dependencies we need for Micro and downloads much faster
 # than the install process.
@@ -21,13 +31,6 @@ RUN pip install six
 # Install Renode test dependencies
 RUN pip install pyyaml requests psutil robotframework==3.1
 
-# Install bazel and buildifier so that the bazel presubmit checks can be run
-# from the micro docker container and are consistent with the rest of the CI.
 COPY ci/*.sh /install/
 RUN /install/install_bazel.sh
 RUN /install/install_buildifier.sh
-
-COPY . /opt/tflm/
-WORKDIR /opt/tflm
-
-CMD ["/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_all.sh", "GITHUB_PRESUBMIT"]

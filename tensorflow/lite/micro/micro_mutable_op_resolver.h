@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
@@ -140,8 +141,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddAveragePool2D() {
     return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D,
-                      tflite::ops::micro::Register_AVERAGE_POOL_2D(),
-                      ParsePool);
+                      tflite::Register_AVERAGE_POOL_2D(), ParsePool);
   }
 
   TfLiteStatus AddBatchMatMul() {
@@ -174,8 +174,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseConcatenation);
   }
 
-  TfLiteStatus AddConv2D() {
-    return AddBuiltin(BuiltinOperator_CONV_2D, Register_CONV_2D(), ParseConv2D);
+  TfLiteStatus AddConv2D(
+      const TfLiteRegistration& registration = Register_CONV_2D()) {
+    return AddBuiltin(BuiltinOperator_CONV_2D, registration, ParseConv2D);
   }
 
   TfLiteStatus AddCos() {
@@ -353,7 +354,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddMaxPool2D() {
     return AddBuiltin(BuiltinOperator_MAX_POOL_2D,
-                      tflite::ops::micro::Register_MAX_POOL_2D(), ParsePool);
+                      tflite::Register_MAX_POOL_2D(), ParsePool);
   }
 
   TfLiteStatus AddMean() {
@@ -464,6 +465,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddSpaceToBatchNd() {
     return AddBuiltin(BuiltinOperator_SPACE_TO_BATCH_ND,
                       Register_SPACE_TO_BATCH_ND(), ParseSpaceToBatchNd);
+  }
+
+  TfLiteStatus AddSpaceToDepth() {
+    return AddBuiltin(BuiltinOperator_SPACE_TO_DEPTH, Register_SPACE_TO_DEPTH(),
+                      ParseSpaceToDepth);
   }
 
   TfLiteStatus AddSplit() {
