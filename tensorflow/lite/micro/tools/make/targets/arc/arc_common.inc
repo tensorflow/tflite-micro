@@ -1,4 +1,4 @@
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -81,8 +81,8 @@ ifeq ($(ARC_TOOLCHAIN), mwdt)
   CXX_TOOL := ccac
   LD_TOOL := ccac
 
-  ARC_APP_RUN_CMD = mdb -run -jit -tcf=$(TCF_FILE_NAME) $(DLR)\(DBG_ARGS\)
-  ARC_APP_DEBUG_CMD = mdb -OK -jit -tcf=$(TCF_FILE_NAME) $(DLR)\(DBG_ARGS\)
+  ARC_APP_RUN_CMD = mdb -run -tcf=$(TCF_FILE_NAME) $(DLR)\(DBG_ARGS\)
+  ARC_APP_DEBUG_CMD = mdb -OK -tcf=$(TCF_FILE_NAME) $(DLR)\(DBG_ARGS\)
 
   # The variable TCF_FILE stores path to Tool Configuration File (*.tcf). 
   # This file is used by MWDT toolchain to properly compile/run code
@@ -110,7 +110,7 @@ endif
   
   # Use compact CRT. It requires pre-defined heap size
   PLATFORM_FLAGS += -Hcl -Hcrt_fast_memcpy -Hcrt_fast_memset 
-  
+
   PLATFORM_LDFLAGS = -tcf=$(TCF_FILE_NAME) 
   
   PLATFORM_LDFLAGS += -Hnocopyr -m -Hldopt=-Coutput=memory.map -Hheap=24K 
