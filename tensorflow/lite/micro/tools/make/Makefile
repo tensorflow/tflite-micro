@@ -648,15 +648,15 @@ $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)
 MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
-$(CORE_OBJDIR)%.o: %.cc
+$(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(CORE_OBJDIR)%.o: %.c
+$(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(CORE_OBJDIR)%.o: %.S
+$(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
@@ -672,15 +672,15 @@ $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.cc
+$(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.c
+$(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.S
+$(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
