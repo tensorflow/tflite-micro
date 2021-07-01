@@ -609,10 +609,10 @@ THIRD_PARTY_CC_HDRS += $(addprefix third_party/,$(THIRD_PARTY_CC_HDRS_BASE))
 
 # Specialize for debug_log. micro_time etc.
 MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),$(TARGET))
-MICROLITE_CC_SRCS += $(MICROLITE_CC_KERNEL_SRCS)
 
 ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
+	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
