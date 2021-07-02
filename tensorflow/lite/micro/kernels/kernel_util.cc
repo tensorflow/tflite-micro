@@ -20,25 +20,29 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
-                                                      size_t size) {
-  return flexbuffers::GetRoot(buffer, size).AsMap();
+LiteVector::LiteVector(const flexbuffers::Vector& v) : flexbuffers::Vector(v) {}
+
+int64_t LiteVector::ElementAsInt64(size_t i) const {
+  auto elem = data_ + i * byte_width_;
+  return ::flexbuffers::ReadInt64(elem, byte_width_);
 }
 
-int32_t FlexbuffersWrapperAsInt32(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsInt32();
+uint64_t LiteVector::ElementAsUInt64(size_t i) const {
+  auto elem = data_ + i * byte_width_;
+  return ::flexbuffers::ReadUInt64(elem, byte_width_);
 }
 
-bool FlexbuffersWrapperAsBool(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsBool();
+int32_t LiteVector::ElementAsInt32(size_t i) const {
+  return static_cast<int32_t>(LiteVector::ElementAsInt64(i));
 }
 
-float FlexbuffersWrapperAsFloat(const flexbuffers::Map& m, const char* key) {
-  return m[key].AsFloat();
+bool LiteVector::ElementAsBool(size_t i) const {
+  return static_cast<bool>(LiteVector::ElementAsUInt64(i));
 }
 
-bool FlexbuffersWrapperIsNull(const flexbuffers::Map& m, const char* key) {
-  return m[key].IsNull();
+const LiteVector GetFlexbufferRootAsLiteVector(const uint8_t* buffer,
+                                               size_t size) {
+  return static_cast<LiteVector>(flexbuffers::GetRoot(buffer, size).AsVector());
 }
 
 bool HaveSameShapes(const TfLiteEvalTensor* input1,

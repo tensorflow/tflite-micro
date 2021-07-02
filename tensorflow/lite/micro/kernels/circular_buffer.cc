@@ -54,6 +54,11 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
 
+// Indices into the init flexbuffer's vector.
+// The parameter's name is in the comment that follows.
+// Elements in the vectors are ordered alphabetically by parameter name.
+constexpr int kCyclesMaxIndex = 0;  // 'cycles_max'
+
 // TODO(b/149795762): Add this to TfLiteStatus enum.
 constexpr TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
 
@@ -74,10 +79,9 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
   if (buffer != nullptr && length > 0) {
     const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-    const flexbuffers::Map& m =
-        tflite::micro::FlexbuffersWrapperGetRootAsMap(buffer_t, length);
-    op_data->cycles_max =
-        tflite::micro::FlexbuffersWrapperAsInt32(m, "cycles_max");
+    const tflite::micro::LiteVector& lv =
+        tflite::micro::GetFlexbufferRootAsLiteVector(buffer_t, length);
+    op_data->cycles_max = lv.ElementAsInt32(kCyclesMaxIndex);
   } else {
     op_data->cycles_max = 0;
   }
