@@ -96,7 +96,8 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
     auto* opcodes = model_->operator_codes();
     BuiltinDataAllocator* builtin_data_allocator =
         allocator_.GetBuiltinDataAllocator();
-    for (size_t i = 0; i < subgraph->operators()->size(); ++i) {
+    int operators_size = graph_.NumSubgraphOperators(subgraph_idx);
+    for (size_t i = 0; i < operators_size; ++i) {
       const auto* op = subgraph->operators()->Get(i);
       const size_t index = op->opcode_index();
       if (index >= opcodes->size()) {

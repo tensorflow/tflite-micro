@@ -211,6 +211,14 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
     }
   }
 
+  // TODO(b/192589496): Ops must always be there. Remove this check when fixed
+  int operators_size;
+  if (subgraph->operators() != nullptr) {
+    operators_size = subgraph->operators()->size();
+  } else {
+    operators_size = 0;
+  }
+
   for (size_t i = 0; i < subgraph->inputs()->size(); ++i) {
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
@@ -221,11 +229,11 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
   for (size_t i = 0; i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
-    current->last_used = subgraph->operators()->size() - 1;
+    current->last_used = operators_size - 1;
   }
 
   // Figure out when the first and last use of each tensor is.
-  for (int i = (subgraph->operators()->size() - 1); i >= 0; --i) {
+  for (int i = (operators_size - 1); i >= 0; --i) {
     const auto* op = subgraph->operators()->Get(i);
     for (size_t n = 0; n < op->inputs()->size(); ++n) {
       const int tensor_index = op->inputs()->Get(n);
@@ -742,10 +750,18 @@ TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
 
+    // TODO(b/192589496): Ops must always be there. Remove this check when fixed
+    int operators_size;
+    if (subgraph->operators() != nullptr) {
+      operators_size = subgraph->operators()->size();
+    } else {
+      operators_size = 0;
+    }
+
     // Initialize NodeAndRegistrations for the subgraph.
     NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(
         memory_allocator_->AllocateFromTail(
-            sizeof(NodeAndRegistration) * subgraph->operators()->size(),
+            sizeof(NodeAndRegistration) * operators_size,
             alignof(NodeAndRegistration)));
     if (output == nullptr) {
       TF_LITE_REPORT_ERROR(
