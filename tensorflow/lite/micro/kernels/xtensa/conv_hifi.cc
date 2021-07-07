@@ -57,6 +57,16 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, input->type, kTfLiteInt8);
 
   int required_scratch = 0;
+
+#if defined(HIFI5)
+  /* Dilation is supported on HiFi 5 NN Library */
+  if( (params->dilation_height_factor > 1) || (params->dilation_width_factor > 1) ) {
+    required_scratch = xa_nn_dilated_conv2d_std_getsize(
+        input_height, input_depth, filter_height, filter_width, stride_height,
+        pad_height, output_height, PREC_ASYM8S, params->dilation_height_factor);
+    TF_LITE_ENSURE(context, required_scratch > 0);
+  } else
+#endif
   // Dilation is currently not supported on HiFi 4 NN Library
   if ((params->dilation_width_factor == 1) &&
       (params->dilation_height_factor == 1)) {
@@ -80,11 +90,16 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                           TfLiteEvalTensor* output) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
+#if defined(HIFI5)
+  /* Dilation is supported on HiFi 5 NN Library */
+  { //if(1)
+#else
   /* Dilation is currently not supported on HiFi 4 NN Library */
   if ((params.dilation_width_factor == 1) &&
       (params.dilation_height_factor == 1) &&
       input_shape.Dims(1) >= filter_shape.Dims(1) &&
       input_shape.Dims(2) >= filter_shape.Dims(2)) {
+#endif // defined(HIFI5)
     const int32_t input_offset = -data.reference_op_data.input_zero_point;
     const int32_t output_offset = data.reference_op_data.output_zero_point;
     const int stride_width = params.stride_width;
@@ -147,7 +162,25 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
       for (int batch = 0; batch < batches; ++batch) {
         int8_t* p_out_temp;
         p_out_temp = &output_data[batch * out_length];
-
+#if defined(HIFI5)
+        if ((params.dilation_width_factor > 1)  ||
+            (params.dilation_height_factor > 1))
+        {
+          TF_LITE_ENSURE_EQ(
+              context,
+              xa_nn_dilated_conv2d_std_per_chan_sym8sxasym8s(p_out_temp,
+                &input_data[batch * input_height * input_width * input_depth],
+                const_cast<int8_t*>(filter_data),  // filter_data,
+                bias_data, input_height, input_width, input_depth, filter_height,
+                filter_width, output_depth, stride_width, stride_height, pad_width,
+                pad_height, output_height, output_width, input_offset,
+                data.reference_op_data.per_channel_output_multiplier, data.reference_op_data.per_channel_output_shift,
+                output_offset, output_data_format,
+                static_cast<void*>(p_scratch), params.dilation_height_factor, params.dilation_width_factor),
+              0);
+        }
+        else
+#endif // defined(HIFI5)
         {
           TF_LITE_ENSURE_EQ(
               context,
@@ -175,7 +208,7 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
     }
     return kTfLiteOk;
   }
-
+#if !defined(HIFI5)
   reference_integer_ops::ConvPerChannel(
       ConvParamsQuantized(params, data.reference_op_data),
       data.reference_op_data.per_channel_output_multiplier,
@@ -189,6 +222,7 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
   return kTfLiteOk;
+#endif // !defined(HIFI5)
 }
 
 }  // namespace tflite
