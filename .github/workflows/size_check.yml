@@ -1,8 +1,6 @@
 # use xtensa tools to do a size check on the binaries
-# works on the main branch by dispatch
-# this is a prototyping ephemeral file and not for production
 
-name: size-proto
+name: binary-size-check
 
 on:
   pull_request_target:
