@@ -27,13 +27,15 @@ ARDUINO_CLI_TOOL=/tmp/arduino-cli
 TEMP_BUILD_DIR=/tmp/tflite-arduino-build
 
 LIBRARY_ZIP=${1}
+LIBRARY_NAME=$(basename ${1} .zip)
 
 rm -rf ${TEMP_BUILD_DIR}
+rm -rf ${ARDUINO_LIBRARIES_DIR}
 
-mkdir -p "${ARDUINO_HOME_DIR}/libraries"
+mkdir -p ${ARDUINO_LIBRARIES_DIR}
 mkdir -p ${TEMP_BUILD_DIR}
 
-unzip -o -q ${LIBRARY_ZIP} -d "${ARDUINO_LIBRARIES_DIR}"
+unzip -q ${LIBRARY_ZIP} -d "${ARDUINO_LIBRARIES_DIR}"
 
 # Installs all dependencies for Arduino
 InstallLibraryDependencies () {
@@ -57,7 +59,8 @@ InstallLibraryDependencies () {
 
 InstallLibraryDependencies
 
-for f in ${ARDUINO_LIBRARIES_DIR}/tensorflow_lite/examples/*/*.ino; do
+for f in ${ARDUINO_LIBRARIES_DIR}/${LIBRARY_NAME}/examples/*/*.ino; do
+  echo "compiling $(basename ${f} .ino)"
   ${ARDUINO_CLI_TOOL} compile --build-cache-path ${TEMP_BUILD_DIR} --build-path ${TEMP_BUILD_DIR} --fqbn arduino:mbed:nano33ble $f
 done
 
