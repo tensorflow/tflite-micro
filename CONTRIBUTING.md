@@ -101,9 +101,8 @@ We strongly recommend that contributors:
 
         *   While github offers flexibility in linking
             [commits and issues](https://github.blog/2011-04-09-issues-2-0-the-next-generation/#commits-issues),
-            we require that the PR description have a separate line with either
-            `Fixes #nn` (if the PR fixes the issue) or `Issue #nn` if the PR
-            addresses some aspect of an issue without fixing it.
+            we require that the PR description have a separate line with
+            `BUG=#nn`.
 
         *   We will be adding internal checks that automate this requirement by
             matching the PR description to the regexp: `(Fixes|Issue) #`

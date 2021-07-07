@@ -27,7 +27,6 @@ PLATFORM_FLAGS = \
   -mcpu=cortex-m3 \
   -mthumb \
   -Wno-vla \
-  -Wno-strict-aliasing \
   -Wno-shadow \
   -Wno-type-limits \
   -fomit-frame-pointer \
@@ -72,7 +71,8 @@ MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 EXCLUDED_EXAMPLE_TESTS := \
   tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
   tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc
+  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc \
+  $(shell find ../google/ -name Makefile_internal.inc)
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh

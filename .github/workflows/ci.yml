@@ -69,10 +69,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check
-        # TODO(#11): Update the docker image to be hosted via github packages.
-        uses: docker://jpwithers/tflite-micro-tests
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
         with:
-          args: /bin/sh -c "/opt/tflm/tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
+          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
   project_generation:
     runs-on: ubuntu-latest
@@ -104,3 +103,4 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           tensorflow/lite/micro/tools/ci_build/test_x86.sh
+

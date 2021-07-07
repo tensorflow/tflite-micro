@@ -65,12 +65,12 @@ void TestConcatenateTwoInputs(int* input1_dims_data, const float* input1_data,
   }
 }
 
+template <typename T>
 void TestConcatenateQuantizedTwoInputs(
-    int* input1_dims_data, const uint8_t* input1_data, int* input2_dims_data,
-    const uint8_t* input2_data, const float input_scale,
-    const int input_zero_point, int axis, int* output_dims_data,
-    const uint8_t* expected_output_data, const float output_scale,
-    const int output_zero_point, uint8_t* output_data) {
+    int* input1_dims_data, const T* input1_data, int* input2_dims_data,
+    const T* input2_data, const float input_scale, const int input_zero_point,
+    int axis, int* output_dims_data, const T* expected_output_data,
+    const float output_scale, const int output_zero_point, T* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -176,6 +176,52 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedUint8) {
   };
 
   uint8_t output_data[8];
+  tflite::testing::TestConcatenateQuantizedTwoInputs(
+      input_shape, input1_values, input_shape, input2_values, input_scale,
+      input_zero_point, axis, output_shape, output_value, output_scale,
+      output_zero_point, output_data);
+}
+
+TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8) {
+  const int axis = 2;
+  int input_shape[] = {3, 2, 1, 2};
+  int output_shape[] = {3, 2, 1, 4};
+
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+  const float output_scale = 0.1f;
+  const int output_zero_point = 0;
+
+  const int8_t input1_values[] = {1, 2, 3, 4};
+
+  const int8_t input2_values[] = {5, 6, 7, 8};
+
+  const int8_t output_value[] = {1, 2, 5, 6, 3, 4, 7, 8};
+
+  int8_t output_data[8];
+  tflite::testing::TestConcatenateQuantizedTwoInputs(
+      input_shape, input1_values, input_shape, input2_values, input_scale,
+      input_zero_point, axis, output_shape, output_value, output_scale,
+      output_zero_point, output_data);
+}
+
+TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16) {
+  const int axis = 2;
+  int input_shape[] = {3, 2, 1, 2};
+  int output_shape[] = {3, 2, 1, 4};
+
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+  const float output_scale = 0.1f;
+  const int output_zero_point = 0;
+
+  const int16_t input1_values[] = {1, 2, 3, 4};
+
+  const int16_t input2_values[] = {5, 6, 7, 8};
+
+  const int16_t output_value[] = {1, 2, 5, 6, 3, 4, 7, 8};
+
+  int16_t output_data[8];
   tflite::testing::TestConcatenateQuantizedTwoInputs(
       input_shape, input1_values, input_shape, input2_values, input_scale,
       input_zero_point, axis, output_shape, output_value, output_scale,
