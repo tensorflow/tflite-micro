@@ -112,9 +112,6 @@ cc_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
-    tags = [
-        "nomsan",  # TODO(b/192311485): See http://b/192311485#comment2
-    ],
     deps = [
         "@flatbuffers//:runtime_cc",
     ],
@@ -394,6 +391,9 @@ cc_test(
     name = "flatbuffer_utils_test",
     srcs = [
         "flatbuffer_utils_test.cc",
+    ],
+    tags = [
+        "nomsan",  # TODO(b/192311485): See http://b/192311485#comment2
     ],
     deps = [
         ":flatbuffer_utils",
