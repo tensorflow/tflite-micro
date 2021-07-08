@@ -833,8 +833,7 @@ generate_arduino_zip: $(ARDUINO_PROJECT_TARGETS) $(ARDUINO_LIBRARY_ZIPS)
 	python tensorflow/lite/micro/tools/make/merge_arduino_zips.py $(PRJDIR)/tensorflow_lite.zip $(ARDUINO_LIBRARY_ZIPS)
 
 list_library_sources:
-	@echo $(MICROLITE_CC_SRCS) \
-	@echo $(MICROLITE_CC_KERNEL_SRCS)
+	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
 
 list_library_headers:
 	@echo $(MICROLITE_CC_HDRS)
