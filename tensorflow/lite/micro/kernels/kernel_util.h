@@ -31,17 +31,16 @@ namespace micro {
 // The Flexbuffer library is inline heavy, which causes code bloat when
 // custom ops are used. Wrapping with a function is a portable way to avoid
 // this bloat
-class LiteVector : public flexbuffers::Vector {
- public:
-  LiteVector(const flexbuffers::Vector& v);
-  int64_t ElementAsInt64(size_t i) const;
-  uint64_t ElementAsUInt64(size_t i) const;
-  int32_t ElementAsInt32(size_t i) const;
-  bool ElementAsBool(size_t i) const;
-};
+const flexbuffers::Map FlexbuffersWrapperGetRootAsMap(const uint8_t* buffer,
+                                                      size_t size);
 
-const LiteVector GetFlexbufferRootAsLiteVector(const uint8_t* buffer,
-                                               size_t size);
+int32_t FlexbuffersWrapperAsInt32(const flexbuffers::Map& m, const char* key);
+
+bool FlexbuffersWrapperAsBool(const flexbuffers::Map& m, const char* key);
+
+float FlexbuffersWrapperAsFloat(const flexbuffers::Map& m, const char* key);
+
+bool FlexbuffersWrapperIsNull(const flexbuffers::Map& m, const char* key);
 
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.

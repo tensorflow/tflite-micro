@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 /*
@@ -79,9 +80,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
   if (buffer != nullptr && length > 0) {
     const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-    const tflite::micro::LiteVector& lv =
-        tflite::micro::GetFlexbufferRootAsLiteVector(buffer_t, length);
-    op_data->cycles_max = lv.ElementAsInt32(kCyclesMaxIndex);
+    tflite::FlexbufferWrapper wrapper(buffer_t, length);
+    op_data->cycles_max = wrapper.ElementAsInt32(kCyclesMaxIndex);
   } else {
     op_data->cycles_max = 0;
   }

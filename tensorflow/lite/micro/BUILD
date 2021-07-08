@@ -109,6 +109,15 @@ cc_library(
 )
 
 cc_library(
+    name = "flatbuffer_utils",
+    srcs = ["flatbuffer_utils.cc"],
+    hdrs = ["flatbuffer_utils.h"],
+    deps = [
+        "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
     name = "memory_helpers",
     srcs = ["memory_helpers.cc"],
     hdrs = ["memory_helpers.h"],
@@ -375,6 +384,18 @@ cc_test(
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "flatbuffer_utils_test",
+    srcs = [
+        "flatbuffer_utils_test.cc",
+    ],
+    deps = [
+        ":flatbuffer_utils",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
