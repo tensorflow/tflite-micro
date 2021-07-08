@@ -395,7 +395,7 @@ class ArduinoProjectGenerator:
     result = result.replace(f"{self.downloads_path!s}", "third_party")
     # change example paths
     if example is not None:
-      result = result.replace(f"{self.examples_path!s}/{example}/", "")
+      #result = result.replace(f"{self.examples_path!s}/{example}/", "")
       list_result = result.split()
     else:
       # remove duplicates
