@@ -48,7 +48,7 @@ TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
   flexbuffers::Builder fbb;
   fbb.Map([&]() {
     for (int i = 0; i < param_num; i++) {
-      std::string &param_value = params[i].value;
+      std::string& param_value = params[i].value;
       if (params[i].type == "Int") {
         fbb.Int(params[i].name.c_str(), std::stoi(param_value));
       } else if (params[i].type == "Bool") {
@@ -64,7 +64,7 @@ TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
   const std::vector<uint8_t> buffer = fbb.GetBuffer();
   tflite::FlexbufferWrapper wrapper(buffer.data(), buffer.size());
   for (int i = 0; i < param_num; i++) {
-    std::string &param_value = params[params_sorted[i]].value;
+    std::string& param_value = params[params_sorted[i]].value;
     if (params[params_sorted[i]].type == "Int") {
       TF_LITE_MICRO_EXPECT(wrapper.ElementAsInt32(i) == std::stoi(param_value));
     } else if (params[params_sorted[i]].type == "Bool") {

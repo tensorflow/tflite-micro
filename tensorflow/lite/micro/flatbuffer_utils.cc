@@ -17,16 +17,16 @@ limitations under the License.
 
 namespace tflite {
 
-FlexbufferWrapper::FlexbufferWrapper(const uint8_t *buffer, size_t size)
+FlexbufferWrapper::FlexbufferWrapper(const uint8_t* buffer, size_t size)
     : flexbuffers::Vector(flexbuffers::GetRoot(buffer, size).AsVector()) {}
 
 int64_t FlexbufferWrapper::ElementAsInt64(size_t i) const {
-  const uint8_t *elem = data_ + i * byte_width_;
+  const uint8_t* elem = data_ + i * byte_width_;
   return ::flexbuffers::ReadInt64(elem, byte_width_);
 }
 
 uint64_t FlexbufferWrapper::ElementAsUInt64(size_t i) const {
-  const uint8_t *elem = data_ + i * byte_width_;
+  const uint8_t* elem = data_ + i * byte_width_;
   return ::flexbuffers::ReadUInt64(elem, byte_width_);
 }
 
@@ -39,7 +39,7 @@ bool FlexbufferWrapper::ElementAsBool(size_t i) const {
 }
 
 double FlexbufferWrapper::ElementAsDouble(size_t i) const {
-  const uint8_t *elem = data_ + i * byte_width_;
+  const uint8_t* elem = data_ + i * byte_width_;
   return ::flexbuffers::ReadDouble(elem, byte_width_);
 }
 
