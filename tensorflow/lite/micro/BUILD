@@ -112,6 +112,9 @@ cc_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
+    tags = [
+        "nomsan",  # TODO(b/192311485): See http://b/192311485#comment2
+    ],
     deps = [
         "@flatbuffers//:runtime_cc",
     ],

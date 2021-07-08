@@ -24,13 +24,13 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
-  struct test_param {
+  struct TestParam {
     std::string name;
     std::string type;
     std::string value;
   };
 
-  test_param params[] = {
+  TestParam params[] = {
       {"xyz", "Int", "613"},
       {"Neuron", "Double", "13.22"},
       {"angle", "Int", "300"},
@@ -46,9 +46,9 @@ TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
   const int param_num = sizeof(params) / sizeof(params[0]);
 
   flexbuffers::Builder fbb;
-  fbb.Map([&]() {
+  fbb.Map([params, param_num, &fbb]() {
     for (int i = 0; i < param_num; i++) {
-      std::string& param_value = params[i].value;
+      const std::string& param_value = params[i].value;
       if (params[i].type == "Int") {
         fbb.Int(params[i].name.c_str(), std::stoi(param_value));
       } else if (params[i].type == "Bool") {
