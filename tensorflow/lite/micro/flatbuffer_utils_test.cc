@@ -46,7 +46,7 @@ TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
   const int param_num = sizeof(params) / sizeof(params[0]);
 
   flexbuffers::Builder fbb;
-  fbb.Map([params, param_num, &fbb]() {
+  fbb.Map([&]() {
     for (int i = 0; i < param_num; i++) {
       const std::string& param_value = params[i].value;
       if (params[i].type == "Int") {
