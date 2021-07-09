@@ -211,13 +211,7 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
     }
   }
 
-  // TODO(b/192589496): Ops must always be there. Remove this check when fixed
-  int operators_size;
-  if (subgraph->operators() != nullptr) {
-    operators_size = subgraph->operators()->size();
-  } else {
-    operators_size = 0;
-  }
+  uint32_t operators_size = NumSubgraphOperators(subgraph);
 
   for (size_t i = 0; i < subgraph->inputs()->size(); ++i) {
     const int tensor_index = subgraph->inputs()->Get(i);
@@ -750,13 +744,7 @@ TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
 
-    // TODO(b/192589496): Ops must always be there. Remove this check when fixed
-    int operators_size;
-    if (subgraph->operators() != nullptr) {
-      operators_size = subgraph->operators()->size();
-    } else {
-      operators_size = 0;
-    }
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
 
     // Initialize NodeAndRegistrations for the subgraph.
     NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(

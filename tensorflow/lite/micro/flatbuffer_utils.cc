@@ -47,4 +47,18 @@ float FlexbufferWrapper::ElementAsFloat(size_t i) const {
   return static_cast<float>(FlexbufferWrapper::ElementAsDouble(i));
 }
 
+// TODO(b/192589496): Ops must always be there. Remove this function when fixed
+uint32_t NumSubgraphOperators(const SubGraph* subgraph) {
+  if (subgraph->operators() != nullptr) {
+    return subgraph->operators()->size();
+  } else {
+    return 0;
+  }
+}
+// TODO(b/192589496): Ops must always be there. Remove this function when fixed
+uint32_t NumSubgraphOperators(const Model* model, int subgraph_idx) {
+  const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
+  return NumSubgraphOperators(subgraph);
+}
+
 }  // namespace tflite

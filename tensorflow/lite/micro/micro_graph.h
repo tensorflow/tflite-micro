@@ -66,9 +66,6 @@ class MicroGraph {
   // Get the specified output tensor of a specified subgraph in the model.
   virtual TfLiteEvalTensor* GetSubgraphOutput(int subgraph_idx, int output_idx);
 
-  // Number of operators in the specified subgraph in the model.
-  virtual int NumSubgraphOperators(int subgraph_idx);
-
   // Number of subgraphs in the model.
   virtual int NumSubgraphs();
 

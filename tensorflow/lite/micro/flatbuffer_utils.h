@@ -17,7 +17,9 @@ limitations under the License.
 #define THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
 
 #define FLATBUFFERS_LOCALE_INDEPENDENT 0
+#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 // Kernels use flexbuffers::Map to pack their init parameters in a tflite file,
@@ -45,6 +47,10 @@ class FlexbufferWrapper : public flexbuffers::Vector {
   double ElementAsDouble(size_t i) const;
   float ElementAsFloat(size_t i) const;
 };
+
+// Return the number of operators in a subgraph tflite
+uint32_t NumSubgraphOperators(const SubGraph* subgraph);
+uint32_t NumSubgraphOperators(const Model* model, int subgraph_idx);
 
 }  // namespace tflite
 
