@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_INTERPRETER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_INTERPRETER_H_
 
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
+
 #include <cstddef>
 #include <cstdint>
 
@@ -109,10 +111,6 @@ class MicroInterpreter {
   TfLiteStatus ResetVariableTensors();
 
   TfLiteStatus initialization_status() const { return initialization_status_; }
-
-  size_t operators_size() const {
-    return model_->subgraphs()->Get(0)->operators()->size();
-  }
 
   // Populates node and registration pointers representing the inference graph
   // of the model from values inside the flatbuffer (loaded from the TfLiteModel

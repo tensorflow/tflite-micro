@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 #define TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 
-// Useful functions for writing tests.
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
 
 #include <cstdint>
 #include <limits>

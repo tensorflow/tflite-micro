@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -96,7 +97,8 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
     auto* opcodes = model_->operator_codes();
     BuiltinDataAllocator* builtin_data_allocator =
         allocator_.GetBuiltinDataAllocator();
-    for (size_t i = 0; i < subgraph->operators()->size(); ++i) {
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
+    for (size_t i = 0; i < operators_size; ++i) {
       const auto* op = subgraph->operators()->Get(i);
       const size_t index = op->opcode_index();
       if (index >= opcodes->size()) {

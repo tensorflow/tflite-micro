@@ -92,6 +92,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_compatibility",
         ":micro_error_reporter",
@@ -113,6 +114,7 @@ cc_library(
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
     deps = [
+        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
