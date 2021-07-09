@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
+
 #include "tensorflow/lite/micro/micro_graph.h"
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers

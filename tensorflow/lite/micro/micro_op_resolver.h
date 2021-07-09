@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_OP_RESOLVER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_OP_RESOLVER_H_
 
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
+
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
