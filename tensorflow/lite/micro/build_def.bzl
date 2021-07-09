@@ -1,2 +1,3 @@
 def micro_copts():
-    return []
+
+    return ["-DFLATBUFFERS_LOCALE_INDEPENDENT=0"]
