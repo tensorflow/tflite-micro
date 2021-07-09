@@ -147,7 +147,6 @@ COMMON_FLAGS := \
   -ffunction-sections \
   -fdata-sections \
   -fmessage-length=0 \
-  -DFLATBUFFERS_LOCALE_INDEPENDENT=0 \
   -DTF_LITE_STATIC_MEMORY \
   -DTF_LITE_DISABLE_X86_NEON \
   $(CC_WARNINGS) \
