@@ -92,6 +92,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_compatibility",
         ":micro_error_reporter",
