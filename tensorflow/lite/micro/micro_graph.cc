@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_graph.h"
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"

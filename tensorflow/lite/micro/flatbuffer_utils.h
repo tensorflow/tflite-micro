@@ -16,7 +16,6 @@ limitations under the License.
 #ifndef THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
 #define THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/schema/schema_generated.h"

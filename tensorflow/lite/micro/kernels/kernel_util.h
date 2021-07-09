@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
