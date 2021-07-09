@@ -109,6 +109,15 @@ cc_library(
 )
 
 cc_library(
+    name = "flatbuffer_utils",
+    srcs = ["flatbuffer_utils.cc"],
+    hdrs = ["flatbuffer_utils.h"],
+    deps = [
+        "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
     name = "memory_helpers",
     srcs = ["memory_helpers.cc"],
     hdrs = ["memory_helpers.h"],
@@ -161,10 +170,6 @@ cc_library(
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/kernels:conv",
-        "//tensorflow/lite/micro/kernels:depthwise_conv",
-        "//tensorflow/lite/micro/kernels:ethosu",
-        "//tensorflow/lite/micro/kernels:fully_connected",
         "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/schema:schema_fbs",
     ],
@@ -379,6 +384,21 @@ cc_test(
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "flatbuffer_utils_test",
+    srcs = [
+        "flatbuffer_utils_test.cc",
+    ],
+    tags = [
+        "nomsan",  # TODO(b/192311485): See http://b/192311485#comment2
+    ],
+    deps = [
+        ":flatbuffer_utils",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
