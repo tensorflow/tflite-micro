@@ -131,7 +131,7 @@ do
   /bin/cp /tmp/tensorflow/${filepath} ${filepath}
 done
 
-# The microfrontend is sync'd from upstream but not as part of the explicitly
-# specified SHARED_TFL_CODE since this is only needed for the examples.
-rm -rf tensorflow/lite/experimental/microfrontend/lib
-cp -r /tmp/tensorflow/tensorflow/lite/experimental/microfrontend/lib tensorflow/lite/experimental/microfrontend/lib
+# Since the TFLM code was deleted from the tensorflow repository, the
+# microfrontend is no longer sync'd from upstream and instead maintaned as a
+# fork.
+git checkout tensorflow/lite/experimental/microfrontend/lib/

@@ -216,6 +216,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:memory_helpers",
+        "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:micro_graph",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
