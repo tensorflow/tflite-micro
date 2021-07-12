@@ -110,10 +110,6 @@ class MicroInterpreter {
 
   TfLiteStatus initialization_status() const { return initialization_status_; }
 
-  size_t operators_size() const {
-    return model_->subgraphs()->Get(0)->operators()->size();
-  }
-
   // Populates node and registration pointers representing the inference graph
   // of the model from values inside the flatbuffer (loaded from the TfLiteModel
   // instance). Persistent data (e.g. operator data) is allocated from the
