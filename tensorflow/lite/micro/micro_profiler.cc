@@ -57,10 +57,10 @@ void MicroProfiler::Log() const {
 
 void MicroProfiler::LogCsv() const {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-  MicroPrintf("\"Event\",\"Tag\",\"Ticks\",\"ms\"");
+  MicroPrintf("\"Event\",\"Tag\",\"Ticks\"");
   for (int i = 0; i < num_events_; ++i) {
     int32_t ticks = end_ticks_[i] - start_ticks_[i];
-    MicroPrintf("%d,%s,%d,%d", i, tags_[i], ticks, TicksToMs(ticks));
+    MicroPrintf("%d,%s,%d", i, tags_[i], ticks);
   }
 #endif
 }
