@@ -53,7 +53,7 @@ jobs:
           commit-message: Automated sync from github.com/tensorflow/tensorflow
           committer: TFLM-bot <tflm-github-bot@google.com>
           author: TFLM-bot <tflm-github-bot@google.com>
-          body: ""
+          body: "BUG=automated sync from upstream"
           labels: bot:sync-tf, ci:run
           reviewers: advaitjain
 

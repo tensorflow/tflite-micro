@@ -21,7 +21,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  unit_tests:
+  f1_unit_tests:
     runs-on: ubuntu-latest
 
     if: |
@@ -32,6 +32,43 @@ jobs:
     name: Fusion F1 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - run: |
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:latest /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh
+
+  hifi5_unit_tests:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
+    name: Hifi5 Unit Tests (presubmit)
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: |
+          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:latest /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh
+
+  vision_p6_unit_tests:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
+    name: Vision P6 Unit Tests (presubmit)
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: |
+          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:latest /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh
+

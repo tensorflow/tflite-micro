@@ -1,0 +1,16 @@
+name: Check PR has Bug
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  pr_has_bug:
+    runs-on: ubuntu-latest
+    name: PR has Bug
+    steps:
+      - name: Check for BUG=
+        if: ${{ !contains(github.event.pull_request.body, 'BUG=') }}
+        run: |
+          echo "PR description requires a BUG= line with issue number."
+          echo "See https://testing.googleblog.com/2017/09/code-health-providing-context-with.html for additional context"
+          exit 1

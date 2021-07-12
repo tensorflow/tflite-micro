@@ -117,7 +117,15 @@ ifneq ($(CO_PROCESSOR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(CO_PROCESSOR) | tr [a-z] [A-Z])
 endif
 
-OPTIMIZATION_LEVEL := -O3
+CORE_OPTIMIZATION_LEVEL := -Os
+KERNEL_OPTIMIZATION_LEVEL := -O2
+
+# Warn if deprecated optimization level is set.
+OPTIMIZATION_LEVEL :=
+ifneq ($(OPTIMIZATION_LEVEL),)
+$(error "OPTIMIZATION_LEVEL is no longer used.")
+endif
+
 
 CC_WARNINGS := \
   -Wsign-compare \
@@ -141,7 +149,6 @@ COMMON_FLAGS := \
   -fmessage-length=0 \
   -DTF_LITE_STATIC_MEMORY \
   -DTF_LITE_DISABLE_X86_NEON \
-  $(OPTIMIZATION_LEVEL) \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
@@ -230,6 +237,15 @@ endif
 # runtime that can be linked in to other programs.
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
+# Where compiled objects are stored.
+GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+CORE_OBJDIR := $(GENDIR)obj/core/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+BINDIR := $(GENDIR)bin/
+LIBDIR := $(GENDIR)lib/
+PRJDIR := $(GENDIR)prj/
+
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.
 # See targets/xtensa_xpg_makefile.inc for an example.
@@ -240,7 +256,8 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 # search till an arbitrary depth for files named Makefile_internal.inc as a way
 # to bypass this check and allow for deeper directory structures.
 MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
-MICRO_LITE_EXAMPLE_TESTS += $(shell find tensorflow/lite/micro/examples/ -name Makefile_internal.inc)
+# Internal examples are copied outside the TFLM repo in ../google.
+MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
@@ -249,6 +266,7 @@ MICROLITE_BENCHMARK_SRCS := \
 $(wildcard tensorflow/lite/micro/benchmarks/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
+tensorflow/lite/micro/flatbuffer_utils_test.cc \
 tensorflow/lite/micro/memory_arena_threshold_test.cc \
 tensorflow/lite/micro/memory_helpers_test.cc \
 tensorflow/lite/micro/micro_allocator_test.cc \
@@ -313,6 +331,7 @@ tensorflow/lite/micro/kernels/round_test.cc \
 tensorflow/lite/micro/kernels/shape_test.cc \
 tensorflow/lite/micro/kernels/softmax_test.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd_test.cc \
+tensorflow/lite/micro/kernels/space_to_depth_test.cc \
 tensorflow/lite/micro/kernels/split_test.cc \
 tensorflow/lite/micro/kernels/split_v_test.cc \
 tensorflow/lite/micro/kernels/squeeze_test.cc \
@@ -375,6 +394,7 @@ tensorflow/lite/micro/kernels/neg.cc \
 tensorflow/lite/micro/kernels/pack.cc \
 tensorflow/lite/micro/kernels/pad.cc \
 tensorflow/lite/micro/kernels/pooling.cc \
+tensorflow/lite/micro/kernels/pooling_common.cc \
 tensorflow/lite/micro/kernels/prelu.cc \
 tensorflow/lite/micro/kernels/quantize.cc \
 tensorflow/lite/micro/kernels/quantize_common.cc \
@@ -387,6 +407,7 @@ tensorflow/lite/micro/kernels/shape.cc \
 tensorflow/lite/micro/kernels/softmax.cc \
 tensorflow/lite/micro/kernels/softmax_common.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
+tensorflow/lite/micro/kernels/space_to_depth.cc \
 tensorflow/lite/micro/kernels/split.cc \
 tensorflow/lite/micro/kernels/split_v.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
@@ -560,7 +581,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   include $(MAKEFILE_DIR)/ext_libs/$(OPTIMIZED_KERNEL_DIR).inc
   # Specialize for the optimized kernels
-  MICROLITE_CC_KERNEL_SRCS := $(shell python $(MAKEFILE_DIR)/specialize_files.py \
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 endif
@@ -589,19 +610,11 @@ THIRD_PARTY_CC_HDRS += $(addprefix third_party/,$(THIRD_PARTY_CC_HDRS_BASE))
 
 # Specialize for debug_log. micro_time etc.
 MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),$(TARGET))
-MICROLITE_CC_SRCS += $(MICROLITE_CC_KERNEL_SRCS)
 
 ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
+	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
-
-# Where compiled objects are stored.
-
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
-OBJDIR := $(GENDIR)obj/
-BINDIR := $(GENDIR)bin/
-LIBDIR := $(GENDIR)lib/
-PRJDIR := $(GENDIR)prj/
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
@@ -627,39 +640,60 @@ THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
 third_party_downloads: $(THIRD_PARTY_TARGETS)
 
-MICROLITE_LIB_OBJS := $(addprefix $(OBJDIR), \
-$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS))))
+MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
 
-MICROLITE_LIB_OBJS += $(addprefix $(OBJDIR), \
+MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
-# For normal manually-created TensorFlow C++ source files.
-$(OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
-# For normal manually-created TensorFlow C source files.
-$(OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-# For normal manually-created TensorFlow ASM source files.
-$(OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
-# Hack for generating schema file bypassing flatbuffer parsing
-tensorflow/lite/schema/schema_generated.h:
-	@cp -u tensorflow/lite/schema/schema_generated.h.oss tensorflow/lite/schema/schema_generated.h
-
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): tensorflow/lite/schema/schema_generated.h $(MICROLITE_LIB_OBJS)
+$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 	@mkdir -p $(dir $@)
-	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS)
+	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
 
-$(BINDIR)%_test : $(OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
+$(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $< \
@@ -672,11 +706,17 @@ $(BINDIR)%.test_target: $(BINDIR)%_test
 # snease: Add %.bin rule here since BINDIR is now defined
 # These are microcontroller-specific rules for converting the ELF output
 # of the linker into a binary image that can be loaded directly.
-OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
-$(BINDIR)%.bin: $(BINDIR)%
-	@mkdir -p $(dir $@)
-	$(OBJCOPY) $< $@ -O binary
-
+ifeq ($(TOOLCHAIN), armclang)
+  FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
+  $(BINDIR)%.bin: $(BINDIR)%
+		@mkdir -p $(dir $@)
+		$(FROMELF) --bin --output=$@ $<
+else
+  OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
+  $(BINDIR)%.bin: $(BINDIR)%
+		@mkdir -p $(dir $@)
+		$(OBJCOPY) $< $@ -O binary
+endif
 
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the
@@ -794,7 +834,7 @@ generate_arduino_zip: $(ARDUINO_PROJECT_TARGETS) $(ARDUINO_LIBRARY_ZIPS)
 	python tensorflow/lite/micro/tools/make/merge_arduino_zips.py $(PRJDIR)/tensorflow_lite.zip $(ARDUINO_LIBRARY_ZIPS)
 
 list_library_sources:
-	@echo $(MICROLITE_CC_SRCS)
+	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
 
 list_library_headers:
 	@echo $(MICROLITE_CC_HDRS)

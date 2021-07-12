@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CONV_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_CONV_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -86,7 +86,18 @@ TfLiteStatus TestConvQuantizedPerChannel(
     float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
     TfLiteRegistration registration, int8_t* output_data);
 
+TfLiteStatus TestConvQuantizedPerChannel(
+    int* input_dims_data, const float* input_data, int16_t* input_quantized,
+    float input_scale, int input_zero_point, int* filter_dims_data,
+    const float* filter_data, int8_t* filter_data_quantized,
+    int* bias_dims_data, const float* bias_data,
+    std::int64_t* bias_data_quantized, float* bias_scales,
+    int* bias_zero_points, int* output_dims_data,
+    const float* expected_output_data, int16_t* expected_output_data_quantized,
+    float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
+    TfLiteRegistration registration, int16_t* output_data);
+
 }  // namespace testing
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CONV_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_H_
