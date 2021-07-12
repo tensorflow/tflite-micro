@@ -1,0 +1,28 @@
+name: Check TfLite Files
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  check_tflite_files:
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'ci:run') &&
+      ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES') }}
+    name: Check PR Modifies TfLite Files
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Check Files
+      run: |
+        URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
+        PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.TFLM_BOT_REPO_TOKEN }}" $URL | jq -r '.[] | .filename')
+        rm -rf /tmp/pull_request_files.txt
+        echo "${PR_FILES}" >> /tmp/pull_request_files.txt
+
+        python3 ci/check_tflite_files.py /tmp/pull_request_files.txt
+        TFLITE_FILE_TEST_STATUS=$?
+        rm -f /tmp/pull_request_files.txt
+        exit ${TFLITE_FILE_TEST_STATUS}
