@@ -16,8 +16,6 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 #define TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
-
 #include <cstdint>
 #include <limits>
 
