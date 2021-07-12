@@ -71,25 +71,11 @@ else
   unzip -qo /tmp/${TMP_ZIP_ARCHIVE_NAME} -d ${DOWNLOADS_DIR} >&2
 
   if [[ ${2} == "hifi4" ]]; then
-    pushd ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ >&2
-    git init . >&2
-    git config user.email "tflm@google.com"
-    git config user.name "TensorflowLite Micro"
-    git add *
-    git commit -a -m "Commit for a temporary repository." > /dev/null
-    git apply ../../ext_libs/xtensa_patch.patch
-    popd >&2
+    apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ ../../ext_libs/xtensa_patch.patch
   fi
 
   if [[ ${2} == "hifi5" ]]; then
-    pushd ${DOWNLOADS_DIR}/xa_nnlib_hifi5/ >&2
-    git init . >&2
-    git config user.email "tflm@google.com"
-    git config user.name "TensorflowLite Micro"
-    git add *
-    git commit -a -m "Commit for a temporary repository." > /dev/null
-    git apply ../../ext_libs/xtensa_depthwise_patch_hifi5.patch
-    popd >&2
+    apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi5/ ../../ext_libs/xtensa_depthwise_patch_hifi5.patch
   fi
 
 fi
