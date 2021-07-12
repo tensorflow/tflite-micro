@@ -30,6 +30,8 @@ namespace tflite {
 
 namespace {
 
+// Add new comment
+//
 // Utility class for safely allocating POD data. This is useful for avoiding
 // leaks in cases where op params are allocated but fail to propagate to the
 // parsed op data (e.g., when model parameters are invalid).
