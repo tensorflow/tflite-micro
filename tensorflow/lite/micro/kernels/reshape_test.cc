@@ -231,10 +231,12 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
   float output_data_float[32];
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
+  int16_t output_data_int16[32];
   int input_dims[] = {4, 1, 2, 4, 1};
   const float input_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t input_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t input_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int16_t input_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int shape_dims[] = {1, 3};
   const int32_t shape_int32[] = {2, 2, 2};
   int output_dims[] = {3, 2, 2, 2};
@@ -242,6 +244,7 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
   const float golden_output_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t golden_output_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t golden_output_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int16_t golden_output_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int golden_dims_len = 3;
   int golden_dims[] = {2, 2, 2};
   tflite::testing::TestReshape(input_dims, input_float, shape_dims, shape_int32,
@@ -256,6 +259,10 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
       input_dims, input_uint8, shape_dims, shape_int32, output_dims,
       output_data_uint8, golden_output_uint8, golden_output_len, golden_dims,
       golden_dims_len, false);
+  tflite::testing::TestReshapeQuantized(
+      input_dims, input_int16, shape_dims, shape_int32, output_dims,
+      output_data_int16, golden_output_int16, golden_output_len, golden_dims,
+      golden_dims_len, false);
 }
 
 // Stretch is not supported with TF Micro
@@ -263,10 +270,12 @@ TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
   float output_data_float[32];
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
+  int16_t output_data_int16[32];
   int input_dims[] = {4, 1, 2, 4, 1};
   const float input_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t input_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t input_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int16_t input_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int shape_dims[] = {1, 3};
   const int32_t shape_int32[] = {2, 1, -1};
   int output_dims[] = {3, 2, 1, -1};
@@ -274,6 +283,7 @@ TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
   const float golden_output_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t golden_output_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t golden_output_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int16_t golden_output_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int golden_dims_len = 3;
   int golden_dims[] = {2, 1, 4};
   tflite::testing::TestReshape(input_dims, input_float, shape_dims, shape_int32,
@@ -287,6 +297,10 @@ TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
   tflite::testing::TestReshapeQuantized(
       input_dims, input_uint8, shape_dims, shape_int32, output_dims,
       output_data_uint8, golden_output_uint8, golden_output_len, golden_dims,
+      golden_dims_len, false);
+  tflite::testing::TestReshapeQuantized(
+      input_dims, input_int16, shape_dims, shape_int32, output_dims,
+      output_data_int16, golden_output_int16, golden_output_len, golden_dims,
       golden_dims_len, false);
 }
 

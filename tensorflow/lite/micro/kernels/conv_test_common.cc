@@ -121,15 +121,16 @@ TfLiteStatus TestConvFloat(int* input_dims_data, const float* input_data,
                              output_data);
 }
 
+template <typename T, typename BiasT>
 TfLiteStatus TestConvQuantizedPerChannel(
-    int* input_dims_data, const float* input_data, int8_t* input_quantized,
+    int* input_dims_data, const float* input_data, T* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_data_quantized,
-    int* bias_dims_data, const float* bias_data, int32_t* bias_data_quantized,
+    int* bias_dims_data, const float* bias_data, BiasT* bias_data_quantized,
     float* bias_scales, int* bias_zero_points, int* output_dims_data,
-    const float* expected_output_data, int8_t* expected_output_data_quantized,
+    const float* expected_output_data, T* expected_output_data_quantized,
     float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
-    TfLiteRegistration registration, int8_t* output_data) {
+    TfLiteRegistration registration, T* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -180,6 +181,43 @@ TfLiteStatus TestConvQuantizedPerChannel(
   return ValidateConvGoldens(
       tensors, tensors_size, expected_output_data_quantized, output_dims_count,
       conv_params, registration, output_data, 1.0 /* tolerance */);
+}
+
+TfLiteStatus TestConvQuantizedPerChannel(
+    int* input_dims_data, const float* input_data, int8_t* input_quantized,
+    float input_scale, int input_zero_point, int* filter_dims_data,
+    const float* filter_data, int8_t* filter_data_quantized,
+    int* bias_dims_data, const float* bias_data, int32_t* bias_data_quantized,
+    float* bias_scales, int* bias_zero_points, int* output_dims_data,
+    const float* expected_output_data, int8_t* expected_output_data_quantized,
+    float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
+    TfLiteRegistration registration, int8_t* output_data) {
+  return TestConvQuantizedPerChannel<int8_t, int32_t>(
+      input_dims_data, input_data, input_quantized, input_scale,
+      input_zero_point, filter_dims_data, filter_data, filter_data_quantized,
+      bias_dims_data, bias_data, bias_data_quantized, bias_scales,
+      bias_zero_points, output_dims_data, expected_output_data,
+      expected_output_data_quantized, output_scale, output_zero_point,
+      conv_params, registration, output_data);
+}
+
+TfLiteStatus TestConvQuantizedPerChannel(
+    int* input_dims_data, const float* input_data, int16_t* input_quantized,
+    float input_scale, int input_zero_point, int* filter_dims_data,
+    const float* filter_data, int8_t* filter_data_quantized,
+    int* bias_dims_data, const float* bias_data,
+    std::int64_t* bias_data_quantized, float* bias_scales,
+    int* bias_zero_points, int* output_dims_data,
+    const float* expected_output_data, int16_t* expected_output_data_quantized,
+    float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
+    TfLiteRegistration registration, int16_t* output_data) {
+  return TestConvQuantizedPerChannel<int16_t, std::int64_t>(
+      input_dims_data, input_data, input_quantized, input_scale,
+      input_zero_point, filter_dims_data, filter_data, filter_data_quantized,
+      bias_dims_data, bias_data, bias_data_quantized, bias_scales,
+      bias_zero_points, output_dims_data, expected_output_data,
+      expected_output_data_quantized, output_scale, output_zero_point,
+      conv_params, registration, output_data);
 }
 
 }  // namespace testing
