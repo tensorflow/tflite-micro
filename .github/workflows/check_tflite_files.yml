@@ -18,7 +18,7 @@ jobs:
     - name: Check Files
       run: |
         URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
-        PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $URL | jq -r '.[] | .filename')
+        PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.TFLM_BOT_REPO_TOKEN }}" $URL | jq -r '.[] | .filename')
         rm -rf /tmp/pull_request_files.txt
         echo "${PR_FILES}" >> /tmp/pull_request_files.txt
 
