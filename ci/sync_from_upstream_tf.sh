@@ -31,7 +31,7 @@ rm -rf /tmp/tensorflow
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
-SHARED_TFL_CODE=$(<ci/upstream_list.txt)
+SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
 for filepath in ${SHARED_TFL_CODE}
 do
