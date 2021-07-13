@@ -21,7 +21,7 @@ if __name__=="__main__":
   parser.add_argument("pr_files", help="File with list of files modified by the Pull Request", default="")
   args = parser.parse_args()
 
-  tflite_files = set(line.strip() for line in open("ci/upstream_list.txt"))
+  tflite_files = set(line.strip() for line in open("ci/tflite_files.txt"))
   pr_files = set(line.strip() for line in open(args.pr_files))
 
   tflite_files_in_pr = tflite_files.intersection(pr_files)
