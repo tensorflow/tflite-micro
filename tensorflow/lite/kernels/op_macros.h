@@ -21,11 +21,11 @@ limitations under the License.
 #include <cstdlib>
 #define TFLITE_ABORT abort()
 #else
-#define TFLITE_ABORT          \
-  do {                        \
-    DebugLog("HALTED\n");     \
-    while (1);                \
-  } while (0)
+inline void AbortImpl() {
+  DebugLog("HALTED\n");
+  while (1);
+}
+#define TFLITE_ABORT AbortImpl();
 #endif
 
 #if defined(NDEBUG) || defined(ARDUINO)
