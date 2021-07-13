@@ -52,12 +52,15 @@ inline void DepthwiseConv4x32MatchingInputAndFilterHifiMini(
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
-    const TfLiteDepthwiseConvParams& params,
-    const XtensaDepthwiseConvOpData& data, const TfLiteEvalTensor* input,
-    const TfLiteEvalTensor* filter,
-    const TfLiteEvalTensor* bias, TfLiteEvalTensor* output);
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output);
 
-TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
+                                            TfLiteNode* node);
 #endif
 
 }  // namespace tflite

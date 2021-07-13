@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(XtensaDepthwiseConvOpData));
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(XtensaDepthwiseConvOpData));
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -52,7 +53,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto& params =
       *(reinterpret_cast<TfLiteDepthwiseConvParams*>(node->builtin_data));
-  const auto& op_data = *(reinterpret_cast<XtensaDepthwiseConvOpData*>(node->user_data));
+  const auto& op_data =
+      *(reinterpret_cast<XtensaDepthwiseConvOpData*>(node->user_data));
 
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kDepthwiseConvOutputTensor);
@@ -106,7 +108,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output));
 #elif defined(FUSION_F1) || defined(HIFI5)
-      DepthwiseConvEvalHifi(context, node, params, op_data, input, filter, bias, output);
+      DepthwiseConvEvalHifi(context, node, params, op_data, input, filter, bias,
+                            output);
 #else
       reference_integer_ops::DepthwiseConvPerChannel(
           DepthwiseConvParamsQuantized(params, op_data.reference_op_data),

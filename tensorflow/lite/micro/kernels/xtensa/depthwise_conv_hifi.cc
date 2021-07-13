@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/depthwise_conv.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -25,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
@@ -32,8 +31,10 @@ limitations under the License.
 
 #if defined(FUSION_F1) || defined(HIFI5)
 namespace tflite {
-TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
-  XtensaDepthwiseConvOpData* data = static_cast<XtensaDepthwiseConvOpData*>(node->user_data);
+TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
+                                      TfLiteNode* node) {
+  XtensaDepthwiseConvOpData* data =
+      static_cast<XtensaDepthwiseConvOpData*>(node->user_data);
   const auto& params =
       *(static_cast<const TfLiteDepthwiseConvParams*>(node->builtin_data));
 
@@ -82,10 +83,12 @@ TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) 
 }
 
 TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
-                      const TfLiteDepthwiseConvParams& params,
-                      const XtensaDepthwiseConvOpData& data, const TfLiteEvalTensor* input,
-                      const TfLiteEvalTensor* filter,
-                      const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output) {
   // If dilation is not required use the optimized NN Library kernel.
   // Otherwise call the reference implementation.
   if ((params.dilation_width_factor == 1) &&
