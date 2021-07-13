@@ -19,6 +19,8 @@ limitations under the License.
 
 namespace tflite {
 
+// modify shared code.
+//
 /// A functor that reports error to supporting system. Invoked similar to
 /// printf.
 ///
