@@ -15,8 +15,6 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_ALLOCATOR_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_ALLOCATOR_H_
 
-#define FLATBUFFERS_LOCALE_INDEPENDENT 0
-
 #include <cstddef>
 #include <cstdint>
 
