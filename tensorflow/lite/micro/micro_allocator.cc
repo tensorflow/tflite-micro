@@ -372,16 +372,16 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
     // copy values from the flatbuffer into the newly allocated chunk.
     kTfLiteArrayType* array =
         reinterpret_cast<kTfLiteArrayType*>(allocator->AllocateFromTail(
-            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->Length()),
+            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
             alignof(kTfLiteArrayType)));
     if (array == nullptr) {
       TF_LITE_REPORT_ERROR(
           error_reporter,
           "Failed to allocate %d bytes of memory to copy an array.",
-          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->Length()));
+          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()));
       return kTfLiteError;
     }
-    array->size = flatbuffer_array->Length();
+    array->size = flatbuffer_array->size();
     for (int i = 0; i < array->size; ++i) {
       array->data[i] = flatbuffer_array->Get(i);
     }
