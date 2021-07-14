@@ -92,6 +92,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_compatibility",
         ":micro_error_reporter",
@@ -104,6 +105,16 @@ cc_library(
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
+        "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
+    name = "flatbuffer_utils",
+    srcs = ["flatbuffer_utils.cc"],
+    hdrs = ["flatbuffer_utils.h"],
+    deps = [
+        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -375,6 +386,21 @@ cc_test(
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "flatbuffer_utils_test",
+    srcs = [
+        "flatbuffer_utils_test.cc",
+    ],
+    tags = [
+        "nomsan",  # TODO(b/192311485): See http://b/192311485#comment2
+    ],
+    deps = [
+        ":flatbuffer_utils",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
