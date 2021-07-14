@@ -172,11 +172,12 @@ TfLiteStatus TestTransposeConvQuantized(
       conv_params, output_data, 1.0f);
 }
 
+template <typename T>
 TfLiteStatus TestTransposeConvQuantized(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_quantized, float filter_scale,
-    int* bias_dims_data, const float* bias_data, std::int64_t* bias_quantized,
+    int* bias_dims_data, const float* bias_data, T* bias_quantized,
     float* bias_scales, int* bias_zero_points, int* output_dims_data,
     const float* expected_output_data, int16_t* expected_output_quantized,
     float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
@@ -279,6 +280,35 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel) {
   int16_t input_quantized[tflite::testing::kInputElements];
   int8_t filter_quantized[tflite::testing::kFilterElements];
   std::int64_t bias_quantized[tflite::testing::kBiasElements];
+  int16_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvQuantized(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kFilterShape, tflite::testing::kFilterData,
+          filter_quantized, filter_scale, tflite::testing::kBiasShape,
+          tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+          golden_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, output_data));
+}
+
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelWithInt16Bias) {
+  int16_t output_data[tflite::testing::kOutputElements];
+
+  const float input_scale = 1.0f;
+  const float output_scale = 1.0f;
+  const float filter_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int16_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int16_t bias_quantized[tflite::testing::kBiasElements];
   int16_t golden_quantized[tflite::testing::kOutputElements];
   int zero_points[tflite::testing::kBiasElements + 1];
   float scales[tflite::testing::kBiasElements + 1];
