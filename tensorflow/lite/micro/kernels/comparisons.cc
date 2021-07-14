@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,31 +19,21 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/comparisons.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace comparisons {
 namespace {
-
-struct OpData {
-  ComparisonParams params;
-};
-
-constexpr int kInputTensor1 = 0;
-constexpr int kInputTensor2 = 1;
-constexpr int kOutputTensor = 0;
 
 TfLiteStatus EqualEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -141,14 +131,14 @@ TfLiteStatus EqualEval(TfLiteContext* context, TfLiteNode* node) {
 // TODO(renjieliu): Refactor the logic to avoid duplications.
 TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -245,14 +235,14 @@ TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -336,14 +326,14 @@ TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -427,14 +417,14 @@ TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -518,14 +508,14 @@ TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataComparisons* data = static_cast<const OpDataComparisons*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kComparisonsInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kComparisonsOutputTensor);
 
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input2_shape = tflite::micro::GetTensorShape(input2);
@@ -611,53 +601,14 @@ TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataComparisons));
 }
-
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
-
-  const TfLiteTensor* input1 = GetInput(context, node, kInputTensor1);
-  TF_LITE_ENSURE(context, input1 != nullptr);
-  const TfLiteTensor* input2 = GetInput(context, node, kInputTensor2);
-  TF_LITE_ENSURE(context, input2 != nullptr);
-
-  if (input1->type == kTfLiteUInt8 || input1->type == kTfLiteInt8) {
-    auto input1_offset = -input1->params.zero_point;
-    auto input2_offset = -input2->params.zero_point;
-    const int kLeftShift = 8;
-
-    int32_t input1_multiplier;
-    int input1_shift;
-    QuantizeMultiplierSmallerThanOneExp(
-        static_cast<double>(input1->params.scale), &input1_multiplier,
-        &input1_shift);
-    int32_t input2_multiplier;
-    int input2_shift;
-    QuantizeMultiplierSmallerThanOneExp(
-        static_cast<double>(input2->params.scale), &input2_multiplier,
-        &input2_shift);
-
-    data->params.left_shift = kLeftShift;
-    data->params.input1_offset = input1_offset;
-    data->params.input1_multiplier = input1_multiplier;
-    data->params.input1_shift = input1_shift;
-    data->params.input2_offset = input2_offset;
-    data->params.input2_multiplier = input2_multiplier;
-    data->params.input2_shift = input2_shift;
-  }
-
-  return kTfLiteOk;
-}
-
-}  // namespace comparisons
 
 TfLiteRegistration Register_EQUAL() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::EqualEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/EqualEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -665,10 +616,10 @@ TfLiteRegistration Register_EQUAL() {
 }
 
 TfLiteRegistration Register_NOT_EQUAL() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::NotEqualEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/NotEqualEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -676,10 +627,10 @@ TfLiteRegistration Register_NOT_EQUAL() {
 }
 
 TfLiteRegistration Register_GREATER() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::GreaterEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/GreaterEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -687,10 +638,10 @@ TfLiteRegistration Register_GREATER() {
 }
 
 TfLiteRegistration Register_GREATER_EQUAL() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::GreaterEqualEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/GreaterEqualEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -698,10 +649,10 @@ TfLiteRegistration Register_GREATER_EQUAL() {
 }
 
 TfLiteRegistration Register_LESS() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::LessEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/LessEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -709,16 +660,14 @@ TfLiteRegistration Register_LESS() {
 }
 
 TfLiteRegistration Register_LESS_EQUAL() {
-  return {/*init=*/comparisons::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/comparisons::Prepare,
-          /*invoke=*/comparisons::LessEqualEval,
+          /*prepare=*/ComparisonsPrepare,
+          /*invoke=*/LessEqualEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

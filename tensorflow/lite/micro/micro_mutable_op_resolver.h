@@ -211,7 +211,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddEqual() {
     return AddBuiltin(BuiltinOperator_EQUAL,
-                      tflite::ops::micro::Register_EQUAL(), ParseEqual);
+                      tflite::Register_EQUAL(), ParseEqual);
   }
 
   TfLiteStatus AddEthosU() {
@@ -268,12 +268,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddGreater() {
     return AddBuiltin(BuiltinOperator_GREATER,
-                      tflite::ops::micro::Register_GREATER(), ParseGreater);
+                      tflite::Register_GREATER(), ParseGreater);
   }
 
   TfLiteStatus AddGreaterEqual() {
     return AddBuiltin(BuiltinOperator_GREATER_EQUAL,
-                      tflite::ops::micro::Register_GREATER_EQUAL(),
+                      tflite::Register_GREATER_EQUAL(),
                       ParseGreaterEqual);
   }
 
@@ -304,13 +304,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLess() {
-    return AddBuiltin(BuiltinOperator_LESS, tflite::ops::micro::Register_LESS(),
+    return AddBuiltin(BuiltinOperator_LESS, tflite::Register_LESS(),
                       ParseLess);
   }
 
   TfLiteStatus AddLessEqual() {
     return AddBuiltin(BuiltinOperator_LESS_EQUAL,
-                      tflite::ops::micro::Register_LESS_EQUAL(),
+                      tflite::Register_LESS_EQUAL(),
                       ParseLessEqual);
   }
 
@@ -374,7 +374,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddNotEqual() {
     return AddBuiltin(BuiltinOperator_NOT_EQUAL,
-                      tflite::ops::micro::Register_NOT_EQUAL(), ParseNotEqual);
+                      tflite::Register_NOT_EQUAL(), ParseNotEqual);
   }
 
   TfLiteStatus AddPack() {

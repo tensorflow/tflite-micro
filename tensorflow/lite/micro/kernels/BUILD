@@ -120,6 +120,7 @@ cc_library(
         "ceil.cc",
         "circular_buffer.cc",
         "comparisons.cc",
+        "comparisons_common.cc",
         "concatenation.cc",
         "conv.cc",
         "conv_common.cc",
@@ -185,6 +186,7 @@ cc_library(
     ],
     hdrs = [
         "conv.h",
+        "comparisons.h",
         "depthwise_conv.h",
         "ethosu.h",
         "fully_connected.h",
