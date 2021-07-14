@@ -14,32 +14,23 @@
 # limitations under the License.
 # ==============================================================================
 
-#
-# Sync's the shared TfLite / TFLM code from the upstream Tensorflow repo.
-#
-# While the standalone TFLM repo is under development, we are also sync'ing all
-# of the TFLM code via this script.
-#
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/..
+ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
+pwd
 
-rm -rf /tmp/tensorflow
+source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
-SHARED_TFL_CODE=$(<ci/tflite_files.txt)
+# TODO(b/143904317): downloading first to allow for parallel builds.
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 
-for filepath in ${SHARED_TFL_CODE}
-do
-  mkdir -p $(dirname ${filepath})
-  /bin/cp /tmp/tensorflow/${filepath} ${filepath}
-done
-
-# Since the TFLM code was deleted from the tensorflow repository, the
-# microfrontend is no longer sync'd from upstream and instead maintaned as a
-# fork.
-git checkout tensorflow/lite/experimental/microfrontend/lib/
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=xtensa \
+  TARGET_ARCH=hifi5 \
+  OPTIMIZED_KERNEL_DIR=xtensa \
+  XTENSA_CORE=AE_HiFi5_LE5_AO_FP_XC \
+  test -j$(nproc)

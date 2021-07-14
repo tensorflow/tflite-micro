@@ -4,6 +4,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
 ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
