@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_CEVA_CEVA_COMMON_H_
 
 #if defined(CEVA_BX1) || defined(CEVA_SP500)
-extern int32_t* CEVA_TFLM_KERNELS_SCRATCH;
+extern int32_t CEVA_TFLM_KERNELS_SCRATCH[];
 extern int32_t CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL;
 #endif
 
