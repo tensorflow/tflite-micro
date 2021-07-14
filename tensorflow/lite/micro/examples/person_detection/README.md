@@ -285,11 +285,11 @@ The sample has been tested on ESP-IDF version 4.0 with the following devices: -
 ESP-EYE is a board which has a built-in camera which can be used to run this
 example , if you want to use other esp boards you will have to connect camera
 externally and write your own
-[image_provider.cc](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/person_detection/esp/image_provider.cc).
+[image_provider.cc](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/esp/image_provider.cc).
 and
-[app_camera_esp.c](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/person_detection/esp/app_camera_esp.c).
+[app_camera_esp.c](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/esp/app_camera_esp.c).
 You can also write you own
-[detection_responder.cc](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/person_detection/detection_responder.cc).
+[detection_responder.cc](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/detection_responder.cc).
 
 ### Install the ESP IDF
 
@@ -610,7 +610,7 @@ and checks that the network correctly identifies them.
 
 To understand how TensorFlow Lite does this, you can look at the `TestInvoke()`
 function in
-[person_detection_test.cc](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/examples/person_detection/person_detection_test.cc).
+[person_detection_test.cc](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/person_detection_test.cc).
 It's a fairly small amount of code, creating an interpreter, getting a handle to
 a model that's been compiled into the program, and then invoking the interpreter
 with the model and sample inputs.
