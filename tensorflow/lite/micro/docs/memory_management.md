@@ -125,7 +125,7 @@ auditing the contents of this section.
 TFLM provides simple APIs for auditing memory usage in the shared tensor arena.
 These APIs are opt-in and require some additional memory overhead and a working
 debug logging implementation
-[(reference implementation)](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/debug_log.cc).
+[(reference implementation)](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.cc).
 
 A typical bare-bones TFLM interpreter setup looks as such:
 
@@ -170,7 +170,7 @@ interpreter.GetMicroAllocator().PrintAllocations();
 ```
 
 The output of this call will look something similar to this (output from the
-[memory_arena_threshold_test](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/memory_arena_threshold_test.cc#L205)):
+[memory_arena_threshold_test](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/memory_arena_threshold_test.cc#L205)):
 
 ```bash
 [RecordingMicroAllocator] Arena allocation total 9568 bytes

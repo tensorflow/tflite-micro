@@ -55,10 +55,10 @@ Jupyter Notebook.
 
 <table class="tfo-notebook-buttons" align="left">
   <td>
-    <a target="_blank" href="https://colab.research.google.com/github/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/examples/micro_speech/train/train_micro_speech_model.ipynb"><img src="https://www.tensorflow.org/images/colab_logo_32px.png" />Google Colaboratory</a>
+    <a target="_blank" href="https://colab.research.google.com/github/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/micro_speech/train/train_micro_speech_model.ipynb"><img src="https://www.tensorflow.org/images/colab_logo_32px.png" />Google Colaboratory</a>
   </td>
   <td>
-    <a target="_blank" href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/examples/micro_speech/train/train_micro_speech_model.ipynb"><img src="https://www.tensorflow.org/images/GitHub-Mark-32px.png" />Jupyter Notebook</a>
+    <a target="_blank" href="https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/micro_speech/train/train_micro_speech_model.ipynb"><img src="https://www.tensorflow.org/images/GitHub-Mark-32px.png" />Jupyter Notebook</a>
   </td>
 </table>
 
@@ -96,7 +96,7 @@ input(s) and output(s) which remain float.* -->
 
 This is a simple model comprising of a Convolutional 2D layer, a Fully Connected
 Layer or a MatMul Layer (output: logits) and a Softmax layer
-(output: probabilities) as shown below. Refer to the [`tiny_conv`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/speech_commands/models.py#L673)
+(output: probabilities) as shown below. Refer to the [`tiny_conv`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/examples/speech_commands/models.py#L673)
 model architecture.
 
 ![model_architecture.png](../images/model_architecture.png)
