@@ -21,6 +21,11 @@ import os
 # same name in base_file_list and returns a list containing all the files as a
 # result of this specialization merge.
 def _specialize_files(base_file_list, directory):
+  # If the specialized directory is not a valid path, then return the
+  # base_file_list.
+  if not os.path.isdir(directory):
+    return base_file_list
+
   specialize_files = os.listdir(directory)
   specialized_list = []
   for fpath in base_file_list:

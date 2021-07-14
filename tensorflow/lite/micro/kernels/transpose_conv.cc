@@ -47,6 +47,10 @@ struct OpData {
   // A scratch buffer is required for quantized implementations.
   int scratch_buffer_index;
 
+  // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+  // 64-bit biases.
+  int bias_converted_buffer_index;
+
   // Multiplier and shift arrays are required for the int8 implementation.
   int32_t* per_channel_output_multiplier;
   int32_t* per_channel_output_shift;
@@ -105,6 +109,19 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
         &data->params.quantized_activation_max,
         data->per_channel_output_multiplier, data->per_channel_output_shift,
         output_channels));
+
+    // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+    // 64-bit biases.
+    if (input->type == kTfLiteInt16) {
+      TFLITE_DCHECK(filter->type == kTfLiteInt8);
+      TFLITE_DCHECK(output->type == kTfLiteInt16);
+      if (bias->type == kTfLiteInt16) {
+        TFLITE_DCHECK(
+            context->RequestScratchBufferInArena(
+                context, GetTensorShape(bias).FlatSize() * sizeof(std::int64_t),
+                &(data->bias_converted_buffer_index)) == kTfLiteOk);
+      }
+    }
   }
   return kTfLiteOk;
 }
@@ -259,17 +276,39 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       std::int64_t* scratch_buffer = static_cast<int64_t*>(
           context->GetScratchBuffer(context, data.scratch_buffer_index));
-      reference_integer_ops::TransposeConv(
-          data.params, data.per_channel_output_multiplier,
-          data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int16_t>(input),
-          tflite::micro::GetTensorShape(filter),
-          tflite::micro::GetTensorData<int8_t>(filter),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<std::int64_t>(bias),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int16_t>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+      // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
+      // 64-bit biases.
+      if (bias->type == kTfLiteInt16) {
+        std::int64_t* bias_converted_buffer =
+            static_cast<int64_t*>(context->GetScratchBuffer(
+                context, data.bias_converted_buffer_index));
+        for (int i = 0; i < tflite::micro::GetTensorShape(bias).FlatSize();
+             i++) {
+          bias_converted_buffer[i] = bias->data.i16[i];
+        }
+        reference_integer_ops::TransposeConv(
+            data.params, data.per_channel_output_multiplier,
+            data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
+            tflite::micro::GetTensorData<int16_t>(input),
+            tflite::micro::GetTensorShape(filter),
+            tflite::micro::GetTensorData<int8_t>(filter),
+            tflite::micro::GetTensorShape(bias), bias_converted_buffer,
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int16_t>(output),
+            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+      } else {
+        reference_integer_ops::TransposeConv(
+            data.params, data.per_channel_output_multiplier,
+            data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
+            tflite::micro::GetTensorData<int16_t>(input),
+            tflite::micro::GetTensorShape(filter),
+            tflite::micro::GetTensorData<int8_t>(filter),
+            tflite::micro::GetTensorShape(bias),
+            tflite::micro::GetTensorData<std::int64_t>(bias),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int16_t>(output),
+            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+      }
       break;
     }
     default:
