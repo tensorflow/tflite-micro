@@ -84,7 +84,6 @@ tensorflow/lite/kernels/internal/tensor_ctypes.h
 tensorflow/lite/kernels/internal/tensor_utils_common.h
 tensorflow/lite/kernels/internal/types.h
 tensorflow/lite/kernels/kernel_util.h
-tensorflow/lite/kernels/op_macros.h
 tensorflow/lite/kernels/padding.h
 tensorflow/lite/portable_type_to_tflitetype.h
 tensorflow/lite/schema/schema_generated.h
