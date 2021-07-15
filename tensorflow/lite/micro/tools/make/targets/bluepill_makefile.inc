@@ -66,6 +66,11 @@ EXCLUDED_TESTS := \
   tensorflow/lite/micro/micro_allocator_test.cc \
   tensorflow/lite/micro/memory_helpers_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+# flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder
+# uses dynamic memory.
+EXCLUDED_TESTS += tensorflow/lite/micro/flatbuffer_utils_test.cc
+
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 EXCLUDED_EXAMPLE_TESTS := \

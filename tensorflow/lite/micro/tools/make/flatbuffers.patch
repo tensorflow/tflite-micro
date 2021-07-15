@@ -1,0 +1,45 @@
+diff --git a/include/flatbuffers/base.h b/include/flatbuffers/base.h
+index 8e97c08..6f3fea5 100644
+--- a/include/flatbuffers/base.h
++++ b/include/flatbuffers/base.h
+@@ -1,6 +1,16 @@
+ #ifndef FLATBUFFERS_BASE_H_
+ #define FLATBUFFERS_BASE_H_
+ 
++// For TFLM, we always want FLATBUFFERS_LOCALE_INDEPENDENT to be defined as 0.
++// We could achieve this by adding -DFLATBUFFERS_LOCALE_INDEPENDENT=0 to the
++// TFLM Makefile. However, for (at least) the Arduino, adding additional build
++// flags during the compilation can be a bit awkward. As such, we have instead
++// made a decision to change the default to be FLATBUFFERS_LOCALE_INDEPENDENT=0
++// for TFLM to make it easier for external IDE integration.
++#ifndef FLATBUFFERS_LOCALE_INDEPENDENT
++#define FLATBUFFERS_LOCALE_INDEPENDENT 0
++#endif
++
+ // clang-format off
+ 
+ // If activate should be declared and included first.
+diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
+index a45d14b..a4401f8 100644
+--- a/include/flatbuffers/flexbuffers.h
++++ b/include/flatbuffers/flexbuffers.h
+@@ -493,9 +493,19 @@ class Reference {
+           return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
+         case FBT_NULL: return 0.0;
+         case FBT_STRING: {
++#if 1
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wnull-dereference"
++          // TODO(b/173239141): Patched via micro/tools/make/flexbuffers_download.sh
++          // Introduce a segfault for an unsupported code path for TFLM.
++          return *(static_cast<double*>(nullptr));
++#pragma GCC diagnostic pop
++#else
++          // This is the original code
+           double d;
+           flatbuffers::StringToNumber(AsString().c_str(), &d);
+           return d;
++#endif
+         }
+         case FBT_VECTOR: return static_cast<double>(AsVector().size());
+         case FBT_BOOL:

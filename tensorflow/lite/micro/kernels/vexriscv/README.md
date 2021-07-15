@@ -21,7 +21,7 @@ the FPGA, please see
 by Antmicro for more details.
 
 For general utilities, please refer to `utils/` under this directory, see
-[README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/kernels/vexriscv/utils/README.md)
+[README](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/kernels/vexriscv/utils/README.md)
 for available utilities
 
 ## Info
@@ -46,4 +46,4 @@ person_detection_int8_bin
 
 The following kernels are optimized specific to VexRISCV
 
-*   [DepthwiseConv2D](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/kernels/vexriscv/doc/DepthwiseConv2D_int8.md)
+*   [DepthwiseConv2D](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/kernels/vexriscv/doc/DepthwiseConv2D_int8.md)
