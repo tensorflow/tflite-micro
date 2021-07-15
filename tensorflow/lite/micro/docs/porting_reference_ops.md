@@ -2,7 +2,7 @@
 
 <!-- Define reference-style links used throughout the document -->
 [small PRs]: https://google.github.io/eng-practices/review/developer/small-cls.html
-[Micro Contributing Guidelines]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/CONTRIBUTING.md
+[Micro Contributing Guidelines]: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/CONTRIBUTING.md
 [Providing Context]: https://testing.googleblog.com/2017/09/code-health-providing-context-with.html
 [`ParseOpDataTfLite()`]: https://github.com/tensorflow/tensorflow/blob/d8394a6d774f5e3c02d97f1fc18ff445199db598/tensorflow/lite/core/api/flatbuffer_conversions.cc#L135
 [PR #45307]: https://github.com/tensorflow/tensorflow/pull/45307
@@ -11,7 +11,7 @@
 [PR #45457]: https://github.com/tensorflow/tensorflow/pull/45457
 [PR #45646]: https://github.com/tensorflow/tensorflow/pull/45646
 [PR #45647]: https://github.com/tensorflow/tensorflow/pull/45647
-[pre-submit checklist]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/CONTRIBUTING.md#before-submitting-your-pr
+[pre-submit checklist]: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/CONTRIBUTING.md#before-submitting-your-pr
 [reference_ops.h]: https://github.com/tensorflow/tensorflow/blob/92f459e6b917fa5099ef5317d14c5100d33a86f0/tensorflow/lite/kernels/internal/reference/reference_ops.h
 [general porting guidelines]: #general-porting-guidelines
 
