@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 #define KRNL_C_DIM_NHWC 0  // output channels
 
@@ -33,10 +34,15 @@ inline void ConvertToMliTensorData(const TfLiteTensor* tfT,
                                    bool is_bias_tensor) {
   // Data is NULL until MliTensorAttachBuffer is called.
   mliT->SetElType(tfT->type);
-  if (tfT->type == kTfLiteInt8)
+  if (tfT->type == kTfLiteInt8) {
     mliT->SetData<int8_t>(nullptr, tfT->bytes);
-  else if (tfT->type == kTfLiteInt32)
+    }
+  else if (tfT->type == kTfLiteInt32){
     mliT->SetData<int32_t>(nullptr, tfT->bytes);
+    } else {
+  MicroPrintf("Wrong data type. Expected int8_t or int32_t.");
+  TFLITE_ABORT;
+}
   const int32_t dims_count = GetTensorShape(tfT).DimensionsCount();
   *mliT->Rank() = is_bias_tensor ? 1 : dims_count;
 
