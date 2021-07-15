@@ -18,11 +18,11 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
