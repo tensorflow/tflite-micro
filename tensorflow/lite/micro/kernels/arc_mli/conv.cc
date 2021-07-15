@@ -280,7 +280,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                              /* is_bias_tensor = */ true);
     ops::micro::ConvertToMliTensor(output, &data->mli_out);
 
-    if (params->activation == kTfLiteActRelu) {
+    if (data->output_activation_min == -128 &&
+        data->output_activation_max == 127) {
+      data->cfg->relu.type = MLI_RELU_NONE;
+    } else if (params->activation == kTfLiteActRelu) {
       data->cfg->relu.type = MLI_RELU_GEN;
     } else if (params->activation == kTfLiteActRelu6) {
       data->cfg->relu.type = MLI_RELU_6;
