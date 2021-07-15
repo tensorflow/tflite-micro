@@ -69,15 +69,19 @@ constexpr int kOutputTensor = 0;
 
 bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
                      const TfLiteTensor* filter, const TfLiteTensor* bias,
-                     const TfLiteFullyConnectedParams* params) {
+                     const TfLiteFullyConnectedParams* params,
+                     int32_t output_activation_min,
+                     int32_t output_activation_max) {
   // MLI optimized version only supports int8_t datatype and no fused Relu and
   // symmetric per-tensor quantization of weights (not per-axis)
-  bool ret_val = (filter->type == kTfLiteInt8) &&
-                 (input->type == kTfLiteInt8) && (bias->type == kTfLiteInt32) &&
+  bool ret_val =
+      (filter->type == kTfLiteInt8) && (input->type == kTfLiteInt8) &&
+      (bias->type == kTfLiteInt32) &&
 #ifndef MLI_2_0
-                 (params->activation == kTfLiteActNone) &&
+      (params->activation == kTfLiteActNone ||
+       (output_activation_min == -128 && output_activation_max == 127)) &&
 #endif
-                 (filter->params.zero_point == 0);
+      (filter->params.zero_point == 0);
   return ret_val;
 }
 
@@ -132,8 +136,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   data->filter_zero_point = filter->params.zero_point;
   data->output_zero_point = output->params.zero_point;
 
+  TfLiteStatus status = CalculateOpData(context, params, input->type, input,
+                                        filter, bias, output, data);
+
   data->is_mli_applicable =
-      IsMliApplicable(context, input, filter, bias, params);
+      IsMliApplicable(context, input, filter, bias, params,
+                      data->output_activation_min, data->output_activation_max);
 
   if (input->type == kTfLiteInt8 && data->is_mli_applicable) {
     data->mli_in = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
@@ -151,7 +159,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     ops::micro::ConvertToMliTensor(output, &data->mli_out);
 
 #ifdef MLI_2_0
-    if (params->activation == kTfLiteActRelu) {
+    if (data->output_activation_min == -128 &&
+        data->output_activation_max == 127) {
+      data->cfg->relu.type = MLI_RELU_NONE;
+    } else if (params->activation == kTfLiteActRelu) {
       data->cfg->relu.type = MLI_RELU_GEN;
     } else if (params->activation == kTfLiteActRelu6) {
       data->cfg->relu.type = MLI_RELU_6;
@@ -177,8 +188,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     *data->mli_in.Rank() = 2;
   }
 
-  return (CalculateOpData(context, params, input->type, input, filter, bias,
-                          output, data));
+  return status;
 }
 
 TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
