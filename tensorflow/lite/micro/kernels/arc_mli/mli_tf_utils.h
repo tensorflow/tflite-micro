@@ -42,9 +42,11 @@ inline void ConvertToMliTensorData(const TfLiteTensor* tfT,
 
   if (is_bias_tensor) {
     mliT->Shape()[0] = GetTensorShape(tfT).Dims(dims_count - 1);
+    mliT->MemStride()[0] = 0;
   } else {
     for (int i = 0; i < dims_count; i++) {
       mliT->Shape()[i] = GetTensorShape(tfT).Dims(i);
+      mliT->MemStride()[i] = 0;
     }
   }
 }
