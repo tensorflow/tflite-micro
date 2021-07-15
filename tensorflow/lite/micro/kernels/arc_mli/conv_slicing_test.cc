@@ -310,7 +310,11 @@ TF_LITE_MICRO_TEST(LocalTestQuantizedPerChannel1) {
   const int input_zero_point = 0;
   const int output_zero_point = 0;
 
+#ifdef __Xvdsp
+#pragma Bss(".vecmem_data")
+#else
 #pragma Bss(".Xdata")
+#endif
   static int8_t input_quantized[tflite::testing::kInput1Elements];
   static int8_t filter_quantized[tflite::testing::kFilter1Elements];
   static int32_t bias_quantized[tflite::testing::kBias1Elements];
@@ -367,7 +371,11 @@ TF_LITE_MICRO_TEST(LocalTestQuantizedPerChannel2) {
   const int input_zero_point = 0;
   const int output_zero_point = 0;
 
+#ifdef __Xvdsp
+#pragma Bss(".vecmem_data")
+#else
 #pragma Bss(".Xdata")
+#endif
   static int8_t input_quantized[tflite::testing::kInput2Elements];
   static int8_t filter_quantized[tflite::testing::kFilter2Elements];
   static int32_t bias_quantized[tflite::testing::kBias2Elements];
@@ -424,7 +432,11 @@ TF_LITE_MICRO_TEST(LocalTestQuantizedPerChannel3) {
   const int input_zero_point = 0;
   const int output_zero_point = 0;
 
+#ifdef __Xvdsp
+#pragma Bss(".vecmem_data")
+#else
 #pragma Bss(".Xdata")
+#endif
   static int8_t input_quantized[tflite::testing::kInput3Elements];
   static int8_t filter_quantized[tflite::testing::kFilter3Elements];
   static int32_t bias_quantized[tflite::testing::kBias3Elements];
@@ -481,7 +493,11 @@ TF_LITE_MICRO_TEST(LocalTestQuantizedPerChannel4) {
   const int input_zero_point = 0;
   const int output_zero_point = 0;
 
+#ifdef __Xvdsp
+#pragma Bss(".vecmem_data")
+#else
 #pragma Bss(".Xdata")
+#endif
   static int8_t input_quantized[tflite::testing::kInput4Elements];
   static int8_t filter_quantized[tflite::testing::kFilter4Elements];
   static int32_t bias_quantized[tflite::testing::kBias4Elements];
