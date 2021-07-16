@@ -254,6 +254,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":micro_error_reporter",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:op_macros",
     ],

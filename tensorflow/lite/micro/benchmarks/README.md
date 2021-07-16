@@ -63,7 +63,7 @@ Build binary using
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=sparkfun_edge person_detection_benchmark_bin
 ```
 
-Refer to flashing instructions in the [Person Detection Example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/examples/person_detection/README.md#running-on-sparkfun-edge).
+Refer to flashing instructions in the [Person Detection Example](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/README.md#running-on-sparkfun-edge).
 
 ## Run on FVP based on Arm Corstone-300 software
 
