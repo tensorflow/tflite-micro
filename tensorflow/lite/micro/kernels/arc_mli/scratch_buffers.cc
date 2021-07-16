@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,31 +25,45 @@ namespace micro {
  * used for the data section and the stack. the values can be overruled by
  * adding a -D option to the makefile of the application
  */
+
+#ifdef __Xxy
+
 #ifndef SCRATCH_MEM_X_SIZE
 #ifdef core_config_xy_size
 #define SCRATCH_MEM_X_SIZE (core_config_xy_size)
-#else
-#define SCRATCH_MEM_X_SIZE (0)
 #endif
 #endif
 
 #ifndef SCRATCH_MEM_Y_SIZE
 #ifdef core_config_xy_size
 #define SCRATCH_MEM_Y_SIZE (core_config_xy_size)
-#else
-#define SCRATCH_MEM_Y_SIZE (0)
 #endif
 #endif
 
 #ifndef SCRATCH_MEM_Z_SIZE
 #ifdef core_config_dccm_size
 #define SCRATCH_MEM_Z_SIZE ((core_config_dccm_size) / 2)
-#else
-#define SCRATCH_MEM_Z_SIZE (0)
 #endif
 #endif
 
+#elif defined(__Xvdsp)
+
+#ifndef SCRATCH_MEM_VEC_SIZE
+#ifdef core_config_vec_mem_size
+#define SCRATCH_MEM_VEC_SIZE ((core_config_vec_mem_size * 3) / 4)
+#endif
+#endif
+
+#else
+
+#define SCRATCH_MEM_SIZE (65536)
+
+#endif
+
 namespace {
+
+#ifdef __Xxy
+
 #pragma Bss(".Xdata")
 static int8_t scratch_mem_x[SCRATCH_MEM_X_SIZE];
 #pragma Bss()
@@ -61,11 +75,42 @@ static int8_t scratch_mem_y[SCRATCH_MEM_Y_SIZE];
 #pragma Bss(".Zdata")
 static int8_t scratch_mem_z[SCRATCH_MEM_Z_SIZE];
 #pragma Bss()
+
+#elif defined(__Xvdsp)
+
+#pragma Bss(".vecmem_data")
+static int8_t scratch_mem_vec_1[SCRATCH_MEM_VEC_SIZE / 4];
+static int8_t scratch_mem_vec_2[SCRATCH_MEM_VEC_SIZE / 4];
+static int8_t scratch_mem_vec_3[SCRATCH_MEM_VEC_SIZE / 2];
+#pragma Bss()
+
+#else
+
+static int8_t scratch_mem_stack[SCRATCH_MEM_SIZE];
+
+#endif
 }  // namespace
+
+#ifdef __Xxy
 
 static int8_t* scratch_mem[] = {scratch_mem_x, scratch_mem_y, scratch_mem_z};
 static uint32_t scratch_sizes[] = {SCRATCH_MEM_X_SIZE, SCRATCH_MEM_Y_SIZE,
                                    SCRATCH_MEM_Z_SIZE};
+
+#elif defined(__Xvdsp)
+
+static int8_t* scratch_mem[] = {scratch_mem_vec_1, scratch_mem_vec_2,
+                                scratch_mem_vec_3};
+static uint32_t scratch_sizes[] = {SCRATCH_MEM_VEC_SIZE / 4,
+                                   SCRATCH_MEM_VEC_SIZE / 4,
+                                   SCRATCH_MEM_VEC_SIZE / 2};
+
+#else
+
+static int8_t* scratch_mem[] = {scratch_mem_stack};
+static uint32_t scratch_sizes[] = {SCRATCH_MEM_SIZE};
+
+#endif
 
 void* get_arc_scratch_buffer(int size) {
   // Function to asign fast memory from one of 3 scratch buffers.
@@ -85,7 +130,7 @@ void* get_arc_scratch_buffer(int size) {
     }
   }
   if (best_mem_idx >= 0) {
-    buf = static_cast<void*>(scratch_mem[best_mem_idx]);
+    buf = scratch_mem[best_mem_idx];
     scratch_mem[best_mem_idx] += size;
     scratch_sizes[best_mem_idx] -= size;
   }
@@ -122,12 +167,24 @@ void get_arc_scratch_buffer_two_max_sizes(int* size1, int* size2) {
 }
 
 void init_arc_scratch_buffers(void) {
+#ifdef __Xxy
   scratch_mem[0] = scratch_mem_x;
   scratch_mem[1] = scratch_mem_y;
   scratch_mem[2] = scratch_mem_z;
   scratch_sizes[0] = SCRATCH_MEM_X_SIZE;
   scratch_sizes[1] = SCRATCH_MEM_Y_SIZE;
   scratch_sizes[2] = SCRATCH_MEM_Z_SIZE;
+#elif defined(__Xvdsp)
+  scratch_mem[0] = scratch_mem_vec_1;
+  scratch_mem[1] = scratch_mem_vec_2;
+  scratch_mem[2] = scratch_mem_vec_3;
+  scratch_sizes[0] = SCRATCH_MEM_VEC_SIZE / 4;
+  scratch_sizes[1] = SCRATCH_MEM_VEC_SIZE / 4;
+  scratch_sizes[2] = SCRATCH_MEM_VEC_SIZE / 2;
+#else
+  scratch_mem[0] = scratch_mem_stack;
+  scratch_sizes[0] = SCRATCH_MEM_SIZE;
+#endif
 }
 
 }  // namespace micro
