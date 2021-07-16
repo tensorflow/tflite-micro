@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ namespace tflite {
 namespace ops {
 namespace micro {
 
-#ifdef __Xxy
+#if (defined(__Xxy)) || (defined(__Xvdsp))
 static void get_arc_two_buffer_sizes(int request_size_1, int request_size_2,
                                      int* grant_size_1, int* grant_size_2) {
   int maxrequest = 0;
@@ -66,202 +66,215 @@ static void get_arc_two_buffer_sizes(int request_size_1, int request_size_2,
 }
 
 static TfLiteStatus get_arc_scratch_buffer_for_io_tensors(
-    TfLiteContext* context, mli_tensor* in, mli_tensor* out) {
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* out) {
   int request_size_in = 0;
   int request_size_out = 0;
   int grant_size_in = 0;
   int grant_size_out = 0;
-  if (!inside_arc_ccm(in->data)) {
+  if (!inside_arc_ccm(in->Data<int8_t>())) {
     // In case the input tensor contains multiple batches, it has rank 4
     // because the mli kernel cannot operate on batches, we need to have the
     // size of a single HWC tensor. that is why the start_rank is 1 in case of
     // input rank 4
-    int start_rank = in->rank - 3;
-    request_size_in = mli_hlp_count_elem_num(in, start_rank) *
-                      mli_hlp_tensor_element_size(in);
+    int start_rank = *in->Rank() - 3;
+    request_size_in = mli_hlp_count_elem_num(in->MliTensor(), start_rank) *
+                      mli_hlp_tensor_element_size(in->MliTensor());
   }
-  if (!inside_arc_ccm(out->data)) {
+  if (!inside_arc_ccm(out->Data<int8_t>())) {
     // In case the input tensor contains multiple batches, it has rank 4
     // because the mli kernel cannot operate on batches, we need to have the
     // size of a single batch. that is why the start_rank is 1 in case of input
     // rank 4
-    int start_rank = out->rank - 3;
-    request_size_out = mli_hlp_count_elem_num(out, start_rank) *
-                       mli_hlp_tensor_element_size(out);
+    int start_rank = *out->Rank() - 3;
+    request_size_out = mli_hlp_count_elem_num(out->MliTensor(), start_rank) *
+                       mli_hlp_tensor_element_size(out->MliTensor());
   }
 
   get_arc_two_buffer_sizes(request_size_in, request_size_out, &grant_size_in,
                            &grant_size_out);
-
-  if (!inside_arc_ccm(in->data)) {
-    in->data = get_arc_scratch_buffer(grant_size_in);
-    in->capacity = grant_size_in;
-    if (in->data == NULL) return kTfLiteError;
+  if (!inside_arc_ccm(in->Data<int8_t>())) {
+    in->SetData<int8_t>(
+        static_cast<int8_t*>(get_arc_scratch_buffer(grant_size_in)),
+        grant_size_in);
+    if (in->Data<int8_t>() == NULL) return kTfLiteError;
   }
-  if (!inside_arc_ccm(out->data)) {
-    out->data = get_arc_scratch_buffer(grant_size_out);
-    out->capacity = grant_size_out;
-    if (out->data == NULL) return kTfLiteError;
+
+  if (!inside_arc_ccm(out->Data<int8_t>())) {
+    out->SetData<int8_t>(
+        static_cast<int8_t*>(get_arc_scratch_buffer(grant_size_out)),
+        grant_size_out);
+    if (out->Data<int8_t>() == NULL) return kTfLiteError;
   }
 
   return kTfLiteOk;
 }
 #endif
 
-TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(TfLiteContext* context,
-                                                     mli_tensor* in,
-                                                     mli_tensor* weights,
-                                                     mli_tensor* bias,
-                                                     mli_tensor* out) {
+TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* weights,
+    MliTensorInterface* bias, MliTensorInterface* out) {
   TfLiteStatus ret_val = kTfLiteOk;
-#ifdef __Xxy
+#if (defined(__Xxy)) || (defined(__Xvdsp))
   init_arc_scratch_buffers();
-  if (!inside_arc_ccm(weights->data)) {
-    int weights_size = mli_hlp_count_elem_num(weights, 0) *
-                       mli_hlp_tensor_element_size(weights);
-    int max_weights_size = 0;
-    weights->data = get_arc_scratch_buffer(weights_size);
-    weights->capacity = weights_size;
-    if (weights->data == NULL) {
-      get_arc_scratch_buffer_max_size(&max_weights_size);
-      weights->data = get_arc_scratch_buffer(max_weights_size);
-      weights->capacity = max_weights_size;
-      if (max_weights_size == 0) ret_val = kTfLiteError;
-    }
-    if (weights->data == NULL) ret_val = kTfLiteError;
+
+  if (!inside_arc_ccm(bias->Data<int32_t>())) {
+    uint32_t bias_mem_requirements =
+        mli_hlp_count_elem_num(bias->MliTensor(), 0) *
+        mli_hlp_tensor_element_size(bias->MliTensor());
+    bias->SetData<int32_t>(
+        static_cast<int32_t*>(get_arc_scratch_buffer(bias_mem_requirements)),
+        bias_mem_requirements);
   }
 
-  if (!inside_arc_ccm(bias->data)) {
-    uint32_t bias_mem_requirements =
-        mli_hlp_count_elem_num(bias, 0) * mli_hlp_tensor_element_size(bias);
-    bias->data = get_arc_scratch_buffer(bias_mem_requirements);
-    bias->capacity = bias_mem_requirements;
+  if (bias->Data<int32_t>() == NULL) {
+    int max_bias_size = 0;
+    get_arc_scratch_buffer_max_size(&max_bias_size);
+    bias->SetData<int32_t>(
+        static_cast<int32_t*>(get_arc_scratch_buffer(max_bias_size)),
+        max_bias_size);
+    if (max_bias_size == 0) ret_val = kTfLiteError;
+  }
+  if (bias->Data<int32_t>() == NULL) ret_val = kTfLiteError;
+
+  if (!inside_arc_ccm(weights->Data<int8_t>())) {
+    int weights_size = mli_hlp_count_elem_num(weights->MliTensor(), 0) *
+                       mli_hlp_tensor_element_size(weights->MliTensor());
+    int max_weights_size = 0;
+    weights->SetData<int8_t>(
+        static_cast<int8_t*>(get_arc_scratch_buffer(weights_size)),
+        weights_size);
+    if (weights->Data<int8_t>() == NULL) {
+      get_arc_scratch_buffer_max_size(&max_weights_size);
+      weights->SetData<int8_t>(
+          static_cast<int8_t*>(get_arc_scratch_buffer(max_weights_size)),
+          max_weights_size);
+      if (max_weights_size == 0) ret_val = kTfLiteError;
+    }
+    if (weights->Data<int8_t>() == NULL) ret_val = kTfLiteError;
   }
 
   if (ret_val == kTfLiteOk) {
     ret_val = get_arc_scratch_buffer_for_io_tensors(context, in, out);
   }
-
-  if (bias->data == NULL) {
-    int max_bias_size = 0;
-    get_arc_scratch_buffer_max_size(&max_bias_size);
-    bias->data = get_arc_scratch_buffer(max_bias_size);
-    bias->capacity = max_bias_size;
-    if (max_bias_size == 0) ret_val = kTfLiteError;
-  }
-  if (bias->data == NULL) ret_val = kTfLiteError;
-
 #endif
   return ret_val;
 }
 
 TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
-    TfLiteContext* context, mli_tensor* in, mli_tensor* weights,
-    mli_tensor* bias, mli_tensor* out) {
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* weights,
+    MliTensorInterface* bias, MliTensorInterface* out) {
   TfLiteStatus ret_val = kTfLiteOk;
-#ifdef __Xxy
+
+#if (defined(__Xxy)) || (defined(__Xvdsp))
   init_arc_scratch_buffers();
+
+  if (!inside_arc_ccm(bias->Data<int32_t>())) {
+    int bias_mem_requirements = mli_hlp_count_elem_num(bias->MliTensor(), 0) *
+                                mli_hlp_tensor_element_size(bias->MliTensor());
+    bias->SetData<int32_t>(
+        static_cast<int32_t*>(get_arc_scratch_buffer(bias_mem_requirements)),
+        bias_mem_requirements);
+  }
+
+  if (bias->Data<int32_t>() == NULL) {
+    int max_bias_size = 0;
+    get_arc_scratch_buffer_max_size(&max_bias_size);
+    bias->SetData<int32_t>(
+        static_cast<int32_t*>(get_arc_scratch_buffer(max_bias_size)),
+        max_bias_size);
+    if (max_bias_size == 0) ret_val = kTfLiteError;
+  }
+  if (bias->Data<int32_t>() == NULL) ret_val = kTfLiteError;
+
+  if (!inside_arc_ccm(weights->Data<int8_t>())) {
+    int weights_size = mli_hlp_count_elem_num(weights->MliTensor(), 0) *
+                       mli_hlp_tensor_element_size(weights->MliTensor());
+    int max_weights_size = 0;
+    weights->SetData<int8_t>(
+        static_cast<int8_t*>(get_arc_scratch_buffer(weights_size)),
+        weights_size);
+    if (weights->Data<int8_t>() == NULL) {
+      get_arc_scratch_buffer_max_size(&max_weights_size);
+      weights->SetData<int8_t>(
+          static_cast<int8_t*>(get_arc_scratch_buffer(max_weights_size)),
+          max_weights_size);
+      if (max_weights_size == 0) ret_val = kTfLiteError;
+    }
+    if (weights->Data<int8_t>() == NULL) ret_val = kTfLiteError;
+  }
+
   /* strategy for FC kernels:
      first allocate input, because this cannot be sliced. (in case of batch
-     processing, only a single input needs to be allocated) then weights & bias
-     because if fully loaded, they can be reused over batches. then output.
-     The number of output channels (for weights slicing) depends on size of
-     output and size of weights&bias */
+     processing, only a single input needs to be allocated) then weights &
+     bias because if fully loaded, they can be reused over batches. then
+     output. The number of output channels (for weights slicing) depends on
+     size of output and size of weights&bias */
 
-  if (!inside_arc_ccm(in->data)) {
+  if (!inside_arc_ccm(in->Data<int8_t>())) {
     /* In case the input tensor contains multiple batches,
        only count the size if the inner most dimension */
-    int size_in = mli_hlp_count_elem_num(in, in->rank - 1) *
-                  mli_hlp_tensor_element_size(in);
-    in->data = get_arc_scratch_buffer(size_in);
-    in->capacity = size_in;
-    if (in->data == NULL) {
-      in->capacity = 0;
+    int size_in = mli_hlp_count_elem_num(in->MliTensor(), *in->Rank() - 1) *
+                  mli_hlp_tensor_element_size(in->MliTensor());
+    in->SetData<int8_t>(static_cast<int8_t*>(get_arc_scratch_buffer(size_in)),
+                        size_in);
+    if (in->Data<int8_t>() == NULL) {
+      in->SetData<int8_t>(nullptr, 0);
       ret_val = kTfLiteError;
     }
   }
-
-  if (!inside_arc_ccm(weights->data)) {
-    int weights_size = mli_hlp_count_elem_num(weights, 0) *
-                       mli_hlp_tensor_element_size(weights);
-    int max_weights_size = 0;
-    weights->data = get_arc_scratch_buffer(weights_size);
-    weights->capacity = weights_size;
-    if (weights->data == NULL) {
-      get_arc_scratch_buffer_max_size(&max_weights_size);
-      weights->data = get_arc_scratch_buffer(max_weights_size);
-      weights->capacity = max_weights_size;
-      if (max_weights_size == 0) ret_val = kTfLiteError;
-    }
-    if (weights->data == NULL) ret_val = kTfLiteError;
-  }
-
-  if (!inside_arc_ccm(bias->data)) {
-    int bias_mem_requirements =
-        mli_hlp_count_elem_num(bias, 0) * mli_hlp_tensor_element_size(bias);
-    bias->data = get_arc_scratch_buffer(bias_mem_requirements);
-    bias->capacity = bias_mem_requirements;
-  }
-
-  if (!inside_arc_ccm(out->data)) {
+  if (!inside_arc_ccm(out->Data<int8_t>())) {
     /* In case the input tensor contains multiple batches,
        only count the size if the inner most dimension */
-    int out_size = mli_hlp_count_elem_num(out, out->rank - 1) *
-                   mli_hlp_tensor_element_size(out);
+    int out_size = mli_hlp_count_elem_num(out->MliTensor(), *out->Rank() - 1) *
+                   mli_hlp_tensor_element_size(out->MliTensor());
     int max_out_size = 0;
-    out->data = get_arc_scratch_buffer(out_size);
-    out->capacity = out_size;
-    if (out->data == NULL) {
+    out->SetData<int8_t>(static_cast<int8_t*>(get_arc_scratch_buffer(out_size)),
+                         out_size);
+    if (out->Data<int8_t>() == NULL) {
       get_arc_scratch_buffer_max_size(&max_out_size);
-      out->data = get_arc_scratch_buffer(max_out_size);
-      out->capacity = max_out_size;
+      out->SetData<int8_t>(
+          static_cast<int8_t*>(get_arc_scratch_buffer(max_out_size)),
+          max_out_size);
       if (max_out_size == 0) ret_val = kTfLiteError;
     }
-    if (out->data == NULL) ret_val = kTfLiteError;
+    if (out->Data<int8_t>() == NULL) ret_val = kTfLiteError;
   }
-
-  if (bias->data == NULL) {
-    int max_bias_size = 0;
-    get_arc_scratch_buffer_max_size(&max_bias_size);
-    bias->data = get_arc_scratch_buffer(max_bias_size);
-    bias->capacity = max_bias_size;
-    if (max_bias_size == 0) ret_val = kTfLiteError;
-  }
-  if (bias->data == NULL) ret_val = kTfLiteError;
-
 #endif
   return ret_val;
 }
 
 TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
-    const mli_tensor* in, const mli_tensor* out, const int kernel_height,
-    const int stride_height, const int padding_top, const int padding_bot,
-    int* in_slice_height, int* out_slice_height) {
+    const MliTensorInterface* in, const MliTensorInterface* out,
+    const int kernel_height, const int stride_height, const int padding_top,
+    const int padding_bot, int* in_slice_height, int* out_slice_height) {
   const int height_dimension = 1;
-  const int in_height = in->shape[height_dimension];
-  const int out_height = out->shape[height_dimension];
-  const int line_size_in = mli_hlp_count_elem_num(in, height_dimension + 1) *
-                           mli_hlp_tensor_element_size(in);
-  const int line_size_out = mli_hlp_count_elem_num(out, height_dimension + 1) *
-                            mli_hlp_tensor_element_size(out);
+  const int in_height = in->Shape()[height_dimension];
+  const int out_height = out->Shape()[height_dimension];
+  const int line_size_in =
+      mli_hlp_count_elem_num(in->MliTensor(), height_dimension + 1) *
+      mli_hlp_tensor_element_size(in->MliTensor());
+  const int line_size_out =
+      mli_hlp_count_elem_num(out->MliTensor(), height_dimension + 1) *
+      mli_hlp_tensor_element_size(out->MliTensor());
   int max_lines_in = 0;
   int max_lines_out = 0;
   int max_out_lines_for_input = 0;
-  bool fit = (static_cast<int>(in->capacity) >= in_height * line_size_in) &&
-             (static_cast<int>(out->capacity) >= out_height * line_size_out);
+  bool fit =
+      (static_cast<int>(*in->DataCapacity()) >= in_height * line_size_in) &&
+      (static_cast<int>(*out->DataCapacity()) >= out_height * line_size_out);
   if (fit) {
-    // in case both tensors completely fit in the capacity, there is no need for
-    // slicing. As padding can affect effective input region, we also derive it
-    // from output height, and rely on a clipping logic which intend to reduce
-    // last smaller slice. I.e the only slice is a kind of
-    // "smaller last slice that need to be corrected"
+    // in case both tensors completely fit in the capacity, there is no need
+    // for slicing. As padding can affect effective input region, we also
+    // derive it from output height, and rely on a clipping logic which intend
+    // to reduce last smaller slice. I.e the only slice is a kind of "smaller
+    // last slice that need to be corrected"
     *in_slice_height = std::max(in_height, out_height * stride_height);
     *out_slice_height = out_height;
   } else {
     // First compute how many lines fit into the input tensor, and compute how
     // many output lines can be computed with that.
-    max_lines_in =
-        std::min(in_height, static_cast<int>(in->capacity) / line_size_in);
+    max_lines_in = std::min(
+        in_height, static_cast<int>(*in->DataCapacity()) / line_size_in);
     if (max_lines_in >= in_height) {
       max_out_lines_for_input = out_height;
     } else if (2 * max_lines_in >= in_height) {
@@ -276,8 +289,8 @@ TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
           (max_lines_in - kernel_height + 1) / stride_height;
     }
     // Then compute how many output lines fit into the output tensor.
-    max_lines_out =
-        std::min(out_height, static_cast<int>(out->capacity) / line_size_out);
+    max_lines_out = std::min(
+        out_height, static_cast<int>(*out->DataCapacity()) / line_size_out);
     // the smallest of the two determines the slice height for the output, and
     // the derived sliceheight for the input.
     *out_slice_height = std::min(max_out_lines_for_input, max_lines_out);
@@ -292,29 +305,32 @@ TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
 }
 
 TfLiteStatus arc_scratch_buffer_calc_slice_size_weights(
-    const mli_tensor* weights, const mli_tensor* bias,
+    const MliTensorInterface* weights, const MliTensorInterface* bias,
     const int weight_out_ch_dimension, int* slice_channels) {
-  const int channels = weights->shape[weight_out_ch_dimension];
-  const int ch_size_w = (mli_hlp_count_elem_num(weights, 0) / channels) *
-                        mli_hlp_tensor_element_size(weights);
-  const int ch_size_b = (mli_hlp_count_elem_num(bias, 0) / channels) *
-                        mli_hlp_tensor_element_size(bias);
+  const int channels = weights->Shape()[weight_out_ch_dimension];
+  const int ch_size_w =
+      (mli_hlp_count_elem_num(weights->MliTensor(), 0) / channels) *
+      mli_hlp_tensor_element_size(weights->MliTensor());
+  const int ch_size_b =
+      (mli_hlp_count_elem_num(bias->MliTensor(), 0) / channels) *
+      mli_hlp_tensor_element_size(bias->MliTensor());
   int max_ch_weigths = 0;
   int max_ch_bias = 0;
 
-  bool fit = (static_cast<int>(weights->capacity) >= channels * ch_size_w) &&
-             (static_cast<int>(bias->capacity) >= channels * ch_size_b);
+  bool fit =
+      (static_cast<int>(*weights->DataCapacity()) >= channels * ch_size_w) &&
+      (static_cast<int>(*bias->DataCapacity()) >= channels * ch_size_b);
   if (fit) {
-    // in case both tensors completely fit in the capacity, there is no need for
-    // slicing
+    // in case both tensors completely fit in the capacity, there is no need
+    // for slicing
     *slice_channels = channels;
   } else {
     // First compute how many channels fit into the weights tensor
-    max_ch_weigths =
-        std::min(channels, static_cast<int>(weights->capacity) / ch_size_w);
+    max_ch_weigths = std::min(
+        channels, static_cast<int>(*weights->DataCapacity()) / ch_size_w);
     // Ten compute how many channels fit into the bias tensor.
     max_ch_bias =
-        std::min(channels, static_cast<int>(bias->capacity) / ch_size_b);
+        std::min(channels, static_cast<int>(*bias->DataCapacity()) / ch_size_b);
     // the smallest of the two determines the slice size
     *slice_channels = std::min(max_ch_weigths, max_ch_bias);
   }
@@ -326,10 +342,9 @@ TfLiteStatus arc_scratch_buffer_calc_slice_size_weights(
   }
 }
 
-TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(TfLiteContext* context,
-                                                        mli_tensor* in,
-                                                        mli_tensor* out) {
-#ifdef __Xxy
+TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(
+    TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* out) {
+#if (defined(__Xxy)) || (defined(__Xvdsp))
   init_arc_scratch_buffers();
   return get_arc_scratch_buffer_for_io_tensors(context, in, out);
 #else
