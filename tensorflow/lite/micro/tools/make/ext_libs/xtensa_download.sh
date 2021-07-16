@@ -51,9 +51,9 @@ if [[ ${2} == "hifi4" ]]; then
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
   LIBRARY_MD5="8b934f61ffe0a966644849602810fb1b"
 elif [[ ${2} == "hifi5" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_02_22.zip"
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_06_30.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
-  LIBRARY_MD5="08cd4d446b3e0b7d180f9ef0dec9ad0a"
+  LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1
@@ -78,10 +78,6 @@ else
 
   if [[ ${2} == "hifi4" ]]; then
     apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ ../../ext_libs/xtensa_patch.patch
-  fi
-
-  if [[ ${2} == "hifi5" ]]; then
-    apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi5/ ../../ext_libs/xtensa_depthwise_patch_hifi5.patch
   fi
 
 fi
