@@ -59,6 +59,13 @@ The following resources may also be useful:
 
 1.  SIG Micro [gitter chat room](https://gitter.im/tensorflow/sig-micro).
 
+1. For questions that are not specific to inference with TFLM (for example
+   model conversion and quantization) please use the following resources:
+   * Send an email to the [TfLite Mailing List](https://groups.google.com/a/tensorflow.org/g/tflite)
+   * Create a [TensorFlow Lite Converter Issue](https://github.com/tensorflow/tensorflow/issues/new?assignees=&labels=TFLiteConverter&template=60-tflite-converter-issue.md)
+   * Create an issue in the [model optimization toolkit](https://github.com/tensorflow/model-optimization) GitHub repository
+
+
 # Additional Documentation
 
  * [Continuous Integration](docs/continuous_integration.md)
