@@ -529,6 +529,28 @@ TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDims) {
       expected_output_data_quant, output_scale, output_zero_point, &params);
 }
 
+TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
+  int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
+  int16_t output_data_quant[tflite::testing::kOutputElements4D];
+  int16_t input_data_quant[tflite::testing::kInputElements4D];
+
+  int kOutputShape4D[] = {2, 2, 2};
+  TfLiteReducerParams params = {
+      false  // keep_dims
+  };
+  float input_scale = 0.5f;
+  int input_zero_point = 0;
+  float output_scale = 0.7f;
+  int output_zero_point = 12;
+
+  tflite::testing::TestMeanOpQuantized<int16_t>(
+      tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
+      input_data_quant, input_scale, input_zero_point,
+      tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
+      kOutputShape4D, tflite::testing::kGoldenData4D, output_data_quant,
+      expected_output_data_quant, output_scale, output_zero_point, &params);
+}
+
 TF_LITE_MICRO_TEST(MeanUInt84DWithoutKeepDims) {
   uint8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   uint8_t output_data_quant[tflite::testing::kOutputElements4D];
