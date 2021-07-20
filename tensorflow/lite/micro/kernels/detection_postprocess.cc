@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <numeric>
 
+#define FLATBUFFERS_LOCALE_INDEPENDENT 0
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -24,6 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/xcore/xcore_custom_options.h"
+#include "tensorflow/lite/micro/kernels/xcore/xcore_op_utils.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -116,33 +119,35 @@ struct OpData {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  OpData* op_data = nullptr;
+  auto* op_data =
+      ops::micro::xcore::construct_persistent_object<OpData>(context);
+  auto parser = ops::micro::xcore::CustomOptionParser(buffer, length);
 
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-  const flexbuffers::Map& m = flexbuffers::GetRoot(buffer_t, length).AsMap();
-  op_data = reinterpret_cast<OpData*>(
-      context->AllocatePersistentBuffer(context, sizeof(OpData)));
-
-  op_data->max_detections = m["max_detections"].AsInt32();
-  op_data->max_classes_per_detection = m["max_classes_per_detection"].AsInt32();
-  if (m["detections_per_class"].IsNull())
+  op_data->max_detections =
+      parser.parseNamedCustomOption("max_detections").AsInt32();
+  op_data->max_classes_per_detection =
+      parser.parseNamedCustomOption("max_classes_per_detection").AsInt32();
+  auto detections_per_class =
+      parser.parseNamedCustomOption("detections_per_class");
+  if (detections_per_class.IsNull())
     op_data->detections_per_class = kNumDetectionsPerClass;
   else
-    op_data->detections_per_class = m["detections_per_class"].AsInt32();
-  if (m["use_regular_nms"].IsNull())
+    op_data->detections_per_class = detections_per_class.AsInt32();
+  auto use_regular_nms = parser.parseNamedCustomOption("use_regular_nms");
+  if (use_regular_nms.IsNull())
     op_data->use_regular_non_max_suppression = false;
   else
-    op_data->use_regular_non_max_suppression = m["use_regular_nms"].AsBool();
+    op_data->use_regular_non_max_suppression = use_regular_nms.AsBool();
 
   op_data->non_max_suppression_score_threshold =
-      m["nms_score_threshold"].AsFloat();
-  op_data->intersection_over_union_threshold = m["nms_iou_threshold"].AsFloat();
-  op_data->num_classes = m["num_classes"].AsInt32();
-  op_data->scale_values.y = m["y_scale"].AsFloat();
-  op_data->scale_values.x = m["x_scale"].AsFloat();
-  op_data->scale_values.h = m["h_scale"].AsFloat();
-  op_data->scale_values.w = m["w_scale"].AsFloat();
+      parser.parseNamedCustomOption("nms_score_threshold").AsFloat();
+  op_data->intersection_over_union_threshold =
+      parser.parseNamedCustomOption("nms_iou_threshold").AsFloat();
+  op_data->num_classes = parser.parseNamedCustomOption("num_classes").AsInt32();
+  op_data->scale_values.y = parser.parseNamedCustomOption("y_scale").AsFloat();
+  op_data->scale_values.x = parser.parseNamedCustomOption("x_scale").AsFloat();
+  op_data->scale_values.h = parser.parseNamedCustomOption("h_scale").AsFloat();
+  op_data->scale_values.w = parser.parseNamedCustomOption("w_scale").AsFloat();
 
   return op_data;
 }

@@ -59,3 +59,6 @@ ETHOSU_MD5 := "f24119b34a9a6448b608f8ccea335c8b"
 
 HIMAX_WE1_SDK_URL ="https://www.himax.com.tw/we-i/himax_we1_sdk_v04.zip"
 HIMAX_WE1_SDK_MD5 ="40b3ccb3c2e41210fe5c970d61e7e7d3"
+
+XTIME_URL := "https://www.xmos.com/download/Tools-15---Linux-64%2815.0.0_rc1%29.tgz?key=132D-9DC9-E913-0229-ECE6-D5AB-F511-2B19"
+XTIME_MD5 := "8f6543c8ac4af7583edf75e62df322a2"
