@@ -475,13 +475,14 @@ endef
 # test and non-test binaries.
 
 # Files that end with _test are added as test targets (i.e. can be executed with
-# make test_<target>. ALl others can be executed with make run_<target>
+# make test_<target>. All others can be executed with make run_<target>
 #
 # Arguments are:
 # 1 - Name of target.
 # 2 - C/C++ source files
 # 3 - C/C++ header files
-# 4 - if "exclude", then the non-test target will be excluded from
+# 4 - Model sources and model test inputs in .tflite or .bmp format.
+# 5 - if "exclude", then the non-test target will be excluded from
 #     MICROLITE_BUILD_TARGETS. This exception is needed because not all the
 #     microlite_test targets (e.g. the examples) are buildable on all platforms.
 # Calling eval on the output will create the targets that you need.
@@ -505,6 +506,8 @@ $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
 $(1): $$($(1)_BINARY)
 $(1)_bin: $$($(1)_BINARY).bin
 
+GENERATOR_INPUTS += $(4)
+
 ifneq (,$(findstring _test,$(1)))
   MICROLITE_TEST_TARGETS += test_$(1)
   MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
@@ -513,7 +516,7 @@ test_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 
 else
-  ifeq ($(findstring exclude,$(4)),)
+  ifeq ($(findstring exclude,$(5)),)
     MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
   endif
 
