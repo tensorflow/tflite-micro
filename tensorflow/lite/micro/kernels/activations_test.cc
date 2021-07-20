@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ void TestReluFloat(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU();
+  const TfLiteRegistration registration = Register_RELU();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -77,7 +77,7 @@ void TestRelu6Float(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU6();
+  const TfLiteRegistration registration = Register_RELU6();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -115,7 +115,7 @@ void TestReluUint8(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU();
+  const TfLiteRegistration registration = Register_RELU();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -156,7 +156,7 @@ void TestRelu6Uint8(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU6();
+  const TfLiteRegistration registration = Register_RELU6();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -196,7 +196,7 @@ void TestReluInt8(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU();
+  const TfLiteRegistration registration = Register_RELU();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -236,7 +236,7 @@ void TestRelu6Int8(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = ops::micro::Register_RELU6();
+  const TfLiteRegistration registration = Register_RELU6();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
