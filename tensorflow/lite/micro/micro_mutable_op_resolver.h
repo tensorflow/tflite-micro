@@ -321,7 +321,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddLogicalAnd() {
     return AddBuiltin(BuiltinOperator_LOGICAL_AND,
-                      tflite::ops::micro::Register_LOGICAL_AND(),
+                      tflite::Register_LOGICAL_AND(),
                       ParseLogicalAnd);
   }
 
@@ -333,7 +333,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddLogicalOr() {
     return AddBuiltin(BuiltinOperator_LOGICAL_OR,
-                      tflite::ops::micro::Register_LOGICAL_OR(),
+                      tflite::Register_LOGICAL_OR(),
                       ParseLogicalOr);
   }
 
