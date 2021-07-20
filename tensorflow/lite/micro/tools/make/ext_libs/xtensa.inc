@@ -8,8 +8,7 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
-ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
-
+ifeq ($(TARGET_ARCH), "hifi5")
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
@@ -57,9 +56,7 @@ ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "hifi5"))
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
 
-endif
-
-ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "fusion_f1 hifi4"))
+else ifeq ($(TARGET_ARCH), "hifi4")
 
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi4)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -97,6 +94,10 @@ ifeq ($(TARGET_ARCH), $(findstring $(TARGET_ARCH), "fusion_f1 hifi4"))
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi4/include/
 
+else ifeq ($(TARGET_ARCH), "vision_p6")
+  $(info We do not have XaNNlib for TARGET_ARCH=vision_p6)
+else
+  $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
 endif
 
 # tensorflow/tensorflow#49117 enabled support for all datatypes for the
