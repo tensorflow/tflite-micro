@@ -142,7 +142,6 @@ cc_binary(
     ],
     copts = [
         "-Werror",
-        "-Wdouble-promotion",
         "-Wsign-compare",
     ],
     deps = [

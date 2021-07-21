@@ -266,6 +266,7 @@ MICROLITE_BENCHMARK_SRCS := \
 $(wildcard tensorflow/lite/micro/benchmarks/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
+tensorflow/lite/micro/flatbuffer_utils_test.cc \
 tensorflow/lite/micro/memory_arena_threshold_test.cc \
 tensorflow/lite/micro/memory_helpers_test.cc \
 tensorflow/lite/micro/micro_allocator_test.cc \
@@ -609,10 +610,10 @@ THIRD_PARTY_CC_HDRS += $(addprefix third_party/,$(THIRD_PARTY_CC_HDRS_BASE))
 
 # Specialize for debug_log. micro_time etc.
 MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),$(TARGET))
-MICROLITE_CC_SRCS += $(MICROLITE_CC_KERNEL_SRCS)
 
 ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
+	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
@@ -833,7 +834,7 @@ generate_arduino_zip: $(ARDUINO_PROJECT_TARGETS) $(ARDUINO_LIBRARY_ZIPS)
 	python tensorflow/lite/micro/tools/make/merge_arduino_zips.py $(PRJDIR)/tensorflow_lite.zip $(ARDUINO_LIBRARY_ZIPS)
 
 list_library_sources:
-	@echo $(MICROLITE_CC_SRCS)
+	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
 
 list_library_headers:
 	@echo $(MICROLITE_CC_HDRS)

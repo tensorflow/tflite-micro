@@ -211,6 +211,8 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
     }
   }
 
+  uint32_t operators_size = NumSubgraphOperators(subgraph);
+
   for (size_t i = 0; i < subgraph->inputs()->size(); ++i) {
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
@@ -221,11 +223,11 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
   for (size_t i = 0; i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
-    current->last_used = subgraph->operators()->size() - 1;
+    current->last_used = operators_size - 1;
   }
 
   // Figure out when the first and last use of each tensor is.
-  for (int i = (subgraph->operators()->size() - 1); i >= 0; --i) {
+  for (int i = (operators_size - 1); i >= 0; --i) {
     const auto* op = subgraph->operators()->Get(i);
     for (size_t n = 0; n < op->inputs()->size(); ++n) {
       const int tensor_index = op->inputs()->Get(n);
@@ -368,18 +370,18 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
     // Big-endian architecture can not use the same memory layout as
     // flatbuffers::Vector<kFlatBufferVectorType>. Allocate from the tail and
     // copy values from the flatbuffer into the newly allocated chunk.
-    kTfLiteArrayType* array =
-        reinterpret_cast<kTfLiteArrayType*>(allocator->AllocateFromTail(
-            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->Length()),
+    kTfLiteArrayType* array = reinterpret_cast<kTfLiteArrayType*>(
+        allocator->SimpleMemoryAllocator::AllocateFromTail(
+            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
             alignof(kTfLiteArrayType)));
     if (array == nullptr) {
       TF_LITE_REPORT_ERROR(
           error_reporter,
           "Failed to allocate %d bytes of memory to copy an array.",
-          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->Length()));
+          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()));
       return kTfLiteError;
     }
-    array->size = flatbuffer_array->Length();
+    array->size = flatbuffer_array->size();
     for (int i = 0; i < array->size; ++i) {
       array->data[i] = flatbuffer_array->Get(i);
     }
@@ -742,10 +744,12 @@ TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
 
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
+
     // Initialize NodeAndRegistrations for the subgraph.
     NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(
         memory_allocator_->AllocateFromTail(
-            sizeof(NodeAndRegistration) * subgraph->operators()->size(),
+            sizeof(NodeAndRegistration) * operators_size,
             alignof(NodeAndRegistration)));
     if (output == nullptr) {
       TF_LITE_REPORT_ERROR(

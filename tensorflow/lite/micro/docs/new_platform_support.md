@@ -104,13 +104,13 @@ As mentioned above, the one function you will need to implement for a completely
 new platform is debug logging. If your device is just a variation on an existing
 platform you may be able to reuse code that's already been written. To
 understand what's available, begin with the default reference implementation at
-[tensorflow/lite/micro/debug_log.cc](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/debug_log.cc),
+[tensorflow/lite/micro/debug_log.cc](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.cc),
 which uses fprintf and stderr. If your platform has this level of support for
 the C standard library in its toolchain, then you can just reuse this.
 Otherwise, you'll need to do some research into how your platform and device can
 communicate logging statements to the outside world. As another example, take a
 look at
-[the Mbed version of `DebugLog()`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/mbed/debug_log.cc),
+[the Mbed version of `DebugLog()`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/mbed/debug_log.cc),
 which creates a UART object and uses it to output strings to the host's console
 if it's connected.
 
@@ -189,13 +189,13 @@ specialized implementation, you can create a folder in the same directory as the
 header and reference source, name it after your platform, and put your
 implementation in a `.cc` file inside that folder. We've already seen one
 example of this, where the Mbed and Bluepill versions of `DebugLog()` are inside
-[mbed](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/mbed)
+[mbed](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/mbed)
 and
-[bluepill](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/bluepill)
+[bluepill](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/bluepill)
 folders, children of the
-[same directory](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite//micro)
+[same directory](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite//micro)
 where the stdio-based
-[`debug_log.cc`](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro/debug_log.cc)
+[`debug_log.cc`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.cc)
 reference implementation is found.
 
 The advantage of this approach is that we can automatically pick specialized
@@ -281,7 +281,7 @@ kernel implementations, but with some specific conventions:
 -   No platform-specific macros or #ifdef’s should be used in any portable code.
 
 The implementation of these rules is handled inside the Makefile, with a
-[`specialize` function](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/tools/make/helper_functions.inc#L42)
+[`specialize` function](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/tools/make/helper_functions.inc#L42)
 that takes a list of reference source file paths as an input, and returns the
 equivalent list with specialized versions of those files swapped in if they
 exist.
@@ -298,9 +298,9 @@ bottlenecks, and then add specialized implementations in their own folders.
 These don't need to be platform specific, they can also be broken out by which
 library they rely on for example. [Here's where we do that for the CMSIS
 implementation of integer fast-fourier
-transforms](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.cc).
+transforms](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.cc).
 This more complex case shows that you can also add helper source files alongside
 the main implementation, as long as you
-[mention them in the platform-specific makefile](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/micro/examples/micro_speech/CMSIS/Makefile.inc).
+[mention them in the platform-specific makefile](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/micro_speech/CMSIS/Makefile.inc).
 You can also do things like update the list of libraries that need to be linked
 in, or add include paths to required headers.

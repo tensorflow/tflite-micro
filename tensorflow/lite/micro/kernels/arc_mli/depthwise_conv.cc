@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,6 +43,14 @@ constexpr int kOutputTensor = 0;
 // https://www.tensorflow.org/lite/performance/quantization_spec
 constexpr int kDepthwiseConvQuantizedDimension = 3;
 
+#ifdef MLI_2_0
+typedef mli_status (*depthwise_func_ptr)(const mli_tensor* /*in*/,
+                                         const mli_tensor* /*weights*/,
+                                         const mli_tensor* /*bias*/,
+                                         const mli_conv2d_cfg* /*cfg*/,
+                                         mli_tensor* /*out*/);
+#endif
+
 struct OpData {
   TfLitePaddingValues padding;
 
@@ -59,6 +67,9 @@ struct OpData {
   // Per channel output multiplier and shift.
   int32_t* per_channel_output_multiplier;
   int32_t* per_channel_output_shift;
+#ifdef MLI_2_0
+  int8_t* per_channel_scale_frac_bits;
+#endif
 
   // The range of the fused activation layer. For example for kNone and
   // uint8_t these would be 0 and 255.
@@ -69,11 +80,17 @@ struct OpData {
   bool is_mli_applicable;
 
   // Tensors in MLI format.
-  mli_tensor* mli_in;
-  mli_tensor* mli_weights;
-  mli_tensor* mli_bias;
-  mli_tensor* mli_out;
+  mutable ops::micro::MliTensorInterface mli_in;
+  mutable ops::micro::MliTensorInterface mli_weights;
+  mutable ops::micro::MliTensorInterface mli_bias;
+  mutable ops::micro::MliTensorInterface mli_out;
   mli_conv2d_cfg* cfg;
+
+#ifdef MLI_2_0
+  // Pointer to the required depthwise function. For “channel multiplier”
+  // functionality group convolution is used.
+  depthwise_func_ptr p_mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32;
+#endif
 };
 
 bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
@@ -81,20 +98,28 @@ bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
                      const TfLiteDepthwiseConvParams* params) {
   const auto* affine_quantization =
       reinterpret_cast<TfLiteAffineQuantization*>(filter->quantization.params);
+
+#ifndef MLI_2_0
   const int in_ch = SizeOfDimension(input, 3);
   const int filters_num = SizeOfDimension(filter, 3);
+#endif
 
   // MLI optimized version only supports int8_t datatype, dilation factor of 1
-  // and per-axis quantization of weights (no broadcasting/per-tensor) (in_ch ==
-  // filters_num) || (in_ch == 1)) is a forbidding of channel multiplier logic
-  // for multichannel input.
+  // and per-axis quantization of weights (no broadcasting/per-tensor). For
+  // MLI 1.1 (in_ch == filters_num) || (in_ch == 1)) is used to prevent usage of
+  // channel multiplier logic for multichannel input.
+
   bool ret_val = (filter->type == kTfLiteInt8) &&
                  (input->type == kTfLiteInt8) && (bias->type == kTfLiteInt32) &&
                  (params->dilation_width_factor == 1) &&
                  (params->dilation_height_factor == 1) &&
                  (affine_quantization->scale->size ==
+#ifdef MLI_2_0
+                  filter->dims->data[kDepthwiseConvQuantizedDimension]);
+#else
                   filter->dims->data[kDepthwiseConvQuantizedDimension]) &&
                  ((in_ch == filters_num) || (in_ch == 1));
+#endif
   return ret_val;
 }
 
@@ -156,8 +181,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteType data_type = input->type;
   int width = SizeOfDimension(input, 2);
   int height = SizeOfDimension(input, 1);
+
+#if defined(MLI_2_0) && !defined(MLI_2_0_KRNL_TEST)
+  int filter_width = SizeOfDimension(filter, 1);
+  int filter_height = SizeOfDimension(filter, 0);
+#else
   int filter_width = SizeOfDimension(filter, 2);
   int filter_height = SizeOfDimension(filter, 1);
+#endif
 
   // Per channel quantization is only needed for int8 inference. For other
   // quantized types, only a single scale and zero point is needed.
@@ -201,34 +232,84 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   data->output_zero_point = output->params.zero_point;
 
   if (data->is_mli_applicable) {
-    data->mli_in = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
-    data->mli_weights = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
-    data->mli_bias = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
-    data->mli_out = static_cast<mli_tensor*>(
-        context->AllocatePersistentBuffer(context, sizeof(mli_tensor)));
+#ifdef MLI_2_0
+    // Choose group convolution function for "channel multiplier" functionality.
+    const int in_ch = SizeOfDimension(input, 3);
+    const int filters_num = SizeOfDimension(filter, 3);
+    const int channels_num = SizeOfDimension(filter, 0);
+    if (in_ch == filters_num && channels_num == 1) {
+      data->p_mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32 =
+          mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32;
+    } else {
+      data->p_mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32 =
+          mli_krn_group_conv2d_hwcn_sa8_sa8_sa32;
+    }
+#endif
+
+    data->mli_in = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
+    data->mli_weights = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
+    data->mli_bias = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
+    data->mli_out = ops::micro::MliTensorInterface(static_cast<mli_tensor*>(
+        context->AllocatePersistentBuffer(context, sizeof(mli_tensor))));
     data->cfg = static_cast<mli_conv2d_cfg*>(
         context->AllocatePersistentBuffer(context, sizeof(mli_conv2d_cfg)));
 
-    // reuse space allocated for OpData parameters
-    data->mli_weights->el_params.asym.scale.pi32 =
+#ifdef MLI_2_0
+    const int num_buffers = 2;
+    data->per_channel_scale_frac_bits =
+        static_cast<int8_t*>(context->AllocatePersistentBuffer(
+            context, num_buffers * num_channels * sizeof(int16_t)));
+#endif
+
+    // Reuse space allocated for OpData parameters.
+#ifdef MLI_2_0
+    *data->mli_weights.Scale<int16_t**>() =
+        reinterpret_cast<int16_t*>(data->per_channel_output_multiplier);
+    *data->mli_bias.Scale<int16_t**>() =
+        reinterpret_cast<int16_t*>(data->per_channel_output_multiplier) +
+        num_channels;
+#else
+    *data->mli_weights.Scale<int32_t**>() =
         static_cast<int32_t*>(data->per_channel_output_multiplier);
-    data->mli_bias->el_params.asym.scale.pi32 =
+    *data->mli_bias.Scale<int32_t**>() =
         static_cast<int32_t*>(data->per_channel_output_shift);
+#endif
 
-    data->mli_weights->el_params.asym.zero_point.pi16 =
+#ifdef MLI_2_0
+    *data->mli_weights.ZeroPoint<int16_t**>() =
+        reinterpret_cast<int16_t*>(data->per_channel_output_shift);
+    *data->mli_bias.ZeroPoint<int16_t**>() =
+        reinterpret_cast<int16_t*>(data->per_channel_output_shift) +
+        num_channels;
+#else
+    *data->mli_weights.ZeroPoint<int16_t**>() =
         reinterpret_cast<int16_t*>(&data->filter_zero_point);
-    data->mli_bias->el_params.asym.zero_point.pi16 =
+    *data->mli_bias.ZeroPoint<int16_t**>() =
         reinterpret_cast<int16_t*>(&data->filter_zero_point) + sizeof(int16_t);
+#endif
 
-    ops::micro::ConvertToMliTensor(input, data->mli_in);
-    ops::micro::ConvertToMliTensorPerChannel(filter, data->mli_weights);
-    ops::micro::ConvertToMliTensorPerChannel(bias, data->mli_bias);
-    ops::micro::ConvertToMliTensor(output, data->mli_out);
+#ifdef MLI_2_0
+    *data->mli_weights.ScaleFracBits<int8_t**>() =
+        reinterpret_cast<int8_t*>(data->per_channel_scale_frac_bits);
+    *data->mli_bias.ScaleFracBits<int8_t**>() =
+        reinterpret_cast<int8_t*>(data->per_channel_scale_frac_bits) +
+        num_channels;
+#endif
 
-    if (params->activation == kTfLiteActRelu) {
+    ops::micro::ConvertToMliTensor(input, &data->mli_in);
+    ops::micro::ConvertToMliTensorPerChannel(filter, &data->mli_weights,
+                                             /* is_bias_tensor = */ false);
+    ops::micro::ConvertToMliTensorPerChannel(bias, &data->mli_bias,
+                                             /* is_bias_tensor = */ true);
+    ops::micro::ConvertToMliTensor(output, &data->mli_out);
+
+    if (data->output_activation_min == -128 &&
+        data->output_activation_max == 127) {
+      data->cfg->relu.type = MLI_RELU_NONE;
+    } else if (params->activation == kTfLiteActRelu) {
       data->cfg->relu.type = MLI_RELU_GEN;
     } else if (params->activation == kTfLiteActRelu6) {
       data->cfg->relu.type = MLI_RELU_6;
@@ -305,18 +386,24 @@ TfLiteStatus EvalMliQuantizedPerChannel(
     // Copy configuration data from external to local memory
     mli_conv2d_cfg cfg_local = *data.cfg;
 
-    ops::micro::MliTensorAttachBuffer<int8_t>(input, data.mli_in);
-    ops::micro::MliTensorAttachBuffer<int8_t>(filter, data.mli_weights);
-    ops::micro::MliTensorAttachBuffer<int32_t>(bias, data.mli_bias);
-    ops::micro::MliTensorAttachBuffer<int8_t>(output, data.mli_out);
+    ops::micro::MliTensorAttachBuffer<int8_t>(input, &data.mli_in);
+    ops::micro::MliTensorAttachBuffer<int8_t>(filter, &data.mli_weights);
+    ops::micro::MliTensorAttachBuffer<int32_t>(bias, &data.mli_bias);
+    ops::micro::MliTensorAttachBuffer<int8_t>(output, &data.mli_out);
 
     // for height slicing
-    const int heightDimension = 1;
-    int inSliceHeight = 0;
-    int outSliceHeight = 0;
-    const int kernelHeight =
-        static_cast<int>(data.mli_weights->shape[KRNL_DW_H_DIM_HWC]);
-    const int overlap = kernelHeight - cfg_local.stride_height;
+    const int height_dimension = 1;
+    int in_slice_height = 0;
+    int out_slice_height = 0;
+    uint32_t* mli_weights_shape = data.mli_weights.Shape();
+#ifdef MLI_2_0
+    const int kernel_height =
+        static_cast<int>(mli_weights_shape[KRNL_DW_H_DIM_HW1N]);
+#else
+    const int kernel_height =
+        static_cast<int>(mli_weights_shape[KRNL_DW_H_DIM_HWC]);
+#endif
+    const int overlap = kernel_height - cfg_local.stride_height;
 
     // for weight slicing (on output channels)
     // HWCN layout for weights, output channel dimension is the first dimension.
@@ -326,40 +413,52 @@ TfLiteStatus EvalMliQuantizedPerChannel(
     // Batch-Height-Width-Channel layout means last dimension is output
     // channels.
     const int out_tensor_ch_dimension = 3;
-    const int32_t in_channels = data.mli_in->shape[out_tensor_ch_dimension];
-    const int32_t out_channels = data.mli_out->shape[out_tensor_ch_dimension];
+    const int32_t in_channels = data.mli_in.Shape()[out_tensor_ch_dimension];
+    const int32_t out_channels = data.mli_out.Shape()[out_tensor_ch_dimension];
     int slice_channels =
-        static_cast<int>(data.mli_weights->shape[weight_out_ch_dimension]);
+        static_cast<int>(mli_weights_shape[weight_out_ch_dimension]);
 
     // Tensors for data in fast (local) memory
     // and config to copy data from external to local memory
-    mli_tensor weights_local = *data.mli_weights;
-    mli_tensor bias_local = *data.mli_bias;
-    mli_tensor in_local = *data.mli_in;
+    mli_tensor weights_local = *data.mli_weights.MliTensor();
+    mli_tensor bias_local = *data.mli_bias.MliTensor();
+    mli_tensor in_local = *data.mli_in.MliTensor();
     mli_tensor out_local =
-        *data.mli_out;  // this assumes that output shape
-                        // is already filled in the tensor struct.
+        *data.mli_out.MliTensor();  // this assumes that output shape
+                                    // is already filled in the tensor struct.
+
+    ops::micro::MliTensorInterface weights_local_interface(&weights_local);
+    ops::micro::MliTensorInterface bias_local_interface(&bias_local);
+    ops::micro::MliTensorInterface in_local_interface(&in_local);
+    ops::micro::MliTensorInterface out_local_interface(&out_local);
+
     mli_mov_cfg_t copy_config;
     mli_mov_cfg_for_copy(&copy_config);
 
     TF_LITE_ENSURE_STATUS(ops::micro::get_arc_scratch_buffer_for_conv_tensors(
-        context, &in_local, &weights_local, &bias_local, &out_local));
+        context, &in_local_interface, &weights_local_interface,
+        &bias_local_interface, &out_local_interface));
+
     /* is_local indicates that the tensor is already in local memory,
      so in that case the original tensor can be used,
      and there is no need to copy it to the local tensor*/
-    const bool in_is_local = in_local.data == data.mli_in->data;
-    const bool out_is_local = out_local.data == data.mli_out->data;
-    const bool w_is_local = weights_local.data == data.mli_weights->data;
-    const bool b_is_local = bias_local.data == data.mli_bias->data;
+    const bool in_is_local =
+        in_local_interface.Data<int8_t>() == data.mli_in.Data<int8_t>();
+    const bool out_is_local =
+        out_local_interface.Data<int8_t>() == data.mli_out.Data<int8_t>();
+    const bool w_is_local = weights_local_interface.Data<int8_t>() ==
+                            data.mli_weights.Data<int8_t>();
+    const bool b_is_local =
+        bias_local_interface.Data<int32_t>() == data.mli_bias.Data<int32_t>();
 
     TF_LITE_ENSURE_STATUS(ops::micro::arc_scratch_buffer_calc_slice_size_io(
-        &in_local, &out_local, kernelHeight, cfg_local.stride_height,
-        cfg_local.padding_top, cfg_local.padding_bottom, &inSliceHeight,
-        &outSliceHeight));
+        &in_local_interface, &out_local_interface, kernel_height,
+        cfg_local.stride_height, cfg_local.padding_top,
+        cfg_local.padding_bottom, &in_slice_height, &out_slice_height));
     TF_LITE_ENSURE_STATUS(
         ops::micro::arc_scratch_buffer_calc_slice_size_weights(
-            &weights_local, &bias_local, weight_out_ch_dimension,
-            &slice_channels));
+            &weights_local_interface, &bias_local_interface,
+            weight_out_ch_dimension, &slice_channels));
 
     /* if input channels is not equal to output channels, a channel multiplier
        is used. in this case the slice channels needs to be rounded down to a
@@ -368,13 +467,16 @@ TfLiteStatus EvalMliQuantizedPerChannel(
       slice_channels = (slice_channels / in_channels) * in_channels;
     }
 
-    ops::micro::TensorSlicer b_slice(data.mli_bias, bias_out_ch_dimension,
-                                     slice_channels);
-    ops::micro::TensorSlicer w_slice(data.mli_weights, weight_out_ch_dimension,
-                                     slice_channels, 0, 0, 0, true);
-    ops::micro::TensorSlicer out_ch_slice(data.mli_out, out_tensor_ch_dimension,
+    ops::micro::TensorSlicer b_slice(data.mli_bias.MliTensor(),
+                                     bias_out_ch_dimension, slice_channels);
+    ops::micro::TensorSlicer w_slice(data.mli_weights.MliTensor(),
+                                     weight_out_ch_dimension, slice_channels, 0,
+                                     0, 0, true);
+    ops::micro::TensorSlicer out_ch_slice(data.mli_out.MliTensor(),
+                                          out_tensor_ch_dimension,
                                           slice_channels, 0, 0, 0, true);
-    ops::micro::TensorSlicer in_ch_slice(data.mli_in, out_tensor_ch_dimension,
+    ops::micro::TensorSlicer in_ch_slice(data.mli_in.MliTensor(),
+                                         out_tensor_ch_dimension,
                                          slice_channels, 0, 0, 0, true);
 
     mli_tensor* w_ptr = w_is_local ? w_slice.Sub() : &weights_local;
@@ -386,6 +488,10 @@ TfLiteStatus EvalMliQuantizedPerChannel(
     int padding_bottom = cfg_local.padding_bottom;
 
     while (!w_slice.Done()) {
+#if defined(MLI_2_0) && !defined(MLI_2_0_KRNL_TEST)
+      w_ptr->el_params.sa.scale.mem.pi16 = NULL;
+      b_ptr->el_params.sa.scale.mem.pi16 = NULL;
+#endif
       mli_mov_tensor_sync(w_slice.Sub(), &copy_config, w_ptr);
       mli_mov_tensor_sync(b_slice.Sub(), &copy_config, b_ptr);
 
@@ -400,16 +506,16 @@ TfLiteStatus EvalMliQuantizedPerChannel(
       the sliceHeight has been calculated. The tensor slicer is configured that
       it will completely slice the nBatch dimension (0) and slice the height
       dimension (1) in chunks of 'sliceHeight' */
-      ops::micro::TensorSlicer in_slice(in_ch_slice.Sub(), heightDimension,
-                                        inSliceHeight, padding_top,
+      ops::micro::TensorSlicer in_slice(in_ch_slice.Sub(), height_dimension,
+                                        in_slice_height, padding_top,
                                         padding_bottom, overlap);
 
       /* output tensor is already sliced in the output channel dimension.
       out_ch_slice.Sub() is the tensor for the amount of output channels of this
       iteration of the weight slice loop. This tensor needs to be further
       sliced over the batch and height dimension. */
-      ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), heightDimension,
-                                         outSliceHeight);
+      ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), height_dimension,
+                                         out_slice_height);
 
       /* setup the pointers to the local or remote tensor to make the code
        * inside the loop easier. */
@@ -422,6 +528,30 @@ TfLiteStatus EvalMliQuantizedPerChannel(
         cfg_local.padding_bottom = in_slice.GetPaddingPost();
 
         // if same input copy as previous iteration, skip the copy of input
+#ifdef MLI_2_0
+        if ((in_slice.Sub()->data.mem.pi8 != input_buffer_ptr) ||
+            (mli_hlp_count_elem_num(in_slice.Sub(), 0) != input_buffer_size)) {
+          mli_mov_tensor_sync(in_slice.Sub(), &copy_config, in_ptr);
+          input_buffer_ptr = in_slice.Sub()->data.mem.pi8;
+          input_buffer_size = mli_hlp_count_elem_num(in_slice.Sub(), 0);
+        }
+
+#ifdef MLI_2_0_KRNL_TEST
+        // Checking conditions here to prevent usage non-contiguous buffer
+        // memory.
+        if (mli_weights_shape[weight_out_ch_dimension] !=
+            w_slice.Sub()->shape[3]) {
+          TF_LITE_KERNEL_LOG(
+              context, "Slicing is not supported with real-time permutation.");
+          return kTfLiteError;
+        }
+        uint8_t dim_order[] = {1, 2, 0, 3};
+        ops::micro::change_shape(w_ptr, dim_order);
+#endif
+
+        data.p_mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(in_ptr, w_ptr, b_ptr,
+                                                          &cfg_local, out_ptr);
+#else
         if ((in_slice.Sub()->data != input_buffer_ptr) ||
             (mli_hlp_count_elem_num(in_slice.Sub(), 0) != input_buffer_size)) {
           mli_mov_tensor_sync(in_slice.Sub(), &copy_config, in_ptr);
@@ -430,6 +560,8 @@ TfLiteStatus EvalMliQuantizedPerChannel(
         }
         mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32(in_ptr, w_ptr, b_ptr,
                                                    &cfg_local, out_ptr);
+#endif
+
         mli_mov_tensor_sync(out_ptr, &copy_config, out_slice.Sub());
 
         in_slice.Next();

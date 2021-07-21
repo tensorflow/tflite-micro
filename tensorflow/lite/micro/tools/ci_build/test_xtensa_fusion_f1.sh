@@ -30,7 +30,7 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downl
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=xtensa \
-  TARGET_ARCH=fusion_f1 \
+  TARGET_ARCH=hifi4 \
   OPTIMIZED_KERNEL_DIR=xtensa \
   XTENSA_CORE=F1_190305_swupgrade \
   test -j$(nproc)

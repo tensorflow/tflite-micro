@@ -172,7 +172,7 @@ TfLiteStatus PrepareHifimini(TfLiteContext* context, TfLiteNode* node) {
 }
 #endif  // defined(HIFIMINI)
 
-#if defined(FUSION_F1) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
 TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
 
@@ -225,13 +225,13 @@ TfLiteStatus EvalHifi(const XtensaSoftmaxOpData* op_data,
   }
   return kTfLiteOk;
 }
-#endif  // defined(FUSION_F1) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
 }  // namespace
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length) {
-#if defined(HIFIMINI) || defined(FUSION_F1) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
@@ -243,7 +243,7 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
 TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFIMINI)
   return PrepareHifimini(context, node);
-#elif defined(FUSION_F1) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI5)
   return PrepareHifi(context, node);
 #else
   return SoftmaxPrepare(context, node);
@@ -263,7 +263,7 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
                            tflite::micro::GetTensorData<int8_t>(input),
                            tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int16_t>(output));
-#elif defined(FUSION_F1) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI5)
     return EvalHifi(static_cast<XtensaSoftmaxOpData*>(node->user_data), input,
                     output, context);
 #else
