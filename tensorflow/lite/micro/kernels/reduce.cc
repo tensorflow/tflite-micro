@@ -103,7 +103,7 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input = GetInput(context, node, 0);
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   const TfLiteTensor* output = GetOutput(context, node, 0);
-  if (input->type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const double real_multiplier = static_cast<double>(input->params.scale) /
                                    static_cast<double>(output->params.scale);
     QuantizeMultiplier(real_multiplier, &op_data->multiplier, &op_data->shift);
