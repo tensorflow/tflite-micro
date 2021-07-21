@@ -21,9 +21,7 @@ limitations under the License.
 #include <complex>
 #include <limits>
 #include <memory>
-#ifndef TF_LITE_STATIC_MEMORY
 #include <string>
-#endif  // TF_LITE_STATIC_MEMORY
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -409,7 +407,6 @@ bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2) {
   return TfLiteIntArrayEqual(input1->dims, input2->dims);
 }
 
-#ifndef TF_LITE_STATIC_MEMORY
 
 // TODO(b/172067338): Having this function be part of TF_LITE_STATIC_MEMORY
 // build results in a 6KB size increase, even though the function is unsused for
@@ -428,6 +425,7 @@ std::string GetShapeDebugString(const TfLiteIntArray* shape) {
   return str;
 }
 
+#ifndef TF_LITE_STATIC_MEMORY
 TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
                                         const TfLiteTensor* input1,
                                         const TfLiteTensor* input2,
