@@ -279,7 +279,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddHardSwish() {
     return AddBuiltin(BuiltinOperator_HARD_SWISH,
-                      tflite::ops::micro::Register_HARD_SWISH(),
+                      tflite::Register_HARD_SWISH(),
                       ParseHardSwish);
   }
 

@@ -106,7 +106,7 @@ void TestHardSwishQuantized(int size, const T* output_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+      tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -185,7 +185,7 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+      tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -237,7 +237,7 @@ void TestHardSwishFloat(const int size, float* output_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+      tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
