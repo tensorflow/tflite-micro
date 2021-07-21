@@ -1,5 +1,5 @@
 Compiling instructions here
-https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro
+https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro
 
 CONTACT INFORMATION:
 

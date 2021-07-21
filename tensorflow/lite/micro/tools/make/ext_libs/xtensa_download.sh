@@ -34,6 +34,12 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR=${SCRIPT_DIR}/../../../../../..
+cd "${ROOT_DIR}"
+
+source tensorflow/lite/micro/tools/make/bash_helpers.sh
+
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
   echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
@@ -45,9 +51,9 @@ if [[ ${2} == "hifi4" ]]; then
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
   LIBRARY_MD5="8b934f61ffe0a966644849602810fb1b"
 elif [[ ${2} == "hifi5" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_02_22.zip"
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_06_30.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
-  LIBRARY_MD5="08cd4d446b3e0b7d180f9ef0dec9ad0a"
+  LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1
@@ -71,25 +77,7 @@ else
   unzip -qo /tmp/${TMP_ZIP_ARCHIVE_NAME} -d ${DOWNLOADS_DIR} >&2
 
   if [[ ${2} == "hifi4" ]]; then
-    pushd ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ >&2
-    git init . >&2
-    git config user.email "tflm@google.com"
-    git config user.name "TensorflowLite Micro"
-    git add *
-    git commit -a -m "Commit for a temporary repository." > /dev/null
-    git apply ../../ext_libs/xtensa_patch.patch
-    popd >&2
-  fi
-
-  if [[ ${2} == "hifi5" ]]; then
-    pushd ${DOWNLOADS_DIR}/xa_nnlib_hifi5/ >&2
-    git init . >&2
-    git config user.email "tflm@google.com"
-    git config user.name "TensorflowLite Micro"
-    git add *
-    git commit -a -m "Commit for a temporary repository." > /dev/null
-    git apply ../../ext_libs/xtensa_depthwise_patch_hifi5.patch
-    popd >&2
+    apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ ../../ext_libs/xtensa_patch.patch
   fi
 
 fi
