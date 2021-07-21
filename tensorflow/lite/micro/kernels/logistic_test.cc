@@ -56,7 +56,7 @@ void ValidateLogisticGoldens(TfLiteTensor* tensors, const int tensor_count,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration =
-      tflite::ops::micro::Register_LOGISTIC();
+      tflite::Register_LOGISTIC();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, nullptr);
 
