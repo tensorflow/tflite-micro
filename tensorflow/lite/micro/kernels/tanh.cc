@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,74 +25,24 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/kernels/tanh.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace activations {
 namespace {
-constexpr int kInputTensor = 0;
-constexpr int kOutputTensor = 0;
-
-struct OpData {
-  int32_t input_zero_point;
-  int32_t input_range_radius;
-  int32_t input_multiplier;
-  int input_left_shift;
-};
 
 void* TanhInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataTanh));
 }
-
-TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
-                                       OpData* data) {
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
-    static constexpr int kInputIntegerBits = 4;
-    const double input_real_multiplier =
-        static_cast<double>(input->params.scale) *
-        static_cast<double>(1 << (31 - kInputIntegerBits));
-
-    const double q = std::frexp(input_real_multiplier, &data->input_left_shift);
-    data->input_multiplier = static_cast<int32_t>(TfLiteRound(q * (1ll << 31)));
-
-    data->input_range_radius =
-        CalculateInputRadius(kInputIntegerBits, data->input_left_shift, 31);
-  }
-  return kTfLiteOk;
-}
-
-TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-  OpData* data = static_cast<OpData*>(node->user_data);
-
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  data->input_zero_point = input->params.zero_point;
-  return CalculateArithmeticOpData(context, node, data);
-}
-
-}  // namespace
 
 TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kTanhInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kTanhOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  const OpDataTanh& data = *(static_cast<const OpDataTanh*>(node->user_data));
 
   switch (input->type) {
     case kTfLiteFloat32: {
@@ -141,18 +91,16 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
-}  // namespace activations
+}  // namespace
 
 TfLiteRegistration Register_TANH() {
-  return {/*init=*/activations::TanhInit,
+  return {/*init=*/TanhInit,
           /*free=*/nullptr,
-          /*prepare=*/activations::TanhPrepare,
-          /*invoke=*/activations::TanhEval,
+          /*prepare=*/TanhPrepare,
+          /*invoke=*/TanhEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
