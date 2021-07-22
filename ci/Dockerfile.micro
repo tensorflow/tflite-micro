@@ -27,7 +27,12 @@ RUN ln -s /usr/bin/clang-12 /usr/bin/clang
 RUN ln -s /usr/bin/clang++-12 /usr/bin/clang++
 RUN ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
 
+# Install yapf to check for Python formatting as part of the TFLM continuous
+# integration.
+RUN pip install yapf
+
 RUN pip install six
+
 # Install Renode test dependencies
 RUN pip install pyyaml requests psutil robotframework==3.1
 

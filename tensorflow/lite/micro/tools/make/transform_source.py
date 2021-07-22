@@ -29,7 +29,6 @@ import sys
 
 import six
 
-
 EXAMPLE_DIR_PATH = 'tensorflow/lite/micro/examples/'
 
 
@@ -94,7 +93,8 @@ def replace_esp_example_includes(line, source_path):
   # Because the export process moves the example source and header files out of
   # their default locations into the top-level 'main' folder in the ESP-IDF
   # project, we have to update any include references to match.
-  include_match = re.match(r'.*#include.*"(' + EXAMPLE_DIR_PATH + r'.*)"', line)
+  include_match = re.match(r'.*#include.*"(' + EXAMPLE_DIR_PATH + r'.*)"',
+                           line)
 
   if include_match:
     # Compute the target path relative from the source's directory
@@ -171,31 +171,27 @@ def main(unused_args, flags):
 def parse_args():
   """Converts the raw arguments into accessible flags."""
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-      '--platform',
-      choices=['arduino', 'esp'],
-      required=True,
-      help='Target platform.')
-  parser.add_argument(
-      '--third_party_headers',
-      type=str,
-      default='',
-      help='Space-separated list of headers to resolve.')
-  parser.add_argument(
-      '--is_example_ino',
-      dest='is_example_ino',
-      action='store_true',
-      help='Whether the destination is an example main ino.')
+  parser.add_argument('--platform',
+                      choices=['arduino', 'esp'],
+                      required=True,
+                      help='Target platform.')
+  parser.add_argument('--third_party_headers',
+                      type=str,
+                      default='',
+                      help='Space-separated list of headers to resolve.')
+  parser.add_argument('--is_example_ino',
+                      dest='is_example_ino',
+                      action='store_true',
+                      help='Whether the destination is an example main ino.')
   parser.add_argument(
       '--is_example_source',
       dest='is_example_source',
       action='store_true',
       help='Whether the destination is an example cpp or header file.')
-  parser.add_argument(
-      '--source_path',
-      type=str,
-      default='',
-      help='The relative path of the source code file.')
+  parser.add_argument('--source_path',
+                      type=str,
+                      default='',
+                      help='The relative path of the source code file.')
   flags, unparsed = parser.parse_known_args()
 
   main(unparsed, flags)

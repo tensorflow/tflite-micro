@@ -64,10 +64,10 @@ def to_float(x, n):
   return x.astype(float) * 2**(-n)
 
 
-micro_windowed_input = new_data_to_array(
-    'micro_windowed_input.txt', datatype='int32')
-cmsis_windowed_input = new_data_to_array(
-    'cmsis_windowed_input.txt', datatype='int16')
+micro_windowed_input = new_data_to_array('micro_windowed_input.txt',
+                                         datatype='int32')
+cmsis_windowed_input = new_data_to_array('cmsis_windowed_input.txt',
+                                         datatype='int16')
 
 micro_dft = new_data_to_array('micro_dft.txt', datatype='int32')
 cmsis_dft = new_data_to_array('cmsis_dft.txt', datatype='int16')
