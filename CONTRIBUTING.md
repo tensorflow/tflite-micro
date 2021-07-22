@@ -221,6 +221,14 @@ Below are some tips that might be useful and improve the development experience.
 
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
 
+* [yapf](https://github.com/google/yapf/) should be used for formatting Python
+  code. For example:
+
+  ```
+  pip3 install yapf
+  yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
+  ```
+
 * Add a git hook to check for code style etc. prior to creating a pull request:
   ```
   cp tensorflow/lite/micro/tools/dev_setup/pre-push.tflm .git/hooks/pre-push
@@ -338,18 +346,8 @@ Below are some tips that might be useful and improve the development experience.
 
 ## Python notes
 
-Most PRs for TensorFlow Lite Micro will be C++ only. Adding some notes on Python
-that can be expanded and improved as necessary.
-
 *   [TensorFlow guide](https://www.tensorflow.org/community/contribute/code_style#python_style)
     for Python development
-
-*   [yapf](https://github.com/google/yapf/) should be used for formatting. For example:
-
-    ```
-    pip3 install yapf
-    yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
-    ```
 
 # Continuous Integration System
   * Some [additional documentation](docs/continuous_integration.md) on the TFLM CI.
