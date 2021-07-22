@@ -23,7 +23,8 @@ limitations under the License.
 #else
 inline void AbortImpl() {
   DebugLog("HALTED\n");
-  while (1);
+  while (1)
+    ;
 }
 #define TFLITE_ABORT AbortImpl();
 #endif
