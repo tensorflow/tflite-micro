@@ -23,4 +23,4 @@ jobs:
       - uses: actions/checkout@v2
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_esp32.sh
+          docker run --rm -v `pwd`:/opt/tflite-micro espressif/idf:release-v4.3 /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_esp32.sh
