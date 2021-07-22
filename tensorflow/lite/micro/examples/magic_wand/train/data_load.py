@@ -14,7 +14,6 @@
 # limitations under the License.
 # ==============================================================================
 # pylint: disable=g-bad-import-order
-
 """Load data from the specified paths and format them for training."""
 
 from __future__ import absolute_import
@@ -34,7 +33,6 @@ DATA_NAME = "accel_ms2_xyz"
 
 class DataLoader(object):
   """Loads data and prepares for training."""
-
   def __init__(self, train_data_path, valid_data_path, test_data_path,
                seq_length):
     self.dim = 3
