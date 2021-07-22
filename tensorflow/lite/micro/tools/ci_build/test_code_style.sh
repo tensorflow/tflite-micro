@@ -62,20 +62,28 @@ LICENSE_CHECK_RESULT=$?
 ############################################################
 # Formatting Check
 ############################################################
-# We are currently ignoring Python files (with yapf as the formatter) because
-# that needs additional setup.  We are also ignoring the markdown files to allow
-# for a more gradual rollout of this presubmit check.
+
+if [[ ${1} == "--fix_formatting" ]]
+then
+  FIX_FORMAT_OPTIONS="--fix"
+else
+  FIX_FORMAT_OPTIONS=""
+fi
+
 micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
-  kernels/internal/reference/ \
-  micro/ \
-  ../../third_party/ \
+  ${FIX_FORMAT_OPTIONS} \
+  -e c/common.c \
+  -e core/api/error_reporter.cc \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
+  -e kernels/internal/types.h \
+  -e experimental \
+  -e schema/schema_generated.h \
+  -e schema/schema_utils.h \
   -e "\.inc" \
-  -e "\.md" \
-  -e "\.py"
+  -e "\.md"
 
-CLANG_FORMAT_RESULT=$?
+FORMAT_RESULT=$?
 
 #############################################################################
 # Avoided specific-code snippets for TFLM
@@ -121,8 +129,12 @@ popd
 # Re-enable exit on error now that we are done with the temporary git repo.
 set -e
 
+if [[ ${FORMAT_RESULT}  != 0 ]]
+then
+  echo "The formatting errors can be fixed with tensorflow/lite/micro/tols/ci_build/test_code_style.sh --fix_formatting"
+fi
 if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
-      ${CLANG_FORMAT_RESULT}   != 0 || \
+      ${FORMAT_RESULT}         != 0 || \
       ${GTEST_RESULT}          != 0 || \
       ${ERROR_REPORTER_RESULT} != 0 || \
       ${ASSERT_RESULT}         != 0    \
