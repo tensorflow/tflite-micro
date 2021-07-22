@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
 """Test for data_prepare.py."""
 
 from __future__ import absolute_import
@@ -30,7 +29,6 @@ from data_prepare import write_data
 
 
 class TestPrepare(unittest.TestCase):
-
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.file = "./%s/output_%s_%s.txt" % (folders[0], folders[0], names[0])  # pylint: disable=undefined-variable
     self.data = []
