@@ -1,5 +1,5 @@
 <!--
-Semi-automated TOC generation with instructions from
+emi-automated TOC generation with instructions from
 https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 -->
 <!--ts-->
@@ -344,22 +344,12 @@ that can be expanded and improved as necessary.
 *   [TensorFlow guide](https://www.tensorflow.org/community/contribute/code_style#python_style)
     for Python development
 
-*   [yapf](https://github.com/google/yapf/) should be used for formatting.
+*   [yapf](https://github.com/google/yapf/) should be used for formatting. For example:
 
     ```
-    git clone https://github.com/google/yapf.git
-    PYTHONPATH=<yapf-clone-path> python <yapf-clone-path>/yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
+    pip3 install yapf
+    yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
     ```
 
 # Continuous Integration System
-  * See the [github workflow files](.github/workflows/ci.yml) for details on
-    exactly what is run as part of the GitHub Actions CI.
-
   * Some [additional documentation](docs/continuous_integration.md) on the TFLM CI.
-
-  * Tests can also be run from within a docker container:
-   ```
-   docker build -t tflm-test -f ci/Dockerfile.micro .
-   docker run --rm tflm-test
-   ```
-
