@@ -419,7 +419,11 @@ tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
-tensorflow/lite/micro/kernels/zeros_like.cc
+tensorflow/lite/micro/kernels/zeros_like.cc \
+tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_eval.cc \
+tensorflow/lite/micro/kernels/xtensa/lstm/kernels/unidirectional_sequence_lstm.cc \
+tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
+tensorflow/lite/kernels/kernel_util.cc
 
 MICROLITE_TEST_HDRS := \
 $(wildcard tensorflow/lite/micro/testing/*.h)
