@@ -44,7 +44,6 @@ PLATFORM_FLAGS = \
   -Wextra \
   -Wno-shadow \
   -Wno-vla \
-  -Wno-type-limits \
   -Wno-unused-parameter \
   -Wno-missing-field-initializers \
   -Wno-write-strings \
