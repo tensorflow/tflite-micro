@@ -41,13 +41,15 @@ def generate_conv_model():
 
   model = tf.keras.models.Sequential()
   model.add(
-      tf.keras.layers.Conv2D(16, 3, activation="relu", input_shape=input_shape))
+      tf.keras.layers.Conv2D(16, 3, activation="relu",
+                             input_shape=input_shape))
   model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
   model.add(tf.keras.layers.MaxPooling2D(2))
   model.add(tf.keras.layers.Flatten())
   model.add(tf.keras.layers.Dense(10))
-  model.compile(
-      optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+  model.compile(optimizer="adam",
+                loss="categorical_crossentropy",
+                metrics=["accuracy"])
   model.summary()
 
   # Test with random data

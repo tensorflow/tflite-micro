@@ -55,8 +55,8 @@ _GRAYSCALE_RAW = u"""
 _GRAYSCALE_FLAT = np.array(
     [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]])
 
-_GRAYSCALE_RESHAPED = np.array([[[12, 13, 14, 15], [8, 9, 10, 11], [4, 5, 6, 7],
-                                 [0, 1, 2, 3]]])
+_GRAYSCALE_RESHAPED = np.array([[[12, 13, 14, 15], [8, 9, 10, 11],
+                                 [4, 5, 6, 7], [0, 1, 2, 3]]])
 
 _GRAYSCALE_RAW_MULTI = u"""
 +++ frame +++
@@ -92,7 +92,6 @@ _GRAYSCALE_RESHAPED_MULTI = [
 
 
 class RawToBitmapTest(googletest.TestCase):
-
   def test_parse_rgb(self):
     frame_list = parse_file(io.StringIO(_RGB_RAW), 4, 4, 3)
     self.assertTrue(np.array_equal(_RGB_FLAT, frame_list))
