@@ -16,24 +16,9 @@ PLATFORM_FLAGS = \
   -fno-exceptions \
   -DTF_LITE_MCU_DEBUG_LOG \
   -DTF_LITE_USE_GLOBAL_CMATH_FUNCTIONS \
-  -fno-unwind-tables \
-  -ffunction-sections \
-  -fdata-sections \
   -funsigned-char \
-  -Wvla \
-  -Wall \
-  -Wextra \
-  -Wsign-compare \
-  -Wdouble-promotion \
-  -Wshadow \
-  -Wunused-variable \
-  -Wmissing-field-initializers \
-  -Wno-unused-parameter \
-  -Wno-write-strings \
-  -Wunused-function \
   -fno-delete-null-pointer-checks \
-  -fomit-frame-pointer \
-  -Os
+  -fomit-frame-pointer
 
 CXXFLAGS += $(PLATFORM_FLAGS) \
   -fpermissive \
