@@ -31,19 +31,12 @@ struct ReluOpData {
 struct Relu6OpData {
   int8_t six_int8;
   int8_t zero_int8;
-  uint8_t six_uint8;
-  uint8_t zero_uint8;
 };
 
 void ReluQuantized(const ReluOpData& data,
                           const RuntimeShape& input_shape,
                           const RuntimeShape& output_shape, const int8_t* input_data,
                           int8_t* output_data);
-
-void ReluQuantized(const ReluOpData& data,
-                          const RuntimeShape& input_shape,
-                          const RuntimeShape& output_shape, const uint8_t* input_data,
-                          uint8_t* output_data);
 
 template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
@@ -58,10 +51,6 @@ void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
 void Relu6Quantized(int8_t lower, int8_t upper, const RuntimeShape& input_shape,
                            const int8_t* input_data,
                            const RuntimeShape& output_shape, int8_t* output_data);
-
-void Relu6Quantized(uint8_t lower, uint8_t upper, const RuntimeShape& input_shape,
-                           const uint8_t* input_data,
-                           const RuntimeShape& output_shape, uint8_t* output_data);
 
 TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node);
 

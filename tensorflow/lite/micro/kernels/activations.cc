@@ -58,13 +58,6 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
                             tflite::micro::GetTensorData<int8_t>(output));
       return kTfLiteOk;
     }
-    case kTfLiteUInt8: {
-      tflite::ReluQuantized(data, tflite::micro::GetTensorShape(input),
-                             tflite::micro::GetTensorShape(output),
-                             tflite::micro::GetTensorData<uint8_t>(input),
-                             tflite::micro::GetTensorData<uint8_t>(output));
-      return kTfLiteOk;
-    }
     default: {
       TF_LITE_KERNEL_LOG(context, "Only float32 is supported currently, got %s",
                          TfLiteTypeGetName(input->type));
@@ -102,14 +95,6 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
                              tflite::micro::GetTensorData<int8_t>(input),
                              tflite::micro::GetTensorShape(output),
                              tflite::micro::GetTensorData<int8_t>(output));
-      return kTfLiteOk;
-    }
-    case kTfLiteUInt8: {
-      Relu6Quantized(data.zero_uint8, data.six_uint8,
-                              tflite::micro::GetTensorShape(input),
-                              tflite::micro::GetTensorData<uint8_t>(input),
-                              tflite::micro::GetTensorShape(output),
-                              tflite::micro::GetTensorData<uint8_t>(output));
       return kTfLiteOk;
     }
     default: {
