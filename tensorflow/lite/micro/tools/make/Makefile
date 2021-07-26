@@ -348,6 +348,7 @@ tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
+tensorflow/lite/micro/kernels/activations_common.cc \
 tensorflow/lite/micro/kernels/add.cc \
 tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
