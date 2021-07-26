@@ -14,7 +14,6 @@
 # limitations under the License.
 # ==============================================================================
 # pylint: disable=g-bad-import-order
-
 """Test for data_load.py."""
 
 from __future__ import absolute_import
@@ -28,10 +27,11 @@ import tensorflow as tf
 
 
 class TestLoad(unittest.TestCase):
-
   def setUp(self):  # pylint: disable=g-missing-super-call
-    self.loader = DataLoader(
-        "./data/train", "./data/valid", "./data/test", seq_length=512)
+    self.loader = DataLoader("./data/train",
+                             "./data/valid",
+                             "./data/test",
+                             seq_length=512)
 
   def test_get_data(self):
     self.assertIsInstance(self.loader.train_data, list)
@@ -71,8 +71,10 @@ class TestLoad(unittest.TestCase):
 
   def test_format(self):
     self.loader.format()
-    expected_train_label = int(self.loader.label2id[self.loader.train_label[0]])
-    expected_valid_label = int(self.loader.label2id[self.loader.valid_label[0]])
+    expected_train_label = int(
+        self.loader.label2id[self.loader.train_label[0]])
+    expected_valid_label = int(
+        self.loader.label2id[self.loader.valid_label[0]])
     expected_test_label = int(self.loader.label2id[self.loader.test_label[0]])
     for feature, label in self.loader.train_data:  # pylint: disable=unused-variable
       format_train_label = label.numpy()

@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,27 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
-#define TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
 
-#include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/micro/system_setup.h"
 
-#if !defined(TF_LITE_MCU_DEBUG_LOG)
-#include <cstdlib>
-#define TFLITE_ABORT abort()
-#else
-inline void AbortImpl() {
-  DebugLog("HALTED\n");
-  while (1) {
-  }
-}
-#define TFLITE_ABORT AbortImpl();
-#endif
+#include <arc/arc_timer.h>
 
-#if defined(NDEBUG) || defined(ARDUINO)
-#define TFLITE_ASSERT_FALSE (static_cast<void>(0))
-#else
-#define TFLITE_ASSERT_FALSE TFLITE_ABORT
-#endif
+namespace tflite {
 
-#endif  // TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
+// Only the timer need to be reset for the custom arc platform
+void InitializeTarget() { _timer_default_reset(); }
+
+}  // namespace tflite

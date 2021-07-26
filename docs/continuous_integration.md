@@ -8,6 +8,20 @@
 
 [TensorFlow repo]: https://github.com/tensorflow/tensorflow
 
+# Continuous Integration System
+  * See the [github workflow files](.github/workflows/ci.yml) for details on
+    exactly what is run as part of the GitHub Actions CI.
+
+  * Tests can also be run from within a docker container:
+   ```
+   docker build -t tflm-test -f ci/Dockerfile.micro .
+   ```
+
+   or use the tflm-ci docker image from [here](https://github.com/users/TFLM-bot/packages/container/package/tflm-ci).
+
+  * You will still need to copy or mount your fork of tflite-micro on to this
+    docker container prior to running any tests.
+
 # Automated Sync from the Tensorflow Repository
 
 While TfLite Micro and TfLite are in separate GitHub repositories, the two
