@@ -21,19 +21,18 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/activations.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/micro/kernels/activations.h"
 
 namespace tflite {
 
 const int kActivationsInputTensor = 0;
 const int kActivationsOutputTensor = 0;
 
-void ReluQuantized(const ReluOpData& data,
-                          const RuntimeShape& input_shape,
-                          const RuntimeShape& output_shape, const int8_t* input_data,
-                          int8_t* output_data) {
+void ReluQuantized(const ReluOpData& data, const RuntimeShape& input_shape,
+                   const RuntimeShape& output_shape, const int8_t* input_data,
+                   int8_t* output_data) {
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
   for (int i = 0; i < flat_size; ++i) {
     const int32_t val = static_cast<int32_t>(input_data[i]);
@@ -50,7 +49,7 @@ void ReluQuantized(const ReluOpData& data,
 
 template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
-                                ReluOpData* data) {
+                         ReluOpData* data) {
   float act_min = 0.0;
   float act_max = std::numeric_limits<float>::infinity();
   double real_multiplier =
@@ -78,7 +77,7 @@ void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
 }
 
 void ReluFloat(const RuntimeShape& input_shape, const float* input_data,
-                      const RuntimeShape& output_shape, float* output_data) {
+               const RuntimeShape& output_shape, float* output_data) {
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
   for (int i = 0; i < flat_size; ++i) {
     const float val = input_data[i];
@@ -89,7 +88,7 @@ void ReluFloat(const RuntimeShape& input_shape, const float* input_data,
 }
 
 void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
-                       const RuntimeShape& output_shape, float* output_data) {
+                const RuntimeShape& output_shape, float* output_data) {
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
   for (int i = 0; i < flat_size; ++i) {
     const float val = input_data[i];
@@ -101,8 +100,8 @@ void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
 }
 
 void Relu6Quantized(int8_t lower, int8_t upper, const RuntimeShape& input_shape,
-                           const int8_t* input_data,
-                           const RuntimeShape& output_shape, int8_t* output_data) {
+                    const int8_t* input_data, const RuntimeShape& output_shape,
+                    int8_t* output_data) {
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
   for (int i = 0; i < flat_size; ++i) {
     const int8_t val = input_data[i];

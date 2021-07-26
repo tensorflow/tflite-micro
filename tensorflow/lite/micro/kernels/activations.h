@@ -33,24 +33,23 @@ struct Relu6OpData {
   int8_t zero_int8;
 };
 
-void ReluQuantized(const ReluOpData& data,
-                          const RuntimeShape& input_shape,
-                          const RuntimeShape& output_shape, const int8_t* input_data,
-                          int8_t* output_data);
+void ReluQuantized(const ReluOpData& data, const RuntimeShape& input_shape,
+                   const RuntimeShape& output_shape, const int8_t* input_data,
+                   int8_t* output_data);
 
 template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
-                                ReluOpData* data);
+                         ReluOpData* data);
 
 void ReluFloat(const RuntimeShape& input_shape, const float* input_data,
-                      const RuntimeShape& output_shape, float* output_data);
+               const RuntimeShape& output_shape, float* output_data);
 
 void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
-                       const RuntimeShape& output_shape, float* output_data);
+                const RuntimeShape& output_shape, float* output_data);
 
 void Relu6Quantized(int8_t lower, int8_t upper, const RuntimeShape& input_shape,
-                           const int8_t* input_data,
-                           const RuntimeShape& output_shape, int8_t* output_data);
+                    const int8_t* input_data, const RuntimeShape& output_shape,
+                    int8_t* output_data);
 
 TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node);
 
@@ -58,4 +57,4 @@ TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_ACTIVATIONS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ACTIVATIONS_H_
