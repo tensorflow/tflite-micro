@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -408,13 +408,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddRelu() {
-    return AddBuiltin(BuiltinOperator_RELU, tflite::ops::micro::Register_RELU(),
-                      ParseRelu);
+    return AddBuiltin(BuiltinOperator_RELU, tflite::Register_RELU(), ParseRelu);
   }
 
   TfLiteStatus AddRelu6() {
-    return AddBuiltin(BuiltinOperator_RELU6,
-                      tflite::ops::micro::Register_RELU6(), ParseRelu6);
+    return AddBuiltin(BuiltinOperator_RELU6, tflite::Register_RELU6(),
+                      ParseRelu6);
   }
 
   TfLiteStatus AddReshape() {
