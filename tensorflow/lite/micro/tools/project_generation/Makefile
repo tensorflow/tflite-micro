@@ -67,4 +67,27 @@ hello_world: libtflm
 	@mkdir -p $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(wildcard examples/hello_world/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
 
-examples: hello_world
+magic_wand: libtflm
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(wildcard examples/magic_wand/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+MICRO_SPEECH_SRCS := $(wildcard examples/micro_speech/*.cc)
+MICRO_SPEECH_SRCS += $(wildcard examples/micro_speech/*/*.cc)
+MICRO_SPEECH_THIRD_PARTY_SRCS := $(wildcard third_party/kissfft/*.c)
+MICRO_SPEECH_THIRD_PARTY_SRCS += $(wildcard third_party/kissfft/*/*.c)
+
+micro_speech: libtflm
+	@mkdir -p $(BINDIR)
+# some includes are relative to the repo location of the header file
+# so a symbolic link is created to compensate
+	@ln -sfn ../../../examples tensorflow/lite/micro/examples
+	$(CXX) $(CXXFLAGS) $(MICRO_SPEECH_SRCS) $(MICRO_SPEECH_THIRD_PARTY_SRCS) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+PERSON_DETECTION_SRCS := $(wildcard examples/person_detection/*.cc)
+PERSON_DETECTION_THIRD_PARTY_SRCS := $(wildcard third_party/person_model_int8/*.cc)
+
+person_detection: libtflm
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(PERSON_DETECTION_SRCS) $(PERSON_DETECTION_THIRD_PARTY_SRCS) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+examples: hello_world magic_wand micro_speech person_detection

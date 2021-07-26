@@ -129,19 +129,18 @@ def _create_examples_tree(prefix_dir, examples_list):
   # special handling or they will end up outside the {prefix_dir} tree.
   dest_file_list = []
   for f in files:
-    relative_path = os.path.relpath(f, tflm_examples_path)
-    if ".." in relative_path:
-      # check if third-party download
-      relative_path = os.path.relpath(f, tflm_downloads_path)
-      if ".." in relative_path:
-        # not third-party, don't modify file name
-        full_filename = os.path.join(prefix_dir, f)
-      else:
-        # is third-party file
-        full_filename = os.path.join(prefix_dir, "third_party", relative_path)
-    else:
+    if tflm_examples_path in f:
       # file is in examples tree
+      relative_path = os.path.relpath(f, tflm_examples_path)
       full_filename = os.path.join(prefix_dir, "examples", relative_path)
+    elif tflm_downloads_path in f:
+      # is third-party file
+      relative_path = os.path.relpath(f, tflm_downloads_path)
+      full_filename = os.path.join(prefix_dir, "third_party", relative_path)
+    else:
+      # not third-party and not examples, don't modify file name
+      # ex. tensorflow/lite/experimental/microfrontend
+      full_filename = os.path.join(prefix_dir, f)
     dest_file_list.append(full_filename)
 
   for dest_file, filepath in zip(dest_file_list, files):

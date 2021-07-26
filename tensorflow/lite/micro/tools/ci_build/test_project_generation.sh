@@ -27,7 +27,10 @@ TEST_OUTPUT_DIR=$(mktemp -d)
 readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   ${TEST_OUTPUT_DIR} \
-  -e hello_world
+  -e hello_world \
+  -e magic_wand \
+  -e micro_speech \
+  -e person_detection
 
 # Confirm that print_src_files and print_dest_files output valid paths (and
 # nothing else).
