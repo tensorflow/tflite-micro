@@ -61,8 +61,10 @@ def _get_file_list(key, makefile_options):
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   src_files = []
-  src_files.extend(_get_file_list("list_third_party_sources", makefile_options))
-  src_files.extend(_get_file_list("list_third_party_headers", makefile_options))
+  src_files.extend(_get_file_list("list_third_party_sources",
+                                  makefile_options))
+  src_files.extend(_get_file_list("list_third_party_headers",
+                                  makefile_options))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a
@@ -171,9 +173,10 @@ def main():
   parser.add_argument("--no_copy",
                       action="store_true",
                       help="Do not copy files to output directory")
-  parser.add_argument("--no_download",
-                      action="store_true",
-                      help="Do not download the TFLM third_party dependencies.")
+  parser.add_argument(
+      "--no_download",
+      action="store_true",
+      help="Do not download the TFLM third_party dependencies.")
   parser.add_argument("--print_src_files",
                       action="store_true",
                       help="Print the src files (i.e. files in the TFLM tree)")
