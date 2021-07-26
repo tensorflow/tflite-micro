@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
 """Test for data_split_person.py."""
 
 from __future__ import absolute_import
@@ -26,7 +25,6 @@ from data_split_person import read_data
 
 
 class TestSplitPerson(unittest.TestCase):
-
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.data = read_data("./data/complete_data")
 
