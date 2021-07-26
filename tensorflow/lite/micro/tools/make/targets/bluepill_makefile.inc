@@ -28,7 +28,6 @@ PLATFORM_FLAGS = \
   -mthumb \
   -Wno-vla \
   -Wno-shadow \
-  -Wno-type-limits \
   -fomit-frame-pointer \
   -nostdlib
 
