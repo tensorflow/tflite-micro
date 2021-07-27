@@ -32,4 +32,4 @@ bool LogicalAnd(bool x, bool y);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_LOGICAL_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LOGICAL_H_
