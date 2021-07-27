@@ -15,9 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/examples/person_detection/no_person_image_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -75,8 +75,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
 
   // Copy an image with a person into the memory area used for the input.
-  TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_person_data_size));
-  memcpy(input->data.int8, g_person_data, input->bytes);
+  TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_person_image_data_size));
+  memcpy(input->data.int8, g_person_image_data, input->bytes);
 
   // Run the model on this input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter.Invoke();
