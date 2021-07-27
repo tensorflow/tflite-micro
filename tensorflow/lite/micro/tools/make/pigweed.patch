@@ -11,19 +11,30 @@ index 4a370e33..224ad9c6 100644
  
  _LOG = logging.getLogger(__name__)
 diff --git a/pw_presubmit/py/pw_presubmit/format_code.py b/pw_presubmit/py/pw_presubmit/format_code.py
-index 19d09546..dae2e813 100755
+index 19d09546..c1ff6b5a 100755
 --- a/pw_presubmit/py/pw_presubmit/format_code.py
 +++ b/pw_presubmit/py/pw_presubmit/format_code.py
-@@ -229,8 +229,7 @@ def print_format_check(errors: Dict[Path, str],
+@@ -142,7 +142,7 @@ def fix_go_format(files: Iterable[Path]) -> None:
+ 
+ 
+ def _yapf(*args, **kwargs) -> subprocess.CompletedProcess:
+-    return log_run(['python', '-m', 'yapf', '--parallel', *args],
++    return log_run(['python', '-m', 'yapf', '--style', '{based_on_style:pep8,indent_width:2}', '--parallel', *args],
+                    capture_output=True,
+                    **kwargs)
+ 
+@@ -229,11 +229,6 @@ def print_format_check(errors: Dict[Path, str],
              except ValueError:
                  return Path(path).resolve()
  
 -        message = (f'  pw format --fix {path_relative_to_cwd(path)}'
 -                   for path in errors)
-+        message = (f' tensorflow/lite/{__file__} --fix {path}' for path in errors)
-         _LOG.warning('To fix formatting, run:\n\n%s\n', '\n'.join(message))
- 
- 
+-        _LOG.warning('To fix formatting, run:\n\n%s\n', '\n'.join(message))
+-
+-
+ class CodeFormat(NamedTuple):
+     language: str
+     extensions: Collection[str]
 diff --git a/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py b/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py
 index 794967db..061db7ea 100755
 --- a/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py

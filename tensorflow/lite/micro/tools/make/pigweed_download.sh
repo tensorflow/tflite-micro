@@ -31,20 +31,17 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR=${SCRIPT_DIR}/../../../../..
+cd "${ROOT_DIR}"
+
+source tensorflow/lite/micro/tools/make/bash_helpers.sh
+
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
   echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
   exit 1
 fi
-
-# The BUILD files in the downloaded folder result in an error with:
-#  bazel build tensorflow/lite/micro/...
-#
-# Parameters:
-#   $1 - path to the downloaded flatbuffers code.
-function delete_build_files() {
-  rm -f `find ${1} -name BUILD`
-}
 
 DOWNLOADED_PIGWEED_PATH=${DOWNLOADS_DIR}/pigweed
 
@@ -53,13 +50,14 @@ if [ -d ${DOWNLOADED_PIGWEED_PATH} ]; then
 else
   git clone https://pigweed.googlesource.com/pigweed/pigweed ${DOWNLOADED_PIGWEED_PATH} >&2
   pushd ${DOWNLOADED_PIGWEED_PATH} > /dev/null
+
   git checkout 47268dff45019863e20438ca3746c6c62df6ef09 >&2
+  rm -rf ${DOWNLOADED_PIGWEED_PATH}/.git
+  rm -f `find . -name BUILD`
 
-  # Patch for TFLM specific changes that are not currently upstreamed.
-  git apply ../../pigweed.patch
+  apply_patch_to_folder ./ ../../pigweed.patch
+
   popd > /dev/null
-
-  delete_build_files ${DOWNLOADED_PIGWEED_PATH}
 fi
 
 echo "SUCCESS"

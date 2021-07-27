@@ -112,6 +112,7 @@ cc_library(
     name = "micro_ops",
     srcs = [
         "activations.cc",
+        "activations_common.cc",
         "add.cc",
         "add_n.cc",
         "arg_min_max.cc",
@@ -150,6 +151,7 @@ cc_library(
         "log_softmax.cc",
         "logical.cc",
         "logistic.cc",
+        "logistic_common.cc",
         "maximum_minimum.cc",
         "mul.cc",
         "neg.cc",
@@ -185,10 +187,12 @@ cc_library(
         "zeros_like.cc",
     ],
     hdrs = [
+        "activations.h",
         "conv.h",
         "depthwise_conv.h",
         "ethosu.h",
         "fully_connected.h",
+        "logistic.h",
         "micro_ops.h",
         "pooling.h",
         "quantize.h",

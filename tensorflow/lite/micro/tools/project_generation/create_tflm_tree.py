@@ -47,8 +47,9 @@ def _get_file_list(key, makefile_options):
   params_list = [
       "make", "-f", "tensorflow/lite/micro/tools/make/Makefile", key
   ] + makefile_options.split()
-  process = subprocess.Popen(
-      params_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  process = subprocess.Popen(params_list,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
   stdout, stderr = process.communicate()
 
   if process.returncode != 0:
@@ -60,8 +61,10 @@ def _get_file_list(key, makefile_options):
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   src_files = []
-  src_files.extend(_get_file_list("list_third_party_sources", makefile_options))
-  src_files.extend(_get_file_list("list_third_party_headers", makefile_options))
+  src_files.extend(_get_file_list("list_third_party_sources",
+                                  makefile_options))
+  src_files.extend(_get_file_list("list_third_party_headers",
+                                  makefile_options))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a tree
@@ -151,37 +154,33 @@ def _create_examples_tree(prefix_dir, examples_list):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
       description="Starting script for TFLM project generation")
-  parser.add_argument(
-      "output_dir", help="Output directory for generated TFLM tree")
-  parser.add_argument(
-      "--no_copy",
-      action="store_true",
-      help="Do not copy files to output directory")
+  parser.add_argument("output_dir",
+                      help="Output directory for generated TFLM tree")
+  parser.add_argument("--no_copy",
+                      action="store_true",
+                      help="Do not copy files to output directory")
   parser.add_argument(
       "--no_download",
       action="store_true",
       help="Do not download the TFLM third_party dependencies.")
-  parser.add_argument(
-      "--print_src_files",
-      action="store_true",
-      help="Print the src files (i.e. files in the TFLM tree)")
+  parser.add_argument("--print_src_files",
+                      action="store_true",
+                      help="Print the src files (i.e. files in the TFLM tree)")
   parser.add_argument(
       "--print_dest_files",
       action="store_true",
       help="Print the dest files (i.e. files in the output tree)")
-  parser.add_argument(
-      "--makefile_options",
-      default="",
-      help="Additional TFLM Makefile options. For example: "
-      "--makefile_options=\"TARGET=<target> "
-      "OPTIMIZED_KERNEL_DIR=<optimized_kernel_dir> "
-      "TARGET_ARCH=corex-m4\"")
-  parser.add_argument(
-      "--examples",
-      "-e",
-      action="append",
-      help="Examples to add to the output tree. For example: "
-      "-e hello_world -e micro_speech")
+  parser.add_argument("--makefile_options",
+                      default="",
+                      help="Additional TFLM Makefile options. For example: "
+                      "--makefile_options=\"TARGET=<target> "
+                      "OPTIMIZED_KERNEL_DIR=<optimized_kernel_dir> "
+                      "TARGET_ARCH=corex-m4\"")
+  parser.add_argument("--examples",
+                      "-e",
+                      action="append",
+                      help="Examples to add to the output tree. For example: "
+                      "-e hello_world -e micro_speech")
   args = parser.parse_args()
 
   makefile_options = args.makefile_options
@@ -195,7 +194,9 @@ if __name__ == "__main__":
         "make", "-f", "tensorflow/lite/micro/tools/make/Makefile",
         "third_party_downloads"
     ] + makefile_options.split()
-    process = subprocess.Popen(params_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(params_list,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
       raise RuntimeError("%s failed with \n\n %s" %
