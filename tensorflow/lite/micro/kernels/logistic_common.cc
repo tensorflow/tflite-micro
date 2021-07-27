@@ -13,12 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
 #include "tensorflow/lite/kernels/internal/reference/logistic.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -30,8 +29,9 @@ namespace tflite {
 const int kLogisticInputTensor = 0;
 const int kLogisticOutputTensor = 0;
 
-TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
-                                       OpDataLogistic* data) {
+TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
+                                               TfLiteNode* node,
+                                               OpDataLogistic* data) {
   const TfLiteTensor* input = GetInput(context, node, kLogisticInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* output = GetOutput(context, node, kLogisticOutputTensor);
@@ -62,7 +62,7 @@ TfLiteStatus LogisticPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataLogistic* data = static_cast<OpDataLogistic*>(node->user_data);
 
-  return CalculateArithmeticOpData(context, node, data);
+  return CalculateArithmeticOpDataLogistic(context, node, data);
 }
 
 }  // namespace tflite

@@ -338,8 +338,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLogistic() {
-    return AddBuiltin(BuiltinOperator_LOGISTIC,
-                      tflite::Register_LOGISTIC(), ParseLogistic);
+    return AddBuiltin(BuiltinOperator_LOGISTIC, tflite::Register_LOGISTIC(),
+                      ParseLogistic);
   }
 
   TfLiteStatus AddMaximum() {

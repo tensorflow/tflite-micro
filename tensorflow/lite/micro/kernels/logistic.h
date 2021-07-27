@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 
@@ -30,10 +32,11 @@ struct OpDataLogistic {
   int input_left_shift;
 };
 
-TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
-                                       OpDataLogistic* data);
+TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
+                                               TfLiteNode* node,
+                                               OpDataLogistic* data);
 
 TfLiteStatus LogisticPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
