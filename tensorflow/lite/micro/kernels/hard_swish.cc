@@ -23,10 +23,10 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/hard_swish.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/micro/kernels/hard_swish.h"
 
 namespace tflite {
 namespace {
@@ -58,14 +58,14 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int8_t>(output));
     } break;
     default: {
-      MicroPrintf( "Unsupported type %s", TfLiteTypeGetName(input->type));
+      MicroPrintf("Unsupported type %s", TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
   }
   return kTfLiteOk;
 }
 
-} // namespace
+}  // namespace
 
 TfLiteRegistration Register_HARD_SWISH() {
   return {/*init=*/HardSwishInit,

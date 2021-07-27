@@ -27,4 +27,4 @@ extern const int kHardSwishOutputTensor;
 TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node);
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_HARD_SWISH_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_HARD_SWISH_H_
