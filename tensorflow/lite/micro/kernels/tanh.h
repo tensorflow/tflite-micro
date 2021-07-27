@@ -30,11 +30,11 @@ struct OpDataTanh {
   int input_left_shift;
 };
 
-TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context, TfLiteNode* node,
-                                       OpDataTanh* data);
+TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context,
+                                           TfLiteNode* node, OpDataTanh* data);
 
 TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_TANH_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_TANH_H_
