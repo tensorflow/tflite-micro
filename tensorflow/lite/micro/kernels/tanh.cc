@@ -50,8 +50,8 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
                           tflite::micro::GetTensorData<float>(input),
                           tflite::micro::GetTensorShape(output),
                           tflite::micro::GetTensorData<float>(output));
-      return kTfLiteOk;
-    } break;
+      break;
+    }
     case kTfLiteInt16: {
       TanhParams params;
       params.input_left_shift = data.input_left_shift;
@@ -59,21 +59,8 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
                           tflite::micro::GetTensorData<int16_t>(input),
                           tflite::micro::GetTensorShape(output),
                           tflite::micro::GetTensorData<int16_t>(output));
-      return kTfLiteOk;
-    } break;
-    case kTfLiteUInt8: {
-      TanhParams params;
-      params.input_zero_point = data.input_zero_point;
-      params.input_range_radius = data.input_range_radius;
-      params.input_multiplier = data.input_multiplier;
-      params.input_left_shift = data.input_left_shift;
-      reference_ops::Tanh(params, tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<uint8_t>(input),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<uint8_t>(output));
-
-      return kTfLiteOk;
-    } break;
+      break;
+    }
     case kTfLiteInt8: {
       reference_integer_ops::Tanh(
           data.input_zero_point, data.input_range_radius, data.input_multiplier,
@@ -81,14 +68,17 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output));
-      return kTfLiteOk;
-    } break;
-    default:
-      TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
+      break;
+    }
+    default: {
+      MicroPrintf("Input %s, output %s not supported.",
                          TfLiteTypeGetName(input->type),
                          TfLiteTypeGetName(output->type));
       return kTfLiteError;
+             }
   }
+
+  return kTfLiteOk;
 }
 
 }  // namespace

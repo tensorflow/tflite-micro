@@ -31,7 +31,7 @@ namespace tflite {
 const int kTanhInputTensor = 0;
 const int kTanhOutputTensor = 0;
 
-TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context, TfLiteNode* node,
                                        OpDataTanh* data) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
@@ -42,7 +42,7 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8) {
     static constexpr int kInputIntegerBits = 4;
     const double input_real_multiplier =
         static_cast<double>(input->params.scale) *
@@ -59,13 +59,12 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-
   OpDataTanh* data = static_cast<OpDataTanh*>(node->user_data);
 
   const TfLiteTensor* input = GetInput(context, node, kTanhInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   data->input_zero_point = input->params.zero_point;
-  return CalculateArithmeticOpData(context, node, data);
+  return CalculateArithmeticOpDataTanh(context, node, data);
 }
 
 }  // namespace tflite

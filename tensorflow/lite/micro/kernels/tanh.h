@@ -30,7 +30,7 @@ struct OpDataTanh {
   int input_left_shift;
 };
 
-TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context, TfLiteNode* node,
                                        OpDataTanh* data);
 
 TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node);
