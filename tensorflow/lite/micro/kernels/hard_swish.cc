@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/kernels/hard_swish.h"
 
@@ -49,13 +50,6 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output));
     } break;
-    case kTfLiteUInt8: {
-      tflite::reference_ops::HardSwish<uint8_t>(
-          *params, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<uint8_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<uint8_t>(output));
-    } break;
     case kTfLiteInt8: {
       tflite::reference_ops::HardSwish<int8_t>(
           *params, tflite::micro::GetTensorShape(input),
@@ -64,10 +58,7 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int8_t>(output));
     } break;
     default: {
-      TF_LITE_KERNEL_LOG(
-          context,
-          "Only float32/int8_t/uint8_t are supported currently, got %s",
-          TfLiteTypeGetName(input->type));
+      MicroPrintf( "Unsupported type %s", TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
   }

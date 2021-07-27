@@ -42,7 +42,7 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = GetOutput(context, node, kHardSwishOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8) {
     HardSwishParams* params = static_cast<HardSwishParams*>(node->user_data);
 
     params->input_zero_point = input->params.zero_point;
