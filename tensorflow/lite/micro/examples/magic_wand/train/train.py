@@ -15,7 +15,6 @@
 # ==============================================================================
 # pylint: disable=redefined-outer-name
 # pylint: disable=g-bad-import-order
-
 """Build and train neural networks."""
 
 from __future__ import absolute_import
@@ -91,8 +90,10 @@ def build_lstm(seq_length):
 
 
 def load_data(train_data_path, valid_data_path, test_data_path, seq_length):
-  data_loader = DataLoader(
-      train_data_path, valid_data_path, test_data_path, seq_length=seq_length)
+  data_loader = DataLoader(train_data_path,
+                           valid_data_path,
+                           test_data_path,
+                           seq_length=seq_length)
   data_loader.format()
   return data_loader.train_len, data_loader.train_data, data_loader.valid_len, \
       data_loader.valid_data, data_loader.test_len, data_loader.test_data
@@ -122,10 +123,9 @@ def train_net(
   calculate_model_size(model)
   epochs = 50
   batch_size = 64
-  model.compile(
-      optimizer="adam",
-      loss="sparse_categorical_crossentropy",
-      metrics=["accuracy"])
+  model.compile(optimizer="adam",
+                loss="sparse_categorical_crossentropy",
+                metrics=["accuracy"])
   if kind == "CNN":
     train_data = train_data.map(reshape_function)
     test_data = test_data.map(reshape_function)
@@ -138,19 +138,17 @@ def train_net(
   train_data = train_data.batch(batch_size).repeat()
   valid_data = valid_data.batch(batch_size)
   test_data = test_data.batch(batch_size)
-  model.fit(
-      train_data,
-      epochs=epochs,
-      validation_data=valid_data,
-      steps_per_epoch=1000,
-      validation_steps=int((valid_len - 1) / batch_size + 1),
-      callbacks=[tensorboard_callback])
+  model.fit(train_data,
+            epochs=epochs,
+            validation_data=valid_data,
+            steps_per_epoch=1000,
+            validation_steps=int((valid_len - 1) / batch_size + 1),
+            callbacks=[tensorboard_callback])
   loss, acc = model.evaluate(test_data)
   pred = np.argmax(model.predict(test_data), axis=1)
-  confusion = tf.math.confusion_matrix(
-      labels=tf.constant(test_labels),
-      predictions=tf.constant(pred),
-      num_classes=4)
+  confusion = tf.math.confusion_matrix(labels=tf.constant(test_labels),
+                                       predictions=tf.constant(pred),
+                                       num_classes=4)
   print(confusion)
   print("Loss {}, Accuracy {}".format(loss, acc))
   # Convert the model to the TensorFlow Lite format without quantization
