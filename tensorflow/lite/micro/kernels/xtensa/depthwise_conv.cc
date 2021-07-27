@@ -42,7 +42,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
 
-#if defined(FUSION_F1) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
 #endif  // defined(FUISON_F1) || defined(HIFI5)
   return kTfLiteOk;
@@ -107,7 +107,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int32_t>(bias),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output));
-#elif defined(FUSION_F1) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI5)
       DepthwiseConvEvalHifi(context, node, params, op_data, input, filter, bias,
                             output);
 #else

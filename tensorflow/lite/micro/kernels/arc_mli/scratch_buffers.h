@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ static inline bool inside_arc_xccm(void* p) {
 }
 
 static inline bool inside_arc_yccm(void* p) {
-#if core_config_xy
+#if core_config_xy_size
   return ((unsigned)p >= core_config_xy_y_base) &&
          ((unsigned)p < core_config_xy_y_base + core_config_xy_size);
 #else
@@ -57,8 +57,18 @@ static inline bool inside_arc_yccm(void* p) {
 #endif
 }
 
+static inline bool inside_arc_vccm(void* p) {
+#if core_config_vec_mem_size
+  return ((unsigned)p >= core_config_vec_mem_base) &&
+         ((unsigned)p < core_config_vec_mem_base + core_config_vec_mem_size);
+#else
+  return false;
+#endif
+}
+
 static inline bool inside_arc_ccm(void* p) {
-  return inside_arc_dccm(p) || inside_arc_xccm(p) || inside_arc_yccm(p);
+  return inside_arc_dccm(p) || inside_arc_xccm(p) || inside_arc_yccm(p) ||
+         inside_arc_vccm(p);
 }
 
 }  // namespace micro

@@ -16,7 +16,7 @@ of the device.
 
 ## Table of contents
 
--   [Deploy to ARC EM SDP](#deploy-to-arc-em-sdp)
+-   [Running on ARC](#running-on-ARC)
 -   [Deploy to Arduino](#deploy-to-arduino)
 -   [Deploy to ESP32](#deploy-to-esp32)
 -   [Deploy to Himax WE1 EVB](#deploy-to-himax-we1-evb)
@@ -25,8 +25,9 @@ of the device.
 -   [Run the tests on a development machine](#run-the-tests-on-a-development-machine)
 -   [Train your own model](#train-your-own-model)
 
-## Deploy to ARC EM SDP
+## Running on ARC
 
+### **Deploy on ARC EMSDP**
 The following instructions will help you to build and deploy this example to
 [ARC EM SDP](https://www.synopsys.com/dw/ipdir.php?ds=arc-em-software-development-platform)
 board. General information and instructions on using the board with TensorFlow
@@ -45,14 +46,17 @@ The example project for ARC EM SDP platform can be generated with the following
 command:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli ARC_TAGS=no_arc_mli generate_hello_world_make_project
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_emsdp \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+generate_hello_world_make_project
 ```
 
 ### Build and Run Example
 
 For more detailed information on building and running examples see the
 appropriate sections of general descriptions of the
-[ARC EM SDP usage with TFLM](/tensorflow/lite/micro/tools/make/targets/arc/README.md#ARC-EM-Software-Development-Platform-ARC-EM-SDP).
+[ARC EM SDP usage with TensorFlow Lite Micro (TFLM)](/tensorflow/lite/micro/tools/make/targets/arc/README.md#ARC-EM-Software-Development-Platform-ARC-EM-SDP).
 In the directory with generated project you can also find a
 *README_ARC_EMSDP.md* file with instructions and options on building and
 running. Here we only briefly mention main steps which are typically enough to
@@ -62,10 +66,10 @@ get it started.
     [connect the board](/tensorflow/lite/micro/tools/make/targets/arc/README.md#connect-the-board)
     and open an serial connection.
 
-2.  Go to the generated example project director
+2.  Go to the generated example project directory.
 
     ```
-    cd tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc/prj/hello_world/make
+    cd tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc_default/prj/hello_world/make
     ```
 
 3.  Build the example using
@@ -97,6 +101,66 @@ get it started.
 6.  If you have the MetaWare Debugger installed in your environment:
 
     *   To run application from the console using it type `make run`.
+    *   To stop the execution type `Ctrl+C` in the console several times.
+
+In both cases (step 5 and 6) you will see the application output in the serial
+terminal.
+
+### **Deploy on ARC VPX processor**
+
+The [embARC MLI Library 2.0](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA) enables TFLM library and examples to be used with the ARC VPX processor. This is currently an experimental feature. General information and instructions on using embARC MLI Library 2.0 with TFLM can be found in the common [ARC targets description](/tensorflow/lite/micro/tools/make/targets/arc/README.md).
+
+### Initial Setup
+
+Follow the instructions in the [Custom ARC EM/HS/VPX Platform](/tensorflow/lite/micro/tools/make/targets/arc/README.md#Custom-ARC-EMHSVPX-Platform) section to get and install all the required tools for working with the ARC VPX Processor.
+
+### Generate Example Project
+
+The example project for ARC VPX platform can be generated with the following
+command:
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom\
+ARC_TAGS=mli20_experimental \
+BUILD_LIB_DIR=<path_to_buildlib> \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+generate_person_detection_int8_make_project
+```
+TCF file for VPX Processor can be generated using tcfgen tool which is part of [MetaWare Development Toolkit](#MetaWare-Development-Toolkit). \
+The following command can be used to generate TCF file to run applications on VPX Processor using nSIM Simulator:
+```
+tcfgen -o vpx5_integer_full.tcf -tcf=vpx5_integer_full -iccm_size=0x80000 -dccm_size=0x40000
+```
+VPX Processor configuration may require a custom run-time library specified using the BUILD_LIB_DIR option. Please, check MLI Library 2.0 [documentation](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA#build-configuration-options) for more details. 
+
+### Build and Run Example
+
+For more detailed information on building and running examples see the
+appropriate sections of general descriptions of the
+[Custom ARC EM/HS/VPX Platform](/tensorflow/lite/micro/tools/make/targets/arc/README.md#Custom-ARC-EMHSVPX-Platform).
+In the directory with generated project you can also find a
+*README_ARC.md* file with instructions and options on building and
+running. Here we only briefly mention main steps which are typically enough to
+get started.
+
+1.  Go to the generated example project directory.
+
+    ```
+    cd tensorflow/lite/micro/tools/make/gen/vpx5_integer_full_mli20_arc_default/prj/hello_world/make
+    ```
+
+2.  Build the example using
+
+    ```
+    make app
+    ```
+
+3.  To run application from the MetaWare Debugger installed in your environment:
+
+    *   From the console, type `make run`.
     *   To stop the execution type `Ctrl+C` in the console several times.
 
 In both cases (step 5 and 6) you will see the application output in the serial
@@ -245,7 +309,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile TARGET=himax_we1_evb third_par
 Generate hello world project
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile generate_hello_world_make_project TARGET=himax_we1_evb ARC_TAGS=no_arc_mli
+make -f tensorflow/lite/micro/tools/make/Makefile generate_hello_world_make_project TARGET=himax_we1_evb
 ```
 
 ### Build and Burn Example

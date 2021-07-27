@@ -108,26 +108,23 @@ def main(unused_args, flags):
 def parse_args():
   """Converts the raw arguments into accessible flags."""
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-      '--third_party_headers',
-      type=str,
-      default='',
-      help='Space-separated list of headers to resolve.')
-  parser.add_argument(
-      '--is_example_ino',
-      dest='is_example_ino',
-      action='store_true',
-      help='Whether the destination is an example main ino.')
+  parser.add_argument('--third_party_headers',
+                      type=str,
+                      default='',
+                      help='Space-separated list of headers to resolve.')
+  parser.add_argument('--is_example_ino',
+                      dest='is_example_ino',
+                      action='store_true',
+                      help='Whether the destination is an example main ino.')
   parser.add_argument(
       '--is_example_source',
       dest='is_example_source',
       action='store_true',
       help='Whether the destination is an example cpp or header file.')
-  parser.add_argument(
-      '--source_path',
-      type=str,
-      default='',
-      help='The relative path of the source code file.')
+  parser.add_argument('--source_path',
+                      type=str,
+                      default='',
+                      help='The relative path of the source code file.')
   flags, unparsed = parser.parse_known_args()
 
   main(unparsed, flags)
