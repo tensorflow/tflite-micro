@@ -14,7 +14,6 @@
 # limitations under the License.
 # ==============================================================================
 # pylint: disable=g-bad-import-order
-
 """Test for data_augmentation.py."""
 
 from __future__ import absolute_import
@@ -30,7 +29,6 @@ from data_augmentation import time_wrapping
 
 
 class TestAugmentation(unittest.TestCase):
-
   def test_time_wrapping(self):
     original_data = np.random.rand(10, 3).tolist()
     wrapped_data = time_wrapping(4, 5, original_data)

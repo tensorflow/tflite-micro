@@ -160,14 +160,13 @@ def main():
   parser = argparse.ArgumentParser(
       description='This program converts raw data from HM01B0 to a bmp file.')
 
-  parser.add_argument(
-      '-i',
-      '--input',
-      dest='inputfile',
-      required=True,
-      help='input file',
-      metavar='FILE',
-      type=check_file_existence)
+  parser.add_argument('-i',
+                      '--input',
+                      dest='inputfile',
+                      required=True,
+                      help='input file',
+                      metavar='FILE',
+                      type=check_file_existence)
 
   parser.add_argument(
       '-r',
@@ -179,12 +178,12 @@ def main():
       default='QVGA',
   )
 
-  parser.add_argument(
-      '-v',
-      '--version',
-      help='Program version',
-      action='version',
-      version='%(prog)s {ver}'.format(ver='v%d.%d' % (_VERSION, _SUBVERSION)))
+  parser.add_argument('-v',
+                      '--version',
+                      help='Program version',
+                      action='version',
+                      version='%(prog)s {ver}'.format(ver='v%d.%d' %
+                                                      (_VERSION, _SUBVERSION)))
 
   args = parser.parse_args()
 

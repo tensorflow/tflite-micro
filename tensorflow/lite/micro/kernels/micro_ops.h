@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,8 +52,13 @@ TfLiteRegistration Register_IF();
 TfLiteRegistration Register_L2_POOL_2D();
 TfLiteRegistration Register_LEAKY_RELU();
 TfLiteRegistration Register_LOG_SOFTMAX();
+TfLiteRegistration Register_LOGICAL_AND();
+TfLiteRegistration Register_LOGICAL_OR();
+TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
 TfLiteRegistration Register_QUANTIZE();
+TfLiteRegistration Register_RELU();
+TfLiteRegistration Register_RELU6();
 TfLiteRegistration Register_RESIZE_BILINEAR();
 TfLiteRegistration Register_SHAPE();
 TfLiteRegistration Register_SPACE_TO_BATCH_ND();
@@ -84,10 +89,7 @@ TfLiteRegistration Register_GREATER_EQUAL();
 TfLiteRegistration Register_LESS();
 TfLiteRegistration Register_LESS_EQUAL();
 TfLiteRegistration Register_LOG();
-TfLiteRegistration Register_LOGICAL_AND();
 TfLiteRegistration Register_LOGICAL_NOT();
-TfLiteRegistration Register_LOGICAL_OR();
-TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAXIMUM();
 TfLiteRegistration Register_MEAN();
 TfLiteRegistration Register_MINIMUM();
@@ -99,8 +101,6 @@ TfLiteRegistration Register_PAD();
 TfLiteRegistration Register_PADV2();
 TfLiteRegistration Register_PRELU();
 TfLiteRegistration Register_REDUCE_MAX();
-TfLiteRegistration Register_RELU();
-TfLiteRegistration Register_RELU6();
 TfLiteRegistration Register_RESHAPE();
 TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TfLiteRegistration Register_ROUND();
