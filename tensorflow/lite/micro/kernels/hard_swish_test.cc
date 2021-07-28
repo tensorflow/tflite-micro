@@ -105,8 +105,7 @@ void TestHardSwishQuantized(int size, const T* output_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+  const TfLiteRegistration registration = tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -184,8 +183,7 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+  const TfLiteRegistration registration = tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -236,8 +234,7 @@ void TestHardSwishFloat(const int size, float* output_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_HARD_SWISH();
+  const TfLiteRegistration registration = tflite::Register_HARD_SWISH();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -292,51 +289,6 @@ TF_LITE_MICRO_TEST(SimpleHardSwishTestInt8) {
           input_values, output_values);
     }
   }
-}
-
-TF_LITE_MICRO_TEST(SimpleHardSwishTestUint8) {
-  std::minstd_rand random_engine;
-  constexpr int size = 99;
-  constexpr int pairs = 4, one_pair = 2;
-  constexpr float minmax_pairs[pairs][one_pair] = {
-      {0.f, 1.f}, {-2.f, 1.f}, {-5.f, 10.f}, {-40.f, 60.f}};
-  uint8_t output_data[size] = {0};
-  uint8_t input_data_quantized[size] = {0};
-  float dequantized_output[size] = {0.f};
-  float input_values[size] = {0.f};
-  float output_values[size] = {0.f};
-
-  for (int x = 0; x < pairs; x++) {
-    for (int y = 0; y < pairs; y++) {
-      float input_min = minmax_pairs[x][0];
-      float input_max = minmax_pairs[x][1];
-      float output_min = minmax_pairs[y][0];
-      float output_max = minmax_pairs[y][1];
-
-      tflite::testing::TestHardSwishQuantized<uint8_t>(
-          size, output_data, input_data_quantized, dequantized_output,
-          input_min, input_max, output_min, output_max, &random_engine,
-          input_values, output_values);
-    }
-  }
-}
-
-// See the comment in the reference implementation of quantized HardSwish:
-// A numerical issue significantly affecting ImageNet classification accuracy
-// with MobileNet v3 is only observable at the scale of HardSwish unit tests
-// if we monitor specifically bias. This testcase is extracted from one of the
-// HardSwish nodes in that MobileNet v3 that exhibited this issue.
-TF_LITE_MICRO_TEST(SimpleHardSwishTestQuantizedBias) {
-  constexpr int size = 43;
-  uint8_t output_data[size] = {0};
-  uint8_t input_data_quantized[size] = {0};
-  float dequantized_output[size] = {0.f};
-  float input_values[size] = {0.f};
-  float output_values[size] = {0.f};
-
-  tflite::testing::TestHardSwishQuantizedBias<uint8_t>(
-      size, output_data, input_data_quantized, dequantized_output, -11.654928f,
-      25.036512f, -0.3905796f, 24.50887f, 0.035, input_values, output_values);
 }
 
 TF_LITE_MICRO_TESTS_END
