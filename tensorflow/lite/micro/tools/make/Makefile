@@ -640,12 +640,8 @@ include $(MICRO_LITE_BENCHMARKS)
 include $(MAKEFILE_DIR)/additional_tests.inc
 
 # Generate cc files and headers for all models and bitmaps in project Makefiles.
-# Generated source directories are sorted to deduplicate.
-GENERATED_SOURCE_DIRS := $(sort $(foreach GENERATOR_INPUT,$(GENERATOR_INPUTS), $(shell python3 $(MAKEFILE_DIR)/generate_cc_arrays.py $(GENERATOR_INPUT) $(CORE_OBJDIR)$(GENERATOR_INPUT))))
-
-# Add all cc sources in the output directories printed by the generation
-# python script.
-MICROLITE_CC_SRCS += $(foreach SOURCE_DIR,$(GENERATED_SOURCE_DIRS),$(wildcard $(SOURCE_DIR)/*.cc))
+# Add all generated cc sources to the build.
+MICROLITE_CC_SRCS += $(shell python3 $(MAKEFILE_DIR)/generate_cc_arrays.py $(CORE_OBJDIR) $(GENERATOR_INPUTS))
 
 # Include output directory since example cc files depend on generated headers. 
 INCLUDES += -I$(CORE_OBJDIR)
