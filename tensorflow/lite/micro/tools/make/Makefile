@@ -380,6 +380,7 @@ tensorflow/lite/micro/kernels/fully_connected_common.cc \
 tensorflow/lite/micro/kernels/gather.cc \
 tensorflow/lite/micro/kernels/gather_nd.cc \
 tensorflow/lite/micro/kernels/hard_swish.cc \
+tensorflow/lite/micro/kernels/hard_swish_common.cc \
 tensorflow/lite/micro/kernels/if.cc \
 tensorflow/lite/micro/kernels/kernel_runner.cc \
 tensorflow/lite/micro/kernels/kernel_util.cc \
@@ -387,7 +388,9 @@ tensorflow/lite/micro/kernels/l2norm.cc \
 tensorflow/lite/micro/kernels/l2_pool_2d.cc \
 tensorflow/lite/micro/kernels/leaky_relu.cc \
 tensorflow/lite/micro/kernels/logical.cc \
+tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
+tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
 tensorflow/lite/micro/kernels/mul.cc \
