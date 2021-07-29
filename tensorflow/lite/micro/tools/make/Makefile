@@ -641,7 +641,7 @@ include $(MAKEFILE_DIR)/additional_tests.inc
 
 # Generate cc files and headers for all models and bitmaps in project Makefiles.
 # Add all generated cc sources to the build.
-MICROLITE_CC_SRCS += $(shell python3 $(MAKEFILE_DIR)/generate_cc_arrays.py $(CORE_OBJDIR) $(GENERATOR_INPUTS))
+MICROLITE_CC_SRCS += $(shell python3 $(MAKEFILE_DIR)/make_generate_cc_arrays.py $(CORE_OBJDIR) $(GENERATOR_INPUTS))
 
 # Include output directory since example cc files depend on generated headers. 
 INCLUDES += -I$(CORE_OBJDIR)
