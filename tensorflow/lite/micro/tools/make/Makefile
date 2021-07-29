@@ -242,6 +242,7 @@ GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
 PRJDIR := $(GENDIR)prj/
@@ -641,10 +642,10 @@ include $(MAKEFILE_DIR)/additional_tests.inc
 
 # Generate cc files and headers for all models and bitmaps in project Makefiles.
 # Add all generated cc sources to the build.
-MICROLITE_CC_SRCS += $(shell python3 $(MAKEFILE_DIR)/make_generate_cc_arrays.py $(CORE_OBJDIR) $(GENERATOR_INPUTS))
+MICROLITE_CC_SRCS += $(shell python3 $(MAKEFILE_DIR)/make_generate_cc_arrays.py $(GENERATED_SRCS_DIR) $(GENERATOR_INPUTS))
 
-# Include output directory since example cc files depend on generated headers. 
-INCLUDES += -I$(CORE_OBJDIR)
+# Include output directory since example cc files depend on generated headers.
+INCLUDES += -I$(GENERATED_SRCS_DIR)
 
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
