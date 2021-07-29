@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
 """Test for data_split.py."""
 
 from __future__ import absolute_import
@@ -27,7 +26,6 @@ from data_split import split_data
 
 
 class TestSplit(unittest.TestCase):
-
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.data = read_data("./data/complete_data")
     self.num_dic = {"wing": 0, "ring": 0, "slope": 0, "negative": 0}
@@ -39,8 +37,8 @@ class TestSplit(unittest.TestCase):
     self.assertEqual(len(self.data), self.num)
     self.assertIsInstance(self.data, list)
     self.assertIsInstance(self.data[0], dict)
-    self.assertEqual(
-        set(list(self.data[-1])), set(["gesture", "accel_ms2_xyz", "name"]))
+    self.assertEqual(set(list(self.data[-1])),
+                     set(["gesture", "accel_ms2_xyz", "name"]))
 
   def test_split_data(self):
     with open("./data/complete_data", "r") as f:
@@ -52,7 +50,8 @@ class TestSplit(unittest.TestCase):
             self.num_dic[ges] += 1
     train_data_0, valid_data_0, test_data_100 = split_data(self.data, 0, 0)
     train_data_50, valid_data_50, test_data_0 = split_data(self.data, 0.5, 0.5)
-    train_data_60, valid_data_20, test_data_20 = split_data(self.data, 0.6, 0.2)
+    train_data_60, valid_data_20, test_data_20 = split_data(
+        self.data, 0.6, 0.2)
     len_60 = int(self.num_dic["wing"] * 0.6) + int(
         self.num_dic["ring"] * 0.6) + int(self.num_dic["slope"] * 0.6) + int(
             self.num_dic["negative"] * 0.6)
