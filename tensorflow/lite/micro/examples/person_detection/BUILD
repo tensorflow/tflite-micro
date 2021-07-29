@@ -19,45 +19,45 @@ cc_library(
 )
 
 generate_cc_arrays(
-  name="generated_no_person_bmp_cc",
-  src="testdata/no_person.bmp",
-  out="testdata/no_person_image_data.cc",
+    name="generated_no_person_bmp_cc",
+    src="testdata/no_person.bmp",
+    out="testdata/no_person_image_data.cc",
 )
 
 generate_cc_arrays(
-  name="generated_no_person_bmp_hdr",
-  src="testdata/no_person.bmp",
-  out="testdata/no_person_image_data.h",
+    name="generated_no_person_bmp_hdr",
+    src="testdata/no_person.bmp",
+    out="testdata/no_person_image_data.h",
 )
 
 generate_cc_arrays(
-  name="generated_person_bmp_cc",
-  src="testdata/person.bmp",
-  out="testdata/person_image_data.cc",
+    name="generated_person_bmp_cc",
+    src="testdata/person.bmp",
+    out="testdata/person_image_data.cc",
 )
 
 generate_cc_arrays(
-  name="generated_person_bmp_hdr",
-  src="testdata/person.bmp",
-  out="testdata/person_image_data.h",
+    name="generated_person_bmp_hdr",
+    src="testdata/person.bmp",
+    out="testdata/person_image_data.h",
 )
 
 generate_cc_arrays(
-  name="generated_person_detect_model_cc",
-  src="person_detect.tflite",
-  out="person_detect_model_data.cc",
+    name="generated_person_detect_model_cc",
+    src="person_detect.tflite",
+    out="person_detect_model_data.cc",
 )
 
 generate_cc_arrays(
-  name="generated_person_detect_model_hdr",
-  src="person_detect.tflite",
-  out="person_detect_model_data.h",
+    name="generated_person_detect_model_hdr",
+    src="person_detect.tflite",
+    out="person_detect_model_data.h",
 )
 
 cc_library(
     name = "person_detect_model_data",
     srcs = [
-      ":generated_person_detect_model_cc",
+        ":generated_person_detect_model_cc",
     ],
     hdrs = [
         ":generated_person_detect_model_hdr",
@@ -70,12 +70,12 @@ cc_library(
 cc_library(
     name = "simple_images_test_data",
     srcs = [
-      ":generated_person_bmp_cc",
-      ":generated_no_person_bmp_cc",
+        ":generated_person_bmp_cc",
+        ":generated_no_person_bmp_cc",
     ],
     hdrs = [
-      ":generated_person_bmp_hdr",
-      ":generated_no_person_bmp_hdr",
+        ":generated_person_bmp_hdr",
+        ":generated_no_person_bmp_hdr",
     ],
     tags = [
         "no_oss",  # TODO(b/174680668): Exclude from OSS.
@@ -84,7 +84,6 @@ cc_library(
         ":model_settings",
     ],
 )
-
 
 cc_test(
     name = "person_detection_test",
