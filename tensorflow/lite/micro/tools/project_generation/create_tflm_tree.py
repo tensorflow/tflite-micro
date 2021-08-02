@@ -32,6 +32,7 @@ we get further along in our prototyping. See this github issue for more details:
 import argparse
 import fileinput
 import os
+import re
 import shutil
 import subprocess
 
@@ -61,10 +62,8 @@ def _get_file_list(key, makefile_options):
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   src_files = []
-  src_files.extend(_get_file_list("list_third_party_sources",
-                                  makefile_options))
-  src_files.extend(_get_file_list("list_third_party_headers",
-                                  makefile_options))
+  src_files.extend(_get_file_list("list_third_party_sources", makefile_options))
+  src_files.extend(_get_file_list("list_third_party_headers", makefile_options))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a
@@ -153,16 +152,19 @@ def _create_examples_tree(prefix_dir, examples_list):
   # Since we are changing the directory structure for the examples, we will also
   # need to modify the paths in the code.
   for filepath in dest_file_list:
-    # We need a trailing forward slash because what we care about is replacing
-    # the include paths.
-    text_to_replace = os.path.join(
-        tflm_examples_path, os.path.basename(os.path.dirname(filepath))) + "/"
-
     with fileinput.FileInput(filepath, inplace=True) as f:
       for line in f:
+        include_match = re.match(
+            r'.*#include.*"' + tflm_examples_path + r'/([^/]+)/.*"', line)
+        if include_match:
+          # We need a trailing forward slash because what we care about is
+          # replacing the include paths.
+          text_to_replace = os.path.join(tflm_examples_path,
+                                         include_match.group(1)) + "/"
+          line = line.replace(text_to_replace, "")
         # end="" prevents an extra newline from getting added as part of the
         # in-place find and replace.
-        print(line.replace(text_to_replace, ""), end="")
+        print(line, end="")
 
 
 def main():
@@ -173,10 +175,9 @@ def main():
   parser.add_argument("--no_copy",
                       action="store_true",
                       help="Do not copy files to output directory")
-  parser.add_argument(
-      "--no_download",
-      action="store_true",
-      help="Do not download the TFLM third_party dependencies.")
+  parser.add_argument("--no_download",
+                      action="store_true",
+                      help="Do not download the TFLM third_party dependencies.")
   parser.add_argument("--print_src_files",
                       action="store_true",
                       help="Print the src files (i.e. files in the TFLM tree)")
