@@ -1,5 +1,5 @@
 
-name: ESP32
+name: RISC-V
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
@@ -11,16 +11,16 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  esp32_daily:
+  riscv_daily:
     runs-on: ubuntu-latest
 
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
-    name: ESP32 Continuous Builds
+    name: RISC-V Continuous Builds
     steps:
       - uses: actions/checkout@v2
       - name: Test
         run: |
-          docker run --rm -v `pwd`:/opt/tflite-micro espressif/idf:release-v4.3 /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_esp32.sh
+          tensorflow/lite/micro/tools/ci_build/test_riscv.sh

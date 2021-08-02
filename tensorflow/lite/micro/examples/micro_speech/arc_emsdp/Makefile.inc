@@ -17,11 +17,12 @@ ifeq ($(TARGET), arc_emsdp)
   micro_speech_patch.txt
 
   ARC_MLI_BACKEND_PATH = /tensorflow/lite/micro/kernels/arc_mli
+  MODEL_PATH = /tensorflow/lite/micro/examples/micro_speech/micro_features
 
 # Apply changes in generated project files. 
 # See related comment echoed (@echo <comment>) after each change 
 # to get understanding on it's purpose.
-%/micro_speech_patch.txt: %/emsdp.lcf %/Makefile %$(ARC_MLI_BACKEND_PATH)/depthwise_conv.cc
+%/micro_speech_patch.txt: %/emsdp.lcf %/Makefile %$(ARC_MLI_BACKEND_PATH)/depthwise_conv.cc %$(MODEL_PATH)/model.cc
 	@cp tensorflow/lite/micro/examples/micro_speech/arc_emsdp/emsdp.lcf $< 
 	@echo emsdp.lcf: Example specific memory map > $@
 	
@@ -35,6 +36,10 @@ ifeq ($(TARGET), arc_emsdp)
 	@echo Makefile: set scratch buffers size to 0 >> $@
 	@echo Makefile: No Reference fallback for MLI supported functions >> $@
 
+ifneq ($(filter $(ARC_TAGS), mli20_experimental), )
+	@python tensorflow/lite/micro/tools/make/targets/arc/adaptation_tool.py $(word 4, $^)
+	@echo Makefile: Called python script >> $@
+endif
 
 ifneq ($(filter $(ARC_TAGS), reduce_codesize),)
 # In case 'reduce_codesize' tag is present, we replace common MLI functions with 
