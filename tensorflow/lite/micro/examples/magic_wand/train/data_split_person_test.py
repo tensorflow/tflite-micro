@@ -25,28 +25,28 @@ from data_split_person import read_data
 
 
 class TestSplitPerson(unittest.TestCase):
-  def setUp(self):  # pylint: disable=g-missing-super-call
-    self.data = read_data("./data/complete_data")
+    def setUp(self):  # pylint: disable=g-missing-super-call
+        self.data = read_data("./data/complete_data")
 
-  def test_person_split(self):
-    train_names = ["dengyl"]
-    valid_names = ["liucx"]
-    test_names = ["tangsy"]
-    dengyl_num = 63
-    liucx_num = 63
-    tangsy_num = 30
-    train_data, valid_data, test_data = person_split(self.data, train_names,
-                                                     valid_names, test_names)
-    self.assertEqual(len(train_data), dengyl_num)
-    self.assertEqual(len(valid_data), liucx_num)
-    self.assertEqual(len(test_data), tangsy_num)
-    self.assertIsInstance(train_data, list)
-    self.assertIsInstance(valid_data, list)
-    self.assertIsInstance(test_data, list)
-    self.assertIsInstance(train_data[0], dict)
-    self.assertIsInstance(valid_data[0], dict)
-    self.assertIsInstance(test_data[0], dict)
+    def test_person_split(self):
+        train_names = ["dengyl"]
+        valid_names = ["liucx"]
+        test_names = ["tangsy"]
+        dengyl_num = 63
+        liucx_num = 63
+        tangsy_num = 30
+        train_data, valid_data, test_data = person_split(
+            self.data, train_names, valid_names, test_names)
+        self.assertEqual(len(train_data), dengyl_num)
+        self.assertEqual(len(valid_data), liucx_num)
+        self.assertEqual(len(test_data), tangsy_num)
+        self.assertIsInstance(train_data, list)
+        self.assertIsInstance(valid_data, list)
+        self.assertIsInstance(test_data, list)
+        self.assertIsInstance(train_data[0], dict)
+        self.assertIsInstance(valid_data[0], dict)
+        self.assertIsInstance(test_data[0], dict)
 
 
 if __name__ == "__main__":
-  unittest.main()
+    unittest.main()

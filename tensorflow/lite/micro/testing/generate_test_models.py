@@ -32,51 +32,55 @@ import tensorflow as tf
 
 
 def generate_conv_model():
-  """Creates a basic Keras model and converts to tflite.
+    """Creates a basic Keras model and converts to tflite.
 
   This model does not make any relevant classifications. It only exists to
   generate a model that is designed to run on embedded devices.
   """
-  input_shape = (16, 16, 1)
+    input_shape = (16, 16, 1)
 
-  model = tf.keras.models.Sequential()
-  model.add(
-      tf.keras.layers.Conv2D(16, 3, activation="relu",
-                             input_shape=input_shape))
-  model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
-  model.add(tf.keras.layers.MaxPooling2D(2))
-  model.add(tf.keras.layers.Flatten())
-  model.add(tf.keras.layers.Dense(10))
-  model.compile(optimizer="adam",
-                loss="categorical_crossentropy",
-                metrics=["accuracy"])
-  model.summary()
+    model = tf.keras.models.Sequential()
+    model.add(
+        tf.keras.layers.Conv2D(16,
+                               3,
+                               activation="relu",
+                               input_shape=input_shape))
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(2))
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(10))
+    model.compile(optimizer="adam",
+                  loss="categorical_crossentropy",
+                  metrics=["accuracy"])
+    model.summary()
 
-  # Test with random data
-  data_x = np.random.rand(12, 16, 16, 1)
-  data_y = np.random.randint(2, size=(12, 10))
-  model.fit(data_x, data_y, epochs=5)
+    # Test with random data
+    data_x = np.random.rand(12, 16, 16, 1)
+    data_y = np.random.randint(2, size=(12, 10))
+    model.fit(data_x, data_y, epochs=5)
 
-  def representative_dataset_gen():
-    for _ in range(12):
-      yield [np.random.rand(16, 16).reshape(1, 16, 16, 1).astype(np.float32)]
+    def representative_dataset_gen():
+        for _ in range(12):
+            yield [
+                np.random.rand(16, 16).reshape(1, 16, 16, 1).astype(np.float32)
+            ]
 
-  # Now convert to a TFLite model with full int8 quantization:
-  converter = tf.lite.TFLiteConverter.from_keras_model(model)
-  converter.optimizations = [tf.lite.Optimize.DEFAULT]
-  converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-  converter.inference_input_type = tf.int8
-  converter.inference_output_type = tf.int8
-  converter.representative_dataset = representative_dataset_gen
+    # Now convert to a TFLite model with full int8 quantization:
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter.inference_input_type = tf.int8
+    converter.inference_output_type = tf.int8
+    converter.representative_dataset = representative_dataset_gen
 
-  tflite_model = converter.convert()
-  open("/tmp/tf_micro_conv_test_model.int8.tflite", "wb").write(tflite_model)
+    tflite_model = converter.convert()
+    open("/tmp/tf_micro_conv_test_model.int8.tflite", "wb").write(tflite_model)
 
 
 def main(argv):
-  del argv  # Unused for now
-  generate_conv_model()
+    del argv  # Unused for now
+    generate_conv_model()
 
 
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)
