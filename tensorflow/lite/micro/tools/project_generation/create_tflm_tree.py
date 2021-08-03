@@ -38,75 +38,75 @@ import subprocess
 
 
 def _get_dirs(file_list):
-    dirs = set()
-    for filepath in file_list:
-        dirs.add(os.path.dirname(filepath))
-    return dirs
+  dirs = set()
+  for filepath in file_list:
+    dirs.add(os.path.dirname(filepath))
+  return dirs
 
 
 def _get_file_list(key, makefile_options):
-    params_list = [
-        "make", "-f", "tensorflow/lite/micro/tools/make/Makefile", key
-    ] + makefile_options.split()
-    process = subprocess.Popen(params_list,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+  params_list = [
+      "make", "-f", "tensorflow/lite/micro/tools/make/Makefile", key
+  ] + makefile_options.split()
+  process = subprocess.Popen(params_list,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+  stdout, stderr = process.communicate()
 
-    if process.returncode != 0:
-        raise RuntimeError("%s failed with \n\n %s" %
-                           (" ".join(params_list), stderr.decode()))
+  if process.returncode != 0:
+    raise RuntimeError("%s failed with \n\n %s" %
+                       (" ".join(params_list), stderr.decode()))
 
-    return [bytepath.decode() for bytepath in stdout.split()]
+  return [bytepath.decode() for bytepath in stdout.split()]
 
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options):
-    src_files = []
-    src_files.extend(
-        _get_file_list("list_third_party_sources", makefile_options))
-    src_files.extend(
-        _get_file_list("list_third_party_headers", makefile_options))
+  src_files = []
+  src_files.extend(_get_file_list("list_third_party_sources",
+                                  makefile_options))
+  src_files.extend(_get_file_list("list_third_party_headers",
+                                  makefile_options))
 
-    # The list_third_party_* rules give path relative to the root of the git repo.
-    # However, in the output tree, we would like for the third_party code to be a
-    # tree under prefix_dir/third_party, with the path to the tflm_download
-    # directory removed. The path manipulation logic that follows removes the
-    # downloads directory prefix, and adds the third_party prefix to create a
-    # list of destination directories for each of the third party files.
-    tflm_download_path = "tensorflow/lite/micro/tools/make/downloads"
-    dest_files = [
-        os.path.join(prefix_dir, "third_party",
-                     os.path.relpath(f, tflm_download_path)) for f in src_files
-    ]
+  # The list_third_party_* rules give path relative to the root of the git repo.
+  # However, in the output tree, we would like for the third_party code to be a
+  # tree under prefix_dir/third_party, with the path to the tflm_download
+  # directory removed. The path manipulation logic that follows removes the
+  # downloads directory prefix, and adds the third_party prefix to create a
+  # list of destination directories for each of the third party files.
+  tflm_download_path = "tensorflow/lite/micro/tools/make/downloads"
+  dest_files = [
+      os.path.join(prefix_dir, "third_party",
+                   os.path.relpath(f, tflm_download_path)) for f in src_files
+  ]
 
-    return src_files, dest_files
+  return src_files, dest_files
 
 
 def _tflm_src_and_dest_files(prefix_dir, makefile_options):
-    src_files = []
-    src_files.extend(_get_file_list("list_library_sources", makefile_options))
-    src_files.extend(_get_file_list("list_library_headers", makefile_options))
-    dest_files = [os.path.join(prefix_dir, src) for src in src_files]
-    return src_files, dest_files
+  src_files = []
+  src_files.extend(_get_file_list("list_library_sources", makefile_options))
+  src_files.extend(_get_file_list("list_library_headers", makefile_options))
+  dest_files = [os.path.join(prefix_dir, src) for src in src_files]
+  return src_files, dest_files
 
 
 def _get_src_and_dest_files(prefix_dir, makefile_options):
-    tflm_src_files, tflm_dest_files = _tflm_src_and_dest_files(
-        prefix_dir, makefile_options)
-    third_party_srcs, third_party_dests = _third_party_src_and_dest_files(
-        prefix_dir, makefile_options)
+  tflm_src_files, tflm_dest_files = _tflm_src_and_dest_files(
+      prefix_dir, makefile_options)
+  third_party_srcs, third_party_dests = _third_party_src_and_dest_files(
+      prefix_dir, makefile_options)
 
-    all_src_files = tflm_src_files + third_party_srcs
-    all_dest_files = tflm_dest_files + third_party_dests
-    return all_src_files, all_dest_files
+  all_src_files = tflm_src_files + third_party_srcs
+  all_dest_files = tflm_dest_files + third_party_dests
+  return all_src_files, all_dest_files
 
 
 def _copy(src_files, dest_files):
-    for dirname in _get_dirs(dest_files):
-        os.makedirs(dirname, exist_ok=True)
+  for dirname in _get_dirs(dest_files):
+    os.makedirs(dirname, exist_ok=True)
 
-    for src, dst in zip(src_files, dest_files):
-        shutil.copy(src, dst)
+  for src, dst in zip(src_files, dest_files):
+    shutil.copy(src, dst)
 
 
 # For examples, we are explicitly making a deicision to not have any source
@@ -117,128 +117,124 @@ def _copy(src_files, dest_files):
 # repository to provide all the additional sources (and remove the unnecessary
 # sources) for the examples to run on that specific target.
 def _create_examples_tree(prefix_dir, examples_list):
-    files = []
-    for e in examples_list:
-        files.extend(_get_file_list("list_%s_example_sources" % (e), ""))
-        files.extend(_get_file_list("list_%s_example_headers" % (e), ""))
+  files = []
+  for e in examples_list:
+    files.extend(_get_file_list("list_%s_example_sources" % (e), ""))
+    files.extend(_get_file_list("list_%s_example_headers" % (e), ""))
 
-    # The get_file_list gives path relative to the root of the git repo (where the
-    # examples are in tensorflow/lite/micro/examples). However, in the output
-    # tree, we would like for the examples to be under prefix_dir/examples.
-    tflm_examples_path = "tensorflow/lite/micro/examples"
-    tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
+  # The get_file_list gives path relative to the root of the git repo (where the
+  # examples are in tensorflow/lite/micro/examples). However, in the output
+  # tree, we would like for the examples to be under prefix_dir/examples.
+  tflm_examples_path = "tensorflow/lite/micro/examples"
+  tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
 
-    # Some non-example source and headers will be in the {files} list. They need
-    # special handling or they will end up outside the {prefix_dir} tree.
-    dest_file_list = []
-    for f in files:
-        if tflm_examples_path in f:
-            # file is in examples tree
-            relative_path = os.path.relpath(f, tflm_examples_path)
-            full_filename = os.path.join(prefix_dir, "examples", relative_path)
-        elif tflm_downloads_path in f:
-            # is third-party file
-            relative_path = os.path.relpath(f, tflm_downloads_path)
-            full_filename = os.path.join(prefix_dir, "third_party",
-                                         relative_path)
-        else:
-            # not third-party and not examples, don't modify file name
-            # ex. tensorflow/lite/experimental/microfrontend
-            full_filename = os.path.join(prefix_dir, f)
-        dest_file_list.append(full_filename)
+  # Some non-example source and headers will be in the {files} list. They need
+  # special handling or they will end up outside the {prefix_dir} tree.
+  dest_file_list = []
+  for f in files:
+    if tflm_examples_path in f:
+      # file is in examples tree
+      relative_path = os.path.relpath(f, tflm_examples_path)
+      full_filename = os.path.join(prefix_dir, "examples", relative_path)
+    elif tflm_downloads_path in f:
+      # is third-party file
+      relative_path = os.path.relpath(f, tflm_downloads_path)
+      full_filename = os.path.join(prefix_dir, "third_party", relative_path)
+    else:
+      # not third-party and not examples, don't modify file name
+      # ex. tensorflow/lite/experimental/microfrontend
+      full_filename = os.path.join(prefix_dir, f)
+    dest_file_list.append(full_filename)
 
-    for dest_file, filepath in zip(dest_file_list, files):
-        dest_dir = os.path.dirname(dest_file)
-        os.makedirs(dest_dir, exist_ok=True)
-        shutil.copy(filepath, dest_dir)
+  for dest_file, filepath in zip(dest_file_list, files):
+    dest_dir = os.path.dirname(dest_file)
+    os.makedirs(dest_dir, exist_ok=True)
+    shutil.copy(filepath, dest_dir)
 
-    # Since we are changing the directory structure for the examples, we will also
-    # need to modify the paths in the code.
-    for filepath in dest_file_list:
-        with fileinput.FileInput(filepath, inplace=True) as f:
-            for line in f:
-                include_match = re.match(
-                    r'.*#include.*"' + tflm_examples_path + r'/([^/]+)/.*"',
-                    line)
-                if include_match:
-                    # We need a trailing forward slash because what we care about is
-                    # replacing the include paths.
-                    text_to_replace = os.path.join(
-                        tflm_examples_path, include_match.group(1)) + "/"
-                    line = line.replace(text_to_replace, "")
-                # end="" prevents an extra newline from getting added as part of the
-                # in-place find and replace.
-                print(line, end="")
+  # Since we are changing the directory structure for the examples, we will also
+  # need to modify the paths in the code.
+  for filepath in dest_file_list:
+    with fileinput.FileInput(filepath, inplace=True) as f:
+      for line in f:
+        include_match = re.match(
+            r'.*#include.*"' + tflm_examples_path + r'/([^/]+)/.*"', line)
+        if include_match:
+          # We need a trailing forward slash because what we care about is
+          # replacing the include paths.
+          text_to_replace = os.path.join(tflm_examples_path,
+                                         include_match.group(1)) + "/"
+          line = line.replace(text_to_replace, "")
+        # end="" prevents an extra newline from getting added as part of the
+        # in-place find and replace.
+        print(line, end="")
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Starting script for TFLM project generation")
-    parser.add_argument("output_dir",
-                        help="Output directory for generated TFLM tree")
-    parser.add_argument("--no_copy",
-                        action="store_true",
-                        help="Do not copy files to output directory")
-    parser.add_argument(
-        "--no_download",
-        action="store_true",
-        help="Do not download the TFLM third_party dependencies.")
-    parser.add_argument(
-        "--print_src_files",
-        action="store_true",
-        help="Print the src files (i.e. files in the TFLM tree)")
-    parser.add_argument(
-        "--print_dest_files",
-        action="store_true",
-        help="Print the dest files (i.e. files in the output tree)")
-    parser.add_argument("--makefile_options",
-                        default="",
-                        help="Additional TFLM Makefile options. For example: "
-                        "--makefile_options=\"TARGET=<target> "
-                        "OPTIMIZED_KERNEL_DIR=<optimized_kernel_dir> "
-                        "TARGET_ARCH=corex-m4\"")
-    parser.add_argument(
-        "--examples",
-        "-e",
-        action="append",
-        help="Examples to add to the output tree. For example: "
-        "-e hello_world -e micro_speech")
-    args = parser.parse_args()
+  parser = argparse.ArgumentParser(
+      description="Starting script for TFLM project generation")
+  parser.add_argument("output_dir",
+                      help="Output directory for generated TFLM tree")
+  parser.add_argument("--no_copy",
+                      action="store_true",
+                      help="Do not copy files to output directory")
+  parser.add_argument(
+      "--no_download",
+      action="store_true",
+      help="Do not download the TFLM third_party dependencies.")
+  parser.add_argument("--print_src_files",
+                      action="store_true",
+                      help="Print the src files (i.e. files in the TFLM tree)")
+  parser.add_argument(
+      "--print_dest_files",
+      action="store_true",
+      help="Print the dest files (i.e. files in the output tree)")
+  parser.add_argument("--makefile_options",
+                      default="",
+                      help="Additional TFLM Makefile options. For example: "
+                      "--makefile_options=\"TARGET=<target> "
+                      "OPTIMIZED_KERNEL_DIR=<optimized_kernel_dir> "
+                      "TARGET_ARCH=corex-m4\"")
+  parser.add_argument("--examples",
+                      "-e",
+                      action="append",
+                      help="Examples to add to the output tree. For example: "
+                      "-e hello_world -e micro_speech")
+  args = parser.parse_args()
 
-    makefile_options = args.makefile_options
-    if args.no_download:
-        makefile_options += " DISABLE_DOWNLOADS=true"
-    else:
-        # TODO(b/143904317): Explicitly call make third_party_downloads. This will
-        # no longer be needed once all the downloads are switched over to bash
-        # scripts.
-        params_list = [
-            "make", "-f", "tensorflow/lite/micro/tools/make/Makefile",
-            "third_party_downloads"
-        ] + makefile_options.split()
-        process = subprocess.Popen(params_list,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        _, stderr = process.communicate()
-        if process.returncode != 0:
-            raise RuntimeError("%s failed with \n\n %s" %
-                               (" ".join(params_list), stderr.decode()))
+  makefile_options = args.makefile_options
+  if args.no_download:
+    makefile_options += " DISABLE_DOWNLOADS=true"
+  else:
+    # TODO(b/143904317): Explicitly call make third_party_downloads. This will
+    # no longer be needed once all the downloads are switched over to bash
+    # scripts.
+    params_list = [
+        "make", "-f", "tensorflow/lite/micro/tools/make/Makefile",
+        "third_party_downloads"
+    ] + makefile_options.split()
+    process = subprocess.Popen(params_list,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    _, stderr = process.communicate()
+    if process.returncode != 0:
+      raise RuntimeError("%s failed with \n\n %s" %
+                         (" ".join(params_list), stderr.decode()))
 
-    src_files, dest_files = _get_src_and_dest_files(args.output_dir,
-                                                    makefile_options)
+  src_files, dest_files = _get_src_and_dest_files(args.output_dir,
+                                                  makefile_options)
 
-    if args.print_src_files:
-        print(" ".join(src_files))
+  if args.print_src_files:
+    print(" ".join(src_files))
 
-    if args.print_dest_files:
-        print(" ".join(dest_files))
+  if args.print_dest_files:
+    print(" ".join(dest_files))
 
-    if args.no_copy is False:
-        _copy(src_files, dest_files)
+  if args.no_copy is False:
+    _copy(src_files, dest_files)
 
-    if args.examples is not None:
-        _create_examples_tree(args.output_dir, args.examples)
+  if args.examples is not None:
+    _create_examples_tree(args.output_dir, args.examples)
 
 
 if __name__ == "__main__":
-    main()
+  main()

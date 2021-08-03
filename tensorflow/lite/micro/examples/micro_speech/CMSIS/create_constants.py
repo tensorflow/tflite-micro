@@ -24,35 +24,35 @@ import numpy as np
 
 
 def to_cc(x, varname, directory='', scale_factor=1):
-    """Writes table values to a C++ source file."""
-    x = (x / np.max(np.abs(x))) * 32768 * scale_factor
-    x[x > 32767] = 32767
-    x[x < -32768] = -32768
-    x = x.astype(int)
-    x = [str(v) if i % 10 != 0 else '\n    ' + str(v) for i, v in enumerate(x)]
+  """Writes table values to a C++ source file."""
+  x = (x / np.max(np.abs(x))) * 32768 * scale_factor
+  x[x > 32767] = 32767
+  x[x < -32768] = -32768
+  x = x.astype(int)
+  x = [str(v) if i % 10 != 0 else '\n    ' + str(v) for i, v in enumerate(x)]
 
-    cmsis_path = 'tensorflow/lite/micro/examples/micro_speech/CMSIS'
-    xstr = '#include "{}/{}.h"\n\n'.format(cmsis_path, varname)
-    xstr += 'const int g_{}_size = {};\n'.format(varname, len(x))
-    xstr += 'const int16_t g_{}[{}] = {{{}}};\n'.format(
-        varname, len(x), ', '.join(x))
+  cmsis_path = 'tensorflow/lite/micro/examples/micro_speech/CMSIS'
+  xstr = '#include "{}/{}.h"\n\n'.format(cmsis_path, varname)
+  xstr += 'const int g_{}_size = {};\n'.format(varname, len(x))
+  xstr += 'const int16_t g_{}[{}] = {{{}}};\n'.format(varname, len(x),
+                                                      ', '.join(x))
 
-    with open(directory + varname + '.cc', 'w') as f:
-        f.write(xstr)
+  with open(directory + varname + '.cc', 'w') as f:
+    f.write(xstr)
 
 
 def to_h(_, varname, directory=''):
-    """Writes a header file for the table values."""
-    tf_prepend = 'TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_'
-    xstr = '#ifndef {}{}_H_\n'.format(tf_prepend, varname.upper())
-    xstr += '#define {}{}_H_\n\n'.format(tf_prepend, varname.upper())
-    xstr += '#include <cstdint>\n\n'
-    xstr += 'extern const int g_{}_size;\n'.format(varname)
-    xstr += 'extern const int16_t g_{}[];\n\n'.format(varname)
-    xstr += '#endif  // {}{}_H_'.format(tf_prepend, varname.upper())
+  """Writes a header file for the table values."""
+  tf_prepend = 'TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_'
+  xstr = '#ifndef {}{}_H_\n'.format(tf_prepend, varname.upper())
+  xstr += '#define {}{}_H_\n\n'.format(tf_prepend, varname.upper())
+  xstr += '#include <cstdint>\n\n'
+  xstr += 'extern const int g_{}_size;\n'.format(varname)
+  xstr += 'extern const int16_t g_{}[];\n\n'.format(varname)
+  xstr += '#endif  // {}{}_H_'.format(tf_prepend, varname.upper())
 
-    with open(directory + varname + '.h', 'w') as f:
-        f.write(xstr)
+  with open(directory + varname + '.h', 'w') as f:
+    f.write(xstr)
 
 
 # x = sf.read('yes_f2e59fea_nohash_1.wav')[0]

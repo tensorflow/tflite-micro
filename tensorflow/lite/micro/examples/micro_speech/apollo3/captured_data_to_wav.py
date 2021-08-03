@@ -26,15 +26,15 @@ import soundfile as sf
 
 
 def new_data_to_array(fn):
-    vals = []
-    with open(fn) as f:
-        for n, line in enumerate(f):
-            if n != 0:
-                vals.extend([int(v, 16) for v in line.split()])
-    b = ''.join(map(chr, vals))
-    y = struct.unpack('<' + 'h' * int(len(b) / 2), b)
+  vals = []
+  with open(fn) as f:
+    for n, line in enumerate(f):
+      if n != 0:
+        vals.extend([int(v, 16) for v in line.split()])
+  b = ''.join(map(chr, vals))
+  y = struct.unpack('<' + 'h' * int(len(b) / 2), b)
 
-    return y
+  return y
 
 
 data = 'captured_data.txt'
