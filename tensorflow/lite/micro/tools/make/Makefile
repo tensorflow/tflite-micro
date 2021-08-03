@@ -350,6 +350,7 @@ MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
 tensorflow/lite/micro/kernels/activations_common.cc \
 tensorflow/lite/micro/kernels/add.cc \
+tensorflow/lite/micro/kernels/add_common.cc \
 tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
 tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
@@ -394,6 +395,7 @@ tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
 tensorflow/lite/micro/kernels/mul.cc \
+tensorflow/lite/micro/kernels/mul_common.cc \
 tensorflow/lite/micro/kernels/neg.cc \
 tensorflow/lite/micro/kernels/pack.cc \
 tensorflow/lite/micro/kernels/pad.cc \
@@ -417,6 +419,7 @@ tensorflow/lite/micro/kernels/split_v.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
 tensorflow/lite/micro/kernels/strided_slice.cc \
 tensorflow/lite/micro/kernels/sub.cc \
+tensorflow/lite/micro/kernels/sub_common.cc \
 tensorflow/lite/micro/kernels/svdf.cc \
 tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
