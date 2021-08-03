@@ -25,24 +25,24 @@ import zipfile
 
 
 def main(unparsed_args):
-    """Merges multiple Arduino zipfiles into a single result."""
-    output_zip_path = unparsed_args[0]
-    input_zip_paths = unparsed_args[1::]
-    working_dir = tempfile.mkdtemp()
-    for input_zip_path in input_zip_paths:
-        with zipfile.ZipFile(input_zip_path, 'r') as input_zip:
-            input_zip.extractall(path=working_dir)
-    output_path_without_zip = output_zip_path.replace('.zip', '')
-    shutil.make_archive(output_path_without_zip, 'zip', working_dir)
+  """Merges multiple Arduino zipfiles into a single result."""
+  output_zip_path = unparsed_args[0]
+  input_zip_paths = unparsed_args[1::]
+  working_dir = tempfile.mkdtemp()
+  for input_zip_path in input_zip_paths:
+    with zipfile.ZipFile(input_zip_path, 'r') as input_zip:
+      input_zip.extractall(path=working_dir)
+  output_path_without_zip = output_zip_path.replace('.zip', '')
+  shutil.make_archive(output_path_without_zip, 'zip', working_dir)
 
 
 def parse_args():
-    """Converts the raw arguments into accessible flags."""
-    parser = argparse.ArgumentParser()
-    _, unparsed_args = parser.parse_known_args()
+  """Converts the raw arguments into accessible flags."""
+  parser = argparse.ArgumentParser()
+  _, unparsed_args = parser.parse_known_args()
 
-    main(unparsed_args)
+  main(unparsed_args)
 
 
 if __name__ == '__main__':
-    parse_args()
+  parse_args()

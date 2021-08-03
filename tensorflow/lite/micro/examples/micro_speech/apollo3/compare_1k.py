@@ -27,41 +27,41 @@ import numpy as np
 
 
 def new_data_to_array(fn, datatype='int16'):
-    """Converts file information to an in-memory array."""
-    vals = []
-    with open(fn) as f:
-        for n, line in enumerate(f):
-            if n != 0:
-                vals.extend([int(v, 16) for v in line.split()])
-    b = ''.join(map(chr, vals))
+  """Converts file information to an in-memory array."""
+  vals = []
+  with open(fn) as f:
+    for n, line in enumerate(f):
+      if n != 0:
+        vals.extend([int(v, 16) for v in line.split()])
+  b = ''.join(map(chr, vals))
 
-    if datatype == 'int8':
-        typestr = 'b'
-        arraylen = int(len(b))
-    elif datatype == 'int16':
-        typestr = 'h'
-        arraylen = int(len(b) // 2)
-    elif datatype == 'int32':
-        typestr = 'i'
-        arraylen = int(len(b) // 4)
-    if datatype == 'uint8':
-        typestr = 'B'
-        arraylen = int(len(b))
-    elif datatype == 'uint16':
-        typestr = 'H'
-        arraylen = int(len(b) // 2)
-    elif datatype == 'uint32':
-        typestr = 'I'
-        arraylen = int(len(b) // 4)
+  if datatype == 'int8':
+    typestr = 'b'
+    arraylen = int(len(b))
+  elif datatype == 'int16':
+    typestr = 'h'
+    arraylen = int(len(b) // 2)
+  elif datatype == 'int32':
+    typestr = 'i'
+    arraylen = int(len(b) // 4)
+  if datatype == 'uint8':
+    typestr = 'B'
+    arraylen = int(len(b))
+  elif datatype == 'uint16':
+    typestr = 'H'
+    arraylen = int(len(b) // 2)
+  elif datatype == 'uint32':
+    typestr = 'I'
+    arraylen = int(len(b) // 4)
 
-    y = np.array(struct.unpack('<' + typestr * arraylen, b))
+  y = np.array(struct.unpack('<' + typestr * arraylen, b))
 
-    return y
+  return y
 
 
 # x is the fixed-point input in Qm.n format
 def to_float(x, n):
-    return x.astype(float) * 2**(-n)
+  return x.astype(float) * 2**(-n)
 
 
 micro_windowed_input = new_data_to_array('micro_windowed_input.txt',
