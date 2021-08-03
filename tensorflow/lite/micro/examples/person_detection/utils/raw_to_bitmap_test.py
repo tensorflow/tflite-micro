@@ -92,28 +92,28 @@ _GRAYSCALE_RESHAPED_MULTI = [
 
 
 class RawToBitmapTest(googletest.TestCase):
-  def test_parse_rgb(self):
-    frame_list = parse_file(io.StringIO(_RGB_RAW), 4, 4, 3)
-    self.assertTrue(np.array_equal(_RGB_FLAT, frame_list))
+    def test_parse_rgb(self):
+        frame_list = parse_file(io.StringIO(_RGB_RAW), 4, 4, 3)
+        self.assertTrue(np.array_equal(_RGB_FLAT, frame_list))
 
-  def test_parse_grayscale(self):
-    frame_list = parse_file(io.StringIO(_GRAYSCALE_RAW), 4, 4, 1)
-    self.assertTrue(np.array_equal(_GRAYSCALE_FLAT, frame_list))
+    def test_parse_grayscale(self):
+        frame_list = parse_file(io.StringIO(_GRAYSCALE_RAW), 4, 4, 1)
+        self.assertTrue(np.array_equal(_GRAYSCALE_FLAT, frame_list))
 
-  def test_reshape_rgb(self):
-    reshaped = reshape_bitmaps(_RGB_FLAT, 4, 4, 3)
-    self.assertTrue(np.array_equal(_RGB_RESHAPED, reshaped))
+    def test_reshape_rgb(self):
+        reshaped = reshape_bitmaps(_RGB_FLAT, 4, 4, 3)
+        self.assertTrue(np.array_equal(_RGB_RESHAPED, reshaped))
 
-  def test_reshape_grayscale(self):
-    reshaped = reshape_bitmaps(_GRAYSCALE_FLAT, 4, 4, 1)
-    self.assertTrue(np.array_equal(_GRAYSCALE_RESHAPED, reshaped))
+    def test_reshape_grayscale(self):
+        reshaped = reshape_bitmaps(_GRAYSCALE_FLAT, 4, 4, 1)
+        self.assertTrue(np.array_equal(_GRAYSCALE_RESHAPED, reshaped))
 
-  def test_multiple_grayscale(self):
-    frame_list = parse_file(io.StringIO(_GRAYSCALE_RAW_MULTI), 4, 4, 1)
-    self.assertTrue(np.array_equal(_GRAYSCALE_FLAT_MULTI, frame_list))
-    reshaped = reshape_bitmaps(frame_list, 4, 4, 1)
-    self.assertTrue(np.array_equal(_GRAYSCALE_RESHAPED_MULTI, reshaped))
+    def test_multiple_grayscale(self):
+        frame_list = parse_file(io.StringIO(_GRAYSCALE_RAW_MULTI), 4, 4, 1)
+        self.assertTrue(np.array_equal(_GRAYSCALE_FLAT_MULTI, frame_list))
+        reshaped = reshape_bitmaps(frame_list, 4, 4, 1)
+        self.assertTrue(np.array_equal(_GRAYSCALE_RESHAPED_MULTI, reshaped))
 
 
 if __name__ == '__main__':
-  googletest.main()
+    googletest.main()
