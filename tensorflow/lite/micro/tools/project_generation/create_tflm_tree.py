@@ -32,6 +32,7 @@ we get further along in our prototyping. See this github issue for more details:
 import argparse
 import fileinput
 import os
+import re
 import shutil
 import subprocess
 
@@ -67,11 +68,11 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options):
                                   makefile_options))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
-  # However, in the output tree, we would like for the third_party code to be a tree
-  # under prefix_dir/third_party, with the path to the tflm_download directory
-  # removed. The path manipulation logic that follows removes the downloads
-  # directory prefix, and adds the third_party prefix to create a list of
-  # destination directories for each of the third party files.
+  # However, in the output tree, we would like for the third_party code to be a
+  # tree under prefix_dir/third_party, with the path to the tflm_download
+  # directory removed. The path manipulation logic that follows removes the
+  # downloads directory prefix, and adds the third_party prefix to create a
+  # list of destination directories for each of the third party files.
   tflm_download_path = "tensorflow/lite/micro/tools/make/downloads"
   dest_files = [
       os.path.join(prefix_dir, "third_party",
@@ -125,11 +126,25 @@ def _create_examples_tree(prefix_dir, examples_list):
   # examples are in tensorflow/lite/micro/examples). However, in the output
   # tree, we would like for the examples to be under prefix_dir/examples.
   tflm_examples_path = "tensorflow/lite/micro/examples"
+  tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
 
-  dest_file_list = [
-      os.path.join(prefix_dir, "examples",
-                   os.path.relpath(f, tflm_examples_path)) for f in files
-  ]
+  # Some non-example source and headers will be in the {files} list. They need
+  # special handling or they will end up outside the {prefix_dir} tree.
+  dest_file_list = []
+  for f in files:
+    if tflm_examples_path in f:
+      # file is in examples tree
+      relative_path = os.path.relpath(f, tflm_examples_path)
+      full_filename = os.path.join(prefix_dir, "examples", relative_path)
+    elif tflm_downloads_path in f:
+      # is third-party file
+      relative_path = os.path.relpath(f, tflm_downloads_path)
+      full_filename = os.path.join(prefix_dir, "third_party", relative_path)
+    else:
+      # not third-party and not examples, don't modify file name
+      # ex. tensorflow/lite/experimental/microfrontend
+      full_filename = os.path.join(prefix_dir, f)
+    dest_file_list.append(full_filename)
 
   for dest_file, filepath in zip(dest_file_list, files):
     dest_dir = os.path.dirname(dest_file)
@@ -139,19 +154,22 @@ def _create_examples_tree(prefix_dir, examples_list):
   # Since we are changing the directory structure for the examples, we will also
   # need to modify the paths in the code.
   for filepath in dest_file_list:
-    # We need a trailing forward slash because what we care about is replacing
-    # the include paths.
-    text_to_replace = os.path.join(
-        tflm_examples_path, os.path.basename(os.path.dirname(filepath))) + "/"
-
     with fileinput.FileInput(filepath, inplace=True) as f:
       for line in f:
+        include_match = re.match(
+            r'.*#include.*"' + tflm_examples_path + r'/([^/]+)/.*"', line)
+        if include_match:
+          # We need a trailing forward slash because what we care about is
+          # replacing the include paths.
+          text_to_replace = os.path.join(tflm_examples_path,
+                                         include_match.group(1)) + "/"
+          line = line.replace(text_to_replace, "")
         # end="" prevents an extra newline from getting added as part of the
         # in-place find and replace.
-        print(line.replace(text_to_replace, ""), end="")
+        print(line, end="")
 
 
-if __name__ == "__main__":
+def main():
   parser = argparse.ArgumentParser(
       description="Starting script for TFLM project generation")
   parser.add_argument("output_dir",
@@ -197,7 +215,7 @@ if __name__ == "__main__":
     process = subprocess.Popen(params_list,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    _, stderr = process.communicate()
     if process.returncode != 0:
       raise RuntimeError("%s failed with \n\n %s" %
                          (" ".join(params_list), stderr.decode()))
@@ -216,3 +234,7 @@ if __name__ == "__main__":
 
   if args.examples is not None:
     _create_examples_tree(args.output_dir, args.examples)
+
+
+if __name__ == "__main__":
+  main()
