@@ -196,6 +196,7 @@ cc_library(
         "hard_swish.h",
         "logical.h",
         "logistic.h",
+        "maximum_minimum.h",
         "micro_ops.h",
         "pooling.h",
         "quantize.h",

@@ -152,11 +152,11 @@ TF_LITE_MICRO_TEST(FloatTest) {
   const float golden_min[] = {-1.0, 0.0, -1.0, 11.0, -3.0, -1.44};
   float output_data[6];
 
-  tflite::testing::TestMaxMinFloat(tflite::ops::micro::Register_MAXIMUM(), dims,
+  tflite::testing::TestMaxMinFloat(tflite::Register_MAXIMUM(), dims,
                                    data1, dims, data2, golden_max, dims,
                                    output_data);
 
-  tflite::testing::TestMaxMinFloat(tflite::ops::micro::Register_MINIMUM(), dims,
+  tflite::testing::TestMaxMinFloat(tflite::Register_MINIMUM(), dims,
                                    data1, dims, data2, golden_min, dims,
                                    output_data);
 }
@@ -176,12 +176,12 @@ TF_LITE_MICRO_TEST(Uint8Test) {
   uint8_t output_data[6];
 
   tflite::testing::TestMaxMinQuantized(
-      tflite::ops::micro::Register_MAXIMUM(), dims, data1, input_scale,
+      tflite::Register_MAXIMUM(), dims, data1, input_scale,
       input_zero_point, dims, data2, input_scale, input_zero_point, golden_max,
       output_scale, output_zero_point, dims, output_data);
 
   tflite::testing::TestMaxMinQuantized(
-      tflite::ops::micro::Register_MINIMUM(), dims, data1, input_scale,
+      tflite::Register_MINIMUM(), dims, data1, input_scale,
       input_zero_point, dims, data2, input_scale, input_zero_point, golden_min,
       output_scale, output_zero_point, dims, output_data);
 }
@@ -195,11 +195,11 @@ TF_LITE_MICRO_TEST(FloatWithBroadcastTest) {
   const float golden_min[] = {0.5, 0.0, -1.0, -2.0, -1.44, 2.0};
   float output_data[6];
 
-  tflite::testing::TestMaxMinFloat(tflite::ops::micro::Register_MAXIMUM(), dims,
+  tflite::testing::TestMaxMinFloat(tflite::Register_MAXIMUM(), dims,
                                    data1, dims_scalar, data2, golden_max, dims,
                                    output_data);
 
-  tflite::testing::TestMaxMinFloat(tflite::ops::micro::Register_MINIMUM(), dims,
+  tflite::testing::TestMaxMinFloat(tflite::Register_MINIMUM(), dims,
                                    data1, dims_scalar, data2, golden_min, dims,
                                    output_data);
 }
@@ -214,11 +214,11 @@ TF_LITE_MICRO_TEST(Int32WithBroadcastTest) {
   int32_t output_data[6];
 
   tflite::testing::TestMaxMinQuantizedInt32(
-      tflite::ops::micro::Register_MAXIMUM(), dims, data1, dims_scalar, data2,
+      tflite::Register_MAXIMUM(), dims, data1, dims_scalar, data2,
       golden_max, dims, output_data);
 
   tflite::testing::TestMaxMinQuantizedInt32(
-      tflite::ops::micro::Register_MINIMUM(), dims, data1, dims_scalar, data2,
+      tflite::Register_MINIMUM(), dims, data1, dims_scalar, data2,
       golden_min, dims, output_data);
 }
 

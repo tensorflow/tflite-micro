@@ -341,7 +341,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddMaximum() {
     return AddBuiltin(BuiltinOperator_MAXIMUM,
-                      tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
+                      tflite::Register_MAXIMUM(), ParseMaximum);
   }
 
   TfLiteStatus AddMaxPool2D() {
@@ -356,7 +356,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddMinimum() {
     return AddBuiltin(BuiltinOperator_MINIMUM,
-                      tflite::ops::micro::Register_MINIMUM(), ParseMinimum);
+                      tflite::Register_MINIMUM(), ParseMinimum);
   }
 
   TfLiteStatus AddMul() {

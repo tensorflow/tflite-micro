@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,52 +23,16 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace maximum_minimum {
-namespace {
-
-// This file has a reference implementation of TFMaximum/TFMinimum.
-enum KernelType {
-  kReference,
-};
-
-constexpr int kInputTensor1 = 0;
-constexpr int kInputTensor2 = 1;
-constexpr int kOutputTensor = 0;
-
-struct OpContext {
-  OpContext(TfLiteContext* context, TfLiteNode* node) {
-    input1 = tflite::micro::GetEvalInput(context, node, kInputTensor1);
-    input2 = tflite::micro::GetEvalInput(context, node, kInputTensor2);
-    output = tflite::micro::GetEvalOutput(context, node, kOutputTensor);
-  }
-  const TfLiteEvalTensor* input1;
-  const TfLiteEvalTensor* input2;
-  TfLiteEvalTensor* output;
-};
-
-struct MaximumOp {
-  template <typename data_type>
-  static data_type op(data_type el1, data_type el2) {
-    return el1 > el2 ? el1 : el2;
-  }
-};
-
-struct MinimumOp {
-  template <typename data_type>
-  static data_type op(data_type el1, data_type el2) {
-    return el1 < el2 ? el1 : el2;
-  }
-};
-
-}  // namespace
+const int kMaximumMinimumInputTensor1 = 0;
+const int kMaximumMinimumInputTensor2 = 1;
+const int kMaximumMinimumOutputTensor = 0;
 
 template <typename data_type, typename op_type>
 void TFLiteOperation(TfLiteContext* context, TfLiteNode* node,
-                     const OpContext& op_context) {
+                     const OpContextMaximumMinimum& op_context) {
   reference_ops::MaximumMinimumBroadcastSlow(
       tflite::micro::GetTensorShape(op_context.input1),
       tflite::micro::GetTensorData<data_type>(op_context.input1),
@@ -80,8 +44,8 @@ void TFLiteOperation(TfLiteContext* context, TfLiteNode* node,
 }
 
 template <KernelType kernel_type, typename OpType>
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  OpContext op_context(context, node);
+TfLiteStatus Maximum_Minimum_Eval(TfLiteContext* context, TfLiteNode* node) {
+  OpContextMaximumMinimum op_context(context, node);
 
   if (kernel_type == kReference) {
     switch (op_context.output->type) {
@@ -115,15 +79,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace maximum_minimum
-
 TfLiteRegistration Register_MAXIMUM() {
   return {/*init=*/nullptr,
           /*free=*/nullptr,
           /*prepare=*/nullptr,
           /*invoke=*/
-          maximum_minimum::Eval<maximum_minimum::kReference,
-                                maximum_minimum::MaximumOp>,
+          Maximum_Minimum_Eval<kReference,
+                                MaximumOp>,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -135,14 +97,12 @@ TfLiteRegistration Register_MINIMUM() {
           /*free=*/nullptr,
           /*prepare=*/nullptr,
           /*invoke=*/
-          maximum_minimum::Eval<maximum_minimum::kReference,
-                                maximum_minimum::MinimumOp>,
+          Maximum_Minimum_Eval<kReference,
+                                MinimumOp>,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
