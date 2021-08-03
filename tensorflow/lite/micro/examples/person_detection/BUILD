@@ -42,25 +42,13 @@ generate_cc_arrays(
     out="testdata/person_image_data.h",
 )
 
-generate_cc_arrays(
-    name="generated_person_detect_model_cc",
-    src="person_detect.tflite",
-    out="person_detect_model_data.cc",
-)
-
-generate_cc_arrays(
-    name="generated_person_detect_model_hdr",
-    src="person_detect.tflite",
-    out="person_detect_model_data.h",
-)
-
 cc_library(
     name = "person_detect_model_data",
     srcs = [
-        ":generated_person_detect_model_cc",
+        "//tensorflow/lite/micro/models:generated_person_detect_model_cc",
     ],
     hdrs = [
-        ":generated_person_detect_model_hdr",
+        "//tensorflow/lite/micro/models:generated_person_detect_model_hdr",
     ],
     tags = [
         "no_oss",  # TODO(b/174680668): Exclude from OSS.
