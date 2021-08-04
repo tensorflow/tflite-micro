@@ -1,0 +1,15 @@
+name: 'Auto-Sync with upstream repo'
+on:
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+jobs:
+  auto-sync-xmos:
+    runs-on: ubuntu-latest
+
+    name: 'Auto-sync upstream repo'
+    steps:
+      - uses: actions/checkout@v2
+      - name: auto-sync-xmos
+        uses: ./.github/actions/sync_upstream_xmos_action/
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
