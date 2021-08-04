@@ -1,9 +1,0 @@
-name: 'Sync upstream repo'
-description: 'Sync with latest commits on the upstream/parent repo.'
-inputs:
-  token:
-    description: 'Github access token for the api'
-    required: true
-runs:
-  using: 'node12'
-  main: 'index.js'
