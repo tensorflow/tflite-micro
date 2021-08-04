@@ -482,9 +482,6 @@ endef
 # 2 - C/C++ source files
 # 3 - C/C++ header files
 # 4 - Model sources and model test inputs in .tflite or .bmp format.
-# 5 - if "exclude", then the non-test target will be excluded from
-#     MICROLITE_BUILD_TARGETS. This exception is needed because not all the
-#     microlite_test targets (e.g. the examples) are buildable on all platforms.
 # Calling eval on the output will create the targets that you need.
 define microlite_test
 ifeq (,$(findstring _test, $(1)))
@@ -492,6 +489,12 @@ ifeq (,$(findstring _test, $(1)))
 endif
 
 $(1)_LOCAL_SRCS := $(2)
+
+ifneq ($(4),)
+  # Generate cc files and headers for all models and bitmaps in the test.
+  $(1)_LOCAL_SRCS += $$(shell python3 $$(MAKEFILE_DIR)/make_generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+endif
+
 $(1)_LOCAL_SRCS := $$(call specialize,$$($(1)_LOCAL_SRCS))
 ALL_SRCS += $$($(1)_LOCAL_SRCS)
 $(1)_LOCAL_HDRS := $(3)
@@ -506,7 +509,6 @@ $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
 $(1): $$($(1)_BINARY)
 $(1)_bin: $$($(1)_BINARY).bin
 
-GENERATOR_INPUTS += $(4)
 
 ifneq (,$(findstring _test,$(1)))
   MICROLITE_TEST_TARGETS += test_$(1)
@@ -516,10 +518,6 @@ test_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 
 else
-  ifeq ($(findstring exclude,$(5)),)
-    MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
-  endif
-
 run_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) non_test_binary $$(TARGET)
 endif

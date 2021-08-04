@@ -20,7 +20,7 @@ import os
 
 import generate_cc_arrays
 
-
+import sys
 def main():
     """Create cc sources with c arrays with data from each .tflite or .bmp."""
     parser = argparse.ArgumentParser()
