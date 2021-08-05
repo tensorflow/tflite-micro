@@ -23,29 +23,24 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus RoundEval(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kRoundInputTensor);
-  TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kRoundOutputTensor);
+const int kRoundInputTensor = 0;
+const int kRoundOutputTensor = 0;
 
-  reference_ops::Round(tflite::micro::GetTensorShape(input),
-                       tflite::micro::GetTensorData<float>(input),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<float>(output));
-
+TfLiteStatus RoundPrepare(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteTensor* input = GetInput(context, node, kRoundInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output = GetOutput(context, node, kRoundOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
+  TF_LITE_ENSURE_TYPES_EQ(context, output->type, input->type);
+  TF_LITE_ENSURE_EQ(context, output->bytes, input->bytes);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, input->dims->size);
+  for (int i = 0; i < output->dims->size; ++i) {
+    TF_LITE_ENSURE_EQ(context, output->dims->data[i], input->dims->data[i]);
+  }
   return kTfLiteOk;
-}
-
-TfLiteRegistration Register_ROUND() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/RoundPrepare,
-          /*invoke=*/RoundEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
 }
 
 }  // namespace tflite

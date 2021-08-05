@@ -431,7 +431,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddRound() {
     return AddBuiltin(BuiltinOperator_ROUND,
-                      tflite::ops::micro::Register_ROUND(), ParseRound);
+                      tflite::Register_ROUND(), ParseRound);
   }
 
   TfLiteStatus AddRsqrt() {
