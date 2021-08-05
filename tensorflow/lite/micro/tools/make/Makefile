@@ -794,9 +794,11 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   MICROLITE_TEST_SRCS := $(filter-out $(EXPLICITLY_SPECIFIED_TEST), $(MICROLITE_TEST_SRCS))
   EXPLICITLY_SPECIFIED_TEST_SRCS := \
   $(EXPLICITLY_SPECIFIED_TEST) \
-  tensorflow/lite/micro/kernels/conv_test_common.cc
+  tensorflow/lite/micro/kernels/conv_test_common.cc \
+  tensorflow/lite/micro/kernels/conv_test_data.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
-  tensorflow/lite/micro/kernels/conv_test.h
+  tensorflow/lite/micro/kernels/conv_test.h \
+  tensorflow/lite/micro/kernels/conv_test_data.h
   $(eval $(call microlite_test,kernel_conv_test,\
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
 endif
