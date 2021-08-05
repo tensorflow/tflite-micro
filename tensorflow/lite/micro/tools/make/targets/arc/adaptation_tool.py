@@ -1,13 +1,18 @@
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
 """embARC MLI model adaptation tool"""
-
-#
-# Copyright 2021, Synopsys, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-3-Clause license found in
-# the LICENSE file in the root directory of this source tree.
-#
-#
 
 from __future__ import absolute_import
 from __future__ import division
@@ -95,11 +100,10 @@ def write_model(model_object, output_tflite_file, include_path, array_name):
   model_bytearray = _convert_model_from_object_to_bytearray(model_object)
   if output_tflite_file.endswith('.cc'):
     mode = 'w'
-    converted_model = convert_bytes_to_c_source(
-      data=model_bytearray,
-      array_name=array_name,
-      include_path=include_path,
-      use_tensorflow_license=True)[0]
+    converted_model = convert_bytes_to_c_source(data=model_bytearray,
+                                                array_name=array_name,
+                                                include_path=include_path,
+                                                use_tensorflow_license=True)[0]
   elif output_tflite_file.endswith('.tflite'):
     mode = 'wb'
     converted_model = model_bytearray
@@ -139,10 +143,8 @@ def adapt_conv(operator, tensors, buffers):
     tensors: Model tensors dict
     buffers: Model buffers dict
   """
-  transpose_weights(
-    tensors[operator.inputs[1]],
-    buffers[tensors[operator.inputs[1]].buffer],
-    [1, 2, 3, 0])
+  transpose_weights(tensors[operator.inputs[1]],
+                    buffers[tensors[operator.inputs[1]].buffer], [1, 2, 3, 0])
 
 
 def adapt_dw(operator, tensors, _buffers):
@@ -165,17 +167,15 @@ def adapt_fc(operator, tensors, buffers):
     tensors: Model tensors dict
     buffers: Model buffers dict
   """
-  transpose_weights(
-    tensors[operator.inputs[1]],
-    buffers[tensors[operator.inputs[1]].buffer],
-    [1, 0])
+  transpose_weights(tensors[operator.inputs[1]],
+                    buffers[tensors[operator.inputs[1]].buffer], [1, 0])
 
 
 # Op_codes that require additional adaptation for MLI
 adapt_op_codes = {
-  3: adapt_conv,  # CONV_2D
-  4: adapt_dw,  # DEPTHWISE_CONV_2D
-  9: adapt_fc  # FULLY_CONNECTED
+    3: adapt_conv,  # CONV_2D
+    4: adapt_dw,  # DEPTHWISE_CONV_2D
+    9: adapt_fc  # FULLY_CONNECTED
 }
 
 
@@ -186,10 +186,10 @@ def adapt_model_to_mli(model):
     model: TFLite model object
   """
   op_codes = [
-    op_code.builtinCode
-    if op_code.builtinCode != 0
-    else op_code.deprecatedBuiltinCode
-    for op_code in model.operatorCodes]
+      op_code.builtinCode
+      if op_code.builtinCode != 0 else op_code.deprecatedBuiltinCode
+      for op_code in model.operatorCodes
+  ]
   for subgraph in model.subgraphs:
     for operator in subgraph.operators:
       try:
@@ -217,7 +217,8 @@ def main(argv):
       except OSError as err:
         print('Error while creating backup file:', err)
     if tflite_input.endswith('.cc'):
-      model, include_path, array_name = convert_c_source_to_object(tflite_input)
+      model, include_path, array_name = convert_c_source_to_object(
+          tflite_input)
     elif tflite_input.endswith('.tflite'):
       model = read_model(tflite_input)
       include_path = ''
