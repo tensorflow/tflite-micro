@@ -477,17 +477,6 @@ cc_test(
     ],
 )
 
-py_library(
-    name = "generate_cc_arrays",
-    srcs = ["tools/make/generate_cc_arrays.py"],
-)
-
-py_binary(
-    name = "bzl_generate_cc_arrays",
-    srcs = ["tools/make/bzl_generate_cc_arrays.py"],
-    deps = [":generate_cc_arrays"],
-)
-
 bzl_library(
     name = "build_def_bzl",
     srcs = ["build_def.bzl"],

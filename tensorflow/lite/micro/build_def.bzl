@@ -14,7 +14,7 @@ def generate_cc_arrays(name, src, out, visibility = None):
     outs = [
       out,
     ],
-    cmd = "$(location //tensorflow/lite/micro:bzl_generate_cc_arrays) $@ $<",
-    tools = ["//tensorflow/lite/micro:bzl_generate_cc_arrays"],
+    cmd = "$(location //tensorflow/lite/micro/tools:generate_cc_arrays) $@ $<",
+    tools = ["//tensorflow/lite/micro/tools:generate_cc_arrays"],
     visibility=visibility,
   )

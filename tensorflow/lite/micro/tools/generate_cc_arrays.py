@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 from PIL import Image
+import argparse
 import os
 
 
@@ -77,3 +78,46 @@ def array_name(input_fname):
         return base_array_name + '_model_data'
     elif input_fname.endswith('.bmp'):
         return base_array_name + '_image_data'
+
+
+def main():
+    """Create cc sources with c arrays with data from each .tflite or .bmp."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('output', help='base directory for all outputs or a cc or header to generate.')
+    parser.add_argument('inputs',
+                        nargs='+',
+                        help='input bmp or tflite files to convert. If output is a cc or header only one input may be specified.')
+    args = parser.parse_args()
+
+    if args.output.endswith('.cc') or args.output.endswith('.h'):
+        assert(len(args.inputs) == 1)
+        size, cc_array = generate_array(args.inputs[0])
+        generated_array_name = array_name(args.inputs[0])
+        generate_file(args.output, generated_array_name,
+                                         cc_array, size)
+    else:
+        # Deduplicate inputs to prevent duplicate generated files (ODR issue).
+        for input_file in list(dict.fromkeys(args.inputs)):
+            output_base_fname = os.path.join(args.output,
+                                             input_file.split('.')[0])
+            if input_file.endswith('.tflite'):
+                output_base_fname = output_base_fname + '_model_data'
+            elif input_file.endswith('.bmp'):
+                output_base_fname = output_base_fname + '_image_data'
+            else:
+                raise ValueError('input file must be .tflite, .bmp')
+
+            output_cc_fname = output_base_fname + '.cc'
+            # Print output cc filename for Make to include it in the build.
+            print(output_cc_fname)
+            output_hdr_fname = output_base_fname + '.h'
+            size, cc_array = generate_array(input_file)
+            generated_array_name = array_name(input_file)
+            generate_file(output_cc_fname, generated_array_name,
+                                             cc_array, size)
+            generate_file(output_hdr_fname, generated_array_name,
+                                             cc_array, size)
+
+
+if __name__ == '__main__':
+    main()

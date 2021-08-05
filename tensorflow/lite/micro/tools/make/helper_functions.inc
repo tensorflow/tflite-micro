@@ -492,7 +492,7 @@ $(1)_LOCAL_SRCS := $(2)
 
 ifneq ($(4),)
   # Generate cc files and headers for all models and bitmaps in the test.
-  $(1)_LOCAL_SRCS += $$(shell python3 $$(MAKEFILE_DIR)/make_generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+  $(1)_LOCAL_SRCS += $$(shell python3 tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
 endif
 
 $(1)_LOCAL_SRCS := $$(call specialize,$$($(1)_LOCAL_SRCS))
