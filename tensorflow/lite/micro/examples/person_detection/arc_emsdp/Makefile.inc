@@ -25,6 +25,11 @@ ifeq ($(TARGET), arc_emsdp)
 	@sed -E -i 's#MLI_ONLY *\?= *false#MLI_ONLY \?= true#' $(word 2, $^)
 	@echo Makefile: No Reference fallback for MLI supported functions >> $@
 
+ifneq ($(filter $(ARC_TAGS), mli20_experimental), )
+	@python tensorflow/lite/micro/tools/make/targets/arc/adaptation_tool.py $(word 4, $^)
+	@echo Makefile: Called python script >> $@
+endif
+
 ifneq ($(filter $(ARC_TAGS), reduce_codesize),)
 #In case 'reduce_codesize' tag is present, we replace common MLI functions with
 #specializations appropriate for this particular graph.But such changes of code
