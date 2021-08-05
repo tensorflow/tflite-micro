@@ -350,7 +350,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMean() {
-    return AddBuiltin(BuiltinOperator_MEAN, tflite::ops::micro::Register_MEAN(),
+    return AddBuiltin(BuiltinOperator_MEAN, tflite::Register_MEAN(),
                       ParseReducer);
   }
 
@@ -401,7 +401,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddReduceMax() {
     return AddBuiltin(BuiltinOperator_REDUCE_MAX,
-                      tflite::ops::micro::Register_REDUCE_MAX(), ParseReducer);
+                      tflite::Register_REDUCE_MAX(), ParseReducer);
   }
 
   TfLiteStatus AddRelu() {

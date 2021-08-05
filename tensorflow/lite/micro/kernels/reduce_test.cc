@@ -99,7 +99,7 @@ void TestMeanFloatInput4D(int* input_dims_data, const float* input_data,
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_MEAN();
+  const TfLiteRegistration registration = tflite::Register_MEAN();
 
   constexpr int num_of_inputs = 2;   // input and axis
   constexpr int num_of_outputs = 1;  // output
@@ -218,7 +218,7 @@ void TestMeanOpQuantized(int* input_dims_data, const float* input_data,
       kTfLiteOk,
       ValidateReduceGoldens(tensors, tensors_size, expected_output_data_quant,
                             output_data_quant, output_dims_count,
-                            tflite::ops::micro::Register_MEAN(), params, 1.0));
+                            tflite::Register_MEAN(), params, 1.0));
 }
 
 }  // namespace
@@ -606,7 +606,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
 
   tflite::testing::TestReduceOpFloat(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
-      expected_output_data, tflite::ops::micro::Register_REDUCE_MAX(), &params);
+      expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
 
 TF_LITE_MICRO_TEST(FloatMaxOpTestKeepDims) {
@@ -624,7 +624,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestKeepDims) {
 
   tflite::testing::TestReduceOpFloat(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
-      expected_output_data, tflite::ops::micro::Register_REDUCE_MAX(), &params);
+      expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
 
 TF_LITE_MICRO_TEST(Int8MaxOpTestKeepDims) {
@@ -648,7 +648,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestKeepDims) {
       input_shape, input_data, input_data_quant, input_scale, input_zp,
       axis_shape, axis_data, output_shape, expected_output_data,
       output_data_quant, expected_output_data_quant, input_scale, input_zp,
-      tflite::ops::micro::Register_REDUCE_MAX(), &params);
+      tflite::Register_REDUCE_MAX(), &params);
 }
 
 TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
@@ -674,7 +674,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
       input_shape, input_data, input_data_quant, input_scale, input_zp,
       axis_shape, axis_data, output_shape, expected_output_data,
       output_data_quant, expected_output_data_quant, output_scale, output_zp,
-      tflite::ops::micro::Register_REDUCE_MAX(), &params);
+      tflite::Register_REDUCE_MAX(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
