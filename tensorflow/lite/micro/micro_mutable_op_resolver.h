@@ -415,7 +415,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddReshape() {
     return AddBuiltin(BuiltinOperator_RESHAPE,
-                      tflite::ops::micro::Register_RESHAPE(), ParseReshape);
+                      tflite::Register_RESHAPE(), ParseReshape);
   }
 
   TfLiteStatus AddResizeBilinear() {
