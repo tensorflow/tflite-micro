@@ -353,6 +353,7 @@ tensorflow/lite/micro/kernels/add.cc \
 tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
 tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
+tensorflow/lite/micro/kernels/batch_to_space_nd_common.cc \
 tensorflow/lite/micro/kernels/cast.cc \
 tensorflow/lite/micro/kernels/ceil.cc \
 tensorflow/lite/micro/kernels/circular_buffer.cc \
@@ -362,6 +363,7 @@ tensorflow/lite/micro/kernels/conv.cc \
 tensorflow/lite/micro/kernels/conv_common.cc \
 tensorflow/lite/micro/kernels/cumsum.cc \
 tensorflow/lite/micro/kernels/depth_to_space.cc \
+tensorflow/lite/micro/kernels/depth_to_space_common.cc \
 tensorflow/lite/micro/kernels/depthwise_conv.cc \
 tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 tensorflow/lite/micro/kernels/dequantize.cc \
@@ -411,6 +413,7 @@ tensorflow/lite/micro/kernels/shape.cc \
 tensorflow/lite/micro/kernels/softmax.cc \
 tensorflow/lite/micro/kernels/softmax_common.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
+tensorflow/lite/micro/kernels/space_to_batch_nd_common.cc \
 tensorflow/lite/micro/kernels/space_to_depth.cc \
 tensorflow/lite/micro/kernels/split.cc \
 tensorflow/lite/micro/kernels/split_v.cc \
