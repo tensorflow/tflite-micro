@@ -49,6 +49,7 @@ TfLiteRegistration Register_GATHER();
 TfLiteRegistration Register_GATHER_ND();
 TfLiteRegistration Register_HARD_SWISH();
 TfLiteRegistration Register_IF();
+TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_L2_POOL_2D();
 TfLiteRegistration Register_LEAKY_RELU();
 TfLiteRegistration Register_LOG_SOFTMAX();
@@ -113,7 +114,6 @@ TfLiteRegistration Register_SQUARE();
 TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_UNPACK();
-TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_TANH();
 
 }  // namespace micro
