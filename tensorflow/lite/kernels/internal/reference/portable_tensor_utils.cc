@@ -484,9 +484,9 @@ void PortableApplyLayerNormFloat(const int16_t* input,
     float stddev_inv = 0.0f;
     const float variance = sum_sq / n_input - mean * mean;
     if (variance == 0) {
-      stddev_inv = 1.0f / static_cast<float>(sqrt(1e-8f));
+      stddev_inv = static_cast<float>(1.0 / sqrt(1e-8f));
     } else {
-      stddev_inv = 1.0f / static_cast<float>(sqrt(variance));
+      stddev_inv = static_cast<float>(1.0 / sqrt(variance));
     }
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
