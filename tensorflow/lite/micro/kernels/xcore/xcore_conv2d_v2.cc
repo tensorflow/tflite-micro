@@ -90,28 +90,25 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   auto* op_data = construct_persistent_object<Conv2DOpData>(context);
   auto parser = CustomOptionParser(buffer, length);
 
-  op_data->thread_count = parser.parseNamedCustomOption("thread_count");
+  // op_data->thread_count = parser.parseNamedCustomOption("thread_count");
 
-  op_data->threads = static_cast<ThreadInfo*>(context->AllocatePersistentBuffer(
-      context, op_data->thread_count * sizeof(ThreadInfo)));
-
-  // size_t params_bytes = parser.parseNamedCustomOption("params_bytes");
-  // int8_t * params_pool = static_cast<ThreadInfo*>(context->AllocatePersistentBuffer(
-  //     context, params_bytes);
+  // op_data->threads =
+  // static_cast<ThreadInfo*>(context->AllocatePersistentBuffer(
+  //     context, op_data->thread_count * sizeof(ThreadInfo)));
 
   for (int t = 0; t < op_data->thread_count; ++t) {
-    op_data->threads[t]->scratch_size =
-        parser.parseNamedCustomOption("scratch_size");
+    // op_data->threads[t].scratch_size =
+    //     parser.parseNamedCustomOption("scratch_size");
 
     // read the kernel type
-    KernelType kt = parser.parseNamedCustomOption("kernel_type");
+    KernelType kt;  // = parser.parseNamedCustomOption("kernel_type");
 
     // std::vector<int> params_vector =
     //     parser.parseNamedCustomOption("params").asVector();
     switch (kt) {
       case Conv2dValidDirect_t:
 
-                // nn::AbstractKernel::Params* akp =
+        // nn::AbstractKernel::Params* akp =
         //     (nn::AbstractKernel::Params*)(buffer +
         //                                   abstract_kernel_params_buffer_idx);
         // nn::DerefInputFn::Params* dip =
@@ -139,20 +136,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
 
-  // TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
-  //     context, op_data->stack_size *
-  //     op_data->execution_plan.regions.size(),
-  //     &op_data->stack_scratch_index));
-
-  // size_t required_bytes = 0;  // TODO think about how this should be passed
-  // to the init from xf2 int stack_scratch_index;
-  // context->RequestScratchBufferInArena(context, required_bytes,
-  //                                      &stack_scratch_index);
-  // op_data->threads[i]->stack_scratch_index = stack_scratch_index;
-
   for (int t = 0; t < op_data->thread_count; ++t) {
     // allocate the stack for thread workers
-    // Conv2DKernel<kernel_type>::calculate_worker_stack_size(op_data->stack_size);
+    size_t require_stack;
+    // get stack size
+
+    //#define GET_THREAD_FUNCTION_STACKSIZE(DEST, NAME)
+    op_data->threads[t].stack_size = require_stack;
+
+    size_t request =
+        op_data->threads[t].scratch_size + op_data->threads[t].stack_size;
+
+    TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
+        context, request, &op_data->threads[t].stack_scratch_index));
   }
 
   return kTfLiteOk;
@@ -162,18 +158,18 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
 
   int n_threads = op_data->thread_count;
+  /*
+    auto* dispatcher = tflite::micro::xcore::GetDispatcher();
 
-  auto* dispatcher = tflite::micro::xcore::GetDispatcher();
+    dispatcher->Initialize(conv2d_v2_thread_worker, n_threads,
+                           op_data->stack_size, stack);
+    for (int t = 0; t < n_threads; ++t) {
+      auto* stack = static_cast<char*>(context->GetScratchBuffer(
+          context, op_data->threads[t].stack_scratch_index));
 
-  dispatcher->Initialize(conv2d_v2_thread_worker, n_threads,
-                         op_data->stack_size, stack);
-  for (int t = 0; t < n_threads; ++t) {
-    auto* stack = static_cast<char*>(context->GetScratchBuffer(
-        context, op_data->threads[t].stack_scratch_index));
-
-    TF_LITE_ENSURE(context, stack);
-  }
-
+      TF_LITE_ENSURE(context, stack);
+    }
+  */
   // // initialize the threads
 
   // // TODO: move this to init
