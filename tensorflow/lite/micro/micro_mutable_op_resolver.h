@@ -115,7 +115,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // MicroMutableOpResolver object.
 
   TfLiteStatus AddAbs() {
-    return AddBuiltin(BuiltinOperator_ABS, tflite::ops::micro::Register_ABS(),
+    return AddBuiltin(BuiltinOperator_ABS, tflite::Register_ABS(),
                       ParseAbs);
   }
 
@@ -175,7 +175,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCos() {
-    return AddBuiltin(BuiltinOperator_COS, tflite::ops::micro::Register_COS(),
+    return AddBuiltin(BuiltinOperator_COS, tflite::Register_COS(),
                       ParseCos);
   }
 
@@ -314,7 +314,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLog() {
-    return AddBuiltin(BuiltinOperator_LOG, tflite::ops::micro::Register_LOG(),
+    return AddBuiltin(BuiltinOperator_LOG, tflite::Register_LOG(),
                       ParseLog);
   }
 
@@ -325,7 +325,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddLogicalNot() {
     return AddBuiltin(BuiltinOperator_LOGICAL_NOT,
-                      tflite::ops::micro::Register_LOGICAL_NOT(),
+                      tflite::Register_LOGICAL_NOT(),
                       ParseLogicalNot);
   }
 
@@ -436,7 +436,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddRsqrt() {
     return AddBuiltin(BuiltinOperator_RSQRT,
-                      tflite::ops::micro::Register_RSQRT(), ParseRsqrt);
+                      tflite::Register_RSQRT(), ParseRsqrt);
   }
 
   TfLiteStatus AddShape() {
@@ -444,7 +444,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSin() {
-    return AddBuiltin(BuiltinOperator_SIN, tflite::ops::micro::Register_SIN(),
+    return AddBuiltin(BuiltinOperator_SIN, tflite::Register_SIN(),
                       ParseSin);
   }
 
@@ -479,13 +479,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSqrt() {
-    return AddBuiltin(BuiltinOperator_SQRT, tflite::ops::micro::Register_SQRT(),
+    return AddBuiltin(BuiltinOperator_SQRT, tflite::Register_SQRT(),
                       ParseSqrt);
   }
 
   TfLiteStatus AddSquare() {
     return AddBuiltin(BuiltinOperator_SQUARE,
-                      tflite::ops::micro::Register_SQUARE(), ParseSquare);
+                      tflite::Register_SQUARE(), ParseSquare);
   }
 
   TfLiteStatus AddStridedSlice() {

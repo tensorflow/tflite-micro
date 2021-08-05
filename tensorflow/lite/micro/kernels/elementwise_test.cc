@@ -107,7 +107,7 @@ TF_LITE_MICRO_TEST(Abs) {
   const float input[] = {0.01, -0.01, 10, -10};
   const float golden[] = {0.01, 0.01, 10, 10};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_ABS(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_ABS(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -118,7 +118,7 @@ TF_LITE_MICRO_TEST(Sin) {
   const float input[] = {0, 3.1415926, -3.1415926, 1};
   const float golden[] = {0, 0, 0, 0.84147};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_SIN(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_SIN(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -129,7 +129,7 @@ TF_LITE_MICRO_TEST(Cos) {
   const float input[] = {0, 3.1415926, -3.1415926, 1};
   const float golden[] = {1, -1, -1, 0.54030};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_COS(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_COS(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -140,7 +140,7 @@ TF_LITE_MICRO_TEST(Log) {
   const float input[] = {1, 2.7182818, 0.5, 2};
   const float golden[] = {0, 1, -0.6931472, 0.6931472};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_LOG(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_LOG(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -151,7 +151,7 @@ TF_LITE_MICRO_TEST(Sqrt) {
   const float input[] = {0, 1, 2, 4};
   const float golden[] = {0, 1, 1.41421, 2};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_SQRT(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_SQRT(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -162,7 +162,7 @@ TF_LITE_MICRO_TEST(Rsqrt) {
   const float input[] = {1, 2, 4, 9};
   const float golden[] = {1, 0.7071, 0.5, 0.33333};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_RSQRT(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_RSQRT(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -173,7 +173,7 @@ TF_LITE_MICRO_TEST(Square) {
   const float input[] = {1, 2, 0.5, -3.0};
   const float golden[] = {1, 4.0, 0.25, 9.0};
   float output_data[output_dims_count];
-  tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_SQUARE(),
+  tflite::testing::TestElementwiseFloat(tflite::Register_SQUARE(),
                                         shape, input, shape, golden,
                                         output_data);
 }
@@ -185,7 +185,7 @@ TF_LITE_MICRO_TEST(LogicalNot) {
   const bool golden[] = {false, true, true, false};
   bool output_data[output_dims_count];
   tflite::testing::TestElementwiseBool(
-      tflite::ops::micro::Register_LOGICAL_NOT(), shape, input, shape, golden,
+      tflite::Register_LOGICAL_NOT(), shape, input, shape, golden,
       output_data);
 }
 
