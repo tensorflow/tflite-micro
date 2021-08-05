@@ -23,29 +23,24 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus CeilEval(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kCeilInputTensor);
-  TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kCeilOutputTensor);
+const int kCeilInputTensor = 0;
+const int kCeilOutputTensor = 0;
 
-  reference_ops::Ceil(tflite::micro::GetTensorShape(input),
-                      tflite::micro::GetTensorData<float>(input),
-                      tflite::micro::GetTensorShape(output),
-                      tflite::micro::GetTensorData<float>(output));
-
+TfLiteStatus CeilPrepare(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteTensor* input = GetInput(context, node, kCeilInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output = GetOutput(context, node, kCeilOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
+  TF_LITE_ENSURE_TYPES_EQ(context, output->type, input->type);
+  TF_LITE_ENSURE_EQ(context, output->bytes, input->bytes);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, input->dims->size);
+  for (int i = 0; i < output->dims->size; ++i) {
+    TF_LITE_ENSURE_EQ(context, output->dims->data[i], input->dims->data[i]);
+  }
   return kTfLiteOk;
-}
-
-TfLiteRegistration Register_CEIL() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/CeilPrepare,
-          /*invoke=*/CeilEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
 }
 
 }  // namespace tflite

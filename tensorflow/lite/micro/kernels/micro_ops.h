@@ -35,6 +35,7 @@ TfLiteRegistration Register_ADD_N();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
 TfLiteRegistration Register_BATCH_TO_SPACE_ND();
 TfLiteRegistration Register_CAST();
+TfLiteRegistration Register_CEIL();
 TfLiteRegistration Register_CUMSUM();
 TfLiteRegistration Register_DEPTH_TO_SPACE();
 TfLiteRegistration Register_DEPTHWISE_CONV_2D();
@@ -76,7 +77,6 @@ TfLiteRegistration Register_ABS();
 TfLiteRegistration Register_ADD();
 TfLiteRegistration Register_ARG_MAX();
 TfLiteRegistration Register_ARG_MIN();
-TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
 TfLiteRegistration* Register_CIRCULAR_BUFFER();
 TfLiteRegistration Register_CONCATENATION();

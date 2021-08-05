@@ -154,7 +154,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCeil() {
-    return AddBuiltin(BuiltinOperator_CEIL, tflite::ops::micro::Register_CEIL(),
+    return AddBuiltin(BuiltinOperator_CEIL, tflite::Register_CEIL(),
                       ParseCeil);
   }
 

@@ -119,6 +119,7 @@ cc_library(
         "batch_to_space_nd.cc",
         "cast.cc",
         "ceil.cc",
+        "ceil_common.cc",
         "circular_buffer.cc",
         "comparisons.cc",
         "concatenation.cc",
@@ -189,6 +190,7 @@ cc_library(
     ],
     hdrs = [
         "activations.h",
+        "ceil.h",
         "conv.h",
         "depthwise_conv.h",
         "ethosu.h",
