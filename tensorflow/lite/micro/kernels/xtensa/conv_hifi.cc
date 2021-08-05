@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#if defined(FUSION_F1) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
 
 #include <cstdint>
 
@@ -192,4 +192,4 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
 }
 
 }  // namespace tflite
-#endif  // defined(FUSION_F1) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)

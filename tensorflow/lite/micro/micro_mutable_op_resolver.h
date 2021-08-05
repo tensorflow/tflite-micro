@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -278,8 +278,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddHardSwish() {
-    return AddBuiltin(BuiltinOperator_HARD_SWISH,
-                      tflite::ops::micro::Register_HARD_SWISH(),
+    return AddBuiltin(BuiltinOperator_HARD_SWISH, tflite::Register_HARD_SWISH(),
                       ParseHardSwish);
   }
 
@@ -321,8 +320,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddLogicalAnd() {
     return AddBuiltin(BuiltinOperator_LOGICAL_AND,
-                      tflite::ops::micro::Register_LOGICAL_AND(),
-                      ParseLogicalAnd);
+                      tflite::Register_LOGICAL_AND(), ParseLogicalAnd);
   }
 
   TfLiteStatus AddLogicalNot() {
@@ -332,14 +330,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLogicalOr() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_OR,
-                      tflite::ops::micro::Register_LOGICAL_OR(),
+    return AddBuiltin(BuiltinOperator_LOGICAL_OR, tflite::Register_LOGICAL_OR(),
                       ParseLogicalOr);
   }
 
   TfLiteStatus AddLogistic() {
-    return AddBuiltin(BuiltinOperator_LOGISTIC,
-                      tflite::ops::micro::Register_LOGISTIC(), ParseLogistic);
+    return AddBuiltin(BuiltinOperator_LOGISTIC, tflite::Register_LOGISTIC(),
+                      ParseLogistic);
   }
 
   TfLiteStatus AddMaximum() {
@@ -408,13 +405,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddRelu() {
-    return AddBuiltin(BuiltinOperator_RELU, tflite::ops::micro::Register_RELU(),
-                      ParseRelu);
+    return AddBuiltin(BuiltinOperator_RELU, tflite::Register_RELU(), ParseRelu);
   }
 
   TfLiteStatus AddRelu6() {
-    return AddBuiltin(BuiltinOperator_RELU6,
-                      tflite::ops::micro::Register_RELU6(), ParseRelu6);
+    return AddBuiltin(BuiltinOperator_RELU6, tflite::Register_RELU6(),
+                      ParseRelu6);
   }
 
   TfLiteStatus AddReshape() {

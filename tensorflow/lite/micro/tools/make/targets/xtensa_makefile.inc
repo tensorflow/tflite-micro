@@ -28,8 +28,7 @@ ifeq ($(TARGET_ARCH), )
 endif
 
 # Create a cflag based on the specified TARGET_ARCH. For example:
-#   TARGET_ARCH=hifimini --> -DHIFIMINI
-#   TARGET_ARCH=fusion_f1 --> -DFUSION_F1
+#   TARGET_ARCH=hifi4 --> -DHIFI4
 TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
 
 PLATFORM_FLAGS = \
