@@ -131,7 +131,7 @@ set -e
 
 if [[ ${FORMAT_RESULT}  != 0 ]]
 then
-  echo "The formatting errors can be fixed with tensorflow/lite/micro/tols/ci_build/test_code_style.sh --fix_formatting"
+  echo "The formatting errors can be fixed with tensorflow/lite/micro/tools/ci_build/test_code_style.sh --fix_formatting"
 fi
 if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
       ${FORMAT_RESULT}         != 0 || \

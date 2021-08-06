@@ -24,7 +24,7 @@ ifeq ($(filter no_arc_mli,$(ARC_TAGS)),)
 ALL_TAGS += arc_mli
 
 ifeq ($(BUILD_ARC_MLI),true)
-  MLI_LIB_DIR ?= arc_mli_$(basename $(TCF_FILE_NAME))
+  MLI_LIB_DIR ?= arc_mli_$(notdir $(basename $(TCF_FILE_NAME)))
 
   $(eval $(call add_third_party_download,$(EMBARC_MLI_URL),$(EMBARC_MLI_MD5),$(MLI_LIB_DIR),build_embarc_mli,$(TCF_FILE)))
 

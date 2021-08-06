@@ -82,3 +82,9 @@ $(magic_wand_TEST_SRCS),$(magic_wand_TEST_HDRS)))
 # Builds a standalone binary
 $(eval $(call microlite_test,magic_wand,\
 $(magic_wand_SRCS),$(magic_wand_HDRS)))
+
+list_magic_wand_example_sources:
+	@echo $(magic_wand_SRCS)
+
+list_magic_wand_example_headers:
+	@echo $(magic_wand_HDRS)

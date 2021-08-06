@@ -284,3 +284,9 @@ $(MICRO_SPEECH_SRCS),$(MICRO_SPEECH_HDRS)))
 # Builds a standalone speech command recognizer binary using fake audio input.
 $(eval $(call microlite_test,micro_speech_mock,\
 $(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS)))
+
+list_micro_speech_example_sources:
+	@echo $(MICRO_SPEECH_SRCS)
+
+list_micro_speech_example_headers:
+	@echo $(MICRO_SPEECH_HDRS)

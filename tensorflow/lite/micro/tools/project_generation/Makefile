@@ -67,4 +67,26 @@ hello_world: libtflm
 	@mkdir -p $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(wildcard examples/hello_world/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
 
-examples: hello_world
+magic_wand: libtflm
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(wildcard examples/magic_wand/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+MICRO_SPEECH_SRCS := $(wildcard examples/micro_speech/*.cc)
+MICRO_SPEECH_SRCS += $(wildcard examples/micro_speech/*/*.cc)
+MICRO_SPEECH_THIRD_PARTY_SRCS := $(wildcard third_party/kissfft/*.c)
+MICRO_SPEECH_THIRD_PARTY_SRCS += $(wildcard third_party/kissfft/*/*.c)
+MICRO_SPEECH_INCLUDES := $(INCLUDES) -I./examples/micro_speech
+
+micro_speech: libtflm
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(MICRO_SPEECH_SRCS) $(MICRO_SPEECH_THIRD_PARTY_SRCS) $(MICRO_SPEECH_INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+PERSON_DETECTION_SRCS := $(wildcard examples/person_detection/*.cc)
+PERSON_DETECTION_THIRD_PARTY_SRCS := $(wildcard third_party/person_model_int8/*.cc)
+PERSON_DETECTION_INCLUDES := $(INCLUDES) -I./examples/person_detection
+
+person_detection: libtflm
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(PERSON_DETECTION_SRCS) $(PERSON_DETECTION_THIRD_PARTY_SRCS) $(PERSON_DETECTION_INCLUDES) $(LIB) -o $(BINDIR)/$@
+
+examples: hello_world magic_wand micro_speech person_detection
