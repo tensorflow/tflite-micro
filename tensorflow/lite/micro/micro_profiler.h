@@ -116,7 +116,7 @@ class ScopedMicroProfiler {
   uint32_t event_handle_ = 0;
   MicroProfiler* profiler_ = nullptr;
 };
-#endif  // !defined(NDEBUG)
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
 
 }  // namespace tflite
 
