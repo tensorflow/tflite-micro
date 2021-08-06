@@ -153,7 +153,7 @@ CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
 # Needed for the project generation interface.
-MICROLITE_CC_HDRS := \
+MICROLITE_CC_HDRS += \
   tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
 
 EXCLUDED_EXAMPLE_TESTS := \
