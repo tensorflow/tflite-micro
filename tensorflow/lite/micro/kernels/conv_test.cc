@@ -17,8 +17,8 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/kernels/conv_test_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -793,20 +793,20 @@ TF_LITE_MICRO_TEST(Int8Input32x1Filter32x32ShouldMatchGolden) {
 }
 
 // This test is created based on
-// https://github.com/tensorflow/tflite-micro/issues/329.
+// https://github.com/tensorflow/tflite-micro/issues/329
 // Input, output and filter are all 8 bits.
 // Filter tensor is of dimension 8x3x3x3 with different scales per output
 // channel. Some arbitrary parameters come from the above issue.
 TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   using tflite::ElementCount;
+  using tflite::kConvBiasQuantized8;
+  using tflite::kConvFilter8x3x3x3;
+  using tflite::kConvGoldenOutput1x16x16x8;
+  using tflite::kConvInput1x32x32x3;
   using tflite::testing::CreateTensor;
   using tflite::testing::FloatArrayFromFloats;
   using tflite::testing::IntArrayFromInts;
   using tflite::testing::ValidateConvGoldens;
-  using tflite::testing::conv::kBiasQuantized8;
-  using tflite::testing::conv::kFilter8x3x3x3;
-  using tflite::testing::conv::kGoldenOutput1x16x16x8;
-  using tflite::testing::conv::kInput1x32x32x3;
 
   constexpr int kInDepth = 3;
   constexpr int kOutDepth = 8;
@@ -823,7 +823,7 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   // Create input tensor of size 1x32x32x3.
   int input_shape[] = {4, 1, 32, 32, kInDepth};
   TfLiteIntArray* input_dims = IntArrayFromInts(input_shape);
-  TfLiteTensor input_tensor = CreateTensor(kInput1x32x32x3, input_dims);
+  TfLiteTensor input_tensor = CreateTensor(kConvInput1x32x32x3, input_dims);
   input_tensor.params = {kInputScale, kInputZeroPoint};
   input_tensor.quantization = {kTfLiteAffineQuantization, &input_quant};
 
@@ -842,7 +842,7 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   // Create filter tensor of size 8x3x3x3.
   int filter_shape[] = {4, kOutDepth, 3, 3, kInDepth};
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_shape);
-  TfLiteTensor filter_tensor = CreateTensor(kFilter8x3x3x3, filter_dims);
+  TfLiteTensor filter_tensor = CreateTensor(kConvFilter8x3x3x3, filter_dims);
   filter_tensor.quantization = {kTfLiteAffineQuantization, &filter_quant};
 
   // Bias quantization parameters: same zero point, but different scale per
@@ -860,7 +860,7 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   // Create per output channel bias of size 8
   int bias_shape[] = {1, kOutDepth};
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_shape);
-  TfLiteTensor bias_tensor = CreateTensor(kBiasQuantized8, bias_dims);
+  TfLiteTensor bias_tensor = CreateTensor(kConvBiasQuantized8, bias_dims);
   bias_tensor.quantization = {kTfLiteAffineQuantization, &bias_quant};
 
   // Output quantization parameters: same zero point and scale for all elements.
@@ -896,10 +896,11 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   conv_params.activation = kTfLiteActRelu6;
 
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, ValidateConvGoldens(tensors, tensors_size,
-                                     kGoldenOutput1x16x16x8, output_dims_count,
-                                     &conv_params, tflite::Register_CONV_2D(),
-                                     output_data, 1.0 /* tolerance */));
+      kTfLiteOk,
+      ValidateConvGoldens(tensors, tensors_size, kConvGoldenOutput1x16x16x8,
+                          output_dims_count, &conv_params,
+                          tflite::Register_CONV_2D(), output_data,
+                          1.0 /* tolerance */));
 }
 
 TF_LITE_MICRO_TESTS_END
