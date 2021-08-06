@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/conv_test_data.h"
+#include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
 
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-namespace testing {
-namespace conv {
 
-const int8_t kInput1x32x32x3[1 * 32 * 32 * 3] = {
+// Kernel Conv Test Case: Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden
+const int8_t kConvInput1x32x32x3[1 * 32 * 32 * 3] = {
     27,   32,   33,   31,   31,   35,   32,   33,   35,   30,   37,   36,
     31,   37,   37,   31,   37,   37,   31,   36,   42,   32,   38,   39,
     34,   39,   40,   36,   38,   40,   32,   42,   41,   36,   41,   42,
@@ -279,7 +278,8 @@ const int8_t kInput1x32x32x3[1 * 32 * 32 * 3] = {
     40,   13,   15,   27,   -10,  -7,   5,    -53,  -51,  3,    -51,  -56,
     6,    -55,  -59,  16,   -41,  -41,  19,   -31,  -29,  14,   -41,  -39};
 
-const int8_t kFilter8x3x3x3[8 * 3 * 3 * 3] = {
+// Kernel Conv Test Case: Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden
+const int8_t kConvFilter8x3x3x3[8 * 3 * 3 * 3] = {
     -82, -59,  -112, -88, -69,  -114, -50, -60,  -99, -67, -63,  -100, -75,
     -86, -124, -51,  -46, -94,  -94,  -88, -127, -77, -71, -109, -28,  -41,
     -93, -31,  68,   -34, -54,  104,  -49, -32,  62,  -30, -38,  80,   -41,
@@ -297,10 +297,13 @@ const int8_t kFilter8x3x3x3[8 * 3 * 3 * 3] = {
     7,   36,   43,   13,  15,   16,   11,  -31,  -64, -18, -30,  -57,  -15,
     4,   -7,   1,    -78, -127, -32,  -69, -119, -31, -3,  -4,   -2,   -49,
     -61, -15,  -42,  -63, -18,  -2,   8,   0};
-const int32_t kBiasQuantized8[8] = {-4166945, 70595,  203077, 315159,
-                                    55295,    184082, 75855,  233991};
 
-const int8_t kGoldenOutput1x16x16x8[1 * 16 * 16 * 8] = {
+// Kernel Conv Test Case: Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden
+const int32_t kConvBiasQuantized8[8] = {-4166945, 70595,  203077, 315159,
+                                        55295,    184082, 75855,  233991};
+
+// Kernel Conv Test Case: Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden
+const int8_t kConvGoldenOutput1x16x16x8[1 * 16 * 16 * 8] = {
     -128, -21,  -81,  67,  -20,  -109, -29,  4,   -128, -19,  -81,  68,
     -19,  -109, -31,  3,   -128, -19,  -80,  68,  -20,  -109, -32,  2,
     -128, -19,  -80,  68,  -20,  -109, -32,  1,   -128, -19,  -80,  68,
@@ -473,6 +476,4 @@ const int8_t kGoldenOutput1x16x16x8[1 * 16 * 16 * 8] = {
     12,   -118, -6,   33,  -128, -43,  -95,  49,  7,    -117, -4,   32,
     -128, -37,  -95,  53,  -7,   -117, -1,   30};
 
-}  // namespace conv
-}  // namespace testing
 }  // namespace tflite

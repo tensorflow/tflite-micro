@@ -62,13 +62,6 @@ cc_library(
 )
 
 cc_library(
-    name = "conv_test_data",
-    srcs = ["conv_test_data.cc"],
-    hdrs = ["conv_test_data.h"],
-    deps = ["//tensorflow/lite/c:common"],
-)
-
-cc_library(
     name = "detection_postprocess_flexbuffers_generated_data",
     srcs = [
         "detection_postprocess_flexbuffers_generated_data.cc",
@@ -394,7 +387,7 @@ cc_test(
     ],
     deps = [
         ":conv_test_common",
-        ":conv_test_data",
+        "//tensorflow/lite/micro/kernels/testdata:conv_test_data",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_utils",
