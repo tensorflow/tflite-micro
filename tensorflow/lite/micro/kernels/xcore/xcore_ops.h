@@ -34,6 +34,7 @@ constexpr const char* Conv2D_Deep_OpCode = "XC_conv2d_deep";
 constexpr const char* Conv2D_1x1_OpCode = "XC_conv2d_1x1";
 constexpr const char* Conv2D_Depthwise_OpCode = "XC_conv2d_depthwise";
 constexpr const char* Add_8_OpCode = "XC_add_8";
+constexpr const char* Ringbuffer_OpCode = "XC_ringbuffer";
 constexpr const char* Pad_OpCode = "XC_pad";
 
 // Binarized ops
@@ -68,6 +69,7 @@ TfLiteRegistration* Register_BConv2D_Int8();
 // Under development
 TfLiteRegistration* Register_Pad();
 TfLiteRegistration* Register_Add_8();
+TfLiteRegistration* Register_Ringbuffer();
 
 // operators not currently inserted by the XCORE converter
 TfLiteRegistration* Register_Requantize_16_to_8();
