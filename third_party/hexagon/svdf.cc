@@ -88,10 +88,6 @@ TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input = GetInput(context, node, kSvdfInputTensor);
   const TfLiteTensor* weights_feature =
       GetInput(context, node, kSvdfWeightsFeatureTensor);
-  const TfLiteTensor* weights_time =
-      GetInput(context, node, kSvdfWeightsTimeTensor);
-  const TfLiteTensor* activation_state =
-      GetInput(context, node, kSvdfInputActivationStateTensor);
 
   // Define input constants based on input tensor definition above:
   const int rank = params->rank;
@@ -119,6 +115,8 @@ TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
             &(data->reference_op_data.scratch_output_tensor_index));
     TF_LITE_ENSURE_OK(context, scratch_output_status);
   }
+
+  return kTfLiteOk;
 }
 
 TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
