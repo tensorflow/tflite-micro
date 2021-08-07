@@ -17,6 +17,12 @@ limitations under the License.
 
 namespace tflite {
 
+template <int N>
+struct Dims {
+  int sizes[N];
+  int strides[N];
+};
+
 class RuntimeShape {
  public:
   RuntimeShape& operator=(RuntimeShape const&) = delete;
