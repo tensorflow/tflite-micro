@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/kernels/svdf.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -55,7 +56,7 @@ KeywordBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
   op_resolver->AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
   op_resolver->AddQuantize();
   op_resolver->AddSoftmax(tflite::Register_SOFTMAX_INT8_INT16());
-  op_resolver->AddSvdf();
+  op_resolver->AddSvdf(tflite::Register_SVDF_INT8());
 
   return new (benchmark_runner_buffer)
       KeywordBenchmarkRunner(g_keyword_scrambled_model_data, op_resolver,
