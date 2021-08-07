@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,92 +52,79 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/hexagon/hexagon_fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
+
+#include "hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
 namespace {
-
-// Input tensors.
-constexpr int kInputTensor = 0;
-constexpr int kWeightsTensor = 1;
-constexpr int kBiasTensor = 2;
-// Output tensor.
-constexpr int kOutputTensor = 0;
-
-struct OpData {
-  // The scaling factor from input to output (aka the 'real multiplier') can
-  // be represented as a fixed point multiplier plus a left shift.
-  int32_t output_multiplier;
-  int output_shift;
-  // The range of the fused activation layer. For example for kNone and
-  // uint8_t these would be 0 and 255.
-  int32_t output_activation_min;
-  int32_t output_activation_max;
-  // The index of the temporary tensor where the quantized inputs are cached.
-  int input_quantized_index;
-  // Cached zero point values of tensors.
-  int32_t input_zero_point;
-  int32_t filter_zero_point;
-  int32_t output_zero_point;
-
-  void* hexagon_data;
-};
 
 TfLiteStatus CalculateOpData(TfLiteContext* context,
                              TfLiteFusedActivation activation,
                              TfLiteType data_type, const TfLiteTensor* input,
                              const TfLiteTensor* filter,
                              const TfLiteTensor* bias, TfLiteTensor* output,
-                             OpData* data) {
+                             HexagonOpDataFullyConnected* data) {
   TfLiteStatus status = kTfLiteOk;
   if (data_type != kTfLiteFloat32) {
     double real_multiplier = 0.0;
     TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
         context, input, filter, bias, output, &real_multiplier));
     int exponent;
-    QuantizeMultiplier(real_multiplier, &data->output_multiplier, &exponent);
-    data->output_shift = -exponent;
+    QuantizeMultiplier(real_multiplier,
+                       &data->reference_op_data.output_multiplier, &exponent);
+    data->reference_op_data.output_shift = -exponent;
     TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
-        context, activation, output, &data->output_activation_min,
-        &data->output_activation_max));
+        context, activation, output,
+        &data->reference_op_data.output_activation_min,
+        &data->reference_op_data.output_activation_max));
 
-    data->input_zero_point = input->params.zero_point;
-    data->filter_zero_point = filter->params.zero_point;
-    data->output_zero_point = output->params.zero_point;
+    data->reference_op_data.input_zero_point = input->params.zero_point;
+    data->reference_op_data.filter_zero_point = filter->params.zero_point;
+    data->reference_op_data.output_zero_point = output->params.zero_point;
   }
   return status;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+}  // namespace
+
+void* FullyConnectedInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = nullptr;
-  data = context->AllocatePersistentBuffer(context, sizeof(OpData));
+  data = context->AllocatePersistentBuffer(context,
+                                           sizeof(HexagonOpDataFullyConnected));
 
   if (data == nullptr) {
     return nullptr;
   }
-  OpData* opdata = static_cast<OpData*>(data);
+  HexagonOpDataFullyConnected* opdata =
+      static_cast<HexagonOpDataFullyConnected*>(data);
   opdata->hexagon_data =
       tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
 
   return data;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
-  OpData* data = static_cast<OpData*>(node->user_data);
+  HexagonOpDataFullyConnected* data =
+      static_cast<HexagonOpDataFullyConnected*>(node->user_data);
   const auto params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+  const TfLiteTensor* input =
+      GetInput(context, node, kFullyConnectedInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = GetInput(context, node, kWeightsTensor);
+  const TfLiteTensor* filter =
+      GetInput(context, node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  const TfLiteTensor* bias =
+      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
@@ -154,53 +141,27 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
-TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
-                               const OpData& data,
-                               const TfLiteEvalTensor* input,
-                               const TfLiteEvalTensor* filter,
-                               const TfLiteEvalTensor* bias,
-                               TfLiteEvalTensor* output) {
-  tflite::FullyConnectedParams op_params;
-  op_params.input_offset = -data.input_zero_point;
-  op_params.weights_offset = -data.filter_zero_point;
-  op_params.output_offset = data.output_zero_point;
-  op_params.output_multiplier = data.output_multiplier;
-  // TODO(b/138810107): Figure out whether output shift should be inverted
-  op_params.output_shift = -data.output_shift;
-  op_params.quantized_activation_min = data.output_activation_min;
-  op_params.quantized_activation_max = data.output_activation_max;
-
-  reference_integer_ops::FullyConnected(
-      op_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<int8_t>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<int8_t>(filter),
-      tflite::micro::GetTensorShape(bias),
-      tflite::micro::GetTensorData<int32_t>(bias),
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<int8_t>(output));
-
-  return kTfLiteOk;
-}
-
 TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                           const OpData& data, const TfLiteEvalTensor* input,
+                           const HexagonOpDataFullyConnected& data,
+                           const TfLiteEvalTensor* input,
                            const TfLiteEvalTensor* filter,
                            const TfLiteEvalTensor* bias,
                            TfLiteEvalTensor* output) {
-  const int32_t input_offset = -data.input_zero_point;
-  const int32_t filter_offset = -data.filter_zero_point;
-  const int32_t output_offset = data.output_zero_point;
+  const int32_t input_offset = -data.reference_op_data.input_zero_point;
+  const int32_t filter_offset = -data.reference_op_data.filter_zero_point;
+  const int32_t output_offset = data.reference_op_data.output_zero_point;
 
   tflite::FullyConnectedParams op_params;
   op_params.input_offset = input_offset;
   op_params.weights_offset = filter_offset;
   op_params.output_offset = output_offset;
-  op_params.output_multiplier = data.output_multiplier;
+  op_params.output_multiplier = data.reference_op_data.output_multiplier;
   // Legacy ops used mixed left and right shifts. Now all are +ve-means-left.
-  op_params.output_shift = -data.output_shift;
-  op_params.quantized_activation_min = data.output_activation_min;
-  op_params.quantized_activation_max = data.output_activation_max;
+  op_params.output_shift = -data.reference_op_data.output_shift;
+  op_params.quantized_activation_min =
+      data.reference_op_data.output_activation_min;
+  op_params.quantized_activation_max =
+      data.reference_op_data.output_activation_max;
 
 #define TF_LITE_FULLY_CONNECTED(output_data_type)      \
   reference_ops::FullyConnected(                       \
@@ -251,22 +212,23 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
   const TfLiteEvalTensor* filter =
-      tflite::micro::GetEvalInput(context, node, kWeightsTensor);
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
   const TfLiteEvalTensor* bias =
-      tflite::micro::GetEvalInput(context, node, kBiasTensor);
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  const HexagonOpDataFullyConnected& data =
+      *(static_cast<const HexagonOpDataFullyConnected*>(node->user_data));
 
   // Checks in Prepare ensure input, output and filter types are all the same.
   switch (input->type) {
@@ -275,13 +237,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                        output);
 
     case kTfLiteInt8:
-      if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
-        return tflite::hexagon_fully_connected::HexagonEvalQuantizedInt8(
-            context, node, node->user_data, input, filter, bias, output);
-      } else {
-        return EvalQuantizedInt8(context, node, data, input, filter, bias,
-                                 output);
-      }
+      return FullyConnectedEvalInt8(context, node);
 
     case kTfLiteUInt8:
       return EvalQuantized(context, node, data, input, filter, bias, output);
@@ -294,13 +250,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace
-
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  return {/*init=*/Init,
+  return {/*init=*/FullyConnectedInit,
           /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
+          /*prepare=*/FullyConnectedPrepare,
+          /*invoke=*/FullyConnectedEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

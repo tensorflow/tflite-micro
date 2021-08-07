@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 
+#include "hexagon_tflm_translation_svdf.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -56,72 +57,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
-#include "hexagon_tflm_translation_svdf.h"
-
 namespace tflite {
 
-void* SvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
-
-  if (data == nullptr) {
-    return nullptr;
-  }
-
-  HexagonOpDataSvdf* opdata = static_cast<HexagonOpDataSvdf*>(data);
-  opdata->hexagon_data =
-      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
-
-  return data;
-}
-
-TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  TfLiteStatus prepare_status = PrepareSvdf(context, node);
-  if (prepare_status != kTfLiteOk) {
-    return prepare_status;
-  }
-
-  const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
-
-  const TfLiteTensor* input = GetInput(context, node, kSvdfInputTensor);
-  const TfLiteTensor* weights_feature =
-      GetInput(context, node, kSvdfWeightsFeatureTensor);
-  const TfLiteTensor* weights_time =
-      GetInput(context, node, kSvdfWeightsTimeTensor);
-  const TfLiteTensor* activation_state =
-      GetInput(context, node, kSvdfInputActivationStateTensor);
-
-  // Define input constants based on input tensor definition above:
-  const int rank = params->rank;
-  const int batch_size = input->dims->data[0];
-  const int num_filters = weights_feature->dims->data[0];
-  const int num_units = num_filters / rank;
-
-  HexagonOpDataSvdf* data = static_cast<HexagonOpDataSvdf*>(node->user_data);
-  TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-
-  tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
-
-  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
-    TF_LITE_ENSURE_OK(context,
-                      tflite::hexagon_svdf::HexagonPrepare(context, node));
-  } else {
-    const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
-        context, batch_size * num_filters * sizeof(int32_t),
-        &(data->reference_op_data.scratch_tensor_index));
-    TF_LITE_ENSURE_OK(context, scratch_status);
-
-    const TfLiteStatus scratch_output_status =
-        context->RequestScratchBufferInArena(
-            context, batch_size * num_units * sizeof(int32_t),
-            &(data->reference_op_data.scratch_output_tensor_index));
-    TF_LITE_ENSURE_OK(context, scratch_output_status);
-  }
-}
-
-TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
   const HexagonOpDataSvdf& data =
@@ -142,33 +80,23 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
 
-  switch (weights_feature->type) {
-    case kTfLiteFloat32: {
-      EvalFloatSvdfReference(context, node, input, weights_feature,
-                             weights_time, bias, params,
-                             data.reference_op_data.scratch_tensor_index,
-                             activation_state, output);
-      return kTfLiteOk;
-      break;
-    }
-
-    case kTfLiteInt8: {
-      return SvdfEvalInt8(context, node);
-    }
-
-    default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
-      return kTfLiteError;
+  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
+    tflite::hexagon_svdf::HexagonEvalIntegerSVDF(
+        context, node, input, weights_feature, weights_time, bias, params,
+        activation_state, output, node->user_data);
+  } else {
+    EvalIntegerSvdfReference(context, node, input, weights_feature,
+                             weights_time, bias, params, activation_state,
+                             output, data.reference_op_data);
   }
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_SVDF() {
+TfLiteRegistration Register_SVDF_INT8() {
   return {/*init=*/SvdfInit,
           /*free=*/nullptr,
           /*prepare=*/SvdfPrepare,
-          /*invoke=*/SvdfEval,
+          /*invoke=*/SvdfEvalInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
