@@ -76,45 +76,17 @@ void* SvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
   TfLiteStatus prepare_status = PrepareSvdf(context, node);
   if (prepare_status != kTfLiteOk) {
     return prepare_status;
   }
-
-  const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
-
-  const TfLiteTensor* input = GetInput(context, node, kSvdfInputTensor);
-  const TfLiteTensor* weights_feature =
-      GetInput(context, node, kSvdfWeightsFeatureTensor);
-
-  // Define input constants based on input tensor definition above:
-  const int rank = params->rank;
-  const int batch_size = input->dims->data[0];
-  const int num_filters = weights_feature->dims->data[0];
-  const int num_units = num_filters / rank;
-
-  HexagonOpDataSvdf* data = static_cast<HexagonOpDataSvdf*>(node->user_data);
-  TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
 
   tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
 
   if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
     TF_LITE_ENSURE_OK(context,
                       tflite::hexagon_svdf::HexagonPrepare(context, node));
-  } else {
-    const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
-        context, batch_size * num_filters * sizeof(int32_t),
-        &(data->reference_op_data.scratch_tensor_index));
-    TF_LITE_ENSURE_OK(context, scratch_status);
-
-    const TfLiteStatus scratch_output_status =
-        context->RequestScratchBufferInArena(
-            context, batch_size * num_units * sizeof(int32_t),
-            &(data->reference_op_data.scratch_output_tensor_index));
-    TF_LITE_ENSURE_OK(context, scratch_output_status);
-  }
+  } 
 
   return kTfLiteOk;
 }
