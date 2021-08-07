@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 
+namespace tflite {
+
 class RuntimeShape {
  public:
   RuntimeShape& operator=(RuntimeShape const&) = delete;
@@ -63,10 +65,6 @@ class RuntimeShape {
   const int32_t* DimsData() const {
     return dims_;
   }
-  const int32_t* DimsDataUpTo5D() const {
-    return dims_;
-  }
-
 
   void ReplaceWith(int dimensions_count, const int32_t* dims_data) {
     int32_t* dst_dims = DimsData();
@@ -108,5 +106,45 @@ class RuntimeShape {
     int32_t dims_[kMaxSize];
   };
 };
+
+// Since tensors with '0' in their shape are valid in TF, these offset functions
+// allow that as long as the corresponding index is also 0. It is upto the
+// calling ops to ensure that they perform verification checks on tensor shapes
+// if they don't support a particular behavior.
+
+inline int Offset(const RuntimeShape& shape, int i0, int i1, int i2, int i3) {
+  TFLITE_DCHECK_EQ(shape.DimensionsCount(), 4);
+  const int* dims_data = reinterpret_cast<const int*>(shape.DimsData());
+  TFLITE_DCHECK((dims_data[0] == 0 && i0 == 0) ||
+                (i0 >= 0 && i0 < dims_data[0]));
+  TFLITE_DCHECK((dims_data[1] == 0 && i1 == 0) ||
+                (i1 >= 0 && i1 < dims_data[1]));
+  TFLITE_DCHECK((dims_data[2] == 0 && i2 == 0) ||
+                (i2 >= 0 && i2 < dims_data[2]));
+  TFLITE_DCHECK((dims_data[3] == 0 && i3 == 0) ||
+                (i3 >= 0 && i3 < dims_data[3]));
+  return ((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3;
+}
+
+inline int Offset(const RuntimeShape& shape, int i0, int i1, int i2, int i3,
+                  int i4) {
+  TFLITE_DCHECK_EQ(shape.DimensionsCount(), 5);
+  const int* dims_data = reinterpret_cast<const int*>(shape.DimsData());
+  TFLITE_DCHECK((dims_data[0] == 0 && i0 == 0) ||
+                (i0 >= 0 && i0 < dims_data[0]));
+  TFLITE_DCHECK((dims_data[1] == 0 && i1 == 0) ||
+                (i1 >= 0 && i1 < dims_data[1]));
+  TFLITE_DCHECK((dims_data[2] == 0 && i2 == 0) ||
+                (i2 >= 0 && i2 < dims_data[2]));
+  TFLITE_DCHECK((dims_data[3] == 0 && i3 == 0) ||
+                (i3 >= 0 && i3 < dims_data[3]));
+  TFLITE_DCHECK((dims_data[4] == 0 && i4 == 0) ||
+                (i4 >= 0 && i4 < dims_data[4]));
+  return (((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3) *
+             dims_data[4] +
+         i4;
+}
+
+}  // namespace
 
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
