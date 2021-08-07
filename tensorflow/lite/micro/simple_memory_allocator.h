@@ -87,6 +87,8 @@ class SimpleMemoryAllocator {
   // account any temporary allocations.
   size_t GetUsedBytes() const;
 
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+
  protected:
   // Returns a pointer to the current end of the head buffer.
   uint8_t* head() const;
@@ -103,8 +105,6 @@ class SimpleMemoryAllocator {
   uint8_t* head_;
   uint8_t* tail_;
   uint8_t* temp_;
-
-  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite
