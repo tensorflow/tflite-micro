@@ -35,16 +35,24 @@ namespace conv_v2 {
 // thread data type and worker functions
 // -------------------------------------------------------------------- //
 
-struct Work {
+struct Conv2DThread {
   int8_t* X;
   int8_t* Y;
   int8_t* scratch;
   nn::Filter2D* f;
 };
 
-ATTRIBUTE_THREAD_FUNCTION void conv2d_v2_thread_worker(void* context) {
-  auto* work = static_cast<Work*>(context);
+extern "C" {
+ATTRIBUTE_THREAD_FUNCTION
+void conv2d_v2_thread_worker(void* context) {
+  auto work = static_cast<Conv2DThread*>(context);
+  // nn::OT_int8* ot = (nn::OT_int8*)work->f->ot_handler;
+  // nn::OT_int8::Params* ot_params = ot->params;
+  // for (int i = 0; i < ot_params->output_slice_channel_count; ++i) {
+  //   std::cout << ot_params->multipliers[i] << "\n";
+  // }
   work->f->execute(work->Y, work->X, work->scratch);
+}
 }
 
 // -------------------------------------------------------------------- //
@@ -62,12 +70,12 @@ enum KernelType {
  * includes an array of the work to be done by said worker.
  *
  */
-struct ThreadInfo {
+struct Conv2DThreadInfo {
   size_t stack_size;        // Each thread needs a stack
   size_t scratch_size;      // Each thread needs a scratch
   int stack_scratch_index;  // All threads stack and scratch consolidated into a
                             // single scratch buffer
-  nn::Filter2D job;         // The job to be done by this thread
+  nn::Filter2D* filter2D;   // The job to be done by this thread
 };
 
 // This is the struct that contains the data required to fully describe the work
@@ -77,34 +85,52 @@ struct ThreadInfo {
 // - T scratch allocations, i.e. an amount of scratch memory for each thread.
 struct Conv2DOpData {
   size_t thread_count;
-  ThreadInfo* threads;
+  Conv2DThreadInfo* threads;
 };
 
 // -------------------------------------------------------------------- //
 // op function implementations
 // -------------------------------------------------------------------- //
 
+template <typename T, bool pointer_serialization>
+T* getDeserializedParams(TfLiteContext* context, std::string str) {
+  char* allocated_memory;
+  int allocationByteCount =
+      T::get_allocation_byte_count(str.c_str()) + sizeof(T);
+  allocated_memory =
+      (char*)context->AllocatePersistentBuffer(context, allocationByteCount);
+  T* param = T::template deserialise<T>(allocated_memory, str.c_str());
+  return param;
+}
+
+template <typename T>
+T* getDeserializedParams(TfLiteContext* context, std::string str) {
+  char* allocated_memory;
+  int allocationByteCount = sizeof(T);
+  allocated_memory =
+      (char*)context->AllocatePersistentBuffer(context, allocationByteCount);
+  T* param = T::template deserialise<T>(allocated_memory, str.c_str());
+  return param;
+}
+
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(buffer != nullptr);
 
-  auto* op_data = construct_persistent_object<Conv2DOpData>(context);
+  auto op_data = construct_persistent_object<Conv2DOpData>(context);
   auto parser = CustomOptionParser(buffer, length);
-
-  // op_data->thread_count = parser.parseNamedCustomOption("thread_count");
-
-  // op_data->threads =
-  // static_cast<ThreadInfo*>(context->AllocatePersistentBuffer(
-  //     context, op_data->thread_count * sizeof(ThreadInfo)));
+  auto threads = parser.parseNamedCustomOption("threads").AsVector();
+  auto thread_count = threads.size();
+  op_data->thread_count = thread_count;
+  op_data->threads =
+      static_cast<Conv2DThreadInfo*>(context->AllocatePersistentBuffer(
+          context, op_data->thread_count * sizeof(Conv2DThreadInfo)));
 
   for (int t = 0; t < op_data->thread_count; ++t) {
-    // op_data->threads[t].scratch_size =
-    //     parser.parseNamedCustomOption("scratch_size");
-
+    flexbuffers::Vector params = threads[t].AsVector();
+    op_data->threads[t].scratch_size = params[0].AsInt32();
     // read the kernel type
-    KernelType kt;  // = parser.parseNamedCustomOption("kernel_type");
+    KernelType kt = (KernelType)params[1].AsInt32();
 
-    // std::vector<int> params_vector =
-    //     parser.parseNamedCustomOption("params").asVector();
     switch (kt) {
       case Conv2dValidDirect_t:
 
@@ -123,6 +149,40 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       case Conv2dValidIndirect_t:
         break;
       case Conv2dPaddedInDirect_t:
+        nn::Filter2D::Params* ak_params =
+            getDeserializedParams<nn::Filter2D::Params>(
+                context, params[2].As<std::string>());
+        nn::ImToColPadded::Params* mf_params =
+            getDeserializedParams<nn::ImToColPadded::Params>(
+                context, params[3].As<std::string>());
+        nn::MatMulInt8::Params* af_params =
+            getDeserializedParams<nn::MatMulInt8::Params, true>(
+                context, params[4].As<std::string>());
+        nn::OT_int8::Params* ot_params =
+            getDeserializedParams<nn::OT_int8::Params, true>(
+                context, params[5].As<std::string>());
+
+        auto memcpy = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::ImToColPadded))) nn::ImToColPadded(mf_params);
+
+        auto aggregator = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::MatMulInt8))) nn::MatMulInt8(af_params);
+
+        auto ot = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::OT_int8))) nn::OT_int8(ot_params);
+
+        auto conv2d = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::Conv2dPaddedInDirect)))
+            nn::Conv2dPaddedInDirect(ak_params, memcpy, aggregator, ot);
+
+        // nn::OT_int8* oth = (nn::OT_int8*)conv2d->ot_handler;
+        // nn::OT_int8::Params* otp = oth->params;
+
+        // for (int i = 0; i < otp->output_slice_channel_count; ++i) {
+        //   std::cout << otp->multipliers[i] << "\n";
+        // }
+
+        op_data->threads[t].filter2D = conv2d;
         break;
     }
   }
@@ -133,20 +193,15 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   // TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-
   auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
-
   for (int t = 0; t < op_data->thread_count; ++t) {
     // allocate the stack for thread workers
     size_t require_stack;
     // get stack size
-
-    //#define GET_THREAD_FUNCTION_STACKSIZE(DEST, NAME)
+    GET_THREAD_FUNCTION_STACKSIZE(require_stack, conv2d_v2_thread_worker);
     op_data->threads[t].stack_size = require_stack;
-
     size_t request =
         op_data->threads[t].scratch_size + op_data->threads[t].stack_size;
-
     TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
         context, request, &op_data->threads[t].stack_scratch_index));
   }
@@ -155,100 +210,35 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
+  auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
   int n_threads = op_data->thread_count;
-  /*
-    auto* dispatcher = tflite::micro::xcore::GetDispatcher();
+  auto* dispatcher = tflite::micro::xcore::GetDispatcher();
+
+  for (int t = 0; t < n_threads; ++t) {
+    auto* stack = static_cast<char*>(context->GetScratchBuffer(
+        context, op_data->threads[t].stack_scratch_index));
+    TF_LITE_ENSURE(context, stack);
 
     dispatcher->Initialize(conv2d_v2_thread_worker, n_threads,
-                           op_data->stack_size, stack);
-    for (int t = 0; t < n_threads; ++t) {
-      auto* stack = static_cast<char*>(context->GetScratchBuffer(
-          context, op_data->threads[t].stack_scratch_index));
+                           op_data->threads[t].stack_size, stack);
+  }
 
-      TF_LITE_ENSURE(context, stack);
-    }
-  */
-  // // initialize the threads
+  Conv2DThread thread_data[n_threads];
+  void* dispatcher_args[n_threads];
+  for (int t = 0; t < n_threads; ++t) {
+    thread_data[t].X = (int8_t*)tflite::micro::GetTensorData<int8_t>(input);
+    thread_data[t].Y = (int8_t*)tflite::micro::GetTensorData<int8_t>(output);
+    thread_data[t].scratch = (int8_t*)context->GetScratchBuffer(
+        context, op_data->threads[t].stack_scratch_index);
+    thread_data[t].f = op_data->threads[t].filter2D;
+    // conv2d_v2_thread_worker(reinterpret_cast<void*>(&thread_data[t]));
+    dispatcher_args[t] = reinterpret_cast<void*>(&thread_data[t]);
+  }
 
-  // // TODO: move this to init
-  // // create thread data
-  // int n_th = op_data->execution_plan.GetNumThreads();
-  // Conv2DThreadData thread_data[n_th];
-
-  // for (int j{0}; j < n_th; j++) {
-  //   thread_data[j].args = &op_data->args;
-  // }
-
-  // auto* dispatcher = tflite::micro::xcore::GetDispatcher();
-  // dispatcher->Initialize(Conv2DKernel<kernel_type>::get_worker(), n_th,
-  //                        op_data->stack_size, stack);
-
-  // const auto* weights = tflite::micro::GetEvalInput(context, node, 1);
-  // const auto channel_size =
-  //     Conv2DKernel<kernel_type>::calculate_output_channel_size(
-  //         tflite::micro::GetTensorShape(weights));
-
-  // const auto* weights_src_array =
-  // tflite::micro::GetTensorData<int8_t>(weights); const auto* bso_src_array =
-  // tflite::micro::GetTensorData<int8_t>(
-  //     tflite::micro::GetEvalInput(context, node, 2));
-
-  // if (kernel_type == Conv2DKernelType::kDepthwise) {
-  //   if (op_data->weights_scratch_index >= 0) {
-  //     op_data->args.depthwise_flags = CONV2D_DEPTHWISE_FLAG_SLICED_K;
-  //   } else {
-  //     op_data->args.depthwise_flags = (nn_conv2d_depthwise_flags_e)0;
-  //     op_data->args.K = weights_src_array;
-  //     op_data->args.BSO = (const nn_bso_block_t*)bso_src_array;
-  //   }
-  // }
-
-  // size_t weights_src_offset = 0;
-  // size_t biases_src_offset = 0;
-  // for (int i_cg = 0; i_cg < op_data->execution_plan.changrps.size(); i_cg++)
-  // {
-  //   const auto& changrp = op_data->execution_plan.changrps[i_cg];
-
-  //   // fetch weights and biases
-  //   if (kernel_type == Conv2DKernelType::kDepthwise) {
-  //     if (op_data->weights_scratch_index >= 0) {
-  //       fetch_depthwise_subtensor((int8_t*)op_data->args.K,
-  //       weights_src_array,
-  //                                 op_data->args.window.shape.height,
-  //                                 op_data->args.window.shape.width,
-  //                                 channel_size, changrp.start, changrp.size);
-  //     }
-  //     if (op_data->bias_scratch_index >= 0) {
-  //       FetchBuffer((int8_t**)&op_data->args.BSO,
-  //                   &bso_src_array[biases_src_offset],
-  //                   kBSOChannelGroupBytes);
-  //       biases_src_offset += kBSOChannelGroupBytes;
-  //     }
-  //   } else {
-  //     size_t weights_fetch_size = channel_size * changrp.size;
-  //     FetchBuffer((int8_t**)&op_data->args.K,
-  //                 &weights_src_array[weights_src_offset],
-  //                 weights_fetch_size);
-  //     weights_src_offset += weights_fetch_size;
-  //     FetchBuffer((int8_t**)&op_data->args.BSO,
-  //                 &bso_src_array[biases_src_offset], kBSOChannelGroupBytes);
-  //     biases_src_offset += kBSOChannelGroupBytes;
-  //   }
-
-  //   // create tasks
-  //   size_t n_rg = op_data->execution_plan.regions.size();
-  //   void* dispatcher_args[n_rg];
-  //   for (int i_rg = 0; i_rg < n_rg; i_rg++) {
-  //     const auto& region = op_data->execution_plan.regions[i_rg];
-
-  //     thread_data[i_rg].job = {{region.top, region.left, changrp.start},
-  //                              {region.rows, region.cols, changrp.size}};
-  //     dispatcher_args[i_rg] = &thread_data[i_rg];
-  //   }
-  //   dispatcher->Invoke(dispatcher_args, n_rg);
-  // }
+  dispatcher->Invoke(dispatcher_args, n_threads);
 
   return kTfLiteOk;
 }

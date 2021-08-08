@@ -29,6 +29,9 @@ constexpr const char* MaxPool2D_OpCode = "XC_maxpool2d";
 constexpr const char* AvgPool2D_OpCode = "XC_avgpool2d";
 constexpr const char* AvgPool2D_Global_OpCode = "XC_avgpool2d_global";
 constexpr const char* FullyConnected_8_OpCode = "XC_fc";
+
+constexpr const char* Conv2D_V2_OpCode = "XC_conv2d_v2";
+
 constexpr const char* Conv2D_Shallow_OpCode = "XC_conv2d_shallowin";
 constexpr const char* Conv2D_Deep_OpCode = "XC_conv2d_deep";
 constexpr const char* Conv2D_1x1_OpCode = "XC_conv2d_1x1";
@@ -54,6 +57,7 @@ TfLiteRegistration* Register_Conv2D_Deep();
 TfLiteRegistration* Register_Conv2D_1x1();
 TfLiteRegistration* Register_Conv2D_Depthwise();
 TfLiteRegistration* Register_FullyConnected_8();
+TfLiteRegistration* Register_Conv2D_V2();
 TfLiteRegistration* Register_MaxPool2D();
 TfLiteRegistration* Register_AvgPool2D();
 TfLiteRegistration* Register_AvgPool2D_Global();
