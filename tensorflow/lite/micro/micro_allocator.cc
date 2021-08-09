@@ -75,10 +75,10 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
     // of the model.
   }
 
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+
  private:
   SimpleMemoryAllocator* memory_allocator_;
-
-  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 #if !defined(__clang__)
