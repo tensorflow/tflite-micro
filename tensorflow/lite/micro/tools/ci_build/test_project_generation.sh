@@ -51,6 +51,8 @@ rm -rf ${TEST_OUTPUT_DIR}
 
 # Check that we can export a TFLM tree with additional makefile options.
 TEST_OUTPUT_DIR_CMSIS=$(mktemp -d)
+
+
 readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
@@ -58,11 +60,17 @@ readable_run \
   ${EXAMPLES}
 
 readable_run cp tensorflow/lite/micro/tools/project_generation/Makefile ${TEST_OUTPUT_DIR_CMSIS}
+
+#readable_run \
+#  tensorflow/lite/micro/tools/make/arm_gcc_download.sh \
+#  ${TEST_OUTPUT_DIR_CMSIS}
+
 pushd ${TEST_OUTPUT_DIR_CMSIS} > /dev/null
 
-readable_run PATH=${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin \
+PATH=${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin \
+  readable_run \
   make -j8 BUILD_TYPE=cmsis_nn
 
 popd > /dev/null
 
-rm -rf ${TEST_OUTPUT_DIR_CMSIS}
+#rm -rf ${TEST_OUTPUT_DIR_CMSIS}
