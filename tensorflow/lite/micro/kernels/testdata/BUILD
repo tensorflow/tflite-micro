@@ -1,5 +1,5 @@
 package(
-    features = ["layering_check"],
+    features = ["-layering_check"],
     licenses = ["notice"],
     default_visibility = ["//tensorflow/lite/micro/kernels:__pkg__"],
 )
