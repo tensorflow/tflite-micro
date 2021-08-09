@@ -1,8 +1,5 @@
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
-load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
-
 package(
-    features = ["-layering_check"],
+    features = ["layering_check"],
     licenses = ["notice"],
     default_visibility = ["//tensorflow/lite/micro/kernels:__pkg__"],
 )
