@@ -26,7 +26,7 @@ EXAMPLES="-e hello_world -e magic_wand -e micro_speech -e person_detection"
 
 TEST_OUTPUT_DIR=$(mktemp -d)
 
-#readable_run \
+readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   ${TEST_OUTPUT_DIR} \
   ${EXAMPLES}
