@@ -37,7 +37,8 @@ class RuntimeShape {
     }
   }
 
-  RuntimeShape(int dimensions_count, const int32_t* dims_data) : size_(dimensions_count) {
+  RuntimeShape(int dimensions_count, const int32_t* dims_data)
+      : size_(dimensions_count) {
     ReplaceWith(dimensions_count, dims_data);
   }
 
@@ -62,15 +63,11 @@ class RuntimeShape {
   }
 
   static RuntimeShape ExtendedShape(int new_shape_size,
-                                           const RuntimeShape& shape) {
+                                    const RuntimeShape& shape) {
     return RuntimeShape(new_shape_size, shape, 1);
   }
-  int32_t* DimsData() {
-    return dims_;
-  }
-  const int32_t* DimsData() const {
-    return dims_;
-  }
+  int32_t* DimsData() { return dims_; }
+  const int32_t* DimsData() const { return dims_; }
 
   void ReplaceWith(int dimensions_count, const int32_t* dims_data) {
     int32_t* dst_dims = DimsData();
@@ -106,7 +103,7 @@ class RuntimeShape {
   }
 
   // A maximum of 4 dimensions are supported on TFLM.
-  static constexpr int kMaxSize = 4;
+  static constexpr int kMaxSize = 5;
   int32_t size_;
   union {
     int32_t dims_[kMaxSize];
@@ -151,6 +148,6 @@ inline int Offset(const RuntimeShape& shape, int i0, int i1, int i2, int i3,
          i4;
 }
 
-}  // namespace
+}  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
