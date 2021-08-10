@@ -36,7 +36,7 @@ Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflit
 ## Community Supported Builds
 Build Type      |    Status     |
 -----------     | --------------|
-Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/arduino.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
+Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
 ESP32   | [![ESP32](https://github.com/tensorflow/tflite-micro/actions/workflows/esp32.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/esp32.yml) |
 RISC-V   | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |

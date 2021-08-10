@@ -19,6 +19,9 @@
 FLOAT := soft
 GCC_TARGET_ARCH := $(TARGET_ARCH)
 
+# Explicitly set this to true to include the kissfft symbols.
+INCLUDE_MICRO_SPEECH := false
+
 ifeq ($(TARGET_ARCH), cortex-m0)
   CORE=M0
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0
@@ -87,6 +90,8 @@ else ifeq ($(TARGET_ARCH), olympus)
   TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m55
+else ifeq ($(TARGET_ARCH), project_generation)
+ # None of the parameters matter since we are not going to build any code.
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -165,10 +170,15 @@ CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
 # Needed for the project generation interface.
-MICROLITE_CC_HDRS := \
+MICROLITE_CC_HDRS += \
   tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
 
-EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
-MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
-
+# We only include micro_speech for project generation to allow for all the files
+# to be downloaded. We do not include it for an actual build with the
+# cortex_m_generic target to prevent kissfft symbols from getting included in
+# libtensorflow-microlite.a which can result in symbol collision.
+ifneq ($(TARGET_ARCH), project_generation)
+  EXCLUDED_EXAMPLE_TESTS := \
+    tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+  MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+endif

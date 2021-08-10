@@ -15,6 +15,7 @@ tensorflow/lite/core/api/op_resolver.h
 tensorflow/lite/core/api/tensor_utils.h
 tensorflow/lite/kernels/internal/common.h
 tensorflow/lite/kernels/internal/compatibility.h
+tensorflow/lite/kernels/internal/portable_tensor_utils.h
 tensorflow/lite/kernels/internal/quantization_util.h
 tensorflow/lite/kernels/internal/reference/add.h
 tensorflow/lite/kernels/internal/reference/add_n.h
