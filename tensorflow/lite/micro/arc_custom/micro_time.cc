@@ -1,0 +1,43 @@
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+// ARC Platform micro timer implementation.
+
+// Use default timer of arc_timer API delivered with MetaWare toolkit.
+
+#include "tensorflow/lite/micro/micro_time.h"
+
+#include <arc/arc_timer.h>
+
+#include <limits>
+
+namespace tflite {
+
+int32_t ticks_per_second() {
+  const unsigned long clocs_per_sec_real = _timer_clocks_per_sec();
+  if (clocs_per_sec_real <
+      static_cast<unsigned long>(std::numeric_limits<int32_t>::max()))
+    return static_cast<int32_t>(clocs_per_sec_real);
+  else
+    return std::numeric_limits<int32_t>::max();
+}
+
+int32_t GetCurrentTimeTicks() {
+  const unsigned ticks_real = _timer_default_read();
+  const int32_t ticks_cast = static_cast<int32_t>(ticks_real & 0x7fffffff);
+  return ticks_cast;
+}
+
+}  // namespace tflite

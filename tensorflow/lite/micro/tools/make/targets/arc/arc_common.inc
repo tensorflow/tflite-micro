@@ -97,9 +97,13 @@ ifeq ($(ARC_TOOLCHAIN), mwdt)
 # This condition also handles the case when the user/makefile specifies 
 # the configuration bundled with MWDT (usually without .tcf extension) and that doesn't require copying.
 ifneq (,$(findstring .tcf,$(TCF_FILE)))
+ifneq ($(findstring microlite, $(MAKECMDGOALS)),)
+  TCF_FILE_NAME = $(TCF_FILE)
+else
   TCF_FILE_NAME = $(notdir $(TCF_FILE))
+endif
   ARC_TARGET_COPY_FILES += $(notdir $(TCF_FILE))!$(TCF_FILE)
-  MAKE_PROJECT_FILES += $(TCF_FILE_NAME)
+  MAKE_PROJECT_FILES += $(notdir $(TCF_FILE))
 else
   TCF_FILE_NAME = $(TCF_FILE)
 endif

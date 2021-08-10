@@ -25,9 +25,9 @@ namespace tflite {
 struct XtensaConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(FUSION_F1) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
-#endif  // defined(FUSION_F1) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 };
 
 #if defined(HIFIMINI)
@@ -49,7 +49,7 @@ void Conv1x32Input32x32FilterHifiMini(
     const RuntimeShape& bias_shape, const int32_t* bias_data,
     const RuntimeShape& output_shape, int8_t* output_data);
 
-#elif defined(FUSION_F1) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI5)
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,

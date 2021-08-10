@@ -15,7 +15,7 @@ tensorflow/lite/micro/examples/magic_wand/output_handler.cc \
 boards/litex_vexriscv.overlay \
 prj.conf
 
-$(eval $(call generate_project,cmake,zephyr_cmake_project.cmake,magic_wand,$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(ZEPHYR_MAGIC_WAND_SRCS) $(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(magic_wand_HDRS),,$(LDFLAGS) $(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),))
+$(eval $(call generate_project,cmake,zephyr_cmake_project.cmake,magic_wand,$(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(THIRD_PARTY_CC_SRCS) $(ZEPHYR_MAGIC_WAND_SRCS) $(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(magic_wand_HDRS),,$(LDFLAGS) $(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),))
 
 $(PRJDIR)magic_wand/cmake/CMakeLists.txt: $(PRJDIR)magic_wand/cmake/zephyr_cmake_project.cmake
 	@sed -E 's#\%\{INCLUDE_DIRS\}\%#$(PROJECT_INCLUDES)#g' $< > $@

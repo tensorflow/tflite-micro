@@ -19,7 +19,7 @@ ifeq ($(TARGET_ARCH), arc)
 ALL_TAGS += arc_mli
 
 ifeq ($(BUILD_ARC_MLI),true)
-  MLI_LIB_DIR ?= arc_mli_$(basename $(TCF_FILE_NAME))
+  MLI_LIB_DIR ?= arc_mli_$(notdir $(basename $(TCF_FILE_NAME)))
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
   MLI_LIB_DIR := $(MLI_LIB_DIR)_mli20

@@ -83,21 +83,18 @@ def parse_args():
   """Converts the raw arguments into accessible flags."""
   parser = argparse.ArgumentParser()
   parser.register('type', 'bool', lambda v: v.lower() == 'true')
-  parser.add_argument(
-      '--input_template',
-      type=str,
-      default='',
-      help='Path to template project file to build from.')
-  parser.add_argument(
-      '--output_file',
-      type=str,
-      default='',
-      help='Path to write the completed project file to.')
-  parser.add_argument(
-      '--executable',
-      type=str,
-      default='',
-      help='Name of the executable the project will build.')
+  parser.add_argument('--input_template',
+                      type=str,
+                      default='',
+                      help='Path to template project file to build from.')
+  parser.add_argument('--output_file',
+                      type=str,
+                      default='',
+                      help='Path to write the completed project file to.')
+  parser.add_argument('--executable',
+                      type=str,
+                      default='',
+                      help='Name of the executable the project will build.')
   parser.add_argument(
       '--hdrs',
       type=str,

@@ -75,10 +75,10 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
     // of the model.
   }
 
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+
  private:
   SimpleMemoryAllocator* memory_allocator_;
-
-  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 #if !defined(__clang__)
@@ -370,8 +370,8 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
     // Big-endian architecture can not use the same memory layout as
     // flatbuffers::Vector<kFlatBufferVectorType>. Allocate from the tail and
     // copy values from the flatbuffer into the newly allocated chunk.
-    kTfLiteArrayType* array =
-        reinterpret_cast<kTfLiteArrayType*>(allocator->AllocateFromTail(
+    kTfLiteArrayType* array = reinterpret_cast<kTfLiteArrayType*>(
+        allocator->SimpleMemoryAllocator::AllocateFromTail(
             TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
             alignof(kTfLiteArrayType)));
     if (array == nullptr) {

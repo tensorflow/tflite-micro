@@ -12,7 +12,7 @@ tensorflow/lite/micro/examples/hello_world/output_handler.cc \
 tensorflow/lite/micro/examples/hello_world/model.cc \
 prj.conf
 
-$(eval $(call generate_project,cmake,zephyr_cmake_project.cmake,hello_world,$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(ZEPHYR_HELLO_WORLD_SRCS) $(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(HELLO_WORLD_HDRS),,$(LDFLAGS) $(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),))
+$(eval $(call generate_project,cmake,zephyr_cmake_project.cmake,hello_world,$(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(THIRD_PARTY_CC_SRCS) $(ZEPHYR_HELLO_WORLD_SRCS) $(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(HELLO_WORLD_HDRS),,$(LDFLAGS) $(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),))
 
 $(PRJDIR)hello_world/cmake/CMakeLists.txt: $(PRJDIR)hello_world/cmake/zephyr_cmake_project.cmake
 	@sed -E 's#\%\{INCLUDE_DIRS\}\%#$(PROJECT_INCLUDES)#g' $< > $@
