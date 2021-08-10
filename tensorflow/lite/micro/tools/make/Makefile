@@ -237,16 +237,6 @@ endif
 # runtime that can be linked in to other programs.
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
-# Where compiled objects are stored.
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
-CORE_OBJDIR := $(GENDIR)obj/core/
-KERNEL_OBJDIR := $(GENDIR)obj/kernels/
-THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
-GENERATED_SRCS_DIR := $(GENDIR)genfiles/
-BINDIR := $(GENDIR)bin/
-LIBDIR := $(GENDIR)lib/
-PRJDIR := $(GENDIR)prj/
-
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.
 # See targets/xtensa_xpg_makefile.inc for an example.
@@ -432,10 +422,10 @@ $(wildcard tensorflow/lite/micro/testing/*.h)
 # The explicitly specified list of sources and headers that are shared between
 # TfLite and TFLM are in the ci/sync_from_upstream_tf.sh script.
 TFL_CC_SRCS := \
-$(shell find tensorflow/lite/ -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
+$(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
 
 TFL_CC_HDRS := \
-$(shell find tensorflow/lite/ -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.h")
+$(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.h")
 
 MICROLITE_CC_BASE_SRCS := \
 $(wildcard tensorflow/lite/micro/*.cc) \
@@ -621,6 +611,15 @@ ALL_SRCS := \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
 
+# Where compiled objects are stored.
+GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+CORE_OBJDIR := $(GENDIR)obj/core/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+BINDIR := $(GENDIR)bin/
+LIBDIR := $(GENDIR)lib/
+PRJDIR := $(GENDIR)prj/
+
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
 CXX := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${CXX_TOOL}
@@ -798,9 +797,11 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   MICROLITE_TEST_SRCS := $(filter-out $(EXPLICITLY_SPECIFIED_TEST), $(MICROLITE_TEST_SRCS))
   EXPLICITLY_SPECIFIED_TEST_SRCS := \
   $(EXPLICITLY_SPECIFIED_TEST) \
-  tensorflow/lite/micro/kernels/conv_test_common.cc
+  tensorflow/lite/micro/kernels/conv_test_common.cc \
+  tensorflow/lite/micro/kernels/testdata/conv_test_data.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
-  tensorflow/lite/micro/kernels/conv_test.h
+  tensorflow/lite/micro/kernels/conv_test.h \
+  tensorflow/lite/micro/kernels/testdata/conv_test_data.h
   $(eval $(call microlite_test,kernel_conv_test,\
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
 endif
