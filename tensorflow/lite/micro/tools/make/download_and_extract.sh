@@ -84,7 +84,11 @@ patch_kissfft() {
 }
 
 build_embarc_mli() {
-  make -j 4 -C ${1}/lib/make TCF_FILE=${2}
+  if [[ ${ARC_TAGS} =~ "mli20_experimental" ]]; then
+    make -C ${1}/lib/make build TCF_FILE=${2} BUILDLIB_DIR=${BUILD_LIB_DIR} GEN_EXAMPLES=0 JOBS=4
+  else
+    make -j 4 -C ${1}/lib/make TCF_FILE=${2}
+  fi
 }
 
 setup_zephyr() {
