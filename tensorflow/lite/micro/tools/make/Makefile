@@ -616,6 +616,7 @@ GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
 PRJDIR := $(GENDIR)prj/
