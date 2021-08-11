@@ -31,7 +31,9 @@ def generate_file(out_fname, array_name, out_string, size):
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
     # Log cc file name for Make to include in the build.
-    out_cc_file.write('#include "' + out_fname.replace('.cc', '.h') + '"\n\n')
+    out_cc_file.write('#include "' +
+                      out_fname.split("genfiles/")[-1].replace('.cc', '.h') +
+                      '"\n\n')
     out_cc_file.write('const unsigned char ' + array_name + '[] = {')
     out_cc_file.write(out_string)
     out_cc_file.write('};\n')

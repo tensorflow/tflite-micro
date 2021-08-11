@@ -855,6 +855,9 @@ list_third_party_sources:
 list_third_party_headers:
 	@echo $(addprefix $(MAKEFILE_DIR)/downloads/,$(THIRD_PARTY_CC_HDRS_BASE)) $(THIRD_PARTY_CC_HDRS_V2)
 
+list_generator_dir:
+	@echo $(GENERATED_SRCS_DIR)
+
 # Gets rid of all generated files.
 clean:
 	rm -rf $(MAKEFILE_DIR)/gen

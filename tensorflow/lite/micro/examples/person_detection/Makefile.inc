@@ -45,6 +45,12 @@ tensorflow/lite/micro/models/person_detect.tflite \
 tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
 tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
 
+person_detection_GENERATED_SRCS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data.cc
+
+person_detection_GENERATED_HDRS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data.h
+
 #Find any platform - specific rules for this example.
 include $(wildcard tensorflow/lite/micro/examples/person_detection/*/Makefile.inc)
 
@@ -77,7 +83,11 @@ $(DETECTION_RESPONDER_TEST_SRCS),$(DETECTION_RESPONDER_TEST_HDRS)))
 
 # Builds a standalone object recognition binary.
 $(eval $(call microlite_test,person_detection_int8,\
-$(person_detection_SRCS),$(person_detection_HDRS)))
+$(person_detection_SRCS),$(person_detection_HDRS),$(person_detection_GENERATOR_INPUTS)))
+
+# Add sources and headers generated from $(person_detection_GENERATOR_INPUTS)
+person_detection_SRCS += $(person_detection_GENERATED_SRCS)
+person_detection_HDRS += $(person_detection_GENERATED_HDRS)
 
 list_person_detection_example_sources:
 	@echo $(person_detection_SRCS)
