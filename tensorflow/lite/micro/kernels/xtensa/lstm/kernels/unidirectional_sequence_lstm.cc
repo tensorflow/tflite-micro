@@ -365,14 +365,18 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   // 10000 is used to make sure the kernel logic does not overflow.
   if (!use_cifg) {
     integer_lstm_param->input_variance_guard =
-        std::max(1, static_cast<int32_t>(10000 * layer_norm_input_scale));
+        std::max(static_cast<int32_t>(1),
+                 static_cast<int32_t>(10000 * layer_norm_input_scale));
   }
   integer_lstm_param->forget_variance_guard =
-      std::max(1, static_cast<int32_t>(10000 * layer_norm_forget_scale));
+      std::max(static_cast<int32_t>(1),
+               static_cast<int32_t>(10000 * layer_norm_forget_scale));
   integer_lstm_param->cell_variance_guard =
-      std::max(1, static_cast<int32_t>(10000 * layer_norm_cell_scale));
+      std::max(static_cast<int32_t>(1),
+               static_cast<int32_t>(10000 * layer_norm_cell_scale));
   integer_lstm_param->output_variance_guard =
-      std::max(1, static_cast<int32_t>(10000 * layer_norm_output_scale));
+      std::max(static_cast<int32_t>(1),
+               static_cast<int32_t>(10000 * layer_norm_output_scale));
 
   return kTfLiteOk;
 }
