@@ -24,6 +24,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
+
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -302,7 +305,17 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  constexpr size_t allocator_buffer_size = 528;
+  // This test is designed to create the following classes/buffers successfully on the arena:
+  // from tail: RecordingSimpleMemoryAllocator, RecordingMicroAllocator, RecordingMicroAllocator
+  // from head:ScratchBufferRequest buffer.
+  // Since sizes of the above classes vary between architecture,
+  // we use sizeof for whatever is visible from this test file.
+  // For those that are not visible from this test file, we use the upper bound
+  // for x86 architecture since it is not ideal to expose definitions for test only.
+  constexpr size_t max_scratch_buffer_request_size = 192;
+  constexpr size_t max_micro_builtin_data_allocator_size = 16;
+  constexpr size_t allocator_buffer_size = sizeof(tflite::RecordingSimpleMemoryAllocator) + sizeof(tflite::RecordingMicroAllocator)
+      + max_micro_builtin_data_allocator_size + max_scratch_buffer_request_size ;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::RecordingMicroAllocator* allocator =
@@ -317,8 +330,9 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   // Interpreter fails because arena is too small:
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      static_cast<size_t>(192),
+  // The head buffer use cannot exceed the upper bound from x86.
+  TF_LITE_MICRO_EXPECT_GE(
+      max_scratch_buffer_request_size,
       allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes());
 
   // Ensure allocations are zero (ignore tail since some internal structs are

@@ -561,6 +561,11 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 
 }  // namespace internal
 
+/*
+constexpr size_t kMicroAllocatorScratchBufferRequestSize = kMaxScratchBuffersPerOp * sizeof(internal::ScratchBufferRequest);
+constexpr size_t kMicroAllocatorBuiltinDataAllocator = sizeof(MicroBuiltinDataAllocator);
+*/
+
 MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
                                ErrorReporter* error_reporter)
     : memory_allocator_(memory_allocator),
