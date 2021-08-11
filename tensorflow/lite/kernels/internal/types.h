@@ -140,7 +140,6 @@ inline bool operator==(const QuantizationParams& qp1,
   return qp1.zero_point == qp2.zero_point && qp1.scale == qp2.scale;
 }
 
-
 // Gets next index to iterate through a multidimensional array.
 inline bool NextIndex(const int num_dims, const int* dims, int* current) {
   if (num_dims == 0) {
