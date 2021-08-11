@@ -109,31 +109,29 @@ def _copy(src_files, dest_files):
     shutil.copy(src, dst)
 
 
-def _get_tflm_generator_path(makefile_options):
-  return _get_file_list("list_generator_dir", makefile_options)[0]
+def _get_tflm_generator_path():
+  return _get_file_list("list_generator_dir", "")[0]
 
 
-# For examples, source specialization based on the TARGET and
-# OPTIMIZED_KERNEL_DIR is only to resolve generated cc and header file paths.
-# The thinking here is that any target-specific sources should not be part of
-# the TFLM tree. Rather, this function will return an examples directory
-# structure for x86 and it will be the responsibility of the target-specific
-# examples repository to provide all the additional sources (and remove the
-# unnecessary sources) for the examples to run on that specific target.
-def _create_examples_tree(prefix_dir, examples_list, makefile_options):
+# For examples, we are explicitly making a deicision to not have any source
+# specialization based on the TARGET and OPTIMIZED_KERNEL_DIR. The thinking
+# here is that any target-specific sources should not be part of the TFLM
+# tree. Rather, this function will return an examples directory structure for
+# x86 and it will be the responsibility of the target-specific examples
+# repository to provide all the additional sources (and remove the unnecessary
+# sources) for the examples to run on that specific target.
+def _create_examples_tree(prefix_dir, examples_list):
   files = []
   for e in examples_list:
-    files.extend(
-        _get_file_list("list_%s_example_sources" % (e), makefile_options))
-    files.extend(
-        _get_file_list("list_%s_example_headers" % (e), makefile_options))
+    files.extend(_get_file_list("list_%s_example_sources" % (e), ""))
+    files.extend(_get_file_list("list_%s_example_headers" % (e), ""))
 
   # The get_file_list gives path relative to the root of the git repo (where the
   # examples are in tensorflow/lite/micro/examples). However, in the output
   # tree, we would like for the examples to be under prefix_dir/examples.
   tflm_examples_path = "tensorflow/lite/micro/examples"
   tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
-  tflm_generator_path = _get_tflm_generator_path(makefile_options)
+  tflm_generator_path = _get_tflm_generator_path()
 
   # Some non-example source and headers will be in the {files} list. They need
   # special handling or they will end up outside the {prefix_dir} tree.
@@ -244,8 +242,7 @@ def main():
     _copy(src_files, dest_files)
 
   if args.examples is not None:
-    _create_examples_tree(args.output_dir, args.examples,
-                          args.makefile_options)
+    _create_examples_tree(args.output_dir, args.examples)
 
 
 if __name__ == "__main__":
