@@ -19,13 +19,18 @@
 # TFLM tree created with the project generation script:
 # make -j8 examples
 
-CXX := clang++
-CXXFLAGS := \
-  -std=c++11
+BUILD_TYPE :=
 
+COMMON_FLAGS := \
+  -DTF_LITE_STATIC_MEMORY \
+  -fno-unwind-tables \
+  -ffunction-sections \
+  -fdata-sections \
+  -fmessage-length=0
+
+CXX := clang++
 CC := clang
-CCFLAGS := \
-  -std=c11
+AR := ar
 
 INCLUDES := \
   -I. \
@@ -35,7 +40,39 @@ INCLUDES := \
   -I./third_party/kissfft/tools \
   -I./third_party/ruy
 
-AR := ar
+ifeq ($(BUILD_TYPE), cmsis_nn)
+  CXX := arm-none-eabi-g++
+  CC := arm-none-eabi-gcc
+  AR := arm-none-eabi-ar
+
+  INCLUDES += \
+  	-I./third_party/cmsis \
+    -I./third_party/cmsis/CMSIS/Core/Include \
+    -I./third_party/cmsis/CMSIS/DSP/Include \
+    -I./third_party/cmsis/CMSIS/NN/Include
+
+  COMMON_FLAGS += \
+    -DTF_LITE_MCU_DEBUG_LOG \
+    -mthumb \
+    -mlittle-endian \
+    -funsigned-char \
+    -fomit-frame-pointer \
+    -MD \
+    -DCMSIS_NN
+
+endif
+
+CXXFLAGS := \
+  -std=c++11 \
+  -fno-rtti \
+  -fno-exceptions \
+  -fno-threadsafe-statics \
+  $(COMMON_FLAGS)
+
+CCFLAGS := \
+  -std=c11 \
+  $(COMMON_FLAGS)
+
 ARFLAGS := -r
 
 GENDIR := gen
