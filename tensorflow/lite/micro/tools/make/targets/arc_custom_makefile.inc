@@ -23,7 +23,7 @@ ARC_TOOLCHAIN := mwdt
 # Overriding TARGET variable to change name of project folder according
 # to specified Tool Configuration File (*.tcf) passed through TCF_FILE variable
 # or default em7d_voice_audio configuration.
-ifneq ($(TCF_FILE), )
+ifneq ($(TCF_FILE),)
   override TARGET = $(basename $(notdir $(TCF_FILE)))
 else
   $(warning TCF_FILE variable is not specified. Use default em7d_voice_audio configuration)
@@ -31,6 +31,29 @@ else
   TCF_FILE = em7d_voice_audio
 endif
 
+ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
+  override TARGET := $(TARGET)_mli20
+endif
+
+MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),arc_custom)
 include $(MAKEFILE_DIR)/targets/arc/arc_common.inc
+
+ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
+  CXXFLAGS += -DMLI_2_0
+  CCFLAGS += -DMLI_2_0
+
+# If kernel tests running - using define to activate online permutation.
+ifneq ($(findstring kernel, $(MAKECMDGOALS)),)
+  CXXFLAGS += -DMLI_2_0_KRNL_TEST
+  CCFLAGS += -DMLI_2_0_KRNL_TEST
+endif
+
+ifneq ($(BUILD_LIB_DIR), )
+  LDFLAGS += -Hlib=$(BUILD_LIB_DIR)
+else
+  $(warning BUILD_LIB_DIR variable is not specified. Default will be used.)
+endif
+
+endif
 
 MAKE_PROJECT_FILES := $(filter-out README_MAKE.md, $(MAKE_PROJECT_FILES)) README_ARC.md

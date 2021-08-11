@@ -1,25 +1,28 @@
-# Building TensorFlow Lite for Microcontrollers for Synopsys DesignWare ARC EM/HS Processors
+# Building TensorFlow Lite for Microcontrollers for Synopsys DesignWare ARC VPX and EM/HS Processors
 
 ## Maintainers
 
 *   [dzakhar](https://github.com/dzakhar)
 *   [JaccovG](https://github.com/JaccovG)
+*   [gerbauz](https://github.com/gerbauz)
 
 ## Introduction
 
 This document contains the general information on building and running
-TensorFlow Lite Micro for targets based on the Synopsys ARC EM/HS Processors.
+TensorFlow Lite Micro for targets based on the Synopsys ARC VPX and EM/HS Processors.
 
 ## Table of Contents
 
 -   [Install the Synopsys DesignWare ARC MetaWare Development Toolkit](#install-the-synopsys-designware-arc-metaWare-development-toolkit)
 -   [ARC EM Software Development Platform (ARC EM SDP)](#ARC-EM-Software-Development-Platform-ARC-EM-SDP)
--   [Custom ARC EM or HS Platform](#Custom-ARC-EMHS-Platform)
+-   [Using EmbARC MLI Library 2.0 (experimental feature)](#Using-EmbARC-MLI-Library-2.0-experimental-feature)
+-   [Model Adaptation Tool (experimental feature)](#Model-Adaptation-Tool-experimental-feature)
+-   [Custom ARC EM/HS/VPX Platform](#Custom-ARC-EMHSVPX-Platform)
 
 ## Install the Synopsys DesignWare ARC MetaWare Development Toolkit
 
 The Synopsys DesignWare ARC MetaWare Development Toolkit (MWDT) is required to
-build and run Tensorflow Lite Micro applications for all ARC EM/HS targets.
+build and run Tensorflow Lite Micro applications for all ARC VPX and EM/HS targets.
 
 To license MWDT, please see further details
 [here](https://www.synopsys.com/dw/ipdir.php?ds=sw_metaware)
@@ -149,7 +152,8 @@ use a shell to execute the following command from the root directory of the
 TensorFlow repo:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile generate_person_detection_test_int8_make_project TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli
+generate_person_detection_test_int8_make_project
 ```
 
 The application project will be generated into
@@ -166,8 +170,8 @@ is used by default to speed up execution of some kernels for asymmetrically
 quantized layers. Kernels which use MLI-based implementations are kept in the
 *tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
 benefit from MLI library, the project can be generated without these
-implementations by adding `ARC_TAGS=no_arc_mli` in the command line. This can
-reduce code size when the optimized kernels are not required.
+implementations by **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line. This can reduce
+code size when the optimized kernels are not required.
 
 For more options on embARC MLI usage see
 [kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).
@@ -188,12 +192,9 @@ make tool available in your environment (ie: `make` or `gmake`)
 
     make app
 
-### Run the Application on the Board Using MetaWare Debugger
+### Run the Application with MetaWare Debugger on the nSim Simulator.
 
-In case you do not have access to the MetaWare Debugger or have chosen not to
-install the Digilent drivers, you can skip to the next section.
-
-To run the application from the console, use the following command:
+To run application from the console, use the following command:
 
 ```
    make run
@@ -208,7 +209,7 @@ To run the application in the GUI debugger, use the following command:
    make debug
 ```
 
-In both cases you will see the application output in the serial terminal.
+You will see the application output in the same console where you ran it.
 
 ### Run the Application on the Board from the microSD Card
 
@@ -244,18 +245,63 @@ In both cases you will see the application output in the serial terminal.
 
 You will see the application output in the serial terminal.
 
-## Custom ARC EM/HS Platform
+## Using EmbARC MLI Library 2.0 (experimental feature)
 
-This section describes how to deploy on a Custom ARC EM/HS platform defined only
-by a TCF (Tool Configuration File, created at CPU configuration time) and
-optional LCF (Linker Command File). In this case, the real hardware is unknown,
-and applications can be run only in the nSIM simulator included with the
-MetaWare toolkit
+This section describes how to build TFLM using [embARC MLI Library 2.0](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA). 
+
+The EmbARC MLI Library 2.0 can be used to build TFLM library and run applications (especially for VPX processors).
+
+Because of difference in weights layout, TFLM models must be pre-adapted using a Model Adaptation Tool. For native TFLM examples (person detection, micro speech) Model Adaptation Tool is applied automatically when MLI 2.0 is used, so there is no need to run it maually.
+
+To use the embARC MLI Library 2.0 in all cases (including native examples), you will also need extra dependencies for the Model Adaptation Tool. Please check the [Model Adaptation Tool](#​Model-Adaptation-Tool-experimental-​feature) section for more information.
+
+To build TFLM using the embARC MLI Library 2.0, add the following tag to the command:
+```
+ARC_TAGS=mli20_experimental
+```
+Also, some of configurations may require custom BUILD_LIB. Please, check MLI Library 2.0 [documentation](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA#build-configuration-options) for more details. Following option can be added:
+```
+BUILD_LIB_DIR=<path_to_buildlib>
+```
+Example of command to build TFLM lib for VPX5:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom \
+TCF=<path_to_tcf_file> \
+BUILD_LIB_DIR=vpx5_integer_full \
+ARC_TAGS=mli20_experimental microlite
+```
+## Model Adaptation Tool (experimental feature)
+
+Models in TFLM format need to be pre-adapted before being used with MLI 2.0 due to differences in weights' tensor layout in some kernels. Adaptation is done automatically during TFLM project generation, but requires TensorFlow to be installed.
+
+To use the Model Adaptation Tool, you need the following tools in addition to common requirments:
+* [Python](https://www.python.org/downloads/) 3.7 or higher
+* [TensorFlow for Python](https://www.tensorflow.org/install/pip) version 2.5 or higher
+
+If you want to use your own model, exported from TensorFlow in **.tflite** or **.cc** format, you will need to adapt it manually using the Model Adaptation Tool from the current folder, using the following command:
+
+```
+python adaptation_tool.py <path_to_input_model_file> \
+<path_to_adapted_model_file>
+```
+
+## Custom ARC EM/HS/VPX Platform
+
+This section describes how to deploy on a Custom ARC VPX or EM/HS platform defined only by a TCF (Tool onfiguration File, created at CPU configuration time) and optional LCF (Linker Command File). In this case, the real hardware is unknown, and applications can be run only in the nSIM simulator included with the MetaWare toolkit.
+
+VPX support is presented as an experimental feature of supporting embARC MLI Library version 2.0 and model adaptation. Read more about embARC MLI Library 2.0 support in the [related section](#Using-EmbARC-MLI-Library-2.0-experimental-feature).
 
 ### Initial Setup
 
-To with custom ARC EM/HS platform, you need the following : * Synopsys MetaWare
-Development Toolkit version 2019.12 or higher * Make tool (make or gmake)
+To use a custom ARC EM/HS/VPX platform, you need the following : 
+* Synopsys MetaWare
+Development Toolkit version 2019.12 or higher (2021.06 or higher for MLI Library 2.0) 
+* Make tool (make or gmake)
+* CMake 3.18 or higher\
+If you are using the [Model Adaptation Tool](#Model-Adaptation-Tool-experimental-feature), you will also need to install:
+* [Python](https://www.python.org/downloads/) 3.7 or higher
+* [TensorFlow for Python](https://www.tensorflow.org/install/pip) version 2.5 or higher
 
 See
 [Install the Synopsys DesignWare ARC MetaWare Development Toolkit](#install-the-synopsys-designware-arc-metaWare-development-toolkit)
@@ -263,6 +309,7 @@ section for instructions on toolchain installation. See
 [MetaWare Development Toolkit](#MetaWare-Development-Toolkit) and
 [Make Tool](#Make-Tool) sections for instructions on toolchain installation and
 comments about make versions.
+
 
 ### Generate Application Project
 
@@ -279,11 +326,29 @@ For instance, to build **Person Detection** test application, use the following
 command from the root directory of the TensorFlow repo:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile generate_person_detection_test_int8_make_project TARGET=arc_custom OPTIMIZED_KERNEL_DIR=arc_mli TCF_FILE=<path_to_tcf_file> LCF_FILE=<path_to_lcf_file>
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+generate_person_detection_int8_make_project
+```
+For MLI Library 2.0 (experimental feature):
+```
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+ARC_TAGS=mli20_experimental \
+BUILD_LIB_DIR=<path_to_buildlib> \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+generate_person_detection_int8_make_project
 ```
 
 The application project will be generated into
-*tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_arc/prj/person_detection_test_int8/make*
+*tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_arc_default/prj/person_detection_test_int8/make*\
+or\
+  *tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_mli20_arc_default/prj/person_detection_test_int8/make* in case of usage MLI Library 2.0.
 
 The
 [embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
@@ -291,8 +356,8 @@ is used by default to speed up execution of some kernels for asymmetrically
 quantized layers. Kernels which use MLI-based implementations are kept in the
 *tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
 benefit from MLI library, the project can be generated without these
-implementations by adding `ARC_TAGS=no_arc_mli` in the command line. This can
-reduce code size when the optimized kernels are not required.
+implementations by **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line. This can reduce
+code size when the optimized kernels are not required.
 
 For more options on embARC MLI usage see
 [kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).

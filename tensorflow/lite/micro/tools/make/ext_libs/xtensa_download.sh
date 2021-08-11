@@ -47,9 +47,9 @@ if [ ! -d ${DOWNLOADS_DIR} ]; then
 fi
 
 if [[ ${2} == "hifi4" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_02_11_2021.zip"
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_07_27_2021.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
-  LIBRARY_MD5="8b934f61ffe0a966644849602810fb1b"
+  LIBRARY_MD5="24b8844f8e0c53c1ed8561b09968bb98"
 elif [[ ${2} == "hifi5" ]]; then
   LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_06_30.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
@@ -75,10 +75,6 @@ else
   fi
 
   unzip -qo /tmp/${TMP_ZIP_ARCHIVE_NAME} -d ${DOWNLOADS_DIR} >&2
-
-  if [[ ${2} == "hifi4" ]]; then
-    apply_patch_to_folder ${DOWNLOADS_DIR}/xa_nnlib_hifi4/ ../../ext_libs/xtensa_patch.patch
-  fi
 
 fi
 
