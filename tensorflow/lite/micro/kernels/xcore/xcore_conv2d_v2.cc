@@ -43,6 +43,7 @@ struct Conv2DThread {
 };
 
 extern "C" {
+// TODO
 #pragma stackfunction 1000
 ATTRIBUTE_THREAD_FUNCTION
 void conv2d_v2_thread_worker(void* context) {
@@ -128,6 +129,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     KernelType kt = (KernelType)params[1].AsInt32();
 
     switch (kt) {
+      // TODO : Cleanup to combine
       case Conv2dValidDirect_t: {
         nn::Filter2D::Params* ak_params =
             getDeserializedParams<nn::Filter2D::Params>(
@@ -142,6 +144,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
             getDeserializedParams<nn::OT_int8::Params, true>(
                 context, params[5].As<std::string>());
 
+        // TODO: Make part of construct_persistent_object
         auto memcpy = new (context->AllocatePersistentBuffer(
             context, sizeof(nn::DerefInputFn))) nn::DerefInputFn(mf_params);
 
@@ -222,6 +225,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 // Does all the requests for scratches
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  // TODO
   // TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   // TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   auto* op_data = reinterpret_cast<Conv2DOpData*>(node->user_data);
@@ -249,6 +253,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* dispatcher = tflite::micro::xcore::GetDispatcher();
 
   for (int t = 0; t < n_threads; ++t) {
+    // TODO: Can stack and scratch be the same?
     auto* stack = static_cast<char*>(context->GetScratchBuffer(
         context, op_data->threads[t].stack_scratch_index));
     TF_LITE_ENSURE(context, stack);
