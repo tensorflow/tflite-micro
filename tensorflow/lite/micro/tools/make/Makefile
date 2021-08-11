@@ -386,9 +386,7 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # For project generation v1, the headers that are common to all targets need to
 # have a third_party prefix. Other third_party headers (e.g. CMSIS) do not have
 # this requirement and are added to THIRD_PARTY_CC_HDRS with full path from the
-# tensorflow root. This inconsistency may also be the reason why (for
-# example) these different third party libraries are fund in different paths in
-# the Arduino output tree.
+# tensorflow root.
 #
 # The convention with the (under development) project generation v2 is for all
 # third party paths to be relative to the root of the git repository. We are
@@ -429,9 +427,6 @@ KEIL_PROJECT_FILES := \
   README_KEIL.md \
   keil_project.uvprojx
 
-ARDUINO_PROJECT_FILES := \
-  library.properties
-
 ESP_PROJECT_FILES := \
   README_ESP.md \
   CMakeLists.txt \
@@ -439,9 +434,6 @@ ESP_PROJECT_FILES := \
   components/tfmicro/CMakeLists.txt
 
 ALL_PROJECT_TARGETS :=
-
-ARDUINO_LIBRARY_TARGETS :=
-ARDUINO_LIBRARY_ZIPS :=
 
 # For some invocations of the makefile, it is useful to avoid downloads. This
 # can be achieved by explicitly passing in DISABLE_DOWNLOADS=true on the command
@@ -481,13 +473,8 @@ endif
 # The target-specific makefile must have a name that is exactly
 # TARGET_makefile.inc and is only needed for cross-compilation (i.e. when TARGET
 # is different from the HOST_OS).
-# There are also some other targets like arduino and CHRE that are also special
-# in that they do no have a <target>_makefile but are still used to create a
-# directory for the generated artifacts. We are using a workaround right now and
-# will be separating the project generation from the Makefile in the future.
 TARGETS_WITHOUT_MAKEFILES := \
-$(HOST_OS) \
-arduino
+$(HOST_OS)
 
 # This specific string needs to be outputted for a test to be recognized as
 # having passed.
@@ -717,11 +704,6 @@ endif
 build: $(MICROLITE_BUILD_TARGETS)
 
 generate_projects: $(ALL_PROJECT_TARGETS)
-
-ARDUINO_PROJECT_TARGETS := $(foreach TARGET,$(ALL_PROJECT_TARGETS),$(if $(findstring _arduino,$(TARGET)),$(TARGET),))
-
-generate_arduino_zip: $(ARDUINO_PROJECT_TARGETS) $(ARDUINO_LIBRARY_ZIPS)
-	python tensorflow/lite/micro/tools/make/merge_arduino_zips.py $(PRJDIR)/tensorflow_lite.zip $(ARDUINO_LIBRARY_ZIPS)
 
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
