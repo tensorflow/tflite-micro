@@ -62,10 +62,6 @@ typedef struct {
 
 }  // namespace internal
 
-/*
-extern constexpr size_t kMicroAllocatorScratchRequestBufferSize;
-extern constexpr size_t kMicroAllocatorBuiltinDataAllocatorSize;
-*/
 typedef struct {
   TfLiteNode node;
   const TfLiteRegistration* registration;
