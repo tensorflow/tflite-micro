@@ -25,8 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 
 //#define HIFI_NNLIB_OPT
@@ -117,9 +117,9 @@ inline void CalculateLstmGateFloat(
   // For each batch and cell: compute aux_input_weight * aux_input.
   // Skip if auxiliary input is not available or all zeros.
   if (!is_aux_input_all_zeros) {
-    tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(aux_input_to_gate_weights,
-                                                      n_cell, n_aux_input,
-                                                      aux_input, n_batch, gate);
+    tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(
+        aux_input_to_gate_weights, n_cell, n_aux_input, aux_input, n_batch,
+        gate);
   }
   // For each batch and cell: compute recurrent_weight * output_state.
   tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(
@@ -138,8 +138,8 @@ inline void CalculateLstmGateFloat(
   }
   // Apply activation
   //@TODO Need to enable this function for float implementation
- // tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell, activation,
-   //                                     gate);
+  // tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell, activation,
+  //                                     gate);
 }
 
 // Updates the LSTM cell state, used by both float and hybrid LSTM versions.
@@ -208,9 +208,9 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
                               const float* projection_bias,
                               const float proj_clip, float* output_state,
                               float* scratch) {
-//@TODO Need to enable this function for float implementation
- // tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
-    ///                                    activation, scratch);
+  //@TODO Need to enable this function for float implementation
+  // tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
+  ///                                    activation, scratch);
   tensor_utils::VectorVectorCwiseProduct(output_gate, scratch, n_batch * n_cell,
                                          scratch);
 
@@ -227,7 +227,8 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
     tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(
         projection_weights, n_output, n_cell, scratch, n_batch, output_state);
     if (proj_clip > 0.0f) {
-      tensor_utils::PortableCwiseClipping(output_state, n_batch * n_output, proj_clip);
+      tensor_utils::PortableCwiseClipping(output_state, n_batch * n_output,
+                                          proj_clip);
     }
   } else {
     std::copy_n(scratch, n_batch * n_output, output_state);
@@ -828,16 +829,17 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
 
 #ifndef HIFI_NNLIB_OPT
   tensor_utils::PortableCwiseMul(forget_gate, cell_state, n_batch, n_cell, 15,
-                         cell_state);
+                                 cell_state);
   if (use_cifg) {
     tensor_utils::PortableSub1Vector(forget_gate, n_batch * n_cell, scratch);
     tensor_utils::PortableCwiseMul(scratch, cell_gate, n_batch, n_cell,
-                           30 + cell_state_scale, scratch);
+                                   30 + cell_state_scale, scratch);
   } else {
     tensor_utils::PortableCwiseMul(input_gate, cell_gate, n_batch, n_cell,
-                           30 + cell_state_scale, scratch);
+                                   30 + cell_state_scale, scratch);
   }
-  tensor_utils::PortableCwiseAdd(cell_state, scratch, n_batch, n_cell, cell_state);
+  tensor_utils::PortableCwiseAdd(cell_state, scratch, n_batch, n_cell,
+                                 cell_state);
 
   if (clip > 0) {
     tensor_utils::PortableCwiseClipping(cell_state, n_batch * n_cell, clip);
@@ -884,8 +886,8 @@ void CalculateLstmOutputInteger8x8_16(
     int16_t* scratch0, int8_t* scratch1, int32_t* scratch2) {
 // Note: unlike float/hybrid, the activation is always Tanh.
 #ifndef HIFI_NNLIB_OPT
-  tensor_utils::PortableApplyTanh(15 + cell_state_scale, cell_state, n_batch, n_cell,
-                          scratch0);
+  tensor_utils::PortableApplyTanh(15 + cell_state_scale, cell_state, n_batch,
+                                  n_cell, scratch0);
 #else
 #ifdef VERIFY_NNLIB_TANH
   int16_t inp[65536];
@@ -921,8 +923,9 @@ void CalculateLstmOutputInteger8x8_16(
 #endif
 
 #ifndef HIFI_NNLIB_OPT
-  tensor_utils::PortableCwiseMul(output_gate, scratch0, hidden_scale_a, hidden_scale_b,
-                         n_batch, n_cell, hidden_zp, scratch1);
+  tensor_utils::PortableCwiseMul(output_gate, scratch0, hidden_scale_a,
+                                 hidden_scale_b, n_batch, n_cell, hidden_zp,
+                                 scratch1);
 #else
   xa_nn_elm_mul_16x16_asym8s(scratch1, output_gate, scratch0, hidden_scale_a,
                              hidden_scale_b, hidden_zp, n_batch * n_cell);
@@ -939,7 +942,7 @@ void CalculateLstmOutputInteger8x8_16(
         output_state, NULL);
     if (quantized_proj_clip > 0) {
       tensor_utils::PortableCwiseClipping(output_state, n_batch * n_output,
-                                  quantized_proj_clip);
+                                          quantized_proj_clip);
     }
   } else {
     std::copy_n(scratch1, n_batch * n_output, output_state);
@@ -1028,16 +1031,17 @@ void CalculateLstmOutputInteger8x8_8(
     int32_t output_state_zp, int32_t quantized_proj_clip, int8_t* output_state,
     int16_t* scratch) {
   // Note: unlike float/hybrid, the activation is always Tanh.
-  tensor_utils::PortableApplyTanhFloat(cell_state, n_batch, n_cell, -15, scratch);
-  tensor_utils::PortableCwiseMul(output_gate, scratch, n_batch, n_cell, 15 + 15 - 15,
-                         scratch);
+  tensor_utils::PortableApplyTanhFloat(cell_state, n_batch, n_cell, -15,
+                                       scratch);
+  tensor_utils::PortableCwiseMul(output_gate, scratch, n_batch, n_cell,
+                                 15 + 15 - 15, scratch);
   // Note: no bias like in float/hybrid
   tensor_utils::PortableMatrixBatchVectorMultiply(
       scratch, projection_weights, proj_scale_a, proj_scale_b, projection_bias,
       n_batch, n_cell, n_output, output_state_zp, output_state);
   if (quantized_proj_clip > 0) {
-      tensor_utils::PortableCwiseClipping(output_state, n_batch * n_output,
-                            (int8_t)quantized_proj_clip);
+    tensor_utils::PortableCwiseClipping(output_state, n_batch * n_output,
+                                        (int8_t)quantized_proj_clip);
   }
 }
 
@@ -1147,8 +1151,8 @@ inline void LstmStepFloat(
   const bool is_input_all_zeros =
       tensor_utils::PortableIsZeroVector(input_ptr, n_batch * n_input);
   const bool is_aux_input_all_zeros =
-      (aux_input_ptr == nullptr ||
-       tensor_utils::PortableIsZeroVector(aux_input_ptr, n_batch * n_aux_input));
+      (aux_input_ptr == nullptr || tensor_utils::PortableIsZeroVector(
+                                       aux_input_ptr, n_batch * n_aux_input));
   if (!use_cifg) {
     // Calculate the input gate. (If not CIFG.)
     CalculateLstmGateFloat(
@@ -1669,33 +1673,38 @@ inline void LstmStepInteger8x8_8(
 }  // namespace
 
 // LINT.IfChange
-TfLiteStatus EvalFloat(
-    const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_to_input_weights,
-    const TfLiteEvalTensor* input_to_forget_weights,
-    const TfLiteEvalTensor* input_to_cell_weights,
-    const TfLiteEvalTensor* input_to_output_weights,
-    const TfLiteEvalTensor* recurrent_to_input_weights,
-    const TfLiteEvalTensor* recurrent_to_forget_weights,
-    const TfLiteEvalTensor* recurrent_to_cell_weights,
-    const TfLiteEvalTensor* recurrent_to_output_weights,
-    const TfLiteEvalTensor* cell_to_input_weights,
-    const TfLiteEvalTensor* cell_to_forget_weights,
-    const TfLiteEvalTensor* cell_to_output_weights,
-    const TfLiteEvalTensor* input_layer_norm_coefficients,
-    const TfLiteEvalTensor* forget_layer_norm_coefficients,
-    const TfLiteEvalTensor* cell_layer_norm_coefficients,
-    const TfLiteEvalTensor* output_layer_norm_coefficients,
-    const TfLiteEvalTensor* aux_input,
-    const TfLiteEvalTensor* aux_input_to_input_weights,
-    const TfLiteEvalTensor* aux_input_to_forget_weights,
-    const TfLiteEvalTensor* aux_input_to_cell_weights,
-    const TfLiteEvalTensor* aux_input_to_output_weights,
-    const TfLiteEvalTensor* input_gate_bias, const TfLiteEvalTensor* forget_gate_bias,
-    const TfLiteEvalTensor* cell_gate_bias, const TfLiteEvalTensor* output_gate_bias,
-    const TfLiteEvalTensor* projection_weights, const TfLiteEvalTensor* projection_bias,
-    const TfLiteLSTMParams* params, bool forward_sequence, bool time_major,
-    int output_offset, TfLiteEvalTensor* scratch_buffer, TfLiteEvalTensor* output_state,
-    TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output) {
+TfLiteStatus EvalFloat(const TfLiteEvalTensor* input,
+                       const TfLiteEvalTensor* input_to_input_weights,
+                       const TfLiteEvalTensor* input_to_forget_weights,
+                       const TfLiteEvalTensor* input_to_cell_weights,
+                       const TfLiteEvalTensor* input_to_output_weights,
+                       const TfLiteEvalTensor* recurrent_to_input_weights,
+                       const TfLiteEvalTensor* recurrent_to_forget_weights,
+                       const TfLiteEvalTensor* recurrent_to_cell_weights,
+                       const TfLiteEvalTensor* recurrent_to_output_weights,
+                       const TfLiteEvalTensor* cell_to_input_weights,
+                       const TfLiteEvalTensor* cell_to_forget_weights,
+                       const TfLiteEvalTensor* cell_to_output_weights,
+                       const TfLiteEvalTensor* input_layer_norm_coefficients,
+                       const TfLiteEvalTensor* forget_layer_norm_coefficients,
+                       const TfLiteEvalTensor* cell_layer_norm_coefficients,
+                       const TfLiteEvalTensor* output_layer_norm_coefficients,
+                       const TfLiteEvalTensor* aux_input,
+                       const TfLiteEvalTensor* aux_input_to_input_weights,
+                       const TfLiteEvalTensor* aux_input_to_forget_weights,
+                       const TfLiteEvalTensor* aux_input_to_cell_weights,
+                       const TfLiteEvalTensor* aux_input_to_output_weights,
+                       const TfLiteEvalTensor* input_gate_bias,
+                       const TfLiteEvalTensor* forget_gate_bias,
+                       const TfLiteEvalTensor* cell_gate_bias,
+                       const TfLiteEvalTensor* output_gate_bias,
+                       const TfLiteEvalTensor* projection_weights,
+                       const TfLiteEvalTensor* projection_bias,
+                       const TfLiteLSTMParams* params, bool forward_sequence,
+                       bool time_major, int output_offset,
+                       TfLiteEvalTensor* scratch_buffer,
+                       TfLiteEvalTensor* output_state,
+                       TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   int max_time, n_batch;
   if (input->dims->size == 3) {
@@ -1718,7 +1727,8 @@ TfLiteStatus EvalFloat(
   const bool use_cifg = (input_to_input_weights == nullptr);
 
   // Index the scratch buffers pointers to the global scratch buffer.
-  float* scratch_buffer_ptr = tflite::micro::GetTensorData<float>(scratch_buffer);
+  float* scratch_buffer_ptr =
+      tflite::micro::GetTensorData<float>(scratch_buffer);
   float* input_gate_scratch = nullptr;
   float* cell_gate_scratch = nullptr;
   float* forget_gate_scratch = nullptr;
@@ -1744,19 +1754,23 @@ TfLiteStatus EvalFloat(
       // If this is the forward_sequence, step forward, otherwise step
       // backwards.
       const int t_rel = forward_sequence ? t : max_time - t - 1;
-      const float* input_ptr = tflite::micro::GetTensorData<float>(input) + t_rel * input_step;
+      const float* input_ptr =
+          tflite::micro::GetTensorData<float>(input) + t_rel * input_step;
       const float* aux_input_ptr = nullptr;
       if (aux_input) {
-        aux_input_ptr = tflite::micro::GetTensorData<float>(aux_input) + t_rel * input_step;
+        aux_input_ptr =
+            tflite::micro::GetTensorData<float>(aux_input) + t_rel * input_step;
       }
-      float* output_ptr =
-          tflite::micro::GetTensorData<float>(output) + t_rel * output_step + output_offset;
+      float* output_ptr = tflite::micro::GetTensorData<float>(output) +
+                          t_rel * output_step + output_offset;
 
       LstmStepFloat(
-          input_ptr, tflite::micro::GetTensorData<float>(input_to_input_weights),
+          input_ptr,
+          tflite::micro::GetTensorData<float>(input_to_input_weights),
           tflite::micro::GetTensorData<float>(input_to_forget_weights),
           tflite::micro::GetTensorData<float>(input_to_cell_weights),
-          tflite::micro::GetTensorData<float>(input_to_output_weights), aux_input_ptr,
+          tflite::micro::GetTensorData<float>(input_to_output_weights),
+          aux_input_ptr,
           tflite::micro::GetTensorData<float>(aux_input_to_input_weights),
           tflite::micro::GetTensorData<float>(aux_input_to_forget_weights),
           tflite::micro::GetTensorData<float>(aux_input_to_cell_weights),
@@ -1777,11 +1791,12 @@ TfLiteStatus EvalFloat(
           tflite::micro::GetTensorData<float>(cell_gate_bias),
           tflite::micro::GetTensorData<float>(output_gate_bias),
           tflite::micro::GetTensorData<float>(projection_weights),
-          tflite::micro::GetTensorData<float>(projection_bias), params, n_batch, n_cell,
-          n_input, aux_input_size, n_output, output_batch_leading_dim,
-          tflite::micro::GetTensorData<float>(output_state), tflite::micro::GetTensorData<float>(cell_state),
-          input_gate_scratch, forget_gate_scratch, cell_gate_scratch,
-          output_gate_scratch, output_ptr);
+          tflite::micro::GetTensorData<float>(projection_bias), params, n_batch,
+          n_cell, n_input, aux_input_size, n_output, output_batch_leading_dim,
+          tflite::micro::GetTensorData<float>(output_state),
+          tflite::micro::GetTensorData<float>(cell_state), input_gate_scratch,
+          forget_gate_scratch, cell_gate_scratch, output_gate_scratch,
+          output_ptr);
     }
   } else {
     for (int b = 0; b < n_batch; b++) {
@@ -1792,20 +1807,22 @@ TfLiteStatus EvalFloat(
         // backwards.
         const int t_rel = forward_sequence ? t : max_time - t - 1;
         const int time_offset = b * max_time + t_rel;
-        const float* input_ptr =
-            tflite::micro::GetTensorData<float>(input) + time_offset * input_step;
+        const float* input_ptr = tflite::micro::GetTensorData<float>(input) +
+                                 time_offset * input_step;
         const float* aux_input_ptr = nullptr;
         if (aux_input) {
-          aux_input_ptr =
-              tflite::micro::GetTensorData<float>(aux_input) + time_offset * input_step;
+          aux_input_ptr = tflite::micro::GetTensorData<float>(aux_input) +
+                          time_offset * input_step;
         }
         float* output_ptr = tflite::micro::GetTensorData<float>(output) +
                             time_offset * output_step + output_offset;
 
         // Offset the {output,cell}_state pointers to the right batch.
         float* output_state_ptr =
-            tflite::micro::GetTensorData<float>(output_state) + b * output_batch_leading_dim;
-        float* cell_state_ptr = tflite::micro::GetTensorData<float>(cell_state) + b * n_cell;
+            tflite::micro::GetTensorData<float>(output_state) +
+            b * output_batch_leading_dim;
+        float* cell_state_ptr =
+            tflite::micro::GetTensorData<float>(cell_state) + b * n_cell;
         // Offset the scratch pointers to the right batch.
         float* input_gate_scratch_ptr =
             input_gate_scratch ? input_gate_scratch + b * n_cell : nullptr;
@@ -1814,10 +1831,12 @@ TfLiteStatus EvalFloat(
         float* output_gate_scratch_ptr = output_gate_scratch + b * n_cell;
 
         LstmStepFloat(
-            input_ptr, tflite::micro::GetTensorData<float>(input_to_input_weights),
+            input_ptr,
+            tflite::micro::GetTensorData<float>(input_to_input_weights),
             tflite::micro::GetTensorData<float>(input_to_forget_weights),
             tflite::micro::GetTensorData<float>(input_to_cell_weights),
-            tflite::micro::GetTensorData<float>(input_to_output_weights), aux_input_ptr,
+            tflite::micro::GetTensorData<float>(input_to_output_weights),
+            aux_input_ptr,
             tflite::micro::GetTensorData<float>(aux_input_to_input_weights),
             tflite::micro::GetTensorData<float>(aux_input_to_forget_weights),
             tflite::micro::GetTensorData<float>(aux_input_to_cell_weights),
@@ -1838,11 +1857,11 @@ TfLiteStatus EvalFloat(
             tflite::micro::GetTensorData<float>(cell_gate_bias),
             tflite::micro::GetTensorData<float>(output_gate_bias),
             tflite::micro::GetTensorData<float>(projection_weights),
-            tflite::micro::GetTensorData<float>(projection_bias), params, /*n_batch=*/1,
-            n_cell, n_input, aux_input_size, n_output, output_batch_leading_dim,
-            output_state_ptr, cell_state_ptr, input_gate_scratch_ptr,
-            forget_gate_scratch_ptr, cell_gate_scratch_ptr,
-            output_gate_scratch_ptr, output_ptr);
+            tflite::micro::GetTensorData<float>(projection_bias), params,
+            /*n_batch=*/1, n_cell, n_input, aux_input_size, n_output,
+            output_batch_leading_dim, output_state_ptr, cell_state_ptr,
+            input_gate_scratch_ptr, forget_gate_scratch_ptr,
+            cell_gate_scratch_ptr, output_gate_scratch_ptr, output_ptr);
       }
     }
   }
@@ -1850,8 +1869,8 @@ TfLiteStatus EvalFloat(
 }
 // LINT.ThenChange(//tensorflow/lite/tools/optimize/calibration/builtin_logging_ops/lstm.cc)
 TfLiteStatus EvalInteger8x8_16(
-    TfLiteContext* context, TfLiteNode* node,
-    const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_to_input_weights,
+    TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
     const TfLiteEvalTensor* input_to_cell_weights,
     const TfLiteEvalTensor* input_to_output_weights,
@@ -1866,14 +1885,19 @@ TfLiteStatus EvalInteger8x8_16(
     const TfLiteEvalTensor* forget_layer_norm_coefficients,
     const TfLiteEvalTensor* cell_layer_norm_coefficients,
     const TfLiteEvalTensor* output_layer_norm_coefficients,
-    const TfLiteEvalTensor* input_gate_bias, const TfLiteEvalTensor* forget_gate_bias,
-    const TfLiteEvalTensor* cell_gate_bias, const TfLiteEvalTensor* output_gate_bias,
-    const TfLiteEvalTensor* projection_weights, const TfLiteEvalTensor* projection_bias,
-    const TfLiteLSTMParams* params, bool forward_sequence, bool time_major,
+    const TfLiteEvalTensor* input_gate_bias,
+    const TfLiteEvalTensor* forget_gate_bias,
+    const TfLiteEvalTensor* cell_gate_bias,
+    const TfLiteEvalTensor* output_gate_bias,
+    const TfLiteEvalTensor* projection_weights,
+    const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
+    bool forward_sequence, bool time_major,
     const lstm_eval::IntegerLstmParameter* integer_lstm_param,
-    TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output,
-    TfLiteEvalTensor* scratch0, TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
-    TfLiteEvalTensor* scratch3, TfLiteEvalTensor* scratch4, TfLiteEvalTensor* scratch5) {
+    TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
+    TfLiteEvalTensor* output, TfLiteEvalTensor* scratch0,
+    TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
+    TfLiteEvalTensor* scratch3, TfLiteEvalTensor* scratch4,
+    TfLiteEvalTensor* scratch5) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -1890,7 +1914,7 @@ TfLiteStatus EvalInteger8x8_16(
   const int n_output = recurrent_to_output_weights->dims->data[1];
 
   // Activation zero point
-//  TODO@is data.output_zero_point equal to output_state->params.zero_point
+  //  TODO@is data.output_zero_point equal to output_state->params.zero_point
   // int output_state_zp = output_state->params.zero_point;
   int output_state_zp = 0;
 
@@ -1911,11 +1935,13 @@ TfLiteStatus EvalInteger8x8_16(
     const int output_step = n_batch * output_batch_leading_dim;
     for (int t = 0; t < max_time; t++) {
       const int t_rel = t;
-      int8_t* output_ptr = tflite::micro::GetTensorData<int8_t>(output) + t_rel * output_step;
+      int8_t* output_ptr =
+          tflite::micro::GetTensorData<int8_t>(output) + t_rel * output_step;
       const int8_t* input_ptr =
           tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
       LstmStepInteger8x8_16(
-          input_ptr, tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+          input_ptr,
+          tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
           integer_lstm_param->effective_input_to_input_scale_a,
           integer_lstm_param->effective_input_to_input_scale_b,
           tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
@@ -1987,10 +2013,10 @@ TfLiteStatus EvalInteger8x8_16(
           integer_lstm_param->recurrent_to_input_effective_bias.get(),
           integer_lstm_param->projection_effective_bias.get(), n_batch, n_cell,
           n_input, n_output, tflite::micro::GetTensorData<int8_t>(output_state),
-          output_state_zp, tflite::micro::GetTensorData<int16_t>(cell_state), output_ptr,
-          (int16_t *)(scratch0), (int16_t *)(scratch1),
-          (int16_t *)(scratch2), (int16_t *)(scratch3),
-          (int8_t *)(scratch4), (int32_t *)(scratch5));
+          output_state_zp, tflite::micro::GetTensorData<int16_t>(cell_state),
+          output_ptr, (int16_t*)(scratch0), (int16_t*)(scratch1),
+          (int16_t*)(scratch2), (int16_t*)(scratch3), (int8_t*)(scratch4),
+          (int32_t*)(scratch5));
     }
   } else {
     for (int b = 0; b < n_batch; b++) {
@@ -2001,19 +2027,21 @@ TfLiteStatus EvalInteger8x8_16(
         // backwards.
         const int t_rel = forward_sequence ? t : max_time - t - 1;
         const int time_offset = b * max_time + t_rel;
-        const int8_t* input_ptr =
-            tflite::micro::GetTensorData<int8_t>(input) + time_offset * input_step;
-        int8_t* output_ptr =
-            tflite::micro::GetTensorData<int8_t>(output) + time_offset * output_step;
+        const int8_t* input_ptr = tflite::micro::GetTensorData<int8_t>(input) +
+                                  time_offset * input_step;
+        int8_t* output_ptr = tflite::micro::GetTensorData<int8_t>(output) +
+                             time_offset * output_step;
 
         // Offset the {output,cell}_state pointers to the right batch.
         int8_t* output_state_ptr =
-            tflite::micro::GetTensorData<int8_t>(output_state) + b * output_batch_leading_dim;
+            tflite::micro::GetTensorData<int8_t>(output_state) +
+            b * output_batch_leading_dim;
         int16_t* cell_state_ptr =
             tflite::micro::GetTensorData<int16_t>(cell_state) + b * n_cell;
 
         LstmStepInteger8x8_16(
-            input_ptr, tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+            input_ptr,
+            tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
             integer_lstm_param->effective_input_to_input_scale_a,
             integer_lstm_param->effective_input_to_input_scale_b,
             tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
@@ -2052,16 +2080,19 @@ TfLiteStatus EvalInteger8x8_16(
             integer_lstm_param->hidden_zp,
             integer_lstm_param->effective_hidden_scale_a,
             integer_lstm_param->effective_hidden_scale_b,
-            tflite::micro::GetTensorData<int16_t>(input_layer_norm_coefficients),
+            tflite::micro::GetTensorData<int16_t>(
+                input_layer_norm_coefficients),
             integer_lstm_param->layer_norm_input_scale_a,
             integer_lstm_param->layer_norm_input_scale_b,
-            tflite::micro::GetTensorData<int16_t>(forget_layer_norm_coefficients),
+            tflite::micro::GetTensorData<int16_t>(
+                forget_layer_norm_coefficients),
             integer_lstm_param->layer_norm_forget_scale_a,
             integer_lstm_param->layer_norm_forget_scale_b,
             tflite::micro::GetTensorData<int16_t>(cell_layer_norm_coefficients),
             integer_lstm_param->layer_norm_cell_scale_a,
             integer_lstm_param->layer_norm_cell_scale_b,
-            tflite::micro::GetTensorData<int16_t>(output_layer_norm_coefficients),
+            tflite::micro::GetTensorData<int16_t>(
+                output_layer_norm_coefficients),
             integer_lstm_param->layer_norm_output_scale_a,
             integer_lstm_param->layer_norm_output_scale_b,
             tflite::micro::GetTensorData<int32_t>(input_gate_bias),
@@ -2085,10 +2116,9 @@ TfLiteStatus EvalInteger8x8_16(
             integer_lstm_param->recurrent_to_input_effective_bias.get(),
             integer_lstm_param->projection_effective_bias.get(), /*n_batch=*/1,
             n_cell, n_input, n_output, output_state_ptr, output_state_zp,
-            cell_state_ptr, output_ptr,
-          (int16_t *)(scratch0), (int16_t *)(scratch1),
-          (int16_t *)(scratch2), (int16_t *)(scratch3),
-          (int8_t *)(scratch4), (int32_t *)(scratch5));
+            cell_state_ptr, output_ptr, (int16_t*)(scratch0),
+            (int16_t*)(scratch1), (int16_t*)(scratch2), (int16_t*)(scratch3),
+            (int8_t*)(scratch4), (int32_t*)(scratch5));
       }
     }
   }
@@ -2103,7 +2133,8 @@ TfLiteStatus EvalInteger8x8_16(
 }
 
 TfLiteStatus EvalInteger8x8_8(
-    const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_to_input_weights,
+    const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
     const TfLiteEvalTensor* input_to_cell_weights,
     const TfLiteEvalTensor* input_to_output_weights,
@@ -2118,14 +2149,18 @@ TfLiteStatus EvalInteger8x8_8(
     const TfLiteEvalTensor* forget_layer_norm_coefficients,
     const TfLiteEvalTensor* cell_layer_norm_coefficients,
     const TfLiteEvalTensor* output_layer_norm_coefficients,
-    const TfLiteEvalTensor* input_gate_bias, const TfLiteEvalTensor* forget_gate_bias,
-    const TfLiteEvalTensor* cell_gate_bias, const TfLiteEvalTensor* output_gate_bias,
-    const TfLiteEvalTensor* projection_weights, const TfLiteEvalTensor* projection_bias,
-    const TfLiteLSTMParams* params, TfLiteEvalTensor* output_state,
-    TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output,
+    const TfLiteEvalTensor* input_gate_bias,
+    const TfLiteEvalTensor* forget_gate_bias,
+    const TfLiteEvalTensor* cell_gate_bias,
+    const TfLiteEvalTensor* output_gate_bias,
+    const TfLiteEvalTensor* projection_weights,
+    const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
+    TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
+    TfLiteEvalTensor* output,
     const lstm_eval::IntegerLstmParameter* integer_lstm_param,
-    TfLiteEvalTensor* scratch0, TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
-    TfLiteEvalTensor* scratch3, TfLiteEvalTensor* scratch4, TfLiteEvalTensor* scratch5,
+    TfLiteEvalTensor* scratch0, TfLiteEvalTensor* scratch1,
+    TfLiteEvalTensor* scratch2, TfLiteEvalTensor* scratch3,
+    TfLiteEvalTensor* scratch4, TfLiteEvalTensor* scratch5,
     TfLiteEvalTensor* scratch6, TfLiteEvalTensor* scratch7) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
@@ -2141,9 +2176,9 @@ TfLiteStatus EvalInteger8x8_8(
   // n_cell and n_output will be the same size when there is no projection.
   const int n_cell = input_to_output_weights->dims->data[0];
   const int n_output = recurrent_to_output_weights->dims->data[1];
-//@TODO input zero point and output zeropoint
-  //const int32_t input_zp = input->params.zero_point;
- /// const int32_t output_state_zp = output_state->params.zero_point;
+  //@TODO input zero point and output zeropoint
+  // const int32_t input_zp = input->params.zero_point;
+  /// const int32_t output_state_zp = output_state->params.zero_point;
   const int32_t input_zp = 0;
   const int32_t output_state_zp = 0;
 
@@ -2155,9 +2190,11 @@ TfLiteStatus EvalInteger8x8_8(
 
   for (int t = 0; t < max_time; t++) {
     const int t_rel = t;
-    int8_t* output_ptr = tflite::micro::GetTensorData<int8_t>(output) + t_rel * output_step;
+    int8_t* output_ptr =
+        tflite::micro::GetTensorData<int8_t>(output) + t_rel * output_step;
     // Input can be int8 asymmetric or int16 symmetric.
-    const int8_t* input_ptr = tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
+    const int8_t* input_ptr =
+        tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
     lstm_eval::LstmStepInteger8x8_8(
         input_ptr, input_zp,
 
@@ -2236,12 +2273,17 @@ TfLiteStatus EvalInteger8x8_8(
         integer_lstm_param->intermediate_zp,
         integer_lstm_param->quantized_cell_clip,
         integer_lstm_param->quantized_proj_clip, n_batch, n_cell, n_input,
-        n_output, output_batch_leading_dim, tflite::micro::GetTensorData<int8_t>(output_state),
-        output_state_zp, tflite::micro::GetTensorData<int16_t>(cell_state), output_ptr,
-        tflite::micro::GetTensorData<int8_t>(scratch0), tflite::micro::GetTensorData<int8_t>(scratch1),
-        tflite::micro::GetTensorData<int16_t>(scratch2), tflite::micro::GetTensorData<int16_t>(scratch3),
-        tflite::micro::GetTensorData<int16_t>(scratch4), tflite::micro::GetTensorData<int16_t>(scratch5),
-        tflite::micro::GetTensorData<int16_t>(scratch6), tflite::micro::GetTensorData<int16_t>(scratch7));
+        n_output, output_batch_leading_dim,
+        tflite::micro::GetTensorData<int8_t>(output_state), output_state_zp,
+        tflite::micro::GetTensorData<int16_t>(cell_state), output_ptr,
+        tflite::micro::GetTensorData<int8_t>(scratch0),
+        tflite::micro::GetTensorData<int8_t>(scratch1),
+        tflite::micro::GetTensorData<int16_t>(scratch2),
+        tflite::micro::GetTensorData<int16_t>(scratch3),
+        tflite::micro::GetTensorData<int16_t>(scratch4),
+        tflite::micro::GetTensorData<int16_t>(scratch5),
+        tflite::micro::GetTensorData<int16_t>(scratch6),
+        tflite::micro::GetTensorData<int16_t>(scratch7));
   }
 
   return kTfLiteOk;

@@ -180,7 +180,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
         TfLiteIntArray* intermediates_array;
         TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
             op->intermediates(), &intermediates_array));
-		node->intermediates = intermediates_array;
+        node->intermediates = intermediates_array;
       }
     }
   }
