@@ -43,14 +43,10 @@ struct Conv2DThread {
 };
 
 extern "C" {
+#pragma stackfunction 1000
 ATTRIBUTE_THREAD_FUNCTION
 void conv2d_v2_thread_worker(void* context) {
   auto work = static_cast<Conv2DThread*>(context);
-  // nn::OT_int8* ot = (nn::OT_int8*)work->f->ot_handler;
-  // nn::OT_int8::Params* ot_params = ot->params;
-  // for (int i = 0; i < ot_params->output_slice_channel_count; ++i) {
-  //   std::cout << ot_params->multipliers[i] << "\n";
-  // }
   work->f->execute(work->Y, work->X, work->scratch);
 }
 }
@@ -132,23 +128,65 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     KernelType kt = (KernelType)params[1].AsInt32();
 
     switch (kt) {
-      case Conv2dValidDirect_t:
+      case Conv2dValidDirect_t: {
+        nn::Filter2D::Params* ak_params =
+            getDeserializedParams<nn::Filter2D::Params>(
+                context, params[2].As<std::string>());
+        nn::DerefInputFn::Params* mf_params =
+            getDeserializedParams<nn::DerefInputFn::Params>(
+                context, params[3].As<std::string>());
+        nn::MatMulDirectFn::Params* af_params =
+            getDeserializedParams<nn::MatMulDirectFn::Params, true>(
+                context, params[4].As<std::string>());
+        nn::OT_int8::Params* ot_params =
+            getDeserializedParams<nn::OT_int8::Params, true>(
+                context, params[5].As<std::string>());
 
-        // nn::AbstractKernel::Params* akp =
-        //     (nn::AbstractKernel::Params*)(buffer +
-        //                                   abstract_kernel_params_buffer_idx);
-        // nn::DerefInputFn::Params* dip =
-        //     (nn::DerefInputFn::Params*)(buffer + memcpy_fn_buffer_idx);
-        // nn::MatMulDirectFn::Params* mdp =
-        //     (nn::MatMulDirectFn::Params*)(buffer + aggregate_fn_buffer_idx);
-        // nn::OT_int8::Params* otp =
-        //     (nn::OT_int8::Params*)(buffer + output_transform_fn_buffer_idx);
+        auto memcpy = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::DerefInputFn))) nn::DerefInputFn(mf_params);
 
-        // op_data->threads[t].job = new nn::Filter2D(akp, dip, );
-        break;
-      case Conv2dValidIndirect_t:
-        break;
-      case Conv2dPaddedInDirect_t:
+        auto aggregator = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::MatMulDirectFn))) nn::MatMulDirectFn(af_params);
+
+        auto ot = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::OT_int8))) nn::OT_int8(ot_params);
+
+        auto conv2d = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::Conv2dValidDirect)))
+            nn::Conv2dValidDirect(ak_params, memcpy, aggregator, ot);
+
+        op_data->threads[t].filter2D = conv2d;
+      } break;
+      case Conv2dValidIndirect_t: {
+        nn::Filter2D::Params* ak_params =
+            getDeserializedParams<nn::Filter2D::Params>(
+                context, params[2].As<std::string>());
+        nn::ImToColValid::Params* mf_params =
+            getDeserializedParams<nn::ImToColValid::Params>(
+                context, params[3].As<std::string>());
+        nn::MatMulInt8::Params* af_params =
+            getDeserializedParams<nn::MatMulInt8::Params, true>(
+                context, params[4].As<std::string>());
+        nn::OT_int8::Params* ot_params =
+            getDeserializedParams<nn::OT_int8::Params, true>(
+                context, params[5].As<std::string>());
+
+        auto memcpy = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::ImToColValid))) nn::ImToColValid(mf_params);
+
+        auto aggregator = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::MatMulInt8))) nn::MatMulInt8(af_params);
+
+        auto ot = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::OT_int8))) nn::OT_int8(ot_params);
+
+        auto conv2d = new (context->AllocatePersistentBuffer(
+            context, sizeof(nn::Conv2dValidIndirect)))
+            nn::Conv2dValidIndirect(ak_params, memcpy, aggregator, ot);
+
+        op_data->threads[t].filter2D = conv2d;
+      } break;
+      case Conv2dPaddedInDirect_t: {
         nn::Filter2D::Params* ak_params =
             getDeserializedParams<nn::Filter2D::Params>(
                 context, params[2].As<std::string>());
@@ -175,15 +213,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
             context, sizeof(nn::Conv2dPaddedInDirect)))
             nn::Conv2dPaddedInDirect(ak_params, memcpy, aggregator, ot);
 
-        // nn::OT_int8* oth = (nn::OT_int8*)conv2d->ot_handler;
-        // nn::OT_int8::Params* otp = oth->params;
-
-        // for (int i = 0; i < otp->output_slice_channel_count; ++i) {
-        //   std::cout << otp->multipliers[i] << "\n";
-        // }
-
         op_data->threads[t].filter2D = conv2d;
-        break;
+      } break;
     }
   }
   return op_data;
@@ -234,7 +265,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     thread_data[t].scratch = (int8_t*)context->GetScratchBuffer(
         context, op_data->threads[t].stack_scratch_index);
     thread_data[t].f = op_data->threads[t].filter2D;
-    // conv2d_v2_thread_worker(reinterpret_cast<void*>(&thread_data[t]));
     dispatcher_args[t] = reinterpret_cast<void*>(&thread_data[t]);
   }
 
