@@ -832,8 +832,6 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   // const int scratch_tensor_index = op_data->scratch_tensor_index;
-  tflite::MicroErrorReporter micro_error_reporter;
-  tflite::ErrorReporter* error_reporter = &micro_error_reporter;
 
   // Check we have all the inputs and outputs we need.
   bool use_layer_norm = false;
@@ -849,9 +847,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // This is deprecated and is only kept here for backward compatibility.
     use_layer_norm = false;
   } else {
-    TF_LITE_REPORT_ERROR(
-        error_reporter,
-        "The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
+    TF_LITE_KERNEL_LOG(
+        context, "The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
         node->inputs->size);
     return kTfLiteError;
   }
