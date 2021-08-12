@@ -19,3 +19,15 @@ generate_cc_arrays(
     src="person_detect.tflite",
     out="person_detect_model_data.h",
 )
+
+generate_cc_arrays(
+    name="generated_hello_world_model_cc",
+    src="hello_world.tflite",
+    out="hello_world_model_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_hello_world_model_hdr",
+    src="hello_world.tflite",
+    out="hello_world_model_data.h",
+)

@@ -14,10 +14,10 @@ package(
 cc_library(
     name = "model",
     srcs = [
-        "model.cc",
+        "//tensorflow/lite/micro/models:generated_hello_world_model_cc",
     ],
     hdrs = [
-        "model.h",
+        "//tensorflow/lite/micro/models:generated_hello_world_model_hdr",
     ],
     copts = micro_copts(),
 )
