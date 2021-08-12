@@ -37,6 +37,7 @@ jobs:
       - name: Set up bazel
         run: |
           sudo ci/install_bazel.sh
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
