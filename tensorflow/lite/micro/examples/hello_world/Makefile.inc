@@ -26,10 +26,10 @@ HELLO_WORLD_GENERATOR_INPUTS := \
 tensorflow/lite/micro/examples/hello_world/hello_world.tflite
 
 HELLO_WORLD_GENERATED_SRCS := \
-tensorflow/lite/micro/models/hello_world_model_data.cc
+tensorflow/lite/micro/examples/hello_world/hello_world_model_data.cc
 
 HELLO_WORLD_GENERATED_HDRS := \
-tensorflow/lite/micro/models/hello_world_model_data.h
+tensorflow/lite/micro/examples/hello_world/hello_world_model_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/*/Makefile.inc)
