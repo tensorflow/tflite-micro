@@ -23,7 +23,7 @@ tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/main_functions.h
 
 HELLO_WORLD_GENERATOR_INPUTS := \
-tensorflow/lite/micro/models/hello_world.tflite
+tensorflow/lite/micro/examples/hello_world/hello_world.tflite
 
 HELLO_WORLD_GENERATED_SRCS := \
 tensorflow/lite/micro/models/hello_world_model_data.cc
