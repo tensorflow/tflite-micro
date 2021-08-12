@@ -87,6 +87,9 @@ jobs:
     name: Project Generation (presubmit)
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
@@ -102,6 +105,9 @@ jobs:
     name: Makefile x86 (presubmit)
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
