@@ -335,9 +335,9 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
 
   // The head buffer use cannot exceed the upper bound from x86.
-  TF_LITE_MICRO_EXPECT_GE(
-      max_scratch_buffer_request_size,
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes());
+  TF_LITE_MICRO_EXPECT_LE(
+      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes(),
+      max_scratch_buffer_request_size);
 
   // Ensure allocations are zero (ignore tail since some internal structs are
   // initialized with this space):
