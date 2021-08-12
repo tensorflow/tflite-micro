@@ -553,6 +553,7 @@ GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
 PRJDIR := $(GENDIR)prj/
@@ -566,6 +567,9 @@ AR := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${AR_TOOL}
 # The default Makefile target(all) must appear before any target,
 # which is compiled if there's no command-line arguments.
 all: $(MICROLITE_LIB_PATH)
+
+# Include output directory since example cc files depend on generated headers.
+INCLUDES += -I$(GENERATED_SRCS_DIR)
 
 # Load the examples.
 include $(MICRO_LITE_EXAMPLE_TESTS)
@@ -734,6 +738,9 @@ list_third_party_sources:
 
 list_third_party_headers:
 	@echo $(addprefix $(MAKEFILE_DIR)/downloads/,$(THIRD_PARTY_CC_HDRS_BASE)) $(THIRD_PARTY_CC_HDRS_V2)
+
+list_generator_dir:
+	@echo $(GENERATED_SRCS_DIR)
 
 # Gets rid of all generated files.
 clean:
