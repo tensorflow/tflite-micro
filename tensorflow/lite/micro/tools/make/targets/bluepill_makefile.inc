@@ -61,7 +61,6 @@ MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
 # TODO(b/143286954): Figure out why some tests fail and enable once the issues
 # are resolved.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
   tensorflow/lite/micro/micro_allocator_test.cc \
   tensorflow/lite/micro/memory_helpers_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc

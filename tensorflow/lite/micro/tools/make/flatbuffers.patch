@@ -19,6 +19,289 @@ index 8e97c08..6f3fea5 100644
  // clang-format off
  
  // If activate should be declared and included first.
+diff --git a/include/flatbuffers/flatbuffers.h b/include/flatbuffers/flatbuffers.h
+index 799f647..d904f3c 100644
+--- a/include/flatbuffers/flatbuffers.h
++++ b/include/flatbuffers/flatbuffers.h
+@@ -21,7 +21,7 @@
+ #include "flatbuffers/stl_emulation.h"
+ 
+ #ifndef FLATBUFFERS_CPP98_STL
+-  #include <functional>
++#  include <functional>
+ #endif
+ 
+ #if defined(FLATBUFFERS_NAN_DEFAULTS)
+@@ -81,7 +81,7 @@ inline void EndianCheck() {
+ }
+ 
+ template<typename T> FLATBUFFERS_CONSTEXPR size_t AlignOf() {
+-  // clang-format off
++// clang-format off
+   #ifdef _MSC_VER
+     return __alignof(T);
+   #else
+@@ -147,7 +147,7 @@ template<typename T, typename IT> struct VectorIterator {
+     return *this;
+   }
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   VectorIterator &operator=(VectorIterator &&other) {
+     data_ = other.data_;
+@@ -561,7 +561,7 @@ struct String : public Vector<char> {
+   const char *c_str() const { return reinterpret_cast<const char *>(Data()); }
+   std::string str() const { return std::string(c_str(), size()); }
+ 
+-  // clang-format off
++// clang-format off
+   #ifdef FLATBUFFERS_HAS_STRING_VIEW
+   flatbuffers::string_view string_view() const {
+     return flatbuffers::string_view(c_str(), size());
+@@ -653,24 +653,18 @@ class DefaultAllocator : public Allocator {
+ // This is to avoid having a statically or dynamically allocated default
+ // allocator, or having to move it between the classes that may own it.
+ inline uint8_t *Allocate(Allocator *allocator, size_t size) {
+-  return allocator ? allocator->allocate(size)
+-                   : DefaultAllocator().allocate(size);
++  return allocator->allocate(size);
+ }
+ 
+ inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
+-  if (allocator)
+-    allocator->deallocate(p, size);
+-  else
+-    DefaultAllocator().deallocate(p, size);
++  return allocator->deallocate(p, size);
+ }
+ 
+ inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
+                                    size_t old_size, size_t new_size,
+                                    size_t in_use_back, size_t in_use_front) {
+-  return allocator ? allocator->reallocate_downward(old_p, old_size, new_size,
+-                                                    in_use_back, in_use_front)
+-                   : DefaultAllocator().reallocate_downward(
+-                         old_p, old_size, new_size, in_use_back, in_use_front);
++  return allocator->reallocate_downward(old_p, old_size, new_size, in_use_back,
++                                        in_use_front);
+ }
+ 
+ // DetachedBuffer is a finished flatbuffer memory region, detached from its
+@@ -695,7 +689,7 @@ class DetachedBuffer {
+         cur_(cur),
+         size_(sz) {}
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+   DetachedBuffer(DetachedBuffer &&other)
+@@ -707,11 +701,11 @@ class DetachedBuffer {
+         size_(other.size_) {
+     other.reset();
+   }
+-  // clang-format off
++// clang-format off
+   #endif  // !defined(FLATBUFFERS_CPP98_STL)
+-  // clang-format on
++// clang-format on
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+   DetachedBuffer &operator=(DetachedBuffer &&other) {
+@@ -730,7 +724,7 @@ class DetachedBuffer {
+ 
+     return *this;
+   }
+-  // clang-format off
++// clang-format off
+   #endif  // !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+ 
+@@ -742,7 +736,7 @@ class DetachedBuffer {
+ 
+   size_t size() const { return size_; }
+ 
+-  // clang-format off
++// clang-format off
+   #if 0  // disabled for now due to the ordering of classes in this header
+   template <class T>
+   bool Verify() const {
+@@ -760,16 +754,16 @@ class DetachedBuffer {
+     return flatbuffers::GetRoot<T>(data());
+   }
+   #endif
+-  // clang-format on
++// clang-format on
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+   // These may change access mode, leave these at end of public section
+   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other))
+   FLATBUFFERS_DELETE_FUNC(
+       DetachedBuffer &operator=(const DetachedBuffer &other))
+-  // clang-format off
++// clang-format off
+   #endif  // !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+ 
+@@ -816,7 +810,7 @@ class vector_downward {
+         cur_(nullptr),
+         scratch_(nullptr) {}
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   vector_downward(vector_downward &&other)
+   #else
+@@ -841,7 +835,7 @@ class vector_downward {
+     other.scratch_ = nullptr;
+   }
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+   vector_downward &operator=(vector_downward &&other) {
+@@ -850,7 +844,7 @@ class vector_downward {
+     swap(temp);
+     return *this;
+   }
+-  // clang-format off
++// clang-format off
+   #endif  // defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+ 
+@@ -1102,7 +1096,7 @@ class FlatBufferBuilder {
+     EndianCheck();
+   }
+ 
+-  // clang-format off
++// clang-format off
+   /// @brief Move constructor for FlatBufferBuilder.
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   FlatBufferBuilder(FlatBufferBuilder &&other)
+@@ -1123,9 +1117,9 @@ class FlatBufferBuilder {
+     // Lack of delegating constructors in vs2010 makes it more verbose than needed.
+     Swap(other);
+   }
+-  // clang-format on
++// clang-format on
+ 
+-  // clang-format off
++// clang-format off
+   #if !defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+   /// @brief Move assignment operator for FlatBufferBuilder.
+@@ -1135,7 +1129,7 @@ class FlatBufferBuilder {
+     Swap(temp);
+     return *this;
+   }
+-  // clang-format off
++// clang-format off
+   #endif  // defined(FLATBUFFERS_CPP98_STL)
+   // clang-format on
+ 
+@@ -1497,7 +1491,7 @@ class FlatBufferBuilder {
+     return CreateString(str.c_str(), str.length());
+   }
+ 
+-  // clang-format off
++// clang-format off
+   #ifdef FLATBUFFERS_HAS_STRING_VIEW
+   /// @brief Store a string in the buffer, which can contain any binary data.
+   /// @param[in] str A const string_view to copy in to the buffer.
+@@ -1617,10 +1611,8 @@ class FlatBufferBuilder {
+     // causing the wrong overload to be selected, remove it.
+     AssertScalarT<T>();
+     StartVector(len, sizeof(T));
+-    if (len == 0) {
+-      return Offset<Vector<T>>(EndVector(len));
+-    }
+-    // clang-format off
++    if (len == 0) { return Offset<Vector<T>>(EndVector(len)); }
++// clang-format off
+     #if FLATBUFFERS_LITTLEENDIAN
+       PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
+     #else
+@@ -1664,7 +1656,7 @@ class FlatBufferBuilder {
+     return Offset<Vector<uint8_t>>(EndVector(v.size()));
+   }
+ 
+-  // clang-format off
++// clang-format off
+   #ifndef FLATBUFFERS_CPP98_STL
+   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
+   /// This is a convenience function that takes care of iteration for you.
+@@ -1742,7 +1734,7 @@ class FlatBufferBuilder {
+     return CreateVectorOfStructs<T>(data(vv), vv.size());
+   }
+ 
+-  // clang-format off
++// clang-format off
+   #ifndef FLATBUFFERS_CPP98_STL
+   /// @brief Serialize an array of structs into a FlatBuffer `vector`.
+   /// @tparam T The data type of the struct array elements.
+@@ -1892,7 +1884,8 @@ class FlatBufferBuilder {
+     vector_downward &buf_;
+ 
+    private:
+-    FLATBUFFERS_DELETE_FUNC(TableKeyComparator &operator=(const TableKeyComparator &other))
++    FLATBUFFERS_DELETE_FUNC(
++        TableKeyComparator &operator=(const TableKeyComparator &other))
+   };
+   /// @endcond
+ 
+@@ -2161,7 +2154,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
+ 
+   // Central location where any verification failures register.
+   bool Check(bool ok) const {
+-    // clang-format off
++// clang-format off
+     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
+       FLATBUFFERS_ASSERT(ok);
+     #endif
+@@ -2175,7 +2168,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
+ 
+   // Verify any range within the buffer.
+   bool Verify(size_t elem, size_t elem_len) const {
+-    // clang-format off
++// clang-format off
+     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+       auto upper_bound = elem + elem_len;
+       if (upper_bound_ < upper_bound)
+@@ -2295,7 +2288,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
+     // Call T::Verify, which must be in the generated code for this type.
+     auto o = VerifyOffset(start);
+     return o && reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
+-    // clang-format off
++// clang-format off
+     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+            && GetComputedSize()
+     #endif
+@@ -2351,7 +2344,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
+ 
+   // Returns the message size in bytes
+   size_t GetComputedSize() const {
+-    // clang-format off
++// clang-format off
+     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
+       uintptr_t size = upper_bound_;
+       // Align the size to uoffset_t
+@@ -2746,7 +2739,7 @@ inline const char * const *ElementaryTypeNames() {
+ 
+ // Basic type info cost just 16bits per field!
+ struct TypeCode {
+-  uint16_t base_type : 4;  // ElementaryType
++  uint16_t base_type : 4;     // ElementaryType
+   uint16_t is_repeating : 1;  // Either vector (in table) or array (in struct)
+   int16_t sequence_ref : 11;  // Index into type_refs below, or -1 for none.
+ };
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
 index a45d14b..a4401f8 100644
 --- a/include/flatbuffers/flexbuffers.h
