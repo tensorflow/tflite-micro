@@ -517,8 +517,13 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 
-  ifneq ($(.SHELLSTATUS),0)
-    $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+	# which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+	# Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
   endif
 
 endif
