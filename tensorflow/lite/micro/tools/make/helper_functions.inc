@@ -493,9 +493,16 @@ $(1)_LOCAL_SRCS := $(2)
 ifneq ($(4),)
   # Generate cc files and headers for all models and bitmaps in the test.
   GEN_RESULT := $$(shell python3 tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
-  ifneq ($$(.SHELLSTATUS),0)
-    $$(error Something went wrong: $$(GEN_RESULT))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($$(.SHELLSTATUS),0)
+      $$(error Something went wrong: $$(GEN_RESULT))
+    endif
   endif
+
   $(1)_LOCAL_SRCS += $$(GEN_RESULT)
 endif
 
