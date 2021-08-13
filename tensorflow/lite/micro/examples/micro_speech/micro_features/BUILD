@@ -17,16 +17,6 @@ cc_library(
 )
 
 cc_library(
-    name = "model",
-    srcs = [
-        "model.cc",
-    ],
-    hdrs = [
-        "model.h",
-    ],
-)
-
-cc_library(
     name = "micro_features_test_data",
     srcs = [
         "no_micro_features_data.cc",

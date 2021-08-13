@@ -28,12 +28,10 @@ third_party/kissfft/tools/kiss_fftr.h
 
 MICRO_SPEECH_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc
 
 MICRO_SPEECH_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
 
@@ -190,7 +188,6 @@ tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
 tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
@@ -200,7 +197,6 @@ tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
 tensorflow/lite/micro/examples/micro_speech/command_responder.h \
 tensorflow/lite/micro/examples/micro_speech/main_functions.h \
@@ -215,7 +211,6 @@ tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.cc \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
 tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
@@ -228,11 +223,19 @@ tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
 tensorflow/lite/micro/examples/micro_speech/command_responder.h \
 tensorflow/lite/micro/examples/micro_speech/main_functions.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
+
+MICRO_SPEECH_GENERATOR_INPUTS := \
+tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite
+
+MICRO_SPEECH_GENERATED_SRCS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.cc
+
+MICRO_SPEECH_GENERATED_HDRS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard tensorflow/lite/micro/examples/micro_speech/*/Makefile.inc)
@@ -247,7 +250,7 @@ $(MICRO_FEATURES_GENERATOR_TEST_SRCS), $(MICRO_FEATURES_GENERATOR_TEST_HDRS)))
 
 # Tests loading and running a speech model.
 $(eval $(call microlite_test,micro_speech_test,\
-$(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS)))
+$(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Test the code for feature generation.
 $(eval $(call microlite_test,simple_features_generator_test,\
@@ -279,11 +282,15 @@ $(COMMAND_RESPONDER_TEST_SRCS),$(COMMAND_RESPONDER_TEST_HDRS)))
 
 # Builds a standalone speech command recognizer binary.
 $(eval $(call microlite_test,micro_speech,\
-$(MICRO_SPEECH_SRCS),$(MICRO_SPEECH_HDRS)))
+$(MICRO_SPEECH_SRCS),$(MICRO_SPEECH_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Builds a standalone speech command recognizer binary using fake audio input.
 $(eval $(call microlite_test,micro_speech_mock,\
-$(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS)))
+$(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+
+# Add sources and headers generated from $(MICRO_SPEECH_GENERATOR_INPUTS).
+MICRO_SPEECH_SRCS += $(MICRO_SPEECH_GENERATED_SRCS)
+MICRO_SPEECH_HDRS += $(MICRO_SPEECH_GENERATED_HDRS)
 
 list_micro_speech_example_sources:
 	@echo $(MICRO_SPEECH_SRCS)
