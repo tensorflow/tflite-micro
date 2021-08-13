@@ -28,9 +28,29 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 # TODO(b/143904317): downloading first to allow for parallel builds.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=vision_p6 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=P6_200528 \
-  test -j$(nproc)
+
+if [[ ${1} == "BUILD_ONLY" ]]; then
+
+  # Since we currently do not have optimized kernel implemetations for
+  # vision_p6, running the tests (in particular person_detection_int8) takes a
+  # very long time. So, we add an option to only do a build for cases where we
+  # really care about the time needed for this script to complete (such as
+  # PR presubmit checks).
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=vision_p6 \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=P6_200528 \
+    build -j$(nproc)
+
+else
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=vision_p6 \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=P6_200528 \
+    test -j$(nproc)
+fi
+
+
