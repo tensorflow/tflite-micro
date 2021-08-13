@@ -137,6 +137,12 @@ def _create_examples_tree(prefix_dir, examples_list):
   # special handling or they will end up outside the {prefix_dir} tree.
   dest_file_list = []
   for f in files:
+    if tflm_generator_path in f:
+      # file is generated during the build.
+      relative_path = os.path.relpath(f, tflm_generator_path)
+      full_filename = os.path.join(prefix_dir, relative_path)
+      # Allow generated example sources to be placed with their example.
+      f = relative_path
     if tflm_examples_path in f:
       # file is in examples tree
       relative_path = os.path.relpath(f, tflm_examples_path)
@@ -145,10 +151,6 @@ def _create_examples_tree(prefix_dir, examples_list):
       # is third-party file
       relative_path = os.path.relpath(f, tflm_downloads_path)
       full_filename = os.path.join(prefix_dir, "third_party", relative_path)
-    elif tflm_generator_path in f:
-      # file is generated during the build.
-      relative_path = os.path.relpath(f, tflm_generator_path)
-      full_filename = os.path.join(prefix_dir, relative_path)
     else:
       # not third-party and not examples, don't modify file name
       # ex. tensorflow/lite/experimental/microfrontend
