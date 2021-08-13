@@ -518,7 +518,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 
   ifneq ($(.SHELLSTATUS),0)
-    $(error Error with specialize_files.py)
+    $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
   endif
 
 endif
