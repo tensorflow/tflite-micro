@@ -25,6 +25,8 @@ pwd
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
+pip3 install Pillow
+
 TARGET=esp
 TARGET_ARCH=xtensa-esp32
 
