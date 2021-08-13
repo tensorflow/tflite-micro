@@ -59,9 +59,10 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
+      github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run'))
 
-    name: Vision P6 (presubmit)
+    name: Vision P6 Build (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:
