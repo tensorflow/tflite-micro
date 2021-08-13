@@ -233,25 +233,6 @@ class Dequantizer {
   float scale_;
 };
 
-void DequantizeBoxEncodings(const TfLiteEvalTensor* input_box_encodings,
-                            int idx, float quant_zero_point, float quant_scale,
-                            int length_box_encoding,
-                            CenterSizeEncoding* box_centersize) {
-  const uint8_t* boxes =
-      tflite::micro::GetTensorData<uint8_t>(input_box_encodings) +
-      length_box_encoding * idx;
-  Dequantizer dequantize(quant_zero_point, quant_scale);
-  // See definition of the KeyPointBoxCoder at
-  // https://github.com/tensorflow/models/blob/master/research/object_detection/box_coders/keypoint_box_coder.py
-  // The first four elements are the box coordinates, which is the same as the
-  // FastRnnBoxCoder at
-  // https://github.com/tensorflow/models/blob/master/research/object_detection/box_coders/faster_rcnn_box_coder.py
-  box_centersize->y = dequantize(boxes[0]);
-  box_centersize->x = dequantize(boxes[1]);
-  box_centersize->h = dequantize(boxes[2]);
-  box_centersize->w = dequantize(boxes[3]);
-}
-
 template <class T>
 T ReInterpretTensor(const TfLiteEvalTensor* tensor) {
   const float* tensor_base = tflite::micro::GetTensorData<float>(tensor);
@@ -684,22 +665,6 @@ TfLiteStatus NonMaxSuppressionMultiClassFastHelper(TfLiteContext* context,
 
   tflite::micro::GetTensorData<float>(num_detections)[0] = output_box_index;
   return kTfLiteOk;
-}
-
-void DequantizeClassPredictions(const TfLiteEvalTensor* input_class_predictions,
-                                const int num_boxes,
-                                const int num_classes_with_background,
-                                float* scores, OpData* op_data) {
-  float quant_zero_point =
-      static_cast<float>(op_data->input_class_predictions.zero_point);
-  float quant_scale =
-      static_cast<float>(op_data->input_class_predictions.scale);
-  Dequantizer dequantize(quant_zero_point, quant_scale);
-  const uint8_t* scores_quant =
-      tflite::micro::GetTensorData<uint8_t>(input_class_predictions);
-  for (int idx = 0; idx < num_boxes * num_classes_with_background; ++idx) {
-    scores[idx] = dequantize(scores_quant[idx]);
-  }
 }
 
 TfLiteStatus NonMaxSuppressionMultiClass(TfLiteContext* context,
