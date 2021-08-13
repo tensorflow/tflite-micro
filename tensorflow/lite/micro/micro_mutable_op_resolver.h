@@ -278,8 +278,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddHardSwish() {
-    return AddBuiltin(BuiltinOperator_HARD_SWISH,
-                      tflite::ops::micro::Register_HARD_SWISH(),
+    return AddBuiltin(BuiltinOperator_HARD_SWISH, tflite::Register_HARD_SWISH(),
                       ParseHardSwish);
   }
 
@@ -321,8 +320,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddLogicalAnd() {
     return AddBuiltin(BuiltinOperator_LOGICAL_AND,
-                      tflite::ops::micro::Register_LOGICAL_AND(),
-                      ParseLogicalAnd);
+                      tflite::Register_LOGICAL_AND(), ParseLogicalAnd);
   }
 
   TfLiteStatus AddLogicalNot() {
@@ -332,14 +330,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLogicalOr() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_OR,
-                      tflite::ops::micro::Register_LOGICAL_OR(),
+    return AddBuiltin(BuiltinOperator_LOGICAL_OR, tflite::Register_LOGICAL_OR(),
                       ParseLogicalOr);
   }
 
   TfLiteStatus AddLogistic() {
-    return AddBuiltin(BuiltinOperator_LOGISTIC,
-                      tflite::ops::micro::Register_LOGISTIC(), ParseLogistic);
+    return AddBuiltin(BuiltinOperator_LOGISTIC, tflite::Register_LOGISTIC(),
+                      ParseLogistic);
   }
 
   TfLiteStatus AddMaximum() {
@@ -526,6 +523,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_UNPACK(), ParseUnpack);
   }
 
+  TfLiteStatus AddUnidirectionalSequenceLSTM() {
+    return AddBuiltin(
+        BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM,
+        tflite::ops::micro::Register_UNIDIRECTIONAL_SEQUENCE_LSTM(),
+        ParseUnidirectionalSequenceLSTM);
+  }
   TfLiteStatus AddZerosLike() {
     return AddBuiltin(BuiltinOperator_ZEROS_LIKE, Register_ZEROS_LIKE(),
                       ParseZerosLike);
