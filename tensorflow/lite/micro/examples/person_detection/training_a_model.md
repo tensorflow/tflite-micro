@@ -453,3 +453,6 @@ neural network in operation, with each layer learning patterns in the input.
 Earlier layers act more like edge recognition filters, spotting low-level
 structure in the image, and later layers synthesize that information into more
 abstract patterns that help with the final object classification.
+
+
+
