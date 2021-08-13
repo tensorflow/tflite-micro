@@ -665,6 +665,8 @@ endif
 
 include tensorflow/lite/micro/kernels/Makefile.inc
 
+include tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
+
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the
 # microlite_test helper function. For these tests, we also need to make sure to
