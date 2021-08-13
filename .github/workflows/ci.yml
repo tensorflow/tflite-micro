@@ -1,116 +1,42 @@
-# YAML schema for GitHub Actions:
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-#
-# Helpful YAML parser to clarify YAML syntax:
-# https://yaml-online-parser.appspot.com/
-#
-#
-# This file contains the workflows that are run prior to merging a pull request.
+# Estimate the size of a specific binary and update the size history 
+# with a new commit.
 
-name: CI
+name: binary-size-check
 
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled]
-    branches:
-      - main
-
-  schedule:
-    # 10am UTC is 3am or 4am PT depending on daylight savings.
-    - cron: '0 10 * * *'
-
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
 
 jobs:
-  bazel_tests:
+  size_test:
     runs-on: ubuntu-latest
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) 
 
-    name: Bazel (presubmit)
+    name: Binary Size Estimation
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazel.sh
-          pip3 install Pillow
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel.sh
-
-  cortex_m_tests:
-    runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
-    name: Cortex-M (presubmit)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bluepill.sh
-          tensorflow/lite/micro/tools/ci_build/test_stm32f4.sh
-
-  check_code_style:
-    runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
-    name: Code Style (presubmit)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Check
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
         with:
-          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: get info file from main
+        uses: actions/checkout@v2
+        with:
+          path: main_ref
+ 
+      - run: |
+         tensorflow/lite/micro/tools/ci_build/test_size.sh
 
-  project_generation:
-    runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
-    name: Project Generation (presubmit)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: compare bss value and commit
         run: |
-          pip3 install Pillow
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
-
-  x86_tests:
-    runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
-    name: Makefile x86 (presubmit)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          tensorflow/lite/micro/tools/ci_build/test_x86.sh
-
+          # Disable automatic failure from size comparison for now:
+          #  we do not want all size change to fail automatically.
+          # ci/size_comp.py -c main_ref/tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json ci/size_log.txt
+          rm -rf tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
+          ci/size_comp.py -t ci/size_log.txt tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
+          git config user.name tflm_bot
+          git config user.email tflm_bot@github.com
+          git add tensorflow/lite/micro/tools/ci_build/binary_size_history/*
+          git commit --allow-empty  -m "updating binary size history by CI"
+          git push origin ${GITHUB_HEAD_REF} 
