@@ -21,6 +21,9 @@ jobs:
     name: RISC-V Continuous Builds
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_riscv.sh
