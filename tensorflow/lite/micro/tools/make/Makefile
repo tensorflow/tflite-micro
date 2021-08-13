@@ -516,6 +516,11 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
   MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
+
+  ifneq ($(.SHELLSTATUS),0)
+    $(error Error with specialize_files.py)
+  endif
+
 endif
 
 # If a co-processor is specified on the command line with
