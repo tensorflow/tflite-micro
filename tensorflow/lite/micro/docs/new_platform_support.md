@@ -25,7 +25,7 @@ hardware to run inference on TfLite models.
 Prior to integrating TFLM with a specific hardware involves tasks that is
 outside the scope of the TFLM project, including:
 
- * Tolchain setup - TFLM requires support for C++11
+ * Toolchain setup - TFLM requires support for C++11
  * Set up and installation of board-specific SDKs and IDEs
  * Compiler flags and Linker setup
  * Integrating peripherals such as cameras, microphones and accelerometers to
