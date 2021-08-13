@@ -99,7 +99,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   if (input->type == kTfLiteFloat32) {
     CalculateActivationRange(params->activation, &data->activation_min_f32,
                              &data->activation_max_f32);
-  } else if (input->type == kTfLiteInt8 || input->type == kTfLiteUInt8) {
+  } else if (input->type == kTfLiteInt8) {
     CalculateActivationRangeQuantized(context, params->activation, output,
                                       &data->activation_min,
                                       &data->activation_max);
@@ -245,7 +245,7 @@ void AverageEvalQuantized(TfLiteContext* context, const TfLiteNode* node,
                           const TfLiteEvalTensor* input,
                           TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-  TFLITE_DCHECK(input->type == kTfLiteUInt8 || input->type == kTfLiteInt8);
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
 
   PoolParams op_params;
   op_params.stride_height = params->stride_height;
@@ -257,18 +257,11 @@ void AverageEvalQuantized(TfLiteContext* context, const TfLiteNode* node,
   op_params.quantized_activation_min = data.activation_min;
   op_params.quantized_activation_max = data.activation_max;
 
-  if (input->type == kTfLiteUInt8) {
-    reference_ops::AveragePool(op_params, tflite::micro::GetTensorShape(input),
-                               tflite::micro::GetTensorData<uint8_t>(input),
-                               tflite::micro::GetTensorShape(output),
-                               tflite::micro::GetTensorData<uint8_t>(output));
-  } else {
-    reference_integer_ops::AveragePool(
-        op_params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-  }
+  reference_integer_ops::AveragePool(
+      op_params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output));
 #else
   TF_LITE_KERNEL_LOG(context,
                      "Type %s (%d) is not supported by ARC MLI Library.",
@@ -305,6 +298,7 @@ void MaxEvalQuantized(TfLiteContext* context, TfLiteNode* node,
                       TfLitePoolParams* params, const OpData& data,
                       const TfLiteEvalTensor* input, TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
   tflite::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
@@ -315,18 +309,11 @@ void MaxEvalQuantized(TfLiteContext* context, TfLiteNode* node,
   op_params.quantized_activation_min = data.activation_min;
   op_params.quantized_activation_max = data.activation_max;
 
-  if (input->type == kTfLiteUInt8) {
-    reference_ops::MaxPool(op_params, tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorData<uint8_t>(input),
-                           tflite::micro::GetTensorShape(output),
-                           tflite::micro::GetTensorData<uint8_t>(output));
-  } else {
-    reference_integer_ops::MaxPool(
-        op_params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-  }
+  reference_integer_ops::MaxPool(
+      op_params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output));
 #else
   TF_LITE_KERNEL_LOG(
       context,
@@ -352,7 +339,6 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32:
       AverageEvalFloat(context, node, params, data, input, output);
       break;
-    case kTfLiteUInt8:
     case kTfLiteInt8:
       if (data.is_mli_applicable) {
         EvalMli(context, params, data, input, output, AveragePooling);
@@ -383,7 +369,6 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32:
       MaxEvalFloat(context, node, params, data, input, output);
       break;
-    case kTfLiteUInt8:
     case kTfLiteInt8:
       if (data.is_mli_applicable) {
         EvalMli(context, params, data, input, output, MaxPooling);

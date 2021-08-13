@@ -1049,7 +1049,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           /*output_offset=*/0, scratch_buffer, output_state, cell_state,
           output);
     }
-    case kTfLiteUInt8:
 #endif
 
     case kTfLiteInt8: {

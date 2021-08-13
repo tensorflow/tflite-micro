@@ -281,19 +281,6 @@ TfLiteStatus DecodeCenterSizeBoxes(TfLiteContext* context, TfLiteNode* node,
   CenterSizeEncoding anchor;
   for (int idx = 0; idx < num_boxes; ++idx) {
     switch (input_box_encodings->type) {
-        // Quantized
-      case kTfLiteUInt8:
-        DequantizeBoxEncodings(
-            input_box_encodings, idx,
-            static_cast<float>(op_data->input_box_encodings.zero_point),
-            static_cast<float>(op_data->input_box_encodings.scale),
-            input_box_encodings->dims->data[2], &box_centersize);
-        DequantizeBoxEncodings(
-            input_anchors, idx,
-            static_cast<float>(op_data->input_anchors.zero_point),
-            static_cast<float>(op_data->input_anchors.scale), kNumCoordBox,
-            &anchor);
-        break;
         // Float
       case kTfLiteFloat32: {
         // Please see DequantizeBoxEncodings function for the support detail.
@@ -736,14 +723,6 @@ TfLiteStatus NonMaxSuppressionMultiClass(TfLiteContext* context,
 
   const float* scores;
   switch (input_class_predictions->type) {
-    case kTfLiteUInt8: {
-      float* temporary_scores = reinterpret_cast<float*>(
-          context->GetScratchBuffer(context, op_data->scores_idx));
-      DequantizeClassPredictions(input_class_predictions, num_boxes,
-                                 num_classes_with_background, temporary_scores,
-                                 op_data);
-      scores = temporary_scores;
-    } break;
     case kTfLiteFloat32:
       scores = tflite::micro::GetTensorData<float>(input_class_predictions);
       break;
