@@ -34,7 +34,7 @@ jobs:
     name: Bazel (presubmit)
     steps:
       - uses: actions/checkout@v2
-      - name: Set up bazel
+      - name: Install dependencies
         run: |
           sudo ci/install_bazel.sh
           pip3 install Pillow
