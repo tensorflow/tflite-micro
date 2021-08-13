@@ -6,7 +6,10 @@ name: binary-size-check
 on:
   pull_request_target:
     types: [labeled]
-
+  
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+ 
 jobs:
   size_test:
     runs-on: ubuntu-latest
