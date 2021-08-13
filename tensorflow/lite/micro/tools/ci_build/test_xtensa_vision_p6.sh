@@ -32,7 +32,6 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downl
 # running the tests (in particular person_detection_int8) takes a very long
 # time. So, we have changed the default for this script to only perform a build
 # and added an option to run all the tests when that is feasible.
-
 if [[ ${1} == "RUN_TESTS" ]]; then
   readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
@@ -41,7 +40,6 @@ if [[ ${1} == "RUN_TESTS" ]]; then
     XTENSA_CORE=P6_200528 \
     test -j$(nproc)
 else
-
   readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=vision_p6 \
@@ -49,5 +47,3 @@ else
     XTENSA_CORE=P6_200528 \
     build -j$(nproc)
 fi
-
-
