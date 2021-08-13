@@ -21,17 +21,15 @@ jobs:
     name: Binary Size Estimation
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: get info file from main
-        uses: actions/checkout@v2
-        with:
-          path: main_ref
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
  
-      - run: |
-         tensorflow/lite/micro/tools/ci_build/test_size.sh
+      - name: Build binary
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_size.sh
 
-      - name: compare bss value and commit
+      - name: Update size history and commit
         run: |
           # Disable automatic failure from size comparison for now:
           #  we do not want all size change to fail automatically.
