@@ -13,8 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-# This file includes kernel test targets only.
 
-# This is only test binary size.
+# This is used to test binary size workflow.
 $(eval $(call microlite_test,binary_size_test,\
   tensorflow/lite/micro/tools/ci_build/binary_size_test/binary_size_test.cc))

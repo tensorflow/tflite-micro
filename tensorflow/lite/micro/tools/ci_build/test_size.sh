@@ -14,8 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Build different flavor of TFLite micro for the same target and capture the
-# size of the binary. 
+# Build a TFLite micro test binary and capture its size.
 
 set -e
 
@@ -36,15 +35,15 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 # TODO(b/143715361): downloading first to allow for parallel builds.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 
-# Build for x86.
 # Next, make sure that the release build succeeds.
+# Build for x86.
 TARGET=linux
 TARGET_ARCH=x86_64
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build BUILD_TYPE=${BUILD_TYPE} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} ${BENCHMARK_TARGET}
 
+# Capture size of the test binary.
 GENDIR=${MAKEFILE_DIR}/gen/${TARGET}_${TARGET_ARCH}_${BUILD_TYPE}/
 BINDIR=${GENDIR}/bin/
-
 size ${BINDIR}/${BENCHMARK_TARGET} > ${SIZEFILE_DIR}/size_log.txt
 

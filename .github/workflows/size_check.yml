@@ -1,4 +1,5 @@
-# use xtensa tools to do a size check on the binaries
+# Estimate the size of a specific binary and update the size history 
+# with a new commit.
 
 name: binary-size-check
 
