@@ -85,7 +85,7 @@ $(DETECTION_RESPONDER_TEST_SRCS),$(DETECTION_RESPONDER_TEST_HDRS)))
 $(eval $(call microlite_test,person_detection_int8,\
 $(person_detection_SRCS),$(person_detection_HDRS),$(person_detection_GENERATOR_INPUTS)))
 
-# Add sources and headers generated from $(person_detection_GENERATOR_INPUTS)
+# Add sources and headers generated from $(person_detection_GENERATOR_INPUTS).
 person_detection_SRCS += $(person_detection_GENERATED_SRCS)
 person_detection_HDRS += $(person_detection_GENERATED_HDRS)
 

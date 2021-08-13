@@ -25,6 +25,9 @@ jobs:
     name: Cortex-M Generic
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
@@ -39,6 +42,9 @@ jobs:
     name: Cortex-M Corstone 300 (FVP)
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
