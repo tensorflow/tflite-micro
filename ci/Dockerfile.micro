@@ -31,7 +31,7 @@ RUN ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
 # integration.
 RUN pip install yapf
 
-RUN pip install six
+RUN pip install six Pillow
 
 # Install Renode test dependencies
 RUN pip install pyyaml requests psutil robotframework==3.1
