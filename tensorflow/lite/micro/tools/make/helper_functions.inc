@@ -475,15 +475,13 @@ endef
 # test and non-test binaries.
 
 # Files that end with _test are added as test targets (i.e. can be executed with
-# make test_<target>. ALl others can be executed with make run_<target>
+# make test_<target>. All others can be executed with make run_<target>
 #
 # Arguments are:
 # 1 - Name of target.
 # 2 - C/C++ source files
 # 3 - C/C++ header files
-# 4 - if "exclude", then the non-test target will be excluded from
-#     MICROLITE_BUILD_TARGETS. This exception is needed because not all the
-#     microlite_test targets (e.g. the examples) are buildable on all platforms.
+# 4 - Model sources and model test inputs in .tflite or .bmp format.
 # Calling eval on the output will create the targets that you need.
 define microlite_test
 ifeq (,$(findstring _test, $(1)))
@@ -491,6 +489,23 @@ ifeq (,$(findstring _test, $(1)))
 endif
 
 $(1)_LOCAL_SRCS := $(2)
+
+ifneq ($(4),)
+  # Generate cc files and headers for all models and bitmaps in the test.
+  GEN_RESULT := $$(shell python3 tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($$(.SHELLSTATUS),0)
+      $$(error Something went wrong: $$(GEN_RESULT))
+    endif
+  endif
+
+  $(1)_LOCAL_SRCS += $$(GEN_RESULT)
+endif
+
 $(1)_LOCAL_SRCS := $$(call specialize,$$($(1)_LOCAL_SRCS))
 ALL_SRCS += $$($(1)_LOCAL_SRCS)
 $(1)_LOCAL_HDRS := $(3)
@@ -513,10 +528,6 @@ test_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 
 else
-  ifeq ($(findstring exclude,$(4)),)
-    MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
-  endif
-
 run_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) non_test_binary $$(TARGET)
 endif

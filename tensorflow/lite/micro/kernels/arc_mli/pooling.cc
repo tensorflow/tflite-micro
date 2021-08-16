@@ -27,7 +27,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-namespace pooling {
 
 namespace {
 
@@ -335,7 +334,6 @@ void MaxEvalQuantized(TfLiteContext* context, TfLiteNode* node,
       TfLiteTypeGetName(input->type), input->type);
 #endif
 }
-}  // namespace
 
 TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -401,13 +399,13 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace pooling
+}  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
-  return {/*init=*/pooling::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/pooling::Prepare,
-          /*invoke=*/pooling::AverageEval,
+          /*prepare=*/Prepare,
+          /*invoke=*/AverageEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
@@ -415,10 +413,10 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {
-  return {/*init=*/pooling::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/pooling::Prepare,
-          /*invoke=*/pooling::MaxEval,
+          /*prepare=*/Prepare,
+          /*invoke=*/MaxEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

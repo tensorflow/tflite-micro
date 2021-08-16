@@ -224,8 +224,8 @@ cc_library(
         "//tensorflow/lite/kernels/internal:reference_base",
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/kernels/internal:types",
-        "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:flatbuffer_utils",
+        "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_graph",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
@@ -389,6 +389,7 @@ cc_test(
     ],
     deps = [
         ":conv_test_common",
+        "//tensorflow/lite/micro/kernels/testdata:conv_test_data",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_utils",

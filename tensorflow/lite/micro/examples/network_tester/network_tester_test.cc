@@ -24,8 +24,8 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef ETHOS_U
-#include "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/person_image_data.h"
+#include "tensorflow/lite/micro/tools/make/downloads/person_model_int8/person_detect_model_data.h"
 #endif
 
 #ifndef TENSOR_ARENA_SIZE

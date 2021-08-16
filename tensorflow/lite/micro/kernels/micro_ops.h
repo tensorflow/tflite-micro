@@ -112,6 +112,7 @@ TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
 TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_TANH();

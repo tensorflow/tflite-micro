@@ -44,6 +44,7 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
    * [Maintain a 1:1 correspondence between Micro and Lite versions of unit tests](#maintain-a-11-correspondence-between-micro-and-lite-versions-of-unit-tests)
    * [Sometimes CI checks on PRs are flakey and fail](#sometimes-ci-checks-on-prs-are-flakey-and-fail)
 * [Notes](#notes)
+* [Frequently Asked Questions](#frequently-asked-questions)
 
 <!-- Added by: rkuester, at: Wed 05 May 2021 07:44:11 PM CDT -->
 
@@ -285,3 +286,108 @@ of some problem with the test infrastructure. Marking issues with the label
     manually trigger the CI builds.
 
 *   [TensorFlow Lite 8-bit quantization specification](https://www.tensorflow.org/lite/performance/quantization_spec)
+
+# Frequently Asked Questions
+
+## Can I use malloc/free or new/delete in my operator code?
+No.  All memory allocation in TensorFlow Lite Micro (TFLM) is done using C++
+stack based automatic allocation, or through specialized TFLM persistent
+and temporary allocation methods.
+
+## Can I use static variable allocation in my operator code?
+No.  This is due to the call ordering of C++ static constructors being
+platform/compiler dependent.
+
+## How do I allocate persistent memory?
+Use `TfLiteContext::AllocatePersistentBuffer` to allocate persistent memory.
+Memory allocated by this method will remain valid throughout the lifetime of
+the `tflite::MicroInterpreter` instance.
+
+An example code snippet looks like ([leaky_relu.cc](../kernels/leaky_relu.cc)):
+```C++
+void* LeakyReluInit(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(LeakyReluOpData));
+}
+```
+
+## When am I allowed to allocate persistent memory?
+The `TfLiteContext::AllocatePersistentBuffer` method may only be called within
+the scope of your operator's `Init` and `Prepare` methods.
+
+## How do I allocate/use temporary memory?
+Use the `TfLiteContext::RequestScratchBufferInArena` and
+`TfLiteContext::GetScratchBuffer` methods.  The temporary memory is shared
+between all operators, and is only valid for your operator within the scope
+of your operator's `Invoke` method.  Do not attempt to use temporary memory
+to share data between operator invocations.  Temporary memory is to be used
+only as pre-allocated storage during the execution scope of your operator's
+`Invoke` method.
+
+An example code snippet looks like ([add_n.cc](../kernels/add_n.cc)):
+```C++
+if (output->type == kTfLiteFloat32) {
+    // Allocate scratch buffer space for pointer to each tensor's data
+    // and store the scratch buffer index in the node's user_data
+    int scratch_index;
+    size_t scratch_size = sizeof(float*) * num_inputs;
+    TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                   context, scratch_size, &scratch_index));
+    node->user_data =
+        reinterpret_cast<decltype(node->user_data)>(scratch_index);
+  }
+```
+And to use the buffer:
+```C++
+int scratch_index =
+    static_cast<int>(reinterpret_cast<intptr_t>(node->user_data));
+void* scratch_buffer = context->GetScratchBuffer(context, scratch_index);
+```
+
+## When can I allocate/use temporary memory?
+The `TfLiteContext::RequestScratchBufferInArena` method is available only within
+the scope of your operator's `Prepare` method.
+The `TfLiteContext::GetScratchBuffer` method is available only within
+the scope of your operator's `Invoke` method.
+
+## Can I resize my input/output tensors?
+No.  The storage space for each input/output tensor is a fixed, calculated value
+determined at the time the TensorFlow Lite (TfLite) model converter is executed.
+During the `Init` phase of the `tflite::MicroInterpreter` all tensor storage is
+allocated by the `tflite::MicroInterpreter` instance, using the calculated values
+of the model converter.
+For more information see: [Memory Allocation Overview](online_memory_allocation_overview.md)
+
+## Can I change the shape of tensors in my operator code?
+Yes.  The new shape must not exceed the storage space indicated by the old shape.
+Because tensor shape values may live in memory that is not directly writable
+(ex. Flash, EEPROM, ROM), a special method must be called before modification
+is attempted.  The `tflite::micro::CreateWritableTensorDimsWithCopy` method will
+move the tensor shape values to guaranteed persistent writable memory.
+
+An example code snippet looks like ([l2_pool_2d.cc](../kernels/l2_pool_2d.cc)):
+```C++
+// the output variable is a TfLiteTensor*
+TfLiteEvalTensor* output_eval =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+TF_LITE_ENSURE_OK(context, tflite::micro::CreateWritableTensorDimsWithCopy(
+                               context, output, output_eval));
+output->dims->data[kBatchRank] = batches;
+output->dims->data[kHeightRank] = out_height;
+output->dims->data[kWidthRank] = out_width;
+output->dims->data[kChannelRank] = channels_out;
+```
+
+## When can I change the shape of tensors in my operator code?
+Tensor shape values can be modified any time after the
+`tflite::micro::CreateWritableTensorDimsWithCopy` method has been called.
+This means that tensor shape values can be modified within the scope of
+your operator's `Prepare` or `Invoke` methods.
+The `tflite::micro::CreateWritableTensorDimsWithCopy` method may
+only be called within the scope of your operator's `Prepare` method.
+
+## Can I modify a `TfLiteTensor` or `TfLiteEvalTensor`?
+No.  The `tflite::MicroInterpreter` is the owner and manipulator of these data
+structures.  Your code should not modify these data structures.  The only
+directly allowed modification of tensors is to change their data values, or
+their shape values.
