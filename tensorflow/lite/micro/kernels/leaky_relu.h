@@ -40,4 +40,4 @@ TfLiteStatus LeakyReluPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_LEAKY_RELU_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LEAKY_RELU_H_

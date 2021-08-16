@@ -13,10 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/leaky_relu.h"
-
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reference/leaky_relu.h"
 #include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -29,7 +28,8 @@ namespace tflite {
 const int kInputTensor = 0;
 const int kOutputTensor = 0;
 
-TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context,
+                                      TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   const TfLiteTensor* input;
