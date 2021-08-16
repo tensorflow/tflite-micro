@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/circular_buffer.h"
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -21,7 +23,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
-#include "tensorflow/lite/micro/kernels/circular_buffer.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 /*
@@ -47,7 +48,8 @@ limitations under the License.
  */
 namespace tflite {
 
-void* CircularBufferInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* CircularBufferInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpDataCircularBuffer* op_data = static_cast<OpDataCircularBuffer*>(
       context->AllocatePersistentBuffer(context, sizeof(OpDataCircularBuffer)));
@@ -78,7 +80,8 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kCircularBufferOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpDataCircularBuffer* data = reinterpret_cast<OpDataCircularBuffer*>(node->user_data);
+  OpDataCircularBuffer* data =
+      reinterpret_cast<OpDataCircularBuffer*>(node->user_data);
 
   int num_slots = output->dims->data[1];
   int depth = output->dims->data[2] * output->dims->data[3];

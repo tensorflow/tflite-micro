@@ -45,4 +45,4 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_H_

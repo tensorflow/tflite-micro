@@ -159,8 +159,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCircularBuffer() {
-    return AddCustom("CIRCULAR_BUFFER",
-                     tflite::Register_CIRCULAR_BUFFER());
+    return AddCustom("CIRCULAR_BUFFER", tflite::Register_CIRCULAR_BUFFER());
   }
 
   TfLiteStatus AddConcatenation() {
