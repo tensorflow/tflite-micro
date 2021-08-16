@@ -1,0 +1,37 @@
+# use xtensa tools to do a size check on the binaries
+
+name: binary-size-check
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  size_test:
+    runs-on: ubuntu-latest
+
+    if: contains(github.event.pull_request.labels.*.name, 'ci:test')
+    name: fusion_f1 size test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: get info file from main
+        uses: actions/checkout@v2
+        with:
+          path: main_ref
+ 
+      - run: |
+          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:latest /opt/tflite-micro/ci/test_size.sh
+          
+      - name: compare bss value and commit
+        run: |
+          ci/size_comp.py -c main_ref/.ci_vars/fusion_f1.json ci/log.txt
+          rm -rf .ci_vars/fusion_f1.json
+          ci/size_comp.py -t ci/log.txt .ci_vars/fusion_f1.json
+          git config user.name tflm_bot
+          git config user.email tflm_bot@github.com
+          git add .ci_vars/*
+          git commit --allow-empty  -m "updating ci data"
+          git push origin HEAD:${GITHUB_HEAD_REF} 

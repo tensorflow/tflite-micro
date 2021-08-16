@@ -109,6 +109,10 @@ def _copy(src_files, dest_files):
     shutil.copy(src, dst)
 
 
+def _get_tflm_generator_path():
+  return _get_file_list("list_generator_dir", "")[0]
+
+
 # For examples, we are explicitly making a deicision to not have any source
 # specialization based on the TARGET and OPTIMIZED_KERNEL_DIR. The thinking
 # here is that any target-specific sources should not be part of the TFLM
@@ -127,11 +131,18 @@ def _create_examples_tree(prefix_dir, examples_list):
   # tree, we would like for the examples to be under prefix_dir/examples.
   tflm_examples_path = "tensorflow/lite/micro/examples"
   tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
+  tflm_generator_path = _get_tflm_generator_path()
 
   # Some non-example source and headers will be in the {files} list. They need
   # special handling or they will end up outside the {prefix_dir} tree.
   dest_file_list = []
   for f in files:
+    if tflm_generator_path in f:
+      # file is generated during the build.
+      relative_path = os.path.relpath(f, tflm_generator_path)
+      full_filename = os.path.join(prefix_dir, relative_path)
+      # Allow generated example sources to be placed with their example.
+      f = relative_path
     if tflm_examples_path in f:
       # file is in examples tree
       relative_path = os.path.relpath(f, tflm_examples_path)

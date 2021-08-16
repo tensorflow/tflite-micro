@@ -328,7 +328,7 @@ Below are some tips that might be useful and improve the development experience.
     And a sketch of the steps:
 
     ```
-    git remote add <remote_name> git@github.com:<PR author>/tensorflow.git
+    git remote add <remote_name> git@github.com:<PR author>/tflite-micro.git
     git fetch <remote_name>
 
     git checkout -b <local-branch-name> <remote_name>/<PR branch name>
