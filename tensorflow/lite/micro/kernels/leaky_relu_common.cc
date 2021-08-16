@@ -29,7 +29,7 @@ namespace tflite {
 const int kInputTensor = 0;
 const int kOutputTensor = 0;
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   const TfLiteTensor* input;

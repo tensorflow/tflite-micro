@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/leaky_relu.h"
 
@@ -78,9 +79,8 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     } break;
     default:
-      TF_LITE_KERNEL_LOG(
-          context, "Only float32, int8 are supported by LEAKY_RELU, got %s.",
-          TfLiteTypeGetName(input->type));
+      MicroPrintf("Only float32, int8 are supported by LEAKY_RELU, got %s.",
+          TfLiteTypeGetName(input->type);
       return kTfLiteError;
   }
 

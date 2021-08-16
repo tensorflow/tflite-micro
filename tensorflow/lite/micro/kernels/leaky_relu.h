@@ -34,7 +34,7 @@ struct LeakyReluOpData {
   int32_t output_zero_point;
 };
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus LeakyReluPrepare(TfLiteContext* context, TfLiteNode* node);
 
