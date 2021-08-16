@@ -4,6 +4,7 @@ load(
     "//tensorflow/lite/micro:build_def.bzl",
     "micro_copts",
 )
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -11,13 +12,25 @@ package(
     licenses = ["notice"],
 )
 
+generate_cc_arrays(
+    name = "generated_hello_world_model_cc",
+    src = "hello_world.tflite",
+    out = "hello_world_model_data.cc",
+)
+
+generate_cc_arrays(
+    name = "generated_hello_world_model_hdr",
+    src = "hello_world.tflite",
+    out = "hello_world_model_data.h",
+)
+
 cc_library(
     name = "model",
     srcs = [
-        "model.cc",
+        ":generated_hello_world_model_cc",
     ],
     hdrs = [
-        "model.h",
+        ":generated_hello_world_model_hdr",
     ],
     copts = micro_copts(),
 )
