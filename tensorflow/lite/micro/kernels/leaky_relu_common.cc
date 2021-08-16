@@ -66,7 +66,7 @@ TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context,
 }
 
 TfLiteStatus LeakyReluPrepare(TfLiteContext* context, TfLiteNode* node) {
-  return CalculateOpData(context, node);
+  return CalculateOpDataLeakyRelu(context, node);
 }
 
 }  // namespace tflite
