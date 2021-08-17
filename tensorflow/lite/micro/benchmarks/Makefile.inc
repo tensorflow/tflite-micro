@@ -13,7 +13,7 @@ PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS := \
 tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
 tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
 
-ifeq ($(CO_PROCESSOR),ethos_u)
+ifneq ($(CO_PROCESSOR),ethos_u)
   PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS += \
     tensorflow/lite/micro/models/person_detect.tflite
 else
