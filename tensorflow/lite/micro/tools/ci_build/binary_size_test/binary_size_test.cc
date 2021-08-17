@@ -18,7 +18,7 @@ limitations under the License.
 namespace {
 // Change this number to have a binary with a different
 // size of data section.
-constexpr int kSize = 64;
+constexpr int kSize = 128;
 // Initialize this global array so that it goes to data section, not bss.
 long random_array[kSize] = {1, 2, 3, 4, 5, 6, 7, 8};
 }  // namespace
