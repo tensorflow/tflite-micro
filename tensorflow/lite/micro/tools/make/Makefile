@@ -284,6 +284,7 @@ tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 tensorflow/lite/micro/kernels/cast.cc \
 tensorflow/lite/micro/kernels/ceil.cc \
 tensorflow/lite/micro/kernels/circular_buffer.cc \
+tensorflow/lite/micro/kernels/circular_buffer_common.cc \
 tensorflow/lite/micro/kernels/comparisons.cc \
 tensorflow/lite/micro/kernels/concatenation.cc \
 tensorflow/lite/micro/kernels/conv.cc \
@@ -315,6 +316,7 @@ tensorflow/lite/micro/kernels/kernel_util.cc \
 tensorflow/lite/micro/kernels/l2norm.cc \
 tensorflow/lite/micro/kernels/l2_pool_2d.cc \
 tensorflow/lite/micro/kernels/leaky_relu.cc \
+tensorflow/lite/micro/kernels/leaky_relu_common.cc \
 tensorflow/lite/micro/kernels/logical.cc \
 tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
@@ -443,39 +445,30 @@ ALL_PROJECT_TARGETS :=
 ARDUINO_LIBRARY_TARGETS :=
 ARDUINO_LIBRARY_ZIPS :=
 
-# For some invocations of the makefile, it is useful to avoid downloads. This
-# can be achieved by explicitly passing in DISABLE_DOWNLOADS=true on the command
-# line. Note that for target-specific downloads (e.g. CMSIS) there will need to
-# be corresponding checking in the respecitve included makefiles (e.g.
-# ext_libs/cmsis_nn.inc)
-DISABLE_DOWNLOADS :=
+# The download scripts require that the downloads directory already exist for
+# improved error checking. To accomodate that, we first create a downloads
+# directory.
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
 
-ifneq ($(DISABLE_DOWNLOADS), true)
-  # The download scripts require that the downloads directory already exist for
-  # improved error checking. To accomodate that, we first create a downloads
-  # directory.
-  $(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+# Directly download the flatbuffers library.
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
+endif
 
-  # Directly download the flatbuffers library.
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
-  endif
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
+endif
 
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
-  endif
-
-  include $(MAKEFILE_DIR)/third_party_downloads.inc
-  THIRD_PARTY_DOWNLOADS :=
-  $(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
-  $(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
-  $(eval $(call add_third_party_download,$(PERSON_MODEL_URL),$(PERSON_MODEL_MD5),person_model_grayscale,))
-  RESULT := $(shell $(MAKEFILE_DIR)/person_detection_int8_download.sh ${MAKEFILE_DIR}/downloads $(CO_PROCESSOR))
-  ifneq ($(RESULT), SUCCESS)
-    $(error Something went wrong with the person detection int8 model download: $(RESULT))
-  endif
+include $(MAKEFILE_DIR)/third_party_downloads.inc
+THIRD_PARTY_DOWNLOADS :=
+$(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
+$(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
+$(eval $(call add_third_party_download,$(PERSON_MODEL_URL),$(PERSON_MODEL_MD5),person_model_grayscale,))
+RESULT := $(shell $(MAKEFILE_DIR)/person_detection_int8_download.sh ${MAKEFILE_DIR}/downloads $(CO_PROCESSOR))
+ifneq ($(RESULT), SUCCESS)
+  $(error Something went wrong with the person detection int8 model download: $(RESULT))
 endif
 
 # The target-specific makefile must have a name that is exactly
