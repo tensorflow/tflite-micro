@@ -38,9 +38,6 @@ jobs:
 
       - name: Update size history and commit
         run: |
-          # Disable automatic failure from size comparison for now:
-          #  we do not want all size change to fail automatically.
-          # ci/size_comp.py -c main_ref/tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json ci/size_log.txt
           rm -rf tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           ci/size_comp.py -t ci/size_log.txt tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           git config user.name tflm_bot
