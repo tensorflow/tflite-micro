@@ -80,7 +80,7 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
       MicroPrintf("Only float32, int8 are supported by LEAKY_RELU, got %s.",
-          TfLiteTypeGetName(input->type));
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 
