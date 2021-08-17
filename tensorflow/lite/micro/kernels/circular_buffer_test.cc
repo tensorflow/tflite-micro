@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -76,8 +76,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength4) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration* registration =
-      tflite::ops::micro::Register_CIRCULAR_BUFFER();
+  const TfLiteRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);
@@ -148,8 +147,7 @@ TF_LITE_MICRO_TEST(OutputTensorOnEveryIterationLength4) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration* registration =
-      tflite::ops::micro::Register_CIRCULAR_BUFFER();
+  const TfLiteRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);
@@ -214,8 +212,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength5) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration* registration =
-      tflite::ops::micro::Register_CIRCULAR_BUFFER();
+  const TfLiteRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);
