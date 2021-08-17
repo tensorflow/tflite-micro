@@ -56,9 +56,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = GetOutput(context, node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  TF_LITE_ENSURE(context, input->type == kTfLiteUInt8 ||
-                              input->type == kTfLiteInt8 ||
-                              input->type == kTfLiteInt16);
+  TF_LITE_ENSURE(context,
+                 input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
   TF_LITE_ENSURE(context, output->type == kTfLiteFloat32);
 
   if (output->type == kTfLiteInt32) {
@@ -84,13 +83,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   if (output->type == kTfLiteFloat32) {
     switch (input->type) {
-      case kTfLiteUInt8:
-        reference_ops::Dequantize(data->quantization_params,
-                                  tflite::micro::GetTensorShape(input),
-                                  tflite::micro::GetTensorData<uint8_t>(input),
-                                  tflite::micro::GetTensorShape(output),
-                                  tflite::micro::GetTensorData<float>(output));
-        break;
       case kTfLiteInt8:
         reference_ops::Dequantize(data->quantization_params,
                                   tflite::micro::GetTensorShape(input),
