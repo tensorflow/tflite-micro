@@ -25,6 +25,8 @@ cd "${ROOT_DIR}"
 
 SIZEFILE_DIR=${ROOT_DIR}/ci
 MAKEFILE_DIR=${ROOT_DIR}/tensorflow/lite/micro/tools/make
+# TODO(b/196637015): change this to a real benchmark binary after the experiment
+# is complete.  
 BENCHMARK_TARGET=binary_size_test
 BUILD_TYPE=default
 
