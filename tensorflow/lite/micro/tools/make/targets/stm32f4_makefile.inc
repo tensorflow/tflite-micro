@@ -82,7 +82,7 @@ MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
 # which use std::vector constructor which then invokes new.
 # Excludes memory_arena_threshold_test because the size difference of some
 # allocator classes between different architectures.
-# TODO(b/158324045): Examine why some tests fail here.
+# TODO(b/158651472): Fix brittle arena threshold test.
 EXCLUDED_TESTS := \
   tensorflow/lite/micro/micro_allocator_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
