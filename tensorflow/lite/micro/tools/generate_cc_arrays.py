@@ -34,7 +34,8 @@ def generate_file(out_fname, array_name, out_string, size):
     out_cc_file.write('#include "' +
                       out_fname.split("genfiles/")[-1].replace('.cc', '.h') +
                       '"\n\n')
-    out_cc_file.write('const unsigned char ' + array_name + '[] = {')
+    out_cc_file.write('alignas(16) const unsigned char ' + array_name +
+                      '[] = {')
     out_cc_file.write(out_string)
     out_cc_file.write('};\n')
     out_cc_file.write('const unsigned int ' + array_name + '_size = ' +
