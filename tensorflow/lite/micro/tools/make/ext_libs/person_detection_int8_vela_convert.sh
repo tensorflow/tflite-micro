@@ -71,7 +71,7 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
       ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/'  ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/g_person_detect_model_data_len/g_person_detect_model_data_size/'  ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/unsigned int/const int/' ${CONVERTED_PERSON_MODEL_INT8}
+  sed -i 's/unsigned int/const unsigned int/' ${CONVERTED_PERSON_MODEL_INT8}
 fi
 
 echo "SUCCESS"
