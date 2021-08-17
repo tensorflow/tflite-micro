@@ -666,7 +666,11 @@ else
 		$(OBJCOPY) $< $@ -O binary
 endif
 
+# Create kernel test targets.
 include tensorflow/lite/micro/kernels/Makefile.inc
+
+# Create binary size test target.
+include tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
 
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the
