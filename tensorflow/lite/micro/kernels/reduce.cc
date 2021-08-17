@@ -110,8 +110,7 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   }
 
   int output_size = NumElements(output);
-  if (input->type == kTfLiteInt8 ||
-      input->type == kTfLiteInt16) {
+  if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     context->RequestScratchBufferInArena(context, output_size * sizeof(int32_t),
                                          &op_data->temp_buffer_idx);
     op_data->input_zp = input->params.zero_point;

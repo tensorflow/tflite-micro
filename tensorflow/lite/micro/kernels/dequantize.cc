@@ -56,8 +56,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = GetOutput(context, node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  TF_LITE_ENSURE(context, input->type == kTfLiteInt8 ||
-                              input->type == kTfLiteInt16);
+  TF_LITE_ENSURE(context,
+                 input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
   TF_LITE_ENSURE(context, output->type == kTfLiteFloat32);
 
   if (output->type == kTfLiteInt32) {

@@ -309,11 +309,11 @@ void MaxEvalQuantized(TfLiteContext* context, TfLiteNode* node,
   op_params.quantized_activation_min = data.activation_min;
   op_params.quantized_activation_max = data.activation_max;
 
-  reference_integer_ops::MaxPool(
-      op_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<int8_t>(input),
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<int8_t>(output));
+  reference_integer_ops::MaxPool(op_params,
+                                 tflite::micro::GetTensorShape(input),
+                                 tflite::micro::GetTensorData<int8_t>(input),
+                                 tflite::micro::GetTensorShape(output),
+                                 tflite::micro::GetTensorData<int8_t>(output));
 #else
   TF_LITE_KERNEL_LOG(
       context,

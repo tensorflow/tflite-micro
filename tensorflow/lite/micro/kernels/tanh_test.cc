@@ -179,7 +179,7 @@ TF_LITE_MICRO_TEST(SimpleTestTanhUInt8) {
   int8_t input_quantized[tanh_vec_size];
   int8_t expected_output_quantized[tanh_vec_size];
   int8_t output_quantized[tanh_vec_size];
-  tflite::testing::TestTanhQuantized<int8_t>(        //
+  tflite::testing::TestTanhQuantized<int8_t>(         //
       input_shape,                                    // Input shape.
       tanh_input_vec_fp, input_quantized,             // Input data.
       input_scale, input_zero_point,                  // Input quantized info.

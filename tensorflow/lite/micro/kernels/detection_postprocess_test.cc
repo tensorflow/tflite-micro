@@ -74,14 +74,16 @@ constexpr float kGolden2[] = {1, 0, 0};
 constexpr float kGolden3[] = {0.95, 0.9, 0.3};
 constexpr float kGolden4[] = {3.0};
 
-void TestDetectionPostprocess(
-    int* input_dims_data1, const float* input_data1, int* input_dims_data2,
-    const float* input_data2, int* input_dims_data3, const float* input_data3,
-    int* output_dims_data1, float* output_data1, int* output_dims_data2,
-    float* output_data2, int* output_dims_data3, float* output_data3,
-    int* output_dims_data4, float* output_data4, const float* golden1,
-    const float* golden2, const float* golden3, const float* golden4,
-    const float tolerance, bool use_regular_nms) {
+void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
+                              int* input_dims_data2, const float* input_data2,
+                              int* input_dims_data3, const float* input_data3,
+                              int* output_dims_data1, float* output_data1,
+                              int* output_dims_data2, float* output_data2,
+                              int* output_dims_data3, float* output_data3,
+                              int* output_dims_data4, float* output_data4,
+                              const float* golden1, const float* golden2,
+                              const float* golden3, const float* golden4,
+                              const float tolerance, bool use_regular_nms) {
   TfLiteIntArray* input_dims1 = IntArrayFromInts(input_dims_data1);
   TfLiteIntArray* input_dims2 = IntArrayFromInts(input_dims_data2);
   TfLiteIntArray* input_dims3 = IntArrayFromInts(input_dims_data3);

@@ -32,8 +32,7 @@ namespace {
 TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
                                   TfLiteTensor* output, PreluParams* params) {
-  if (output->type == kTfLiteInt8 ||
-      output->type == kTfLiteInt16) {
+  if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     double real_multiplier_1 = static_cast<double>(input->params.scale) /
                                static_cast<double>(output->params.scale);
     double real_multiplier_2 = static_cast<double>(input->params.scale) *

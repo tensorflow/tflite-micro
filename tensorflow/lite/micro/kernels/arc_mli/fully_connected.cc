@@ -353,11 +353,10 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 }
 
 TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                               const OpData& data,
-                               const TfLiteEvalTensor* input,
-                               const TfLiteEvalTensor* filter,
-                               const TfLiteEvalTensor* bias,
-                               TfLiteEvalTensor* output) {
+                           const OpData& data, const TfLiteEvalTensor* input,
+                           const TfLiteEvalTensor* filter,
+                           const TfLiteEvalTensor* bias,
+                           TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
   tflite::FullyConnectedParams op_params;
   op_params.input_offset = -data.input_zero_point;
@@ -442,8 +441,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         return EvalMliQuantizedInt8(context, node, params, data, input, filter,
                                     bias, output);
       } else {
-        return EvalQuantized(context, node, data, input, filter, bias,
-                                 output);
+        return EvalQuantized(context, node, data, input, filter, bias, output);
       }
 
     default:

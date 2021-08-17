@@ -124,9 +124,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Check activation and input type
   TF_LITE_ENSURE_EQ(context, params->activation, kTfLiteActNone);
-  TF_LITE_ENSURE(context, input_type == kTfLiteFloat32 ||
-                     input_type == kTfLiteInt8 || input_type == kTfLiteInt16 ||
-                     input_type == kTfLiteInt32 || input_type == kTfLiteInt64);
+  TF_LITE_ENSURE(context,
+                 input_type == kTfLiteFloat32 || input_type == kTfLiteInt8 ||
+                     input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
+                     input_type == kTfLiteInt64);
 
   // Output type must match input type
   TF_LITE_ENSURE_EQ(context, output_type, input_type);
