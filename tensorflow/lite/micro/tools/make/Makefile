@@ -237,6 +237,16 @@ endif
 # runtime that can be linked in to other programs.
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
+# Where compiled objects are stored.
+GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+CORE_OBJDIR := $(GENDIR)obj/core/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+GENERATED_SRCS_DIR := $(GENDIR)genfiles/
+BINDIR := $(GENDIR)bin/
+LIBDIR := $(GENDIR)lib/
+PRJDIR := $(GENDIR)prj/
+
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.
 # See targets/xtensa_xpg_makefile.inc for an example.
@@ -465,10 +475,6 @@ include $(MAKEFILE_DIR)/third_party_downloads.inc
 THIRD_PARTY_DOWNLOADS :=
 $(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
 $(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
-RESULT := $(shell $(MAKEFILE_DIR)/person_detection_int8_download.sh ${MAKEFILE_DIR}/downloads $(CO_PROCESSOR))
-ifneq ($(RESULT), SUCCESS)
-  $(error Something went wrong with the person detection int8 model download: $(RESULT))
-endif
 
 # The target-specific makefile must have a name that is exactly
 # TARGET_makefile.inc and is only needed for cross-compilation (i.e. when TARGET
@@ -549,16 +555,6 @@ ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
-
-# Where compiled objects are stored.
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
-CORE_OBJDIR := $(GENDIR)obj/core/
-KERNEL_OBJDIR := $(GENDIR)obj/kernels/
-THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
-GENERATED_SRCS_DIR := $(GENDIR)genfiles/
-BINDIR := $(GENDIR)bin/
-LIBDIR := $(GENDIR)lib/
-PRJDIR := $(GENDIR)prj/
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
