@@ -388,9 +388,9 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
   return kTfLiteOk;
 }
 
-// Returns a pointer to any buffer associated with the flatbuffer tensor. Can
-// return nullptr if no buffer is found.
-void* GetFlatbufferTensorBuffer(
+// Returns a pointer to any vector associated with the flatbuffer tensor. Can
+// return nullptr if no vector is found.
+flatbuffers::Vector<int32_t>* GetFlatbufferTensorVector(
     const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers) {
   // We need to figure out where the actual contents of this tensor are stored
@@ -400,7 +400,7 @@ void* GetFlatbufferTensorBuffer(
   // memory.
   // First see if there's any buffer information in the serialized tensor.
   // TODO(b/170379532): Add better unit tests to validate flatbuffer values.
-  void* out_buffer = nullptr;
+  flatbuffers::Vector<int32_t>* out_vector = nullptr;
   if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
@@ -408,7 +408,8 @@ void* GetFlatbufferTensorBuffer(
       if (array->size()) {
         // We've found a buffer with valid data, so update the runtime tensor
         // data structure to point to it.
-        out_buffer = const_cast<void*>(static_cast<const void*>(array->data()));
+        out_vector = reinterpret_cast<flatbuffers::Vector<int32_t>*>(
+            const_cast<flatbuffers::Vector<uint8_t>*>(array));
       }
     }
     // TODO(petewarden): It's not clear in what circumstances we could have a
@@ -417,7 +418,7 @@ void* GetFlatbufferTensorBuffer(
     // error condition? It would be good to tighten up the specification to make
     // it less ambiguous.
   }
-  return out_buffer;
+  return out_vector;
 }
 
 TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
@@ -435,7 +436,17 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
   // Make sure we remember if the serialized tensor is designated as a variable.
   result->is_variable = flatbuffer_tensor.is_variable();
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  auto* vector = GetFlatbufferTensorVector(flatbuffer_tensor, buffers);
+  if (flatbuffer_tensor.type() == TensorType_INT32 && vector) {
+    TfLiteIntArray* array;
+
+    TF_LITE_ENSURE_STATUS(FlatBufferVectorToTfLiteTypeArray(
+        allocator, error_reporter, vector, &array));
+
+    result->data.data = array->data;
+  } else {
+    result->data.data = vector ? vector->data() : nullptr;
+  }
 
   // TODO(petewarden): Some of these paths aren't getting enough testing
   // coverage, so we should figure out some tests that exercise them.
@@ -544,7 +555,18 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
   TF_LITE_ENSURE_STATUS(ConvertTensorType(flatbuffer_tensor.type(),
                                           &result->type, error_reporter));
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  auto* vector = GetFlatbufferTensorVector(flatbuffer_tensor, buffers);
+
+  if (flatbuffer_tensor.type() == TensorType_INT32 && vector) {
+    TfLiteIntArray* array;
+
+    TF_LITE_ENSURE_STATUS(FlatBufferVectorToTfLiteTypeArray(
+        allocator, error_reporter, vector, &array));
+
+    result->data.data = array->data;
+  } else {
+    result->data.data = vector ? vector->data() : nullptr;
+  }
 
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
