@@ -9,20 +9,22 @@ tensorflow/lite/micro/benchmarks/micro_benchmark.h
 PERSON_DETECTION_BENCHMARK_SRCS := \
 tensorflow/lite/micro/benchmarks/person_detection_benchmark.cc
 
+PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS := \
+tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
+tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
+
 ifeq ($(CO_PROCESSOR),ethos_u)
+  PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS += \
+    tensorflow/lite/micro/models/person_detect.tflite
+else
   # Ethos-U use a Vela optimized version of the original model.
   PERSON_DETECTION_BENCHMARK_SRCS += \
-  $(MAKEFILE_DIR)/downloads/person_model_int8/person_detect_model_data_vela.cc
+  $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
 endif
 
 PERSON_DETECTION_BENCHMARK_HDRS := \
 tensorflow/lite/micro/examples/person_detection/model_settings.h \
 tensorflow/lite/micro/benchmarks/micro_benchmark.h
-
-PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS := \
-tensorflow/lite/micro/models/person_detect.tflite \
-tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
-tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
 
 # Builds a standalone binary.
 $(eval $(call microlite_test,keyword_benchmark,\

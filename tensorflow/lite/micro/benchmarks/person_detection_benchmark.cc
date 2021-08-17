@@ -17,6 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
+#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
@@ -24,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
