@@ -19,4 +19,3 @@ generate_cc_arrays(
     src="person_detect.tflite",
     out="person_detect_model_data.h",
 )
-

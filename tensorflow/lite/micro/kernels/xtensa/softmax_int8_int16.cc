@@ -108,21 +108,17 @@ TfLiteStatus CalculateSoftmaxOpDataHifimini(TfLiteContext* context,
                                             TfLiteTensor* output,
                                             const TfLiteSoftmaxParams* params,
                                             XtensaSoftmaxOpData* op_data) {
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
-    if (input->type == kTfLiteUInt8) {
-      TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+  if (input->type == kTfLiteInt8) {
+    if (output->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point,
+                        std::numeric_limits<int16_t>::min());
+      // NOTE: Current int16_t softmax output does not require symmetric
+      // scaling
+      // - so no need to verify scale here.
     } else {
-      if (output->type == kTfLiteInt16) {
-        TF_LITE_ENSURE_EQ(context, output->params.zero_point,
-                          std::numeric_limits<int16_t>::min());
-        // NOTE: Current int16_t softmax output does not require symmetric
-        // scaling
-        // - so no need to verify scale here.
-      } else {
-        TF_LITE_ENSURE_EQ(context, output->params.zero_point,
-                          std::numeric_limits<int8_t>::min());
-        TF_LITE_ENSURE(context, output->params.scale == 1.f / 256);
-      }
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point,
+                        std::numeric_limits<int8_t>::min());
+      TF_LITE_ENSURE(context, output->params.scale == 1.f / 256);
     }
 
     // Precompute e^(-x * input_scale * beta) for every possible int8_t input.

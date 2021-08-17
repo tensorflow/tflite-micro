@@ -57,7 +57,7 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8) {
     static constexpr int kInputIntegerBits = 4;
     const double input_real_multiplier =
         static_cast<double>(input->params.scale) *
@@ -109,19 +109,6 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
                           tflite::micro::GetTensorData<int16_t>(input),
                           tflite::micro::GetTensorShape(output),
                           tflite::micro::GetTensorData<int16_t>(output));
-      return kTfLiteOk;
-    } break;
-    case kTfLiteUInt8: {
-      TanhParams params;
-      params.input_zero_point = data.input_zero_point;
-      params.input_range_radius = data.input_range_radius;
-      params.input_multiplier = data.input_multiplier;
-      params.input_left_shift = data.input_left_shift;
-      reference_ops::Tanh(params, tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<uint8_t>(input),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<uint8_t>(output));
-
       return kTfLiteOk;
     } break;
     case kTfLiteInt8: {

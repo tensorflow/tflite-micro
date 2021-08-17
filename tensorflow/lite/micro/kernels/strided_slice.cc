@@ -153,13 +153,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorShape(output),
                                   tflite::micro::GetTensorData<float>(output));
       break;
-    case kTfLiteUInt8:
-      reference_ops::StridedSlice(
-          op_params, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<uint8_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<uint8_t>(output));
-      break;
     case kTfLiteInt8:
       reference_ops::StridedSlice(op_params,
                                   tflite::micro::GetTensorShape(input),

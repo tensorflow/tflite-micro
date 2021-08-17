@@ -104,19 +104,6 @@ TfLiteStatus EqualEval(TfLiteContext* context, TfLiteNode* node) {
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
                 output_data);
       break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::EqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data);
-      break;
     case kTfLiteInt8:
       requires_broadcast
           ? reference_ops::Broadcast4DSlowEqualWithScaling(
@@ -209,19 +196,6 @@ TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
                 output_data);
       break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowNotEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::NotEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data);
-      break;
     case kTfLiteInt8:
       requires_broadcast
           ? reference_ops::Broadcast4DSlowNotEqualWithScaling(
@@ -298,19 +272,6 @@ TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
                 data->params, input1_shape,
                 tflite::micro::GetTensorData<int64_t>(input1), input2_shape,
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
-                output_data);
-      break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowGreaterWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::GreaterWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
                 output_data);
       break;
     case kTfLiteInt8:
@@ -391,19 +352,6 @@ TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
                 output_data);
       break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowGreaterEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::GreaterEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data);
-      break;
     case kTfLiteInt8:
       requires_broadcast
           ? reference_ops::Broadcast4DSlowGreaterEqualWithScaling(
@@ -480,19 +428,6 @@ TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
                 data->params, input1_shape,
                 tflite::micro::GetTensorData<int64_t>(input1), input2_shape,
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
-                output_data);
-      break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowLessWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::LessWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
                 output_data);
       break;
     case kTfLiteInt8:
@@ -573,19 +508,6 @@ TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 tflite::micro::GetTensorData<int64_t>(input2), output_shape,
                 output_data);
       break;
-    case kTfLiteUInt8:
-      requires_broadcast
-          ? reference_ops::Broadcast4DSlowLessEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data)
-          : reference_ops::LessEqualWithScaling(
-                data->params, input1_shape,
-                tflite::micro::GetTensorData<uint8_t>(input1), input2_shape,
-                tflite::micro::GetTensorData<uint8_t>(input2), output_shape,
-                output_data);
-      break;
     case kTfLiteInt8:
       requires_broadcast
           ? reference_ops::Broadcast4DSlowLessEqualWithScaling(
@@ -623,7 +545,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input2 = GetInput(context, node, kInputTensor2);
   TF_LITE_ENSURE(context, input2 != nullptr);
 
-  if (input1->type == kTfLiteUInt8 || input1->type == kTfLiteInt8) {
+  if (input1->type == kTfLiteInt8) {
     auto input1_offset = -input1->params.zero_point;
     auto input2_offset = -input2->params.zero_point;
     const int kLeftShift = 8;
