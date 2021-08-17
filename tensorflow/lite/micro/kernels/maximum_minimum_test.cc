@@ -61,13 +61,13 @@ void TestMaxMinFloat(const TfLiteRegistration& registration,
 }
 
 void TestMaxMinQuantized(const TfLiteRegistration& registration,
-                         int* input1_dims_data, const uint8_t* input1_data,
+                         int* input1_dims_data, const int8_t* input1_data,
                          float const input1_scale, const int input1_zero_point,
-                         int* input2_dims_data, const uint8_t* input2_data,
+                         int* input2_dims_data, const int8_t* input2_data,
                          const float input2_scale, const int input2_zero_point,
-                         const uint8_t* expected_output_data,
+                         const int8_t* expected_output_data,
                          const float output_scale, const int output_zero_point,
-                         int* output_dims_data, uint8_t* output_data) {
+                         int* output_dims_data, int8_t* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -161,19 +161,19 @@ TF_LITE_MICRO_TEST(FloatTest) {
                                    output_data);
 }
 
-TF_LITE_MICRO_TEST(Uint8Test) {
+TF_LITE_MICRO_TEST(Int8Test) {
   int dims[] = {3, 3, 1, 2};
-  const uint8_t data1[] = {1, 0, 2, 11, 2, 23};
-  const uint8_t data2[] = {0, 0, 1, 12, 255, 1};
-  const uint8_t golden_max[] = {1, 0, 2, 12, 255, 23};
-  const uint8_t golden_min[] = {0, 0, 1, 11, 2, 1};
+  const int8_t data1[] = {1, 0, 2, 11, 2, 23};
+  const int8_t data2[] = {0, 0, 1, 12, 127, 1};
+  const int8_t golden_max[] = {1, 0, 2, 12, 127, 23};
+  const int8_t golden_min[] = {0, 0, 1, 11, 2, 1};
 
   const float input_scale = 1.0;
   const int input_zero_point = 0;
   const float output_scale = 1.0;
   const int output_zero_point = 0;
 
-  uint8_t output_data[6];
+  int8_t output_data[6];
 
   tflite::testing::TestMaxMinQuantized(
       tflite::ops::micro::Register_MAXIMUM(), dims, data1, input_scale,

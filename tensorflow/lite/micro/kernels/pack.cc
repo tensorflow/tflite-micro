@@ -82,10 +82,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       return PackImpl<float>(context, node, output, data->values_count,
                              data->axis);
     }
-    case kTfLiteUInt8: {
-      return PackImpl<uint8_t>(context, node, output, data->values_count,
-                               data->axis);
-    }
     case kTfLiteInt8: {
       return PackImpl<int8_t>(context, node, output, data->values_count,
                               data->axis);

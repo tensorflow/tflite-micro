@@ -152,12 +152,14 @@ void TestSplitFourOutputsFloat(
   }
 }
 
-void TestSplitTwoOutputsQuantized(
-    int* input_dims_data, const uint8_t* input_data, int* axis_dims_data,
-    const int32_t* axis_data, int* output1_dims_data,
-    const uint8_t* expected_output1_data, int* output2_dims_data,
-    const uint8_t* expected_output2_data, uint8_t* output1_data,
-    uint8_t* output2_data) {
+void TestSplitTwoOutputsQuantized(int* input_dims_data,
+                                  const int8_t* input_data, int* axis_dims_data,
+                                  const int32_t* axis_data,
+                                  int* output1_dims_data,
+                                  const int8_t* expected_output1_data,
+                                  int* output2_dims_data,
+                                  const int8_t* expected_output2_data,
+                                  int8_t* output1_data, int8_t* output2_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
   TfLiteIntArray* output1_dims = IntArrayFromInts(output1_dims_data);
@@ -417,19 +419,19 @@ TF_LITE_MICRO_TEST(TwoSplitOneDimensional) {
 
 TF_LITE_MICRO_TEST(TwoSplitFourDimensionalQuantized) {
   int input_shape[] = {4, 2, 2, 2, 2};
-  const uint8_t input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
-                                9, 10, 11, 12, 13, 14, 15, 16};
+  const int8_t input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
+                               9, 10, 11, 12, 13, 14, 15, 16};
   int axis_shape[] = {1, 1};
   const int32_t axis_data[] = {1};
   int output1_shape[] = {4, 2, 1, 2, 2};
-  const uint8_t golden1[] = {1, 2, 3, 4, 9, 10, 11, 12};
+  const int8_t golden1[] = {1, 2, 3, 4, 9, 10, 11, 12};
   int output2_shape[] = {4, 2, 1, 2, 2};
-  const uint8_t golden2[] = {5, 6, 7, 8, 13, 14, 15, 16};
+  const int8_t golden2[] = {5, 6, 7, 8, 13, 14, 15, 16};
 
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
-  uint8_t output1_data[output1_dims_count];
-  uint8_t output2_data[output2_dims_count];
+  int8_t output1_data[output1_dims_count];
+  int8_t output2_data[output2_dims_count];
   tflite::testing::TestSplitTwoOutputsQuantized(
       input_shape, input_data, axis_shape, axis_data, output1_shape, golden1,
       output2_shape, golden2, output1_data, output2_data);

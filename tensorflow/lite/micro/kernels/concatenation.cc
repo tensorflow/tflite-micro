@@ -104,27 +104,6 @@ void EvalUnquantized(TfLiteContext* context, TfLiteNode* node) {
                                tflite::micro::GetTensorData<data_type>(output));
 }
 
-void EvalQuantizedUInt8(TfLiteContext* context, TfLiteNode* node) {
-  // Collect the shapes and data pointer of input tensors
-  RuntimeShape inputs_shape[kMaxInputNum];
-  const RuntimeShape* inputs_shape_ptr[kMaxInputNum];
-  const uint8_t* inputs_data[kMaxInputNum];
-  GetAllInputTensorShapes(context, node, inputs_shape);
-  GetShapesPointers(inputs_shape, node->inputs->size, inputs_shape_ptr);
-  GetAllInputTensorData(context, node, inputs_data);
-
-  TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
-
-  reference_ops::ConcatenationWithScaling(
-      data->params, inputs_shape_ptr, inputs_data,
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<uint8_t>(output));
-}
-
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -146,9 +125,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Check activation and input type
   TF_LITE_ENSURE_EQ(context, params->activation, kTfLiteActNone);
   TF_LITE_ENSURE(context,
-                 input_type == kTfLiteFloat32 || input_type == kTfLiteUInt8 ||
-                     input_type == kTfLiteInt8 || input_type == kTfLiteInt16 ||
-                     input_type == kTfLiteInt32 || input_type == kTfLiteInt64);
+                 input_type == kTfLiteFloat32 || input_type == kTfLiteInt8 ||
+                     input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
+                     input_type == kTfLiteInt64);
 
   // Output type must match input type
   TF_LITE_ENSURE_EQ(context, output_type, input_type);
@@ -189,7 +168,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->params.inputs_count = node->inputs->size;
       break;
     }
-    case kTfLiteUInt8:
     case kTfLiteInt8: {
       data->params.axis = CalculatePositiveAxis(params->axis, output);
       data->params.inputs_count = node->inputs->size;
@@ -238,9 +216,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt32:
       EvalUnquantized<int32_t>(context, node);
-      break;
-    case kTfLiteUInt8:
-      EvalQuantizedUInt8(context, node);
       break;
     case kTfLiteInt8:
       EvalUnquantized<int8_t>(context, node);
