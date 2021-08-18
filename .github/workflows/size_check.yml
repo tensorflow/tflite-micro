@@ -44,4 +44,4 @@ jobs:
           git config user.email tflm_bot@github.com
           git add tensorflow/lite/micro/tools/ci_build/binary_size_history/*
           git commit --allow-empty  -m "Update binary size history by CI bot"
-          git push origin ${GITHUB_HEAD_REF} 
+          git push origin HEAD:${GITHUB_HEAD_REF} 
