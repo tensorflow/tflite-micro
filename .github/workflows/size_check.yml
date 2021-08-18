@@ -38,10 +38,14 @@ jobs:
 
       - name: Update size history and commit
         run: |
+          # Can only debug inconsistency between manual trigger and ci:test label different live.
+          git status
           rm -rf tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           ci/size_comp.py -t ci/size_log.txt tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           git config user.name tflm_bot
           git config user.email tflm_bot@github.com
           git add tensorflow/lite/micro/tools/ci_build/binary_size_history/*
+          # Can only debug inconsistency between manual trigger and ci:test label different live.
+          git status
           git commit --allow-empty  -m "Update binary size history by CI bot"
-          git push origin HEAD:${GITHUB_HEAD_REF} 
+          git push origin ${GITHUB_HEAD_REF} 
