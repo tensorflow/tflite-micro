@@ -434,44 +434,6 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorData<int8_t>(output));
 }
 
-void EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                   TfLiteDepthwiseConvParams* params, const OpData& data,
-                   const TfLiteEvalTensor* input,
-                   const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias,
-                   TfLiteEvalTensor* output) {
-  const int32_t input_offset = -data.input_zero_point;
-  const int32_t filter_offset = -data.filter_zero_point;
-  const int32_t output_offset = data.output_zero_point;
-
-  tflite::DepthwiseParams op_params;
-  // Padding type is ignored, but still set.
-  op_params.padding_type = PaddingType::kSame;
-  op_params.padding_values.width = data.padding.width;
-  op_params.padding_values.height = data.padding.height;
-  op_params.stride_width = params->stride_width;
-  op_params.stride_height = params->stride_height;
-  op_params.dilation_width_factor = params->dilation_width_factor;
-  op_params.dilation_height_factor = params->dilation_height_factor;
-  op_params.depth_multiplier = params->depth_multiplier;
-  op_params.quantized_activation_min = data.output_activation_min;
-  op_params.quantized_activation_max = data.output_activation_max;
-  op_params.input_offset = input_offset;
-  op_params.weights_offset = filter_offset;
-  op_params.output_offset = output_offset;
-  op_params.output_multiplier = data.output_multiplier;
-  // Legacy ops used mixed left and right shifts. Now all are +ve-means-left.
-  op_params.output_shift = -data.output_shift;
-
-  vexriscv::DepthwiseConv(op_params, tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<uint8_t>(input),
-                          tflite::micro::GetTensorShape(filter),
-                          tflite::micro::GetTensorData<uint8_t>(filter),
-                          tflite::micro::GetTensorShape(bias),
-                          tflite::micro::GetTensorData<int32_t>(bias),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<uint8_t>(output));
-}
-
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -497,9 +459,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8:
       EvalQuantizedPerChannel(context, node, params, data, input, filter, bias,
                               output);
-      break;
-    case kTfLiteUInt8:
-      EvalQuantized(context, node, params, data, input, filter, bias, output);
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",

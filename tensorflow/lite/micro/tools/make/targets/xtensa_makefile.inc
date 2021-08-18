@@ -73,7 +73,6 @@ TEST_SCRIPT := tensorflow/lite/micro/testing/test_xtensa_binary.sh
 # TODO(b/158651472): Fix the memory_arena_threshold_test
 # TODO(b/174707181): Fix the micro_interpreter_test
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 

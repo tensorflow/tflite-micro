@@ -6,13 +6,27 @@ package(
     licenses = ["notice"],
 )
 
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+
+generate_cc_arrays(
+    name="generated_magic_wand_model_cc",
+    src="magic_wand.tflite",
+    out="magic_wand_model_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_magic_wand_model_hdr",
+    src="magic_wand.tflite",
+    out="magic_wand_model_data.h",
+)
+
 cc_library(
     name = "magic_wand_model_data",
     srcs = [
-        "magic_wand_model_data.cc",
+        ":generated_magic_wand_model_cc",
     ],
     hdrs = [
-        "magic_wand_model_data.h",
+        ":generated_magic_wand_model_hdr",
     ],
 )
 

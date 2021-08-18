@@ -6,6 +6,8 @@ package(
     licenses = ["notice"],
 )
 
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+
 cc_library(
     name = "model_settings",
     srcs = [
@@ -16,13 +18,37 @@ cc_library(
     ],
 )
 
+generate_cc_arrays(
+    name="generated_no_person_bmp_cc",
+    src="testdata/no_person.bmp",
+    out="testdata/no_person_image_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_no_person_bmp_hdr",
+    src="testdata/no_person.bmp",
+    out="testdata/no_person_image_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_person_bmp_cc",
+    src="testdata/person.bmp",
+    out="testdata/person_image_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_person_bmp_hdr",
+    src="testdata/person.bmp",
+    out="testdata/person_image_data.h",
+)
+
 cc_library(
     name = "person_detect_model_data",
     srcs = [
-        "@person_detect_data//:person_detect_model_data",
+        "//tensorflow/lite/micro/models:generated_person_detect_model_cc",
     ],
     hdrs = [
-        "person_detect_model_data.h",
+        "//tensorflow/lite/micro/models:generated_person_detect_model_hdr",
     ],
     tags = [
         "no_oss",  # TODO(b/174680668): Exclude from OSS.
@@ -32,12 +58,12 @@ cc_library(
 cc_library(
     name = "simple_images_test_data",
     srcs = [
-        "no_person_image_data.cc",
-        "person_image_data.cc",
+        ":generated_person_bmp_cc",
+        ":generated_no_person_bmp_cc",
     ],
     hdrs = [
-        "no_person_image_data.h",
-        "person_image_data.h",
+        ":generated_person_bmp_hdr",
+        ":generated_no_person_bmp_hdr",
     ],
     tags = [
         "no_oss",  # TODO(b/174680668): Exclude from OSS.
