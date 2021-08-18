@@ -38,6 +38,7 @@ jobs:
 
       - name: Update size history and commit
         run: |
+          echo "This is to test the workflow change in this PR is being ran"
           rm -rf tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           ci/size_comp.py -t ci/size_log.txt tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           git config user.name tflm_bot
