@@ -44,10 +44,10 @@ generate_cc_arrays(
 cc_library(
     name = "person_detect_model_data",
     srcs = [
-        "//tensorflow/lite/micro/models:generated_person_detect_model_cc",
+        "@person_detect_data//:person_detect_model_data",
     ],
     hdrs = [
-        "//tensorflow/lite/micro/models:generated_person_detect_model_hdr",
+        "person_detect_model_data.h",
     ],
     tags = [
         "no_oss",  # TODO(b/174680668): Exclude from OSS.
