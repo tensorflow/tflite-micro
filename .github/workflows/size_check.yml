@@ -16,7 +16,7 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) 
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:test')) 
 
     name: Binary Size Estimation
     steps:
