@@ -2,13 +2,12 @@
 #   TensorFlow Lite for Microcontrollers "hello world" example.
 load(
     "//tensorflow/lite/micro:build_def.bzl",
+    "generate_cc_arrays",
     "micro_copts",
 )
-load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
 
 package(
     default_visibility = ["//visibility:public"],
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
