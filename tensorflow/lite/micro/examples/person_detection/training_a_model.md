@@ -119,7 +119,7 @@ fed into the model. It reduces each image to the size specified by `--train_imag
 - `--train_dir` will contain the trained checkpoints and summaries.
 - The `--learning_rate`, `--label_smoothing`, `--learning_rate_decay_factor`,
 `--num_epochs_per_decay`, `--moving_average_decay` and `--batch_size` are all
-parameters that control how weights are updated during the the training
+parameters that control how weights are updated during the training
 process. Training deep networks is still a bit of a dark art, so these exact
 values we found through experimentation for this particular model. You can try
 tweaking them to speed up training or gain a small boost in accuracy, but we
