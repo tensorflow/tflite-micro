@@ -54,6 +54,6 @@ jobs:
       # If PR does not have MEM_CHANGE_OK tag, then error out on memory footprint
       # increase.
       - name: Check size does not increase between main and PR build
-        if: ${{ contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
+        if: ${{ !contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
         run: |
           ci/size_comp.py -a main_ref/ci/size_log.txt ci/size_log.txt --error_on_mem_increase
