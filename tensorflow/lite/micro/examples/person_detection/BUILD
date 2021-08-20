@@ -1,12 +1,13 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+
 package(
     default_visibility = ["//visibility:public"],
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
-
-load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
 
 cc_library(
     name = "model_settings",
@@ -50,9 +51,6 @@ cc_library(
     hdrs = [
         "//tensorflow/lite/micro/models:generated_person_detect_model_hdr",
     ],
-    tags = [
-        "no_oss",  # TODO(b/174680668): Exclude from OSS.
-    ],
 )
 
 cc_library(
@@ -65,9 +63,6 @@ cc_library(
         ":generated_person_bmp_hdr",
         ":generated_no_person_bmp_hdr",
     ],
-    tags = [
-        "no_oss",  # TODO(b/174680668): Exclude from OSS.
-    ],
     deps = [
         ":model_settings",
     ],
@@ -76,9 +71,6 @@ cc_library(
 cc_test(
     name = "person_detection_test",
     srcs = ["person_detection_test.cc"],
-    tags = [
-        "no_oss",  # TODO(b/174680668): Exclude from OSS.
-    ],
     deps = [
         ":model_settings",
         ":person_detect_model_data",
@@ -152,9 +144,6 @@ cc_binary(
         "main.cc",
         "main_functions.cc",
         "main_functions.h",
-    ],
-    tags = [
-        "no_oss",  # TODO(b/174680668): Exclude from OSS.
     ],
     deps = [
         ":detection_responder",

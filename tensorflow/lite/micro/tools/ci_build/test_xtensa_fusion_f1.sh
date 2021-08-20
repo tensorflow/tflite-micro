@@ -33,4 +33,11 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET_ARCH=hifi4 \
   OPTIMIZED_KERNEL_DIR=xtensa \
   XTENSA_CORE=F1_190305_swupgrade \
+  build -j$(nproc)
+
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=xtensa \
+  TARGET_ARCH=hifi4 \
+  OPTIMIZED_KERNEL_DIR=xtensa \
+  XTENSA_CORE=F1_190305_swupgrade \
   test -j$(nproc)
