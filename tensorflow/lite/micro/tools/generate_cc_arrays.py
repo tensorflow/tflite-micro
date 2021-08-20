@@ -71,13 +71,13 @@ def generate_array(input_fname):
       out_string += hex(byte) + ","
     return [len(image_bytes), out_string]
   elif input_fname.endswith('.wav'):
-    wav = wave.open(input_fname, mode='r')
+    wav_file = wave.open(input_fname, mode='r')
     out_string = ""
-    for i in range(wav.getnframes()):
-      frame = wav.readframes(1)
+    for i in range(wav_file.getnframes()):
+      frame = wav_file.readframes(1)
       out_string += str(int.from_bytes(frame, byteorder='little',
                                        signed=True)) + ","
-    return [wav.getnframes(), out_string]
+    return [wav_file.getnframes(), out_string]
   else:
     raise ValueError('input file must be .tflite, .bmp or .wav')
 
