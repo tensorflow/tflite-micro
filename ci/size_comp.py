@@ -43,6 +43,28 @@ def compare_val_in_files(old_file, new_file, val='bss'):
 
     return()
 
+def compare_all_val_in_files(old_file, new_file, error_on_mem_increase):
+    old_dict = file_to_dict(old_file)
+    new_dict = file_to_dict(new_file)
+    any_mem_increase = False
+    for section, val in old_dict.items():
+        if int(new_dict[section]) > int(old_dict[section]):
+            print(section, " larger than previous value")
+            print("old: ", old_dict[section])
+            print("new: ", new_dict[section])
+            any_mem_increase = True
+        else:
+            print(section)
+            print("old: ", old_dict[section])
+            print("new: ", new_dict[section])
+
+    if any_mem_increase:
+        print("Warning: memory foot print increases!")
+        if error_on_mem_increase:
+            sys.exit(1)
+
+    return()
+
 def berkeley_size_format_to_json_file(input_file, output_file):
     output_dict = file_to_dict(input_file)
     with open(output_file, 'w') as outfile:
@@ -55,6 +77,8 @@ if __name__=="__main__":
     parser.add_argument("-t","--transform", help="transform a berkeley size format file to a json file", nargs=2)
     parser.add_argument("-c","--compare", help="compare value in old file to new file", nargs=2)
     parser.add_argument("-v","--value", default="bss", help="value to be compared")
+    parser.add_argument("-a","--compare_all", help="compare all value in old file to new file", nargs=2)
+    parser.add_argument("-e","--error_on_mem_increase", default=False, action="store_true", help="error exit on memory footprint increase")
     args = parser.parse_args()
 
     if args.transform:
@@ -62,5 +86,7 @@ if __name__=="__main__":
 
     if args.compare:
         compare_val_in_files(args.compare[0], args.compare[1], args.value)
-              
+
+    if args.compare_all:
+        compare_all_val_in_files(args.compare_all[0], args.compare_all[1], args.error_on_mem_increase)
 
