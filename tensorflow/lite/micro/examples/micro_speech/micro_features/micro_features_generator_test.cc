@@ -51,9 +51,8 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
   int8_t yes_calculated_data[g_yes_feature_data_slice_size];
   size_t num_samples_read;
   TfLiteStatus yes_status = GenerateMicroFeatures(
-      &micro_error_reporter, g_yes_30ms_audio_data,
-      g_yes_30ms_audio_data_size, g_yes_feature_data_slice_size,
-      yes_calculated_data, &num_samples_read);
+      &micro_error_reporter, g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
+      g_yes_feature_data_slice_size, yes_calculated_data, &num_samples_read);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, yes_status);
 
   for (int i = 0; i < g_yes_feature_data_slice_size; ++i) {

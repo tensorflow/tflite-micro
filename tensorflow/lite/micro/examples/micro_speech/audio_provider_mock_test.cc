@@ -68,8 +68,7 @@ TF_LITE_MICRO_TEST(TestAudioProviderMock) {
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
   TF_LITE_MICRO_EXPECT_NE(audio_samples, nullptr);
   for (int i = 0; i < audio_samples_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(g_no_1000ms_audio_data[i + 4000],
-                            audio_samples[i]);
+    TF_LITE_MICRO_EXPECT_EQ(g_no_1000ms_audio_data[i + 4000], audio_samples[i]);
   }
 }
 

@@ -254,7 +254,7 @@ $(SIMPLE_FEATURES_GENERATOR_TEST_SRCS),$(SIMPLE_FEATURES_GENERATOR_TEST_HDRS),$(
 
 # Tests the audio provider module.
 $(eval $(call microlite_test,audio_provider_test,\
-$(AUDIO_PROVIDER_TEST_SRCS),$(AUDIO_PROVIDER_TEST_HDRS))
+$(AUDIO_PROVIDER_TEST_SRCS),$(AUDIO_PROVIDER_TEST_HDRS)))
 
 # Tests the audio provider mock module.
 $(eval $(call microlite_test,audio_provider_mock_test,\

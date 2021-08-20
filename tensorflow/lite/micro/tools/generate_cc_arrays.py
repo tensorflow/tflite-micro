@@ -32,15 +32,19 @@ def generate_file(out_fname, array_name, array_type, out_string, size):
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
     # Log cc file name for Make to include in the build.
-    out_cc_file.write('#include "{}"\n\n'.format(out_fname.split("genfiles/")[-1].replace('.cc', '.h')))
-    out_cc_file.write('alignas(16) const {} {}[] = {{'.format(array_type, array_name))
+    out_cc_file.write('#include "{}"\n\n'.format(
+        out_fname.split("genfiles/")[-1].replace('.cc', '.h')))
+    out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
+        array_type, array_name))
     out_cc_file.write(out_string)
     out_cc_file.write('};\n')
-    out_cc_file.write('const unsigned int {}_size = {};'.format(array_name, str(size)))
+    out_cc_file.write('const unsigned int {}_size = {};'.format(
+        array_name, str(size)))
     out_cc_file.close()
   elif out_fname.endswith('.h'):
     out_hdr_file = open(out_fname, 'w')
-    out_hdr_file.write('extern const {} {}[];\n'.format(array_type, array_name))
+    out_hdr_file.write('extern const {} {}[];\n'.format(
+        array_type, array_name))
     out_hdr_file.write('extern const unsigned int {}_size;'.format(array_name))
     out_hdr_file.close()
   else:
@@ -71,7 +75,8 @@ def generate_array(input_fname):
     out_string = ""
     for i in range(wav.getnframes()):
       frame = wav.readframes(1)
-      out_string += str(int.from_bytes(frame, byteorder='little', signed=True)) + ","
+      out_string += str(int.from_bytes(frame, byteorder='little',
+                                       signed=True)) + ","
     return [wav.getnframes(), out_string]
   else:
     raise ValueError('input file must be .tflite, .bmp or .wav')
@@ -105,7 +110,8 @@ def main():
     assert (len(args.inputs) == 1)
     size, cc_array = generate_array(args.inputs[0])
     generated_array_name, array_type = array_name(args.inputs[0])
-    generate_file(args.output, generated_array_name, array_type, cc_array, size)
+    generate_file(args.output, generated_array_name, array_type, cc_array,
+                  size)
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
@@ -125,8 +131,10 @@ def main():
       output_hdr_fname = output_base_fname + '.h'
       size, cc_array = generate_array(input_file)
       generated_array_name, array_type = array_name(input_file)
-      generate_file(output_cc_fname, generated_array_name, array_type, cc_array, size)
-      generate_file(output_hdr_fname, generated_array_name, array_type, cc_array, size)
+      generate_file(output_cc_fname, generated_array_name, array_type,
+                    cc_array, size)
+      generate_file(output_hdr_fname, generated_array_name, array_type,
+                    cc_array, size)
 
 
 if __name__ == '__main__':

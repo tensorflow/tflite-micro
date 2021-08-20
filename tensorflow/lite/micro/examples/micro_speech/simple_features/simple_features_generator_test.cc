@@ -30,9 +30,8 @@ TF_LITE_MICRO_TEST(TestSimpleFeaturesGenerator) {
 
   uint8_t yes_calculated_data[g_yes_power_spectrum_data_size];
   TfLiteStatus yes_status = GenerateSimpleFeatures(
-      &micro_error_reporter, g_yes_30ms_audio_data,
-      g_yes_30ms_audio_data_size, g_yes_power_spectrum_data_size,
-      yes_calculated_data);
+      &micro_error_reporter, g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
+      g_yes_power_spectrum_data_size, yes_calculated_data);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, yes_status);
 
   for (int i = 0; i < g_yes_power_spectrum_data_size; ++i) {
