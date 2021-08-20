@@ -20,6 +20,54 @@ cc_library(
 )
 
 generate_cc_arrays(
+    name="generated_yes_1000ms_wav_cc",
+    src="testdata/yes_1000ms.wav",
+    out="testdata/yes_1000ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_yes_1000ms_wav_hdr",
+    src="testdata/yes_1000ms.wav",
+    out="testdata/yes_1000ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_no_1000ms_wav_cc",
+    src="testdata/no_1000ms.wav",
+    out="testdata/no_1000ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_no_1000ms_wav_hdr",
+    src="testdata/no_1000ms.wav",
+    out="testdata/no_1000ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_yes_30ms_wav_cc",
+    src="testdata/yes_30ms.wav",
+    out="testdata/yes_30ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_yes_30ms_wav_hdr",
+    src="testdata/yes_30ms.wav",
+    out="testdata/yes_30ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_no_30ms_wav_cc",
+    src="testdata/no_30ms.wav",
+    out="testdata/no_30ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_no_30ms_wav_hdr",
+    src="testdata/no_30ms.wav",
+    out="testdata/no_30ms_audio_data.h",
+)
+
+generate_cc_arrays(
     name="generated_micro_speech_model_cc",
     src="micro_speech.tflite",
     out="micro_speech_model_data.cc",
@@ -72,24 +120,24 @@ cc_test(
 cc_library(
     name = "audio_sample_test_data",
     srcs = [
-        "no_30ms_sample_data.cc",
-        "yes_30ms_sample_data.cc",
+        ":generated_yes_30ms_wav_cc",
+        ":generated_no_30ms_wav_cc",
     ],
     hdrs = [
-        "no_30ms_sample_data.h",
-        "yes_30ms_sample_data.h",
+        ":generated_yes_30ms_wav_hdr",
+        ":generated_no_30ms_wav_hdr",
     ],
 )
 
 cc_library(
     name = "audio_large_sample_test_data",
     srcs = [
-        "no_1000ms_sample_data.cc",
-        "yes_1000ms_sample_data.cc",
+        ":generated_yes_1000ms_wav_cc",
+        ":generated_no_1000ms_wav_cc",
     ],
     hdrs = [
-        "no_1000ms_sample_data.h",
-        "yes_1000ms_sample_data.h",
+        ":generated_yes_1000ms_wav_hdr",
+        ":generated_no_1000ms_wav_hdr",
     ],
 )
 

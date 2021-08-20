@@ -18,8 +18,8 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h"
-#include "tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.h"
-#include "tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.h"
+#include "tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h"
+#include "tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -51,8 +51,8 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
   int8_t yes_calculated_data[g_yes_feature_data_slice_size];
   size_t num_samples_read;
   TfLiteStatus yes_status = GenerateMicroFeatures(
-      &micro_error_reporter, g_yes_30ms_sample_data,
-      g_yes_30ms_sample_data_size, g_yes_feature_data_slice_size,
+      &micro_error_reporter, g_yes_30ms_audio_data,
+      g_yes_30ms_audio_data_size, g_yes_feature_data_slice_size,
       yes_calculated_data, &num_samples_read);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, yes_status);
 
@@ -86,7 +86,7 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorNo) {
   int8_t no_calculated_data[g_no_feature_data_slice_size];
   size_t num_samples_read;
   TfLiteStatus no_status = GenerateMicroFeatures(
-      &micro_error_reporter, g_no_30ms_sample_data, g_no_30ms_sample_data_size,
+      &micro_error_reporter, g_no_30ms_audio_data, g_no_30ms_audio_data_size,
       g_no_feature_data_slice_size, no_calculated_data, &num_samples_read);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, no_status);
 
