@@ -351,15 +351,15 @@ void DecreasingPartialArgSort(const float* values, int num_values,
 }
 
 template <typename Compare>
-void insertion_sort(int* start, int* end, Compare compare) {
+void InsertionSort(int* start, int* end, Compare compare) {
   for (int* i = start; i != end; ++i) {
     std::rotate(std::upper_bound(start, i, *i, compare), i, i + 1);
   }
 }
 
 template <typename Compare>
-void top_down_merge(int* values, int* scratch, const int half_num_values,
-                    int num_values, Compare compare) {
+void TopDownMerge(int* values, int* scratch, const int half_num_values,
+                  int num_values, Compare compare) {
   int left = 0;
   int right = half_num_values;
 
@@ -375,28 +375,28 @@ void top_down_merge(int* values, int* scratch, const int half_num_values,
 }
 
 template <typename Compare>
-void merge_sort(int* values, int* scratch, const int num_values,
-                Compare compare) {
+void MergeSort(int* values, int* scratch, const int num_values,
+               Compare compare) {
   constexpr int threshold = 20;
 
   if (num_values < threshold) {
-    insertion_sort(values, values + num_values, compare);
+    InsertionSort(values, values + num_values, compare);
     return;
   }
 
   const int half_num_values = num_values / 2;
 
-  merge_sort(values, scratch, half_num_values, compare);
-  merge_sort(values + half_num_values, scratch, num_values - half_num_values,
-             compare);
-  top_down_merge(values, scratch, half_num_values, num_values, compare);
+  MergeSort(values, scratch, half_num_values, compare);
+  MergeSort(values + half_num_values, scratch, num_values - half_num_values,
+            compare);
+  TopDownMerge(values, scratch, half_num_values, num_values, compare);
 }
 
 void DecreasingArgSort(const float* values, int num_values, int* indices,
                        int* scratch) {
   std::iota(indices, indices + num_values, 0);
 
-  merge_sort(indices, scratch, num_values, [&values](const int i, const int j) {
+  MergeSort(indices, scratch, num_values, [&values](const int i, const int j) {
     return values[i] > values[j];
   });
 }
