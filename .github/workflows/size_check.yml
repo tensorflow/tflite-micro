@@ -27,6 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
+          pip3 install Wave
  
       - name: Build binary
         run: |

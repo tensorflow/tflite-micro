@@ -26,6 +26,7 @@ pwd
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 pip3 install Pillow
+pip3 install Wave
 
 TARGET=esp
 TARGET_ARCH=xtensa-esp32
