@@ -63,3 +63,23 @@ providing `CMSIS_PATH` to the Makefile:
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_generic TARGET_ARCH=cortex-m4+fp OPTIMIZED_KERNEL_DIR=cmsis_nn CMSIS_PATH=/path/to/own/cmsis microlite
 ```
+
+
+If you want to generate a project for your specific build you can do the following
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_generic TARGET_ARCH=cortex-m4+fp generate_hello_world_make_project
+cd ~/tflite-micro/tensorflow/lite/micro/tools/make/gen/cortex_m_generic_cortex-m4+fp_default/prj/hello_world/make
+make -j
+
+```
+
+If you want to generate a project that includes CMSIS kernel, the make project generator gets some of the paths wrong for the CMSIS kernel. To fix you will need to correct paths doing the following. 
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_generic TARGET_ARCH=cortex-m4+fp OPTIMIZED_KERNEL_DIR=cmsis_nn generate_hello_world_make_project
+cd ~/tflite-micro/tensorflow/lite/micro/tools/make/gen/cortex_m_generic_cortex-m4+fp_default/prj/hello_world/make
+sed -i 's|tensorflow/lite/micro/tools/make/downloads/cmsis/|./|g' Makefile
+mv tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/ .
+make -j
+```

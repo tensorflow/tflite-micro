@@ -157,6 +157,18 @@ PLATFORM_FLAGS = \
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
+ifeq ($(OPTIMIZED_KERNEL_DIR), cmsis_nn)
+  CCFLAGS += \
+    -I./CMSIS/Core/Include/ \
+    -I./CMSIS/DSP/Include/ \
+    -I./CMSIS/NN/Include/ 
+
+  CXXFLAGS += \
+    -I./CMSIS/Core/Include/ \
+    -I./CMSIS/DSP/Include/ \
+    -I./CMSIS/NN/Include/     
+endif
+
 # Needed for the project generation interface.
 MICROLITE_CC_HDRS += \
   tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
