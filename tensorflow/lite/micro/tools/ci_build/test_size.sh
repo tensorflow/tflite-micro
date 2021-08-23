@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,30 +14,38 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Tests the microcontroller code for stm32f4
+# Build a TFLite micro test binary and capture its size.
 
 set -e
 
-TARGET=stm32f4
-OPTIMIZED_KERNEL_DIR=cmsis_nn
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
-pwd
+
+
+SIZEFILE_DIR=${ROOT_DIR}/ci
+MAKEFILE_DIR=${ROOT_DIR}/tensorflow/lite/micro/tools/make
+# TODO(b/196637015): change this to a real benchmark binary after the experiment
+# is complete.  
+BENCHMARK_TARGET=binary_size_test
+BUILD_TYPE=default
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} third_party_downloads
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 
-# First make sure that the release build succeeds.
+# Next, make sure that the release build succeeds.
+# Build for x86.
+TARGET=linux
+TARGET_ARCH=x86_64
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} build
+readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build BUILD_TYPE=${BUILD_TYPE} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} ${BENCHMARK_TARGET}
 
-# Next, build w/o release so that we can run the tests and get additional
-# debugging info on failures.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} build
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} test
+# Capture size of the test binary.
+GENDIR=${MAKEFILE_DIR}/gen/${TARGET}_${TARGET_ARCH}_${BUILD_TYPE}/
+BINDIR=${GENDIR}/bin/
+size ${BINDIR}/${BENCHMARK_TARGET} > ${SIZEFILE_DIR}/size_log.txt
+

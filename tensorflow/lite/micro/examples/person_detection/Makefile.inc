@@ -40,7 +40,7 @@ tensorflow/lite/micro/examples/person_detection/image_provider.h \
 tensorflow/lite/micro/examples/person_detection/main_functions.h \
 $(person_detection_MODEL_HDRS)
 
-person_detection_GENERATOR_INPUTS += \
+person_detection_GENERATOR_INPUTS := \
 tensorflow/lite/micro/models/person_detect.tflite \
 tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
 tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp

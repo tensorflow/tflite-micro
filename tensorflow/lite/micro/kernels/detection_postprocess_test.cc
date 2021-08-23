@@ -74,20 +74,16 @@ constexpr float kGolden2[] = {1, 0, 0};
 constexpr float kGolden3[] = {0.95, 0.9, 0.3};
 constexpr float kGolden4[] = {3.0};
 
-void TestDetectionPostprocess(
-    int* input_dims_data1, const float* input_data1, int* input_dims_data2,
-    const float* input_data2, int* input_dims_data3, const float* input_data3,
-    int* output_dims_data1, float* output_data1, int* output_dims_data2,
-    float* output_data2, int* output_dims_data3, float* output_data3,
-    int* output_dims_data4, float* output_data4, const float* golden1,
-    const float* golden2, const float* golden3, const float* golden4,
-    const float tolerance, bool use_regular_nms,
-    uint8_t* input_data_quantized1 = nullptr,
-    uint8_t* input_data_quantized2 = nullptr,
-    uint8_t* input_data_quantized3 = nullptr, const float input_min1 = 0,
-    const float input_max1 = 0, const float input_min2 = 0,
-    const float input_max2 = 0, const float input_min3 = 0,
-    const float input_max3 = 0) {
+void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
+                              int* input_dims_data2, const float* input_data2,
+                              int* input_dims_data3, const float* input_data3,
+                              int* output_dims_data1, float* output_data1,
+                              int* output_dims_data2, float* output_data2,
+                              int* output_dims_data3, float* output_data3,
+                              int* output_dims_data4, float* output_data4,
+                              const float* golden1, const float* golden2,
+                              const float* golden3, const float* golden4,
+                              const float tolerance, bool use_regular_nms) {
   TfLiteIntArray* input_dims1 = IntArrayFromInts(input_dims_data1);
   TfLiteIntArray* input_dims2 = IntArrayFromInts(input_dims_data2);
   TfLiteIntArray* input_dims3 = IntArrayFromInts(input_dims_data3);
@@ -101,32 +97,9 @@ void TestDetectionPostprocess(
   constexpr int tensors_size = inputs_size + outputs_size;
 
   TfLiteTensor tensors[tensors_size];
-  if (input_min1 != 0 || input_max1 != 0 || input_min2 != 0 ||
-      input_max2 != 0 || input_min3 != 0 || input_max3 != 0) {
-    const float input_scale1 = ScaleFromMinMax<uint8_t>(input_min1, input_max1);
-    const int input_zero_point1 =
-        ZeroPointFromMinMax<uint8_t>(input_min1, input_max1);
-    const float input_scale2 = ScaleFromMinMax<uint8_t>(input_min2, input_max2);
-    const int input_zero_point2 =
-        ZeroPointFromMinMax<uint8_t>(input_min2, input_max2);
-    const float input_scale3 = ScaleFromMinMax<uint8_t>(input_min3, input_max3);
-    const int input_zero_point3 =
-        ZeroPointFromMinMax<uint8_t>(input_min3, input_max3);
-
-    tensors[0] =
-        CreateQuantizedTensor(input_data1, input_data_quantized1, input_dims1,
-                              input_scale1, input_zero_point1);
-    tensors[1] =
-        CreateQuantizedTensor(input_data2, input_data_quantized2, input_dims2,
-                              input_scale2, input_zero_point2);
-    tensors[2] =
-        CreateQuantizedTensor(input_data3, input_data_quantized3, input_dims3,
-                              input_scale3, input_zero_point3);
-  } else {
-    tensors[0] = CreateTensor(input_data1, input_dims1);
-    tensors[1] = CreateTensor(input_data2, input_dims2);
-    tensors[2] = CreateTensor(input_data3, input_dims3);
-  }
+  tensors[0] = CreateTensor(input_data1, input_dims1);
+  tensors[1] = CreateTensor(input_data2, input_dims2);
+  tensors[2] = CreateTensor(input_data3, input_dims3);
   tensors[3] = CreateTensor(output_data1, output_dims1);
   tensors[4] = CreateTensor(output_data2, output_dims2);
   tensors[5] = CreateTensor(output_data3, output_dims3);
@@ -209,47 +182,6 @@ TF_LITE_MICRO_TEST(DetectionPostprocessFloatFastNMS) {
       /* tolerance */ 0, /* Use regular NMS: */ false);
 }
 
-TF_LITE_MICRO_TEST(DetectionPostprocessQuantizedFastNMS) {
-  int kInputShape1[] = {3, 1, 6, 4};
-  int kInputShape2[] = {3, 1, 6, 3};
-  int kInputShape3[] = {2, 6, 4};
-  int kOutputShape1[] = {3, 1, 3, 4};
-  int kOutputShape2[] = {2, 1, 3};
-  int kOutputShape3[] = {2, 1, 3};
-  int kOutputShape4[] = {1, 1};
-
-  float output_data1[12];
-  float output_data2[3];
-  float output_data3[3];
-  float output_data4[1];
-  constexpr int kInputElements1 =
-      1 * 6 *
-      4;  // tflite::testing::kInputShape1[1] * tflite::testing::kInputShape1[2]
-          // * tflite::testing::kInputShape1[3];
-  constexpr int kInputElements2 =
-      1 * 6 *
-      3;  // tflite::testing::kInputShape2[1] * tflite::testing::kInputShape2[2]
-          // * tflite::testing::kInputShape2[3];
-  constexpr int kInputElements3 = 6 * 4;  // tflite::testing::kInputShape3[1] *
-                                          // tflite::testing::kInputShape3[2];
-
-  uint8_t input_data_quantized1[kInputElements1];
-  uint8_t input_data_quantized2[kInputElements2];
-  uint8_t input_data_quantized3[kInputElements3];
-
-  tflite::testing::TestDetectionPostprocess(
-      kInputShape1, tflite::testing::kInputData1, kInputShape2,
-      tflite::testing::kInputData2, kInputShape3, tflite::testing::kInputData3,
-      kOutputShape1, output_data1, kOutputShape2, output_data2, kOutputShape3,
-      output_data3, kOutputShape4, output_data4, tflite::testing::kGolden1,
-      tflite::testing::kGolden2, tflite::testing::kGolden3,
-      tflite::testing::kGolden4,
-      /* tolerance */ 3e-1, /* Use regular NMS: */ false, input_data_quantized1,
-      input_data_quantized2, input_data_quantized3,
-      /* input1 min/max*/ -1.0, 1.0, /* input2 min/max */ 0.0, 1.0,
-      /* input3 min/max */ 0.0, 100.5);
-}
-
 TF_LITE_MICRO_TEST(DetectionPostprocessFloatRegularNMS) {
   float output_data1[12];
   float output_data2[3];
@@ -270,48 +202,6 @@ TF_LITE_MICRO_TEST(DetectionPostprocessFloatRegularNMS) {
       tflite::testing::kOutputShape4, output_data4, kGolden1,
       tflite::testing::kGolden2, kGolden3, kGolden4,
       /* tolerance */ 1e-1, /* Use regular NMS: */ true);
-}
-
-TF_LITE_MICRO_TEST(DetectionPostprocessQuantizedRegularNMS) {
-  float output_data1[12];
-  float output_data2[3];
-  float output_data3[3];
-  float output_data4[1];
-
-  constexpr int kInputElements1 =
-      1 * 6 *
-      4;  // tflite::testing::kInputShape1[1] * tflite::testing::kInputShape1[2]
-          // * tflite::testing::kInputShape1[3];
-  constexpr int kInputElements2 =
-      1 * 6 *
-      3;  // tflite::testing::kInputShape2[1] * tflite::testing::kInputShape2[2]
-          // * tflite::testing::kInputShape2[3];
-  constexpr int kInputElements3 =
-      6 * 4;  //      tflite::testing::kInputShape3[1] *
-              //      tflite::testing::kInputShape3[2];
-
-  uint8_t input_data_quantized1[kInputElements1];
-  uint8_t input_data_quantized2[kInputElements2];
-  uint8_t input_data_quantized3[kInputElements3];
-
-  const float kGolden1[] = {0.0, 10.0, 1.0, 11.0, 0.0, 10.0,
-                            1.0, 11.0, 0.0, 0.0,  0.0, 0.0};
-  const float kGolden3[] = {0.95, 0.9, 0.0};
-  const float kGolden4[] = {2.0};
-
-  tflite::testing::TestDetectionPostprocess(
-      tflite::testing::kInputShape1, tflite::testing::kInputData1,
-      tflite::testing::kInputShape2, tflite::testing::kInputData2,
-      tflite::testing::kInputShape3, tflite::testing::kInputData3,
-      tflite::testing::kOutputShape1, output_data1,
-      tflite::testing::kOutputShape2, output_data2,
-      tflite::testing::kOutputShape3, output_data3,
-      tflite::testing::kOutputShape4, output_data4, kGolden1,
-      tflite::testing::kGolden2, kGolden3, kGolden4,
-      /* tolerance */ 3e-1, /* Use regular NMS: */ true, input_data_quantized1,
-      input_data_quantized2, input_data_quantized3,
-      /* input1 min/max*/ -1.0, 1.0, /* input2 min/max */ 0.0, 1.0,
-      /* input3 min/max */ 0.0, 100.5);
 }
 
 TF_LITE_MICRO_TEST(
@@ -411,57 +301,7 @@ TF_LITE_MICRO_TEST(
 }
 
 TF_LITE_MICRO_TEST(
-    DetectionPostprocessQuantizedFastNMSwithNoBackgroundClassAndKeypoints) {
-  int kInputShape1[] = {3, 1, 6, 5};
-  int kInputShape2[] = {3, 1, 6, 2};
-
-  // six boxes in center-size encoding
-  const float kInputData1[] = {
-      0.0, 0.0,  0.0, 0.0, 1.0,  // box #1
-      0.0, 1.0,  0.0, 0.0, 1.0,  // box #2
-      0.0, -1.0, 0.0, 0.0, 1.0,  // box #3
-      0.0, 0.0,  0.0, 0.0, 1.0,  // box #4
-      0.0, 1.0,  0.0, 0.0, 1.0,  // box #5
-      0.0, 0.0,  0.0, 0.0, 1.0,  // box #6
-  };
-
-  // class scores - two classes without background
-  const float kInputData2[] = {.9,  .8,  .75, .72, .6, .5,
-                               .93, .95, .5,  .4,  .3, .2};
-
-  constexpr int kInputElements1 =
-      1 * 6 * 5;  // kInputShape1[1] * kInputShape1[2] * kInputShape1[3];
-  constexpr int kInputElements2 =
-      1 * 6 * 2;  // kInputShape2[1] * kInputShape2[2] * kInputShape2[3];
-  constexpr int kInputElements3 = 6 * 4;  // tflite::testing::kInputShape3[1] *
-                                          // tflite::testing::kInputShape3[2];
-
-  uint8_t input_data_quantized1[kInputElements1];
-  uint8_t input_data_quantized2[kInputElements2];
-  uint8_t input_data_quantized3[kInputElements3];
-
-  float output_data1[12];
-  float output_data2[3];
-  float output_data3[3];
-  float output_data4[1];
-
-  tflite::testing::TestDetectionPostprocess(
-      kInputShape1, kInputData1, kInputShape2, kInputData2,
-      tflite::testing::kInputShape3, tflite::testing::kInputData3,
-      tflite::testing::kOutputShape1, output_data1,
-      tflite::testing::kOutputShape2, output_data2,
-      tflite::testing::kOutputShape3, output_data3,
-      tflite::testing::kOutputShape4, output_data4, tflite::testing::kGolden1,
-      tflite::testing::kGolden2, tflite::testing::kGolden3,
-      tflite::testing::kGolden4,
-      /* tolerance */ 3e-1, /* Use regular NMS: */ false, input_data_quantized1,
-      input_data_quantized2, input_data_quantized3,
-      /* input1 min/max*/ -1.0, 1.0, /* input2 min/max */ 0.0, 1.0,
-      /* input3 min/max */ 0.0, 100.5);
-}
-
-TF_LITE_MICRO_TEST(
-    DetectionPostprocessQuantizedSwithNoBackgroundClassAndKeypointsStableSort) {
+    DetectionPostprocessFloatFNMSSwithNoBackgroundClassAndKeypointsStableSort) {
   int kInputShape1[] = {3, 1, 6, 5};
   int kInputShape2[] = {3, 1, 6, 2};
 
@@ -479,18 +319,6 @@ TF_LITE_MICRO_TEST(
   const float kInputData2[] = {0.015625, 0.007812, 0.003906, 0.015625,
                                0.015625, 0.007812, 0.019531, 0.019531,
                                0.007812, 0.003906, 0.003906, 0.003906};
-
-  constexpr int kInputElements1 =
-      1 * 6 * 5;  // kInputShape1[1] * kInputShape1[2] * kInputShape1[3];
-  constexpr int kInputElements2 =
-      1 * 6 * 2;  // kInputShape2[1] * kInputShape2[2] * kInputShape2[3];
-  constexpr int kInputElements3 = 6 * 4;  // tflite::testing::kInputShape3[1] *
-                                          // tflite::testing::kInputShape3[2];
-
-  uint8_t input_data_quantized1[kInputElements1];
-  uint8_t input_data_quantized2[kInputElements2];
-  uint8_t input_data_quantized3[kInputElements3];
-
   float output_data1[12];
   float output_data2[3];
   float output_data3[3];
@@ -507,10 +335,7 @@ TF_LITE_MICRO_TEST(
       tflite::testing::kOutputShape3, output_data3,
       tflite::testing::kOutputShape4, output_data4, tflite::testing::kGolden1,
       kGolden2, kGolden3, tflite::testing::kGolden4,
-      /* tolerance */ 3e-1, /* Use regular NMS: */ false, input_data_quantized1,
-      input_data_quantized2, input_data_quantized3,
-      /* input1 min/max*/ -1.0, 1.0, /* input2 min/max */ 0.0, 1.0,
-      /* input3 min/max */ 0.0, 100.5);
+      /* tolerance */ 3e-1, /* Use regular NMS: */ false);
 }
 
 TF_LITE_MICRO_TESTS_END

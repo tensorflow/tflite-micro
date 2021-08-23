@@ -56,12 +56,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE(context, NumDimensions(input) <= 4);
 
-  TF_LITE_ENSURE(context, output->type == kTfLiteFloat32 ||
-                              output->type == kTfLiteUInt8 ||
-                              output->type == kTfLiteInt8);
+  TF_LITE_ENSURE(context,
+                 output->type == kTfLiteFloat32 || output->type == kTfLiteInt8);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
-  if (output->type == kTfLiteUInt8 || output->type == kTfLiteInt8) {
+  if (output->type == kTfLiteInt8) {
     data->input_zero_point = input->params.zero_point;
   } else if (output->type == kTfLiteFloat32) {
     data->input_zero_point = 0;
@@ -109,12 +108,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                    tflite::micro::GetTensorShape(output),
                                    tflite::micro::GetTensorData<float>(output),
                                    epsilon);
-  } else if (output->type == kTfLiteUInt8) {
-    reference_ops::L2Normalization(
-        data, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<uint8_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<uint8_t>(output));
   } else if (output->type == kTfLiteInt8) {
     const auto input_shape = tflite::micro::GetTensorShape(input);
     const auto output_shape = tflite::micro::GetTensorShape(output);
