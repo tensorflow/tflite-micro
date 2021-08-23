@@ -2,6 +2,7 @@ load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
 load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
 
 package(
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
@@ -120,6 +121,7 @@ cc_library(
         "cast.cc",
         "ceil.cc",
         "circular_buffer.cc",
+        "circular_buffer_common.cc",
         "comparisons.cc",
         "concatenation.cc",
         "conv.cc",
@@ -149,6 +151,7 @@ cc_library(
         "l2_pool_2d.cc",
         "l2norm.cc",
         "leaky_relu.cc",
+        "leaky_relu_common.cc",
         "log_softmax.cc",
         "logical.cc",
         "logical_common.cc",
@@ -189,11 +192,13 @@ cc_library(
     ],
     hdrs = [
         "activations.h",
+        "circular_buffer.h",
         "conv.h",
         "depthwise_conv.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
+        "leaky_relu.h",
         "logical.h",
         "logistic.h",
         "micro_ops.h",

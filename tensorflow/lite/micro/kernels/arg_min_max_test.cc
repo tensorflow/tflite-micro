@@ -129,44 +129,6 @@ TF_LITE_MICRO_TEST(GetMinArgFloat) {
                                       goldens, true);
 }
 
-TF_LITE_MICRO_TEST(GetMaxArgUInt8) {
-  int32_t output_data[1];
-  const int input_size = 4;
-  int input_dims[] = {4, 1, 1, 1, input_size};
-  const float input_values[] = {1, 9, 7, 3};
-  int axis_dims[] = {3, 1, 1, 1};
-  const int32_t axis_values[] = {3};
-  int output_dims[] = {3, 1, 1, 1};
-  const int32_t goldens[] = {1};
-
-  float input_scale = 0.5;
-  int input_zero_point = 124;
-  uint8_t input_quantized[input_size];
-
-  tflite::testing::TestArgMinMaxQuantized(
-      input_dims, input_values, input_quantized, input_scale, input_zero_point,
-      axis_dims, axis_values, output_dims, output_data, goldens, false);
-}
-
-TF_LITE_MICRO_TEST(GetMinArgUInt8) {
-  int32_t output_data[1];
-  const int input_size = 4;
-  int input_dims[] = {4, 1, 1, 1, input_size};
-  const float input_values[] = {1, 9, 7, 3};
-  int axis_dims[] = {3, 1, 1, 1};
-  const int32_t axis_values[] = {3};
-  int output_dims[] = {3, 1, 1, 1};
-  const int32_t goldens[] = {0};
-
-  float input_scale = 0.5;
-  int input_zero_point = 124;
-  uint8_t input_quantized[input_size];
-
-  tflite::testing::TestArgMinMaxQuantized(
-      input_dims, input_values, input_quantized, input_scale, input_zero_point,
-      axis_dims, axis_values, output_dims, output_data, goldens, true);
-}
-
 TF_LITE_MICRO_TEST(GetMaxArgInt8) {
   int32_t output_data[1];
   const int input_size = 4;
