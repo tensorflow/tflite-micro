@@ -23,10 +23,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: get info file from main
-        uses: actions/checkout@v2
-        with:
-          path: main_ref
 
       - name: Install dependencies
         run: |
@@ -38,10 +34,14 @@ jobs:
 
       - name: Update size history and commit
         run: |
+          # Live debug inconsistency between manual trigger and ci:test label.
+          git status
           rm -rf tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           ci/size_comp.py -t ci/size_log.txt tensorflow/lite/micro/tools/ci_build/binary_size_history/binary_size.json
           git config user.name tflm_bot
           git config user.email tflm_bot@github.com
           git add tensorflow/lite/micro/tools/ci_build/binary_size_history/*
+          # Live debug inconsistency between manual trigger and ci:test label.
+          git status
           git commit --allow-empty  -m "Update binary size history by CI bot"
-          git push origin ${GITHUB_HEAD_REF} 
+          git push origin HEAD:${GITHUB_HEAD_REF} 
