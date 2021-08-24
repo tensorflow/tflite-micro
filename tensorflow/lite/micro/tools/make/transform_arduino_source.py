@@ -13,26 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Resolves non-system C/C++ includes to their full paths.
-
-Used to generate Arduino and ESP-IDF examples.
-"""
+"""Resolves non-system C/C++ includes to their full paths to help Arduino."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import argparse
-import os
 import re
 import sys
 
 import six
 
-EXAMPLE_DIR_PATH = 'tensorflow/lite/micro/examples/'
 
-
-def replace_arduino_includes(line, supplied_headers_list):
+def replace_includes(line, supplied_headers_list):
   """Updates any includes to reference the new Arduino library paths."""
   include_match = re.match(r'(.*#include.*")(.*)(")', line)
   if include_match:
@@ -46,7 +40,7 @@ def replace_arduino_includes(line, supplied_headers_list):
   return line
 
 
-def replace_arduino_main(line):
+def replace_main(line):
   """Updates any occurrences of a bare main definition to the Arduino equivalent."""
   main_match = re.match(r'(.*int )(main)(\(.*)', line)
   if main_match:
@@ -74,7 +68,7 @@ def add_example_ino_library_include(input_text):
                 input_text, 1)
 
 
-def replace_arduino_example_includes(line, _):
+def replace_example_includes(line, _):
   """Updates any includes for local example files."""
   # Because the export process moves the example source and header files out of
   # their default locations into the top-level 'examples' folder in the Arduino
@@ -88,43 +82,19 @@ def replace_arduino_example_includes(line, _):
   return line
 
 
-def replace_esp_example_includes(line, source_path):
-  """Updates any includes for local example files."""
-  # Because the export process moves the example source and header files out of
-  # their default locations into the top-level 'main' folder in the ESP-IDF
-  # project, we have to update any include references to match.
-  include_match = re.match(r'.*#include.*"(' + EXAMPLE_DIR_PATH + r'.*)"',
-                           line)
+def main(unused_args, flags):
+  """Transforms the input source file to work when exported to Arduino."""
+  input_file_lines = sys.stdin.read().split('\n')
 
-  if include_match:
-    # Compute the target path relative from the source's directory
-    target_path = include_match.group(1)
-    source_dirname = os.path.dirname(source_path)
-    rel_to_target = os.path.relpath(target_path, start=source_dirname)
-
-    line = '#include "%s"' % rel_to_target
-  return line
-
-
-def transform_arduino_sources(input_lines, flags):
-  """Transform sources for the Arduino platform.
-
-  Args:
-    input_lines: A sequence of lines from the input file to process.
-    flags: Flags indicating which transformation(s) to apply.
-
-  Returns:
-    The transformed output as a string.
-  """
   supplied_headers_list = six.ensure_str(flags.third_party_headers).split(' ')
 
   output_lines = []
-  for line in input_lines:
-    line = replace_arduino_includes(line, supplied_headers_list)
+  for line in input_file_lines:
+    line = replace_includes(line, supplied_headers_list)
     if flags.is_example_ino or flags.is_example_source:
-      line = replace_arduino_example_includes(line, flags.source_path)
+      line = replace_example_includes(line, flags.source_path)
     else:
-      line = replace_arduino_main(line)
+      line = replace_main(line)
     output_lines.append(line)
   output_text = '\n'.join(output_lines)
 
@@ -132,49 +102,12 @@ def transform_arduino_sources(input_lines, flags):
     output_text = check_ino_functions(output_text)
     output_text = add_example_ino_library_include(output_text)
 
-  return output_text
-
-
-def transform_esp_sources(input_lines, flags):
-  """Transform sources for the ESP-IDF platform.
-
-  Args:
-    input_lines: A sequence of lines from the input file to process.
-    flags: Flags indicating which transformation(s) to apply.
-
-  Returns:
-    The transformed output as a string.
-  """
-  output_lines = []
-  for line in input_lines:
-    if flags.is_example_source:
-      line = replace_esp_example_includes(line, flags.source_path)
-    output_lines.append(line)
-
-  output_text = '\n'.join(output_lines)
-  return output_text
-
-
-def main(unused_args, flags):
-  """Transforms the input source file to work when exported as example."""
-  input_file_lines = sys.stdin.read().split('\n')
-
-  output_text = ''
-  if flags.platform == 'arduino':
-    output_text = transform_arduino_sources(input_file_lines, flags)
-  elif flags.platform == 'esp':
-    output_text = transform_esp_sources(input_file_lines, flags)
-
   sys.stdout.write(output_text)
 
 
 def parse_args():
   """Converts the raw arguments into accessible flags."""
   parser = argparse.ArgumentParser()
-  parser.add_argument('--platform',
-                      choices=['arduino', 'esp'],
-                      required=True,
-                      help='Target platform.')
   parser.add_argument('--third_party_headers',
                       type=str,
                       default='',

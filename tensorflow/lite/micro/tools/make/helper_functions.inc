@@ -220,6 +220,150 @@ endif
 endif
 endef
 
+
+
+
+
+# Creates a set of rules to build a standalone Arduino project for an
+# executable, including all of the source and header files required in a
+# separate folder and a simple makefile.
+# Arguments are:
+# 1 - Project file template names.
+# 2 - Name of executable.
+# 3 - List of C/C++ source files needed to build the target.
+# 4 - List of C/C++ header files needed to build the target.
+# 5 - Linker flags required.
+# 6 - C++ compilation flags needed.
+# 7 - C compilation flags needed.
+# Calling eval on the output will create a <Name>_makefile target that you
+# can invoke to create the standalone project.
+define generate_arduino_project
+
+$(PRJDIR)$(2)/arduino/examples/%.c: tensorflow/lite/micro/examples/%.c
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --is_example_source \
+        --source_path="$$<" \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/examples/%.cpp: tensorflow/lite/micro/examples/%.cc
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --is_example_source \
+        --source_path="$$<" \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/examples/%.h: tensorflow/lite/micro/examples/%.h
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --is_example_source \
+        --source_path="$$<" \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/examples/%/main.ino: tensorflow/lite/micro/examples/%/main_functions.cc
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --is_example_ino \
+        --source_path="$$<" \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/src/%.cpp: %.cc
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/src/%.h: %.h third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/LICENSE: LICENSE
+	@mkdir -p $$(dir $$@)
+	@cp $$< $$@
+
+$(PRJDIR)$(2)/arduino/src/%: % third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/src/third_party/%: tensorflow/lite/micro/tools/make/downloads/% third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/src/third_party/%.cpp: tensorflow/lite/micro/tools/make/downloads/%.cc third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< > $$@
+
+$(PRJDIR)$(2)/arduino/src/third_party/flatbuffers/include/flatbuffers/base.h: tensorflow/lite/micro/tools/make/downloads/flatbuffers/include/flatbuffers/base.h third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< | \
+        sed -E 's/utility\.h/utility/g' > $$@
+
+$(PRJDIR)$(2)/arduino/src/third_party/kissfft/kiss_fft.h: tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h third_party_downloads
+	@mkdir -p $$(dir $$@)
+	@python tensorflow/lite/micro/tools/make/transform_source.py \
+        --platform=arduino \
+        --third_party_headers="$(4)" < $$< | \
+        sed -E 's@#include <string.h>@//#include <string.h> /* Patched by helper_functions.inc for Arduino compatibility */@g' > $$@
+
+$(PRJDIR)$(2)/arduino/%: tensorflow/lite/micro/tools/make/templates/%
+	@mkdir -p $$(dir $$@)
+	@sed -E 's#\%\{SRCS\}\%#$(3)#g' $$< | \
+	sed -E 's#\%\{EXECUTABLE\}\%#$(2)#g' | \
+	sed -E 's#\%\{LINKER_FLAGS\}\%#$(5)#g' | \
+	sed -E 's#\%\{CXX_FLAGS\}\%#$(6)#g' | \
+	sed -E 's#\%\{CC_FLAGS\}\%#$(7)#g' > $$@
+
+$(PRJDIR)$(2)/arduino/examples/$(2)/$(2).ino: tensorflow/lite/micro/tools/make/templates/arduino_example.ino
+	@mkdir -p $$(dir $$@)
+	@cp $$< $$@
+
+$(PRJDIR)$(2)/arduino/src/TensorFlowLite.h: tensorflow/lite/micro/tools/make/templates/TensorFlowLite.h
+	@mkdir -p $$(dir $$@)
+	@cp $$< $$@
+
+# This would be cleaner if we broke up the list of dependencies into variables,
+# but these get hard to define with the evaluation approach used to define make
+# functions.
+generate_$(2)_arduino_project: \
+$(addprefix $(PRJDIR)$(2)/arduino/,         \
+$(patsubst tensorflow/%,src/tensorflow/%,\
+$(patsubst examples/%/main_functions.cpp,examples/%/main.ino,\
+$(patsubst examples/%_test.cpp,examples/%_test.ino,\
+$(patsubst tensorflow/lite/micro/examples/%,examples/%,\
+$(patsubst third_party/%,src/third_party/%,\
+$(patsubst %.cc,%.cpp,$(3))))))))                                     \
+$(addprefix $(PRJDIR)$(2)/arduino/, \
+$(patsubst tensorflow/%,src/tensorflow/%,\
+$(patsubst tensorflow/lite/micro/examples/%,examples/%,\
+$(patsubst third_party/%,src/third_party/%,$(4))))) \
+$(addprefix $(PRJDIR)$(2)/arduino/,$(1)) \
+$(PRJDIR)$(2)/arduino/src/TensorFlowLite.h
+
+generate_$(2)_arduino_library_zip: generate_$(2)_arduino_project
+	cp -r $(PRJDIR)$(2)/arduino $(PRJDIR)$(2)/tensorflow_lite
+	python tensorflow/lite/micro/tools/make/fix_arduino_subfolders.py $(PRJDIR)$(2)/tensorflow_lite
+	@cd $(PRJDIR)$(2) && zip -q -r tensorflow_lite.zip tensorflow_lite
+
+ALL_PROJECT_TARGETS += $(if $(findstring _test,$(2)),,generate_$(2)_arduino_library_zip)
+
+    ARDUINO_LIBRARY_ZIPS += $(if $(findstring _mock,$(2)),,$(if $(findstring _test,$(2)),,$(PRJDIR)$(2)/tensorflow_lite.zip))
+
+endef
+
 # Creates a set of rules to build a standalone ESP-IDF project for an
 # executable, including all of the source and header files required in a
 # separate folder.
@@ -318,6 +462,9 @@ $(call generate_ceva_bx1_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_
 $(call generate_ceva_sp500_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
 $(call generate_project,mbed,$(MBED_PROJECT_FILES) $($(1)_MBED_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(TARGET_TOOLCHAIN_ROOT),$(TARGET_TOOLCHAIN_PREFIX))
 $(call generate_project,keil,$(KEIL_PROJECT_FILES) $($(1)_KEIL_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(TARGET_TOOLCHAIN_ROOT),$(TARGET_TOOLCHAIN_PREFIX))
+ifeq (,$(findstring _benchmark,$(1)))
+  $(call generate_arduino_project,$(ARDUINO_PROJECT_FILES) $($(1)_ARDUINO_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS))
+endif
 $(call generate_esp_project,$(ESP_PROJECT_FILES) $($(1)_ESP_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS),$(2),$(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(PROJECT_INCLUDES))
 endef
 
