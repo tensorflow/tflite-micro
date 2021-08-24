@@ -447,6 +447,11 @@ ESP_PROJECT_FILES := \
 
 ALL_PROJECT_TARGETS :=
 
+# The download scripts require that the downloads directory already exist for
+# improved error checking. To accomodate that, we first create a downloads
+# directory.
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+
 # Directly download the flatbuffers library.
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
