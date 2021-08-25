@@ -101,8 +101,6 @@ TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context, TfLiteNode* node)
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const HexagonOpDataFullyConnected& data =
-      *(static_cast<const HexagonOpDataFullyConnected*>(node->user_data));
 
   // Checks in Prepare ensure input, output and filter types are all the same.
   switch (input->type) {

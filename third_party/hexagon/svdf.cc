@@ -92,7 +92,7 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     case kTfLiteInt8: {
-      return SvdfEvalInt8(context, node);
+      return HexagonSvdfEvalInt8(context, node);
     }
 
     default:
@@ -104,9 +104,9 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_SVDF() {
-  return {/*init=*/SvdfInit,
+  return {/*init=*/HexagonSvdfInit,
           /*free=*/nullptr,
-          /*prepare=*/SvdfPrepare,
+          /*prepare=*/HexagonSvdfPrepare,
           /*invoke=*/SvdfEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
