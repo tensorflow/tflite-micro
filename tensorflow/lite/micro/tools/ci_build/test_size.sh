@@ -33,7 +33,6 @@ function build_target() {
   local build_type=$2
   local target=$3
   local target_arch=$4
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
   readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
   readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
 
@@ -51,13 +50,15 @@ ROOT_DIR=${SCRIPT_DIR}/../../../../..
 
 # Build a binary for the current repo
 cd "${ROOT_DIR}"
+# Clean once.
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+
 build_target ${BENCHMARK_TARGET} default linux x86_64
 CURRENT_BINARY=${__BINARY_TARGET_PATH}
 size ${CURRENT_BINARY} > ${ROOT_DIR}/ci/size_log.txt
 
 # Get a clone of the main repo as the reference.
-REF_ROOT_DIR="${ROOT_DIR}/tmp/main_ref"
-rm -rf ${REF_ROOT_DIR}
+REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/../main_ref.XXXXXX)"
 git clone https://github.com/tensorflow/tflite-micro.git  ${REF_ROOT_DIR}
 
 # Build a binary for the main repo.

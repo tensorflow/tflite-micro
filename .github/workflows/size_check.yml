@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          path: pr_head_ref
 
       - name: Install dependencies
         run: |
