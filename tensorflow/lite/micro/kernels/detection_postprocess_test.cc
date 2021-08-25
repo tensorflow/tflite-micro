@@ -300,4 +300,42 @@ TF_LITE_MICRO_TEST(
       /* tolerance */ 0, /* Use regular NMS: */ false);
 }
 
+TF_LITE_MICRO_TEST(
+    DetectionPostprocessFloatFNMSSwithNoBackgroundClassAndKeypointsStableSort) {
+  int kInputShape1[] = {3, 1, 6, 5};
+  int kInputShape2[] = {3, 1, 6, 2};
+
+  // six boxes in center-size encoding
+  const float kInputData1[] = {
+      0.0, 0.0,  0.0, 0.0, 1.0,  // box #1
+      0.0, 1.0,  0.0, 0.0, 1.0,  // box #2
+      0.0, -1.0, 0.0, 0.0, 1.0,  // box #3
+      0.0, 0.0,  0.0, 0.0, 1.0,  // box #4
+      0.0, 1.0,  0.0, 0.0, 1.0,  // box #5
+      0.0, 0.0,  0.0, 0.0, 1.0,  // box #6
+  };
+
+  // class scores - two classes without background
+  const float kInputData2[] = {0.015625, 0.007812, 0.003906, 0.015625,
+                               0.015625, 0.007812, 0.019531, 0.019531,
+                               0.007812, 0.003906, 0.003906, 0.003906};
+  float output_data1[12];
+  float output_data2[3];
+  float output_data3[3];
+  float output_data4[1];
+
+  const float kGolden2[] = {0, 0, 0};
+  const float kGolden3[] = {0.0196078, 0.0156863, 0.00392157};
+
+  tflite::testing::TestDetectionPostprocess(
+      kInputShape1, kInputData1, kInputShape2, kInputData2,
+      tflite::testing::kInputShape3, tflite::testing::kInputData3,
+      tflite::testing::kOutputShape1, output_data1,
+      tflite::testing::kOutputShape2, output_data2,
+      tflite::testing::kOutputShape3, output_data3,
+      tflite::testing::kOutputShape4, output_data4, tflite::testing::kGolden1,
+      kGolden2, kGolden3, tflite::testing::kGolden4,
+      /* tolerance */ 3e-1, /* Use regular NMS: */ false);
+}
+
 TF_LITE_MICRO_TESTS_END

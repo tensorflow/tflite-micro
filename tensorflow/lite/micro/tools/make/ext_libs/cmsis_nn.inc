@@ -59,9 +59,3 @@ INCLUDES += \
   -I$(CMSIS_PATH)/CMSIS/Core/Include \
   -I$(CMSIS_PATH)/CMSIS/DSP/Include \
   -I$(CMSIS_PATH)/CMSIS/NN/Include
-
-CMSIS_FLAGS = \
-  -Wno-strict-aliasing
-
-CCFLAGS += $(CMSIS_FLAGS)
-CXXFLAGS += $(CMSIS_FLAGS)

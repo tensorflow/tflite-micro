@@ -26,6 +26,12 @@ ifeq ($(TARGET_ARCH), cortex-m0)
   CORE=M0
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0
 
+
+else ifeq ($(TARGET_ARCH), cortex-m0plus)
+  CORE=M0plus
+  ARM_LDFLAGS := -Wl,--cpu=Cortex-M0plus
+
+
 else ifeq ($(TARGET_ARCH), cortex-m3)
   CORE=M3
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M3
@@ -50,6 +56,13 @@ else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
   TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
   FLOAT=hard
+  GCC_TARGET_ARCH := cortex-m4
+
+else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
+  CORE=M4
+  ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
+  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
+  FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
