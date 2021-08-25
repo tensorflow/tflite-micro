@@ -59,7 +59,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace tflite {
 
-TfLiteStatus SvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
   const HexagonOpDataSvdf& data =
@@ -92,11 +92,42 @@ TfLiteStatus SvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+void* HexagonSvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
+
+  if (data == nullptr) {
+    return nullptr;
+  }
+
+  HexagonOpDataSvdf* opdata = static_cast<HexagonOpDataSvdf*>(data);
+  opdata->hexagon_data =
+      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
+
+  return data;
+}
+
+TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TfLiteStatus prepare_status = PrepareSvdf(context, node);
+  if (prepare_status != kTfLiteOk) {
+    return prepare_status;
+  }
+
+  tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
+
+  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
+    TF_LITE_ENSURE_OK(context,
+                      tflite::hexagon_svdf::HexagonPrepare(context, node));
+  } 
+
+  return kTfLiteOk;
+}
+
 TfLiteRegistration Register_SVDF_INT8() {
-  return {/*init=*/SvdfInit,
+  return {/*init=*/HexagonSvdfInit,
           /*free=*/nullptr,
-          /*prepare=*/SvdfPrepare,
-          /*invoke=*/SvdfEvalInt8,
+          /*prepare=*/HexagonSvdfPrepare,
+          /*invoke=*/HexagonSvdfEvalInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

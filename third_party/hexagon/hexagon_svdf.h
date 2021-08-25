@@ -27,9 +27,9 @@ struct HexagonOpDataSvdf {
   void* hexagon_data;
 };
 
-void* SvdfInit(TfLiteContext* context, const char* buffer, size_t length);
-TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node);
-TfLiteStatus SvdfEvalInt8(TfLiteContext* context, TfLiteNode* node);
+void* HexagonSvdfInit(TfLiteContext* context, const char* buffer, size_t length);
+TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 

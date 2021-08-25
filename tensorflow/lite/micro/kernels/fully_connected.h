@@ -66,11 +66,6 @@ TfLiteStatus CalculateOpDataFullyConnected(
 TfLiteRegistration Register_FULLY_CONNECTED();
 
 #if defined(CMSIS_NN) || defined(HEXAGON)
-// The Arduino is a special case where we use the CMSIS kernels, but because of
-// the current approach to building for Arduino, we do not support -DCMSIS_NN as
-// part of the build. As a result, we use defined(ARDUINO) as proxy for the
-// CMSIS kernels for this one special case.
-
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8.
 TfLiteRegistration Register_FULLY_CONNECTED_INT8();

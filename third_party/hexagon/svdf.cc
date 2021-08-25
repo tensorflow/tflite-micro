@@ -60,37 +60,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace tflite {
 
-void* SvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
-
-  if (data == nullptr) {
-    return nullptr;
-  }
-
-  HexagonOpDataSvdf* opdata = static_cast<HexagonOpDataSvdf*>(data);
-  opdata->hexagon_data =
-      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
-
-  return data;
-}
-
-TfLiteStatus SvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TfLiteStatus prepare_status = PrepareSvdf(context, node);
-  if (prepare_status != kTfLiteOk) {
-    return prepare_status;
-  }
-
-  tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
-
-  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
-    TF_LITE_ENSURE_OK(context,
-                      tflite::hexagon_svdf::HexagonPrepare(context, node));
-  } 
-
-  return kTfLiteOk;
-}
-
 TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);

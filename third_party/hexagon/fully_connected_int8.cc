@@ -91,7 +91,59 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 
 }  // namespace
 
-TfLiteStatus FullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data = nullptr;
+  data = context->AllocatePersistentBuffer(context,
+                                           sizeof(HexagonOpDataFullyConnected));
+
+  if (data == nullptr) {
+    return nullptr;
+  }
+  HexagonOpDataFullyConnected* opdata =
+      static_cast<HexagonOpDataFullyConnected*>(data);
+  opdata->hexagon_data =
+      tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
+
+  return data;
+}
+
+TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
+  HexagonOpDataFullyConnected* data =
+      static_cast<HexagonOpDataFullyConnected*>(node->user_data);
+  const auto params =
+      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
+
+  const TfLiteTensor* input =
+      GetInput(context, node, kFullyConnectedInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  const TfLiteTensor* filter =
+      GetInput(context, node, kFullyConnectedWeightsTensor);
+  TF_LITE_ENSURE(context, filter != nullptr);
+  const TfLiteTensor* bias =
+      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_MSG(context, input->type == filter->type,
+                     "Hybrid models are not supported on TFLite Micro.");
+
+  tflite::hexagon_fully_connected::HexagonOptimizationEvaluation(context, node);
+
+  if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
+    return tflite::hexagon_fully_connected::HexagonPrepare(context, node);
+  } else {
+    return CalculateOpDataFullyConnected(context, params->activation, input->type, input,
+                           filter, bias, output, &data->reference_op_data);
+  }
+}
+
+TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   const TfLiteEvalTensor* input =
@@ -123,10 +175,10 @@ TfLiteStatus FullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
-  return {/*init=*/FullyConnectedInit,
+  return {/*init=*/HexagonFullyConnectedInit,
           /*free=*/nullptr,
-          /*prepare=*/FullyConnectedPrepare,
-          /*invoke=*/FullyConnectedEvalInt8,
+          /*prepare=*/HexagonFullyConnectedPrepare,
+          /*invoke=*/HexagonFullyConnectedEvalInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

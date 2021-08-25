@@ -58,136 +58,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
+
 namespace {
-
-TfLiteStatus CalculateOpData(TfLiteContext* context,
-                             TfLiteFusedActivation activation,
-                             TfLiteType data_type, const TfLiteTensor* input,
-                             const TfLiteTensor* filter,
-                             const TfLiteTensor* bias, TfLiteTensor* output,
-                             HexagonOpDataFullyConnected* data) {
-  TfLiteStatus status = kTfLiteOk;
-  if (data_type != kTfLiteFloat32) {
-    double real_multiplier = 0.0;
-    TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
-        context, input, filter, bias, output, &real_multiplier));
-    int exponent;
-    QuantizeMultiplier(real_multiplier,
-                       &data->reference_op_data.output_multiplier, &exponent);
-    data->reference_op_data.output_shift = -exponent;
-    TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
-        context, activation, output,
-        &data->reference_op_data.output_activation_min,
-        &data->reference_op_data.output_activation_max));
-
-    data->reference_op_data.input_zero_point = input->params.zero_point;
-    data->reference_op_data.filter_zero_point = filter->params.zero_point;
-    data->reference_op_data.output_zero_point = output->params.zero_point;
-  }
-  return status;
-}
-
-}  // namespace
-
-void* FullyConnectedInit(TfLiteContext* context, const char* buffer,
-                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = nullptr;
-  data = context->AllocatePersistentBuffer(context,
-                                           sizeof(HexagonOpDataFullyConnected));
-
-  if (data == nullptr) {
-    return nullptr;
-  }
-  HexagonOpDataFullyConnected* opdata =
-      static_cast<HexagonOpDataFullyConnected*>(data);
-  opdata->hexagon_data =
-      tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
-
-  return data;
-}
-
-TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  HexagonOpDataFullyConnected* data =
-      static_cast<HexagonOpDataFullyConnected*>(node->user_data);
-  const auto params =
-      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
-
-  const TfLiteTensor* input =
-      GetInput(context, node, kFullyConnectedInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter =
-      GetInput(context, node, kFullyConnectedWeightsTensor);
-  TF_LITE_ENSURE(context, filter != nullptr);
-  const TfLiteTensor* bias =
-      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_MSG(context, input->type == filter->type,
-                     "Hybrid models are not supported on TFLite Micro.");
-
-  tflite::hexagon_fully_connected::HexagonOptimizationEvaluation(context, node);
-
-  if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
-    return tflite::hexagon_fully_connected::HexagonPrepare(context, node);
-  } else {
-    return CalculateOpData(context, params->activation, input->type, input,
-                           filter, bias, output, data);
-  }
-}
-
-TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                           const HexagonOpDataFullyConnected& data,
-                           const TfLiteEvalTensor* input,
-                           const TfLiteEvalTensor* filter,
-                           const TfLiteEvalTensor* bias,
-                           TfLiteEvalTensor* output) {
-  const int32_t input_offset = -data.reference_op_data.input_zero_point;
-  const int32_t filter_offset = -data.reference_op_data.filter_zero_point;
-  const int32_t output_offset = data.reference_op_data.output_zero_point;
-
-  tflite::FullyConnectedParams op_params;
-  op_params.input_offset = input_offset;
-  op_params.weights_offset = filter_offset;
-  op_params.output_offset = output_offset;
-  op_params.output_multiplier = data.reference_op_data.output_multiplier;
-  // Legacy ops used mixed left and right shifts. Now all are +ve-means-left.
-  op_params.output_shift = -data.reference_op_data.output_shift;
-  op_params.quantized_activation_min =
-      data.reference_op_data.output_activation_min;
-  op_params.quantized_activation_max =
-      data.reference_op_data.output_activation_max;
-
-#define TF_LITE_FULLY_CONNECTED(output_data_type)      \
-  reference_ops::FullyConnected(                       \
-      op_params, tflite::micro::GetTensorShape(input), \
-      tflite::micro::GetTensorData<uint8_t>(input),    \
-      tflite::micro::GetTensorShape(filter),           \
-      tflite::micro::GetTensorData<uint8_t>(filter),   \
-      tflite::micro::GetTensorShape(bias),             \
-      tflite::micro::GetTensorData<int32_t>(bias),     \
-      tflite::micro::GetTensorShape(output),           \
-      tflite::micro::GetTensorData<output_data_type>(output))
-  switch (output->type) {
-    case kTfLiteUInt8:
-      TF_LITE_FULLY_CONNECTED(uint8_t);
-      break;
-    case kTfLiteInt16:
-      TF_LITE_FULLY_CONNECTED(int16_t);
-      break;
-    default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(output->type), output->type);
-      return kTfLiteError;
-  }
-
-  return kTfLiteOk;
-}
 
 TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
                        TfLiteFusedActivation activation,
@@ -212,7 +84,9 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
+}  // namespace
+
+TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
@@ -237,10 +111,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
                        output);
 
     case kTfLiteInt8:
-      return FullyConnectedEvalInt8(context, node);
-
-    case kTfLiteUInt8:
-      return EvalQuantized(context, node, data, input, filter, bias, output);
+      return HexagonFullyConnectedEvalInt8(context, node);
 
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
@@ -251,10 +122,10 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  return {/*init=*/FullyConnectedInit,
+  return {/*init=*/HexagonFullyConnectedInit,
           /*free=*/nullptr,
-          /*prepare=*/FullyConnectedPrepare,
-          /*invoke=*/FullyConnectedEval,
+          /*prepare=*/HexagonFullyConnectedPrepare,
+          /*invoke=*/HexagonFullyConnectedEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

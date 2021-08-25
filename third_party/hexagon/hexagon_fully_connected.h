@@ -27,10 +27,10 @@ struct HexagonOpDataFullyConnected {
   void* hexagon_data;
 };
 
-void* FullyConnectedInit(TfLiteContext* context, const char* buffer,
+void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
                          size_t length);
-TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node);
-TfLiteStatus FullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
