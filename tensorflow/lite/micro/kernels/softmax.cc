@@ -93,4 +93,8 @@ TfLiteRegistration Register_SOFTMAX() {
           /*version=*/0};
 }
 
+TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
+  return Register_SOFTMAX();
+}
+
 }  // namespace tflite

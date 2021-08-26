@@ -120,4 +120,8 @@ TfLiteRegistration Register_CONV_2D() {
           /*version=*/0};
 }
 
+TfLiteRegistration Register_CONV_2D_INT8REF() {
+  return Register_CONV_2D();
+}
+
 }  // namespace tflite

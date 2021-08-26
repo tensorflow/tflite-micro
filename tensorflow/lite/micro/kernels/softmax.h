@@ -30,15 +30,9 @@ TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node);
 // (reference or optimized) must define this function.
 TfLiteRegistration Register_SOFTMAX();
 
-#if defined(XTENSA)
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 input and int16 output.
 TfLiteRegistration Register_SOFTMAX_INT8_INT16();
-#else
-inline TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
-  return Register_SOFTMAX();
-}
-#endif
 
 }  // namespace tflite
 
