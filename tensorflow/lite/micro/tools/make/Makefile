@@ -101,14 +101,12 @@ TEST_SCRIPT :=
 
 MICROLITE_LIBS := -lm
 
-# For the target, optimized_kernel_dir, and co-processor as specified on the
+# For the optimized_kernel_dir, and co-processor as specified on the
 # command line we add -D<tag> to the cflags to allow for #idefs in the code.
 #
 # We apply the following transformations (via the tr command):
-#   1. Convert to uppercase (TARGET=xtensa -> -DXTENSA)
-
-ADDITIONAL_DEFINES := -D$(shell echo $(TARGET) | tr [a-z] [A-Z])
-
+#   1. Convert to uppercase (OPTIMIZED_KERNEL_DIR=xtensa -> -DXTENSA)
+ADDITIONAL_DEFINES :=
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(OPTIMIZED_KERNEL_DIR) | tr [a-z] [A-Z])
 endif
