@@ -50,6 +50,19 @@ MicroGraph::MicroGraph(TfLiteContext* context, const Model* model,
   }
 }
 
+MicroGraph::MicroGraph(TfLiteContext* context, const Model* model,
+                       MicroAllocator* allocator, void *user_context)
+    : context_(context),
+      model_(model),
+      allocator_(allocator),
+      current_subgraph_index_(0) {
+  if (model != nullptr) {
+    subgraphs_ = model->subgraphs();
+  }
+
+  context_->user_context = user_context;
+}
+
 MicroGraph::~MicroGraph() {}
 
 TfLiteStatus MicroGraph::InitSubgraphs() {

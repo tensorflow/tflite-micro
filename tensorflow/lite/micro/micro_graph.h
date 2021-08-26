@@ -33,6 +33,10 @@ class MicroGraph {
   // at any time.
   MicroGraph(TfLiteContext* context, const Model* model,
              MicroAllocator* allocator);
+
+  MicroGraph(TfLiteContext* context, const Model* model,
+             MicroAllocator* allocator, void *user_context);
+
   virtual ~MicroGraph();
 
   // Sets up builtin data and calls TfLiteRegistration->Init for every operator
