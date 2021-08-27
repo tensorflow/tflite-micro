@@ -262,7 +262,7 @@ $(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
 
 # Tests the feature provider module using the mock audio provider.
 $(eval $(call microlite_test,feature_provider_mock_test,\
-$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
+$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests the command recognizer module.
 $(eval $(call microlite_test,recognize_commands_test,\
