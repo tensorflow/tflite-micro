@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -42,88 +42,92 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include <math.h>
 
+#include "hexagon_tflm_translation_svdf.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/hexagon/hexagon_fully_connected.h"
+#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/hexagon/hexagon_svdf.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-
-#include "hexagon_tflm_translation_fully_connected.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 
-namespace {
-
-TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
-                       TfLiteFusedActivation activation,
-                       const TfLiteEvalTensor* input,
-                       const TfLiteEvalTensor* filter,
-                       const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
-  float output_activation_min, output_activation_max;
-  CalculateActivationRange(activation, &output_activation_min,
-                           &output_activation_max);
-  tflite::FullyConnectedParams op_params;
-  op_params.float_activation_min = output_activation_min;
-  op_params.float_activation_max = output_activation_max;
-  tflite::reference_ops::FullyConnected(
-      op_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<float>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<float>(filter),
-      tflite::micro::GetTensorShape(bias),
-      tflite::micro::GetTensorData<float>(bias),
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<float>(output));
-  return kTfLiteOk;
-}
-
-}  // namespace
-
-TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-  const auto* params =
-      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
+TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const HexagonOpDataSvdf& data =
+      *(static_cast<const HexagonOpDataSvdf*>(node->user_data));
 
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
-  const TfLiteEvalTensor* filter =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
+      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteEvalTensor* weights_time =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
   const TfLiteEvalTensor* bias =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
+      (NumInputs(node) == 5)
+          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
+          : nullptr;
+  TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
+      context, node, kSvdfInputActivationStateTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
 
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-  // Checks in Prepare ensure input, output and filter types are all the same.
-  switch (input->type) {
-    case kTfLiteFloat32:
-      return EvalFloat(context, node, params->activation, input, filter, bias,
-                       output);
-
-    case kTfLiteInt8:
-      return HexagonFullyConnectedEvalInt8(context, node);
-
-    default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
-      return kTfLiteError;
+  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
+    tflite::hexagon_svdf::HexagonEvalIntegerSVDF(
+        context, node, input, weights_feature, weights_time, bias, params,
+        activation_state, output, node->user_data);
+  } else {
+    EvalIntegerSvdfReference(context, node, input, weights_feature,
+                             weights_time, bias, params, activation_state,
+                             output, data.reference_op_data);
   }
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED() {
-  return {/*init=*/HexagonFullyConnectedInit,
+void* HexagonSvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
+
+  if (data == nullptr) {
+    return nullptr;
+  }
+
+  HexagonOpDataSvdf* opdata = static_cast<HexagonOpDataSvdf*>(data);
+  opdata->hexagon_data =
+      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
+
+  return data;
+}
+
+TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TfLiteStatus prepare_status = PrepareSvdf(context, node);
+  if (prepare_status != kTfLiteOk) {
+    return prepare_status;
+  }
+
+  tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
+
+  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
+    TF_LITE_ENSURE_OK(context,
+                      tflite::hexagon_svdf::HexagonPrepare(context, node));
+  } 
+
+  return kTfLiteOk;
+}
+
+TfLiteRegistration Register_SVDF_INT8() {
+  return {/*init=*/HexagonSvdfInit,
           /*free=*/nullptr,
-          /*prepare=*/HexagonFullyConnectedPrepare,
-          /*invoke=*/HexagonFullyConnectedEval,
+          /*prepare=*/HexagonSvdfPrepare,
+          /*invoke=*/HexagonSvdfEvalInt8,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
