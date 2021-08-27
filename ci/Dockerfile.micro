@@ -36,6 +36,7 @@ RUN pip install yapf
 # https://github.com/tensorflow/tflite-micro/pull/337
 # https://github.com/tensorflow/tflite-micro/pull/410
 RUN pip install Pillow
+RUN pip install Wave
 
 RUN pip install six
 

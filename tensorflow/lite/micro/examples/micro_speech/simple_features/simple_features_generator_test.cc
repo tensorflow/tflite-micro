@@ -16,10 +16,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.h"
-#include "tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.h"
+#include "tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h"
+#include "tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -30,9 +30,8 @@ TF_LITE_MICRO_TEST(TestSimpleFeaturesGenerator) {
 
   uint8_t yes_calculated_data[g_yes_power_spectrum_data_size];
   TfLiteStatus yes_status = GenerateSimpleFeatures(
-      &micro_error_reporter, g_yes_30ms_sample_data,
-      g_yes_30ms_sample_data_size, g_yes_power_spectrum_data_size,
-      yes_calculated_data);
+      &micro_error_reporter, g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
+      g_yes_power_spectrum_data_size, yes_calculated_data);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, yes_status);
 
   for (int i = 0; i < g_yes_power_spectrum_data_size; ++i) {
@@ -47,7 +46,7 @@ TF_LITE_MICRO_TEST(TestSimpleFeaturesGenerator) {
 
   uint8_t no_calculated_data[g_yes_power_spectrum_data_size];
   TfLiteStatus no_status = GenerateSimpleFeatures(
-      &micro_error_reporter, g_no_30ms_sample_data, g_no_30ms_sample_data_size,
+      &micro_error_reporter, g_no_30ms_audio_data, g_no_30ms_audio_data_size,
       g_no_power_spectrum_data_size, no_calculated_data);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, no_status);
 

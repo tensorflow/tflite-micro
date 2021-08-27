@@ -29,6 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
+          pip3 install Wave
 
       # If PR has MEM_CHANGE_OK tag, then does not error out on memory footprint
       # increase and simply produce a report for reviewer to check.
