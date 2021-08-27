@@ -98,15 +98,11 @@ MICRO_FEATURES_GENERATOR_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator_test.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.cc \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_FEATURES_GENERATOR_TEST_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 AUDIO_PROVIDER_TEST_SRCS := \
