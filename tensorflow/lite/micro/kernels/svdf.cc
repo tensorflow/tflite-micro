@@ -66,11 +66,26 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     case kTfLiteInt8: {
-      EvalIntegerSvdfReference(context, node, input, weights_feature,
-                               weights_time, bias, params, activation_state,
-                               output, data);
-      return kTfLiteOk;
-      break;
+      switch (weights_time->type) {
+        case kTfLiteInt16: {
+          EvalIntegerSvdfReference<int16_t>(
+              context, node, input, weights_feature, weights_time, bias, params,
+              activation_state, output, data);
+          return kTfLiteOk;
+          break;
+        }
+        case kTfLiteInt8: {
+          EvalIntegerSvdfReference<int8_t>(
+              context, node, input, weights_feature, weights_time, bias, params,
+              activation_state, output, data);
+          return kTfLiteOk;
+          break;
+        }
+        default:
+          TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
+                             TfLiteTypeGetName(weights_time->type));
+          return kTfLiteError;
+      }
     }
 
     default:

@@ -33,6 +33,7 @@ struct OpDataSvdf {
   // Cached tensor zero point values for quantized operations.
   int input_zero_point;
   int output_zero_point;
+  int activation_state_zero_point;
 };
 
 // Input tensors.
@@ -47,6 +48,8 @@ extern const int kSvdfInputActivationStateTensor;
 extern const int kSvdfOutputTensor;
 
 // TensorflowLite Micro-specific reference implementation for Integer SVDF.
+// One version for each of int8_t and int16_t time_weights/state.
+template <typename T>
 void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* input_tensor,
                               const TfLiteEvalTensor* weights_feature_tensor,
