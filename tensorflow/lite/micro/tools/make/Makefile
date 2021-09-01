@@ -101,14 +101,12 @@ TEST_SCRIPT :=
 
 MICROLITE_LIBS := -lm
 
-# For the target, optimized_kernel_dir, and co-processor as specified on the
+# For the optimized_kernel_dir, and co-processor as specified on the
 # command line we add -D<tag> to the cflags to allow for #idefs in the code.
 #
 # We apply the following transformations (via the tr command):
-#   1. Convert to uppercase (TARGET=xtensa -> -DXTENSA)
-
-ADDITIONAL_DEFINES := -D$(shell echo $(TARGET) | tr [a-z] [A-Z])
-
+#   1. Convert to uppercase (OPTIMIZED_KERNEL_DIR=xtensa -> -DXTENSA)
+ADDITIONAL_DEFINES :=
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(OPTIMIZED_KERNEL_DIR) | tr [a-z] [A-Z])
 endif
@@ -237,6 +235,16 @@ endif
 # runtime that can be linked in to other programs.
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
+# Where compiled objects are stored.
+GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+CORE_OBJDIR := $(GENDIR)obj/core/
+KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
+GENERATED_SRCS_DIR := $(GENDIR)genfiles/
+BINDIR := $(GENDIR)bin/
+LIBDIR := $(GENDIR)lib/
+PRJDIR := $(GENDIR)prj/
+
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.
 # See targets/xtensa_xpg_makefile.inc for an example.
@@ -284,6 +292,7 @@ tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 tensorflow/lite/micro/kernels/cast.cc \
 tensorflow/lite/micro/kernels/ceil.cc \
 tensorflow/lite/micro/kernels/circular_buffer.cc \
+tensorflow/lite/micro/kernels/circular_buffer_common.cc \
 tensorflow/lite/micro/kernels/comparisons.cc \
 tensorflow/lite/micro/kernels/concatenation.cc \
 tensorflow/lite/micro/kernels/conv.cc \
@@ -315,6 +324,7 @@ tensorflow/lite/micro/kernels/kernel_util.cc \
 tensorflow/lite/micro/kernels/l2norm.cc \
 tensorflow/lite/micro/kernels/l2_pool_2d.cc \
 tensorflow/lite/micro/kernels/leaky_relu.cc \
+tensorflow/lite/micro/kernels/leaky_relu_common.cc \
 tensorflow/lite/micro/kernels/logical.cc \
 tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
@@ -443,40 +453,26 @@ ALL_PROJECT_TARGETS :=
 ARDUINO_LIBRARY_TARGETS :=
 ARDUINO_LIBRARY_ZIPS :=
 
-# For some invocations of the makefile, it is useful to avoid downloads. This
-# can be achieved by explicitly passing in DISABLE_DOWNLOADS=true on the command
-# line. Note that for target-specific downloads (e.g. CMSIS) there will need to
-# be corresponding checking in the respecitve included makefiles (e.g.
-# ext_libs/cmsis_nn.inc)
-DISABLE_DOWNLOADS :=
+# The download scripts require that the downloads directory already exist for
+# improved error checking. To accomodate that, we first create a downloads
+# directory.
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
 
-ifneq ($(DISABLE_DOWNLOADS), true)
-  # The download scripts require that the downloads directory already exist for
-  # improved error checking. To accomodate that, we first create a downloads
-  # directory.
-  $(shell mkdir -p ${MAKEFILE_DIR}/downloads)
-
-  # Directly download the flatbuffers library.
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
-  endif
-
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
-  endif
-
-  include $(MAKEFILE_DIR)/third_party_downloads.inc
-  THIRD_PARTY_DOWNLOADS :=
-  $(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
-  $(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
-  $(eval $(call add_third_party_download,$(PERSON_MODEL_URL),$(PERSON_MODEL_MD5),person_model_grayscale,))
-  RESULT := $(shell $(MAKEFILE_DIR)/person_detection_int8_download.sh ${MAKEFILE_DIR}/downloads $(CO_PROCESSOR))
-  ifneq ($(RESULT), SUCCESS)
-    $(error Something went wrong with the person detection int8 model download: $(RESULT))
-  endif
+# Directly download the flatbuffers library.
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
 endif
+
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
+endif
+
+include $(MAKEFILE_DIR)/third_party_downloads.inc
+THIRD_PARTY_DOWNLOADS :=
+$(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
+$(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
 
 # The target-specific makefile must have a name that is exactly
 # TARGET_makefile.inc and is only needed for cross-compilation (i.e. when TARGET
@@ -516,6 +512,16 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
   MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
+  endif
+
 endif
 
 # If a co-processor is specified on the command line with
@@ -547,16 +553,6 @@ ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
-
-# Where compiled objects are stored.
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
-CORE_OBJDIR := $(GENDIR)obj/core/
-KERNEL_OBJDIR := $(GENDIR)obj/kernels/
-THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
-GENERATED_SRCS_DIR := $(GENDIR)genfiles/
-BINDIR := $(GENDIR)bin/
-LIBDIR := $(GENDIR)lib/
-PRJDIR := $(GENDIR)prj/
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
@@ -663,7 +659,11 @@ else
 		$(OBJCOPY) $< $@ -O binary
 endif
 
+# Create kernel test targets.
 include tensorflow/lite/micro/kernels/Makefile.inc
+
+# Create binary size test target.
+include tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
 
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the

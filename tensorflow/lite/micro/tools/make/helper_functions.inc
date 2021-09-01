@@ -492,7 +492,18 @@ $(1)_LOCAL_SRCS := $(2)
 
 ifneq ($(4),)
   # Generate cc files and headers for all models and bitmaps in the test.
-  $(1)_LOCAL_SRCS += $$(shell python3 tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+  GEN_RESULT := $$(shell python3 tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($$(.SHELLSTATUS),0)
+      $$(error Something went wrong: $$(GEN_RESULT))
+    endif
+  endif
+
+  $(1)_LOCAL_SRCS += $$(GEN_RESULT)
 endif
 
 $(1)_LOCAL_SRCS := $$(call specialize,$$($(1)_LOCAL_SRCS))
@@ -509,9 +520,10 @@ $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
 $(1): $$($(1)_BINARY)
 $(1)_bin: $$($(1)_BINARY).bin
 
+MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
+
 ifneq (,$(findstring _test,$(1)))
   MICROLITE_TEST_TARGETS += test_$(1)
-  MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 
 test_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)

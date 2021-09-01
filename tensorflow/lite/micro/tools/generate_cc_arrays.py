@@ -22,32 +22,33 @@ from __future__ import print_function
 from PIL import Image
 import argparse
 import os
+import wave
 
 
-def generate_file(out_fname, array_name, out_string, size):
+def generate_file(out_fname, array_name, array_type, out_string, size):
   ''' Write the out string containing an array of values to a variable in a cc
         file, and create a header file defining the same array. '''
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
     # Log cc file name for Make to include in the build.
-    out_cc_file.write('#include "' +
-                      out_fname.split("genfiles/")[-1].replace('.cc', '.h') +
-                      '"\n\n')
-    out_cc_file.write('const unsigned char ' + array_name + '[] = {')
+    out_cc_file.write('#include "{}"\n\n'.format(
+        out_fname.split("genfiles/")[-1].replace('.cc', '.h')))
+    out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
+        array_type, array_name))
     out_cc_file.write(out_string)
     out_cc_file.write('};\n')
-    out_cc_file.write('const unsigned int ' + array_name + '_size = ' +
-                      str(size) + ';')
+    out_cc_file.write('const unsigned int {}_size = {};'.format(
+        array_name, str(size)))
     out_cc_file.close()
   elif out_fname.endswith('.h'):
     out_hdr_file = open(out_fname, 'w')
-    out_hdr_file.write('extern const unsigned char ' + array_name + '[];\n')
-    out_hdr_file.write('extern const unsigned int ' + array_name + '_size' +
-                       ';')
+    out_hdr_file.write('extern const {} {}[];\n'.format(
+        array_type, array_name))
+    out_hdr_file.write('extern const unsigned int {}_size;'.format(array_name))
     out_hdr_file.close()
   else:
-    raise ValueError('input file must be .tflite, .bmp')
+    raise ValueError('generated file must be end with .cc or .h')
 
 
 def generate_array(input_fname):
@@ -69,16 +70,26 @@ def generate_array(input_fname):
     for byte in image_bytes:
       out_string += hex(byte) + ","
     return [len(image_bytes), out_string]
+  elif input_fname.endswith('.wav'):
+    wav_file = wave.open(input_fname, mode='r')
+    out_string = ""
+    for i in range(wav_file.getnframes()):
+      frame = wav_file.readframes(1)
+      out_string += str(int.from_bytes(frame, byteorder='little',
+                                       signed=True)) + ","
+    return [wav_file.getnframes(), out_string]
   else:
-    raise ValueError('input file must be .tflite, .bmp')
+    raise ValueError('input file must be .tflite, .bmp or .wav')
 
 
 def array_name(input_fname):
   base_array_name = 'g_' + input_fname.split('.')[0].split('/')[-1]
   if input_fname.endswith('.tflite'):
-    return base_array_name + '_model_data'
+    return [base_array_name + '_model_data', 'unsigned char']
   elif input_fname.endswith('.bmp'):
-    return base_array_name + '_image_data'
+    return [base_array_name + '_image_data', 'unsigned char']
+  elif input_fname.endswith('.wav'):
+    return [base_array_name + '_audio_data', 'short']
 
 
 def main():
@@ -98,8 +109,9 @@ def main():
   if args.output.endswith('.cc') or args.output.endswith('.h'):
     assert (len(args.inputs) == 1)
     size, cc_array = generate_array(args.inputs[0])
-    generated_array_name = array_name(args.inputs[0])
-    generate_file(args.output, generated_array_name, cc_array, size)
+    generated_array_name, array_type = array_name(args.inputs[0])
+    generate_file(args.output, generated_array_name, array_type, cc_array,
+                  size)
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
@@ -108,17 +120,21 @@ def main():
         output_base_fname = output_base_fname + '_model_data'
       elif input_file.endswith('.bmp'):
         output_base_fname = output_base_fname + '_image_data'
+      elif input_file.endswith('.wav'):
+        output_base_fname = output_base_fname + '_audio_data'
       else:
-        raise ValueError('input file must be .tflite, .bmp')
+        raise ValueError('input file must be .tflite, .bmp or .wav')
 
       output_cc_fname = output_base_fname + '.cc'
       # Print output cc filename for Make to include it in the build.
       print(output_cc_fname)
       output_hdr_fname = output_base_fname + '.h'
       size, cc_array = generate_array(input_file)
-      generated_array_name = array_name(input_file)
-      generate_file(output_cc_fname, generated_array_name, cc_array, size)
-      generate_file(output_hdr_fname, generated_array_name, cc_array, size)
+      generated_array_name, array_type = array_name(input_file)
+      generate_file(output_cc_fname, generated_array_name, array_type,
+                    cc_array, size)
+      generate_file(output_hdr_fname, generated_array_name, array_type,
+                    cc_array, size)
 
 
 if __name__ == '__main__':

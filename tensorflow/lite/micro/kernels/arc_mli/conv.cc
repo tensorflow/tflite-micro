@@ -311,49 +311,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                   TfLiteConvParams* params, const OpData& data,
-                   const TfLiteEvalTensor* input,
-                   const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias,
-                   TfLiteEvalTensor* im2col, TfLiteEvalTensor* hwcn_weights,
-                   TfLiteEvalTensor* output) {
-#if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-  const int32_t input_offset = -data.input_zero_point;
-  const int32_t filter_offset = -data.filter_zero_point;
-  const int32_t output_offset = data.output_zero_point;
-
-  ConvParams op_params;
-  op_params.padding_type = RuntimePaddingType(params->padding);
-  op_params.padding_values.width = data.padding.width;
-  op_params.padding_values.height = data.padding.height;
-  op_params.stride_width = params->stride_width;
-  op_params.stride_height = params->stride_height;
-  op_params.dilation_width_factor = params->dilation_width_factor;
-  op_params.dilation_height_factor = params->dilation_height_factor;
-  op_params.input_offset = input_offset;
-  op_params.weights_offset = filter_offset;
-  op_params.output_offset = output_offset;
-  op_params.output_multiplier = data.output_multiplier;
-  op_params.output_shift = -data.output_shift;
-  op_params.quantized_activation_min = data.output_activation_min;
-  op_params.quantized_activation_max = data.output_activation_max;
-  reference_ops::Conv(op_params, tflite::micro::GetTensorShape(input),
-                      tflite::micro::GetTensorData<uint8_t>(input),
-                      tflite::micro::GetTensorShape(filter),
-                      tflite::micro::GetTensorData<uint8_t>(filter),
-                      tflite::micro::GetTensorShape(bias),
-                      tflite::micro::GetTensorData<int32_t>(bias),
-                      tflite::micro::GetTensorShape(output),
-                      tflite::micro::GetTensorData<uint8_t>(output),
-                      tflite::micro::GetTensorShape(im2col),
-                      tflite::micro::GetTensorData<uint8_t>(im2col), nullptr);
-#else
-  TF_LITE_KERNEL_LOG(context,
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
-#endif
-}
-
 TfLiteStatus EvalMliQuantizedPerChannel(
     TfLiteContext* context, TfLiteNode* node, TfLiteConvParams* params,
     const OpData& data, const TfLiteEvalTensor* input,
@@ -649,10 +606,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         EvalQuantizedPerChannel(context, node, params, data, input, filter,
                                 bias, output, nullptr);
       }
-      break;
-    case kTfLiteUInt8:
-      EvalQuantized(context, node, params, data, input, filter, bias, nullptr,
-                    nullptr, output);
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",

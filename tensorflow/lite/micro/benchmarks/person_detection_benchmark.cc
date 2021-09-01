@@ -16,15 +16,15 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/examples/person_detection/no_person_image_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -96,24 +96,24 @@ int main(int argc, char** argv) {
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
   tflite::PersonDetectionNIerations(
-      reinterpret_cast<const int8_t*>(g_person_data), 1,
+      reinterpret_cast<const int8_t*>(g_person_image_data), 1,
       "WithPersonDataIterations(1)", *benchmark_runner, profiler);
   profiler.Log();
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
   tflite::PersonDetectionNIerations(
-      reinterpret_cast<const int8_t*>(g_no_person_data), 1,
+      reinterpret_cast<const int8_t*>(g_no_person_image_data), 1,
       "NoPersonDataIterations(1)", *benchmark_runner, profiler);
   profiler.Log();
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
   tflite::PersonDetectionNIerations(
-      reinterpret_cast<const int8_t*>(g_person_data), 10,
+      reinterpret_cast<const int8_t*>(g_person_image_data), 10,
       "WithPersonDataIterations(10)", *benchmark_runner, profiler);
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
   tflite::PersonDetectionNIerations(
-      reinterpret_cast<const int8_t*>(g_no_person_data), 10,
+      reinterpret_cast<const int8_t*>(g_no_person_image_data), 10,
       "NoPersonDataIterations(10)", *benchmark_runner, profiler);
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 }
