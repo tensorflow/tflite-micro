@@ -187,6 +187,14 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
   return kTfLiteOk;
 }
 
+TfLiteStatus MicroInterpreter::SetExternalContext(TfLiteExternalContextType type, 
+                                                  TfLiteExternalContext *ext_ctx) {
+  if (static_cast<int>(type) >= 0 && type < kTfLiteMaxExternalContexts) {
+    external_contexts_[type] = ext_ctx;
+  }
+  return kTfLiteOk;
+}
+
 TfLiteStatus MicroInterpreter::AllocateTensors() {
   SubgraphAllocations* allocations = allocator_.StartModelAllocation(model_);
 
@@ -206,6 +214,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
   context_.GetExecutionPlan = GetGraph;
+  context_.GetExternalContext = GetExternalContext;
   graph_.InitSubgraphs();
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
@@ -377,6 +386,19 @@ TfLiteStatus MicroInterpreter::GetGraph(struct TfLiteContext* context,
       reinterpret_cast<MicroInterpreter*>(context->impl_);
   *args = reinterpret_cast<TfLiteIntArray*>(&interpreter->graph_);
   return kTfLiteOk;
+}
+
+
+TfLiteExternalContext* MicroInterpreter::GetExternalContext(TfLiteContext* context,
+                                          TfLiteExternalContextType type)
+{
+  MicroInterpreter* interpreter =
+      reinterpret_cast<MicroInterpreter*>(context->impl_);
+
+  if (static_cast<int>(type) >= 0 && type < kTfLiteMaxExternalContexts) {
+    return interpreter->external_contexts_[type];
+  }
+  return nullptr;
 }
 
 }  // namespace tflite

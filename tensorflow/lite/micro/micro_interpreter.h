@@ -69,6 +69,9 @@ class MicroInterpreter {
   // TODO(b/149795762): Add this to the TfLiteStatus enum.
   TfLiteStatus Invoke();
 
+  TfLiteStatus SetExternalContext(TfLiteExternalContextType type, 
+                                  TfLiteExternalContext *ext_ctx);
+
   TfLiteTensor* input(size_t index);
   size_t inputs_size() const {
     return model_->subgraphs()->Get(0)->inputs()->size();
@@ -124,6 +127,9 @@ class MicroInterpreter {
   // arena_used_bytes() + 16.
   size_t arena_used_bytes() const { return allocator_.used_bytes(); }
 
+  // List of active external contexts.
+  TfLiteExternalContext* external_contexts_[kTfLiteMaxExternalContexts];
+
  protected:
   const MicroAllocator& allocator() const { return allocator_; }
   const TfLiteContext& context() const { return context_; }
@@ -150,6 +156,8 @@ class MicroInterpreter {
                                          int tensor_idx);
   static TfLiteStatus GetGraph(struct TfLiteContext* context,
                                TfLiteIntArray** args);
+  static TfLiteExternalContext* GetExternalContext(TfLiteContext* context,
+                                                   TfLiteExternalContextType type);
 
   const Model* model_;
   const MicroOpResolver& op_resolver_;
