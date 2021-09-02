@@ -819,6 +819,9 @@ typedef struct TfLiteContext {
   TfLiteStatus (*GetModelMetadata)(const struct TfLiteContext* context,
                                    const char* name, const char** ptr,
                                    size_t* bytes);
+
+  void *user_context;
+
 } TfLiteContext;
 
 typedef struct TfLiteRegistration {
