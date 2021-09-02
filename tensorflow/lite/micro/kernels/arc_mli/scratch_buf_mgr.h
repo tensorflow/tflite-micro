@@ -30,11 +30,11 @@ namespace micro {
  * @detail This function will update the data pointers in the 4 tensors with
  * pointers to scratch buffers in fast local memory.
  *
- * @param context  [I] pointer to TfLite context (needed for error handling)
- * @param in [IO] pointer to the input tensor
- * @param weights [IO] pointer to the weights tensor
- * @param bias [IO] pointer to the bias tensor
- * @param output [IO] pointer to the output tensor
+ * @param context   [I] pointer to TfLite context (needed for error handling)
+ * @param in        [IO] pointer to the input tensor
+ * @param weights   [IO] pointer to the weights tensor
+ * @param bias      [IO] pointer to the bias tensor
+ * @param output    [IO] pointer to the output tensor
  *
  * @return Tf Lite status code
  */
@@ -49,9 +49,9 @@ TfLiteStatus get_arc_scratch_buffer_for_conv_tensors(
  * @detail This function will update the data pointers in the 2 tensors with
  * pointers to scratch buffers in fast local memory.
  *
- * @param context  [I] pointer to TfLite context (needed for error handling)
- * @param in [IO] pointer to the input tensor
- * @param output [IO] pointer to the output tensor
+ * @param context   [I] pointer to TfLite context (needed for error handling)
+ * @param in        [IO] pointer to the input tensor
+ * @param output    [IO] pointer to the output tensor
  *
  * @return Tf Lite status code
  */
@@ -64,17 +64,34 @@ TfLiteStatus get_arc_scratch_buffer_for_pooling_tensors(
  * @detail This function will update the data pointers in the 4 tensors with
  * pointers to scratch buffers in fast local memory.
  *
- * @param context  [I] pointer to TfLite context (needed for error handling)
- * @param in [IO] pointer to the input tensor
- * @param weights [IO] pointer to the weights tensor
- * @param bias [IO] pointer to the bias tensor
- * @param output [IO] pointer to the output tensor
+ * @param context   [I] pointer to TfLite context (needed for error handling)
+ * @param in        [IO] pointer to the input tensor
+ * @param weights   [IO] pointer to the weights tensor
+ * @param bias      [IO] pointer to the bias tensor
+ * @param output    [IO] pointer to the output tensor
  *
  * @return Tf Lite status code
  */
 TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
     TfLiteContext* context, MliTensorInterface* in, MliTensorInterface* weights,
     MliTensorInterface* bias, MliTensorInterface* out);
+
+/**
+ * @brief Function to allocate scratch buffers for the eltwise function tensors
+ *
+ * @detail This function will update the data pointers in the 3 tensors with
+ * pointers to scratch buffers in fast local memory.
+ *
+ * @param context   [I] pointer to TfLite context (needed for error handling)
+ * @param in1       [IO] pointer to the first input tensor
+ * @param in2       [IO] pointer to the second input tensor
+ * @param output    [IO] pointer to the output tensor
+ *
+ * @return Tf Lite status code
+ */
+TfLiteStatus get_arc_scratch_buffer_for_eltwise_tensors(
+    TfLiteContext* context, MliTensorInterface* in1, MliTensorInterface* in2,
+    MliTensorInterface* out);
 
 /**
  * @brief Function to calculate slice size for io tensors
@@ -84,14 +101,15 @@ TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
  * padding. the function will look at the capacity filed in the in and out
  * tensor to determine the available buffersize.
  *
- * @param in [I] pointer to the input tensor
- * @param out [I] pointer to the output tensor
- * @param kernelHeight [I] size of the kernel in height dimension
- * @param strideHeight [I] input stride in height dimension
- * @param padding_top [I] number of lines with zeros at the top
- * @param padding_bot [I] number of lines with zeros at the bottom
- * @param inSliceHeight [O] slice size in height dimension for the input tensor
- * @param outSliceHeight [O] slice size in height dimension for the output
+ * @param in                [I] pointer to the input tensor
+ * @param out               [I] pointer to the output tensor
+ * @param kernelHeight      [I] size of the kernel in height dimension
+ * @param strideHeight      [I] input stride in height dimension
+ * @param padding_top       [I] number of lines with zeros at the top
+ * @param padding_bot       [I] number of lines with zeros at the bottom
+ * @param inSliceHeight     [O] slice size in height dimension for the input
+ * tensor
+ * @param outSliceHeight    [O] slice size in height dimension for the output
  * tensor
  *
  * @return Tf Lite status code
@@ -108,11 +126,11 @@ TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
  * dimension for weight and bias tensors. the function will look at the capacity
  * filed in the weights and bias tensor to determine the available buffersize.
  *
- * @param weights [I] pointer to the input tensor
- * @param bias [I] pointer to the output tensor
- * @param weightOutChDimension [I] dimension of the output channels in the
+ * @param weights               [I] pointer to the input tensor
+ * @param bias                  [I] pointer to the output tensor
+ * @param weightOutChDimension  [I] dimension of the output channels in the
  * weights tensor
- * @param sliceChannels [O] slice size in output channel dimension
+ * @param sliceChannels         [O] slice size in output channel dimension
  *
  * @return Tf Lite status code
  */

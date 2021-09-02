@@ -60,7 +60,7 @@ inline void ConvertToMliQuantParams(const TfLiteTensor* tfT,
                                     MliTensorInterface* mliT) {
   *mliT->Dim() = -1;
 #ifdef MLI_2_0
-  *mliT->ZeroPointCapacity() = 1 * sizeof(int16_t);
+  *mliT->ZeroPointCapacity() = 0;
 #endif
   *mliT->ZeroPoint<int16_t*>() = tfT->params.zero_point;
   float fscale = tfT->params.scale;
