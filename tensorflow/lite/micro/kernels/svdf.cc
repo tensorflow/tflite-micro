@@ -33,13 +33,13 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);

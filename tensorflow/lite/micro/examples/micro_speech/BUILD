@@ -1,5 +1,7 @@
 # Description:
 #   TensorFlow Lite microcontroller example.
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+
 package(
     default_visibility = ["//visibility:public"],
     # Disabling layering_check because of http://b/177257332
@@ -17,13 +19,73 @@ cc_library(
     ],
 )
 
+generate_cc_arrays(
+    name="generated_yes_1000ms_wav_cc",
+    src="testdata/yes_1000ms.wav",
+    out="testdata/yes_1000ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_yes_1000ms_wav_hdr",
+    src="testdata/yes_1000ms.wav",
+    out="testdata/yes_1000ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_no_1000ms_wav_cc",
+    src="testdata/no_1000ms.wav",
+    out="testdata/no_1000ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_no_1000ms_wav_hdr",
+    src="testdata/no_1000ms.wav",
+    out="testdata/no_1000ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_yes_30ms_wav_cc",
+    src="testdata/yes_30ms.wav",
+    out="testdata/yes_30ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_yes_30ms_wav_hdr",
+    src="testdata/yes_30ms.wav",
+    out="testdata/yes_30ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_no_30ms_wav_cc",
+    src="testdata/no_30ms.wav",
+    out="testdata/no_30ms_audio_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_no_30ms_wav_hdr",
+    src="testdata/no_30ms.wav",
+    out="testdata/no_30ms_audio_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_micro_speech_model_cc",
+    src="micro_speech.tflite",
+    out="micro_speech_model_data.cc",
+)
+
+generate_cc_arrays(
+    name="generated_micro_speech_model_hdr",
+    src="micro_speech.tflite",
+    out="micro_speech_model_data.h",
+)
+
 cc_library(
-    name = "model",
+    name = "micro_speech_model_data",
     srcs = [
-        "simple_features/model.cc",
+        ":generated_micro_speech_model_cc",
     ],
     hdrs = [
-        "simple_features/model.h",
+        ":generated_micro_speech_model_hdr",
     ],
 )
 
@@ -45,11 +107,11 @@ cc_test(
         "micro_speech_test.cc",
     ],
     deps = [
+        ":micro_speech_model_data",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/examples/micro_speech/micro_features:micro_features_test_data",
-        "//tensorflow/lite/micro/examples/micro_speech/micro_features:model",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
     ],
@@ -58,24 +120,24 @@ cc_test(
 cc_library(
     name = "audio_sample_test_data",
     srcs = [
-        "no_30ms_sample_data.cc",
-        "yes_30ms_sample_data.cc",
+        ":generated_yes_30ms_wav_cc",
+        ":generated_no_30ms_wav_cc",
     ],
     hdrs = [
-        "no_30ms_sample_data.h",
-        "yes_30ms_sample_data.h",
+        ":generated_yes_30ms_wav_hdr",
+        ":generated_no_30ms_wav_hdr",
     ],
 )
 
 cc_library(
     name = "audio_large_sample_test_data",
     srcs = [
-        "no_1000ms_sample_data.cc",
-        "yes_1000ms_sample_data.cc",
+        ":generated_yes_1000ms_wav_cc",
+        ":generated_no_1000ms_wav_cc",
     ],
     hdrs = [
-        "no_1000ms_sample_data.h",
-        "yes_1000ms_sample_data.h",
+        ":generated_yes_1000ms_wav_hdr",
+        ":generated_no_1000ms_wav_hdr",
     ],
 )
 
@@ -359,13 +421,13 @@ cc_binary(
         ":audio_provider",
         ":command_responder",
         ":feature_provider",
+        ":micro_speech_model_data",
         ":recognize_commands",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/examples/micro_speech/micro_features:micro_model_settings",
-        "//tensorflow/lite/micro/examples/micro_speech/micro_features:model",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
@@ -378,6 +440,7 @@ cc_binary(
         "main_functions.h",
     ],
     deps = [
+        ":micro_speech_model_data",
         ":audio_provider_mock",
         ":command_responder",
         ":feature_provider",
@@ -387,7 +450,6 @@ cc_binary(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/examples/micro_speech/micro_features:micro_model_settings",
-        "//tensorflow/lite/micro/examples/micro_speech/micro_features:model",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

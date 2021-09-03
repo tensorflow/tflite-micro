@@ -498,8 +498,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseSub);
   }
 
-  TfLiteStatus AddSvdf() {
-    return AddBuiltin(BuiltinOperator_SVDF, Register_SVDF(), ParseSvdf);
+  TfLiteStatus AddSvdf(
+      const TfLiteRegistration& registration = Register_SVDF()) {
+    return AddBuiltin(BuiltinOperator_SVDF, registration, ParseSvdf);
   }
 
   TfLiteStatus AddTanh() {

@@ -124,8 +124,8 @@ void MliTensorInterface::SetScale(float fscale) {
   int16_t iscale = (int16_t)((1ll << frac_bits) * fscale + 0.5f);
   *(this->Scale<int16_t*>()) = (int16_t)iscale;
   *(this->ScaleFracBits<int8_t*>()) = frac_bits;
-  *this->ScaleCapacity() = 1 * sizeof(int16_t);
-  *this->ScaleFracBitsCapacity() = 1 * sizeof(int8_t);
+  *this->ScaleCapacity() = 0;
+  *this->ScaleFracBitsCapacity() = 0;
 }
 
 void MliTensorInterface::SetScalePerChannel(float* fscale,
@@ -143,6 +143,8 @@ void MliTensorInterface::SetScalePerChannel(float* fscale,
                   0.5f);
     (*this->Scale<int16_t**>())[i] = iscale;
   }
+  *this->ScaleCapacity() = num_channels * sizeof(int16_t);
+  *this->ScaleFracBitsCapacity() = num_channels * sizeof(int8_t);
 }
 
 void MliTensorInterface::SetElType(TfLiteType type) {

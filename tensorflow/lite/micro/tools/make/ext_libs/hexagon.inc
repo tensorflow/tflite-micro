@@ -1,3 +1,7 @@
+MICROLITE_CC_KERNEL_SRCS += \
+tensorflow/lite/micro/kernels/hexagon/fully_connected_int8.cc \
+tensorflow/lite/micro/kernels/hexagon/svdf_int8.cc
+
 # Full path to the hexagon_tflm static library.
 HEXAGON_TFLM_LIB :=
 
