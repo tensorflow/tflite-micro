@@ -281,7 +281,7 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   tflite::MockProfiler profiler;
   tflite::MicroInterpreter interpreter(
       model, op_resolver, allocator_buffer, allocator_buffer_size,
-      tflite::GetMicroErrorReporter(), &profiler);
+      tflite::GetMicroErrorReporter(), nullptr, &profiler);
 
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_starts(), 0);
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_ends(), 0);
