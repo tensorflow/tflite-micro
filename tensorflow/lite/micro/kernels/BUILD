@@ -325,10 +325,10 @@ cc_test(
     srcs = ["call_once_test.cc"],
     deps = [
         ":kernel_runner",
-        "//third_party/tensorflow/lite/c:common",
-        "//third_party/tflite_micro/tensorflow/lite/micro:op_resolvers",
-        "//third_party/tflite_micro/tensorflow/lite/micro:test_helpers",
-        "//third_party/tflite_micro/tensorflow/lite/micro/testing:micro_test",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
