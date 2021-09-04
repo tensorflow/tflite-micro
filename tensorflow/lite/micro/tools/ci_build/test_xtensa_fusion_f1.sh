@@ -41,3 +41,11 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   OPTIMIZED_KERNEL_DIR=xtensa \
   XTENSA_CORE=F1_190305_swupgrade \
   test -j$(nproc)
+
+# Generate a size comparison report versus the main repo.
+tensorflow/lite/micro/tools/ci_build/test_size.sh \
+  TARGET=xtensa \
+  TARGET_ARCH=hifi4 \
+  OPTIMIZED_KERNEL_DIR=xtensa \
+  XTENSA_CORE=F1_190305_swupgrade \
+  BUILD_TYPE=release

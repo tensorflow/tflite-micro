@@ -19,6 +19,13 @@
 # If the optional argument string "error_on_memory_increase" is provided as the
 # script input, the script will error exit on any memory increase.
 # If no argument is provided, the script produce a size comparison report.
+# In addition to the optional "error_on_memory_increase", the rest of optional
+# parameters are for Makefile and reflect make syntax. An example is
+#
+# test_size.sh error_on_memory_increase  BUILD_TYPE=release
+# TARGET_ARCH=TARGET=xtensa TARGET_ARCH=hifi4 OPTIMIZED_KERNEL_DIR=xtensa
+# XTENSA_CORE=F1_190305_swupgrade 
+#
 set -e
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
@@ -29,22 +36,55 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # variable if it needs to use the generated binary target with path later on.
 __BINARY_TARGET_PATH=
 function build_target() {
+  local make_args=$@
   local binary_target=$1
-  local build_type=$2
-  local target=$3
-  local target_arch=$4
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
-  readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
+  readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build ${make_args}
 
   # Return the relative binary with path and name.
+  local build_type=default
+  local target=linux
+  local target_arch=x86_64
+  for arg in ${make_args};
+  do
+    if [[ "${arg}" =~ ^"BUILD_TYPE=" ]];
+    then
+      build_type=$(expr substr ${arg} 12 30)
+    elif [[ "${arg}" =~ ^"TARGET=" ]];
+    then
+      target=$(expr substr ${arg} 8 30)
+    elif [[ "${arg}" =~ ^"TARGET_ARCH=" ]];
+    then
+      target_arch=$(expr substr ${arg} 13 30)
+    fi
+  done
   __BINARY_TARGET_PATH="tensorflow/lite/micro/tools/make/gen/${target}_${target_arch}_${build_type}/bin/${binary_target}"
 }
 
-FLAG_ERROR_ON_MEM_INCREASE=$1
-# TODO(b/196637015): change this to a real benchmark binary after the experiment
-# is complete.
-BENCHMARK_TARGET=binary_size_test
+# Global flags
+FLAG_ERROR_ON_MEM_INCREASE=
+# Make file flags are just pass in.
+MAKEFLAGS=
 
+# Parse input arguments. Cannot use getopt because most parameters
+# are just passin to Makefile.
+for arg in $@
+do
+  if [ "${arg}" = "error_on_mem_increase" ];
+  then 
+    FLAG_ERROR_ON_MEM_INCREASE=${arg}
+  else
+    MAKEFLAGS="${MAKEFLAGS} ${arg}"
+  fi
+done
+
+# Print out the configuration for better on target support
+echo FLAG_ERROR_ON_MEM_INCREASE is ${FLAG_ERROR_ON_MEM_INCREASE}
+echo other makefile flags are ${OTHER_MAKEFLAGS}
+
+# Pick keyword_benchmark as the target
+BENCHMARK_TARGET=keyword_benchmark
+
+# Get the root directory of the current repo.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 
@@ -53,7 +93,7 @@ cd "${ROOT_DIR}"
 # Clean once.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
-build_target ${BENCHMARK_TARGET} default linux x86_64
+build_target ${BENCHMARK_TARGET} ${MAKEFLAGS}
 CURRENT_BINARY=${__BINARY_TARGET_PATH}
 size ${CURRENT_BINARY} > ${ROOT_DIR}/ci/size_log.txt
 
@@ -63,7 +103,7 @@ git clone https://github.com/tensorflow/tflite-micro.git  ${REF_ROOT_DIR}
 
 # Build a binary for the main repo.
 cd ${REF_ROOT_DIR}
-build_target ${BENCHMARK_TARGET} default linux x86_64
+build_target ${BENCHMARK_TARGET} ${MAKEFLAGS}
 REF_BINARY=${__BINARY_TARGET_PATH}
 size ${REF_BINARY} > ${REF_ROOT_DIR}/ci/size_log.txt
 
