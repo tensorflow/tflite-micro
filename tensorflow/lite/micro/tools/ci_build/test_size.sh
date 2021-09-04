@@ -98,7 +98,9 @@ CURRENT_BINARY=${__BINARY_TARGET_PATH}
 size ${CURRENT_BINARY} > ${ROOT_DIR}/ci/size_log.txt
 
 # Get a clone of the main repo as the reference.
-REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/../main_ref.XXXXXX)"
+# This is nested in the current repo because in the case that we need to
+# run docker, only the current repo root is mounted.
+REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/main_ref.XXXXXX)"
 git clone https://github.com/tensorflow/tflite-micro.git  ${REF_ROOT_DIR}
 
 # Build a binary for the main repo.
