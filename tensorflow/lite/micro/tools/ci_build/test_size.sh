@@ -38,6 +38,8 @@ __BINARY_TARGET_PATH=
 function build_target() {
   local make_args=$@
   local binary_target=$1
+  # TODO(b/143904317): downloading first to allow for parallel builds.
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
   readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build ${make_args}
 
   # Return the relative binary with path and name.
@@ -79,7 +81,7 @@ done
 
 # Print out the configuration for better on target support
 echo FLAG_ERROR_ON_MEM_INCREASE is ${FLAG_ERROR_ON_MEM_INCREASE}
-echo other makefile flags are ${OTHER_MAKEFLAGS}
+echo makefile flags are ${MAKEFLAGS}
 
 # Pick keyword_benchmark as the target
 BENCHMARK_TARGET=keyword_benchmark
@@ -98,9 +100,7 @@ CURRENT_BINARY=${__BINARY_TARGET_PATH}
 size ${CURRENT_BINARY} > ${ROOT_DIR}/ci/size_log.txt
 
 # Get a clone of the main repo as the reference.
-# This is nested in the current repo because in the case that we need to
-# run docker, only the current repo root is mounted.
-REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/main_ref.XXXXXX)"
+REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/../main_ref.XXXXXX)"
 git clone https://github.com/tensorflow/tflite-micro.git  ${REF_ROOT_DIR}
 
 # Build a binary for the main repo.
