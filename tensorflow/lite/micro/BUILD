@@ -300,6 +300,7 @@ cc_test(
     ],
     deps = [
         ":micro_error_reporter",
+        ":system_setup",
     ],
 )
 
