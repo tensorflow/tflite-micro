@@ -1,6 +1,12 @@
 # Enable u-arch specfic behaviours
 ifneq (,$(filter $(TARGET_ARCH), x86_64))
-    # CMSIS-NN optimizations not supported
+  # CMSIS-NN optimizations not supported
+endif
+
+ifneq (,$(CMSIS_NN_LIBS))
+  ifeq (,$(CMSIS_PATH))
+    $(error CMSIS_NN_LIBS provided but not CMSIS_PATH)
+  endif
 endif
 
 # Unless an external path is provided we force a download during the first
@@ -14,10 +20,12 @@ ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
   endif
 endif
 
-THIRD_PARTY_CC_SRCS += \
-  $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
-THIRD_PARTY_CC_HDRS += \
-  $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Include,*.h)
+ifeq (,$(CMSIS_NN_LIBS))
+  THIRD_PARTY_CC_SRCS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
+else
+  MICROLITE_LIBS += $(CMSIS_NN_LIBS)
+endif
+THIRD_PARTY_CC_HDRS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Include,*.h)
 
 # Note all the headers from CMSIS/Core/Include are needed to ensure that the
 # project generation scripts copy over the compiler specific implementations of
