@@ -102,8 +102,8 @@ def main():
   parser.add_argument(
       'inputs',
       nargs='+',
-      help='input wav, bmp or tflite files to convert. If output is a cc or header only one input may be specified.'
-  )
+      help='input wav, bmp or tflite files to convert. '
+      'If output is a cc or header only one input may be specified.')
   args = parser.parse_args()
 
   if args.output.endswith('.cc') or args.output.endswith('.h'):
