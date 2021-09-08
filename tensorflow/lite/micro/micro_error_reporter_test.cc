@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+
 #include "tensorflow/lite/micro/system_setup.h"
 
 namespace tflite {
