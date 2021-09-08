@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
-#define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#ifndef TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#define TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
@@ -43,10 +43,10 @@ namespace tflite {
 // The goal is for applications to be able to experiment with different layout
 // strategies without changing their client code, by swapping out classes that
 // implement this interface.=
-class MemoryPlanner {
+class MicroMemoryPlanner {
  public:
-  MemoryPlanner() {}
-  virtual ~MemoryPlanner() {}
+  MicroMemoryPlanner() {}
+  virtual ~MicroMemoryPlanner() {}
 
   // Pass information about a buffer's size and lifetime to the layout
   // algorithm. The order this is called implicitly assigns an index to the
@@ -68,4 +68,4 @@ class MemoryPlanner {
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#endif  // TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
