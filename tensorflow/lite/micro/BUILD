@@ -61,6 +61,7 @@ cc_library(
         ":micro_allocator",
         ":micro_error_reporter",
         ":micro_profiler",
+        ":micro_resource_variable",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
@@ -207,6 +208,24 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_resource_variable",
+    srcs = [
+        "micro_resource_variable.cc",
+    ],
+    hdrs = [
+        "micro_resource_variable.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":micro_allocator",
+        ":micro_error_reporter",
+        ":micro_utils",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+    ],
+)
+
+cc_library(
     name = "micro_string",
     srcs = [
         "micro_string.cc",
@@ -255,6 +274,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":memory_helpers",
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:op_macros",
@@ -460,6 +480,15 @@ cc_test(
     ],
     deps = [
         ":micro_time",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "micro_resource_variable_test",
+    srcs = ["micro_resource_variable_test.cc"],
+    deps = [
+        ":micro_resource_variable",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

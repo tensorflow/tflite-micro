@@ -37,16 +37,18 @@ namespace tflite {
 
 class MicroInterpreter {
  public:
-  // The lifetime of the model, op resolver, tensor arena, error reporter and
-  // profiler must be at least as long as that of the interpreter object, since
-  // the interpreter may need to access them at any time. This means that you
-  // should usually create them with the same scope as each other, for example
-  // having them all allocated on the stack as local variables through a
-  // top-level function. The interpreter doesn't do any deallocation of any of
-  // the pointed-to objects, ownership remains with the caller.
+  // The lifetime of the model, op resolver, tensor arena, error reporter,
+  // resource variables, and profiler must be at least as long as that of the
+  // interpreter object, since the interpreter may need to access them at any
+  // time. This means that you should usually create them with the same scope as
+  // each other, for example having them all allocated on the stack as local
+  // variables through a top-level function. The interpreter doesn't do any
+  // deallocation of any of the pointed-to objects, ownership remains with the
+  // caller.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
   // Create an interpreter instance using an existing MicroAllocator instance.
@@ -56,6 +58,7 @@ class MicroInterpreter {
   // as long as that of the interpreter object.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
   ~MicroInterpreter();

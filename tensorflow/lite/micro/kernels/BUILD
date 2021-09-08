@@ -117,7 +117,9 @@ cc_library(
         "add.cc",
         "add_n.cc",
         "arg_min_max.cc",
+        "assign_variable.cc",
         "batch_to_space_nd.cc",
+        "call_once.cc",
         "cast.cc",
         "ceil.cc",
         "circular_buffer.cc",
@@ -167,6 +169,7 @@ cc_library(
         "prelu.cc",
         "quantize.cc",
         "quantize_common.cc",
+        "read_variable.cc",
         "reduce.cc",
         "reshape.cc",
         "resize_bilinear.cc",
@@ -188,6 +191,7 @@ cc_library(
         "transpose.cc",
         "transpose_conv.cc",
         "unpack.cc",
+        "var_handle.cc",
         "zeros_like.cc",
     ],
     hdrs = [
@@ -307,6 +311,18 @@ cc_test(
     srcs = [
         "batch_to_space_nd_test.cc",
     ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "call_once_test",
+    srcs = ["call_once_test.cc"],
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",

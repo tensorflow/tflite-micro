@@ -40,11 +40,13 @@ const char* OpNameFromRegistration(const TfLiteRegistration* registration) {
 }  // namespace
 
 MicroGraph::MicroGraph(TfLiteContext* context, const Model* model,
-                       MicroAllocator* allocator)
+                       MicroAllocator* allocator,
+                       MicroResourceVariables* resource_variables)
     : context_(context),
       model_(model),
       allocator_(allocator),
-      current_subgraph_index_(0) {
+      current_subgraph_index_(0),
+      resource_variables_(resource_variables) {
   if (model != nullptr) {
     subgraphs_ = model->subgraphs();
   }
