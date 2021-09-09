@@ -92,6 +92,7 @@ class RecordingMicroAllocator : public MicroAllocator {
 
  private:
   RecordingMicroAllocator(RecordingSimpleMemoryAllocator* memory_allocator,
+                          MicroMemoryPlanner* memory_planner,
                           ErrorReporter* error_reporter);
 
   void PrintRecordedAllocation(RecordedAllocationType allocation_type,

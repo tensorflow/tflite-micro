@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.h"
+#include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -44,19 +46,31 @@ uint8_t keyword_model_tensor_arena[kKeywordModelTensorArenaSize];
 constexpr int kKeywordModelTensorCount = 54;
 constexpr int kKeywordModelNodeAndRegistrationCount = 15;
 
+// By default, GreedyMemoryPlanner is the first buffer to be allocated from
+// the tail of arena. Its size after alignment needs to be accounted in
+// total size and tail size.
+// The buffer alignment is 16 bytes.
+constexpr int kBufferAlignment = 16;
+constexpr int kGreedyMemoryPlannerSize =
+    ((sizeof(tflite::GreedyMemoryPlanner) + (kBufferAlignment - 1)) /
+     kBufferAlignment) *
+    kBufferAlignment;
+
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.
+// TODO(b/199414774): use expression for hardcoded constants such as
+// kKeywordModelTotalSize.
 //
 // Run this test with '--copt=-DTF_LITE_STATIC_MEMORY' to get optimized memory
 // runtime values:
 #ifdef TF_LITE_STATIC_MEMORY
-constexpr int kKeywordModelTotalSize = 14416;
-constexpr int kKeywordModelTailSize = 13744;
+constexpr int kKeywordModelTotalSize = 14416 + kGreedyMemoryPlannerSize;
+constexpr int kKeywordModelTailSize = 13744 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kKeywordModelPersistentBufferDataSize = 564;
 #else
-constexpr int kKeywordModelTotalSize = 14992;
-constexpr int kKeywordModelTailSize = 14320;
+constexpr int kKeywordModelTotalSize = 14992 + kGreedyMemoryPlannerSize;
+constexpr int kKeywordModelTailSize = 14320 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kKeywordModelPersistentBufferDataSize = 564;
 #endif
@@ -74,13 +88,13 @@ constexpr int kTestConvModelNodeAndRegistrationCount = 7;
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.
 #ifdef TF_LITE_STATIC_MEMORY
-constexpr int kTestConvModelTotalSize = 9792;
-constexpr int kTestConvModelTailSize = 2048;
+constexpr int kTestConvModelTotalSize = 9792 + kGreedyMemoryPlannerSize;
+constexpr int kTestConvModelTailSize = 2048 + kGreedyMemoryPlannerSize;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #else
-constexpr int kTestConvModelTotalSize = 10112;
-constexpr int kTestConvModelTailSize = 2368;
+constexpr int kTestConvModelTotalSize = 10112 + kGreedyMemoryPlannerSize;
+constexpr int kTestConvModelTailSize = 2368 + kGreedyMemoryPlannerSize;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #endif

@@ -57,6 +57,16 @@ class MicroMemoryPlanner {
                                  int size, int first_time_used,
                                  int last_time_used) = 0;
 
+  // Record details of an offline planned buffer offset we want to place.
+  // offline_offset is the buffer offset from the start of the arena.
+  // This is to support offline memory planning from the flatbuffer metadata.
+  // By default, it returns an error.
+  virtual TfLiteStatus AddBuffer(ErrorReporter* error_reporter, int size,
+                                 int first_time_used, int last_time_used,
+                                 int offline_offset) {
+    return kTfLiteError;
+  }
+
   // The largest contiguous block of memory that's needed to hold the layout.
   virtual size_t GetMaximumMemorySize() = 0;
   // How many buffers have been added to the planner.
@@ -64,6 +74,16 @@ class MicroMemoryPlanner {
   // Calculated layout offset for the N-th buffer added to the planner.
   virtual TfLiteStatus GetOffsetForBuffer(tflite::ErrorReporter* error_reporter,
                                           int buffer_index, int* offset) = 0;
+
+  // Provides the scratch buffer in case that the memory planner needs it.
+  // The lifetime of scratch buffers lifetime lasts until the static memory plan
+  // is committed.
+  // The default implementation is for the memory planner that does not need
+  // scratch buffer and simply returns ok.
+  virtual TfLiteStatus Init(unsigned char* scratch_buffer,
+                            int scratch_buffer_size) {
+    return kTfLiteOk;
+  }
 };
 
 }  // namespace tflite
