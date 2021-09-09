@@ -50,8 +50,11 @@ class RecordingMicroInterpreter : public MicroInterpreter {
   RecordingMicroInterpreter(const Model* model,
                             const MicroOpResolver& op_resolver,
                             RecordingMicroAllocator* allocator,
-                            ErrorReporter* error_reporter)
-      : MicroInterpreter(model, op_resolver, allocator, error_reporter),
+                            ErrorReporter* error_reporter,
+                            MicroResourceVariables* resource_variable = nullptr,
+                            MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, allocator, error_reporter,
+                         resource_variable, profiler),
         recording_micro_allocator_(*allocator) {}
 
   const RecordingMicroAllocator& GetMicroAllocator() const {
