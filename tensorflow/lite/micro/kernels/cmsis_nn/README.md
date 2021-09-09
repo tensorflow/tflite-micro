@@ -28,33 +28,22 @@ Using mbed you'll be able to compile for the many different targets supported by
 mbed. Here's an example on how to do that. Start by generating an mbed project.
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn \
-generate_micro_speech_mbed_project
+python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+--makefile_options OPTIMIZED_KERNEL_DIR=cmsis_nn \
+--examples person_detection person_detection_build
 ```
 
-Currently this workaround is needed. See: https://github.com/tensorflow/tflite-micro/issues/475
+Go into the generated build folder (in this case person_detection_build) and setup mbed:
 
 ```
-cp tensorflow/lite/micro/tools/make/gen/linux_x86_64_default/genfiles/tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.* \
-tensorflow/lite/micro/tools/make/gen/linux_x86_64_default/prj/micro_speech/mbed/tensorflow/lite/micro/examples/micro_speech/
-```
-
-Go into the generated mbed project folder, currently:
-
-```
-tensorflow/lite/micro/tools/make/gen/linux_x86_64_default/prj/person_detection_int8/mbed
-```
-
-and setup mbed.
-
-```
+cd person_detection_build
 mbed new .
 ```
 
 Now type:
 
 ```
-mbed compile -m DISCO_F746NG -t GCC_ARM
+mbed compile -m DISCO_F746NG -t GCC_ARM -D CMSIS_NN
 ```
 
 and that gives you a binary for the DISCO_F746NG with CMSIS-NN optimized
