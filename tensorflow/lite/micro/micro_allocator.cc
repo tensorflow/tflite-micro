@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
-#include "tensorflow/lite/micro/memory_planner/memory_planner.h"
+#include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -324,8 +324,8 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
   return kTfLiteOk;
 }
 
-TfLiteStatus CommitPlan(ErrorReporter* error_reporter, MemoryPlanner* planner,
-                        uint8_t* starting_point,
+TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
+                        MicroMemoryPlanner* planner, uint8_t* starting_point,
                         const AllocationInfo* allocation_info,
                         size_t allocation_info_size) {
   // Figure out the actual memory addresses for each buffer, based on the plan.

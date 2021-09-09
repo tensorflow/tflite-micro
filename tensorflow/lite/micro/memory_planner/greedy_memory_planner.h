@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_GREEDY_MEMORY_PLANNER_H_
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/memory_planner/memory_planner.h"
+#include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 
 namespace tflite {
 
@@ -43,7 +43,7 @@ constexpr int kOnlinePlannedBuffer = -1;
 //
 // This is not guaranteed to produce the best placement, since that's an
 // NP-Complete problem, but in practice it should produce one that's decent.
-class GreedyMemoryPlanner : public MemoryPlanner {
+class GreedyMemoryPlanner : public MicroMemoryPlanner {
  public:
   // You need to pass in an area of memory to be used for planning. This memory
   // needs to have a lifetime as long as the planner, but isn't owned by this
