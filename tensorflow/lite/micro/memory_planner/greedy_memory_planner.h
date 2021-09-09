@@ -58,7 +58,7 @@ class GreedyMemoryPlanner : public MicroMemoryPlanner {
   // reused once you're done with the planner, as long as you copy the
   // calculated offsets to another location. Each buffer requires about 36 bytes
   // of scratch.
-  TfLiteStatus Init(unsigned char* scratch_buffer, int scratch_buffer_size);
+  TfLiteStatus Init(unsigned char* scratch_buffer, int scratch_buffer_size) override;
 
   // Record details of a buffer we want to place.
   TfLiteStatus AddBuffer(ErrorReporter* error_reporter, int size,
