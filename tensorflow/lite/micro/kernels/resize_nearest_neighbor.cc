@@ -78,14 +78,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorData<int32_t>(size),
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int32_t>(output));
-  } else if (output->type == kTfLiteUInt8) {
-    reference_ops::ResizeNearestNeighbor(
-        op_params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<uint8_t>(input),
-        tflite::micro::GetTensorShape(size),
-        tflite::micro::GetTensorData<int32_t>(size),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<uint8_t>(output));
   } else if (output->type == kTfLiteInt8) {
     reference_ops::ResizeNearestNeighbor(
         op_params, tflite::micro::GetTensorShape(input),

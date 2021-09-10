@@ -32,9 +32,12 @@ namespace tflite {
 // have their Register function declarations in the tflite namespace.
 
 TfLiteRegistration Register_ADD_N();
+TfLiteRegistration Register_ASSIGN_VARIABLE();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
 TfLiteRegistration Register_BATCH_TO_SPACE_ND();
+TfLiteRegistration Register_CALL_ONCE();
 TfLiteRegistration Register_CAST();
+TfLiteRegistration* Register_CIRCULAR_BUFFER();
 TfLiteRegistration Register_CUMSUM();
 TfLiteRegistration Register_DEPTH_TO_SPACE();
 TfLiteRegistration Register_DEPTHWISE_CONV_2D();
@@ -57,6 +60,7 @@ TfLiteRegistration Register_LOGICAL_OR();
 TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
 TfLiteRegistration Register_QUANTIZE();
+TfLiteRegistration Register_READ_VARIABLE();
 TfLiteRegistration Register_RELU();
 TfLiteRegistration Register_RELU6();
 TfLiteRegistration Register_RESIZE_BILINEAR();
@@ -67,6 +71,7 @@ TfLiteRegistration Register_SQUEEZE();
 TfLiteRegistration Register_SVDF();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
+TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_ZEROS_LIKE();
 
 namespace ops {
@@ -78,7 +83,6 @@ TfLiteRegistration Register_ARG_MAX();
 TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
-TfLiteRegistration* Register_CIRCULAR_BUFFER();
 TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
 TfLiteRegistration Register_DEQUANTIZE();

@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
-#define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#ifndef TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#define TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
@@ -43,10 +43,10 @@ namespace tflite {
 // The goal is for applications to be able to experiment with different layout
 // strategies without changing their client code, by swapping out classes that
 // implement this interface.=
-class MemoryPlanner {
+class MicroMemoryPlanner {
  public:
-  MemoryPlanner() {}
-  virtual ~MemoryPlanner() {}
+  MicroMemoryPlanner() {}
+  virtual ~MicroMemoryPlanner() {}
 
   // Pass information about a buffer's size and lifetime to the layout
   // algorithm. The order this is called implicitly assigns an index to the
@@ -57,6 +57,16 @@ class MemoryPlanner {
                                  int size, int first_time_used,
                                  int last_time_used) = 0;
 
+  // Record details of an offline planned buffer offset we want to place.
+  // offline_offset is the buffer offset from the start of the arena.
+  // This is to support offline memory planning from the flatbuffer metadata.
+  // By default, it returns an error.
+  virtual TfLiteStatus AddBuffer(ErrorReporter* error_reporter, int size,
+                                 int first_time_used, int last_time_used,
+                                 int offline_offset) {
+    return kTfLiteError;
+  }
+
   // The largest contiguous block of memory that's needed to hold the layout.
   virtual size_t GetMaximumMemorySize() = 0;
   // How many buffers have been added to the planner.
@@ -64,8 +74,18 @@ class MemoryPlanner {
   // Calculated layout offset for the N-th buffer added to the planner.
   virtual TfLiteStatus GetOffsetForBuffer(tflite::ErrorReporter* error_reporter,
                                           int buffer_index, int* offset) = 0;
+
+  // Provides the scratch buffer in case that the memory planner needs it.
+  // The lifetime of scratch buffers lifetime lasts until the static memory plan
+  // is committed.
+  // The default implementation is for the memory planner that does not need
+  // scratch buffer and simply returns ok.
+  virtual TfLiteStatus Init(unsigned char* scratch_buffer,
+                            int scratch_buffer_size) {
+    return kTfLiteOk;
+  }
 };
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#endif  // TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_

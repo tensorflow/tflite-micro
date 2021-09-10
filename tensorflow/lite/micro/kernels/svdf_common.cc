@@ -56,7 +56,7 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteSVDFParams* params,
                               TfLiteEvalTensor* activation_state_tensor,
                               TfLiteEvalTensor* output_tensor,
-                              const OpData& data) {
+                              const OpDataSvdf& data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];
@@ -401,7 +401,7 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, node->inputs->size, 5);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
+  OpDataSvdf* data = static_cast<OpDataSvdf*>(node->user_data);
 
   if (input->type == kTfLiteInt8) {
     TF_LITE_ENSURE_EQ(context, weights_feature->type, kTfLiteInt8);

@@ -2,6 +2,7 @@ load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
 load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
 
 package(
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
@@ -116,10 +117,13 @@ cc_library(
         "add.cc",
         "add_n.cc",
         "arg_min_max.cc",
+        "assign_variable.cc",
         "batch_to_space_nd.cc",
+        "call_once.cc",
         "cast.cc",
         "ceil.cc",
         "circular_buffer.cc",
+        "circular_buffer_common.cc",
         "comparisons.cc",
         "concatenation.cc",
         "conv.cc",
@@ -149,6 +153,7 @@ cc_library(
         "l2_pool_2d.cc",
         "l2norm.cc",
         "leaky_relu.cc",
+        "leaky_relu_common.cc",
         "log_softmax.cc",
         "logical.cc",
         "logical_common.cc",
@@ -164,6 +169,7 @@ cc_library(
         "prelu.cc",
         "quantize.cc",
         "quantize_common.cc",
+        "read_variable.cc",
         "reduce.cc",
         "reshape.cc",
         "resize_bilinear.cc",
@@ -185,15 +191,18 @@ cc_library(
         "transpose.cc",
         "transpose_conv.cc",
         "unpack.cc",
+        "var_handle.cc",
         "zeros_like.cc",
     ],
     hdrs = [
         "activations.h",
+        "circular_buffer.h",
         "conv.h",
         "depthwise_conv.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
+        "leaky_relu.h",
         "logical.h",
         "logistic.h",
         "micro_ops.h",
@@ -302,6 +311,18 @@ cc_test(
     srcs = [
         "batch_to_space_nd_test.cc",
     ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "call_once_test",
+    srcs = ["call_once_test.cc"],
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",

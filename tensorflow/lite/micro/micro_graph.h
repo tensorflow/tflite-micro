@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -28,11 +29,13 @@ namespace tflite {
 // subgraph in the tflite::Graph.
 class MicroGraph {
  public:
-  // The lifetime of the context, model, and allocator must be at least as long
-  // as that of the graph object, since the this class may need to access them
-  // at any time.
+  // The lifetime of the context, model, allocator and resource_variables must
+  // be at least as long as that of the graph object, since the this class may
+  // need to access them at any time. If resource_variables is a nullptr,
+  // GetResourceVariables will return a nullptr.
   MicroGraph(TfLiteContext* context, const Model* model,
-             MicroAllocator* allocator);
+             MicroAllocator* allocator,
+             MicroResourceVariables* resource_variables);
   virtual ~MicroGraph();
 
   // Sets up builtin data and calls TfLiteRegistration->Init for every operator
@@ -81,12 +84,16 @@ class MicroGraph {
   // for all per-subgraph allocation data.
   SubgraphAllocations* GetAllocations() { return subgraph_allocations_; }
 
+  // Get the resource variables for this TFLM graph.
+  MicroResourceVariables* GetResourceVariables() { return resource_variables_; }
+
  private:
   TfLiteContext* context_;
   const Model* model_;
   MicroAllocator* allocator_;
   SubgraphAllocations* subgraph_allocations_ = nullptr;
   int current_subgraph_index_;
+  MicroResourceVariables* resource_variables_;
   const flatbuffers::Vector<flatbuffers::Offset<SubGraph>>* subgraphs_;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
