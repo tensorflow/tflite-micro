@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_GREEDY_MEMORY_PLANNER_H_
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/memory_planner/memory_planner.h"
+#include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 
 namespace tflite {
 
@@ -43,19 +43,23 @@ constexpr int kOnlinePlannedBuffer = -1;
 //
 // This is not guaranteed to produce the best placement, since that's an
 // NP-Complete problem, but in practice it should produce one that's decent.
-class GreedyMemoryPlanner : public MemoryPlanner {
+class GreedyMemoryPlanner : public MicroMemoryPlanner {
  public:
-  // You need to pass in an area of memory to be used for planning. This memory
-  // needs to have a lifetime as long as the planner, but isn't owned by this
-  // object, so management should be handled by the client. This is so it can be
-  // stack or globally allocated if necessary on devices without dynamic memory
-  // allocation. How many buffers can be planned for will depend on the size of
-  // this scratch memory, so you should enlarge it if you see an error when
-  // calling AddBuffer(). The memory can be reused once you're done with the
-  // planner, as long as you copy the calculated offsets to another location.
-  // Each buffer requires about 36 bytes of scratch.
-  GreedyMemoryPlanner(unsigned char* scratch_buffer, int scratch_buffer_size);
+  GreedyMemoryPlanner();
   ~GreedyMemoryPlanner() override;
+
+  // You need to pass in an area of memory to be used for planning. The client
+  // should ensure the validity of the memory when it needs to use this object.
+  // This memory isn't owned by this object, so management should be handled by
+  // the client. This is so it can be stack or globally allocated if necessary
+  // on devices without dynamic memory allocation. How many buffers can be
+  // planned for will depend on the size of this scratch memory, so you should
+  // enlarge it if you see an error when calling AddBuffer(). The memory can be
+  // reused once you're done with the planner, as long as you copy the
+  // calculated offsets to another location. Each buffer requires about 36 bytes
+  // of scratch.
+  TfLiteStatus Init(unsigned char* scratch_buffer,
+                    int scratch_buffer_size) override;
 
   // Record details of a buffer we want to place.
   TfLiteStatus AddBuffer(ErrorReporter* error_reporter, int size,
@@ -65,7 +69,7 @@ class GreedyMemoryPlanner : public MemoryPlanner {
   // offline_offset is the buffer offset from the start of the arena.
   TfLiteStatus AddBuffer(ErrorReporter* error_reporter, int size,
                          int first_time_used, int last_time_used,
-                         int offline_offset);
+                         int offline_offset) override;
 
   // Returns the high-water mark of used memory. This is the minimum size of a
   // memory arena you'd need to allocate to hold these buffers.

@@ -11,9 +11,9 @@ package(
 )
 
 cc_library(
-    name = "memory_planner",
+    name = "micro_memory_planner",
     hdrs = [
-        "memory_planner.h",
+        "micro_memory_planner.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -32,7 +32,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":memory_planner",
+        ":micro_memory_planner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_error_reporter",
@@ -49,7 +49,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":memory_planner",
+        ":micro_memory_planner",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_string",

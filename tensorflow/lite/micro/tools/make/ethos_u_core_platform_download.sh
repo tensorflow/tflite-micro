@@ -83,6 +83,9 @@ else
   # Allow tensor_arena in namespace. This will put tensor arena in SRAM intended by linker file.
   sed -i 's/tensor_arena/\*tensor_arena\*/' ${LINKER_PATH}/platform_parsed.ld
 
+  # Increase stack size - needed for some tests.
+  sed -i 's/__STACK_SIZE = 0x00008000/__STACK_SIZE = 0x00030000/' ${LINKER_PATH}/platform_parsed.ld
+
   # Patch retarget.c so that g++ can find exit symbol.
   cat <<EOT >> ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300/retarget.c
 

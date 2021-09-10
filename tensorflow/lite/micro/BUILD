@@ -103,8 +103,8 @@ cc_library(
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/core/api:op_resolver",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/memory_planner",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
+        "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
@@ -320,6 +320,7 @@ cc_test(
     ],
     deps = [
         ":micro_error_reporter",
+        ":system_setup",
     ],
 )
 
