@@ -14,14 +14,6 @@ LEON_BCC2_MD5 := "cdf78082be4882da2a92c9baa82fe765"
 TSIM_URL := "http://mirror.tensorflow.org/www.gaisler.com/anonftp/tsim/tsim-eval-2.0.63.tar.gz"
 TSIM_MD5 := "afa0095d3ed989a949e1467f94e41d2f"
 
-AM_SDK_URL := "http://mirror.tensorflow.org/s3.asia.ambiqmicro.com/downloads/AmbiqSuite-Rel2.2.0.zip"
-AM_SDK_MD5 := "7605fa2d4d97e6bb7a1190c92b66b597"
-AM_SDK_DEST := AmbiqSuite-Rel2.2.0
-
-SF_BSPS_URL := "http://mirror.tensorflow.org/github.com/sparkfun/SparkFun_Apollo3_AmbiqSuite_BSPs/archive/v0.0.7.zip"
-SF_BSPS_MD5 := "34199f7e754735661d1c8a70a40ca7a3"
-SF_BSPS_DEST := boards_sfe
-
 ifeq ($(HOST_OS),osx)
   RISCV_TOOLCHAIN_URL := "http://mirror.tensorflow.org/static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.1.0-2019.01.0-x86_64-apple-darwin.tar.gz"
   RISCV_TOOLCHAIN_MD5 := "2ac2fa00618b9ab7fa0c7d0ec173de94"
@@ -58,6 +50,3 @@ ZEPHYR_MD5 := "755622eb4812fde918a6382b65d50c3b"
 
 ETHOSU_URL := "https://git.mlplatform.org/ml/ethos-u/ethos-u-core-driver.git/snapshot/ethos-u-core-driver-547ca53bb26a705cfceb1348373dd628eada2422.tar.gz"
 ETHOSU_MD5 := "f24119b34a9a6448b608f8ccea335c8b"
-
-HIMAX_WE1_SDK_URL ="https://www.himax.com.tw/we-i/himax_we1_sdk_v04.zip"
-HIMAX_WE1_SDK_MD5 ="40b3ccb3c2e41210fe5c970d61e7e7d3"
