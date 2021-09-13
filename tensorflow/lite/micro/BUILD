@@ -175,17 +175,21 @@ cc_library(
     ],
 )
 
+# Each kernel implementation will have its own micro_ops implementation.
 micro_ops = [
+    # Reference ops.
     (
       "",
       "//tensorflow/lite/micro/kernels:micro_ops",
       []
     ),
+    # Xtensa HiFi4 ops.
     (
         "xtensa_hifi4_",
         "//tensorflow/lite/micro/kernels:xtensa_hifi4_micro_ops",
         ["nobuilder"],  # Disable builder for xtensa builds.
     ),
+    # Xtensa HiFi5 ops.
     (
         "xtensa_hifi5_",
         "//tensorflow/lite/micro/kernels:xtensa_hifi5_micro_ops",
