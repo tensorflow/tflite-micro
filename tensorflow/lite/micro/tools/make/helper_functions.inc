@@ -52,7 +52,7 @@ specialize = $(call substitute_specialized_implementations,$(1),$(TARGET))
 # executable, including all of the source and header files required in a
 # separate folder and a simple makefile.
 # Arguments are:
-# 1 - Project type (make, mbed, etc).
+# 1 - Project type (make, etc).
 # 2 - Project file template name.
 # 3 - Name of executable.
 # 4 - List of C/C++ source files needed to build the target.
@@ -102,12 +102,6 @@ $(PRJDIR)$(3)/$(1)/.vscode/tasks.json : $(TENSORFLOW_ROOT)tensorflow/lite/micro/
 	@cp $$< $$@
 
 generate_$(3)_$(1)_project: $(addprefix $(PRJDIR)$(3)/$(1)/, $(4) $(5) $(2))
-ifeq (mbed, $(1))
-	$(eval macrolist := $(call getmacros, $7, $8))
-	$(eval jsonfilename := $(PRJDIR)$(3)/$(1)/mbed_app)
-	@awk 'FNR==NR{ if (/}/) p=NR; next} 1; FNR==(p-1){ n=split("$(macrolist)",a," "); print("    ,\"macros\": [");for (i=1; i <= n; i++){ printf("        \"%s\"", a[i]); if(i<n){printf(",\n")}}printf("\n    ]\n")}' \
-        $(jsonfilename).json $(jsonfilename).json > $(jsonfilename).tmp && mv $(jsonfilename).tmp $(jsonfilename).json
-endif
 
 list_$(3)_$(1)_files:
 	@echo $(4) $(5)
@@ -119,7 +113,7 @@ endef
 # including all of the source and header files required in a
 # separate folder and a simple makefile.
 # Arguments are:
-# 1 - Project type (make, mbed, etc).
+# 1 - Project type (make, etc).
 # 2 - Project file template name.
 # 3 - Name of executable.
 # 4 - List of C/C++ source files needed to build the target.
@@ -460,7 +454,6 @@ $(call generate_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(
 $(call generate_arc_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
 $(call generate_ceva_bx1_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
 $(call generate_ceva_sp500_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
-$(call generate_project,mbed,$(MBED_PROJECT_FILES) $($(1)_MBED_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(TARGET_TOOLCHAIN_ROOT),$(TARGET_TOOLCHAIN_PREFIX))
 $(call generate_project,keil,$(KEIL_PROJECT_FILES) $($(1)_KEIL_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(TARGET_TOOLCHAIN_ROOT),$(TARGET_TOOLCHAIN_PREFIX))
 ifeq (,$(findstring _benchmark,$(1)))
   $(call generate_arduino_project,$(ARDUINO_PROJECT_FILES) $($(1)_ARDUINO_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS))
