@@ -435,11 +435,6 @@ MAKE_PROJECT_FILES := \
   README_MAKE.md \
   .vscode/tasks.json
 
-MBED_PROJECT_FILES := \
-  README_MBED.md \
-  mbed-os.lib \
-  mbed_app.json
-
 KEIL_PROJECT_FILES := \
   README_KEIL.md \
   keil_project.uvprojx
