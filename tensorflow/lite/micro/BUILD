@@ -39,8 +39,8 @@ cc_library(
         ":micro_allocator",
         ":micro_error_reporter",
         ":micro_graph",
+        ":micro_op_resolvers",
         ":micro_profiler",
-        ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
@@ -158,12 +158,8 @@ cc_library(
 )
 
 cc_library(
-    name = "op_resolvers",
-    srcs = [
-        "all_ops_resolver.cc",
-    ],
+    name = "micro_op_resolvers",
     hdrs = [
-        "all_ops_resolver.h",
         "micro_mutable_op_resolver.h",
         "micro_op_resolver.h",
     ],
@@ -174,10 +170,50 @@ cc_library(
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/schema:schema_fbs",
+        "//tensorflow/lite/micro/kernels:micro_ops_headers",
     ],
 )
+
+micro_ops = [
+    (
+      "",
+      "//tensorflow/lite/micro/kernels:micro_ops",
+      []
+    ),
+    (
+        "xtensa_hifi4_",
+        "//tensorflow/lite/micro/kernels:xtensa_hifi4_micro_ops",
+        ["nobuilder"],  # Disable builder for xtensa builds.
+    ),
+    (
+        "xtensa_hifi5_",
+        "//tensorflow/lite/micro/kernels:xtensa_hifi5_micro_ops",
+        ["nobuilder"],  # Disable builder for xtensa builds.
+    ),
+]
+
+[cc_library(
+    name = "{}op_resolvers".format(micro_op[0]),
+    srcs = [
+        "all_ops_resolver.cc",
+    ],
+    hdrs = [
+        "all_ops_resolver.h",
+    ],
+    copts = micro_copts(),
+    tags = micro_op[2],
+    deps = [
+        ":micro_op_resolvers",
+        ":micro_compatibility",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/schema:schema_fbs",
+        micro_op[1],
+    ],
+) for micro_op in micro_ops]
 
 cc_library(
     name = "debug_log",
