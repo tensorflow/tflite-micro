@@ -1,4 +1,4 @@
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
+load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_accelerated_cc_library")
 load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
 
 package(
@@ -109,9 +109,7 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "micro_ops",
-    srcs = [
+KERNEL_SRCS = [
         "activations.cc",
         "activations_common.cc",
         "add.cc",
@@ -193,7 +191,10 @@ cc_library(
         "unpack.cc",
         "var_handle.cc",
         "zeros_like.cc",
-    ],
+    ]
+
+cc_library(
+    name = "micro_ops_headers",
     hdrs = [
         "activations.h",
         "circular_buffer.h",
@@ -212,6 +213,17 @@ cc_library(
         "svdf.h",
     ],
     copts = micro_copts(),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels/internal:types",
+    ],
+)
+
+cc_library(
+    name = "micro_ops",
+    srcs = KERNEL_SRCS,
+    copts = micro_copts(),
     visibility = [
         # Public visibility to allow application code to select kernel variants.
         "//visibility:public",
@@ -220,6 +232,7 @@ cc_library(
         ":activation_utils",
         ":kernel_util",
         ":micro_utils",
+        ":micro_ops_headers",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -237,6 +250,86 @@ cc_library(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
+    ],
+)
+
+tflm_kernel_accelerated_cc_library(
+    name = "xtensa_hifi4_micro_ops",
+    accelerated_hdrs = glob(["xtensa/**/*.h"]),
+    accelerated_srcs = glob(["xtensa/**/*.cc"]),
+    copts = micro_copts() + [
+        "-DXTENSA=1",
+        "-DHIFI4=1",
+    ],
+    default_srcs = KERNEL_SRCS,
+    tags = ["nobuilder"],
+    visibility = [
+        # Public visibility to allow application code to select kernel variants.
+        "//visibility:public",
+    ],
+    deps = [
+        ":micro_ops_headers",
+        ":activation_utils",
+        ":kernel_util",
+        ":micro_utils",
+        "@flatbuffers//:runtime_cc",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:kernel_util",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/kernels:padding",
+        "//tensorflow/lite/kernels/internal:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels/internal:cppmath",
+        "//tensorflow/lite/kernels/internal:quantization_util",
+        "//tensorflow/lite/kernels/internal:reference_base",
+        "//tensorflow/lite/kernels/internal:tensor",
+        "//tensorflow/lite/kernels/internal:types",
+        "//tensorflow/lite/schema:schema_fbs",
+        "//tflite_micro/tensorflow/lite/micro:flatbuffer_utils",
+        "//tflite_micro/tensorflow/lite/micro:memory_helpers",
+        "//tflite_micro/tensorflow/lite/micro:micro_graph",
+        "//tflite_micro/tensorflow/lite/micro:micro_utils",
+        "@xtensa//nnlib_hifi4:nnlib_hifi4_lib",
+    ],
+)
+
+tflm_kernel_accelerated_cc_library(
+    name = "xtensa_hifi5_micro_ops",
+    accelerated_hdrs = glob(["xtensa/**/*.h"]),
+    accelerated_srcs = glob(["xtensa/**/*.cc"]),
+    copts = micro_copts() + [
+        "-DXTENSA=1",
+        "-DHIFI5=1",
+    ],
+    default_srcs = KERNEL_SRCS,
+    tags = ["nobuilder"],
+    visibility = [
+        # Public visibility to allow application code to select kernel variants.
+        "//visibility:public",
+    ],
+    deps = [
+        ":micro_ops_headers",
+        ":activation_utils",
+        ":kernel_util",
+        ":micro_utils",
+        "@flatbuffers//:runtime_cc",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:kernel_util",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/kernels:padding",
+        "//tensorflow/lite/kernels/internal:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels/internal:cppmath",
+        "//tensorflow/lite/kernels/internal:quantization_util",
+        "//tensorflow/lite/kernels/internal:reference_base",
+        "//tensorflow/lite/kernels/internal:tensor",
+        "//tensorflow/lite/kernels/internal:types",
+        "//tensorflow/lite/schema:schema_fbs",
+        "//tflite_micro/tensorflow/lite/micro:flatbuffer_utils",
+        "//tflite_micro/tensorflow/lite/micro:memory_helpers",
+        "//tflite_micro/tensorflow/lite/micro:micro_graph",
+        "//tflite_micro/tensorflow/lite/micro:micro_utils",
+        "@xtensa//nnlib_hifi4:nnlib_hifi5_lib",
     ],
 )
 
