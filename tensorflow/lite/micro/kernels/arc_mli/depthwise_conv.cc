@@ -573,10 +573,12 @@ TfLiteStatus EvalMliQuantizedPerChannel(
 
         in_slice.Next();
         out_slice.Next();
+        out_slice_local.Next();
       }
       w_slice.Next();
       b_slice.Next();
       out_ch_slice.Next();
+      out_ch_slice_local.Next();
       in_ch_slice.Next();
       TF_LITE_ENSURE(context, in_slice.Done());
     }

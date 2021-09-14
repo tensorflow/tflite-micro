@@ -238,6 +238,7 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
 
     in_slice.Next();
     out_slice.Next();
+    out_slice_local.Next();
   }
   return kTfLiteOk;
 }

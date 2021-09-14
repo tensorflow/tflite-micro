@@ -269,6 +269,9 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   ops::micro::TensorSlicer out_ch_slice(data.mli_out.MliTensor(),
                                         out_tensor_dimension, slice_size, 0, 0,
                                         0, true);
+  ops::micro::TensorSlicer out_ch_slice_local(&out_local,
+                                        out_tensor_dimension, slice_size, 0, 0,
+                                        0, true);
 
 #ifdef MLI_2_0_KRNL_TEST
   mli_tensor* w_ptr = &weights_local;
@@ -302,7 +305,7 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     sliced over the batch */
     ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), out_tensor_dimension,
                                        slice_size);
-    ops::micro::TensorSlicer out_slice_local(&out_local, out_tensor_dimension,
+    ops::micro::TensorSlicer out_slice_local(out_ch_slice_local.Sub(), out_tensor_dimension,
                                        slice_size);
 
     /* setup the pointers to the local or remote tensor to make the code
@@ -346,10 +349,12 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 
       in_slice.Next();
       out_slice.Next();
+      out_slice_local.Next();
     }
     w_slice.Next();
     b_slice.Next();
     out_ch_slice.Next();
+    out_ch_slice_local.Next();
   }
   return kTfLiteOk;
 }
