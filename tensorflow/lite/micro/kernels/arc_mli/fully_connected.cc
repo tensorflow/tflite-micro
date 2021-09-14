@@ -302,11 +302,13 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     sliced over the batch */
     ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), out_tensor_dimension,
                                        slice_size);
+    ops::micro::TensorSlicer out_slice_local(&out_local, out_tensor_dimension,
+                                       slice_size);
 
     /* setup the pointers to the local or remote tensor to make the code
      * inside the loop easier. */
     mli_tensor* in_ptr = in_is_local ? in_slice.Sub() : &in_local;
-    mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : &out_local;
+    mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : out_slice_local.Sub();
 
 #ifdef MLI_2_0_KRNL_TEST
     /* Permute weights tensor to the HWCN layout */

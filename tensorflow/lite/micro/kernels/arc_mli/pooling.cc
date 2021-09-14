@@ -216,12 +216,14 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
                                     cfg_local.padding_bottom, overlap);
   ops::micro::TensorSlicer out_slice(data.mli_out.MliTensor(), height_dimension,
                                      out_slice_height);
+  ops::micro::TensorSlicer out_slice_local(&out_local, height_dimension,
+                                     out_slice_height);
 
   /* is_local indicates that the tensor is already in local memory,
      so in that case the original tensor can be used,
      and there is no need to copy it to the local tensor*/
   mli_tensor* in_ptr = in_is_local ? in_slice.Sub() : &in_local;
-  mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : &out_local;
+  mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : out_slice_local.Sub();
 
   while (!out_slice.Done()) {
     cfg_local.padding_top = in_slice.GetPaddingPre();

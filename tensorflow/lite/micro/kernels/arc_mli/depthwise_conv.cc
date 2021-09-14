@@ -236,7 +236,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // Choose group convolution function for "channel multiplier" functionality.
     const int in_ch = SizeOfDimension(input, 3);
     const int filters_num = SizeOfDimension(filter, 3);
-    const int channels_num = SizeOfDimension(filter, 0);
+    const int channels_num = SizeOfDimension(filter, 2);
     if (in_ch == filters_num && channels_num == 1) {
       data->p_mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32 =
           mli_krn_depthwise_conv2d_hwcn_sa8_sa8_sa32;
@@ -321,6 +321,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
     data->cfg->stride_width = params->stride_width;
     data->cfg->stride_height = params->stride_height;
+    data->cfg->dilation_height = 1;
+    data->cfg->dilation_width = 1;
     if (params->padding == kTfLitePaddingValid) {
       data->cfg->padding_left = 0;
       data->cfg->padding_right = 0;
@@ -475,6 +477,9 @@ TfLiteStatus EvalMliQuantizedPerChannel(
     ops::micro::TensorSlicer out_ch_slice(data.mli_out.MliTensor(),
                                           out_tensor_ch_dimension,
                                           slice_channels, 0, 0, 0, true);
+    ops::micro::TensorSlicer out_ch_slice_local(&out_local,
+                                          out_tensor_ch_dimension,
+                                          slice_channels, 0, 0, 0, true);
     ops::micro::TensorSlicer in_ch_slice(data.mli_in.MliTensor(),
                                          out_tensor_ch_dimension,
                                          slice_channels, 0, 0, 0, true);
@@ -516,11 +521,13 @@ TfLiteStatus EvalMliQuantizedPerChannel(
       sliced over the batch and height dimension. */
       ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), height_dimension,
                                          out_slice_height);
+      ops::micro::TensorSlicer out_slice_local(out_ch_slice_local.Sub(), height_dimension,
+                                         out_slice_height);
 
       /* setup the pointers to the local or remote tensor to make the code
        * inside the loop easier. */
       mli_tensor* in_ptr = in_is_local ? in_slice.Sub() : &in_local;
-      mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : &out_local;
+      mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : out_slice_local.Sub();
 
       while (!out_slice.Done()) {
         TF_LITE_ENSURE(context, !in_slice.Done());

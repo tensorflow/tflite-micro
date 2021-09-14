@@ -84,8 +84,9 @@ card instead of using the debugger.
 #### Make Tool
 
 A `'make'` tool is required for both phases of deploying Tensorflow Lite Micro
-applications on ARC EM SDP: 1. Application project generation 2. Working with
-generated application (build and run)
+applications on ARC EM SDP: 
+1. Application project generation 
+2. Working with generated application (build and run)
 
 For the first phase you need an environment and make tool compatible with
 Tensorflow Lite for Micro build system. At the moment of this writing, this
@@ -142,7 +143,22 @@ Board: ARC EM Software Development Platform v1.0
 …
 ```
 
-### Generate Application Project for ARC EM SDP
+### Generate TFLM as Static Library for ARC EM SDP
+
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library for ARC EM SDP:
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \ 
+TARGET_ARCH=arc \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+microlite
+```
+
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
+
+### Generate Example Application Project for ARC EM SDP
 
 Before building an example or test application, you need to generate a TFLM
 project for this application from TensorFlow sources and external dependencies.
@@ -151,18 +167,23 @@ make command line. For instance, to build the Person Detect test application,
 use a shell to execute the following command from the root directory of the
 TensorFlow repo:
 
+Recommended to do *clean* before each project or library generation.
+
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \ 
+TARGET_ARCH=arc \
+OPTIMIZED_KERNEL_DIR=arc_mli \
 generate_person_detection_test_int8_make_project
 ```
 
 The application project will be generated into
 *tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc/prj/person_detection_test_int8/make*
 
-Info on generating and building example applications for EM SDP
+Information on generating and building example applications for EM SDP
 (*tensorflow/lite/micro/examples*) can be found in the appropriate readme file
 placed in the same directory with the examples. In general, it’s the same
-process which described in this Readme.
+process which described in this readme file.
 
 The
 [embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
@@ -310,8 +331,37 @@ section for instructions on toolchain installation. See
 [Make Tool](#Make-Tool) sections for instructions on toolchain installation and
 comments about make versions.
 
+### Generate TFLM as Static Library
 
-### Generate Application Project
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library:
+
+```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+TCF_FILE=<path_to_tcf_file> \
+LCF_FILE=<path_to_lcf_file> \
+microlite
+```
+For MLI Library 2.0 (experimental feature):
+```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
+TARGET=arc_custom \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+ARC_TAGS=mli20_experimental \
+BUILD_LIB_DIR=<path_to_buildlib> \
+TCF_FILE=<path_to_tcf_file> \
+microlite
+```
+
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
+
+### Generate Example Application Project
 
 Before building the application itself, you need to generate the project for
 this application from TensorFlow sources and external dependencies. To generate
