@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ void ValidateDequantizeGoldens(TfLiteTensor* tensors, int tensors_size,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration =
-      tflite::ops::micro::Register_DEQUANTIZE();
+      tflite::Register_DEQUANTIZE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);

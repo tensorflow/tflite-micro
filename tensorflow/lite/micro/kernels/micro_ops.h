@@ -41,6 +41,7 @@ TfLiteRegistration* Register_CIRCULAR_BUFFER();
 TfLiteRegistration Register_CUMSUM();
 TfLiteRegistration Register_DEPTH_TO_SPACE();
 TfLiteRegistration Register_DEPTHWISE_CONV_2D();
+TfLiteRegistration Register_DEQUANTIZE();
 TfLiteRegistration Register_DIV();
 TfLiteRegistration Register_ELU();
 TfLiteRegistration Register_EXP();
@@ -85,7 +86,6 @@ TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
 TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
-TfLiteRegistration Register_DEQUANTIZE();
 TfLiteRegistration Register_EQUAL();
 TfLiteRegistration Register_FLOOR();
 TfLiteRegistration Register_GREATER();

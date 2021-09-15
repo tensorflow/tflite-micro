@@ -205,7 +205,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddDequantize() {
     return AddBuiltin(BuiltinOperator_DEQUANTIZE,
-                      tflite::ops::micro::Register_DEQUANTIZE(),
+                      tflite::Register_DEQUANTIZE(),
                       ParseDequantize);
   }
 

@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,61 +22,20 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/requantize.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/dequantize.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace dequantize {
 
-struct OpData {
-  tflite::DequantizationParams quantization_params;
-  // The scaling factor from input to output (aka the 'real multiplier') can
-  // be represented as a fixed point multiplier plus a left shift.
-  int32_t output_multiplier;
-  int output_shift;
-  int32_t output_zero_point;
-};
-
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* DequantizeInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(DequantizeOpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
-
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-
-  // TODO(b/140515557): Add cached dequant to improve hybrid model performance.
-  const TfLiteTensor* input = GetInput(context, node, 0);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, 0);
-  TF_LITE_ENSURE(context, output != nullptr);
-
-  TF_LITE_ENSURE(context,
-                 input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
-  TF_LITE_ENSURE(context, output->type == kTfLiteFloat32);
-
-  if (output->type == kTfLiteInt32) {
-    const double effective_output_scale =
-        static_cast<double>(input->params.scale) /
-        static_cast<double>(output->params.scale);
-    QuantizeMultiplier(effective_output_scale, &data->output_multiplier,
-                       &data->output_shift);
-  }
-
-  data->quantization_params.zero_point = input->params.zero_point;
-  data->quantization_params.scale = static_cast<double>(input->params.scale);
-  data->output_zero_point = output->params.zero_point;
-  return kTfLiteOk;
-}
-
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
+  DequantizeOpData* data = static_cast<DequantizeOpData*>(node->user_data);
 
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
@@ -98,13 +57,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorData<float>(output));
         break;
       default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
+        MicroPrintf("Input %s, output %s not supported.",
                            TfLiteTypeGetName(input->type),
                            TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else {
-    TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
+    MicroPrintf("Input %s, output %s not supported.",
                        TfLiteTypeGetName(input->type),
                        TfLiteTypeGetName(output->type));
     return kTfLiteError;
@@ -113,19 +72,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace dequantize
-
 TfLiteRegistration Register_DEQUANTIZE() {
-  return {/*init=*/dequantize::Init,
+  return {/*init=*/DequantizeInit,
           /*free=*/nullptr,
-          /*prepare=*/dequantize::Prepare,
-          /*invoke=*/dequantize::Eval,
+          /*prepare=*/DequantizePrepare,
+          /*invoke=*/DequantizeEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
