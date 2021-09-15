@@ -40,7 +40,7 @@ Train the model in the cloud using Google Colaboratory.
 
 <table class="tfo-notebook-buttons" align="left">
   <td>
-    <a target="_blank" href="https://colab.research.google.com/github/nyadla-sys/tflite-micro/blob/upload_lstm/tensorflow/lite/micro/kernels/xtensa/examples/micro_speech_lstm/train/micro_speech_with_lstm_op.ipynb"><img src="https://www.tensorflow.org/images/colab_logo_32px.png" />Google Colaboratory</a>
+    <a target="_blank" href="https://colab.research.google.com/github/tensorflow/tflite-micro/blob/main/third_party/xtensa/examples/micro_speech_lstm/train/micro_speech_with_lstm_op.ipynb"><img src="https://www.tensorflow.org/images/colab_logo_32px.png" />Google Colaboratory</a>
   </td>
 </table>
 
@@ -51,16 +51,11 @@ Train the model in the cloud using Google Colaboratory.
 
 ## Trained Models
 
-The generated [models](https://github.com/nyadla-sys/tflite-micro/tree/upload_lstm/tensorflow/lite/micro/kernels/xtensa/examples/micro_speech_lstm/train/model.zip) contain the following 2 model files:
+The generated [model](https://github.com/tensorflow/tflite-micro/blob/main/third_party/xtensa/examples/micro_speech_lstm/micro_speech_lstm.tflite) containis the following model file:
 
 | Name           | Format       | Target Framework | Target Device             |
 | :------------- | :----------- | :--------------- | :------------------------ |
-| `model_quantized_minispeech.tflite` | Fully        | TensorFlow Lite  | Mobile Devices            |
-: *(<125 kB)*     : Quantized*   :                  :                           :
-:                : TFLite Model :                  :                           :
-| `model.cc`     | C Source     | TensorFlow Lite  | Microcontrollers          |
-:                : File         : for              :                           :
-:                :              : Microcontrollers :                           :
+| `micro_speech_lstm.tflite` | Fully        | TensorFlow Lite  | Mobile Devices            |
 
 **Fully quantized implies that the model is **strictly int8** quantized
 **including** the activation(s) and weight(s).*
