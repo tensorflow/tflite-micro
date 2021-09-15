@@ -55,11 +55,8 @@ ifeq ($(TOOLCHAIN), gcc)
     -Wno-unused-but-set-variable
 endif
 
-ifneq ($(DISABLE_DOWNLOADS), true)
-  # Convert downloaded person detect int8 model.
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${MAKEFILE_DIR}/downloads)
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the person detection int8 model conversion: $(DOWNLOAD_RESULT))
-  endif
+# Convert downloaded person detect int8 model.
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${MAKEFILE_DIR}/downloads $(GENERATED_SRCS_DIR))
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the person detection int8 model conversion: $(DOWNLOAD_RESULT))
 endif
-

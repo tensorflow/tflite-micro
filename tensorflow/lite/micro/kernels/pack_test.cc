@@ -111,9 +111,9 @@ void TestPackThreeInputsFloat(int* input1_dims_data, const float* input1_data,
 }
 
 void TestPackTwoInputsQuantized(
-    int* input1_dims_data, const uint8_t* input1_data, int* input2_dims_data,
-    const uint8_t* input2_data, int axis, int* output_dims_data,
-    const uint8_t* expected_output_data, uint8_t* output_data) {
+    int* input1_dims_data, const int8_t* input1_data, int* input2_dims_data,
+    const int8_t* input2_data, int axis, int* output_dims_data,
+    const int8_t* expected_output_data, int8_t* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -245,12 +245,12 @@ TF_LITE_MICRO_TEST(PackFloatMultilDimensions) {
 TF_LITE_MICRO_TEST(PackQuantizedMultilDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
-  const uint8_t input1_values[] = {1, 2, 3, 4, 5, 6};
-  const uint8_t input2_values[] = {7, 8, 9, 10, 11, 12};
-  const uint8_t golden[] = {1, 2, 3, 7, 8, 9, 4, 5, 6, 10, 11, 12};
+  const int8_t input1_values[] = {1, 2, 3, 4, 5, 6};
+  const int8_t input2_values[] = {7, 8, 9, 10, 11, 12};
+  const int8_t golden[] = {1, 2, 3, 7, 8, 9, 4, 5, 6, 10, 11, 12};
   const int axis = 1;
   constexpr int output_dims_count = 12;
-  uint8_t output_data[output_dims_count];
+  int8_t output_data[output_dims_count];
 
   tflite::testing::TestPackTwoInputsQuantized(
       input_shape, input1_values, input_shape, input2_values, axis,

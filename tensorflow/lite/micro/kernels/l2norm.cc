@@ -59,12 +59,6 @@ TfLiteStatus L2NormEval(TfLiteContext* context, TfLiteNode* node) {
                                    tflite::micro::GetTensorShape(output),
                                    tflite::micro::GetTensorData<float>(output),
                                    epsilon);
-  } else if (output->type == kTfLiteUInt8) {
-    reference_ops::L2Normalization(
-        data, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<uint8_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<uint8_t>(output));
   } else if (output->type == kTfLiteInt8) {
     const auto input_shape = tflite::micro::GetTensorShape(input);
     const auto output_shape = tflite::micro::GetTensorShape(output);
