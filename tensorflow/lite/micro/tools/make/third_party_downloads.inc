@@ -46,8 +46,8 @@ PERSON_MODEL_INT8_URL := "https://storage.googleapis.com/download.tensorflow.org
 PERSON_MODEL_INT8_MD5 := "e765cc76889db8640cfe876a37e4ec00"
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
-EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/refs/tags/Release_2.0_RC1.zip"
-EMBARC_MLI_MD5 := "94df13b40b38bf826d6af5e107762346"
+EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/ef4dc663135591c245686e48331e6067867466db.zip"
+EMBARC_MLI_MD5 := "fe256e06e31e27b75fb166aeeafc7f88"
 else
 EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/refs/tags/Release_1.1.zip"
 EMBARC_MLI_MD5 := "22555d76097727b00e731563b42cb098"

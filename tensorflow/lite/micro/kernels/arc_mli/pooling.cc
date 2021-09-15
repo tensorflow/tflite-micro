@@ -217,7 +217,7 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
   ops::micro::TensorSlicer out_slice(data.mli_out.MliTensor(), height_dimension,
                                      out_slice_height);
   ops::micro::TensorSlicer out_slice_local(&out_local, height_dimension,
-                                     out_slice_height);
+                                           out_slice_height);
 
   /* is_local indicates that the tensor is already in local memory,
      so in that case the original tensor can be used,

@@ -110,7 +110,11 @@ endif
 
   PLATFORM_FLAGS = -tcf=$(TCF_FILE_NAME) -tcf_core_config
   
-  PLATFORM_FLAGS += -Hnocopyr -Hpurge -Hdense_prologue -Hon=Long_enums -fslp-vectorize-aggressive -ffunction-sections -fdata-sections 
+  PLATFORM_FLAGS += -Hnocopyr -Hpurge -Hdense_prologue -fslp-vectorize-aggressive -ffunction-sections -fdata-sections 
+
+ifeq ($(filter $(ARC_TAGS), mli20_experimental),)
+  PLATFORM_FLAGS += -Hon=Long_enums
+endif
   
   # Use compact CRT. It requires pre-defined heap size
   PLATFORM_FLAGS += -Hcl -Hcrt_fast_memcpy -Hcrt_fast_memset 

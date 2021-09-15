@@ -280,6 +280,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                              /* is_bias_tensor = */ true);
     ops::micro::ConvertToMliTensor(output, &data->mli_out);
 
+#ifdef MLI_2_0
+    data->cfg->dilation_width = 1;
+    data->cfg->dilation_height = 1;
+#endif
+
     if (data->output_activation_min == -128 &&
         data->output_activation_max == 127) {
       data->cfg->relu.type = MLI_RELU_NONE;
@@ -294,8 +299,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     }
     data->cfg->stride_width = params->stride_width;
     data->cfg->stride_height = params->stride_height;
-    data->cfg->dilation_width = 1;
-    data->cfg->dilation_height = 1;
     if (params->padding == kTfLitePaddingValid) {
       data->cfg->padding_left = 0;
       data->cfg->padding_right = 0;
@@ -450,9 +453,8 @@ TfLiteStatus EvalMliQuantizedPerChannel(
     ops::micro::TensorSlicer out_ch_slice(data.mli_out.MliTensor(),
                                           out_tensor_ch_dimension,
                                           slice_channels, 0, 0, 0, true);
-    ops::micro::TensorSlicer out_ch_slice_local(&out_local,
-                                                out_tensor_ch_dimension,
-                                                slice_channels, 0, 0, 0, true);
+    ops::micro::TensorSlicer out_ch_slice_local(
+        &out_local, out_tensor_ch_dimension, slice_channels, 0, 0, 0, true);
 
 #ifdef MLI_2_0_KRNL_TEST
     mli_tensor* w_ptr = &weights_local;
@@ -492,13 +494,14 @@ TfLiteStatus EvalMliQuantizedPerChannel(
       sliced over the batch and height dimension. */
       ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), height_dimension,
                                          out_slice_height);
-      ops::micro::TensorSlicer out_slice_local(out_ch_slice_local.Sub(), height_dimension, 
-                                               out_slice_height);
+      ops::micro::TensorSlicer out_slice_local(
+          out_ch_slice_local.Sub(), height_dimension, out_slice_height);
 
       /* setup the pointers to the local or remote tensor to make the code
        * inside the loop easier. */
       mli_tensor* in_ptr = in_is_local ? in_slice.Sub() : &in_local;
-      mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : out_slice_local.Sub();
+      mli_tensor* out_ptr =
+          out_is_local ? out_slice.Sub() : out_slice_local.Sub();
 
 #ifdef MLI_2_0_KRNL_TEST
       /* Permute weights tensor to the HWCN layout */
