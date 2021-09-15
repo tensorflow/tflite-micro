@@ -1029,27 +1029,6 @@ TF_LITE_MICRO_TEST(RunTwice) {
       golden, false, 2);
 }
 
-TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1Uint8) {
-  int input_shape[] = {3, 2, 3, 2};
-  int begin_shape[] = {1, 3};
-  int end_shape[] = {1, 3};
-  int strides_shape[] = {1, 3};
-  int output_shape[] = {2, 3, 2};
-  uint8_t input_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-  int32_t begin_data[] = {0, 0, 0};
-  int32_t end_data[] = {1, 3, 2};
-  int32_t strides_data[] = {1, 1, 1};
-  uint8_t golden[] = {1, 2, 3, 4, 5, 6};
-  uint8_t output_data[12];
-
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
-
-  tflite::testing::TestStridedSliceQuantized(
-      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
-      input_data, begin_data, end_data, strides_data, output_shape, output_data,
-      golden, false);
-}
-
 TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1int8) {
   int input_shape[] = {3, 2, 3, 2};
   int begin_shape[] = {1, 3};

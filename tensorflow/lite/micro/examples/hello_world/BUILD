@@ -2,22 +2,36 @@
 #   TensorFlow Lite for Microcontrollers "hello world" example.
 load(
     "//tensorflow/lite/micro:build_def.bzl",
+    "generate_cc_arrays",
     "micro_copts",
 )
 
 package(
     default_visibility = ["//visibility:public"],
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
+)
+
+generate_cc_arrays(
+    name = "generated_hello_world_model_cc",
+    src = "hello_world.tflite",
+    out = "hello_world_model_data.cc",
+)
+
+generate_cc_arrays(
+    name = "generated_hello_world_model_hdr",
+    src = "hello_world.tflite",
+    out = "hello_world_model_data.h",
 )
 
 cc_library(
     name = "model",
     srcs = [
-        "model.cc",
+        ":generated_hello_world_model_cc",
     ],
     hdrs = [
-        "model.h",
+        ":generated_hello_world_model_hdr",
     ],
     copts = micro_copts(),
 )

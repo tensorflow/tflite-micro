@@ -606,21 +606,8 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
       return kTfLiteOk;
     }
     case BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM: {
-      auto params =
-          safe_allocator.Allocate<TfLiteUnidirectionalSequenceLSTMParams>();
-      TF_LITE_ENSURE(error_reporter, params != nullptr);
-      if (const auto* seq_lstm_params =
-              op->builtin_options_as_UnidirectionalSequenceLSTMOptions()) {
-        params->activation =
-            ConvertActivation(seq_lstm_params->fused_activation_function());
-        params->cell_clip = seq_lstm_params->cell_clip();
-        params->proj_clip = seq_lstm_params->proj_clip();
-        params->time_major = seq_lstm_params->time_major();
-        params->asymmetric_quantize_inputs =
-            seq_lstm_params->asymmetric_quantize_inputs();
-      }
-      *builtin_data = params.release();
-      return kTfLiteOk;
+      return ParseUnidirectionalSequenceLSTM(op, error_reporter, allocator,
+                                             builtin_data);
     }
     case BuiltinOperator_BIDIRECTIONAL_SEQUENCE_LSTM: {
       auto params =
@@ -1856,6 +1843,14 @@ TfLiteStatus ParseSin(const Operator*, ErrorReporter*, BuiltinDataAllocator*,
   return kTfLiteOk;
 }
 
+// We have this parse function instead of directly returning kTfLiteOk from the
+// switch-case in ParseOpData because this function is used as part of the
+// selective registration for the OpResolver implementation in micro.
+TfLiteStatus ParseSlice(const Operator*, ErrorReporter*, BuiltinDataAllocator*,
+                        void**) {
+  return kTfLiteOk;
+}
+
 TfLiteStatus ParseSoftmax(const Operator* op, ErrorReporter* error_reporter,
                           BuiltinDataAllocator* allocator,
                           void** builtin_data) {
@@ -1958,6 +1953,29 @@ TfLiteStatus ParseSplitV(const Operator* op, ErrorReporter* error_reporter,
     // better undertand the ramifications of changing the legacy behavior.
   }
 
+  *builtin_data = params.release();
+  return kTfLiteOk;
+}
+
+TfLiteStatus ParseUnidirectionalSequenceLSTM(const Operator* op,
+                                             ErrorReporter* error_reporter,
+                                             BuiltinDataAllocator* allocator,
+                                             void** builtin_data) {
+  CheckParsePointerParams(op, error_reporter, allocator, builtin_data);
+  SafeBuiltinDataAllocator safe_allocator(allocator);
+  auto params =
+      safe_allocator.Allocate<TfLiteUnidirectionalSequenceLSTMParams>();
+  TF_LITE_ENSURE(error_reporter, params != nullptr);
+  if (const auto* seq_lstm_params =
+          op->builtin_options_as_UnidirectionalSequenceLSTMOptions()) {
+    params->activation =
+        ConvertActivation(seq_lstm_params->fused_activation_function());
+    params->cell_clip = seq_lstm_params->cell_clip();
+    params->proj_clip = seq_lstm_params->proj_clip();
+    params->time_major = seq_lstm_params->time_major();
+    params->asymmetric_quantize_inputs =
+        seq_lstm_params->asymmetric_quantize_inputs();
+  }
   *builtin_data = params.release();
   return kTfLiteOk;
 }
