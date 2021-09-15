@@ -1,0 +1,52 @@
+# Estimate the size of a specific binary and update the size history 
+# with a new commit.
+
+name: binary-size-check
+
+on:
+  pull_request_target:
+    types: [labeled]
+  
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+ 
+jobs:
+  size_test:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:test')) 
+
+    name: Binary Size Estimation
+    steps:
+      - name: Get build with PR
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr_head_ref
+
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install Wave
+
+      # If PR has MEM_CHANGE_OK tag, then does not error out on memory footprint
+      # increase and simply produce a report for reviewer to check.
+      # Example tag format:
+      # MEM_CHANGE_OK=why_the_change_is_ok
+      # Comparison of size before and after that change: (A copy from the below step output)
+      #  data: old xxxx, new xxx
+      - name: Compare size between main and PR build
+        if: ${{ contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
+        run: |
+          cd pr_head_ref
+          tensorflow/lite/micro/tools/ci_build/test_size.sh
+
+      # If PR does not have MEM_CHANGE_OK tag, then error out on memory footprint
+      # increase.
+      - name: Check size does not increase between main and PR build
+        if: ${{ !contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
+        run: |
+          cd pr_head_ref
+          tensorflow/lite/micro/tools/ci_build/test_size.sh error_on_mem_increase

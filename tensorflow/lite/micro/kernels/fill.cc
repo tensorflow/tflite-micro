@@ -46,8 +46,6 @@ TfLiteStatus EnsureEq(TfLiteContext* context, const TfLiteIntArray* array,
   switch (tensor->type) {
     case kTfLiteInt8:
       return EnsureEqImpl<int8_t>(context, array, tensor);
-    case kTfLiteUInt8:
-      return EnsureEqImpl<uint8_t>(context, array, tensor);
     case kTfLiteInt16:
       return EnsureEqImpl<int16_t>(context, array, tensor);
     case kTfLiteInt32:

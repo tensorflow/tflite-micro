@@ -50,16 +50,6 @@ TfLiteStatus PreluEval(TfLiteContext* context, TfLiteNode* node) {
                                 tflite::micro::GetTensorData<float>(output));
       return kTfLiteOk;
     } break;
-    case kTfLiteUInt8: {
-      reference_ops::BroadcastPrelu4DSlow(
-          params, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<uint8_t>(input),
-          tflite::micro::GetTensorShape(alpha),
-          tflite::micro::GetTensorData<uint8_t>(alpha),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<uint8_t>(output));
-      return kTfLiteOk;
-    } break;
     case kTfLiteInt8: {
       reference_ops::BroadcastPrelu4DSlow(
           params, tflite::micro::GetTensorShape(input),

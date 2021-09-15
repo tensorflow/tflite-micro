@@ -57,13 +57,13 @@ EXCLUDED_SRCS := \
   $(MAKEFILE_DIR)/downloads/stm32_bare_lib/source/debug_log.c
 MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
 
+# Excludes micro_allocator_test because it calls CreateQuantizedFlatbufferTensor,
+# which use std::vector constructor which then invokes new.
+# Excludes memory_arena_threshold_test because the size difference of some
+# allocator classes between different architectures.
 # TODO(b/158651472): Fix the memory_arena_threshold_test
-# TODO(b/143286954): Figure out why some tests fail and enable once the issues
-# are resolved.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
   tensorflow/lite/micro/micro_allocator_test.cc \
-  tensorflow/lite/micro/memory_helpers_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
 
 # flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder

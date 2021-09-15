@@ -3,16 +3,14 @@ ifneq (,$(filter $(TARGET_ARCH), x86_64))
     # CMSIS-NN optimizations not supported
 endif
 
-ifneq ($(DISABLE_DOWNLOADS), true)
-  # Unless an external path is provided we force a download during the first
-  # phase of make.
-  CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
-  CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
-  ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
-    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-      $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-    endif
+# Unless an external path is provided we force a download during the first
+# phase of make.
+CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
+CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
+ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
   endif
 endif
 
@@ -61,9 +59,3 @@ INCLUDES += \
   -I$(CMSIS_PATH)/CMSIS/Core/Include \
   -I$(CMSIS_PATH)/CMSIS/DSP/Include \
   -I$(CMSIS_PATH)/CMSIS/NN/Include
-
-CMSIS_FLAGS = \
-  -Wno-strict-aliasing
-
-CCFLAGS += $(CMSIS_FLAGS)
-CXXFLAGS += $(CMSIS_FLAGS)

@@ -24,8 +24,8 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef ETHOS_U
-#include "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
+#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #endif
 
 #ifndef TENSOR_ARENA_SIZE
@@ -110,7 +110,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     for (size_t i = 0; i < interpreter.inputs_size(); ++i) {
       TfLiteTensor* input = interpreter.input(i);
 #ifdef ETHOS_U
-      memcpy(input->data.int8, g_person_data, input->bytes);
+      memcpy(input->data.int8, g_person_image_data, input->bytes);
 #else
       memcpy(input->data.data, &input_data[i], input->bytes);
 #endif
