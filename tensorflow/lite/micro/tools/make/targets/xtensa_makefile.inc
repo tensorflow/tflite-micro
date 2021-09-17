@@ -73,7 +73,6 @@ TEST_SCRIPT := tensorflow/lite/micro/testing/test_xtensa_binary.sh
 # TODO(b/158651472): Fix the memory_arena_threshold_test
 # TODO(b/174707181): Fix the micro_interpreter_test
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
   tensorflow/lite/micro/memory_arena_threshold_test.cc
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
@@ -85,3 +84,11 @@ EXCLUDED_EXAMPLE_TESTS := \
   tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
   tensorflow/lite/micro/examples/network_tester/Makefile.inc
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+MICRO_LITE_EXAMPLE_TESTS += $(shell find third_party/xtensa/examples/ -name Makefile.inc)
+
+# Needed for LSTM support.
+MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
+tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_eval.cc \
+tensorflow/lite/micro/kernels/xtensa/lstm/kernels/unidirectional_sequence_lstm.cc \
+tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
+tensorflow/lite/kernels/kernel_util.cc

@@ -15,12 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/examples/person_detection/no_person_image_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
+#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -75,8 +75,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
 
   // Copy an image with a person into the memory area used for the input.
-  TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_person_data_size));
-  memcpy(input->data.int8, g_person_data, input->bytes);
+  TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_person_image_data_size));
+  memcpy(input->data.int8, g_person_image_data, input->bytes);
 
   // Run the model on this input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter.Invoke();
@@ -101,8 +101,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
                        person_score, no_person_score);
   TF_LITE_MICRO_EXPECT_GT(person_score, no_person_score);
 
-  // TODO(b/161461076): Update model to make this work on real negative inputs.
-  memset(input->data.int8, 0, input->bytes);
+  memcpy(input->data.int8, g_no_person_image_data, input->bytes);
 
   // Run the model on this "No Person" input.
   invoke_status = interpreter.Invoke();

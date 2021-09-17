@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
 
@@ -25,8 +26,9 @@ namespace tflite {
 
 RecordingMicroAllocator::RecordingMicroAllocator(
     RecordingSimpleMemoryAllocator* recording_memory_allocator,
-    ErrorReporter* error_reporter)
-    : MicroAllocator(recording_memory_allocator, error_reporter),
+    MicroMemoryPlanner* memory_planner, ErrorReporter* error_reporter)
+    : MicroAllocator(recording_memory_allocator, memory_planner,
+                     error_reporter),
       recording_memory_allocator_(recording_memory_allocator) {}
 
 RecordingMicroAllocator* RecordingMicroAllocator::Create(
@@ -38,10 +40,16 @@ RecordingMicroAllocator* RecordingMicroAllocator::Create(
                                              arena_size);
   TFLITE_DCHECK(simple_memory_allocator != nullptr);
 
+  uint8_t* memory_planner_buffer = simple_memory_allocator->AllocateFromTail(
+      sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+  GreedyMemoryPlanner* memory_planner =
+      new (memory_planner_buffer) GreedyMemoryPlanner();
+
   uint8_t* allocator_buffer = simple_memory_allocator->AllocateFromTail(
       sizeof(RecordingMicroAllocator), alignof(RecordingMicroAllocator));
-  RecordingMicroAllocator* allocator = new (allocator_buffer)
-      RecordingMicroAllocator(simple_memory_allocator, error_reporter);
+  RecordingMicroAllocator* allocator =
+      new (allocator_buffer) RecordingMicroAllocator(
+          simple_memory_allocator, memory_planner, error_reporter);
   return allocator;
 }
 

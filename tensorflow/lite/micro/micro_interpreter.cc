@@ -38,6 +38,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
                                    ErrorReporter* error_reporter,
+                                   MicroResourceVariables* resource_variables,
                                    MicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
@@ -45,7 +46,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size,
                                          error_reporter)),
 
-      graph_(&context_, model, &allocator_),
+      graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -57,12 +58,13 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    MicroAllocator* allocator,
                                    ErrorReporter* error_reporter,
+                                   MicroResourceVariables* resource_variables,
                                    MicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       error_reporter_(error_reporter),
       allocator_(*allocator),
-      graph_(&context_, model, allocator),
+      graph_(&context_, model, allocator, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -175,6 +177,13 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
       node->builtin_data = reinterpret_cast<void*>(builtin_data);
       node->custom_initial_data = custom_data;
       node->custom_initial_data_size = custom_data_size;
+
+      if (op->intermediates() && (op->intermediates()->size() > 0)) {
+        TfLiteIntArray* intermediates_array;
+        TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
+            op->intermediates(), &intermediates_array));
+        node->intermediates = intermediates_array;
+      }
     }
   }
   return kTfLiteOk;

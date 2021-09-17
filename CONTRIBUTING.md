@@ -2,6 +2,7 @@
 emi-automated TOC generation with instructions from
 https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 -->
+
 <!--ts-->
    * [How to Contribute](#how-to-contribute)
       * [Contributor License Agreement](#contributor-license-agreement)
@@ -13,7 +14,6 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
          * [Reference Kernel Implementations](#reference-kernel-implementations)
          * [Optimized Kernel Implementations](#optimized-kernel-implementations)
          * [New Target / Platform / IDE / Examples](#new-target--platform--ide--examples)
-         * [New Features](#new-features)
    * [Development Workflow Notes](#development-workflow-notes)
       * [Initial Setup](#initial-setup)
       * [Before submitting your PR](#before-submitting-your-pr)
@@ -22,7 +22,7 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
       * [Python notes](#python-notes)
    * [Continuous Integration System](#continuous-integration-system)
 
-<!-- Added by: advaitjain, at: Fri 09 Apr 2021 12:51:55 PM PDT -->
+<!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:43:42 AM PDT -->
 
 <!--te-->
 
@@ -123,8 +123,7 @@ Pull requests that fix bugs are always welcome and often uncontroversial, unless
 there is a conflict between different requirements from the platform, or if
 fixing a bug needs a bigger architectural change.
 
-1.  Create a
-    [TF Lite Micro Github issue](https://github.com/tensorflow/tensorflow/issues/new?labels=comp%3Amicro&template=70-tflite-micro-issue.md)
+1.  Create a [Github issue](https://github.com/tensorflow/tflite-micro/issues/new/choose)
     to determine the scope of the bug fix.
 1.  Send a PR (if that is determined to be the best path forward).
 1.  Bugfix PRs should be accompanied by a test case that fails prior to the fix
@@ -134,73 +133,20 @@ fixing a bug needs a bigger architectural change.
 ### Reference Kernel Implementations
 
 Pull requests that port reference kernels from TF Lite Mobile to TF Lite Micro
-are welcome once we have enough context from the contributor on why the
-additional kernel is needed.
+are welcome once we have context from the contributor on why the additional
+kernel is needed.
 
-1.  Please create a
-    [TF Lite Micro Github issue](https://github.com/tensorflow/tensorflow/issues/new?labels=comp%3Amicro&template=70-tflite-micro-issue.md)
-    before starting on any such PRs with as much context as possible, such as:
-
-    *   What is the model architecture?
-    *   What is the application that you are targetting?
-    *   What embedded target(s) are you planning to run on?
-    *   Motivate your use-case and the need for adding support for this
-        additional OP.
-
-1.  In the interest of having
-    [small pull requests](https://google.github.io/eng-practices/review/developer/small-cls.html),
-    limit each pull request to porting a single kernel (and the corresponding
-    test).
-
-1.  TODO(b/165627437): Create and link to a guide to porting reference ops.
+Please see the [reference kernel porting guide](tensorflow/lite/micro/docs/porting_reference_ops.md)
+for more details of that process.
 
 ### Optimized Kernel Implementations
-
-In order to have the TFLM codebase be a central repository of optimized kernel
-implementations, we would like to make some improvements to the current
-infrastructure to enable adding and maintaining optimized kernel implementations
-in a scalable way.
-
-Until that work is complete, we are requesting a ***pause*** on contributions that
-add new optimized kernel implementations. We plan to make these improvements by
-October 2020 and will provide additional guidelines at that time.
-
-*   If you would like to have an exception to this pause, with the understanding
-    that your optimized kernels will break as we improve the underlying
-    framework, then please send an email to the [SIG Micro email
-    group](https://groups.google.com/a/tensorflow.org/g/micro) to figure out
-    a middle ground.
-
-*   Every optimized kernel directory must have a README.md with the github IDs
-    of the maintainers and any other relevant documentation. PRs that add
-    maintainers to the existing optimized kernels are always welcome.
+Please see the [optimized kernel implementations guide](tensorflow/lite/micro/docs/optimized_kernel_implementations.md).
 
 ### New Target / Platform / IDE / Examples
 
-As discussed in the
-[SIG-micro Aug 12, 2020 meeting](http://doc/1YHq9rmhrOUdcZnrEnVCWvd87s2wQbq4z17HbeRl-DBc),
-we are currently ***pausing*** accepting pull requests that add new targets,
-platforms, IDE integration or examples while we revisit some of the
-infrastructure to enable us to make this process easier and more scalable.
+Please see the [new platform support guide](tensorflow/lite/micro/docs/new_platform_support.md)
+for documentation on how to add TFLM support for your particular platform.
 
-In the meantime, snapshotting and/or forking the tensorflow repo could be a
-viable way to prototype platform support.
-
-Having said that, we still invite
-[TF Lite Micro Github issues](https://github.com/tensorflow/tensorflow/issues/new?labels=comp%3Amicro&template=70-tflite-micro-issue.md)
-on this topic as we would like to enable such integration in the future.
-
-### New Features
-
-As discussed in the
-[SIG-micro Aug 12, 2020 meeting](http://doc/1YHq9rmhrOUdcZnrEnVCWvd87s2wQbq4z17HbeRl-DBc),
-we are currently ***pausing*** accepting pull requests that add new features while
-we revisit some of the infrastructure to enable us to make this process easier
-and more scalable.
-
-Having said that, we still invite feature requests via
-[TF Lite Micro Github issues](https://github.com/tensorflow/tensorflow/issues/new?labels=comp%3Amicro&template=70-tflite-micro-issue.md)
-to determine if the requested feature aligns with the TFLM roadmap.
 
 # Development Workflow Notes
 
@@ -328,7 +274,7 @@ Below are some tips that might be useful and improve the development experience.
     And a sketch of the steps:
 
     ```
-    git remote add <remote_name> git@github.com:<PR author>/tensorflow.git
+    git remote add <remote_name> git@github.com:<PR author>/tflite-micro.git
     git fetch <remote_name>
 
     git checkout -b <local-branch-name> <remote_name>/<PR branch name>

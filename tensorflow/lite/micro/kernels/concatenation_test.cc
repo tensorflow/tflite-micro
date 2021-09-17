@@ -157,31 +157,6 @@ TF_LITE_MICRO_TEST(TwoInputsAllAxesCombinations) {
       output_shape_axis1, output_value_axis1, output_data);
 }
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedUint8) {
-  const int axis = 2;
-  int input_shape[] = {3, 2, 1, 2};
-  int output_shape[] = {3, 2, 1, 4};
-
-  const float input_scale = 0.1f;
-  const int input_zero_point = 127;
-  const float output_scale = 0.1f;
-  const int output_zero_point = 127;
-
-  const uint8_t input1_values[] = {137, 157, 167, 197};
-
-  const uint8_t input2_values[] = {138, 158, 168, 198};
-
-  const uint8_t output_value[] = {
-      137, 157, 138, 158, 167, 197, 168, 198,
-  };
-
-  uint8_t output_data[8];
-  tflite::testing::TestConcatenateQuantizedTwoInputs(
-      input_shape, input1_values, input_shape, input2_values, input_scale,
-      input_zero_point, axis, output_shape, output_value, output_scale,
-      output_zero_point, output_data);
-}
-
 TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8) {
   const int axis = 2;
   int input_shape[] = {3, 2, 1, 2};

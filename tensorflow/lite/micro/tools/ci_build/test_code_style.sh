@@ -47,14 +47,17 @@ micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmi
   -e tools/make/targets/ecm3531 \
   -e BUILD\
   -e leon_commands \
+  -e "\.bmp" \
   -e "\.bzl" \
   -e "\.h5" \
-  -e "\.ipynb" \
   -e "\.inc" \
+  -e "\.ipynb" \
   -e "\.patch" \
   -e "\.properties" \
-  -e "\.txt" \
+  -e "\.tflite" \
   -e "\.tpl" \
+  -e "\.txt" \
+  -e "\.wav" \
   --output-directory /tmp
 
 LICENSE_CHECK_RESULT=$?
@@ -131,7 +134,7 @@ set -e
 
 if [[ ${FORMAT_RESULT}  != 0 ]]
 then
-  echo "The formatting errors can be fixed with tensorflow/lite/micro/tols/ci_build/test_code_style.sh --fix_formatting"
+  echo "The formatting errors can be fixed with tensorflow/lite/micro/tools/ci_build/test_code_style.sh --fix_formatting"
 fi
 if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
       ${FORMAT_RESULT}         != 0 || \

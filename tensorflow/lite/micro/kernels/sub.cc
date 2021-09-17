@@ -63,8 +63,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteSubParams* params,
                              OpData* data) {
   data->requires_broadcast = !HaveSameShapes(input1, input2);
 
-  if (output->type == kTfLiteUInt8 || output->type == kTfLiteInt8 ||
-      output->type == kTfLiteInt16) {
+  if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     // 8bit -> 8bit general quantized path, with general rescalings
     data->input1_offset = -input1->params.zero_point;
     data->input2_offset = -input2->params.zero_point;
@@ -218,26 +217,6 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       }
       break;
     }
-    case kTfLiteUInt8: {
-      if (need_broadcast) {
-        tflite::reference_ops::BroadcastSubSlow(
-            op_params, tflite::micro::GetTensorShape(input1),
-            tflite::micro::GetTensorData<uint8_t>(input1),
-            tflite::micro::GetTensorShape(input2),
-            tflite::micro::GetTensorData<uint8_t>(input2),
-            tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<uint8_t>(output));
-      } else {
-        tflite::reference_ops::Sub(
-            op_params, tflite::micro::GetTensorShape(input1),
-            tflite::micro::GetTensorData<uint8_t>(input1),
-            tflite::micro::GetTensorShape(input2),
-            tflite::micro::GetTensorData<uint8_t>(input2),
-            tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<uint8_t>(output));
-      }
-      break;
-    }
     default:
       TF_LITE_KERNEL_LOG(context, "Quantized type %s not currently supported.",
                          TfLiteTypeGetName(output->type));
@@ -261,8 +240,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   if (output->type == kTfLiteFloat32) {
     EvalSub(context, node, params, &data, input1, input2, output);
-  } else if (output->type == kTfLiteUInt8 || output->type == kTfLiteInt8 ||
-             output->type == kTfLiteInt16) {
+  } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     TF_LITE_ENSURE_OK(context, EvalSubQuantized(context, node, params, &data,
                                                 input1, input2, output));
   } else {

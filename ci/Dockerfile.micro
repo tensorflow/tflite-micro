@@ -31,6 +31,13 @@ RUN ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
 # integration.
 RUN pip install yapf
 
+# Pillow was added first for the C array generation as a result of the following
+# PRs:
+# https://github.com/tensorflow/tflite-micro/pull/337
+# https://github.com/tensorflow/tflite-micro/pull/410
+RUN pip install Pillow
+RUN pip install Wave
+
 RUN pip install six
 
 # Install Renode test dependencies
