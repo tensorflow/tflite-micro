@@ -51,21 +51,16 @@ Train the model in the cloud using Google Colaboratory.
 
 ## Trained Models
 
-The generated [model](https://github.com/tensorflow/tflite-micro/blob/main/third_party/xtensa/examples/micro_speech_lstm/micro_speech_lstm.tflite) containis the following model file:
-
-| Name           | Format       | Target Framework | Target Device             |
-| :------------- | :----------- | :--------------- | :------------------------ |
-| `micro_speech_lstm.tflite` | Fully        | TensorFlow Lite  | Mobile Devices            |
-
-**Fully quantized implies that the model is **strictly int8** quantized
-**including** the activation(s) and weight(s).*
+The flatbuffer model generated as a result of the traning can be found
+[here](../micro_speech_lstm.tflite). This model is quantized to int8 precision,
+i.e. all the activations and weights are int8.
 
 ## Model Architecture
 
-This is a simple model comprising of a Unidirectional Sequence LSTM layer, a Reshape layer, a Fully Connected
-Layer or a MatMul Layer (output: logits) and a Softmax layer
-(output: probabilities) as shown below. Refer to the below
-model architecture.
+This is a simple model comprising of a Unidirectional Sequence LSTM layer, a
+Reshape layer, a Fully Connected Layer or a MatMul Layer (output: logits) and a
+Softmax layer (output: probabilities) as shown below. Refer to the below model
+architecture.
 
 ![micro_speech_lstm_model](../images/lstm_model.png)
 
@@ -81,12 +76,12 @@ simpler model for accurate results.
 
 ## Dataset
 
-The [Mini Speech Commands](http://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip) Dataset. consists of over 8,000 WAVE audio
-files of people saying 8 different words. This data was collected by
-Google and released under a CC BY license. You can help improve it by
-contributing five minutes of your own voice. The archive is over 2GB, so this
-part may take a while, but you should see progress logs, and once it's been
-downloaded you won't need to do this again.
+The [Mini Speech Commands Dataset](http://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip)
+consists of over 8,000 WAVE audio files of people saying 8 different words. This
+data was collected by Google and released under a CC BY license. You can help
+improve it by contributing five minutes of your own voice. The archive is over
+2GB, so this part may take a while, but you should see progress logs, and once
+it's been downloaded you won't need to do this again.
 
 ## Preprocessing Speech Input
 
