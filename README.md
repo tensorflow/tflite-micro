@@ -8,7 +8,7 @@
    * [Additional Documentation](#additional-documentation)
    * [RFCs](#rfcs)
 
-<!-- Added by: advaitjain, at: Thu 17 Jun 2021 09:33:15 AM PDT -->
+<!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:43:48 AM PDT -->
 
 <!--te-->
 
@@ -73,6 +73,7 @@ The following resources may also be useful:
  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
  * [Profiling](tensorflow/lite/micro/docs/profiling.md)
  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+ * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)

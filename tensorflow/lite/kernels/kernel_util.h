@@ -142,7 +142,6 @@ const TfLiteTensor* GetIntermediates(TfLiteContext* context,
 TfLiteStatus GetIntermediatesSafe(const TfLiteContext* context,
                                   const TfLiteNode* node, int index,
                                   TfLiteTensor** tensor);
-
 #endif  // TF_LITE_STATIC_MEMORY
 
 inline int NumDimensions(const TfLiteTensor* t) { return t->dims->size; }
@@ -178,6 +177,11 @@ inline int64_t NumElements(const TfLiteTensor* t) {
 // time of prepare.
 inline bool IsConstantTensor(const TfLiteTensor* tensor) {
   return tensor->allocation_type == kTfLiteMmapRo;
+}
+
+inline bool IsConstantOrPersistentTensor(const TfLiteTensor* tensor) {
+  return IsConstantTensor(tensor) ||
+         (tensor->allocation_type == kTfLitePersistentRo);
 }
 
 // Determines whether tensor is dynamic. Note that a tensor can be non-const and
