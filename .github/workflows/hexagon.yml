@@ -1,0 +1,41 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+name: Hexagon 
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  pull_request_target:
+    types: [labeled]
+    branches:
+      - main
+
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  hexagon_build:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
+    name: Hexagon Build Test (presubmit)
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: |
+          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.1 /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh
+
+
