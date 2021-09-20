@@ -4,8 +4,11 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
+  tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
 ifeq ($(TARGET_ARCH), hifi5)
@@ -84,8 +87,34 @@ else ifeq ($(TARGET_ARCH), hifi4)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi4/include/
 
-else ifeq ($(TARGET_ARCH), vision_p6)
-  $(info We do not have XaNNlib for TARGET_ARCH=vision_p6)
+else ifeq ($(TARGET_ARCH), visionp6)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads visionp6)
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
+  endif
+
+  # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
+  # not have separate cflags (or the concept of modular build targets) with the
+  # Makefile, -Wno-shadow will be used for everything.
+
+  PLATFORM_FLAGS = \
+    -DXI_ERROR_LEVEL=XI_ERROR_LEVEL_NO_ERROR \
+	-DCNNRT_PERF_LEVEL=CNNRT_PERF_LEVEL_NONE \
+    -Wno-shadow
+
+  CCFLAGS += $(PLATFORM_FLAGS)
+  CXXFLAGS += $(PLATFORM_FLAGS)
+
+  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xi_annlib_vision_p6
+
+  THIRD_PARTY_CC_SRCS += \
+    $(shell find $(NNLIB_PATH) -name "*.cc")
+
+  INCLUDES += \
+    -I$(NNLIB_PATH)/ \
+    -I$(NNLIB_PATH)/include/ 
+	
+  LDFLAGS += -lidma-xtos
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
 endif
