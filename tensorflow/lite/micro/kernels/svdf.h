@@ -57,6 +57,7 @@ void EvalInt8SvdfReference(TfLiteContext* context, TfLiteNode* node,
                            TfLiteEvalTensor* output_tensor,
                            const OpDataSvdf& data);
 
+// TODO(#523): remove 16-bit code when no longer needed.
 void EvalInt16SvdfReference(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteEvalTensor* input_tensor,
                             const TfLiteEvalTensor* weights_feature_tensor,
