@@ -673,11 +673,11 @@ void SvdfQuantized2x2Input2x4OutputShouldMatchGolden() {
   const int output_dims_count = batch_size * num_units;
   int8_t output_data[output_dims_count];
 
-  float input_scale = 2.5 / INT8_MAX;
-  float feature_weights_scale = 1.0 / INT8_MAX;
+  float input_scale = 2.5 / std::numeric_limits<int8_t>::max();
+  float feature_weights_scale = 1.0 / std::numeric_limits<int8_t>::max();
   float time_weights_scale = 1.0 / std::numeric_limits<T>::max();
   float activation_state_scale = 1.49 / std::numeric_limits<T>::max();
-  float output_scale = 1.0 / INT8_MAX;
+  float output_scale = 1.0 / std::numeric_limits<int8_t>::max();
 
   int input_zero_point = 0;
   int output_zero_point = 0;

@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -68,29 +69,29 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (weights_time->type) {
         case kTfLiteInt16: {
-          EvalIntegerSvdfReference<int16_t>(
-              context, node, input, weights_feature, weights_time, bias, params,
-              activation_state, output, data);
+          EvalInt16SvdfReference(context, node, input, weights_feature,
+                                 weights_time, bias, params, activation_state,
+                                 output, data);
           return kTfLiteOk;
           break;
         }
         case kTfLiteInt8: {
-          EvalIntegerSvdfReference<int8_t>(
-              context, node, input, weights_feature, weights_time, bias, params,
-              activation_state, output, data);
+          EvalInt8SvdfReference(context, node, input, weights_feature,
+                                weights_time, bias, params, activation_state,
+                                output, data);
           return kTfLiteOk;
           break;
         }
         default:
-          TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                             TfLiteTypeGetName(weights_time->type));
+          MicroPrintf("Type %s not currently supported.",
+                      TfLiteTypeGetName(weights_time->type));
           return kTfLiteError;
       }
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
   return kTfLiteOk;

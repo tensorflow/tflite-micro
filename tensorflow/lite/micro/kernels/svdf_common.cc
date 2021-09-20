@@ -109,12 +109,9 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
         dot_prod = MultiplyByQuantizedMultiplier(
             dot_prod, data.effective_scale_1_a, data.effective_scale_1_b);
         dot_prod = std::min(std::max(output_min, dot_prod), output_max);
-        // This assumes state is symmetrically quantized. Otherwise last bit of
-        // state should be initialized to its zero point and accumulate the
-        // dot_prod.
-        // Equivalent as the following:
-        //     result_in_batch = zero point, which happens to be zero.
-        //     result_in_batch += dot_prod_56.
+        // The int16 version of the op assumes a zero_point of 0.  This
+        // code accounts for the potentially non-zero zero_point for the int8
+        // version of the op.
         *result_in_batch = data.activation_state_zero_point + dot_prod;
         result_in_batch += n_memory;
       }
@@ -200,23 +197,33 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
  * same.
  */
 
-template void EvalIntegerSvdfReference<int16_t>(
-    TfLiteContext* context, TfLiteNode* node,
-    const TfLiteEvalTensor* input_tensor,
-    const TfLiteEvalTensor* weights_feature_tensor,
-    const TfLiteEvalTensor* weights_time_tensor,
-    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
-    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
-    const OpDataSvdf& data);
+void EvalInt16SvdfReference(TfLiteContext* context, TfLiteNode* node,
+                            const TfLiteEvalTensor* input_tensor,
+                            const TfLiteEvalTensor* weights_feature_tensor,
+                            const TfLiteEvalTensor* weights_time_tensor,
+                            const TfLiteEvalTensor* bias_tensor,
+                            const TfLiteSVDFParams* params,
+                            TfLiteEvalTensor* activation_state_tensor,
+                            TfLiteEvalTensor* output_tensor,
+                            const OpDataSvdf& data) {
+  EvalIntegerSvdfReference<int16_t>(
+      context, node, input_tensor, weights_feature_tensor, weights_time_tensor,
+      bias_tensor, params, activation_state_tensor, output_tensor, data);
+}
 
-template void EvalIntegerSvdfReference<int8_t>(
-    TfLiteContext* context, TfLiteNode* node,
-    const TfLiteEvalTensor* input_tensor,
-    const TfLiteEvalTensor* weights_feature_tensor,
-    const TfLiteEvalTensor* weights_time_tensor,
-    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
-    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
-    const OpDataSvdf& data);
+void EvalInt8SvdfReference(TfLiteContext* context, TfLiteNode* node,
+                           const TfLiteEvalTensor* input_tensor,
+                           const TfLiteEvalTensor* weights_feature_tensor,
+                           const TfLiteEvalTensor* weights_time_tensor,
+                           const TfLiteEvalTensor* bias_tensor,
+                           const TfLiteSVDFParams* params,
+                           TfLiteEvalTensor* activation_state_tensor,
+                           TfLiteEvalTensor* output_tensor,
+                           const OpDataSvdf& data) {
+  EvalIntegerSvdfReference<int8_t>(
+      context, node, input_tensor, weights_feature_tensor, weights_time_tensor,
+      bias_tensor, params, activation_state_tensor, output_tensor, data);
+}
 
 static inline void ApplyTimeWeightsBiasAndActivation(
     int batch_size, int memory_size, int num_filters, int num_units, int rank,

@@ -47,18 +47,25 @@ extern const int kSvdfInputActivationStateTensor;
 // Output tensor.
 extern const int kSvdfOutputTensor;
 
-// TensorflowLite Micro-specific reference implementation for Integer SVDF.
-// One version for each of int8_t and int16_t time_weights/state.
-template <typename T>
-void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
-                              const TfLiteEvalTensor* input_tensor,
-                              const TfLiteEvalTensor* weights_feature_tensor,
-                              const TfLiteEvalTensor* weights_time_tensor,
-                              const TfLiteEvalTensor* bias_tensor,
-                              const TfLiteSVDFParams* params,
-                              TfLiteEvalTensor* activation_state_tensor,
-                              TfLiteEvalTensor* output_tensor,
-                              const OpDataSvdf& data);
+void EvalInt8SvdfReference(TfLiteContext* context, TfLiteNode* node,
+                           const TfLiteEvalTensor* input_tensor,
+                           const TfLiteEvalTensor* weights_feature_tensor,
+                           const TfLiteEvalTensor* weights_time_tensor,
+                           const TfLiteEvalTensor* bias_tensor,
+                           const TfLiteSVDFParams* params,
+                           TfLiteEvalTensor* activation_state_tensor,
+                           TfLiteEvalTensor* output_tensor,
+                           const OpDataSvdf& data);
+
+void EvalInt16SvdfReference(TfLiteContext* context, TfLiteNode* node,
+                            const TfLiteEvalTensor* input_tensor,
+                            const TfLiteEvalTensor* weights_feature_tensor,
+                            const TfLiteEvalTensor* weights_time_tensor,
+                            const TfLiteEvalTensor* bias_tensor,
+                            const TfLiteSVDFParams* params,
+                            TfLiteEvalTensor* activation_state_tensor,
+                            TfLiteEvalTensor* output_tensor,
+                            const OpDataSvdf& data);
 
 void EvalFloatSvdfReference(
     TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
