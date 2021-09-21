@@ -25,8 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_eval.h"
-#include "tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_shared.h"
+#include "tensorflow/lite/micro/kernels/xtensa/lstm_eval.h"
+#include "tensorflow/lite/micro/kernels/xtensa/lstm_shared.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
