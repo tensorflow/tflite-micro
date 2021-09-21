@@ -1,5 +1,3 @@
-<!-- mdformat off(b/169948621#comment2) -->
-
 <!-- Define reference-style links used throughout the document -->
 [small PRs]: https://google.github.io/eng-practices/review/developer/small-cls.html
 [Micro Contributing Guidelines]: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/CONTRIBUTING.md
@@ -32,27 +30,35 @@ Semi-automated TOC generation with instructions from
 https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 -->
 <!--ts-->
-* [Porting Reference Ops from Lite to Micro](#porting-reference-ops-from-lite-to-micro)
-   * [1. Look for a port already in progress](#1-look-for-a-port-already-in-progress)
-   * [2. Open a GitHub issue to track the port](#2-open-a-github-issue-to-track-the-port)
-   * [3. Extract Lite's code for parsing op parameters to a function (PR1)](#3-extract-lites-code-for-parsing-op-parameters-to-a-function-pr1)
-   * [4. Extract the reference for the op to a standalone header (PR2)](#4-extract-the-reference-for-the-op-to-a-standalone-header-pr2)
-   * [5. Port the op from Lite to Micro (PR3)](#5-port-the-op-from-lite-to-micro-pr3)
-* [General Guidelines](#general-guidelines)
-   * [Check each commit for formatting, lint, and unit-test passage](#check-each-commit-for-formatting-lint-and-unit-test-passage)
-   * [Add yourself as an asignee to PRs](#add-yourself-as-an-asignee-to-prs)
-   * [Maintain a 1:1 correspondence between Micro and Lite versions of unit tests](#maintain-a-11-correspondence-between-micro-and-lite-versions-of-unit-tests)
-   * [Sometimes CI checks on PRs are flakey and fail](#sometimes-ci-checks-on-prs-are-flakey-and-fail)
-* [Notes](#notes)
-* [Frequently Asked Questions](#frequently-asked-questions)
+   * [Porting Reference Ops from Lite to Micro](#porting-reference-ops-from-lite-to-micro)
+      * [1. Look for a port already in progress](#1-look-for-a-port-already-in-progress)
+      * [2. Open a GitHub issue to track the port](#2-open-a-github-issue-to-track-the-port)
+      * [3. Extract Lite's code for parsing op parameters to a function (PR1)](#3-extract-lites-code-for-parsing-op-parameters-to-a-function-pr1)
+      * [4. Extract the reference for the op to a standalone header (PR2)](#4-extract-the-reference-for-the-op-to-a-standalone-header-pr2)
+      * [5. Port the op from Lite to Micro (PR3)](#5-port-the-op-from-lite-to-micro-pr3)
+   * [General Guidelines](#general-guidelines)
+      * [Check each commit for formatting, lint, and unit-test passage](#check-each-commit-for-formatting-lint-and-unit-test-passage)
+      * [Maintain a 1:1 correspondence between Micro and Lite versions of unit tests](#maintain-a-11-correspondence-between-micro-and-lite-versions-of-unit-tests)
+   * [Notes](#notes)
+   * [Frequently Asked Questions](#frequently-asked-questions)
+      * [Can I use malloc/free or new/delete in my operator code?](#can-i-use-mallocfree-or-newdelete-in-my-operator-code)
+      * [Can I use static variable allocation in my operator code?](#can-i-use-static-variable-allocation-in-my-operator-code)
+      * [How do I allocate persistent memory?](#how-do-i-allocate-persistent-memory)
+      * [When am I allowed to allocate persistent memory?](#when-am-i-allowed-to-allocate-persistent-memory)
+      * [How do I allocate/use temporary memory?](#how-do-i-allocateuse-temporary-memory)
+      * [When can I allocate/use temporary memory?](#when-can-i-allocateuse-temporary-memory)
+      * [Can I resize my input/output tensors?](#can-i-resize-my-inputoutput-tensors)
+      * [Can I change the shape of tensors in my operator code?](#can-i-change-the-shape-of-tensors-in-my-operator-code)
+      * [When can I change the shape of tensors in my operator code?](#when-can-i-change-the-shape-of-tensors-in-my-operator-code)
+      * [Can I modify a TfLiteTensor or TfLiteEvalTensor?](#can-i-modify-a-tflitetensor-or-tfliteevaltensor)
 
-<!-- Added by: rkuester, at: Wed 05 May 2021 07:44:11 PM CDT -->
+<!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:49:51 AM PDT -->
 
 <!--te-->
 
 ## 1. Look for a port already in progress
 
-Begin by searching the TensorFlow GitHub repository for issues containing the
+Begin by searching the tflite-micro GitHub repository for issues containing the
 name of the op under consideration to ensure someone isn't already working on a
 port.
 
@@ -62,8 +68,6 @@ Open a GitHub issue to announce your intent to port the op, and to begin a
 record of your work. Document the entire process of porting the op in this
 issue. Link constituent PRs to this issue. See the article [Providing
 Context][] for background on documenting your work via bug reports.
-
-A good example is [issue #45306: micro: port op FILL from lite](https://github.com/tensorflow/tensorflow/issues/45306).
 
 ## 3. Extract Lite's code for parsing op parameters to a function (PR1)
 
@@ -254,11 +258,6 @@ Contributing Guidelines. Specifically, make sure your code:
 
 CI runs these checks on all PRs, and will hold up your PR if any of these checks fail.
 
-## Add yourself as an asignee to PRs
-
-Feel free to add yourself as an additional assignee to PRs which you submit.
-Other assignees may be set by the project's various bots.
-
 ## Maintain a 1:1 correspondence between Micro and Lite versions of unit tests
 
 To the extent possible, maintain a 1:1 correspondence between Micro and Lite
@@ -268,22 +267,9 @@ replacing the hardcoded literal `3.40282e+038` with
 versions of a test put a burden on future maintainers to figure out whether the
 differences are actually significant or just stylistic.
 
-## Sometimes CI checks on PRs are flakey and fail
-
-Sometimes CI checks on PRs don't fail because of the PRs contents, but because
-of some problem with the test infrastructure. Marking issues with the label
-`kokoro:force-run` causes the checks to be rerun.
-
 # Notes
 
 *   There was discussion of commits vs. PRs in [#45387](https://github.com/tensorflow/tensorflow/issues/45387).
-
-*   On Debian, running bazel required installing package bazel-3.1.0.
-
-*   If you have permission, add the label `comp:micro` to these PRs.
-
-*   If you have permission, the label `kokoro:force-run` can be applied to
-    manually trigger the CI builds.
 
 *   [TensorFlow Lite 8-bit quantization specification](https://www.tensorflow.org/lite/performance/quantization_spec)
 

@@ -57,6 +57,7 @@ micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmi
   -e "\.tflite" \
   -e "\.tpl" \
   -e "\.txt" \
+  -e "\.wav" \
   --output-directory /tmp
 
 LICENSE_CHECK_RESULT=$?

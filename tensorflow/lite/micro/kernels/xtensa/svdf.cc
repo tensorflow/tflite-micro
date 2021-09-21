@@ -48,7 +48,7 @@ constexpr int kOutputTensor = 0;
  * This version of SVDF is specific to TFLite Micro. It contains only a full
  * integer receipe with optimizations for the Xtensa HiFiMini platform.
  *
- * Note: passing OpData by value might seem like an oversight but it helps
+ * Note: passing OpDataSvdf by value might seem like an oversight but it helps
  * reduce the latency. See b/155656675 for more details.
  */
 void EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
@@ -58,7 +58,7 @@ void EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
                              const TfLiteEvalTensor* bias_tensor,
                              const TfLiteSVDFParams* params,
                              TfLiteEvalTensor* activation_state_tensor,
-                             TfLiteEvalTensor* output_tensor, OpData data) {
+                             TfLiteEvalTensor* output_tensor, OpDataSvdf data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];
@@ -254,7 +254,7 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteSVDFParams* params,
                                  TfLiteEvalTensor* activation_state_tensor,
                                  TfLiteEvalTensor* output_tensor,
-                                 const OpData& data) {
+                                 const OpDataSvdf& data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];
@@ -321,7 +321,7 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -422,7 +422,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                       1e-5);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
+  OpDataSvdf* data = static_cast<OpDataSvdf*>(node->user_data);
 
 #if defined(HIFIMINI)
   QuantizeMultiplierForInt24(effective_scale_1, &data->effective_scale_1_a,
@@ -471,7 +471,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
 
 #if defined(HIFIMINI)
   EvalIntegerSvdfHifimini(context, node, input, weights_feature, weights_time,
@@ -482,8 +482,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                              weights_time, bias, params, activation_state,
                              output, data);
 #else
-  EvalIntegerSvdfReference(context, node, input, weights_feature, weights_time,
-                           bias, params, activation_state, output, data);
+  EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
+                         bias, params, activation_state, output, data);
   return kTfLiteOk;
 #endif
 }

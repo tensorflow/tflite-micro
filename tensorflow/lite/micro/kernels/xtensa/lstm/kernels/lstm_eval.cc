@@ -692,7 +692,7 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
 //      constant inputs, describing projection matrix and bias.
 //  - output_state_zp: zero point of output_state. (Input, calibrated value.)
 //  - quantized_proj_clip: if > 0, clip the output of the projection.
-//  - output_state: output vector, size n_batch*n_output. Must be contigous.
+//  - output_state: output vector, size n_batch*n_output. Must be contiguous.
 //  - context: data for optimized MatrixBatchVectorMultiplyAccumulate.
 //  - scratch0: scratch area of size n_batch*n_cell
 //  - scratch1: scratch area of size n_batch*n_cell
@@ -843,7 +843,7 @@ void CalculateLstmGateInteger8x8_8(
 //      constant inputs, describing projection matrix and bias.
 //  - output_state_zp: zero point of the output state.
 //  - quantized_proj_clip: if > 0, clip the output of the projection.
-//  - output_state: output vector, size n_batch*n_output. Must be contigous.
+//  - output_state: output vector, size n_batch*n_output. Must be contiguous.
 //  - scratch: scratch area of size n_batch*n_cell
 void CalculateLstmOutputInteger8x8_8(
     int n_batch, int n_cell, int n_output, const int16_t* cell_state,
@@ -1324,7 +1324,7 @@ inline void LstmStepInteger8x8_8(
       projection_bias_ptr, output_state_zp, quantized_proj_clip,
       output_state_ptr, scratch2);
   // Copy output state to the output. Note that unlike float or hybrid, output
-  // is always contigous.
+  // is always contiguous.
   std::copy_n(output_state_ptr, n_batch * n_output, output_ptr);
 }
 

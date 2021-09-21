@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -33,13 +34,13 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
@@ -66,16 +67,31 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     case kTfLiteInt8: {
-      EvalIntegerSvdfReference(context, node, input, weights_feature,
-                               weights_time, bias, params, activation_state,
-                               output, data);
-      return kTfLiteOk;
-      break;
+      switch (weights_time->type) {
+        case kTfLiteInt16: {
+          EvalInt16SvdfReference(context, node, input, weights_feature,
+                                 weights_time, bias, params, activation_state,
+                                 output, data);
+          return kTfLiteOk;
+          break;
+        }
+        case kTfLiteInt8: {
+          EvalInt8SvdfReference(context, node, input, weights_feature,
+                                weights_time, bias, params, activation_state,
+                                output, data);
+          return kTfLiteOk;
+          break;
+        }
+        default:
+          MicroPrintf("Type %s not currently supported.",
+                      TfLiteTypeGetName(weights_time->type));
+          return kTfLiteError;
+      }
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
