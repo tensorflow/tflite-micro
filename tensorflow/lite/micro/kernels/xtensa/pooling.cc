@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 
 namespace tflite {
 
@@ -319,7 +320,8 @@ TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_OK(context, AveragePoolingPrepareVision(context, node));
   return kTfLiteOk;
 }
-#endif //VISIONP6
+#endif // VISIONP6
+
 }  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
@@ -331,7 +333,7 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
 #elif defined(VISIONP6)
         /*prepare=*/AveragePrepare,
 #else
-        /*prepare=*/PoolingPrepare,
+        /*prepare=*/AveragePrepare,
 #endif
         /*invoke=*/AverageEval,
         /*profiling_string=*/nullptr,
