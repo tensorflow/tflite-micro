@@ -21,8 +21,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -333,7 +333,7 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
 #elif defined(VISIONP6)
         /*prepare=*/AveragePrepare,
 #else
-        /*prepare=*/AveragePrepare,
+        /*prepare=*/PoolingPrepare,
 #endif
         /*invoke=*/AverageEval,
         /*profiling_string=*/nullptr,
