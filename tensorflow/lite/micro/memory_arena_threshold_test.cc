@@ -67,12 +67,12 @@ constexpr int kGreedyMemoryPlannerSize =
 constexpr int kKeywordModelTotalSize = 14416 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelTailSize = 13744 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
-constexpr int kKeywordModelPersistentBufferDataSize = 564;
+constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #else
 constexpr int kKeywordModelTotalSize = 14992 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelTailSize = 14320 + kGreedyMemoryPlannerSize;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
-constexpr int kKeywordModelPersistentBufferDataSize = 564;
+constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #endif
 constexpr int kKeywordModelHeadSize = 672;
 constexpr int kKeywordModelTfLiteTensorVariableBufferDataSize = 10240;
