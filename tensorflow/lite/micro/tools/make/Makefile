@@ -522,6 +522,10 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
     endif
   endif
 
+  # Optimized kernel directories can have their own header files which need to
+  # be included in MICROLITE_CC_HDRS for project generation to have a complete
+  # list of headers.
+  MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_OPTIMIZED_KERNELS)/*.h)
 endif
 
 # If a co-processor is specified on the command line with
