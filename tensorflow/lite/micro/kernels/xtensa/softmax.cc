@@ -32,8 +32,8 @@ namespace {
 
 #if defined(HIFI4) || defined(HIFI5)
 TfLiteStatus EvalHifiInt8(const XtensaSoftmaxOpData* op_data,
-                      const TfLiteEvalTensor* input, TfLiteEvalTensor* output,
-                      TfLiteContext* context) {
+                          const TfLiteEvalTensor* input,
+                          TfLiteEvalTensor* output, TfLiteContext* context) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
@@ -55,17 +55,7 @@ TfLiteStatus EvalHifiInt8(const XtensaSoftmaxOpData* op_data,
   }
   return kTfLiteOk;
 }
-
-TfLiteStatus XtensaEvalSoftmaxInt8Int8(TfLiteContext* context,
-                                        TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-  return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data), input,
-		  output, context);
-}
-#endif // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
@@ -76,6 +66,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   TFLITE_DCHECK(node->user_data != nullptr);
+
 #if defined(HIFI4) || defined(HIFI5)
   XtensaSoftmaxOpData op_data =
       *static_cast<XtensaSoftmaxOpData*>(node->user_data);
@@ -86,7 +77,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   if (input->type == kTfLiteInt8 && output->type == kTfLiteInt8) {
 #if defined(HIFI4) || defined(HIFI5)
-    return XtensaEvalSoftmaxInt8Int8(context, node);
+    return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data),
+                        input, output, context);
 #else
     tflite::reference_ops::Softmax(
         params, tflite::micro::GetTensorShape(input),
@@ -94,7 +86,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int8_t>(output));
     return kTfLiteOk;
-#endif // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
   }
 
   if (input->type == kTfLiteInt16 && output->type == kTfLiteInt16) {
