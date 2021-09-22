@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
   benchmark_runner->PrintAllocations();
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
-  MicroPrintf("Second run with combined full 8-bit model:");
+  MicroPrintf("Second run with full 8-bit model:");
   MicroPrintf("");  // null MicroPrintf serves as a newline.
   event_handle = profiler.BeginEvent("InitializeKeywordRunner8bit");
   benchmark_runner = CreateBenchmarkRunner8bit(&profiler);
