@@ -63,6 +63,20 @@ KeywordBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
                              tensor_arena, kTensorArenaSize, profiler);
 }
 
+KeywordBenchmarkRunner* CreateBenchmarkRunner8bit(MicroProfiler* profiler) {
+  // We allocate the KeywordOpResolver from a global buffer because the object's
+  // lifetime must exceed that of the KeywordBenchmarkRunner object.
+  KeywordOpResolver* op_resolver = new (op_resolver_buffer) KeywordOpResolver();
+  op_resolver->AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
+  op_resolver->AddQuantize();
+  op_resolver->AddSoftmax(tflite::Register_SOFTMAX_INT8_INT16());
+  op_resolver->AddSvdf(tflite::Register_SVDF_INT8());
+
+  return new (benchmark_runner_buffer)
+      KeywordBenchmarkRunner(g_keyword_scrambled_model_data_8bit, op_resolver,
+                             tensor_arena, kTensorArenaSize, profiler);
+}
+
 void KeywordRunNIerations(int iterations, const char* tag,
                           KeywordBenchmarkRunner& benchmark_runner,
                           MicroProfiler& profiler) {
@@ -82,9 +96,32 @@ int main(int argc, char** argv) {
   tflite::InitializeTarget();
   tflite::MicroProfiler profiler;
 
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+  MicroPrintf("First run with combined 16-bit/8-bit model:");
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
   uint32_t event_handle = profiler.BeginEvent("InitializeKeywordRunner");
   tflite::KeywordBenchmarkRunner* benchmark_runner =
       CreateBenchmarkRunner(&profiler);
+  profiler.EndEvent(event_handle);
+  profiler.Log();
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+
+  tflite::KeywordRunNIerations(1, "KeywordRunNIerations(1)", *benchmark_runner,
+                               profiler);
+  profiler.Log();
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+
+  tflite::KeywordRunNIerations(10, "KeywordRunNIerations(10)",
+                               *benchmark_runner, profiler);
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+
+  benchmark_runner->PrintAllocations();
+
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+  MicroPrintf("Second run with combined full 8-bit model:");
+  MicroPrintf("");  // null MicroPrintf serves as a newline.
+  event_handle = profiler.BeginEvent("InitializeKeywordRunner8bit");
+  benchmark_runner = CreateBenchmarkRunner8bit(&profiler);
   profiler.EndEvent(event_handle);
   profiler.Log();
   MicroPrintf("");  // null MicroPrintf serves as a newline.

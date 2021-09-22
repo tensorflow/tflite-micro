@@ -18,5 +18,7 @@ limitations under the License.
 
 extern const unsigned char g_keyword_scrambled_model_data[];
 extern const unsigned int g_keyword_scrambled_model_data_length;
+extern const unsigned char g_keyword_scrambled_model_data_8bit[];
+extern const unsigned int g_keyword_scrambled_model_data_length_8bit;
 
 #endif  // TENSORFLOW_LITE_MICRO_BENCHMARKS_KEYWORD_SCRAMBLED_MODEL_DATA_H_

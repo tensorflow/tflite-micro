@@ -30,6 +30,7 @@ cc_library(
     name = "keyword_scrambled_model_data",
     srcs = [
         "keyword_scrambled_model_data.cc",
+        "keyword_scrambled_model_data_8bit.cc",
     ],
     hdrs = [
         "keyword_scrambled_model_data.h",

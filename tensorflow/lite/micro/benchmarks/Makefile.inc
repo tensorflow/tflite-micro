@@ -1,6 +1,7 @@
 KEYWORD_BENCHMARK_SRCS := \
 tensorflow/lite/micro/benchmarks/keyword_benchmark.cc \
-tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.cc
+tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.cc \
+tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data_8bit.cc
 
 KEYWORD_BENCHMARK_HDRS := \
 tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.h \
