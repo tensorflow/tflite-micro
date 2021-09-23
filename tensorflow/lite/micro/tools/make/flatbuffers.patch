@@ -53,14 +53,14 @@ index 799f647..362c6e7 100644
  
  // DetachedBuffer is a finished flatbuffer memory region, detached from its
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
-index a45d14b..a4401f8 100644
+index a45d14b..393e96d 100644
 --- a/include/flatbuffers/flexbuffers.h
 +++ b/include/flatbuffers/flexbuffers.h
 @@ -493,9 +493,19 @@ class Reference {
            return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
          case FBT_NULL: return 0.0;
          case FBT_STRING: {
-+#if 1
++#if !defined( _MSC_VER)
 +#pragma GCC diagnostic push
 +#pragma GCC diagnostic ignored "-Wnull-dereference"
 +          // TODO(b/173239141): Patched via micro/tools/make/flexbuffers_download.sh

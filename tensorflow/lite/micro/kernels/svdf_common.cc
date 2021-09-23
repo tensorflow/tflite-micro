@@ -227,10 +227,9 @@ void EvalInt8SvdfReference(TfLiteContext* context, TfLiteNode* node,
 
 static inline void ApplyTimeWeightsBiasAndActivation(
     int batch_size, int memory_size, int num_filters, int num_units, int rank,
-    const float* const __restrict__ weights_time_ptr,
-    const float* const __restrict__ bias_ptr, TfLiteFusedActivation activation,
-    float* const __restrict__ state_ptr, float* const __restrict__ scratch_ptr,
-    float* const __restrict__ output_ptr) {
+    const float* const weights_time_ptr, const float* const bias_ptr,
+    TfLiteFusedActivation activation, float* const state_ptr,
+    float* const scratch_ptr, float* const output_ptr) {
   // Compute matmul(activation_state, weights_time).
   for (int b = 0; b < batch_size; ++b) {
     // Perform batched vector dot product:
