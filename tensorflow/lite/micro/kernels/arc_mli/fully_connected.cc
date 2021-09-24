@@ -269,8 +269,6 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   ops::micro::TensorSlicer out_ch_slice(data.mli_out.MliTensor(),
                                         out_tensor_dimension, slice_size, 0, 0,
                                         0, true);
-  ops::micro::TensorSlicer out_ch_slice_local(&out_local, out_tensor_dimension,
-                                              slice_size, 0, 0, 0, true);
 
 #ifdef MLI_2_0_KRNL_TEST
   mli_tensor* w_ptr = &weights_local;
@@ -304,14 +302,11 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     sliced over the batch */
     ops::micro::TensorSlicer out_slice(out_ch_slice.Sub(), out_tensor_dimension,
                                        slice_size);
-    ops::micro::TensorSlicer out_slice_local(out_ch_slice_local.Sub(),
-                                             out_tensor_dimension, slice_size);
 
     /* setup the pointers to the local or remote tensor to make the code
      * inside the loop easier. */
     mli_tensor* in_ptr = in_is_local ? in_slice.Sub() : &in_local;
-    mli_tensor* out_ptr =
-        out_is_local ? out_slice.Sub() : out_slice_local.Sub();
+    mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : &out_local;
 
 #ifdef MLI_2_0_KRNL_TEST
     /* Permute weights tensor to the HWCN layout */
@@ -328,7 +323,10 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 #endif
 
     while (!out_slice.Done()) {
-      // if same input copy as previous iteration, skip the copy of input
+      if (!out_is_local)
+        ops::micro::PrepareLocalTensor(out_slice.Sub(), &out_local);
+
+        // if same input copy as previous iteration, skip the copy of input
 #ifdef MLI_2_0
       if (in_slice.Sub()->data.mem.pi8 != input_buffer_ptr) {
         mli_mov_tensor_sync(in_slice.Sub(), &copy_config, in_ptr);
@@ -349,12 +347,10 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 
       in_slice.Next();
       out_slice.Next();
-      out_slice_local.Next();
     }
     w_slice.Next();
     b_slice.Next();
     out_ch_slice.Next();
-    out_ch_slice_local.Next();
   }
   return kTfLiteOk;
 }

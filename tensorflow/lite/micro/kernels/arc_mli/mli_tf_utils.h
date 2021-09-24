@@ -144,6 +144,18 @@ inline void ConvertToMliTensorPerChannel(const TfLiteTensor* tfT,
   ConvertToMliQuantParamsPerChannel(tfT, mliT, is_bias_tensor);
 }
 
+inline void PrepareLocalTensor(mli_tensor* tensor, mli_tensor* tensor_local) {
+#ifdef MLI_2_0
+  int8_t* local_data = tensor_local->data.mem.pi8;
+  *tensor_local = *tensor;
+  tensor_local->data.mem.pi8 = local_data;
+#else
+  int8_t* local_data = static_cast<int8_t*>(tensor_local->data);
+  *tensor_local = *tensor;
+  tensor_local->data = local_data;
+#endif
+}
+
 #ifdef MLI_2_0_KRNL_TEST
 // Reorder an array according to given indexes. If backward is true, order of
 // index array must be reversed.
