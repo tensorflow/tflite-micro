@@ -54,6 +54,7 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.c \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.cc \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
@@ -73,6 +74,7 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
