@@ -110,8 +110,7 @@ magic_wand: libtflm
 
 MICRO_SPEECH_SRCS := $(wildcard examples/micro_speech/*.cc)
 MICRO_SPEECH_SRCS += $(wildcard examples/micro_speech/*/*.cc)
-MICRO_SPEECH_THIRD_PARTY_SRCS := $(wildcard third_party/kissfft/*.c)
-MICRO_SPEECH_THIRD_PARTY_SRCS += $(wildcard third_party/kissfft/*/*.c)
+MICRO_SPEECH_THIRD_PARTY_SRCS :=
 MICRO_SPEECH_INCLUDES := $(INCLUDES) -I./examples/micro_speech
 
 micro_speech: libtflm
