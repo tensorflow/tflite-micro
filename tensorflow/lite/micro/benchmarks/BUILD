@@ -1,3 +1,7 @@
+# Description:
+#   TensorFlow Lite microcontroller benchmarks.
+load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+
 package(
     # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
@@ -29,10 +33,10 @@ cc_library(
 cc_library(
     name = "keyword_scrambled_model_data",
     srcs = [
-        "keyword_scrambled_model_data.cc",
+        "//tensorflow/lite/micro/models:generated_keyword_scrambled_model_cc",
     ],
     hdrs = [
-        "keyword_scrambled_model_data.h",
+        "//tensorflow/lite/micro/models:generated_keyword_scrambled_model_hdr",
     ],
     visibility = [
         ":micro_top_level",
