@@ -73,6 +73,8 @@ patch_kissfft() {
   sed -i -E '/^#include <sys\/types.h>/d' tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
   # Fix for https://github.com/mborgerding/kissfft/issues/20
   sed -i -E $'s@#ifdef FIXED_POINT@#ifdef FIXED_POINT\\\n#include <stdint.h> /* Patched. */@g' tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
+  sed -i -E $'s@extern "C"@extern "C++"@g' tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
+  sed -i -E $'s@extern "C"@extern "C++"@g' tensorflow/lite/micro/tools/make/downloads/kissfft/tools/kiss_fftr.h
   sed -i '1 i\#ifndef _KISS_FFT_GUTS_H\n#define _KISS_FFT_GUTS_H\n' tensorflow/lite/micro/tools/make/downloads/kissfft/_kiss_fft_guts.h
   sed -i '$a\#endif // _KISS_FFT_GUTS_H\n' tensorflow/lite/micro/tools/make/downloads/kissfft/_kiss_fft_guts.h
   sed -i -E "s@#define KISS_FFT_MALLOC malloc@#define KISS_FFT_MALLOC(X) (void*)(~0x1) /* Patched. */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h

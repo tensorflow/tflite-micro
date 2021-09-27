@@ -23,11 +23,8 @@ limitations under the License.
 // without getting a linker error.
 #define FIXED_POINT 16
 namespace kissfft_fixed16 {
-// Disable __cplusplus, to avioid extern "C", which disables namespacing
-#undef __cplusplus
 #include "kiss_fft.h"
 #include "tools/kiss_fftr.h"
-#define __cplusplus
 }  // namespace kissfft_fixed16
 #undef FIXED_POINT
 #undef kiss_fft_scalar
