@@ -8,9 +8,7 @@ GENERATED_PROJECT_INCLUDES += \
 PROJECT_INCLUDES += \
 third_party/kissfft
 
-KISSFFT_LIB_SRCS := \
-$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
-$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c
+KISSFFT_LIB_SRCS :=
 
 KISSFFT_LIB_HDRS := \
 $(MAKEFILE_DIR)/downloads/kissfft/COPYING \
