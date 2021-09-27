@@ -8,7 +8,7 @@
    * [Additional Documentation](#additional-documentation)
    * [RFCs](#rfcs)
 
-<!-- Added by: advaitjain, at: Thu 17 Jun 2021 09:33:15 AM PDT -->
+<!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:43:48 AM PDT -->
 
 <!--te-->
 
@@ -39,6 +39,7 @@ Build Type      |    Status     |
 Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
 ESP32           | [![ESP32](https://github.com/tensorflow/tflite-micro/actions/workflows/esp32.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/esp32.yml) |
+Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml) |
 RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml?query=event%3Aschedule) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
@@ -73,6 +74,7 @@ The following resources may also be useful:
  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
  * [Profiling](tensorflow/lite/micro/docs/profiling.md)
  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+ * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)

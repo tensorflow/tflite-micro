@@ -20,7 +20,7 @@ limitations under the License.
 namespace tflite {
 
 MockMicroGraph::MockMicroGraph(SimpleMemoryAllocator* allocator)
-    : MicroGraph(nullptr, nullptr, nullptr),
+    : MicroGraph(nullptr, nullptr, nullptr, nullptr),
       allocator_(allocator),
       init_count_(0),
       prepare_count_(0),
