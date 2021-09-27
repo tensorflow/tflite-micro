@@ -2,7 +2,7 @@ KEYWORD_BENCHMARK_SRCS := \
 tensorflow/lite/micro/benchmarks/keyword_benchmark.cc
 
 KEYWORD_BENCHMARK_GENERATOR_INPUTS := \
-tensorflow/lite/micro/benchmarks/keyword_scrambled.tflite
+tensorflow/lite/micro/models/keyword_scrambled.tflite
 
 KEYWORD_BENCHMARK_HDRS := \
 tensorflow/lite/micro/benchmarks/micro_benchmark.h

@@ -30,25 +30,13 @@ cc_library(
     ],
 )
 
-generate_cc_arrays(
-    name="generated_keyword_scrambled_model_cc",
-    src="keyword_scrambled.tflite",
-    out="keyword_scrambled_model_data.cc",
-)
-
-generate_cc_arrays(
-    name="generated_keyword_scrambled_model_hdr",
-    src="keyword_scrambled.tflite",
-    out="keyword_scrambled_model_data.h",
-)
-
 cc_library(
     name = "keyword_scrambled_model_data",
     srcs = [
-        ":generated_keyword_scrambled_model_cc",
+        "//tensorflow/lite/micro/models:generated_keyword_scrambled_model_cc",
     ],
     hdrs = [
-        ":generated_keyword_scrambled_model_hdr",
+        "//tensorflow/lite/micro/models:generated_keyword_scrambled_model_hdr",
     ],
     visibility = [
         ":micro_top_level",
