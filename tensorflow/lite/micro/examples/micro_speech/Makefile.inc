@@ -12,8 +12,10 @@ KISSFFT_LIB_SRCS :=
 
 KISSFFT_LIB_HDRS := \
 $(MAKEFILE_DIR)/downloads/kissfft/COPYING \
+$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
 $(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
 $(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
+$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
 
 $(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_kissfft))
