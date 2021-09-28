@@ -679,13 +679,14 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   MICROLITE_TEST_SRCS := $(filter-out $(EXPLICITLY_SPECIFIED_TEST), $(MICROLITE_TEST_SRCS))
   EXPLICITLY_SPECIFIED_TEST_SRCS := \
   $(EXPLICITLY_SPECIFIED_TEST) \
-  $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/keyword_scrambled_model_data.cc \
   tensorflow/lite/micro/testing/test_conv_model.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
-  $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/keyword_scrambled_model_data.h \
   tensorflow/lite/micro/testing/test_conv_model.h
+  EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS := \
+  tensorflow/lite/micro/models/keyword_scrambled.tflite
   $(eval $(call microlite_test,memory_arena_threshold_test,\
-  $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
+  $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS), \
+  $(EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS)))
 endif
 
 EXPLICITLY_SPECIFIED_TEST:= tensorflow/lite/micro/micro_allocator_test.cc
