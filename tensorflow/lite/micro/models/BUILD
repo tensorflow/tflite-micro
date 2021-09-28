@@ -32,3 +32,15 @@ generate_cc_arrays(
     src="keyword_scrambled.tflite",
     out="keyword_scrambled_model_data.cc",
 )
+
+generate_cc_arrays(
+    name="generated_keyword_scrambled_8bit_model_hdr",
+    src="keyword_scrambled_8bit.tflite",
+    out="keyword_scrambled_8bit_model_data.h",
+)
+
+generate_cc_arrays(
+    name="generated_keyword_scrambled_8bit_model_cc",
+    src="keyword_scrambled_8bit.tflite",
+    out="keyword_scrambled_8bit_model_data.cc",
+)
