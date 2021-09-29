@@ -1,3 +1,26 @@
+/*
+* Copyright (c) 2021 Cadence Design Systems Inc.
+*
+* Permission is hereby granted, free of charge, to any person obtaining
+* a copy of this software and associated documentation files (the
+* "Software"), to deal in the Software without restriction, including
+* without limitation the rights to use, copy, modify, merge, publish,
+* distribute, sublicense, and/or sell copies of the Software, and to
+* permit persons to whom the Software is furnished to do so, subject to
+* the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 /* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -514,19 +537,184 @@ void PortableMatrixScalarMultiplyAccumulate(const int8_t* matrix,
   }
 }
 
+// This function implements the same computation as the HiFi AE_MULFP32X2RAS
+// instruction.
+int32_t Saturating_AsymRounding_Mul32x32(int32_t a, int32_t b)
+{
+    int32_t result;
+    long long int prod = (long long int)a * b;  /* 1.31 x 1.31 -> 2.62 */
+    prod = prod + 0x40000000;                   /* rounding */
+    prod = prod >> 31;                          /* 2.62 -> 1.31 */
+
+    int max_v = 0x7fffffff;
+    int min_v = 0x80000000;
+
+    /* Saturation */
+    if ( prod > max_v )
+        result = max_v;
+    else if ( prod < min_v  )
+        result = min_v;
+    else
+        result = ( int32_t )prod;
+
+    return result;
+}
+
+// This function implements the same computation as the HiFi AE_MULAFP32X2RAS
+// instruction.
+int32_t Saturating_AsymRounding_Mac32x32(int32_t a, int32_t b, int32_t c)
+{
+    int32_t result;
+    long long int prod;
+
+    prod = (long long int)a << 31;              /* 1.31  -> 2.62 */
+    prod += (long long int)b * c;               /* 1.31 x 1.31 -> 2.62 + 2.62 */
+    prod = prod + 0x40000000;                   /* rounding */
+    prod = prod >> 31;                          /* 2.62 -> 1.31 */
+
+    int max_v = 0x7fffffff;
+    int min_v = 0x80000000;
+
+    /* Saturation */
+    if ( prod > max_v )
+        result = max_v;
+    else if ( prod < min_v  )
+        result = min_v;
+    else
+        result = ( int32_t )prod;
+
+    return result;
+}
+
+// This function implements the same computation as the HiFi AE_MULSFP32X2RAS
+// instruction.
+int32_t Saturating_AsymRounding_Msub32x32(int32_t a, int32_t b, int32_t c)
+{
+    int32_t result;
+    long long int prod;
+
+    prod = (long long int)a << 31;              /* 1.31  -> 2.62 */
+    prod -= (long long int)b * c;               /* 1.31 x 1.31 -> 2.62 + 2.62 */
+    prod = prod + 0x3fffffff;                   /* rounding */
+    prod = prod >> 31;                          /* 2.62 -> 1.31 */
+
+    int max_v = 0x7fffffff;
+    int min_v = 0x80000000;
+
+    /* Saturation */
+    if ( prod > max_v )
+        result = max_v;
+    else if ( prod < min_v  )
+        result = min_v;
+    else
+        result = ( int32_t )prod;
+
+    return result;
+}
+
+static const int32_t polypow2[] = { 14685057, -114217091, 514075394, -1488269031, 2147475316 };
+
+// Q25 input
+// Q15 output
+int32_t sigmoid_fixed_point ( int32_t x  )
+{
+      int e, z, d, y, t;
+      bool sign = 0;
+
+      if ( x < 0 )
+          sign = 1;
+
+      z = Saturating_AsymRounding_Mul32x32(x, 774541002);
+      x = abs( z );
+      e = x >> 23;
+      x = (x & 0x7FFFFF) << 8;
+
+      y = Saturating_AsymRounding_Mac32x32(polypow2[1], x, polypow2[0] );
+      y = Saturating_AsymRounding_Mac32x32(polypow2[2], x, y );
+      y = Saturating_AsymRounding_Mac32x32(polypow2[3], x, y );
+      y = Saturating_AsymRounding_Mac32x32(polypow2[4], x, y ); x = y;
+      if ( e != 0 )
+          x = ( y + (1 << (e-1)) ) >> e;
+
+      /* 0.96-x/2 */
+      z = Saturating_AsymRounding_Msub32x32(1030792151, x, 0x20000000 ); //Q30
+      t = Saturating_AsymRounding_Mac32x32(z, z, x );
+
+      d = 1073741824 - t;   //Q30
+      t = z >> 1;
+      z = Saturating_AsymRounding_Mac32x32(t, z, d );
+      t = Saturating_AsymRounding_Mac32x32(z, z, x );
+      d = 536870912 - t;    //Q29
+      t = Saturating_AsymRounding_Mul32x32(z,0x20000000);
+      z = Saturating_AsymRounding_Mac32x32(t, z, d);
+      z = (z + (1 << 11) ) >>  12;
+      x = 32768 - z;
+
+      if ( sign )
+      {
+          z = x;
+      }
+
+      return z;
+}   /* sigmoid_fixed_point */
+
+// Q25 input
+// Q15 output
+int32_t tanh_fixed_point(int32_t x)
+{
+  int32_t z, e, y, t, d;
+  bool sign = 0;
+
+  if ( x < 0 )
+      sign = 1;
+
+  z = Saturating_AsymRounding_Mul32x32(x, 1549082005);
+  x = abs( z );
+  e = x >> 23;
+  x = (x & 0x7FFFFF) << 8;
+
+  y = Saturating_AsymRounding_Mac32x32(polypow2[1], x, polypow2[0] );
+  y = Saturating_AsymRounding_Mac32x32(polypow2[2], x, y );
+  y = Saturating_AsymRounding_Mac32x32(polypow2[3], x, y );
+  y = Saturating_AsymRounding_Mac32x32(polypow2[4], x, y ); x = y;
+  if ( e != 0 )
+      x = ( y + (1 << (e-1)) ) >> e;
+
+  /* 0.96-x/2 */
+  z = 1030792151 -  (x >> 2); //Q30
+  t = Saturating_AsymRounding_Mac32x32(z, z, x );
+
+  d = 1073741824 - t;   //Q30
+  t = z >> 1;
+  z = Saturating_AsymRounding_Mac32x32(t, z, d );
+  t = Saturating_AsymRounding_Mac32x32(z, z, x );
+  d = 536870912 - t;    //Q29
+  t = Saturating_AsymRounding_Mul32x32(z,0x20000000);
+  z = Saturating_AsymRounding_Mac32x32(t, z, d);
+  x = (x + (1 << 11) ) >>  12;
+  y = 524288 - x;
+  z = Saturating_AsymRounding_Mul32x32(z, y);
+
+  if ( sign )
+      z = -(z);
+
+  return z;
+
+
+} /* tanh_fixed_point() */
+
 void PortableApplySigmoid(const int16_t* input, int32_t n_batch,
                           int32_t n_input, int16_t* output) {
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int c = 0; c < n_input; c++) {
-      using F3 = gemmlowp::FixedPoint<std::int16_t, 3>;
-      using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
       const int index = batch * n_input + c;
-      F3 sigmoid_input = F3::FromRaw(input[index]);
-      F0 sigmoid_output = gemmlowp::logistic(sigmoid_input);
-      output[index] = sigmoid_output.raw();
+      int32_t input_32 = (int32_t)input[index] << 13 ; // Q12 to Q25 conversion
+      int32_t out_32   = sigmoid_fixed_point( input_32 ); // Q15 output
+      output[index] = (int16_t)out_32;
     }
   }
 }
+
 
 void PortableApplySigmoidFloat(const int16_t* input, int32_t n_batch,
                                int32_t n_input, int16_t* output) {
@@ -547,41 +735,22 @@ void PortableApplySigmoidFloat(const int16_t* input, int32_t n_batch,
   }
 }
 
-template <int IntegerBits>
-void PortableApplyTanhImpl(const int16_t* input, int32_t n_batch,
-                           int32_t n_input, int16_t* output) {
-  using FX = gemmlowp::FixedPoint<std::int16_t, IntegerBits>;
-  using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+void PortableApplyTanh(int32_t integer_bits, const int16_t* input,
+                       int32_t n_batch, int32_t n_input, int16_t* output) {
+  assert(integer_bits <= 6);
+  const int32_t int16_max = std::numeric_limits<int16_t>::max();
+  const int32_t int16_min = std::numeric_limits<int16_t>::min();
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
-      FX tanh_input = FX::FromRaw(input[index]);
-      F0 tanh_output = gemmlowp::tanh(tanh_input);
-      output[index] = tanh_output.raw();
+      int32_t input_32 = (int32_t)input[index] << (10+integer_bits) ; // 25-(15-integer_bits) for Q25 conversion
+      int32_t out_32   = tanh_fixed_point( input_32 ); // Q1.15 output
+      out_32 = std::min(int16_max, std::max(int16_min, out_32));
+      output[index] = static_cast<int16_t>(out_32);
     }
   }
 }
 
-void PortableApplyTanh(int32_t integer_bits, const int16_t* input,
-                       int32_t n_batch, int32_t n_input, int16_t* output) {
-  assert(integer_bits <= 6);
-#define DISPATCH_TANH(i)                                       \
-  case i:                                                      \
-    PortableApplyTanhImpl<i>(input, n_batch, n_input, output); \
-    break;
-  switch (integer_bits) {
-    DISPATCH_TANH(0);
-    DISPATCH_TANH(1);
-    DISPATCH_TANH(2);
-    DISPATCH_TANH(3);
-    DISPATCH_TANH(4);
-    DISPATCH_TANH(5);
-    DISPATCH_TANH(6);
-    default:
-      return;
-  }
-#undef DISPATCH_TANH
-}
 
 void PortableApplyTanhFloat(const int16_t* input, int32_t n_batch,
                             int32_t n_input, int32_t integer_bits,
