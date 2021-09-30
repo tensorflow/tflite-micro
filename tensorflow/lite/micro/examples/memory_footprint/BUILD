@@ -1,16 +1,11 @@
 load(
-    "//third_party/tflite_micro/tensorflow/lite/micro:build_def.bzl",
+    "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
     "micro_copts",
 )
 
 package(
     licenses = ["notice"],
-)
-
-package_group(
-    name = "micro_top_level",
-    packages = ["//third_party/tflite_micro/tensorflow/lite/micro"],
 )
 
 generate_cc_arrays(
@@ -40,8 +35,8 @@ cc_binary(
     name = "baseline_memory_footprint",
     srcs = ["baseline_memory_footprint.cc"],
     deps = [
-        "//third_party/tensorflow/lite/c:common",
-        "//third_party/tflite_micro/tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:system_setup",
     ],
 )
 
@@ -50,11 +45,11 @@ cc_binary(
     srcs = ["interpreter_memory_footprint.cc"],
     deps = [
         ":simple_add_model_data",
-        "//third_party/tensorflow/lite/c:common",
-        "//third_party/tflite_micro/tensorflow/lite/micro:micro_error_reporter",
-        "//third_party/tflite_micro/tensorflow/lite/micro:micro_profiler",
-        "//third_party/tflite_micro/tensorflow/lite/micro:op_resolvers",
-        "//third_party/tflite_micro/tensorflow/lite/micro:system_setup",
-        "//third_party/tflite_micro/tensorflow/lite/micro/benchmarks:micro_benchmark",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_profiler",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/micro/benchmarks:micro_benchmark",
     ],
 )
