@@ -25,7 +25,7 @@ pwd
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-TARGET=mcu_riscv
+TARGET=riscv32_mcu
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} third_party_downloads
 
