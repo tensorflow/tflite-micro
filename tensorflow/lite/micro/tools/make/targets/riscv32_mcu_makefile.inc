@@ -39,13 +39,34 @@ INCLUDES += \
   -I$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env \
   -I$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/freedom-e300-hifive1
 
-MICROLITE_CC_SRCS += \
-  $(wildcard tensorflow/lite/micro/riscv32_mcu/*.cc)
+MICRO_FE310_BSP_ENV_SRCS := \
+  $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/start.S \
+  $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/entry.S \
+  $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/freedom-e300-hifive1/init.c
 
+MICRO_FE310_LIBWRAP_SRCS := \
+  $(wildcard $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/sys/*.c) \
+  $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/misc/write_hex.c \
+  $(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/libwrap/stdlib/malloc.c
+
+MICROLITE_CC_SRCS += \
+  $(wildcard tensorflow/lite/micro/riscv32_mcu/*.cc) \
+  $(MICRO_FE310_BSP_ENV_SRCS) \
+  $(MICRO_FE310_LIBWRAP_SRCS)
+
+LIBWRAP_SYMS := malloc free \
+                open lseek read write fstat stat close link unlink \
+                execve fork getpid kill wait \
+                isatty times sbrk _exit puts
 LDFLAGS += \
- -T$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/freedom-e300-hifive1/flash.lds \
- -L$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env \
- --specs=nano.specs
+  -T$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env/freedom-e300-hifive1/flash.lds \
+  -L$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env \
+  --specs=nano.specs
+
+# Wrap some standard symbols for which the BSP provides wrappers
+LDFLAGS += \
+  $(foreach s,$(LIBWRAP_SYMS),-Wl,--wrap=$(s)) \
+  $(foreach s,$(LIBWRAP_SYMS),-Wl,--wrap=_$(s))
 
 # These are microcontroller-specific rules for converting the ELF output
 # of the linker into a binary image that can be loaded directly.
