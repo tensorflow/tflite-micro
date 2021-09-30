@@ -29,12 +29,12 @@ TARGET=riscv32_mcu
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} third_party_downloads
 
+# check that the release build is ok.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} BUILD_TYPE=release build
 
-# Validate build for libtensorflow-microlite.a
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET}
+# Next, build w/o release so that we can run the tests and get additional
+# debugging info on failures.
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} BUILD_TYPE=debug test
 
-# Make sure an example will build.
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} hello_world
-
-# There are currently no runtime tests, we only check that compilation is working.
