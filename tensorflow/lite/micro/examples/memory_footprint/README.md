@@ -107,7 +107,7 @@ Therefore, when moving off the exploration stage, it is better to only register
 for kernels that the model needs to have a smaller footprint. The following code
 snipet shows how to do so using the keyword detection as an example:
 
-```
+```cc
   // Create OpResolver class with up to 6 kernel support.
   using KeywordOpResolver = MicroMutableOpResolver<6>;
 
