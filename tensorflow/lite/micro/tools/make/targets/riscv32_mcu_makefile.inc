@@ -78,12 +78,6 @@ LDFLAGS += \
   $(foreach s,$(LIBWRAP_SYMS),-Wl,--wrap=$(s)) \
   $(foreach s,$(LIBWRAP_SYMS),-Wl,--wrap=_$(s))
 
-# These are microcontroller-specific rules for converting the ELF output
-# of the linker into a binary image that can be loaded directly.
-OBJCOPY := $(TARGET_TOOLCHAIN_PREFIX)objcopy
-$(BINDIR)/%.bin: $(BINDIR)/%
-	@mkdir -p $(dir $@)
-	$(OBJCOPY) $< $@ -O binary
 # Explicitly link against libraries excluded by -nostdlib, note the lack of libstdc++
 LDFLAGS += -Wl,--start-group -lm -lc_nano -lgcc $(MICROLITE_LIB_PATH) -Wl,--end-group
 
