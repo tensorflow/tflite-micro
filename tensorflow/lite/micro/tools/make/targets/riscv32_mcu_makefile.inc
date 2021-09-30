@@ -63,6 +63,11 @@ LDFLAGS += \
   -L$(MAKEFILE_DIR)/downloads/sifive_fe310_lib/bsp/env \
   --specs=nano.specs
 
+# Use startup files from BSP
+LDFLAGS += -nostartfiles
+# Don't link against standard libraries, especially libstdc++
+LDFLAGS += -nostdlib
+
 # Wrap some standard symbols for which the BSP provides wrappers
 LDFLAGS += \
   $(foreach s,$(LIBWRAP_SYMS),-Wl,--wrap=$(s)) \
@@ -74,3 +79,9 @@ OBJCOPY := $(TARGET_TOOLCHAIN_PREFIX)objcopy
 $(BINDIR)/%.bin: $(BINDIR)/%
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) $< $@ -O binary
+# Explicitly link against libraries excluded by -nostdlib, note the lack of libstdc++
+LDFLAGS += -Wl,--start-group -lm -lc_nano -lgcc $(MICROLITE_LIB_PATH) -Wl,--end-group
+
+# This disables the "linker relaxation" optimization, which produced incorrect code.
+# TODO: Check whether this is fixed in newer versions of the toolchain.
+LDFLAGS += -mno-relax
