@@ -7,6 +7,11 @@ export PATH := $(MAKEFILE_DIR)/downloads/riscv_toolchain/bin/:$(PATH)
 $(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
 $(eval $(call add_third_party_download,$(SIFIVE_FE310_LIB_URL),$(SIFIVE_FE310_LIB_MD5),sifive_fe310_lib,patch_sifive_sdk))
 
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the renode download: $(DOWNLOAD_RESULT))
+endif
+
 PLATFORM_FLAGS = \
   -march=rv32imac \
   -mabi=ilp32 \
@@ -85,3 +90,39 @@ LDFLAGS += -Wl,--start-group -lm -lc_nano -lgcc $(MICROLITE_LIB_PATH) -Wl,--end-
 # This disables the "linker relaxation" optimization, which produced incorrect code.
 # TODO: Check whether this is fixed in newer versions of the toolchain.
 LDFLAGS += -mno-relax
+
+# flatbuffer_utils_test needs to link against libstdc++.
+# This is problematic because our toolchain's libstdc++ was compiled with exceptions,
+# so when we try to link against it, the linker tries to put the exception handling
+# related sections in the binary, which we don't want.
+#
+# The other two excluded tests also fail on other platforms, so disable them for now.
+#
+# There are some other tests that use c++ new/delete operators, but we get them to compile
+# by redirecting these calls to malloc/free using tf/l/m/riscv32_mcu/alloc_stub.cc.
+EXCLUDED_TESTS := \
+  tensorflow/lite/micro/flatbuffer_utils_test.cc \
+  tensorflow/lite/micro/micro_interpreter_test.cc \
+  tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
+TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
+
+# We are setting this variable to non-zero to allow us to have a custom
+# implementation of `make test` for our target
+TARGET_SPECIFIC_MAKE_TEST := 1
+
+# Exclude this test from `make test`, as it takes a very long time (~8 minutes on a regular PC)
+TEST_TARGET_EXCLUDED_BINARIES = $(BINDIR)/simple_features_generator_test
+
+ALL_TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
+
+TEST_TARGET_BINARIES = $(filter-out $(TEST_TARGET_EXCLUDED_BINARIES),$(ALL_TEST_TARGET_BINARIES))
+
+test: build
+	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
+
+# This target runs all tests unconditionally
+test_all: build
+	$(TEST_SCRIPT) "$(ALL_TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
