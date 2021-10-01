@@ -102,9 +102,10 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
   return kTfLiteOk;
 }
 
-void EvalAddFloat(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
-             const OpData* data, const TfLiteEvalTensor* input1,
-             const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
+void EvalAddFloat(TfLiteContext* context, TfLiteNode* node,
+                  TfLiteAddParams* params, const OpData* data,
+                  const TfLiteEvalTensor* input1,
+                  const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params;
   SetActivationParams(data->output_activation_min_f32,
                       data->output_activation_max_f32, &op_params);
@@ -204,7 +205,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-} // namespace
+}  // namespace
 
 void* InitAdd(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);

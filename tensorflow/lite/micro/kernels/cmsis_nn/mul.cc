@@ -84,7 +84,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-
 void EvalQuantized(TfLiteContext* context, TfLiteNode* node, const OpData* data,
                    const TfLiteEvalTensor* input1,
                    const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
