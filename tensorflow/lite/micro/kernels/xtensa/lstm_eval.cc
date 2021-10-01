@@ -82,7 +82,7 @@ void CalculateLstmGateInteger8x8_16(
         gate, input_to_gate_weights, input, input_to_gate_bias, n_cell, n_input,
         n_input, input_to_gate_scale_a, input_to_gate_scale_b, 0, n_batch);
   }
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
 // Note: no aux_input.
 
 // For each batch and cell: compute recurrent_weight * output_state.
@@ -98,7 +98,7 @@ void CalculateLstmGateInteger8x8_16(
         n_cell, n_output, n_output, recurrent_to_gate_scale_a,
         recurrent_to_gate_scale_b, 0, n_batch);
   }
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
   // For each batch and cell: compute cell_weight * cell_state (peephole LSTM)
   if (use_peephole) {
     tensor_utils::PortableVectorBatchVectorCwiseProductAccumulate(
@@ -119,14 +119,14 @@ void CalculateLstmGateInteger8x8_16(
       tensor_utils::PortableApplySigmoid(gate, n_batch, n_cell, gate);
 #else
       xa_nn_vec_sigmoid_16_16(gate, gate, n_batch * n_cell);
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
       break;
     case kTfLiteActTanh:
 #if !defined(HIFI5)
       tensor_utils::PortableApplyTanh(3, gate, n_batch, n_cell, gate);
 #else
       xa_nn_vec_tanh_16_16(gate, gate, 3, n_batch * n_cell);
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
       break;
     default:
       // Only Sigmoid or Tanh is used.
@@ -182,7 +182,7 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
                                  n_batch * n_cell);
   }
 
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
 }
 
 // Calculates the output state tensor of an LSTM step. See Float and hybrid
@@ -219,7 +219,7 @@ void CalculateLstmOutputInteger8x8_16(
 #else
   xa_nn_vec_tanh_16_16(scratch0, cell_state, (15 + cell_state_scale),
                        n_batch * n_cell);
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
 
 #if !defined(HIFI5)
   tensor_utils::PortableCwiseMul(output_gate, scratch0, hidden_scale_a,
@@ -228,7 +228,7 @@ void CalculateLstmOutputInteger8x8_16(
 #else
   xa_nn_elm_mul_16x16_asym8s(scratch1, output_gate, scratch0, hidden_scale_a,
                              hidden_scale_b, hidden_zp, n_batch * n_cell);
-#endif // !defined(HIFI5)
+#endif  // !defined(HIFI5)
 
   const bool use_projection = (projection_weights != nullptr);
 

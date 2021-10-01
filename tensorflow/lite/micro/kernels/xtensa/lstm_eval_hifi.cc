@@ -12,10 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/micro/kernels/xtensa/lstm_eval.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/xtensa/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 
 namespace tflite {
@@ -277,7 +276,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
     AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
 
     const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r;
+    const ae_int16* p16_cg_r;
 
     ae_int16* p16_cs_w;
 
@@ -342,7 +341,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
     AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
 
     const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r;
+    const ae_int16* p16_cg_r;
 
     ae_int16* p16_cs_w;
 
@@ -455,7 +454,7 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
     AE_S8_0_IP(data_c, (ae_int8*)output, 1);
   }
 }
-#endif // defined(HIFI5)
+#endif  // defined(HIFI5)
 
 }  // namespace lstm_eval
 }  // namespace micro
