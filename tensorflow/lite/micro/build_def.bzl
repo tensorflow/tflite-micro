@@ -24,13 +24,12 @@ def tflm_kernel_cc_library(
         srcs = [],
         hdrs = [],
         accelerated_srcs = {},
-        accelerated_hdrs = {},
         deps = [],
         **kwargs):
     """Creates a cc_library with the optional accelerated target sources.
 
     Note:
-      Blaze macros cannot evaluate a select() statement. Therefore, the accelerated_srcs and
+      Bazel macros cannot evaluate a select() statement. Therefore, the accelerated_srcs and
       accelerated_hdrs are passed as a dictionary, and the select statement is generated from the
       supplied dictionary.
 
@@ -70,12 +69,11 @@ def tflm_kernel_cc_library(
                 all_target_srcs.append(src)
 
         all_srcs[target] = all_target_srcs
-        all_hdrs[target] = hdrs + accelerated_hdrs[target]
 
     native.cc_library(
         name = name,
         srcs = select(all_srcs),
-        hdrs = select(all_hdrs),
+        hdrs = hdrs,
         deps = deps,
         **kwargs
     )

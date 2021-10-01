@@ -232,12 +232,12 @@ tflm_kernel_cc_library(
         "softmax.h",
         "sub.h",
         "svdf.h",
-    ],
-    accelerated_hdrs = {
+    ] + select({
         ":xtensa_fusion_f1": glob(["xtensa/**/*.h"]),
         ":xtensa_hifi_3z": glob(["xtensa/**/*.h"]),
         ":xtensa_hifi_5": glob(["xtensa/**/*.h"]),
-    },
+        "//conditions:default": [],
+    }),
     accelerated_srcs = {
         ":xtensa_fusion_f1": glob(["xtensa/**/*.cc"]),
         ":xtensa_hifi_3z": glob(["xtensa/**/*.cc"]),
@@ -1196,7 +1196,7 @@ cc_test(
 )
 
 ####################################
-# Blaze config settings.
+# Bazel config settings.
 ####################################
 
 config_setting(
