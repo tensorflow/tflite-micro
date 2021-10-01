@@ -38,7 +38,6 @@ def tflm_kernel_cc_library(
       srcs: The non-accelerated TFLM kernel source files.
       hdrs: The non-accelerated TFLM kernel header files.
       accelerated_srcs: A dictionary organized as {target: accelerated tflm kernel sources}.
-      accelerated_hdrs: A dictionary organized as {target: accelerated tflm kernel headers}.
       deps: The library's dependencies.
       **kwargs: Arguments passed into the cc_library.
     """
