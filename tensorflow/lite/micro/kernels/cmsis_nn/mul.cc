@@ -84,7 +84,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-}  // namespace
 
 void EvalQuantized(TfLiteContext* context, TfLiteNode* node, const OpData* data,
                    const TfLiteEvalTensor* input1,
@@ -155,12 +154,14 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+}  // namespace
+
+void* InitMul(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus PrepareMul(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLiteMulParams*>(node->builtin_data);
 
@@ -170,7 +171,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpData(context, node, params, data);
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EvalMul(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLiteMulParams*>(node->builtin_data);
 
@@ -201,10 +202,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_MUL() {
-  return {/* Init=*/Init,
+  return {/* Init=*/InitMul,
           /* Free=*/nullptr,
-          /* Prepare=*/Prepare,
-          /*invoke=*/Eval,
+          /* Prepare=*/PrepareMul,
+          /*invoke=*/EvalMul,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
