@@ -120,8 +120,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddAdd() {
-    return AddBuiltin(BuiltinOperator_ADD, tflite::Register_ADD(),
-                      ParseAdd);
+    return AddBuiltin(BuiltinOperator_ADD, tflite::Register_ADD(), ParseAdd);
   }
 
   TfLiteStatus AddAddN() {
@@ -359,8 +358,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMul() {
-    return AddBuiltin(BuiltinOperator_MUL, tflite::Register_MUL(),
-                      ParseMul);
+    return AddBuiltin(BuiltinOperator_MUL, tflite::Register_MUL(), ParseMul);
   }
 
   TfLiteStatus AddNeg() {
@@ -494,8 +492,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSub() {
-    return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(),
-                      ParseSub);
+    return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
   }
 
   TfLiteStatus AddSvdf(

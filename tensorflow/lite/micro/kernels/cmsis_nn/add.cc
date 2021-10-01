@@ -27,9 +27,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace add {
 
 constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
@@ -258,8 +255,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace add
-
 TfLiteRegistration Register_ADD() {
   return {/*init=*/add::Init,
           /*free=*/nullptr,
@@ -271,6 +266,4 @@ TfLiteRegistration Register_ADD() {
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

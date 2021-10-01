@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/sub.h"
 #include "tensorflow/lite/micro/kernels/sub.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -22,11 +21,13 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/add.h"
 #include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/kernels/internal/reference/sub.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -126,8 +127,8 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     default:
-      TF_LITE_KERNEL_LOG(context, "Quantized type %s not currently supported.",
-                         TfLiteTypeGetName(output->type));
+      MicroPrintf("Quantized type %s not currently supported.",
+                  TfLiteTypeGetName(output->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -152,8 +153,8 @@ TfLiteStatus SubEval(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_OK(context, EvalSubQuantized(context, node, params, &data,
                                                 input1, input2, output));
   } else {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
+                output->type);
     return kTfLiteError;
   }
 

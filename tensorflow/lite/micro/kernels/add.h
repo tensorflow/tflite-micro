@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 
@@ -50,13 +52,13 @@ struct OpDataAdd {
   float output_activation_max_f32;
 };
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
-                             const TfLiteTensor* input1,
-                             const TfLiteTensor* input2, TfLiteTensor* output,
-                             OpDataAdd* data);
+TfLiteStatus CalculateOpDataAdd(TfLiteContext* context, TfLiteAddParams* params,
+                                const TfLiteTensor* input1,
+                                const TfLiteTensor* input2,
+                                TfLiteTensor* output, OpDataAdd* data);
 
 TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_

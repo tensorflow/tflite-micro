@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_SUB_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_SUB_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 
@@ -46,13 +48,13 @@ struct OpDataSub {
   int32_t output_offset;
 };
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteSubParams* params,
-                             const TfLiteTensor* input1,
-                             const TfLiteTensor* input2, TfLiteTensor* output,
-                             OpDataSub* data);
+TfLiteStatus CalculateOpDataSub(TfLiteContext* context, TfLiteSubParams* params,
+                                const TfLiteTensor* input1,
+                                const TfLiteTensor* input2,
+                                TfLiteTensor* output, OpDataSub* data);
 
 TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_SUB_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_SUB_H_

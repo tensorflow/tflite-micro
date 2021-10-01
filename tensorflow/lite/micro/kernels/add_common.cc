@@ -13,11 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/add.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reference/add.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/add.h"
 #include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -33,10 +32,10 @@ const int kAddInputTensor1 = 0;
 const int kAddInputTensor2 = 1;
 const int kAddOutputTensor = 0;
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
-                             const TfLiteTensor* input1,
-                             const TfLiteTensor* input2, TfLiteTensor* output,
-                             OpDataAdd* data) {
+TfLiteStatus CalculateOpDataAdd(TfLiteContext* context, TfLiteAddParams* params,
+                                const TfLiteTensor* input1,
+                                const TfLiteTensor* input2,
+                                TfLiteTensor* output, OpDataAdd* data) {
   data->requires_broadcast = !HaveSameShapes(input1, input2);
 
   if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {

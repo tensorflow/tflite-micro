@@ -16,6 +16,9 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_MUL_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_MUL_H_
 
+#include <cstdint>
+
+#include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
@@ -38,11 +41,11 @@ struct OpDataMul {
   float output_activation_max_f32;
 };
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
-                             TfLiteMulParams* params, OpDataMul* data);
+TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
+                                TfLiteMulParams* params, OpDataMul* data);
 
 TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_MUL_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_MUL_H_

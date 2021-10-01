@@ -13,11 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/mul.h"
-
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/mul.h"
+#include "tensorflow/lite/kernels/internal/reference/mul.h"
 #include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -31,8 +30,8 @@ const int kMulInput1Tensor = 0;
 const int kMulInput2Tensor = 1;
 const int kMulOutputTensor = 0;
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
-                             TfLiteMulParams* params, OpDataMul* data) {
+TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
+                                TfLiteMulParams* params, OpDataMul* data) {
   const TfLiteTensor* input1 = GetInput(context, node, kMulInput1Tensor);
   TF_LITE_ENSURE(context, input1 != nullptr);
   const TfLiteTensor* input2 = GetInput(context, node, kMulInput2Tensor);
@@ -75,7 +74,7 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataMul* data = static_cast<OpDataMul*>(node->user_data);
 
-  return CalculateOpData(context, node, params, data);
+  return CalculateOpDataMul(context, node, params, data);
 }
 
 }  // namespace tflite
