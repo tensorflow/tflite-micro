@@ -94,7 +94,7 @@ TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_STATUS(
-      CalculateOpData(context, params, input1, input2, output, data));
+      CalculateOpDataSub(context, params, input1, input2, output, data));
   return kTfLiteOk;
 }
 

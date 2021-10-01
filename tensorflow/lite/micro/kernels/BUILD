@@ -209,6 +209,7 @@ cc_library(
         "leaky_relu.h",
         "logical.h",
         "logistic.h",
+        "micro_ops.h",
         "mul.h",
         "pooling.h",
         "quantize.h",

@@ -91,7 +91,7 @@ TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
 
   TF_LITE_ENSURE_STATUS(
-      CalculateOpData(context, params, input1, input2, output, data));
+      CalculateOpDataAdd(context, params, input1, input2, output, data));
 
   return kTfLiteOk;
 }
