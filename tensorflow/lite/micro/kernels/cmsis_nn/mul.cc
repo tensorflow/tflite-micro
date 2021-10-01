@@ -201,10 +201,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_MUL() {
-  return {/* Init=*/mul::Init,
+  return {/* Init=*/Init,
           /* Free=*/nullptr,
-          /* Prepare=*/mul::Prepare,
-          /*invoke=*/mul::Eval,
+          /* Prepare=*/Prepare,
+          /*invoke=*/Eval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

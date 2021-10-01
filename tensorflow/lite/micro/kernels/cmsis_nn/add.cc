@@ -256,10 +256,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_ADD() {
-  return {/*init=*/add::Init,
+  return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/add::Prepare,
-          /*invoke=*/add::Eval,
+          /*prepare=*/Prepare,
+          /*invoke=*/Eval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
