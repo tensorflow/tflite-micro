@@ -28,27 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/op_macros.h"
-
-//#define HIFI_NNLIB_OPT
-//#define PROFILE
-// #define PROFILE_SIGMOID
-// #define PROFILE_TANH
-
-#ifdef HIFI_NNLIB_OPT
-#include <xtensa/config/core-isa.h>
-#include <xtensa/tie/xt_core.h>
-#include <xtensa/tie/xt_hifi2.h>
-#include <xtensa/tie/xt_misc.h>
-
-#include "xa_nnlib_api.h"
-#endif
-
-#ifdef PROFILE
-#define PROF_ALLOCATE
-#include <xtensa/config/core-isa.h>
-
-#include "xt_profiler.h"
-#endif
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 
 namespace tflite {
 namespace ops {
@@ -91,7 +71,7 @@ void CalculateLstmGateInteger8x8_16(
   // Initialize scratch buffers with zeros. Note that unlike float and hybrid
   // versions, bias is only used in layer normalization.
   std::fill_n(gate, n_batch * n_cell, 0);
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
   // For each batch and cell: compute input_weight * input.
   tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(
       input, input_to_gate_bias, input_to_gate_weights, input_to_gate_scale_a,
@@ -102,11 +82,11 @@ void CalculateLstmGateInteger8x8_16(
         gate, input_to_gate_weights, input, input_to_gate_bias, n_cell, n_input,
         n_input, input_to_gate_scale_a, input_to_gate_scale_b, 0, n_batch);
   }
-#endif
+#endif  // !defined(HIFI5)
 // Note: no aux_input.
 
 // For each batch and cell: compute recurrent_weight * output_state.
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
   tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate(
       output_state, recurrent_to_gate_bias, recurrent_to_gate_weights,
       recurrent_to_gate_scale_a, recurrent_to_gate_scale_b, n_batch, n_output,
@@ -118,7 +98,7 @@ void CalculateLstmGateInteger8x8_16(
         n_cell, n_output, n_output, recurrent_to_gate_scale_a,
         recurrent_to_gate_scale_b, 0, n_batch);
   }
-#endif
+#endif  // !defined(HIFI5)
   // For each batch and cell: compute cell_weight * cell_state (peephole LSTM)
   if (use_peephole) {
     tensor_utils::PortableVectorBatchVectorCwiseProductAccumulate(
@@ -135,497 +115,24 @@ void CalculateLstmGateInteger8x8_16(
   // Apply activation
   switch (activation) {
     case kTfLiteActSigmoid:
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
       tensor_utils::PortableApplySigmoid(gate, n_batch, n_cell, gate);
 #else
-#ifdef VERIFY_NNLIB_SIGMOID
-      int16_t inp[65536];
-      int16_t tflm[65536], nnlib[65536];
-      for (int it = -32768; it <= 32767; it++) inp[it + 32768] = it;
-      tensor_utils::PortableApplySigmoid(inp, n_batch, 65536, tflm);
-      xa_nn_vec_sigmoid_16_16(nnlib, inp, 65536);
-      for (int it = 0; it < 65536; it++) {
-        if (tflm[it] - nnlib[it] != 0)
-          printf("Inp %d, tflm %d, nnlib %d \n", inp[it], tflm[it], nnlib[it]);
-      }
-      exit(0);
-#else
-#ifdef PROFILE_SIGMOID
-      char profiler_sigmoid[MAX_PROFILER_PARAMS_LENGTH];
-      sprintf(profiler_sigmoid, "Input Length %d,", n_batch * n_cell);
-      XTPWR_PROFILER_OPEN(1, "sigmoid_16_16", profiler_sigmoid,
-                          n_batch * n_cell, "cyc/point", 0);
-      XTPWR_PROFILER_START(1);
-#endif
       xa_nn_vec_sigmoid_16_16(gate, gate, n_batch * n_cell);
-#ifdef PROFILE_SIGMOID
-      XTPWR_PROFILER_STOP(1);
-      XTPWR_PROFILER_UPDATE(1);
-      XTPWR_PROFILER_PRINT(1);
-      XTPWR_PROFILER_CLOSE(1, 1);
-#endif
-#endif
-#endif
+#endif  // !defined(HIFI5)
       break;
     case kTfLiteActTanh:
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
       tensor_utils::PortableApplyTanh(3, gate, n_batch, n_cell, gate);
 #else
-#ifdef PROFILE_TANH
-      char profiler_tanh[MAX_PROFILER_PARAMS_LENGTH];
-      sprintf(profiler_tanh, "Input Length %d,", n_batch * n_cell);
-      XTPWR_PROFILER_OPEN(2, "tanh_16_16", profiler_tanh, n_batch * n_cell,
-                          "cyc/point", 0);
-      XTPWR_PROFILER_START(2);
-#endif
       xa_nn_vec_tanh_16_16(gate, gate, 3, n_batch * n_cell);
-#ifdef PROFILE_TANH
-      XTPWR_PROFILER_STOP(2);
-      XTPWR_PROFILER_UPDATE(2);
-      XTPWR_PROFILER_PRINT(2);
-      XTPWR_PROFILER_CLOSE(2, 1);
-#endif
-#endif
+#endif  // !defined(HIFI5)
       break;
     default:
       // Only Sigmoid or Tanh is used.
       TFLITE_ASSERT_FALSE;
   }
 }
-
-#ifdef HIFI_NNLIB_OPT
-void calc_cell_state_without_cifg(int16_t* cell_state,
-                                  const int16_t* forget_gate,
-                                  const int16_t* cell_gate,
-                                  const int16_t* input_gate, int shift1,
-                                  int shift2, int clip, int num_elms) {
-  const ae_int16x8 *p16x8_cs_r, *p16x8_fg_r;
-  const ae_int16x8 *p16x8_cg_r, *p16x8_ig_r;
-
-  ae_int16x8* p16x8_cs_w;
-
-  ae_valignx2 align_cs_r, align_fg_r;
-  ae_valignx2 align_cg_r, align_ig_r;
-  ae_valignx2 align_cs_w;
-
-  ae_int16x4 d_cs_r_0, d_cs_r_1;
-  ae_int16x4 d_fg_0, d_fg_1;
-  ae_int16x4 d_cg_0, d_cg_1;
-  ae_int16x4 d_ig_0, d_ig_1;
-  ae_int16x4 d_cs_w_0, d_cs_w_1;
-  ae_int32x2 d_mul_0, d_mul_1, d_mul_2, d_mul_3;
-  ae_int32x2 d_mul_4, d_mul_5, d_mul_6, d_mul_7;
-
-  ae_int16x4 d_min, d_max;
-
-  int i = 0;
-  p16x8_cs_r = (const ae_int16x8*)cell_state;
-  p16x8_fg_r = (const ae_int16x8*)forget_gate;
-  p16x8_cg_r = (const ae_int16x8*)cell_gate;
-  p16x8_ig_r = (const ae_int16x8*)input_gate;
-
-  p16x8_cs_w = (ae_int16x8*)cell_state;
-
-  align_cs_r = AE_LA128_PP(p16x8_cs_r);
-  align_fg_r = AE_LA128_PP(p16x8_fg_r);
-  align_cg_r = AE_LA128_PP(p16x8_cg_r);
-  align_ig_r = AE_LA128_PP(p16x8_ig_r);
-
-  align_cs_w = AE_ZALIGN128();
-
-  if (clip > 0) {
-    d_min = AE_MOVDA16(-clip);
-    d_max = AE_MOVDA16(clip);
-  } else {
-    d_min = AE_MOVDA16(-32768);
-    d_max = AE_MOVDA16(32767);
-  }
-
-#pragma concurrent
-  if (shift1 == 15) {
-    for (i = 0; i < (num_elms >> 3); i++) {
-      AE_LA16X4X2_IP(d_cs_r_0, d_cs_r_1, align_cs_r, p16x8_cs_r);
-      AE_LA16X4X2_IP(d_fg_0, d_fg_1, align_fg_r, p16x8_fg_r);
-      AE_LA16X4X2_IP(d_cg_0, d_cg_1, align_cg_r, p16x8_cg_r);
-      AE_LA16X4X2_IP(d_ig_0, d_ig_1, align_ig_r, p16x8_ig_r);
-
-      d_cs_w_0 = AE_MULFP16X4RS(d_cs_r_0, d_fg_0);
-      d_cs_w_1 = AE_MULFP16X4RS(d_cs_r_1, d_fg_1);
-
-      AE_MUL16X4(d_mul_4, d_mul_5, d_cg_0, d_ig_0);
-      AE_MUL16X4(d_mul_6, d_mul_7, d_cg_1, d_ig_1);
-      d_mul_4 = AE_SRAA32SYMS(d_mul_4, shift2);
-      d_mul_5 = AE_SRAA32SYMS(d_mul_5, shift2);
-      d_mul_6 = AE_SRAA32SYMS(d_mul_6, shift2);
-      d_mul_7 = AE_SRAA32SYMS(d_mul_7, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_4, d_mul_5);
-      d_cg_1 = AE_SAT16X4(d_mul_6, d_mul_7);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      d_cs_w_1 = AE_ADD16S(d_cs_w_1, d_cg_1);
-
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      AE_MINMAX16(d_cs_w_1, d_min, d_max);
-
-      AE_SA16X4X2_IP(d_cs_w_0, d_cs_w_1, align_cs_w, p16x8_cs_w);
-    }
-    AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
-
-    const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r, *p16_ig_r;
-
-    ae_int16* p16_cs_w;
-
-    p16_cs_r = (const ae_int16*)p16x8_cs_r;
-    p16_fg_r = (const ae_int16*)p16x8_fg_r;
-    p16_cg_r = (const ae_int16*)p16x8_cg_r;
-    p16_ig_r = (const ae_int16*)p16x8_ig_r;
-
-    p16_cs_w = (ae_int16*)p16x8_cs_w;
-// residue iterations
-#pragma concurrent
-#pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
-      d_cs_r_0 = p16_cs_r[i];
-      d_fg_0 = p16_fg_r[i];
-      d_cg_0 = p16_cg_r[i];
-      d_ig_0 = p16_ig_r[i];
-
-      d_cs_w_0 = AE_MULFP16X4RS(d_cs_r_0, d_fg_0);
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cg_0, d_ig_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      p16_cs_w[i] = d_cs_w_0;
-    }
-  } else {
-    for (i = 0; i < (num_elms >> 3); i++) {
-      AE_LA16X4X2_IP(d_cs_r_0, d_cs_r_1, align_cs_r, p16x8_cs_r);
-      AE_LA16X4X2_IP(d_fg_0, d_fg_1, align_fg_r, p16x8_fg_r);
-      AE_LA16X4X2_IP(d_cg_0, d_cg_1, align_cg_r, p16x8_cg_r);
-      AE_LA16X4X2_IP(d_ig_0, d_ig_1, align_ig_r, p16x8_ig_r);
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cs_r_0, d_fg_0);
-      AE_MUL16X4(d_mul_2, d_mul_3, d_cs_r_1, d_fg_1);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift1);
-      d_mul_1 = AE_SRAA32SYMS(d_mul_1, shift1);
-      d_mul_2 = AE_SRAA32SYMS(d_mul_2, shift1);
-      d_mul_3 = AE_SRAA32SYMS(d_mul_3, shift1);
-      d_cs_w_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-      d_cs_w_1 = AE_SAT16X4(d_mul_2, d_mul_3);
-
-      AE_MUL16X4(d_mul_4, d_mul_5, d_cg_0, d_ig_0);
-      AE_MUL16X4(d_mul_6, d_mul_7, d_cg_1, d_ig_1);
-      d_mul_4 = AE_SRAA32SYMS(d_mul_4, shift2);
-      d_mul_5 = AE_SRAA32SYMS(d_mul_5, shift2);
-      d_mul_6 = AE_SRAA32SYMS(d_mul_6, shift2);
-      d_mul_7 = AE_SRAA32SYMS(d_mul_7, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_4, d_mul_5);
-      d_cg_1 = AE_SAT16X4(d_mul_6, d_mul_7);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      d_cs_w_1 = AE_ADD16S(d_cs_w_1, d_cg_1);
-
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      AE_MINMAX16(d_cs_w_1, d_min, d_max);
-
-      AE_SA16X4X2_IP(d_cs_w_0, d_cs_w_1, align_cs_w, p16x8_cs_w);
-    }
-    AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
-
-    const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r, *p16_ig_r;
-
-    ae_int16* p16_cs_w;
-
-    p16_cs_r = (const ae_int16*)p16x8_cs_r;
-    p16_fg_r = (const ae_int16*)p16x8_fg_r;
-    p16_cg_r = (const ae_int16*)p16x8_cg_r;
-    p16_ig_r = (const ae_int16*)p16x8_ig_r;
-
-    p16_cs_w = (ae_int16*)p16x8_cs_w;
-// residue iterations
-#pragma concurrent
-#pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
-      d_cs_r_0 = p16_cs_r[i];
-      d_fg_0 = p16_fg_r[i];
-      d_cg_0 = p16_cg_r[i];
-      d_ig_0 = p16_ig_r[i];
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cs_r_0, d_fg_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift1);
-      d_cs_w_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cg_0, d_ig_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      p16_cs_w[i] = d_cs_w_0;
-    }
-  }
-}
-
-void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
-                               const int16_t* cell_gate, int shift1, int shift2,
-                               int clip, int num_elms) {
-  const ae_int16x8 *p16x8_cs_r, *p16x8_fg_r;
-  const ae_int16x8* p16x8_cg_r;
-
-  ae_int16x8* p16x8_cs_w;
-
-  ae_valignx2 align_cs_r, align_fg_r;
-  ae_valignx2 align_cg_r;
-  ae_valignx2 align_cs_w;
-
-  ae_int16x4 d_cs_r_0, d_cs_r_1;
-  ae_int16x4 d_fg_0, d_fg_1;
-  ae_int16x4 d_cg_0, d_cg_1;
-  ae_int16x4 d_1mfg_0, d_1mfg_1;
-  ae_int16x4 d_cs_w_0, d_cs_w_1;
-  ae_int32x2 d_mul_0, d_mul_1, d_mul_2, d_mul_3;
-  ae_int32x2 d_mul_4, d_mul_5, d_mul_6, d_mul_7;
-
-  ae_int16x4 d_min, d_max, d_one;
-
-  int i = 0;
-  p16x8_cs_r = (const ae_int16x8*)cell_state;
-  p16x8_fg_r = (const ae_int16x8*)forget_gate;
-  p16x8_cg_r = (const ae_int16x8*)cell_gate;
-
-  p16x8_cs_w = (ae_int16x8*)cell_state;
-
-  align_cs_r = AE_LA128_PP(p16x8_cs_r);
-  align_fg_r = AE_LA128_PP(p16x8_fg_r);
-  align_cg_r = AE_LA128_PP(p16x8_cg_r);
-
-  align_cs_w = AE_ZALIGN128();
-
-  if (clip > 0) {
-    d_min = AE_MOVDA16(-clip);
-    d_max = AE_MOVDA16(clip);
-  } else {
-    d_min = AE_MOVDA16(-32768);
-    d_max = AE_MOVDA16(32767);
-  }
-  d_one = AE_MOVDA16(32767);
-
-#pragma concurrent
-  if (shift1 == 15) {
-    for (i = 0; i < (num_elms >> 3); i++) {
-      AE_LA16X4X2_IP(d_cs_r_0, d_cs_r_1, align_cs_r, p16x8_cs_r);
-      AE_LA16X4X2_IP(d_fg_0, d_fg_1, align_fg_r, p16x8_fg_r);
-      AE_LA16X4X2_IP(d_cg_0, d_cg_1, align_cg_r, p16x8_cg_r);
-
-      d_cs_w_0 = AE_MULFP16X4RS(d_cs_r_0, d_fg_0);
-      d_cs_w_1 = AE_MULFP16X4RS(d_cs_r_1, d_fg_1);
-
-      d_1mfg_0 = AE_SUB16S(d_one, d_fg_0);
-      d_1mfg_1 = AE_SUB16S(d_one, d_fg_1);
-      AE_MUL16X4(d_mul_4, d_mul_5, d_cg_0, d_1mfg_0);
-      AE_MUL16X4(d_mul_6, d_mul_7, d_cg_1, d_1mfg_1);
-      d_mul_4 = AE_SRAA32SYMS(d_mul_4, shift2);
-      d_mul_5 = AE_SRAA32SYMS(d_mul_5, shift2);
-      d_mul_6 = AE_SRAA32SYMS(d_mul_6, shift2);
-      d_mul_7 = AE_SRAA32SYMS(d_mul_7, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_4, d_mul_5);
-      d_cg_1 = AE_SAT16X4(d_mul_6, d_mul_7);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      d_cs_w_1 = AE_ADD16S(d_cs_w_1, d_cg_1);
-
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      AE_MINMAX16(d_cs_w_1, d_min, d_max);
-
-      AE_SA16X4X2_IP(d_cs_w_0, d_cs_w_1, align_cs_w, p16x8_cs_w);
-    }
-    AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
-
-    const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r, *p16_ig_r;
-
-    ae_int16* p16_cs_w;
-
-    p16_cs_r = (const ae_int16*)p16x8_cs_r;
-    p16_fg_r = (const ae_int16*)p16x8_fg_r;
-    p16_cg_r = (const ae_int16*)p16x8_cg_r;
-
-    p16_cs_w = (ae_int16*)p16x8_cs_w;
-// residue iterations
-#pragma concurrent
-#pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
-      d_cs_r_0 = p16_cs_r[i];
-      d_fg_0 = p16_fg_r[i];
-      d_cg_0 = p16_cg_r[i];
-
-      d_cs_w_0 = AE_MULFP16X4RS(d_cs_r_0, d_fg_0);
-
-      d_1mfg_0 = AE_SUB16S(d_one, d_fg_0);
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cg_0, d_1mfg_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      p16_cs_w[i] = d_cs_w_0;
-    }
-  } else {
-    for (i = 0; i < (num_elms >> 3); i++) {
-      AE_LA16X4X2_IP(d_cs_r_0, d_cs_r_1, align_cs_r, p16x8_cs_r);
-      AE_LA16X4X2_IP(d_fg_0, d_fg_1, align_fg_r, p16x8_fg_r);
-      AE_LA16X4X2_IP(d_cg_0, d_cg_1, align_cg_r, p16x8_cg_r);
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cs_r_0, d_fg_0);
-      AE_MUL16X4(d_mul_2, d_mul_3, d_cs_r_1, d_fg_1);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift1);
-      d_mul_1 = AE_SRAA32SYMS(d_mul_1, shift1);
-      d_mul_2 = AE_SRAA32SYMS(d_mul_2, shift1);
-      d_mul_3 = AE_SRAA32SYMS(d_mul_3, shift1);
-      d_cs_w_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-      d_cs_w_1 = AE_SAT16X4(d_mul_2, d_mul_3);
-
-      d_1mfg_0 = AE_SUB16S(d_one, d_fg_0);
-      d_1mfg_1 = AE_SUB16S(d_one, d_fg_1);
-      AE_MUL16X4(d_mul_4, d_mul_5, d_cg_0, d_1mfg_0);
-      AE_MUL16X4(d_mul_6, d_mul_7, d_cg_1, d_1mfg_1);
-      d_mul_4 = AE_SRAA32SYMS(d_mul_4, shift2);
-      d_mul_5 = AE_SRAA32SYMS(d_mul_5, shift2);
-      d_mul_6 = AE_SRAA32SYMS(d_mul_6, shift2);
-      d_mul_7 = AE_SRAA32SYMS(d_mul_7, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_4, d_mul_5);
-      d_cg_1 = AE_SAT16X4(d_mul_6, d_mul_7);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      d_cs_w_1 = AE_ADD16S(d_cs_w_1, d_cg_1);
-
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      AE_MINMAX16(d_cs_w_1, d_min, d_max);
-
-      AE_SA16X4X2_IP(d_cs_w_0, d_cs_w_1, align_cs_w, p16x8_cs_w);
-    }
-    AE_SA128POS_FP(align_cs_w, p16x8_cs_w);  // finalize the stream
-
-    const ae_int16 *p16_cs_r, *p16_fg_r;
-    const ae_int16 *p16_cg_r, *p16_ig_r;
-
-    ae_int16* p16_cs_w;
-
-    p16_cs_r = (const ae_int16*)p16x8_cs_r;
-    p16_fg_r = (const ae_int16*)p16x8_fg_r;
-    p16_cg_r = (const ae_int16*)p16x8_cg_r;
-
-    p16_cs_w = (ae_int16*)p16x8_cs_w;
-// residue iterations
-#pragma concurrent
-#pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
-      d_cs_r_0 = p16_cs_r[i];
-      d_fg_0 = p16_fg_r[i];
-      d_cg_0 = p16_cg_r[i];
-
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cs_r_0, d_fg_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift1);
-      d_cs_w_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      d_1mfg_0 = AE_SUB16S(d_one, d_fg_0);
-      AE_MUL16X4(d_mul_0, d_mul_1, d_cg_0, d_1mfg_0);
-      d_mul_0 = AE_SRAA32SYMS(d_mul_0, shift2);
-      d_cg_0 = AE_SAT16X4(d_mul_0, d_mul_1);
-
-      d_cs_w_0 = AE_ADD16S(d_cs_w_0, d_cg_0);
-      AE_MINMAX16(d_cs_w_0, d_min, d_max);
-      p16_cs_w[i] = d_cs_w_0;
-    }
-  }
-}
-
-void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
-                                const int16_t* input_2, int32_t multiplier,
-                                int32_t shift, int32_t zero_point,
-                                int num_elms) {
-  ae_int16x8* tmp_input_1;
-  ae_int16x8* tmp_input_2;
-
-  ae_valignx2 align_src_input_1, align_src_input_2;
-  ae_valign align_dst_output;
-
-  ae_int16x4 data_a_0, data_a_1;
-  ae_int16x4 data_b_0, data_b_1;
-  ae_int32x2 data_ab_0, data_ab_1, data_ab_2, data_ab_3;
-  ae_int32x2 d_multiplier, d_left_shift;
-  ae_int16x4 d_zp;
-  ae_int16x4 data_c_0, data_c_1;
-  ae_int8x8 data_c;
-
-  int i = 0;
-  int left_shift, right_shift;
-  tmp_input_1 = (ae_int16x8*)(input_1);
-  tmp_input_2 = (ae_int16x8*)(input_2);
-
-  align_src_input_1 = AE_LA128_PP((ae_int16x8*)tmp_input_1);
-  align_src_input_2 = AE_LA128_PP((ae_int16x8*)tmp_input_2);
-  align_dst_output = AE_ZALIGN64();  // zero alignment reg
-
-  d_multiplier = AE_MOVDA32(multiplier);
-  d_zp = AE_MOVDA16(zero_point);
-
-  left_shift = shift < 0 ? 0 : shift;
-  right_shift = shift > 0 ? 0 : -shift;
-
-  d_left_shift = AE_MOVDA32(1 << left_shift);
-#pragma concurrent
-  for (i = 0; i < (num_elms >> 3); i++) {
-    AE_LA16X4X2_IP(data_a_0, data_a_1, align_src_input_1, tmp_input_1);
-    AE_LA16X4X2_IP(data_b_0, data_b_1, align_src_input_2, tmp_input_2);
-
-    AE_MUL16X4(data_ab_0, data_ab_1, data_a_0, data_b_0);
-    AE_MUL16X4(data_ab_2, data_ab_3, data_a_1, data_b_1);
-    AE_MUL2P32X4(data_ab_0, data_ab_1, data_ab_0, data_ab_1, d_left_shift,
-                 d_left_shift);
-    AE_MUL2P32X4(data_ab_2, data_ab_3, data_ab_2, data_ab_3, d_left_shift,
-                 d_left_shift);
-    AE_MULF2P32X4RAS(data_ab_0, data_ab_1, data_ab_0, data_ab_1, d_multiplier,
-                     d_multiplier);
-    AE_MULF2P32X4RAS(data_ab_2, data_ab_3, data_ab_2, data_ab_3, d_multiplier,
-                     d_multiplier);
-    data_ab_0 = AE_SRAA32SYMS(data_ab_0, right_shift);
-    data_ab_1 = AE_SRAA32SYMS(data_ab_1, right_shift);
-    data_ab_2 = AE_SRAA32SYMS(data_ab_2, right_shift);
-    data_ab_3 = AE_SRAA32SYMS(data_ab_3, right_shift);
-    data_c_0 = AE_SAT16X4(data_ab_0, data_ab_1);
-    data_c_1 = AE_SAT16X4(data_ab_2, data_ab_3);
-    data_c_0 = AE_SUB16S(data_c_0, d_zp);
-    data_c_1 = AE_SUB16S(data_c_1, d_zp);
-    data_c = AE_SAT8X8X16(data_c_0, data_c_1);
-    AE_SA8X8_IP(data_c, align_dst_output, (ae_int8x8*)output);
-  }
-
-  AE_SA64POS_FP(align_dst_output, output);  // finalize the stream
-
-// residue iterations
-#pragma concurrent
-#pragma loop_count max = 7
-  for (int j = 0; j < ((num_elms)&7); j++) {
-    AE_L16_IP(data_a_0, (ae_int16*)tmp_input_1, 2);
-    AE_L16_IP(data_b_0, (ae_int16*)tmp_input_2, 2);
-
-    AE_MUL16X4(data_ab_0, data_ab_1, data_a_0, data_b_0);
-    data_ab_0 = AE_MULP32X2(data_ab_0, d_left_shift);
-    data_ab_0 = AE_MULFP32X2RAS(data_ab_0, d_multiplier);
-    data_ab_0 = AE_SRAA32SYMS(data_ab_0, right_shift);
-    data_c_0 = AE_SAT16X4(data_ab_0, data_ab_1);
-    data_c_0 = AE_SUB16S(data_c_0, d_zp);
-    data_c = AE_SAT8X8X16(data_c_0, data_c_0);
-    AE_S8_0_IP(data_c, (ae_int8*)output, 1);
-  }
-}
-#endif /* #ifdef HIFI_NNLIB_OPT */
 
 // Updates the LSTM cell state, used by both integer LSTM versions.
 // Also see UpdateLstmCellFloat.
@@ -643,12 +150,12 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
                            int32_t cell_state_scale, const int16_t* input_gate,
                            int16_t* forget_gate, const int16_t* cell_gate,
                            bool use_cifg, int16_t clip) {
+#if !defined(HIFI5)
   // Use the forget_gate array as scratch, as input_gate array is not allocated
   // in CIFG case. (Be careful not to write to the scratch before reading the
   // forget gate data.)
   int16_t* scratch = forget_gate;
 
-#ifndef HIFI_NNLIB_OPT
   tensor_utils::PortableCwiseMul(forget_gate, cell_state, n_batch, n_cell, 15,
                                  cell_state);
   if (use_cifg) {
@@ -675,7 +182,7 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
                                  n_batch * n_cell);
   }
 
-#endif
+#endif  // !defined(HIFI5)
 }
 
 // Calculates the output state tensor of an LSTM step. See Float and hybrid
@@ -706,51 +213,22 @@ void CalculateLstmOutputInteger8x8_16(
     int32_t output_state_zp, int8_t quantized_proj_clip, int8_t* output_state,
     int16_t* scratch0, int8_t* scratch1, int32_t* scratch2) {
 // Note: unlike float/hybrid, the activation is always Tanh.
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
   tensor_utils::PortableApplyTanh(15 + cell_state_scale, cell_state, n_batch,
                                   n_cell, scratch0);
 #else
-#ifdef VERIFY_NNLIB_TANH
-  int16_t inp[65536];
-  int16_t tflm[65536], nnlib[65536];
-  for (int j = 0; j < 7; j++) {
-    for (int it = -32768; it <= 32767; it++) inp[it + 32768] = it;
-    tensor_utils::PortableApplyTanh(j, inp, n_batch, 65536, tflm);
-    xa_nn_vec_tanh_16_16(nnlib, inp, j, 65536);
-    for (int it = 0; it < 65536; it++) {
-      if (tflm[it] - nnlib[it] != 0)
-        printf("Integer %d, Inp %d, tflm %d, nnlib %d \n", j, inp[it], tflm[it],
-               nnlib[it]);
-    }
-  }
-  exit(0);
-#else
-#ifdef PROFILE_TANH
-  char profiler_tanh[MAX_PROFILER_PARAMS_LENGTH];
-  sprintf(profiler_tanh, "Input Length %d,", n_batch * n_cell);
-  XTPWR_PROFILER_OPEN(2, "tanh_16_16", profiler_tanh, n_batch * n_cell,
-                      "cyc/point", 0);
-  XTPWR_PROFILER_START(2);
-#endif
   xa_nn_vec_tanh_16_16(scratch0, cell_state, (15 + cell_state_scale),
                        n_batch * n_cell);
-#ifdef PROFILE_TANH
-  XTPWR_PROFILER_STOP(2);
-  XTPWR_PROFILER_UPDATE(2);
-  XTPWR_PROFILER_PRINT(2);
-  XTPWR_PROFILER_CLOSE(2, 1);
-#endif
-#endif
-#endif
+#endif  // !defined(HIFI5)
 
-#ifndef HIFI_NNLIB_OPT
+#if !defined(HIFI5)
   tensor_utils::PortableCwiseMul(output_gate, scratch0, hidden_scale_a,
                                  hidden_scale_b, n_batch, n_cell, hidden_zp,
                                  scratch1);
 #else
   xa_nn_elm_mul_16x16_asym8s(scratch1, output_gate, scratch0, hidden_scale_a,
                              hidden_scale_b, hidden_zp, n_batch * n_cell);
-#endif
+#endif  // !defined(HIFI5)
 
   const bool use_projection = (projection_weights != nullptr);
 
@@ -1028,11 +506,6 @@ inline void LstmStepInteger8x8_16(
   int16_t* forget_gate_scratch = scratch1;
   int16_t* cell_gate_scratch = scratch2;
   int16_t* output_gate_scratch = scratch3;
-
-#if 0  // LR_CHG
-	memset( output_state_ptr , 0 , n_batch*n_output );
-	memset( cell_state_ptr , 0 , n_batch*n_cell );
-#endif
 
   // Since we have already checked that weights are all there or none, we
   // can check the existence of only one to the get the condition.
@@ -1385,14 +858,6 @@ TfLiteStatus EvalInteger8x8_16(
   const int output_batch_leading_dim =
       output->dims->data[output->dims->size - 1];
 
-#ifdef PROFILE
-  char profiler_params[MAX_PROFILER_PARAMS_LENGTH];
-  sprintf(profiler_params, "Input %d, Output %d, Cell %d, Batch %d, MaxTime %d",
-          n_input, n_output, n_cell, n_batch, max_time);
-  XTPWR_PROFILER_OPEN(0, "LSTM_8X8_16", profiler_params, 0, "MACs/cycle", 0);
-  XTPWR_PROFILER_START(0);
-#endif
-
   if (time_major) {
     const int input_step = n_batch * n_input;
     const int output_step = n_batch * output_batch_leading_dim;
@@ -1585,12 +1050,6 @@ TfLiteStatus EvalInteger8x8_16(
       }
     }
   }
-#ifdef PROFILE
-  XTPWR_PROFILER_STOP(0);
-  XTPWR_PROFILER_UPDATE(0);
-  XTPWR_PROFILER_PRINT(0);
-  XTPWR_PROFILER_CLOSE(0, 1);
-#endif
 
   return kTfLiteOk;
 }
