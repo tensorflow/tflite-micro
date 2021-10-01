@@ -1,5 +1,11 @@
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
-load("//tensorflow:extra_rules.bzl", "tflm_kernel_friends")
+load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_cc_library")
+load(
+    "//tensorflow:extra_rules.bzl",
+    "tflm_kernel_friends",
+    "xtensa_fusion_f1_cpu",
+    "xtensa_hifi_3z_cpu",
+    "xtensa_hifi_5_cpu",
+)
 
 package(
     # Disabling layering_check because of http://b/177257332
@@ -109,7 +115,17 @@ cc_library(
     ],
 )
 
-cc_library(
+HIFI4_COPTS = [
+    "-DXTENSA=1",
+    "-DHIFI4=1",
+]
+
+HIFI5_COPTS = [
+    "-DXTENSA=1",
+    "-DHIFI5=1",
+]
+
+tflm_kernel_cc_library(
     name = "micro_ops",
     srcs = [
         "activations.cc",
@@ -216,8 +232,23 @@ cc_library(
         "softmax.h",
         "sub.h",
         "svdf.h",
-    ],
-    copts = micro_copts(),
+    ] + select({
+        ":xtensa_fusion_f1": glob(["xtensa/**/*.h"]),
+        ":xtensa_hifi_3z": glob(["xtensa/**/*.h"]),
+        ":xtensa_hifi_5": glob(["xtensa/**/*.h"]),
+        "//conditions:default": [],
+    }),
+    accelerated_srcs = {
+        ":xtensa_fusion_f1": glob(["xtensa/**/*.cc"]),
+        ":xtensa_hifi_3z": glob(["xtensa/**/*.cc"]),
+        ":xtensa_hifi_5": glob(["xtensa/**/*.cc"]),
+    },
+    copts = micro_copts() + select({
+        ":xtensa_fusion_f1": HIFI4_COPTS,
+        ":xtensa_hifi_3z": HIFI4_COPTS,
+        ":xtensa_hifi_5": HIFI5_COPTS,
+        "//conditions:default": [],
+    }),
     visibility = [
         # Public visibility to allow application code to select kernel variants.
         "//visibility:public",
@@ -243,7 +274,12 @@ cc_library(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
-    ],
+    ] + select({
+        ":xtensa_fusion_f1": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        ":xtensa_hifi_3z": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        ":xtensa_hifi_5": ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(
@@ -1157,4 +1193,29 @@ cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+)
+
+####################################
+# Bazel config settings.
+####################################
+
+config_setting(
+    name = "xtensa_fusion_f1",
+    values = {
+        "cpu": xtensa_fusion_f1_cpu(),
+    },
+)
+
+config_setting(
+    name = "xtensa_hifi_3z",
+    values = {
+        "cpu": xtensa_hifi_3z_cpu(),
+    },
+)
+
+config_setting(
+    name = "xtensa_hifi_5",
+    values = {
+        "cpu": xtensa_hifi_5_cpu(),
+    },
 )
