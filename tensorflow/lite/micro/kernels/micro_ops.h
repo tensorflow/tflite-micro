@@ -31,6 +31,7 @@ namespace tflite {
 // (https://abseil.io/tips/130). Any new ops (or cleanup of existing ops should
 // have their Register function declarations in the tflite namespace.
 
+TfLiteRegistration Register_ADD();
 TfLiteRegistration Register_ADD_N();
 TfLiteRegistration Register_ASSIGN_VARIABLE();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
@@ -59,6 +60,7 @@ TfLiteRegistration Register_LOGICAL_AND();
 TfLiteRegistration Register_LOGICAL_OR();
 TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
+TfLiteRegistration Register_MUL();
 TfLiteRegistration Register_QUANTIZE();
 TfLiteRegistration Register_READ_VARIABLE();
 TfLiteRegistration Register_RELU();
@@ -68,6 +70,7 @@ TfLiteRegistration Register_SHAPE();
 TfLiteRegistration Register_SPACE_TO_BATCH_ND();
 TfLiteRegistration Register_SPACE_TO_DEPTH();
 TfLiteRegistration Register_SQUEEZE();
+TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SVDF();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
@@ -78,7 +81,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_ADD();
 TfLiteRegistration Register_ARG_MAX();
 TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_CEIL();
@@ -97,7 +99,6 @@ TfLiteRegistration Register_LOGICAL_NOT();
 TfLiteRegistration Register_MAXIMUM();
 TfLiteRegistration Register_MEAN();
 TfLiteRegistration Register_MINIMUM();
-TfLiteRegistration Register_MUL();
 TfLiteRegistration Register_NEG();
 TfLiteRegistration Register_NOT_EQUAL();
 TfLiteRegistration Register_PACK();
@@ -115,7 +116,6 @@ TfLiteRegistration Register_SPLIT_V();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
 TfLiteRegistration Register_STRIDED_SLICE();
-TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_L2_NORMALIZATION();

@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/models/keyword_scrambled_model_data.h"
+#include "tensorflow/lite/micro/models/keyword_scrambled_8bit_model_data.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
 /*
@@ -59,7 +59,7 @@ KeywordBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
   op_resolver->AddSvdf(tflite::Register_SVDF_INT8());
 
   return new (benchmark_runner_buffer)
-      KeywordBenchmarkRunner(g_keyword_scrambled_model_data, op_resolver,
+      KeywordBenchmarkRunner(g_keyword_scrambled_8bit_model_data, op_resolver,
                              tensor_arena, kTensorArenaSize, profiler);
 }
 
