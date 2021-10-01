@@ -13,12 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/experimental/microfrontend/lib/fft_util.h"
+#include "tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h"
 
 #include <stdio.h>
-
-#define FIXED_POINT 16
-#include "kiss_fft.h"
-#include "tools/kiss_fftr.h"
 
 int FftPopulateState(struct FftState* state, size_t input_size) {
   state->input_size = input_size;
@@ -43,7 +40,7 @@ int FftPopulateState(struct FftState* state, size_t input_size) {
 
   // Ask kissfft how much memory it wants.
   size_t scratch_size = 0;
-  kiss_fftr_cfg kfft_cfg = kiss_fftr_alloc(
+  kissfft_fixed16::kiss_fftr_cfg kfft_cfg = kissfft_fixed16::kiss_fftr_alloc(
       state->fft_size, 0, nullptr, &scratch_size);
   if (kfft_cfg != nullptr) {
     fprintf(stderr, "Kiss memory sizing failed.\n");
@@ -56,7 +53,7 @@ int FftPopulateState(struct FftState* state, size_t input_size) {
   }
   state->scratch_size = scratch_size;
   // Let kissfft configure the scratch space we just allocated
-  kfft_cfg = kiss_fftr_alloc(state->fft_size, 0,
+  kfft_cfg = kissfft_fixed16::kiss_fftr_alloc(state->fft_size, 0,
                                               state->scratch, &scratch_size);
   if (kfft_cfg != state->scratch) {
     fprintf(stderr, "Kiss memory preallocation strategy failed.\n");

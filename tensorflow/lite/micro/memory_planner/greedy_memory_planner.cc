@@ -58,9 +58,14 @@ void ReverseSortInPlace(int* values, int* ids, int size) {
   } while (any_swapped);
 }
 
-GreedyMemoryPlanner::GreedyMemoryPlanner(unsigned char* scratch_buffer,
-                                         int scratch_buffer_size)
-    : buffer_count_(0), need_to_calculate_offsets_(true) {
+GreedyMemoryPlanner::GreedyMemoryPlanner() {}
+
+TfLiteStatus GreedyMemoryPlanner::Init(unsigned char* scratch_buffer,
+                                       int scratch_buffer_size) {
+  // Reset internal states
+  buffer_count_ = 0;
+  need_to_calculate_offsets_ = true;
+
   // Allocate the arrays we need within the scratch buffer arena.
   max_buffer_count_ = scratch_buffer_size / per_buffer_size();
 
@@ -78,6 +83,7 @@ GreedyMemoryPlanner::GreedyMemoryPlanner(unsigned char* scratch_buffer,
   next_free += sizeof(ListEntry) * max_buffer_count_;
 
   buffer_offsets_ = reinterpret_cast<int*>(next_free);
+  return kTfLiteOk;
 }
 
 GreedyMemoryPlanner::~GreedyMemoryPlanner() {

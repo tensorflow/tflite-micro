@@ -93,7 +93,8 @@ TF_LITE_MICRO_TEST(TestReverseSortInPlace) {
 TF_LITE_MICRO_TEST(TestGreedyBasics) {
   tflite::MicroErrorReporter micro_error_reporter;
 
-  tflite::GreedyMemoryPlanner planner(g_scratch_buffer, kScratchBufferSize);
+  tflite::GreedyMemoryPlanner planner;
+  planner.Init(g_scratch_buffer, kScratchBufferSize);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           planner.AddBuffer(&micro_error_reporter, 10, 0, 1));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -118,7 +119,8 @@ TF_LITE_MICRO_TEST(TestGreedyBasics) {
 TF_LITE_MICRO_TEST(TestGreedyMedium) {
   tflite::MicroErrorReporter micro_error_reporter;
 
-  tflite::GreedyMemoryPlanner planner(g_scratch_buffer, kScratchBufferSize);
+  tflite::GreedyMemoryPlanner planner;
+  planner.Init(g_scratch_buffer, kScratchBufferSize);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           planner.AddBuffer(&micro_error_reporter, 10, 0, 1));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -163,7 +165,8 @@ TF_LITE_MICRO_TEST(TestGreedyMedium) {
 TF_LITE_MICRO_TEST(TestPersonDetectionModel) {
   tflite::MicroErrorReporter micro_error_reporter;
 
-  tflite::GreedyMemoryPlanner planner(g_scratch_buffer, kScratchBufferSize);
+  tflite::GreedyMemoryPlanner planner;
+  planner.Init(g_scratch_buffer, kScratchBufferSize);
   // These buffer sizes and time ranges are taken from the 250KB MobileNet model
   // used in the person detection example.
   TF_LITE_MICRO_EXPECT_EQ(
@@ -241,7 +244,8 @@ TF_LITE_MICRO_TEST(TestPersonDetectionModel) {
 TF_LITE_MICRO_TEST(TestOverlapCase) {
   tflite::MicroErrorReporter micro_error_reporter;
 
-  tflite::GreedyMemoryPlanner planner(g_scratch_buffer, kScratchBufferSize);
+  tflite::GreedyMemoryPlanner planner;
+  planner.Init(g_scratch_buffer, kScratchBufferSize);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           planner.AddBuffer(&micro_error_reporter, 100, 0, 1));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -263,7 +267,8 @@ TF_LITE_MICRO_TEST(TestSmallScratch) {
 
   constexpr int scratch_buffer_size = 40;
   unsigned char scratch_buffer[scratch_buffer_size];
-  tflite::GreedyMemoryPlanner planner(scratch_buffer, scratch_buffer_size);
+  tflite::GreedyMemoryPlanner planner;
+  planner.Init(scratch_buffer, scratch_buffer_size);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           planner.AddBuffer(&micro_error_reporter, 100, 0, 1));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,

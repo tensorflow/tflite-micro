@@ -482,8 +482,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                              weights_time, bias, params, activation_state,
                              output, data);
 #else
-  EvalIntegerSvdfReference(context, node, input, weights_feature, weights_time,
-                           bias, params, activation_state, output, data);
+  EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
+                         bias, params, activation_state, output, data);
   return kTfLiteOk;
 #endif
 }

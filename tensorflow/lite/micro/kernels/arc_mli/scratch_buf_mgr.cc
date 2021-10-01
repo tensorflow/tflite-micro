@@ -243,6 +243,41 @@ TfLiteStatus get_arc_scratch_buffer_for_fully_connect_tensors(
   return ret_val;
 }
 
+TfLiteStatus get_arc_scratch_buffer_for_eltwise_tensors(
+    TfLiteContext* context, MliTensorInterface* in1, MliTensorInterface* in2,
+    MliTensorInterface* out) {
+  TfLiteStatus ret_val = kTfLiteOk;
+#if (defined(__Xxy)) || (defined(__Xvdsp))
+  init_arc_scratch_buffers();
+  constexpr int tsr_num = 3;
+  int in1_size = mli_hlp_count_elem_num(in1->MliTensor(), 0) *
+                 mli_hlp_tensor_element_size(in1->MliTensor());
+  int in2_size = mli_hlp_count_elem_num(in2->MliTensor(), 0) *
+                 mli_hlp_tensor_element_size(in2->MliTensor());
+  int out_size = mli_hlp_count_elem_num(out->MliTensor(), 0) *
+                 mli_hlp_tensor_element_size(out->MliTensor());
+  int sizes[tsr_num] = {in1_size, in2_size, out_size};
+  MliTensorInterface* in_tensors[tsr_num] = {in1, in2, out};
+  for (int i = 0; i < tsr_num; ++i) {
+    if (!inside_arc_ccm(in_tensors[i]->Data<int8_t>())) {
+      auto* data_ptr = get_arc_scratch_buffer(sizes[i]);
+      if (data_ptr == nullptr) {
+        get_arc_scratch_buffer_max_size(&sizes[i]);
+        data_ptr = get_arc_scratch_buffer(sizes[i]);
+      }
+      if (data_ptr == nullptr || sizes[i] == 0) {
+        in_tensors[i]->SetData<int8_t>(nullptr, 0);
+        ret_val = kTfLiteError;
+      } else {
+        in_tensors[i]->SetData<int8_t>(static_cast<int8_t*>(data_ptr),
+                                       sizes[i]);
+      }
+    }
+  }
+#endif
+  return ret_val;
+}
+
 TfLiteStatus arc_scratch_buffer_calc_slice_size_io(
     const MliTensorInterface* in, const MliTensorInterface* out,
     const int kernel_height, const int stride_height, const int padding_top,

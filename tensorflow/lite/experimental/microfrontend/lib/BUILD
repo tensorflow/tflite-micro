@@ -10,6 +10,20 @@ cc_library(
 )
 
 cc_library(
+    name = "kiss_fft_int16",
+    srcs = [
+        "kiss_fft_int16.cc",
+    ],
+    hdrs = [
+        "kiss_fft_common.h",
+        "kiss_fft_int16.h",
+    ],
+    deps = [
+        "@kissfft//:kiss_fftr_16",
+    ],
+)
+
+cc_library(
     name = "fft",
     srcs = [
         "fft.cc",
@@ -20,7 +34,7 @@ cc_library(
         "fft_util.h",
     ],
     deps = [
-        "@kissfft//:kiss_fftr_16",
+        ":kiss_fft_int16",
     ],
 )
 

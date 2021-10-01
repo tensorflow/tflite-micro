@@ -8,14 +8,14 @@ GENERATED_PROJECT_INCLUDES += \
 PROJECT_INCLUDES += \
 third_party/kissfft
 
-KISSFFT_LIB_SRCS := \
-$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
-$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c
+KISSFFT_LIB_SRCS :=
 
 KISSFFT_LIB_HDRS := \
 $(MAKEFILE_DIR)/downloads/kissfft/COPYING \
+$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
 $(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
 $(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
+$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
 
 $(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_kissfft))
@@ -54,6 +54,7 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.c \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.cc \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
@@ -73,6 +74,8 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_common.h \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
