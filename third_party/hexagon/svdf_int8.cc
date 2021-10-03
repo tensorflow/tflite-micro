@@ -85,9 +85,9 @@ TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
         context, node, input, weights_feature, weights_time, bias, params,
         activation_state, output, node->user_data);
   } else {
-    EvalIntegerSvdfReference(context, node, input, weights_feature,
-                             weights_time, bias, params, activation_state,
-                             output, data.reference_op_data);
+    EvalInt16SvdfReference(context, node, input, weights_feature,
+                           weights_time, bias, params, activation_state,
+                           output, data.reference_op_data);
   }
   return kTfLiteOk;
 }

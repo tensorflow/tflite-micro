@@ -25,8 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_eval.h"
-#include "tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_shared.h"
+#include "tensorflow/lite/micro/kernels/xtensa/lstm_eval.h"
+#include "tensorflow/lite/micro/kernels/xtensa/lstm_shared.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
@@ -1023,33 +1023,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   lstm_params.proj_clip = params->proj_clip;
   lstm_params.asymmetric_quantize_inputs = params->asymmetric_quantize_inputs;
   switch (input_to_output_weights->type) {
-#if FULL_LIB
-    case kTfLiteFloat32: {
-      // Index the scratch buffers pointers to the global scratch buffer.
-      TfLiteEvalTensor* scratch_buffer;
-      TF_LITE_ENSURE_OK(context, GetTemporarySafe(context, node, kScratchBuffer,
-                                                  &scratch_buffer));
-      return lstm_eval::EvalFloat(
-          input, input_to_input_weights, input_to_forget_weights,
-          input_to_cell_weights, input_to_output_weights,
-          recurrent_to_input_weights, recurrent_to_forget_weights,
-          recurrent_to_cell_weights, recurrent_to_output_weights,
-          cell_to_input_weights, cell_to_forget_weights, cell_to_output_weights,
-          input_layer_norm_coefficients, forget_layer_norm_coefficients,
-          cell_layer_norm_coefficients, output_layer_norm_coefficients,
-          /*aux_input=*/nullptr,
-          /*aux_input_to_input_weights=*/nullptr,
-          /*aux_input_to_forget_weights=*/nullptr,
-          /*aux_input_to_cell_weights=*/nullptr,
-          /*aux_input_to_output_weights=*/nullptr, input_gate_bias,
-          forget_gate_bias, cell_gate_bias, output_gate_bias,
-          projection_weights, projection_bias, &lstm_params,
-          /*forward_sequence=*/true, time_major,
-          /*output_offset=*/0, scratch_buffer, output_state, cell_state,
-          output);
-    }
-#endif
-
     case kTfLiteInt8: {
       const bool is_hybrid = input->type == kTfLiteFloat32;
       if (is_hybrid) {

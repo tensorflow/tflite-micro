@@ -88,7 +88,8 @@ MICRO_LITE_EXAMPLE_TESTS += $(shell find third_party/xtensa/examples/ -name Make
 
 # Needed for LSTM support.
 MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-tensorflow/lite/micro/kernels/xtensa/lstm/kernels/lstm_eval.cc \
-tensorflow/lite/micro/kernels/xtensa/lstm/kernels/unidirectional_sequence_lstm.cc \
+tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
+tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
+tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc \
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
 tensorflow/lite/kernels/kernel_util.cc

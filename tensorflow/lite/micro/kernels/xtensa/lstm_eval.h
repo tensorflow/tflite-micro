@@ -29,6 +29,23 @@ namespace ops {
 namespace micro {
 namespace lstm_eval {
 
+#if defined(HIFI5)
+void calc_cell_state_without_cifg(int16_t* cell_state,
+                                  const int16_t* forget_gate,
+                                  const int16_t* cell_gate,
+                                  const int16_t* input_gate, int shift1,
+                                  int shift2, int clip, int num_elms);
+
+void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
+                               const int16_t* cell_gate, int shift1, int shift2,
+                               int clip, int num_elms);
+
+void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
+                                const int16_t* input_2, int32_t multiplier,
+                                int32_t shift, int32_t zero_point,
+                                int num_elms);
+#endif  // defined(HIFI5)
+
 // Pamameters for integer LSTM.
 // Consider split this into two Integer Parameters if more fields are added.
 struct IntegerLstmParameter {
