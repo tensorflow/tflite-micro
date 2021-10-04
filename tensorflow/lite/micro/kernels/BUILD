@@ -194,6 +194,7 @@ tflm_kernel_cc_library(
         "resize_nearest_neighbor.cc",
         "round.cc",
         "shape.cc",
+        "slice.cc",
         "softmax.cc",
         "softmax_common.cc",
         "space_to_batch_nd.cc",
@@ -996,6 +997,18 @@ cc_test(
 cc_test(
     name = "shape_test",
     srcs = ["shape_test.cc"],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "slice_test",
+    srcs = ["slice_test.cc"],
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
