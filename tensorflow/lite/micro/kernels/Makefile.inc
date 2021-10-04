@@ -87,6 +87,7 @@ tensorflow/lite/micro/kernels/resize_bilinear_test.cc \
 tensorflow/lite/micro/kernels/resize_nearest_neighbor_test.cc \
 tensorflow/lite/micro/kernels/round_test.cc \
 tensorflow/lite/micro/kernels/shape_test.cc \
+tensorflow/lite/micro/kernels/slice_test.cc \
 tensorflow/lite/micro/kernels/softmax_test.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd_test.cc \
 tensorflow/lite/micro/kernels/space_to_depth_test.cc \
