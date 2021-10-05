@@ -13,12 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/prelu.h"
-
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reference/prelu.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -49,10 +48,12 @@ TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
   return kTfLiteOk;
 }
 
-void BroadcastPrelu4DSlowFloat(
-    const RuntimeShape& unextended_input1_shape, const float* input1_data,
-    const RuntimeShape& unextended_input2_shape, const float* input2_data,
-    const RuntimeShape& unextended_output_shape, float* output_data) {
+void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
+                               const float* input1_data,
+                               const RuntimeShape& unextended_input2_shape,
+                               const float* input2_data,
+                               const RuntimeShape& unextended_output_shape,
+                               float* output_data) {
   TFLITE_DCHECK_LE(unextended_input1_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_LE(unextended_input2_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_LE(unextended_output_shape.DimensionsCount(), 4);

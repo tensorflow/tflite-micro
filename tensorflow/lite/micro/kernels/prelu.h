@@ -24,13 +24,15 @@ TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
                                   TfLiteTensor* output, PreluParams* params);
 
-void BroadcastPrelu4DSlowFloat(
-    const RuntimeShape& unextended_input1_shape, const float* input1_data,
-    const RuntimeShape& unextended_input2_shape, const float* input2_data,
-    const RuntimeShape& unextended_output_shape, float* output_data);
+void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
+                               const float* input1_data,
+                               const RuntimeShape& unextended_input2_shape,
+                               const float* input2_data,
+                               const RuntimeShape& unextended_output_shape,
+                               float* output_data);
 
 TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_PRELU_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_PRELU_H_
