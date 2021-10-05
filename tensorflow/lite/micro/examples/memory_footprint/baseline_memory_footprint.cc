@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,11 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include "tensorflow/lite/micro/system_setup.h"
 
-#ifndef TENSORFLOW_LITE_MICRO_BENCHMARKS_KEYWORD_SCRAMBLED_MODEL_DATA_H_
-#define TENSORFLOW_LITE_MICRO_BENCHMARKS_KEYWORD_SCRAMBLED_MODEL_DATA_H_
-
-extern const unsigned char g_keyword_scrambled_model_data[];
-extern const unsigned int g_keyword_scrambled_model_data_length;
-
-#endif  // TENSORFLOW_LITE_MICRO_BENCHMARKS_KEYWORD_SCRAMBLED_MODEL_DATA_H_
+// This file provides a skeleton application without the TFLM Framework
+// (interpreter, memory planner etc). This is used to measure the bare minimum
+// application code size of a specific target platform without the TFLM
+// Framework. Please see README.md for more information.
+int main(int argc, char** argv) { tflite::InitializeTarget(); }

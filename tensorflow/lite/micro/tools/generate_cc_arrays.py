@@ -31,7 +31,6 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
-    # Log cc file name for Make to include in the build.
     out_cc_file.write('#include "{}"\n\n'.format(
         out_fname.split('genfiles/')[-1].replace('.cc', '.h')))
     out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
@@ -79,8 +78,13 @@ def generate_array(input_fname):
                                        signed=True)) + ','
     wav_file.close()
     return [wav_file.getnframes(), out_string]
+  elif input_fname.endswith('.csv'):
+    with open(input_fname, 'r') as input_file:
+      # Assume one array per csv file.
+      elements = input_file.readline()
+      return [len(elements.split(',')), elements]
   else:
-    raise ValueError('input file must be .tflite, .bmp or .wav')
+    raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
 
 
 def get_array_name(input_fname):
@@ -91,6 +95,8 @@ def get_array_name(input_fname):
     return [base_array_name + '_image_data', 'unsigned char']
   elif input_fname.endswith('.wav'):
     return [base_array_name + '_audio_data', 'short']
+  elif input_fname.endswith('.csv'):
+    return [base_array_name + '_test_data', 'short']
 
 
 def main():
@@ -122,8 +128,10 @@ def main():
         output_base_fname = output_base_fname + '_image_data'
       elif input_file.endswith('.wav'):
         output_base_fname = output_base_fname + '_audio_data'
+      elif input_file.endswith('.csv'):
+        output_base_fname = output_base_fname + '_test_data'
       else:
-        raise ValueError('input file must be .tflite, .bmp or .wav')
+        raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
 
       output_cc_fname = output_base_fname + '.cc'
       # Print output cc filename for Make to include it in the build.
