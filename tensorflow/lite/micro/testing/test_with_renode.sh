@@ -16,14 +16,18 @@
 #
 #
 # Parameters:
-#  ${1} - path to a binary to test or directory (all *_test will be run).
+#  ${1} - space-separated list of binaries to test
 #  ${2} - String that is checked for pass/fail.
 #  ${3} - target (bluepill, stm32f4 etc.)
+#  ${4} - name of the platform's UART device that should be monitored
+#         for the success string
 
 set -e
 
+FILES="${1}"
 PASS_STRING=${2}
 TARGET=${3}
+UART=${4}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TFLM_ROOT_DIR=${SCRIPT_DIR}/..
@@ -68,42 +72,41 @@ UART_LOG=${RESULTS_DIRECTORY}/uart_log.txt
 
 ROBOT_SCRIPT=${RESULTS_DIRECTORY}/${TARGET}.robot
 
-echo -e "*** Settings ***\n" \
-        "Suite Setup                   Setup\n" \
-        "Suite Teardown                Teardown\n" \
-        "Test Setup                    Reset Emulation\n" \
-        "Test Teardown                 Teardown With Custom Message\n" \
-        "Resource                      \${RENODEKEYWORDS}\n" \
-        "Resource                      ${ROBOT_RESOURCE}\n" \
-        "Default Tags                  tensorflow\n" \
-        "\n" \
-        "*** Variables ***\n" \
-        "\${RESC}                      undefined_RESC\n" \
-        "\${UART_LOG}                  /tmp/uart.log\n" \
-        "\${UART_LINE_ON_SUCCESS}      ${PASS_STRING}\n" \
-        "\${CREATE_SNAPSHOT_ON_FAIL}   False\n" \
-        "\n" \
-        "*** Test Cases ***\n" \
-        "Should Create Platform\n" \
-        "    Create Platform\n" > $ROBOT_SCRIPT
+cat > $ROBOT_SCRIPT <<EOF
+*** Settings ***
+Suite Setup                   Setup
+Suite Teardown                Teardown
+Test Setup                    Reset Emulation
+Test Teardown                 Teardown With Custom Message
+Resource                      \${RENODEKEYWORDS}
+Resource                      ${ROBOT_RESOURCE}
+Default Tags                  tensorflow
 
-declare -a FILES
-if [[ -d ${1} ]]; then
-    FILES=`ls -1 ${1}/*_test`
-else
-    FILES=${1}
-fi
+*** Variables ***
+\${RESC}                      undefined_RESC
+\${UART}                      undefined_UART
+\${UART_LOG}                  /tmp/uart.log
+\${UART_LINE_ON_SUCCESS}      ${PASS_STRING}
+\${CREATE_SNAPSHOT_ON_FAIL}   False
+
+*** Test Cases ***
+Should Create Platform
+    Create Platform
+EOF
 
 for binary in ${FILES}
 do
-    echo -e "Should Run $(basename ${binary})\n"\
-            "    Test Binary    @$(realpath ${binary})\n" >> ${ROBOT_SCRIPT}
+    cat >> ${ROBOT_SCRIPT} <<EOF
+Should Run $(basename ${binary})
+    Test Binary    @$(realpath ${binary})
+EOF
 done
 
 ROBOT_COMMAND="${RENODE_TEST_SCRIPT} ${ROBOT_SCRIPT} \
   -r ${RESULTS_DIRECTORY} \
   --variable RESC:${RESC_PATH} \
-  --variable UART_LOG:${UART_LOG}"
+  --variable UART_LOG:${UART_LOG} \
+  --variable UART:${UART}"
 
 echo "${ROBOT_COMMAND}"
 echo ""

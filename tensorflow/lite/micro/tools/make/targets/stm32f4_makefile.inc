@@ -103,7 +103,12 @@ MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
 
 # We are setting this variable to non-zero to allow us to have a custom
-# implementation of `make test` for bluepill
+# implementation of `make test` for our target
 TARGET_SPECIFIC_MAKE_TEST := 1
+
+TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
+
+UART_NAME := sysbus.cpu.uartSemihosting
+
 test: build
-	$(TEST_SCRIPT) $(BINDIR) $(TEST_PASS_STRING) $(TARGET)
+	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET) $(UART_NAME)
