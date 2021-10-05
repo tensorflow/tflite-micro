@@ -111,7 +111,10 @@ void RunModel(const uint8_t* model, const int16_t* input,
   TfLiteTensor* input_tensor = interpreter.input(0);
   TF_LITE_MICRO_EXPECT_EQ(input_tensor->bytes, input_size * sizeof(int16_t));
   memcpy(interpreter.input(0)->data.raw, input, input_tensor->bytes);
-  interpreter.Invoke();
+  if (kTfLiteOk != interpreter.Invoke()) {
+    TF_LITE_MICRO_EXPECT(false);
+    return;
+  }
   profiler.Log();
   MicroPrintf("");
 

@@ -258,6 +258,9 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdep
 # Internal examples are copied outside the TFLM repo in ../google.
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
+# Kernel integration tests must be excluded on certain targets.
+MICRO_LITE_EXAMPLE_TESTS += $(shell find tensorflow/lite/micro/kernels/integration_tests -maxdepth 3 -name Makefile.inc)
+
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
@@ -671,9 +674,6 @@ endif
 
 # Create kernel test targets.
 include tensorflow/lite/micro/kernels/Makefile.inc
-
-# Create kernel integration tests.
-include tensorflow/lite/micro/kernels/integration_tests/*/*/Makefile.inc
 
 # Create binary size test target.
 include tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc

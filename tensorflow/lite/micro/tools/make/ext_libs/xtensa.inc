@@ -8,6 +8,11 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
+EXCLUDED_EXAMPLE_TESTS += \
+  tensorflow/lite/micro/kernels/integration_tests/seanet/conv/Makefile.inc
+
+MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
