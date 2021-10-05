@@ -50,8 +50,8 @@ if [ -d ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} ]; then
 else
   UNAME_S=`uname -s`
   if [ ${UNAME_S} == Linux ]; then
-    ETHOS_U_CORE_PLATFORM_URL=https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git/snapshot/ethos-u-core-platform-b5f7cfe253dfeadd83caf60fde34b5b66f356782.tar.gz
-    EXPECTED_MD5=9431cd98f9d42d3bca9742dd7cab7229
+    ETHOS_U_CORE_PLATFORM_URL=https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git/snapshot/ethos-u-core-platform-e25a89dec1cf990f3168dbd6c565e3b0d51cb151.tar.gz
+    EXPECTED_MD5=0fcba2579f11c4a55ed8c49a2a8a1faa
   else
     echo "OS type ${UNAME_S} not supported."
     exit 1
