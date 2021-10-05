@@ -396,8 +396,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddPrelu() {
-    return AddBuiltin(BuiltinOperator_PRELU,
-                      tflite::ops::micro::Register_PRELU(), ParsePrelu);
+    return AddBuiltin(BuiltinOperator_PRELU, tflite::Register_PRELU(),
+                      ParsePrelu);
   }
 
   TfLiteStatus AddQuantize() {
