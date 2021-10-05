@@ -29,6 +29,8 @@ namespace tflite {
 
 int ElementCount(const TfLiteIntArray& dims);
 
+size_t EvalTensorBytes(const TfLiteEvalTensor* tensor);
+
 // Converts a float value into a quantized value.  Note that large values (close
 // to max int and min int) may see significant error due to a lack of floating
 // point granularity for large values.

@@ -13,30 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Library for converting .tflite and .bmp files to cc arrays"""
+"""Library for converting .tflite, .bmp and .wav files to cc arrays."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from PIL import Image
 import argparse
 import os
 import wave
 
+from PIL import Image
 
-def generate_file(out_fname, array_name, array_type, out_string, size):
-  ''' Write the out string containing an array of values to a variable in a cc
-        file, and create a header file defining the same array. '''
+
+def generate_file(out_fname, array_name, array_type, array_contents, size):
+  """Write an array of values to a CC or header file."""
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
-    # Log cc file name for Make to include in the build.
     out_cc_file.write('#include "{}"\n\n'.format(
-        out_fname.split("genfiles/")[-1].replace('.cc', '.h')))
+        out_fname.split('genfiles/')[-1].replace('.cc', '.h')))
     out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
         array_type, array_name))
-    out_cc_file.write(out_string)
+    out_cc_file.write(array_contents)
     out_cc_file.write('};\n')
     out_cc_file.write('const unsigned int {}_size = {};'.format(
         array_name, str(size)))
@@ -52,13 +51,13 @@ def generate_file(out_fname, array_name, array_type, out_string, size):
 
 
 def generate_array(input_fname):
-  ''' Return array size and string containing an array of data from the input file. '''
+  """Return array size and array of data from the input file."""
   if input_fname.endswith('.tflite'):
     with open(input_fname, 'rb') as input_file:
       out_string = ''
       byte = input_file.read(1)
       size = 0
-      while (byte != b''):
+      while byte:
         out_string += '0x' + byte.hex() + ','
         byte = input_file.read(1)
         size += 1
@@ -66,23 +65,29 @@ def generate_array(input_fname):
   elif input_fname.endswith('.bmp'):
     img = Image.open(input_fname, mode='r')
     image_bytes = img.tobytes()
-    out_string = ""
+    out_string = ''
     for byte in image_bytes:
-      out_string += hex(byte) + ","
+      out_string += hex(byte) + ','
     return [len(image_bytes), out_string]
   elif input_fname.endswith('.wav'):
     wav_file = wave.open(input_fname, mode='r')
-    out_string = ""
-    for i in range(wav_file.getnframes()):
+    out_string = ''
+    for _ in range(wav_file.getnframes()):
       frame = wav_file.readframes(1)
       out_string += str(int.from_bytes(frame, byteorder='little',
-                                       signed=True)) + ","
+                                       signed=True)) + ','
+    wav_file.close()
     return [wav_file.getnframes(), out_string]
+  elif input_fname.endswith('.csv'):
+    with open(input_fname, 'r') as input_file:
+      # Assume one array per csv file.
+      elements = input_file.readline()
+      return [len(elements.split(',')), elements]
   else:
-    raise ValueError('input file must be .tflite, .bmp or .wav')
+    raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
 
 
-def array_name(input_fname):
+def get_array_name(input_fname):
   base_array_name = 'g_' + input_fname.split('.')[0].split('/')[-1]
   if input_fname.endswith('.tflite'):
     return [base_array_name + '_model_data', 'unsigned char']
@@ -90,6 +95,8 @@ def array_name(input_fname):
     return [base_array_name + '_image_data', 'unsigned char']
   elif input_fname.endswith('.wav'):
     return [base_array_name + '_audio_data', 'short']
+  elif input_fname.endswith('.csv'):
+    return [base_array_name + '_test_data', 'short']
 
 
 def main():
@@ -101,15 +108,14 @@ def main():
   parser.add_argument(
       'inputs',
       nargs='+',
-      help=
-      'input bmp or tflite files to convert. If output is a cc or header only one input may be specified.'
-  )
+      help='input wav, bmp or tflite files to convert. '
+      'If output is a cc or header only one input may be specified.')
   args = parser.parse_args()
 
   if args.output.endswith('.cc') or args.output.endswith('.h'):
-    assert (len(args.inputs) == 1)
+    assert len(args.inputs) == 1
     size, cc_array = generate_array(args.inputs[0])
-    generated_array_name, array_type = array_name(args.inputs[0])
+    generated_array_name, array_type = get_array_name(args.inputs[0])
     generate_file(args.output, generated_array_name, array_type, cc_array,
                   size)
   else:
@@ -122,15 +128,17 @@ def main():
         output_base_fname = output_base_fname + '_image_data'
       elif input_file.endswith('.wav'):
         output_base_fname = output_base_fname + '_audio_data'
+      elif input_file.endswith('.csv'):
+        output_base_fname = output_base_fname + '_test_data'
       else:
-        raise ValueError('input file must be .tflite, .bmp or .wav')
+        raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
 
       output_cc_fname = output_base_fname + '.cc'
       # Print output cc filename for Make to include it in the build.
       print(output_cc_fname)
       output_hdr_fname = output_base_fname + '.h'
       size, cc_array = generate_array(input_file)
-      generated_array_name, array_type = array_name(input_file)
+      generated_array_name, array_type = get_array_name(input_file)
       generate_file(output_cc_fname, generated_array_name, array_type,
                     cc_array, size)
       generate_file(output_hdr_fname, generated_array_name, array_type,

@@ -26,8 +26,10 @@ AllOpsResolver::AllOpsResolver() {
   AddAddN();
   AddArgMax();
   AddArgMin();
+  AddAssignVariable();
   AddAveragePool2D();
   AddBatchToSpaceNd();
+  AddCallOnce();
   AddCeil();
   AddConcatenation();
   AddConv2D();
@@ -40,6 +42,7 @@ AllOpsResolver::AllOpsResolver() {
   AddElu();
   AddEqual();
   AddEthosU();
+  AddExp();
   AddExpandDims();
   AddFloor();
   AddFloorDiv();
@@ -70,6 +73,7 @@ AllOpsResolver::AllOpsResolver() {
   AddPadV2();
   AddPrelu();
   AddQuantize();
+  AddReadVariable();
   AddReduceMax();
   AddRelu();
   AddRelu6();
@@ -92,9 +96,10 @@ AllOpsResolver::AllOpsResolver() {
   AddSub();
   AddSvdf();
   AddTanh();
-  AddTransposeConv();
   AddTranspose();
+  AddTransposeConv();
   AddUnpack();
+  AddVarHandle();
 }
 
 }  // namespace tflite

@@ -22,8 +22,7 @@ limitations under the License.
 // To add an equivalent function for your own platform, create your own
 // implementation file, and place it in a subfolder with named after the OS
 // you're targeting. For example, see the Cortex M bare metal version in
-// tensorflow/lite/micro/bluepill/micro_time.cc or the mbed one on
-// tensorflow/lite/micro/mbed/micro_time.cc.
+// tensorflow/lite/micro/bluepill/micro_time.cc
 
 #include "tensorflow/lite/micro/micro_time.h"
 

@@ -272,6 +272,7 @@ tensorflow/lite/micro/micro_allocator_test.cc \
 tensorflow/lite/micro/micro_error_reporter_test.cc \
 tensorflow/lite/micro/micro_interpreter_test.cc \
 tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
+tensorflow/lite/micro/micro_resource_variable_test.cc \
 tensorflow/lite/micro/micro_string_test.cc \
 tensorflow/lite/micro/micro_time_test.cc \
 tensorflow/lite/micro/micro_utils_test.cc \
@@ -286,9 +287,12 @@ MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
 tensorflow/lite/micro/kernels/activations_common.cc \
 tensorflow/lite/micro/kernels/add.cc \
+tensorflow/lite/micro/kernels/add_common.cc \
 tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
+tensorflow/lite/micro/kernels/assign_variable.cc \
 tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
+tensorflow/lite/micro/kernels/call_once.cc \
 tensorflow/lite/micro/kernels/cast.cc \
 tensorflow/lite/micro/kernels/ceil.cc \
 tensorflow/lite/micro/kernels/circular_buffer.cc \
@@ -332,6 +336,7 @@ tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
 tensorflow/lite/micro/kernels/mul.cc \
+tensorflow/lite/micro/kernels/mul_common.cc \
 tensorflow/lite/micro/kernels/neg.cc \
 tensorflow/lite/micro/kernels/pack.cc \
 tensorflow/lite/micro/kernels/pad.cc \
@@ -341,12 +346,14 @@ tensorflow/lite/micro/kernels/prelu.cc \
 tensorflow/lite/micro/kernels/prelu_common.cc \
 tensorflow/lite/micro/kernels/quantize.cc \
 tensorflow/lite/micro/kernels/quantize_common.cc \
+tensorflow/lite/micro/kernels/read_variable.cc \
 tensorflow/lite/micro/kernels/reduce.cc \
 tensorflow/lite/micro/kernels/reshape.cc \
 tensorflow/lite/micro/kernels/resize_bilinear.cc \
 tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 tensorflow/lite/micro/kernels/round.cc \
 tensorflow/lite/micro/kernels/shape.cc \
+tensorflow/lite/micro/kernels/slice.cc \
 tensorflow/lite/micro/kernels/softmax.cc \
 tensorflow/lite/micro/kernels/softmax_common.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
@@ -356,12 +363,14 @@ tensorflow/lite/micro/kernels/split_v.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
 tensorflow/lite/micro/kernels/strided_slice.cc \
 tensorflow/lite/micro/kernels/sub.cc \
+tensorflow/lite/micro/kernels/sub_common.cc \
 tensorflow/lite/micro/kernels/svdf.cc \
 tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
+tensorflow/lite/micro/kernels/var_handle.cc \
 tensorflow/lite/micro/kernels/zeros_like.cc
 
 MICROLITE_TEST_HDRS := \
@@ -430,11 +439,6 @@ MAKE_PROJECT_FILES := \
   Makefile \
   README_MAKE.md \
   .vscode/tasks.json
-
-MBED_PROJECT_FILES := \
-  README_MBED.md \
-  mbed-os.lib \
-  mbed_app.json
 
 KEIL_PROJECT_FILES := \
   README_KEIL.md \
@@ -523,6 +527,10 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
     endif
   endif
 
+  # Optimized kernel directories can have their own header files which need to
+  # be included in MICROLITE_CC_HDRS for project generation to have a complete
+  # list of headers.
+  MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_OPTIMIZED_KERNELS)/*.h)
 endif
 
 # If a co-processor is specified on the command line with
@@ -676,13 +684,14 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   MICROLITE_TEST_SRCS := $(filter-out $(EXPLICITLY_SPECIFIED_TEST), $(MICROLITE_TEST_SRCS))
   EXPLICITLY_SPECIFIED_TEST_SRCS := \
   $(EXPLICITLY_SPECIFIED_TEST) \
-  tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.cc \
   tensorflow/lite/micro/testing/test_conv_model.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
-  tensorflow/lite/micro/benchmarks/keyword_scrambled_model_data.h \
   tensorflow/lite/micro/testing/test_conv_model.h
+  EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS := \
+  tensorflow/lite/micro/models/keyword_scrambled.tflite
   $(eval $(call microlite_test,memory_arena_threshold_test,\
-  $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
+  $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS), \
+  $(EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS)))
 endif
 
 EXPLICITLY_SPECIFIED_TEST:= tensorflow/lite/micro/micro_allocator_test.cc
