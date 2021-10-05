@@ -194,6 +194,7 @@ tflm_kernel_cc_library(
         "resize_nearest_neighbor.cc",
         "round.cc",
         "shape.cc",
+        "slice.cc",
         "softmax.cc",
         "softmax_common.cc",
         "space_to_batch_nd.cc",
@@ -275,9 +276,11 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ] + select({
-        ":xtensa_fusion_f1": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        ":xtensa_hifi_3z": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        ":xtensa_hifi_5": ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
+        # Temporarily comment out these dependencies while sync is resolved.
+        # See http://cl/400799461 for additional context.
+        # ":xtensa_fusion_f1": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        # ":xtensa_hifi_3z": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        # ":xtensa_hifi_5": ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
         "//conditions:default": [],
     }),
 )
@@ -996,6 +999,18 @@ cc_test(
 cc_test(
     name = "shape_test",
     srcs = ["shape_test.cc"],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "slice_test",
+    srcs = ["slice_test.cc"],
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",

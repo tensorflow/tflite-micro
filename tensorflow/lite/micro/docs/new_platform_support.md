@@ -13,7 +13,7 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
    * [Advanced Integration Topics](#advanced-integration-topics)
    * [Getting Help](#getting-help)
 
-<!-- Added by: advaitjain, at: Thu 12 Aug 2021 04:48:03 PM PDT -->
+<!-- Added by: advaitjain, at: Mon 04 Oct 2021 11:24:09 AM PDT -->
 
 <!--te-->
 
@@ -140,7 +140,7 @@ that integrated TFLM for the:
 
 Once you are set up with continuous integration and the ability to integrate
 newer versions of TFLM with your platform, feel free to add a build badge to
-TFLM's [Community Supported Builds](https://github.com/tensorflow/tflite-micro#community-supported-builds).
+TFLM's [Community Supported TFLM Examples](https://github.com/tensorflow/tflite-micro#community-supported-tflm-examples).
 
 # Getting Help
 
