@@ -24,41 +24,9 @@ namespace tflite {
 namespace testing {
 namespace {
 
-void TestCastFloatToInt8(int* input_dims_data, const float* input_data,
-                         const int8_t* expected_output_data,
-                         int8_t* output_data) {
-  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* output_dims = IntArrayFromInts(input_dims_data);
-  const int output_dims_count = ElementCount(*output_dims);
-  constexpr int inputs_size = 1;
-  constexpr int outputs_size = 1;
-  constexpr int tensors_size = inputs_size + outputs_size;
-  TfLiteTensor tensors[tensors_size] = {
-      CreateTensor(input_data, input_dims),
-      CreateTensor(output_data, output_dims),
-  };
-
-  int inputs_array_data[] = {1, 0};
-  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  int outputs_array_data[] = {1, 1};
-  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
-
-  const TfLiteRegistration registration = Register_CAST();
-  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
-                             outputs_array,
-                             /*builtin_data=*/nullptr);
-
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
-
-  for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
-  }
-}
-
-void TestCastInt8ToFloat(int* input_dims_data, const int8_t* input_data,
-                         const float* expected_output_data,
-                         float* output_data) {
+template <typename inputT, typename outputT>
+void TestCast(int* input_dims_data, const inputT* input_data,
+              const outputT* expected_output_data, outputT* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(input_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
@@ -101,8 +69,17 @@ TF_LITE_MICRO_TEST(CastFloatToInt8) {
   // TODO(b/178391195): Test negative and out-of-range numbers.
   const float input_values[] = {100.f, 1.0f, 0.f, 0.4f, 1.999f, 1.1f};
   const int8_t golden[] = {100, 1, 0, 0, 1, 1};
-  tflite::testing::TestCastFloatToInt8(input_dims, input_values, golden,
-                                       output_data);
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
+TF_LITE_MICRO_TEST(CastFloatToInt16) {
+  int16_t output_data[6];
+  int input_dims[] = {2, 3, 2};
+
+  // TODO(b/178391195): Test negative and out-of-range numbers.
+  const float input_values[] = {100.f, 1.0f, 0.f, 0.4f, 1.999f, 1.1f};
+  const int16_t golden[] = {100, 1, 0, 0, 1, 1};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 
 TF_LITE_MICRO_TEST(CastInt8ToFloat) {
@@ -110,8 +87,15 @@ TF_LITE_MICRO_TEST(CastInt8ToFloat) {
   int input_dims[] = {2, 3, 2};
   const int8_t input_values[] = {123, 0, 1, 2, 3, 4};
   const float golden[] = {123.f, 0.f, 1.f, 2.f, 3.f, 4.f};
-  tflite::testing::TestCastInt8ToFloat(input_dims, input_values, golden,
-                                       output_data);
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
+TF_LITE_MICRO_TEST(CastInt16ToFloat) {
+  float output_data[6];
+  int input_dims[] = {2, 3, 2};
+  const int16_t input_values[] = {123, 0, 1, 2, 3, 4};
+  const float golden[] = {123.f, 0.f, 1.f, 2.f, 3.f, 4.f};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 
 TF_LITE_MICRO_TESTS_END

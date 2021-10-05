@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,14 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
+#include "tensorflow/lite/micro/system_setup.h"
+
+namespace tflite {
+inline void InitializeTest() { InitializeTarget(); }
+}  // namespace tflite
+
 int main(int argc, char** argv) {
+  tflite::InitializeTest();
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
   tflite::MicroErrorReporter micro_error_reporter;
   tflite::ErrorReporter* error_reporter = &micro_error_reporter;

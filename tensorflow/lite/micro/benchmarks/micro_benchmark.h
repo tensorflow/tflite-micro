@@ -36,7 +36,8 @@ class MicroBenchmarkRunner {
                        uint8_t* tensor_arena, int tensor_arena_size,
                        MicroProfiler* profiler)
       : interpreter_(GetModel(model), *op_resolver, tensor_arena,
-                     tensor_arena_size, GetMicroErrorReporter(), profiler) {
+                     tensor_arena_size, GetMicroErrorReporter(), nullptr,
+                     profiler) {
     interpreter_.AllocateTensors();
   }
 

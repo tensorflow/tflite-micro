@@ -44,7 +44,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <math.h>
 
-#include "hexagon_tflm_translation_svdf.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -53,9 +52,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
-#include "tensorflow/lite/micro/kernels/hexagon/hexagon_svdf.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "third_party/hexagon/hexagon_svdf.h"
+#include "third_party/hexagon/hexagon_tflm_translation_svdf.h"
 
 namespace tflite {
 
@@ -85,9 +85,9 @@ TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
         context, node, input, weights_feature, weights_time, bias, params,
         activation_state, output, node->user_data);
   } else {
-    EvalIntegerSvdfReference(context, node, input, weights_feature,
-                             weights_time, bias, params, activation_state,
-                             output, data.reference_op_data);
+    EvalInt16SvdfReference(context, node, input, weights_feature,
+                           weights_time, bias, params, activation_state,
+                           output, data.reference_op_data);
   }
   return kTfLiteOk;
 }

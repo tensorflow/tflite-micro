@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,89 +23,15 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace add {
-
-constexpr int kInputTensor1 = 0;
-constexpr int kInputTensor2 = 1;
-constexpr int kOutputTensor = 0;
-
-struct OpData {
-  bool requires_broadcast;
-
-  // These fields are used in both the general 8-bit -> 8bit quantized path,
-  // and the special 16-bit -> 16bit quantized path
-  int input1_shift;
-  int input2_shift;
-  int32_t output_activation_min;
-  int32_t output_activation_max;
-
-  // These fields are used only in the general 8-bit -> 8bit quantized path
-  int32_t input1_multiplier;
-  int32_t input2_multiplier;
-  int32_t output_multiplier;
-  int output_shift;
-  int left_shift;
-  int32_t input1_offset;
-  int32_t input2_offset;
-  int32_t output_offset;
-
-  // Used only for float evals:
-  float output_activation_min_f32;
-  float output_activation_max_f32;
-};
-
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
-                             const TfLiteTensor* input1,
-                             const TfLiteTensor* input2, TfLiteTensor* output,
-                             OpData* data) {
-  data->requires_broadcast = !HaveSameShapes(input1, input2);
-
-  if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
-    // 8bit -> 8bit general quantized path, with general rescalings
-    data->input1_offset = -input1->params.zero_point;
-    data->input2_offset = -input2->params.zero_point;
-    data->output_offset = output->params.zero_point;
-    data->left_shift = (output->type == kTfLiteInt16) ? 15 : 20;
-    const double twice_max_input_scale =
-        2 * static_cast<double>(
-                std::max(input1->params.scale, input2->params.scale));
-    const double real_input1_multiplier =
-        static_cast<double>(input1->params.scale) / twice_max_input_scale;
-    const double real_input2_multiplier =
-        static_cast<double>(input2->params.scale) / twice_max_input_scale;
-    const double real_output_multiplier =
-        twice_max_input_scale /
-        ((1 << data->left_shift) * static_cast<double>(output->params.scale));
-
-    QuantizeMultiplierSmallerThanOneExp(
-        real_input1_multiplier, &data->input1_multiplier, &data->input1_shift);
-
-    QuantizeMultiplierSmallerThanOneExp(
-        real_input2_multiplier, &data->input2_multiplier, &data->input2_shift);
-
-    QuantizeMultiplierSmallerThanOneExp(
-        real_output_multiplier, &data->output_multiplier, &data->output_shift);
-
-    TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
-        context, params->activation, output, &data->output_activation_min,
-        &data->output_activation_max));
-  } else if (output->type == kTfLiteFloat32) {
-    CalculateActivationRange(params->activation,
-                             &data->output_activation_min_f32,
-                             &data->output_activation_max_f32);
-  }
-
-  return kTfLiteOk;
-}
 
 void EvalAdd(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
-             const OpData* data, const TfLiteEvalTensor* input1,
+             const OpDataAdd* data, const TfLiteEvalTensor* input1,
              const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params;
   SetActivationParams(data->output_activation_min_f32,
@@ -129,7 +55,7 @@ void EvalAdd(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
 }
 
 TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
-                              TfLiteAddParams* params, const OpData* data,
+                              TfLiteAddParams* params, const OpDataAdd* data,
                               const TfLiteEvalTensor* input1,
                               const TfLiteEvalTensor* input2,
                               TfLiteEvalTensor* output) {
@@ -192,51 +118,31 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(output->type), output->type);
+      MicroPrintf("Type %s (%d) not supported.",
+                  TfLiteTypeGetName(output->type), output->type);
       return kTfLiteError;
   }
 
   return kTfLiteOk;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* AddInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataAdd));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  const TfLiteTensor* input1 = GetInput(context, node, kInputTensor1);
-  TF_LITE_ENSURE(context, input1 != nullptr);
-  const TfLiteTensor* input2 = GetInput(context, node, kInputTensor2);
-  TF_LITE_ENSURE(context, input2 != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-
-  OpData* data = static_cast<OpData*>(node->user_data);
-  auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
-
-  TF_LITE_ENSURE_STATUS(
-      CalculateOpData(context, params, input1, input2, output, data));
-
-  return kTfLiteOk;
-}
-
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
+  const OpDataAdd* data = static_cast<const OpDataAdd*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kAddInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kAddInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kAddOutputTensor);
 
   if (output->type == kTfLiteFloat32) {
     EvalAdd(context, node, params, data, input1, input2, output);
@@ -244,27 +150,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_OK(context, EvalAddQuantized(context, node, params, data,
                                                 input1, input2, output));
   } else {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
+                output->type);
     return kTfLiteError;
   }
 
   return kTfLiteOk;
 }
 
-}  // namespace add
-
 TfLiteRegistration Register_ADD() {
-  return {/*init=*/add::Init,
+  return {/*init=*/AddInit,
           /*free=*/nullptr,
-          /*prepare=*/add::Prepare,
-          /*invoke=*/add::Eval,
+          /*prepare=*/AddPrepare,
+          /*invoke=*/AddEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
