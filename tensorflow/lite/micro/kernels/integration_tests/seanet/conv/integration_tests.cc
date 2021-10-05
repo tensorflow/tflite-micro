@@ -102,8 +102,8 @@ void RunModel(const uint8_t* model, const int16_t* input,
               const uint32_t golden_size, const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
-
-  MicroInterpreter interpreter(GetModel(model), AllOpsResolver(), tensor_arena,
+  AllOpsResolver resolver;
+  MicroInterpreter interpreter(GetModel(model), resolver, tensor_arena,
                                kTensorArenaSize, GetMicroErrorReporter(),
                                nullptr, &profiler);
   interpreter.AllocateTensors();
