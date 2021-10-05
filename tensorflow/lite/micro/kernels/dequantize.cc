@@ -28,7 +28,8 @@ limitations under the License.
 
 namespace tflite {
 
-void* DequantizeInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* DequantizeInit(TfLiteContext* context, const char* buffer,
+                     size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(DequantizeOpData));
 }
@@ -58,14 +59,14 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
         break;
       default:
         MicroPrintf("Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else {
     MicroPrintf("Input %s, output %s not supported.",
-                       TfLiteTypeGetName(input->type),
-                       TfLiteTypeGetName(output->type));
+                TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
 

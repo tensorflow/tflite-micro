@@ -34,4 +34,4 @@ TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif // TENSORFLOW_LITE_MICRO_KERNELS_DEQUANTIZE_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DEQUANTIZE_H_
