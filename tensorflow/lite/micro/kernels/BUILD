@@ -276,9 +276,11 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ] + select({
-        ":xtensa_fusion_f1": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        ":xtensa_hifi_3z": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        ":xtensa_hifi_5": ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
+        # Temporarily comment out these dependencies while sync is resolved.
+        # See http://cl/400799461 for additional context.
+        # ":xtensa_fusion_f1": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        # ":xtensa_hifi_3z": ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        # ":xtensa_hifi_5": ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
         "//conditions:default": [],
     }),
 )
