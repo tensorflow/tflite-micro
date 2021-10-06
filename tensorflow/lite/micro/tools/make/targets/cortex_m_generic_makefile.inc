@@ -151,7 +151,14 @@ else ifeq ($(TOOLCHAIN), gcc)
 
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH) -mfpu=auto
+  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH)
+  ifeq ($(TARGET_ARCH), cortex-m4)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else ifeq ($(TARGET_ARCH), cortex-m7)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else
+    FLAGS_GCC += -mfpu=auto
+  endif
   CXXFLAGS += $(FLAGS_GCC)
   CCFLAGS += $(FLAGS_GCC)
 
