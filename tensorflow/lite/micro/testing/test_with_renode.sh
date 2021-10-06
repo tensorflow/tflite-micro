@@ -19,15 +19,12 @@
 #  ${1} - space-separated list of binaries to test
 #  ${2} - String that is checked for pass/fail.
 #  ${3} - target (bluepill, stm32f4 etc.)
-#  ${4} - name of the platform's UART device that should be monitored
-#         for the success string
 
 set -e
 
 FILES="${1}"
 PASS_STRING=${2}
 TARGET=${3}
-UART=${4}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TFLM_ROOT_DIR=${SCRIPT_DIR}/..
@@ -37,6 +34,9 @@ RESC_PATH=${TFLM_ROOT_DIR}/testing/${TARGET}.resc
 
 # Robot file with definition of custom keywords used in test suite.
 ROBOT_RESOURCE=${TFLM_ROOT_DIR}/testing/robot.resource.txt
+
+# Robot file with definitions of target-specific variables
+TARGET_RESOURCE=${TFLM_ROOT_DIR}/testing/${TARGET}.resource.txt
 
 # Renode's entrypoint for using the Robot Framework.
 RENODE_TEST_SCRIPT=${TFLM_ROOT_DIR}/tools/make/downloads/renode/test.sh
@@ -80,11 +80,11 @@ Test Setup                    Reset Emulation
 Test Teardown                 Teardown With Custom Message
 Resource                      \${RENODEKEYWORDS}
 Resource                      ${ROBOT_RESOURCE}
+Resource                      ${TARGET_RESOURCE}
 Default Tags                  tensorflow
 
 *** Variables ***
 \${RESC}                      undefined_RESC
-\${UART}                      undefined_UART
 \${UART_LOG}                  /tmp/uart.log
 \${UART_LINE_ON_SUCCESS}      ${PASS_STRING}
 \${CREATE_SNAPSHOT_ON_FAIL}   False
@@ -105,8 +105,7 @@ done
 ROBOT_COMMAND="${RENODE_TEST_SCRIPT} ${ROBOT_SCRIPT} \
   -r ${RESULTS_DIRECTORY} \
   --variable RESC:${RESC_PATH} \
-  --variable UART_LOG:${UART_LOG} \
-  --variable UART:${UART}"
+  --variable UART_LOG:${UART_LOG}"
 
 echo "${ROBOT_COMMAND}"
 echo ""
