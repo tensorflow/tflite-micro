@@ -259,7 +259,7 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdep
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
 # Kernel integration tests must be excluded on certain targets.
-MICRO_LITE_EXAMPLE_TESTS += $(shell find tensorflow/lite/micro/kernels/integration_tests -maxdepth 3 -name Makefile.inc)
+MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/kernels/integration_tests -maxdepth 3 -name Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
@@ -584,6 +584,9 @@ INCLUDES += -I$(GENERATED_SRCS_DIR)
 # Load the examples.
 include $(MICRO_LITE_EXAMPLE_TESTS)
 
+# Load the integration tests.
+include $(MICRO_LITE_INTEGRATION_TESTS)
+
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
 
@@ -730,6 +733,7 @@ $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET)
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
+integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 endif
 
 # Just build the test targets
