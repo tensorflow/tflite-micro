@@ -41,7 +41,7 @@ RUN pip install Wave
 RUN pip install six
 
 # Install Renode test dependencies
-RUN pip install pyyaml requests psutil robotframework==3.1
+RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 COPY ci/*.sh /install/
 RUN /install/install_bazel.sh
