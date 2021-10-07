@@ -8,6 +8,7 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
+# Exclude kernel integration tests for types not supported.
 EXCLUDED_EXAMPLE_TESTS += \
   tensorflow/lite/micro/kernels/integration_tests/seanet/conv/Makefile.inc
 
