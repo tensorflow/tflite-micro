@@ -284,7 +284,8 @@ tensorflow/lite/micro/recording_simple_memory_allocator_test.cc \
 tensorflow/lite/micro/simple_memory_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
-tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc
+tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
+tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
