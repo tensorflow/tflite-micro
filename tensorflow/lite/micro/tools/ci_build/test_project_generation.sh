@@ -22,6 +22,22 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
+# First, we test that create_tflm_tree without any examples can be used to build a
+# static library.
+TEST_OUTPUT_DIR=$(mktemp -d)
+
+readable_run \
+  python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+  ${TEST_OUTPUT_DIR}
+
+readable_run cp tensorflow/lite/micro/tools/project_generation/Makefile ${TEST_OUTPUT_DIR}
+pushd ${TEST_OUTPUT_DIR} > /dev/null
+readable_run make -j8 libtflm
+popd > /dev/null
+
+rm -rf ${TEST_OUTPUT_DIR}
+
+# Next, we test that create_tflm_tree can be used to build example binaries.
 EXAMPLES="-e hello_world -e magic_wand -e micro_speech -e person_detection"
 
 TEST_OUTPUT_DIR=$(mktemp -d)
