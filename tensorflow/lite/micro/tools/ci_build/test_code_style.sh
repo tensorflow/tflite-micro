@@ -49,6 +49,7 @@ micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmi
   -e leon_commands \
   -e "\.bmp" \
   -e "\.bzl" \
+  -e "\.csv" \
   -e "\.h5" \
   -e "\.inc" \
   -e "\.ipynb" \
