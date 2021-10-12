@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
 namespace micro {
@@ -39,6 +40,13 @@ inline TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
 // Returns the TfLiteEvalTensor struct for a given input index in a node.
 inline const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
                                             const TfLiteNode* node, int index) {
+  const int tensor_index = tflite::ValidateTensorIndexing(
+      context, index, node->inputs->size, node->inputs->data);
+
+  if (tensor_index < 0) {
+    return nullptr;
+  }
+
   return GetMutableEvalInput(context, node, index);
 }
 
