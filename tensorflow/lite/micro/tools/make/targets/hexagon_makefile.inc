@@ -101,7 +101,9 @@ LDFLAGS += \
 INCLUDES += \
   -I$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hexagon/inc \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/posix \
-  -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt
+  -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt \
+  -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/posix \
+  -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/qurt
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_hexagon_binary.sh
 SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_hexagon_binary.sh
