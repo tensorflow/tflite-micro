@@ -85,15 +85,12 @@ LDFLAGS += -Wl,--start-group -lm -lc_nano -lgcc $(MICROLITE_LIB_PATH) -Wl,--end-
 # TODO: Check whether this is fixed in newer versions of the toolchain.
 LDFLAGS += -mno-relax
 
-# flatbuffer_utils_test needs to link against libstdc++.
+# flatbuffer_utils_test and micro_allocator_test need to link against libstdc++.
 # This is problematic because our toolchain's libstdc++ was compiled with exceptions,
 # so when we try to link against it, the linker tries to put the exception handling
 # related sections in the binary, which we don't want.
 #
 # The other two excluded tests also fail on other platforms, so disable them for now.
-#
-# There are some other tests that use c++ new/delete operators, but we get them to compile
-# by redirecting these calls to malloc/free using tf/l/m/riscv32_mcu/alloc_stub.cc.
 EXCLUDED_TESTS := \
   tensorflow/lite/micro/flatbuffer_utils_test.cc \
   tensorflow/lite/micro/micro_interpreter_test.cc \
