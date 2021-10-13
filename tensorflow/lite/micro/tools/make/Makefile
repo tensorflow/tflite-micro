@@ -258,6 +258,9 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdep
 # Internal examples are copied outside the TFLM repo in ../google.
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
+# Kernel integration tests must be excluded on certain targets.
+MICRO_LITE_EXAMPLE_TESTS += $(shell find tensorflow/lite/micro/kernels/integration_tests -maxdepth 3 -name Makefile.inc)
+
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
@@ -281,7 +284,8 @@ tensorflow/lite/micro/recording_simple_memory_allocator_test.cc \
 tensorflow/lite/micro/simple_memory_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
-tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc
+tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
+tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
@@ -398,12 +402,6 @@ $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
 
-# Load custom kernels.
-include $(MAKEFILE_DIR)/additional_kernels.inc
-
-MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
-MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
-
 # For project generation v1, the headers that are common to all targets need to
 # have a third_party prefix. Other third_party headers (e.g. CMSIS) do not have
 # this requirement and are added to THIRD_PARTY_CC_HDRS with full path from the
@@ -419,6 +417,14 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # TODO(#47413): remove this additional logic once we are ready to switch over to
 # project generation v2.
 THIRD_PARTY_CC_HDRS :=
+THIRD_PARTY_CC_SRCS :=
+
+# Load custom kernels.
+include $(MAKEFILE_DIR)/additional_kernels.inc
+
+MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
+MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
+
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
 # platform-specific headers.

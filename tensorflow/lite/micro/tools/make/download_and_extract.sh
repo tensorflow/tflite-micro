@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,9 +78,10 @@ patch_kissfft() {
   sed -i '1 i\#ifndef _KISS_FFT_GUTS_H\n#define _KISS_FFT_GUTS_H\n' tensorflow/lite/micro/tools/make/downloads/kissfft/_kiss_fft_guts.h
   sed -i '$a\#endif // _KISS_FFT_GUTS_H\n' tensorflow/lite/micro/tools/make/downloads/kissfft/_kiss_fft_guts.h
   sed -i -E "s@HALF_OF\(x\) \(\(x\)\*\.5\)@HALF_OF(x) ((x)*(kiss_fft_scalar).5)@g" tensorflow/lite/micro/tools/make/downloads/kissfft/_kiss_fft_guts.h
-  sed -i -E "s@#define KISS_FFT_MALLOC malloc@#define KISS_FFT_MALLOC(X) (void*)(~0x1) /* Patched. */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
+  sed -i -E "s@#define KISS_FFT_MALLOC malloc@#define KISS_FFT_MALLOC(X) (void*)(0x0) /* Patched. */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
   sed -i -E "s@#define KISS_FFT_FREE free@#define KISS_FFT_FREE(X) /* Patched. */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.h
   sed -ir -E "s@(fprintf.*\);)@/* \1 */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/tools/kiss_fftr.c
+  sed -ir -E "s@(memcpy.*\);)@/* \1 */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/kiss_fft.c
   sed -ir -E "s@(exit.*\);)@return; /* \1 */@g" tensorflow/lite/micro/tools/make/downloads/kissfft/tools/kiss_fftr.c
   echo "Finished patching kissfft"
 }

@@ -141,9 +141,9 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
   // values.
   TF_LITE_MICRO_EXPECT_LE(input_min, -3.0f);
   TF_LITE_MICRO_EXPECT_GE(input_max, 3.0f);
-  const int quantized_input_negative_three = std::round(
+  const int quantized_input_negative_three = TfLiteRound(
       std::numeric_limits<T>::min() + (-3.0f - input_min) / input_scale);
-  const int quantized_input_positive_three = std::round(
+  const int quantized_input_positive_three = TfLiteRound(
       std::numeric_limits<T>::min() + (3.0f - input_min) / input_scale);
 
   for (int i = quantized_input_negative_three;

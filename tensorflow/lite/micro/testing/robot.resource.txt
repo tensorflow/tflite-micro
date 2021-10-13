@@ -1,6 +1,3 @@
-*** Variables ***
-${UART}                       sysbus.cpu.uartSemihosting
-
 *** Keywords ***
 Teardown With Custom Message
     Test Teardown
