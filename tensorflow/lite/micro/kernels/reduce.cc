@@ -18,11 +18,12 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/mean.h"
+#include "tensorflow/lite/kernels/internal/reference/reduce.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -178,82 +179,37 @@ TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
       }
     } break;
     case kTfLiteInt8: {
-      // Defer to specialized implementation for 4D Mean across axes 1 & 2.
-      if (params->keep_dims && special_case_4d_axes_1_and_2) {
-        reference_integer_ops::Mean(
-            op_params, op_data->multiplier, op_data->shift,
-            tflite::micro::GetTensorShape(input),
-            tflite::micro::GetTensorData<int8_t>(input), op_data->input_zp,
-            tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int8_t>(output), op_data->output_zp);
-      } else if (op_data->input_zp == op_data->output_zp &&
-                 op_data->input_scale == op_data->output_scale) {
-        int32_t* temp_buffer = static_cast<int32_t*>(
-            context->GetScratchBuffer(context, op_data->temp_buffer_idx));
-        TF_LITE_ENSURE(
-            context,
-            reference_ops::Mean(
-                tflite::micro::GetTensorData<int8_t>(input), input->dims->data,
-                input->dims->size, tflite::micro::GetTensorData<int8_t>(output),
-                output->dims->data, output->dims->size,
-                tflite::micro::GetTensorData<int>(axis), num_axis,
-                params->keep_dims, temp_index, resolved_axis, temp_buffer));
-      } else {
-        int32_t* temp_buffer = static_cast<int32_t*>(
-            context->GetScratchBuffer(context, op_data->temp_buffer_idx));
-        TF_LITE_ENSURE(
-            context,
-            reference_ops::QuantizedMeanOrSum(
-                tflite::micro::GetTensorData<int8_t>(input), op_data->input_zp,
-                op_data->input_scale, input->dims->data, input->dims->size,
-                tflite::micro::GetTensorData<int8_t>(output),
-                op_data->output_zp, op_data->output_scale, output->dims->data,
-                output->dims->size, tflite::micro::GetTensorData<int>(axis),
-                num_axis, params->keep_dims, temp_index, resolved_axis,
-                temp_buffer, false));
-      }
+      int32_t* temp_buffer = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, op_data->temp_buffer_idx));
+      TF_LITE_ENSURE(
+          context,
+          reference_ops::QuantizedMeanOrSum(
+              tflite::micro::GetTensorData<int8_t>(input), op_data->input_zp,
+              input->dims->data, input->dims->size,
+              tflite::micro::GetTensorData<int8_t>(output), op_data->multiplier,
+              op_data->shift, op_data->output_zp, output->dims->data,
+              output->dims->size, tflite::micro::GetTensorData<int>(axis),
+              num_axis, params->keep_dims, temp_index, resolved_axis,
+              temp_buffer, false));
     } break;
     case kTfLiteInt16: {
-      // Defer to specialized implementation for 4D Mean across axes 1 & 2.
-      if (params->keep_dims && special_case_4d_axes_1_and_2) {
-        reference_integer_ops::Mean(
-            op_params, op_data->multiplier, op_data->shift,
-            tflite::micro::GetTensorShape(input),
-            tflite::micro::GetTensorData<int16_t>(input), op_data->input_zp,
-            tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output), op_data->output_zp);
-      } else if (op_data->input_zp == op_data->output_zp &&
-                 op_data->input_scale == op_data->output_scale) {
-        int32_t* temp_buffer = static_cast<int32_t*>(
-            context->GetScratchBuffer(context, op_data->temp_buffer_idx));
-        TF_LITE_ENSURE(
-            context,
-            reference_ops::Mean(tflite::micro::GetTensorData<int16_t>(input),
-                                input->dims->data, input->dims->size,
-                                tflite::micro::GetTensorData<int16_t>(output),
-                                output->dims->data, output->dims->size,
-                                tflite::micro::GetTensorData<int>(axis),
-                                num_axis, params->keep_dims, temp_index,
-                                resolved_axis, temp_buffer));
-      } else {
-        int32_t* temp_buffer = static_cast<int32_t*>(
-            context->GetScratchBuffer(context, op_data->temp_buffer_idx));
-        TF_LITE_ENSURE(
-            context,
-            reference_ops::QuantizedMeanOrSum(
-                tflite::micro::GetTensorData<int16_t>(input), op_data->input_zp,
-                op_data->input_scale, input->dims->data, input->dims->size,
-                tflite::micro::GetTensorData<int16_t>(output),
-                op_data->output_zp, op_data->output_scale, output->dims->data,
-                output->dims->size, tflite::micro::GetTensorData<int>(axis),
-                num_axis, params->keep_dims, temp_index, resolved_axis,
-                temp_buffer, false));
-      }
+      int32_t* temp_buffer = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, op_data->temp_buffer_idx));
+      TF_LITE_ENSURE(
+          context, reference_ops::QuantizedMeanOrSum(
+                       tflite::micro::GetTensorData<int16_t>(input),
+                       op_data->input_zp, input->dims->data, input->dims->size,
+                       tflite::micro::GetTensorData<int16_t>(output),
+                       op_data->multiplier, op_data->shift, op_data->output_zp,
+                       output->dims->data, output->dims->size,
+                       tflite::micro::GetTensorData<int>(axis), num_axis,
+                       params->keep_dims, temp_index, resolved_axis,
+                       temp_buffer, false));
     } break;
-    default:
-      TF_LITE_ENSURE_MSG(context, false,
-                         "Currently, only float32, int8 or uint8 input type "
-                         "is supported.");
+    default: {
+      MicroPrintf("Unsupported data type: %s", TfLiteTypeGetName(input->type));
+      return kTfLiteError;
+    }
   }
   return kTfLiteOk;
 }
