@@ -259,7 +259,7 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdep
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
 # Kernel integration tests must be excluded on certain targets.
-MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/kernels/integration_tests -maxdepth 3 -name Makefile.inc)
+MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
