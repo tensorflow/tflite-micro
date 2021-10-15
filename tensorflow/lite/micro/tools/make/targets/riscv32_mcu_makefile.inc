@@ -22,7 +22,6 @@ PLATFORM_FLAGS = \
   -mcmodel=medany \
   -mexplicit-relocs \
   -fno-builtin-printf \
-  -fno-exceptions \
   -DTF_LITE_MCU_DEBUG_LOG \
   -DTF_LITE_USE_GLOBAL_CMATH_FUNCTIONS \
   -funsigned-char \
@@ -31,12 +30,9 @@ PLATFORM_FLAGS = \
 
 CXXFLAGS += $(PLATFORM_FLAGS) \
   -fpermissive \
-  -fno-rtti \
-  -fno-threadsafe-statics \
   -fno-use-cxa-atexit \
   -DTF_LITE_USE_GLOBAL_MIN \
-  -DTF_LITE_USE_GLOBAL_MAX \
-  --std=gnu++11
+  -DTF_LITE_USE_GLOBAL_MAX
 
 CCFLAGS += $(PLATFORM_FLAGS)
 
