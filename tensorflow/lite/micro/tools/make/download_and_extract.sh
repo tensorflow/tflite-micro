@@ -105,21 +105,6 @@ setup_zephyr() {
   deactivate
 }
 
-patch_sifive_sdk() {
-  local sdk_dir="${1}"
-  # Fix compilation warnings.
-  sed -i -e '14s/char/uint8_t/' "${sdk_dir}/bsp/libwrap/sys/write.c"
-  sed -i -e 's/asm/__asm__/' "${sdk_dir}/bsp/env/encoding.h"
-  sed -i -e '225s/%d/%ld/' "${sdk_dir}/bsp/env/freedom-e300-hifive1/init.c"
-  # Guarantee 4-byte alignment in sbrk(), and malloc() by extension.
-  sed -i -e '15a\
-  curbrk = (char *)(((unsigned long)curbrk + 3UL) & ~3UL); // Patch' "${sdk_dir}/bsp/libwrap/sys/sbrk.c"
-  # Create new linker script with increased RAM size.
-  sed -e '8s/16K/256K/' "${sdk_dir}/bsp/env/freedom-e300-hifive1/flash.lds" \
-      > "${sdk_dir}/bsp/env/freedom-e300-hifive1/flash-256k.lds"
-  echo "Finished patching SiFive SDK"
-}
-
 # Main function handling the download, verify, extract, and patch process.
 download_and_extract() {
   local usage="Usage: download_and_extract URL MD5 DIR [ACTION] [ACTION_PARAM]"
@@ -219,8 +204,6 @@ download_and_extract() {
     fi
   elif [[ ${action} == "setup_zephyr" ]]; then
     setup_zephyr ${dir}
-  elif [[ ${action} == "patch_sifive_sdk" ]]; then
-    patch_sifive_sdk ${dir}
   elif [[ ${action} ]]; then
     echo "Unknown action '${action}'"
     exit 1

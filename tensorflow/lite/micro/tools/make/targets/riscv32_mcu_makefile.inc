@@ -5,7 +5,11 @@ TARGET_TOOLCHAIN_PREFIX := riscv64-unknown-elf-
 export PATH := $(MAKEFILE_DIR)/downloads/riscv_toolchain/bin/:$(PATH)
 
 $(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
-$(eval $(call add_third_party_download,$(SIFIVE_FE310_LIB_URL),$(SIFIVE_FE310_LIB_MD5),sifive_fe310_lib,patch_sifive_sdk))
+
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/sifive_sdk_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the SiFive Freedom E SDK download: $(DOWNLOAD_RESULT))
+endif
 
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
