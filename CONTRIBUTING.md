@@ -55,7 +55,7 @@ We provide some general guidelines with the goal of enabling community
 contributions while still maintaining code health, maintainability, and
 consistency in style.
 
-Please note that while these guidelines may seem onerous to some developers,
+Please note that while these guidelines may seem troublesome to some developers,
 they are derived from Google's software engineering best practices.
 
 Before we describe project-specific guidelines, we recommend that external
