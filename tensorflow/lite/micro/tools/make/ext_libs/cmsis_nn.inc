@@ -67,9 +67,3 @@ INCLUDES += \
   -I$(CMSIS_PATH)/CMSIS/Core/Include \
   -I$(CMSIS_PATH)/CMSIS/DSP/Include \
   -I$(CMSIS_PATH)/CMSIS/NN/Include
-
-# Exclude kernel integration tests for types not supported.
-EXCLUDED_EXAMPLE_TESTS += \
-  tensorflow/lite/micro/kernels/integration_tests/seanet/conv/Makefile.inc
-
-MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
