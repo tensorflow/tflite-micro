@@ -223,7 +223,7 @@ Below are some tips that might be useful and improve the development experience.
     *   Always merge upstream/main (***do not rebase***) and no force-pushes
         please.
 
-    *   Having an extra merge commit it ok as the github review tool handles
+    *   Having an extra merge commit is ok as the github review tool handles
         that gracefully.
 
     Assuming that you forked tensorflow and added a remote called upstream with:
