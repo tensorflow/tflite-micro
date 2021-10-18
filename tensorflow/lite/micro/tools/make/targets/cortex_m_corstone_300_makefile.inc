@@ -154,6 +154,9 @@ else ifeq ($(TOOLCHAIN), gcc)
     -Wl,--gc-sections \
     --entry Reset_Handler
 
+  ldflags_to_remove = -Wl,--fatal-warnings
+  LDFLAGS := $(filter-out $(ldflags_to_remove),$(LDFLAGS))
+
 else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
