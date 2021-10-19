@@ -99,22 +99,26 @@ EXCLUDED_TESTS := \
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
+# We actually only want to to disable simple_features_generator_test, which is part
+# of the micro_speech example, but there's currently no way to disable individual
+# tests within an example in a similar way to EXCLUDED_TESTS above.
+#
+# simple_features_generator_test passes, but it takes a very long time
+# (~8 minutes on a regular PC), which is why we want to disable it.
+#
+# TODO: Come up with a way of excluding individual tests within an example.
+EXCLUDED_EXAMPLE_TESTS := \
+  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+
+MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
 
 # We are setting this variable to non-zero to allow us to have a custom
 # implementation of `make test` for our target
 TARGET_SPECIFIC_MAKE_TEST := 1
 
-# Exclude this test from `make test`, as it takes a very long time (~8 minutes on a regular PC)
-TEST_TARGET_EXCLUDED_BINARIES = $(BINDIR)/simple_features_generator_test
-
-ALL_TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
-
-TEST_TARGET_BINARIES = $(filter-out $(TEST_TARGET_EXCLUDED_BINARIES),$(ALL_TEST_TARGET_BINARIES))
+TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
 
 test: build
 	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
-
-# This target runs all tests unconditionally
-test_all: build
-	$(TEST_SCRIPT) "$(ALL_TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
