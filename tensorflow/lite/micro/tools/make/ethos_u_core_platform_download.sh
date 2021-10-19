@@ -64,6 +64,12 @@ else
   mkdir ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
   tar xzf ${TEMPFILE} --strip-components=1 -C ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
 
+  LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
+
+  # Prepend #!cpp to scatter file.
+  SCATTER=${LINKER_PATH}/platform.scatter
+  echo -e "#!cpp\n$(cat ${SCATTER})" > ${SCATTER}
+
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
   if [ ! -f ${COMPILER} ]; then
@@ -73,7 +79,7 @@ else
         exit 1
       fi
   fi
-  LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
+
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld
 
   # Move rodata from ITCM to DDR in order to support a bigger model without a specified section.
