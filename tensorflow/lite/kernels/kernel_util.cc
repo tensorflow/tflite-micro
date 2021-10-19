@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,6 +68,19 @@ inline TfLiteStatus ValidateTensorIndexingSafe(const TfLiteContext* context,
 
   *tensor_index = tensor_indices[index];
   return kTfLiteOk;
+}
+
+// Same as above but returns -1 for invalid inputs instead of status + logging
+// error.
+inline int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                                  int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
 }
 
 inline TfLiteTensor* GetMutableInput(const TfLiteContext* context,

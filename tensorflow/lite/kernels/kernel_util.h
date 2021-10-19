@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -143,17 +143,6 @@ TfLiteStatus GetIntermediatesSafe(const TfLiteContext* context,
                                   const TfLiteNode* node, int index,
                                   TfLiteTensor** tensor);
 #endif  // TF_LITE_STATIC_MEMORY
-
-inline int ValidateTensorIndexing(const TfLiteContext* context, int index,
-                                  int max_size, const int* tensor_indices) {
-  if (index >= 0 && index < max_size) {
-    const int tensor_index = tensor_indices[index];
-    if (tensor_index != kTfLiteOptionalTensor) {
-      return tensor_index;
-    }
-  }
-  return -1;
-}
 
 inline int NumDimensions(const TfLiteTensor* t) { return t->dims->size; }
 inline int SizeOfDimension(const TfLiteTensor* t, int dim) {

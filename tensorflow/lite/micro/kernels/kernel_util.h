@@ -34,12 +34,6 @@ inline TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
                                              int index) {
   TFLITE_DCHECK(context != nullptr);
   TFLITE_DCHECK(node != nullptr);
-  return context->GetEvalTensor(context, node->inputs->data[index]);
-}
-
-// Returns the TfLiteEvalTensor struct for a given input index in a node.
-inline const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
-                                            const TfLiteNode* node, int index) {
   const int tensor_index = tflite::ValidateTensorIndexing(
       context, index, node->inputs->size, node->inputs->data);
 
@@ -47,6 +41,12 @@ inline const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
     return nullptr;
   }
 
+  return context->GetEvalTensor(context, node->inputs->data[index]);
+}
+
+// Returns the TfLiteEvalTensor struct for a given input index in a node.
+inline const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
+                                            const TfLiteNode* node, int index) {
   return GetMutableEvalInput(context, node, index);
 }
 
