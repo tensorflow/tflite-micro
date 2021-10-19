@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_external_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -71,6 +72,11 @@ class MicroInterpreter {
   // values other than kTfLiteOk and kTfLiteError.
   // TODO(b/149795762): Add this to the TfLiteStatus enum.
   TfLiteStatus Invoke();
+
+  // Does not take ownership of external_context, which must refer to a valid
+  // BufferPlan that outlives this object.
+  TfLiteStatus SetExternalContext(TfLiteExternalContextType type,
+                                  TfLiteExternalContext* external_context);
 
   TfLiteTensor* input(size_t index);
   size_t inputs_size() const {
@@ -127,6 +133,8 @@ class MicroInterpreter {
   // arena_used_bytes() + 16.
   size_t arena_used_bytes() const { return allocator_.used_bytes(); }
 
+  TfLiteMicroExternalContext* GetMicroExternalContext();
+
  protected:
   const MicroAllocator& allocator() const { return allocator_; }
   const TfLiteContext& context() const { return context_; }
@@ -154,6 +162,9 @@ class MicroInterpreter {
   static TfLiteStatus GetGraph(struct TfLiteContext* context,
                                TfLiteIntArray** args);
 
+  static TfLiteExternalContext* GetExternalContext(
+      TfLiteContext* context, TfLiteExternalContextType external_context_type);
+
   const Model* model_;
   const MicroOpResolver& op_resolver_;
   ErrorReporter* error_reporter_;
@@ -165,6 +176,8 @@ class MicroInterpreter {
   TfLiteStatus initialization_status_;
 
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
+
+  TfLiteMicroExternalContext* external_context_;  // not owned
 
   // TODO(b/162311891): Clean these pointers up when this class supports buffers
   // from TfLiteEvalTensor.

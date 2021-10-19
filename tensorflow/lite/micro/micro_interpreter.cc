@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_external_context.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -49,6 +50,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
+      external_context_(nullptr),
       input_tensors_(nullptr),
       output_tensors_(nullptr) {
   Init(profiler);
@@ -67,6 +69,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       graph_(&context_, model, allocator, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
+      external_context_(nullptr),
       input_tensors_(nullptr),
       output_tensors_(nullptr) {
   Init(profiler);
@@ -213,6 +216,8 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena = RequestScratchBufferInArena;
+  // GetExternalContext become available in Prepare stage.
+  context_.GetExternalContext = GetExternalContext;
   graph_.PrepareSubgraphs();
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
@@ -292,6 +297,25 @@ TfLiteStatus MicroInterpreter::Invoke() {
     TF_LITE_ENSURE_OK(&context_, AllocateTensors());
   }
   return graph_.InvokeSubgraph(0);
+}
+
+TfLiteStatus MicroInterpreter::SetExternalContext(
+    TfLiteExternalContextType type, TfLiteExternalContext* external_context) {
+  if (type != kTfLiteMicroAcceleratorContext || external_context_ != nullptr) {
+    MicroPrintf(
+        "Either unsupported context %d OR context already initialized %lx",
+        type, external_context_);
+    return kTfLiteError;
+  }
+  external_context_ =
+      reinterpret_cast<TfLiteMicroExternalContext*>(external_context);
+  if (external_context_->subtype >= kTfLiteMicroMaxExternalContexts) {
+    MicroPrintf("Unsupportd micro external context type %d",
+                external_context_->subtype);
+    external_context_ = nullptr;
+    return kTfLiteError;
+  }
+  return kTfLiteOk;
 }
 
 TfLiteTensor* MicroInterpreter::input(size_t index) {
@@ -379,6 +403,21 @@ TfLiteStatus MicroInterpreter::GetGraph(struct TfLiteContext* context,
       reinterpret_cast<MicroInterpreter*>(context->impl_);
   *args = reinterpret_cast<TfLiteIntArray*>(&interpreter->graph_);
   return kTfLiteOk;
+}
+
+TfLiteMicroExternalContext* MicroInterpreter::GetMicroExternalContext() {
+  return external_context_;
+}
+
+TfLiteExternalContext* MicroInterpreter::GetExternalContext(
+    TfLiteContext* context, TfLiteExternalContextType external_context_type) {
+  if (external_context_type != kTfLiteMicroAcceleratorContext) {
+    MicroPrintf("Unsupported context %d", external_context_type);
+    return nullptr;
+  }
+  MicroInterpreter* interpreter =
+      reinterpret_cast<MicroInterpreter*>(context->impl_);
+  return interpreter->GetMicroExternalContext();
 }
 
 }  // namespace tflite

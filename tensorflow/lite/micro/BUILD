@@ -38,6 +38,7 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_error_reporter",
+        ":micro_external_context",
         ":micro_graph",
         ":micro_profiler",
         ":op_resolvers",
@@ -313,6 +314,17 @@ cc_library(
     copts = micro_copts(),
 )
 
+cc_library(
+    name = "micro_external_context",
+    hdrs = [
+        "micro_external_context.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+    ],
+)
+
 cc_test(
     name = "micro_error_reporter_test",
     srcs = [
@@ -344,6 +356,7 @@ cc_test(
     deps = [
         ":micro_compatibility",
         ":micro_error_reporter",
+        ":micro_external_context",
         ":micro_framework",
         ":micro_profiler",
         ":micro_utils",

@@ -51,10 +51,77 @@ class MockProfiler : public MicroProfiler {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+struct TestExternalContextPayloadData {
+  // Opaque blob
+  uint8_t blob_data[128];
+};
 }  // namespace
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
+
+TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  tflite::TestExternalContextPayloadData payload;
+  TfLiteMicroExternalContext micro_external_context;
+  micro_external_context.subtype = kTfLiteMicroCadenceContext;
+  micro_external_context.context_data = &payload;
+  interpreter.SetExternalContext(kTfLiteMicroAcceleratorContext,
+                                 &micro_external_context);
+
+  TfLiteMicroExternalContext* returned_external_context =
+      interpreter.GetMicroExternalContext();
+
+  TF_LITE_MICRO_EXPECT((void*)returned_external_context ==
+                       (void*)(&micro_external_context));
+}
+
+TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldFail) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT((void*)interpreter.GetMicroExternalContext() ==
+                       (nullptr));
+}
+
+TF_LITE_MICRO_TEST(TestSetExternalContextWithIncorrectTypeShouldFail) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  tflite::TestExternalContextPayloadData payload;
+  TfLiteMicroExternalContext micro_external_context;
+  micro_external_context.context_data = &payload;
+  micro_external_context.subtype = kTfLiteMicroCadenceContext;
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.SetExternalContext(
+                              kTfLiteEigenContext, &micro_external_context),
+                          kTfLiteError);
+
+  // Incorrect subtype should fail too
+  micro_external_context.subtype = kTfLiteMicroMaxExternalContexts;
+  TF_LITE_MICRO_EXPECT_EQ(
+      interpreter.SetExternalContext(kTfLiteMicroAcceleratorContext,
+                                     &micro_external_context),
+      kTfLiteError);
+}
 
 TF_LITE_MICRO_TEST(TestInterpreter) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();

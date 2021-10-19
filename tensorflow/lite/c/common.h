@@ -55,7 +55,10 @@ typedef enum TfLiteExternalContextType {
   kTfLiteGemmLowpContext = 1,    // include gemm_support.h to use.
   kTfLiteEdgeTpuContext = 2,     // Placeholder for Edge TPU support.
   kTfLiteCpuBackendContext = 3,  // include cpu_backend_context.h to use.
-  kTfLiteMaxExternalContexts = 4
+  kTfLiteMicroAcceleratorContext =
+      4,  // Micro supports one accelerator context
+          // per target. Includes micro_external_context.h to use.
+  kTfLiteMaxExternalContexts = 5
 } TfLiteExternalContextType;
 
 // Forward declare so dependent structs and methods can reference these types
