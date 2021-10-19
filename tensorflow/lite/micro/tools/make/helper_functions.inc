@@ -485,7 +485,7 @@ endef
 # 1 - Name of target.
 # 2 - C/C++ source files
 # 3 - C/C++ header files
-# 4 - Model sources and model test inputs in.tflite, .wav or.bmp format.
+# 4 - Model sources and model test inputs in.tflite, .wav, .bmp or .csv format.
 # Calling eval on the output will create the targets that you need.
 define microlite_test
 ifeq (,$(findstring _test, $(1)))
@@ -527,7 +527,11 @@ $(1)_bin: $$($(1)_BINARY).bin
 MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 
 ifneq (,$(findstring _test,$(1)))
+ifneq (,$(findstring integration_tests,$(1)))
+  MICROLITE_INTEGRATION_TEST_TARGETS += test_$(1)
+else
   MICROLITE_TEST_TARGETS += test_$(1)
+endif
 
 test_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
