@@ -166,18 +166,12 @@ else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
 
-# TODO(#47718): resolve warnings.
-OMIT_ERRORS = \
-  -Wno-implicit-fallthrough \
-  -Wno-unused-variable
-
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
   -mlittle-endian \
-   ${OMIT_ERRORS} \
   -Wno-type-limits \
   -Wno-unused-private-field \
   -fomit-frame-pointer \
