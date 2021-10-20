@@ -1,0 +1,2 @@
+*** Variables ***
+${UART}                       sysbus.uart0
