@@ -30,8 +30,10 @@ TfLiteStatus NonPersistentMemoryPlannerShim::AddBuffer(
     int last_time_used) {
   buffer_request_count_++;
   if (buffer_request_count_ > buffer_plan_->buffer_count) {
-    MicroPrintf("Attempting to add buffer %d, but only %d buffers in given buffer plan.", buffer_request_count_,
-                buffer_plan_->buffer_count);
+    MicroPrintf(
+        "Attempting to add buffer %d, but only %d buffers in given buffer "
+        "plan.",
+        buffer_request_count_, buffer_plan_->buffer_count);
     return kTfLiteError;
   }
   return kTfLiteOk;
@@ -51,8 +53,10 @@ int NonPersistentMemoryPlannerShim::GetBufferCount() {
 TfLiteStatus NonPersistentMemoryPlannerShim::GetOffsetForBuffer(
     ErrorReporter* error_reporter, int buffer_request_index, int* offset) {
   if (buffer_request_index >= buffer_plan_->buffer_count) {
-    MicroPrintf("Attempting to get offset for buffer %d, but only %d buffers in given buffer plan.",
-                buffer_request_index, buffer_plan_->buffer_count);
+    MicroPrintf(
+        "Attempting to get offset for buffer %d, but only %d buffers in given "
+        "buffer plan.",
+        buffer_request_index, buffer_plan_->buffer_count);
     return kTfLiteError;
   }
   *offset = buffer_plan_->buffer_plan_entries[buffer_request_index].offset;
