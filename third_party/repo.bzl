@@ -80,29 +80,7 @@ _tf_http_archive = repository_rule(
 
 def tf_http_archive(name, sha256, urls, **kwargs):
     """Downloads and creates Bazel repos for dependencies.
-
-    This is a swappable replacement for both http_archive() and
-    new_http_archive() that offers some additional features. It also helps
-    ensure best practices are followed.
-
-    File arguments are relative to the TensorFlow repository by default. Dependent
-    repositories that use this rule should refer to files either with absolute
-    labels (e.g. '@foo//:bar') or from a label created in their repository (e.g.
-    'str(Label("//:bar"))').
     """
-    if len(urls) < 2:
-        fail("tf_http_archive(urls) must have redundant URLs.")
-
-    if not any([mirror in urls[0] for mirror in (
-        "mirror.tensorflow.org",
-        "mirror.bazel.build",
-        "storage.googleapis.com",
-    )]):
-        fail("The first entry of tf_http_archive(urls) must be a mirror " +
-             "URL, preferrably mirror.tensorflow.org. Even if you don't have " +
-             "permission to mirror the file, please put the correctly " +
-             "formatted mirror URL there anyway, because someone will come " +
-             "along shortly thereafter and mirror the file.")
 
     if native.existing_rule(name):
         print("\n\033[1;33mWarning:\033[0m skipping import of repository '" +
