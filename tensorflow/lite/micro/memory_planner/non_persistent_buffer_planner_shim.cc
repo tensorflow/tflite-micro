@@ -30,7 +30,7 @@ TfLiteStatus NonPersistentMemoryPlannerShim::AddBuffer(
     int last_time_used) {
   buffer_request_count_++;
   if (buffer_request_count_ > buffer_plan_->buffer_count) {
-    MicroPrintf("Buffer request %d exceeds the range %d", buffer_request_count_,
+    MicroPrintf("Attempting to add buffer %d, but only %d buffers in given buffer plan.", buffer_request_count_,
                 buffer_plan_->buffer_count);
     return kTfLiteError;
   }
@@ -51,7 +51,7 @@ int NonPersistentMemoryPlannerShim::GetBufferCount() {
 TfLiteStatus NonPersistentMemoryPlannerShim::GetOffsetForBuffer(
     ErrorReporter* error_reporter, int buffer_request_index, int* offset) {
   if (buffer_request_index >= buffer_plan_->buffer_count) {
-    MicroPrintf("buffer index %d is outside range 0 to %d",
+    MicroPrintf("Attempting to get offset for buffer %d, but only %d buffers in given buffer plan.",
                 buffer_request_index, buffer_plan_->buffer_count);
     return kTfLiteError;
   }
