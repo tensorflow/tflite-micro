@@ -24,15 +24,15 @@ constexpr int32_t kBuffer0Offset = 0;
 constexpr int32_t kBuffer1Offset = 10;
 
 // Our c++ convention disallow us to use designated initializers which would
-// have simplify the below code to a more readable kOfflineBufferPlan = {
+// have simplify the below code to a more readable kBufferPlan = {
 //   .buffer_count = 2,
 //   .buffer_plan_entries = {
 //       [0] = { .offset = 0 },
 //       [1] = { .offset = 10}
 //   }
 // };
-constexpr int32_t kOfflineBufferPlanInBinary[] = {kBufferCnt, kBuffer0Offset,
-                                                  kBuffer1Offset};
+constexpr int32_t kBufferPlanInBinary[] = {kBufferCnt, kBuffer0Offset,
+                                           kBuffer1Offset};
 
 }  // namespace
 
@@ -40,7 +40,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kOfflineBufferPlanInBinary));
+      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
 
   int offset0 = -1;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -55,18 +55,49 @@ TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
 
 TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kOfflineBufferPlanInBinary));
+      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
 
   int offset = -1;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteError, planner.GetOffsetForBuffer(nullptr, kBufferCnt, &offset));
 }
 
+TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
+  tflite::NonPersistentMemoryPlannerShim planner(
+      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
+                        /*first_time_used=*/0, /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/20,
+                        /*first_time_used=*/0, /*last_time_used=*/1));
+}
+
+TF_LITE_MICRO_TEST(TestAddBufferFailWhenExceedRange) {
+  tflite::NonPersistentMemoryPlannerShim planner(
+      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
+                        /*first_time_used=*/0, /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/20,
+                        /*first_time_used=*/0, /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteError,
+      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
+                        /*first_time_used=*/0, /*last_time_used=*/1));
+}
+
 TF_LITE_MICRO_TEST(TestBasics) {
   tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kOfflineBufferPlanInBinary));
+      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, planner.AddBuffer(nullptr, 10, 0, 1));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           planner.GetMaximumMemorySize());
 }

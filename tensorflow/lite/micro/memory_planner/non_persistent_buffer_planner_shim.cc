@@ -20,16 +20,21 @@ limitations under the License.
 namespace tflite {
 
 NonPersistentMemoryPlannerShim::NonPersistentMemoryPlannerShim(
-    const BufferPlan* offline_buffer_plan)
-    : offline_buffer_plan_(offline_buffer_plan) {}
+    const BufferPlan* buffer_plan)
+    : buffer_plan_(buffer_plan), buffer_request_count_(0) {}
 
 NonPersistentMemoryPlannerShim::~NonPersistentMemoryPlannerShim() {}
 
 TfLiteStatus NonPersistentMemoryPlannerShim::AddBuffer(
     tflite::ErrorReporter* error_reporter, int size, int first_time_used,
     int last_time_used) {
-  MicroPrintf("Unsupported operation");
-  return kTfLiteError;
+  buffer_request_count_++;
+  if (buffer_request_count_ > buffer_plan_->buffer_count) {
+    MicroPrintf("Buffer request %d exceeds the range %d", buffer_request_count_,
+                buffer_plan_->buffer_count);
+    return kTfLiteError;
+  }
+  return kTfLiteOk;
 }
 
 size_t NonPersistentMemoryPlannerShim::GetMaximumMemorySize() {
@@ -40,17 +45,17 @@ size_t NonPersistentMemoryPlannerShim::GetMaximumMemorySize() {
 
 // How many buffers are in the given memory plan.
 int NonPersistentMemoryPlannerShim::GetBufferCount() {
-  return offline_buffer_plan_->buffer_count;
+  return buffer_plan_->buffer_count;
 }
 
 TfLiteStatus NonPersistentMemoryPlannerShim::GetOffsetForBuffer(
-    ErrorReporter* error_reporter, int buffer_index, int* offset) {
-  if (buffer_index >= offline_buffer_plan_->buffer_count) {
-    MicroPrintf("buffer index %d is outside range 0 to %d", buffer_index,
-                offline_buffer_plan_->buffer_count);
+    ErrorReporter* error_reporter, int buffer_request_index, int* offset) {
+  if (buffer_request_index >= buffer_plan_->buffer_count) {
+    MicroPrintf("buffer index %d is outside range 0 to %d",
+                buffer_request_index, buffer_plan_->buffer_count);
     return kTfLiteError;
   }
-  *offset = offline_buffer_plan_->buffer_plan_entries[buffer_index].offset;
+  *offset = buffer_plan_->buffer_plan_entries[buffer_request_index].offset;
   return kTfLiteOk;
 }
 
