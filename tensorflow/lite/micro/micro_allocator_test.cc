@@ -999,6 +999,16 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
                                           subgraph_allocations, 1);
 
   TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
+
+  // Debug an issue seen in presubmit, but not in anywhere else.
+  MicroPrintf("DebugShim: 0x%x",
+              static_cast<uint8_t*>(eval_tensors[0].data.data));
+  MicroPrintf("DebugShim: 0x%x",
+              static_cast<uint8_t*>(eval_tensors[2].data.data));
+  MicroPrintf("DebugShim: 0x%x",
+              static_cast<uint8_t*>(eval_tensors[3].data.data));
+  MicroPrintf("DebugShim: 0x%x", arena);
+
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[0].data.data) ==
                             (arena + kOffset0));
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[2].data.data) ==
