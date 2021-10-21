@@ -10,4 +10,3 @@ cc_library(
     ],
     deps = ["//tensorflow/lite/c:common"],
 )
-
