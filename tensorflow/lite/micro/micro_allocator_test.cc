@@ -31,6 +31,7 @@ namespace tflite {
 namespace testing {
 namespace {
 
+// TODO(b/203825161): consolidate buffer alignment constant
 constexpr int kExpectedAlignment = 4;
 constexpr int t0 = 0;
 constexpr int t1 = 1;
@@ -1000,21 +1001,18 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
 
   TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
 
-  // Debug an issue seen in presubmit, but not in anywhere else.
-  MicroPrintf("DebugShim: 0x%x",
-              static_cast<uint8_t*>(eval_tensors[0].data.data));
-  MicroPrintf("DebugShim: 0x%x",
-              static_cast<uint8_t*>(eval_tensors[2].data.data));
-  MicroPrintf("DebugShim: 0x%x",
-              static_cast<uint8_t*>(eval_tensors[3].data.data));
-  MicroPrintf("DebugShim: 0x%x", arena);
+  // Offset is relative to the arena after the buffer alignment adjustment which
+  // happens when MicroAllocator is created.
+  // TODO(b/203825161): consolidate buffer alignment constant
+  constexpr int kBufferAlignment = 16;
+  uint8_t* aligned_arena = tflite::AlignPointerUp(arena, kBufferAlignment);
 
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[0].data.data) ==
-                            (arena + kOffset0));
+                            (aligned_arena + kOffset0));
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[2].data.data) ==
-                            (arena + kOffset1));
+                            (aligned_arena + kOffset1));
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[3].data.data) ==
-                            (arena + kOffset2));
+                            (aligned_arena + kOffset2));
 
   // SimpleMockModel has 2 operators:
   tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
