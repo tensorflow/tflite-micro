@@ -308,7 +308,7 @@ TfLiteStatus MicroInterpreter::SetExternalContext(
     return kTfLiteError;
   }
   external_context_ =
-      reinterpret_cast<TfLiteMicroExternalContext*>(external_context);
+      static_cast<TfLiteMicroExternalContext*>(external_context);
   if (external_context_->subtype >= kTfLiteMicroMaxExternalContexts) {
     MicroPrintf("Unsupportd micro external context type %d",
                 external_context_->subtype);
