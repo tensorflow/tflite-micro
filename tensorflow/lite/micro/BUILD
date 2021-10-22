@@ -391,6 +391,8 @@ cc_test(
         ":micro_error_reporter",
         ":test_helpers",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/memory_planner:memory_plan_struct",
+        "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
     ],
