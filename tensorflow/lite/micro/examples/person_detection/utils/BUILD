@@ -1,5 +1,5 @@
-# Description:
-#   TensorFlow Lite for Microcontrollers Vision Example Utils.
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
+
 package(
     features = ["-layering_check"],
     licenses = ["notice"],
@@ -10,21 +10,17 @@ py_binary(
     srcs = ["raw_to_bitmap.py"],
     python_version = "PY3",
     srcs_version = "PY3ONLY",
-    tags = [
-        "no_oss",  # TODO(b/186670822): enable once tflite-micro supports bazel+Python
+    deps = [
+        requirement("numpy"),
     ],
-    deps = ["//third_party/py/numpy"],
 )
 
 py_library(
     name = "raw_to_bitmap_lib",
     srcs = ["raw_to_bitmap.py"],
     srcs_version = "PY3",
-    tags = [
-        "no_oss",  # TODO(b/186670822): enable once tflite-micro supports bazel+Python
-    ],
     deps = [
-        "//third_party/py/numpy",
+        requirement("numpy"),
     ],
 )
 
@@ -34,14 +30,13 @@ py_test(
     data = glob(["testdata/**"]),
     python_version = "PY3",
     tags = [
-        "no_oss",  # TODO(b/174680668): Exclude Python tests from OSS.
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "notap",  # TODO(b/186679612)
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
     deps = [
         ":raw_to_bitmap_lib",
-        "//tensorflow/python:platform_test",
-        "//third_party/py/numpy",
+        requirement("tensorflow"),
+        requirement("numpy"),
     ],
 )
