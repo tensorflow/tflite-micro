@@ -99,7 +99,7 @@ if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
 then
   FIX_BUILD_FORMAT_OPTIONS="-mode=fix"
 else
-  FIX_BUILD_FORMAT_OPTIONS="-mode=diff -diff_command=diff"
+  FIX_BUILD_FORMAT_OPTIONS="-d"
 fi
 
 BUILD_FILES=$(find . \( -name BUILD -o -name "*.bzl" \) )
