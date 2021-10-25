@@ -954,12 +954,12 @@ cc_binary(
     copts = micro_copts(),
     deps = [
         ":models_and_testdata",
-        "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

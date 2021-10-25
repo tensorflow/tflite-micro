@@ -23,11 +23,11 @@ cc_library(
     deps = [
         ":error_reporter",
         ":op_resolver",
-        "@flatbuffers//:runtime_cc",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
+        "@flatbuffers//:runtime_cc",
     ],
 )
 
