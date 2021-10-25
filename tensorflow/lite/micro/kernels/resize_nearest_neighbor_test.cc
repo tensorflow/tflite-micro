@@ -37,7 +37,7 @@ void TestResizeNearestNeighbor(int* input_dims_data, const T* input_data,
   TfLiteIntArray* expected_size_dims =
       IntArrayFromInts(expected_size_dims_data);
 
-  const TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
 
   int output_dims_count = ElementCount(*output_dims);
 
