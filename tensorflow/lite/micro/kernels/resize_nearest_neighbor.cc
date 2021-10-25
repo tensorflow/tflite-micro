@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -95,8 +96,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));
   } else {
-    TF_LITE_KERNEL_LOG(context, "Output tensor type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type);
+    MicroPrintf("Output tensor type %s (%d) not supported.",
+                TfLiteTypeGetName(output->type), output->type);
 
     return kTfLiteError;
   }
