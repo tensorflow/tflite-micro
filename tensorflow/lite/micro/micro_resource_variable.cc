@@ -124,7 +124,9 @@ TfLiteStatus MicroResourceVariables::Assign(int id,
 int MicroResourceVariables::FindId(const char* container,
                                    const char* shared_name) {
   for (int i = 0; i < num_resource_variables_; i++) {
-    if (!strcmp(container, resource_variables_[i].container) &&
+    // Some TFLite flatbuffers contain null container names to save space.
+    if ((container == nullptr ||
+         !strcmp(container, resource_variables_[i].container)) &&
         !strcmp(shared_name, resource_variables_[i].shared_name)) {
       return i;
     }
