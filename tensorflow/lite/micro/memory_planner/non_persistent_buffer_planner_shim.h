@@ -102,14 +102,14 @@ A3(10)│A5(11)│
 */
 class NonPersistentMemoryPlannerShim : public MicroMemoryPlanner {
  public:
-  // Does not take ownership of offline_buffer_plan, which must refer to a valid
+  // Does not take ownership of buffer_plan, which must refer to a valid
   // BufferPlan that outlives this object.
-  explicit NonPersistentMemoryPlannerShim(
-      const BufferPlan* offline_buffer_plan);
+  explicit NonPersistentMemoryPlannerShim(const BufferPlan* buffer_plan);
   ~NonPersistentMemoryPlannerShim() override;
 
   TfLiteStatus GetOffsetForBuffer(ErrorReporter* error_reporter,
-                                  int buffer_index, int* offset) override;
+                                  int buffer_request_index,
+                                  int* offset) override;
 
   TfLiteStatus AddBuffer(tflite::ErrorReporter* error_reporter, int size,
                          int first_time_used, int last_time_used) override;
@@ -117,7 +117,10 @@ class NonPersistentMemoryPlannerShim : public MicroMemoryPlanner {
   int GetBufferCount() override;
 
  private:
-  const BufferPlan* offline_buffer_plan_;  // not owned, can't be null
+  const BufferPlan* buffer_plan_;  // not owned, can't be null
+
+  // The number of buffers requested so far. Used for error checking.
+  int buffer_request_count_;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
