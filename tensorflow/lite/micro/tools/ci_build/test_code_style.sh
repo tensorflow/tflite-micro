@@ -31,8 +31,10 @@ make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 # scripts fail with an error code.
 set +e
 
-pushd tensorflow/lite/
+# --fix_formatting to let the script fix both code and build file format error.
+FIX_FORMAT_FLAG=${1}
 
+pushd tensorflow/lite/
 ############################################################
 # License Check
 ############################################################
@@ -64,10 +66,10 @@ micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmi
 LICENSE_CHECK_RESULT=$?
 
 ############################################################
-# Formatting Check
+# Code Formatting Check
 ############################################################
 
-if [[ ${1} == "--fix_formatting" ]]
+if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
 then
   FIX_FORMAT_OPTIONS="--fix"
 else
@@ -87,7 +89,24 @@ micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
   -e "\.inc" \
   -e "\.md"
 
-FORMAT_RESULT=$?
+CODE_FORMAT_RESULT=$?
+
+############################################################
+# Build Formatting Check
+############################################################
+
+if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
+then
+  FIX_BUILD_FORMAT_OPTIONS="-mode=fix"
+else
+  FIX_BUILD_FORMAT_OPTIONS="-d"
+fi
+
+BUILD_FILES=$(find . \( -name BUILD -o -name "*.bzl" \) )
+
+buildifier ${FIX_BUILD_FORMAT_OPTIONS} ${BUILD_FILES}
+
+BUILD_FORMAT_RESULT=$?
 
 #############################################################################
 # Avoided specific-code snippets for TFLM
@@ -133,12 +152,13 @@ popd
 # Re-enable exit on error now that we are done with the temporary git repo.
 set -e
 
-if [[ ${FORMAT_RESULT}  != 0 ]]
+if [[ ${CODE_FORMAT_RESULT}  != 0 || ${BUILD_FORMAT_RESULT} != 0 ]]
 then
   echo "The formatting errors can be fixed with tensorflow/lite/micro/tools/ci_build/test_code_style.sh --fix_formatting"
 fi
 if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
-      ${FORMAT_RESULT}         != 0 || \
+      ${CODE_FORMAT_RESULT}    != 0 || \
+      ${BUILD_FORMAT_RESULT}   != 0 || \
       ${GTEST_RESULT}          != 0 || \
       ${ERROR_REPORTER_RESULT} != 0 || \
       ${ASSERT_RESULT}         != 0    \
