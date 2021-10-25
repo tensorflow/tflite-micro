@@ -103,9 +103,7 @@ else
 fi
 
 BUILD_FILES=$(find . \( -name BUILD -o -name "*.bzl" \) )
-
 buildifier ${FIX_BUILD_FORMAT_OPTIONS} ${BUILD_FILES}
-
 BUILD_FORMAT_RESULT=$?
 
 #############################################################################
