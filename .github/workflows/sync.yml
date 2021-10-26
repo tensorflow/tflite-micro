@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies for sync
         run: |
-          ./ci/install_bazel.sh
+          sudo ./ci/install_bazel.sh
 
       - name: Sync the code
         run: |
