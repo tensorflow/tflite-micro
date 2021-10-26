@@ -46,6 +46,12 @@ do
   /bin/cp /tmp/tensorflow/${filepath} ${filepath}
 done
 
+# The shared TFL/TFLM python code uses a different bazel workspace in the two
+# repositories (TF and tflite-micro) which needs the import statements to be
+# modified.
+PY_FILES=$(find tensorflow/lite/tools tensorflow/lite/python -name "*.py")
+sed -i 's/from tensorflow\.lite/from tflm_bazel\.tensorflow\.lite/' ${PY_FILES}
+
 # Since the TFLM code was deleted from the tensorflow repository, the
 # microfrontend is no longer sync'd from upstream and instead maintaned as a
 # fork.
