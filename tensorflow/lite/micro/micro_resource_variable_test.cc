@@ -137,4 +137,23 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
   }
 }
 
+TF_LITE_MICRO_TEST(CreateVariablesNullContainer) {
+  tflite::MicroResourceVariables* resource_variables =
+      tflite::MicroResourceVariables::Create(
+          tflite::MicroAllocator::Create(tflite::buffer_,
+                                         tflite::kMaxBufferSize,
+                                         tflite::GetMicroErrorReporter()),
+          4);
+  int id1 = resource_variables->CreateIdIfNoneFound(nullptr, "var1");
+  TF_LITE_MICRO_EXPECT_GE(id1, 0);
+
+  int id2 = resource_variables->CreateIdIfNoneFound(nullptr, "var2");
+  TF_LITE_MICRO_EXPECT_NE(id1, id2);
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      id2, resource_variables->CreateIdIfNoneFound(nullptr, "var2"));
+  TF_LITE_MICRO_EXPECT_EQ(
+      id1, resource_variables->CreateIdIfNoneFound(nullptr, "var1"));
+}
+
 TF_LITE_MICRO_TESTS_END
