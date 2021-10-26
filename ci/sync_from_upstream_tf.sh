@@ -31,6 +31,13 @@ rm -rf /tmp/tensorflow
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
+# As part of the import from upstream TF, we generate the Python bindings for
+# the TfLite flatbuffer schema.
+cd /tmp/tensorflow
+bazel build tensorflow/lite/python:schema_py
+/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
+cd -
+
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
 for filepath in ${SHARED_TFL_CODE}
