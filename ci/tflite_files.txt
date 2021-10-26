@@ -89,5 +89,9 @@ tensorflow/lite/kernels/internal/types.h
 tensorflow/lite/kernels/kernel_util.h
 tensorflow/lite/kernels/padding.h
 tensorflow/lite/portable_type_to_tflitetype.h
+tensorflow/lite/python/schema_py_generated.py
 tensorflow/lite/schema/schema_generated.h
 tensorflow/lite/schema/schema_utils.h
+tensorflow/lite/tools/flatbuffer_utils.py
+tensorflow/lite/tools/flatbuffer_utils_test.py
+tensorflow/lite/tools/test_utils.py
