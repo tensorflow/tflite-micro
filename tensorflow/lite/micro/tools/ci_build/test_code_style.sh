@@ -101,15 +101,14 @@ CODE_FORMAT_RESULT=$?
 # Build Formatting Check
 ############################################################
 
+BUILDIFIER_MODE="diff"
 if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
 then
-  FIX_BUILD_FORMAT_OPTIONS="-mode=fix"
-else
-  FIX_BUILD_FORMAT_OPTIONS="-d"
+  BUILDIFIER_MODE="fix"
 fi
 
 BUILD_FILES=$(find . \( -name BUILD -o -name "*.bzl" \) )
-buildifier ${FIX_BUILD_FORMAT_OPTIONS} ${BUILD_FILES}
+buildifier --mode=${BUILDIFIER_MODE} --diff_command="diff -u" ${BUILD_FILES}
 BUILD_FORMAT_RESULT=$?
 
 #############################################################################

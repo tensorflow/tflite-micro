@@ -14,7 +14,7 @@
 
   * Tests can also be run from within a docker container:
    ```
-   docker build -t tflm-test -f ci/Dockerfile.micro .
+   docker build -t tflm-ci -f ci/Dockerfile.micro .
    ```
 
    or use the tflm-ci docker image from [here](https://github.com/users/TFLM-bot/packages/container/package/tflm-ci).
