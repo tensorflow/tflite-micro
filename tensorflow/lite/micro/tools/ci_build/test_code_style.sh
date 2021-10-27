@@ -107,7 +107,7 @@ then
   BUILDIFIER_MODE="fix"
 fi
 
-BUILD_FILES=$(find . \( -name BUILD -o -name "*.bzl" \) )
+BUILD_FILES=$(find . -name BUILD -o -name "*.bzl" -not -path "./tensorflow/lite/micro/tools/make/downloads/*")
 buildifier --mode=${BUILDIFIER_MODE} --diff_command="diff -u" ${BUILD_FILES}
 BUILD_FORMAT_RESULT=$?
 
