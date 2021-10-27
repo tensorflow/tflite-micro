@@ -27,6 +27,9 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices);
+
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
 inline TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
@@ -34,7 +37,7 @@ inline TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
                                              int index) {
   TFLITE_DCHECK(context != nullptr);
   TFLITE_DCHECK(node != nullptr);
-  const int tensor_index = tflite::ValidateTensorIndexing(
+  const int tensor_index = ValidateTensorIndexing(
       context, index, node->inputs->size, node->inputs->data);
 
   if (tensor_index < 0) {

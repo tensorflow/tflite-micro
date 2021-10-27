@@ -74,5 +74,16 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
 }  // namespace micro
 }  // namespace tflite
