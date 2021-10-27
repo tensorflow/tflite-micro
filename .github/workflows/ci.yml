@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.1
         with:
           args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
