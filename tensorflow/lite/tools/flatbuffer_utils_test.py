@@ -17,8 +17,8 @@ import copy
 import os
 import subprocess
 
-from tensorflow.lite.tools import flatbuffer_utils
-from tensorflow.lite.tools import test_utils
+from tflm_bazel.tensorflow.lite.tools import flatbuffer_utils
+from tflm_bazel.tensorflow.lite.tools import test_utils
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 
