@@ -1,2 +1,2 @@
 flatbuffers
-tensorflow
+tensorflow-cpu

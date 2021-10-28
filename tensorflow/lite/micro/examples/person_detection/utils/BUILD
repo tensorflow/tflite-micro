@@ -36,7 +36,7 @@ py_test(
     ],
     deps = [
         ":raw_to_bitmap_lib",
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         requirement("numpy"),
     ],
 )

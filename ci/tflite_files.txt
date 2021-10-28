@@ -94,4 +94,8 @@ tensorflow/lite/schema/schema_generated.h
 tensorflow/lite/schema/schema_utils.h
 tensorflow/lite/tools/flatbuffer_utils.py
 tensorflow/lite/tools/flatbuffer_utils_test.py
+tensorflow/lite/tools/randomize_weights.py
+tensorflow/lite/tools/strip_strings.py
 tensorflow/lite/tools/test_utils.py
+tensorflow/lite/tools/visualize.py
+tensorflow/lite/tools/visualize_test.py
