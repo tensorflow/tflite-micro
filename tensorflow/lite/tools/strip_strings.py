@@ -17,7 +17,7 @@ r"""Strips all nonessential strings from a TFLite file."""
 from absl import app
 from absl import flags
 
-from tflm_bazel.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 FLAGS = flags.FLAGS
 
