@@ -7,7 +7,7 @@
 <!--te-->
 
 Writing and using Python scripts from the TFLM repository is currently in the
-prototyping stage. As such, the instrucitons below are somewhat sparse and
+prototyping stage. As such, the instructions below are somewhat sparse and
 subject to change.
 
 
@@ -16,8 +16,8 @@ subject to change.
 
 # Using Bazel
 
-We use Bazel as our defaul build system for both Python and C++ and the
-continuous integration system uses bazel to run the Python unit tests.
+We use Bazel as our default build system for Python and the continuous
+integration infrastrucutre only runs the Python unit tests via Bazel.
 
 When using Bazel + Python, all the environment setup is handled as part of the
 build.
