@@ -26,7 +26,7 @@ import random
 import re
 
 import flatbuffers
-from tflm_bazel.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 from tensorflow.python.platform import gfile
 
 _TFLITE_FILE_IDENTIFIER = b'TFL3'
