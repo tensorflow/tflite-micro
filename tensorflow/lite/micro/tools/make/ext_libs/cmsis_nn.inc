@@ -1,25 +1,31 @@
 # Enable u-arch specfic behaviours
 ifneq (,$(filter $(TARGET_ARCH), x86_64))
-    # CMSIS-NN optimizations not supported
+  # CMSIS-NN optimizations not supported
 endif
 
-ifneq ($(DISABLE_DOWNLOADS), true)
-  # Unless an external path is provided we force a download during the first
-  # phase of make.
-  CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
-  CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
-  ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
-    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-      $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-    endif
+ifneq (,$(CMSIS_NN_LIBS))
+  ifeq (,$(CMSIS_PATH))
+    $(error CMSIS_NN_LIBS provided but not CMSIS_PATH)
   endif
 endif
 
-THIRD_PARTY_CC_SRCS += \
-  $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
-THIRD_PARTY_CC_HDRS += \
-  $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Include,*.h)
+# Unless an external path is provided we force a download during the first
+# phase of make.
+CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
+CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
+ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
+  endif
+endif
+
+ifeq (,$(CMSIS_NN_LIBS))
+  THIRD_PARTY_CC_SRCS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
+else
+  MICROLITE_LIBS += $(CMSIS_NN_LIBS)
+endif
+THIRD_PARTY_CC_HDRS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Include,*.h)
 
 # Note all the headers from CMSIS/Core/Include are needed to ensure that the
 # project generation scripts copy over the compiler specific implementations of
@@ -61,9 +67,3 @@ INCLUDES += \
   -I$(CMSIS_PATH)/CMSIS/Core/Include \
   -I$(CMSIS_PATH)/CMSIS/DSP/Include \
   -I$(CMSIS_PATH)/CMSIS/NN/Include
-
-CMSIS_FLAGS = \
-  -Wno-strict-aliasing
-
-CCFLAGS += $(CMSIS_FLAGS)
-CXXFLAGS += $(CMSIS_FLAGS)

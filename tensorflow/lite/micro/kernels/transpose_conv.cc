@@ -162,7 +162,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           context, num_channels * sizeof(int32_t)));
 
   // Quantized kernels use an int32 scratch buffer.
-  if (input->type == kTfLiteUInt8 || input->type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,

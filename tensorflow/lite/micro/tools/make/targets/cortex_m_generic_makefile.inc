@@ -19,9 +19,18 @@
 FLOAT := soft
 GCC_TARGET_ARCH := $(TARGET_ARCH)
 
+# Explicitly set this to true to include the kissfft symbols.
+INCLUDE_MICRO_SPEECH := false
+
 ifeq ($(TARGET_ARCH), cortex-m0)
   CORE=M0
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0
+
+
+else ifeq ($(TARGET_ARCH), cortex-m0plus)
+  CORE=M0plus
+  ARM_LDFLAGS := -Wl,--cpu=Cortex-M0plus
+
 
 else ifeq ($(TARGET_ARCH), cortex-m3)
   CORE=M3
@@ -47,6 +56,13 @@ else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
   TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
   FLOAT=hard
+  GCC_TARGET_ARCH := cortex-m4
+
+else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
+  CORE=M4
+  ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
+  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
+  FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
@@ -75,6 +91,8 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
 
+else ifeq ($(TARGET_ARCH), project_generation)
+ # None of the parameters matter since we are not going to build any code.
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -110,7 +128,7 @@ ifeq ($(TOOLCHAIN), armclang)
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
 
 else ifeq ($(TOOLCHAIN), gcc)
-  TARGET_DEFAULT_TOOLCHAIN_ROOT := $(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
+  TARGET_DEFAULT_TOOLCHAIN_ROOT := ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
   TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
   ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
     DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
@@ -121,7 +139,14 @@ else ifeq ($(TOOLCHAIN), gcc)
 
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH) -mfpu=auto
+  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH)
+  ifeq ($(TARGET_ARCH), cortex-m4)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else ifeq ($(TARGET_ARCH), cortex-m7)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else
+    FLAGS_GCC += -mfpu=auto
+  endif
   CXXFLAGS += $(FLAGS_GCC)
   CCFLAGS += $(FLAGS_GCC)
 
@@ -129,18 +154,12 @@ else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
 
-# TODO(#47718): resolve warnings.
-OMIT_ERRORS = \
-  -Wno-implicit-fallthrough \
-  -Wno-unused-variable
-
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
   -mlittle-endian \
-   ${OMIT_ERRORS} \
   -Wno-type-limits \
   -Wno-unused-private-field \
   -fomit-frame-pointer \
@@ -156,7 +175,12 @@ CCFLAGS += $(PLATFORM_FLAGS)
 MICROLITE_CC_HDRS += \
   tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
 
-EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
-MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
-
+# We only include micro_speech for project generation to allow for all the files
+# to be downloaded. We do not include it for an actual build with the
+# cortex_m_generic target to prevent kissfft symbols from getting included in
+# libtensorflow-microlite.a which can result in symbol collision.
+ifneq ($(TARGET_ARCH), project_generation)
+  EXCLUDED_EXAMPLE_TESTS := \
+    tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+  MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+endif

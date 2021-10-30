@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ void ValidatePreluGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_PRELU();
+  const TfLiteRegistration registration = tflite::Register_PRELU();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -66,8 +66,6 @@ void TestPreluFloat(int* input_dims_data, const float* input_data,
                        output_dims_count, output_data);
 }
 
-// Template argument T can be either uint8_t or int8_t depending on which type
-// of quantization required to be tested.
 template <typename T>
 void TestPreluQuantized(int* input_dims_data, const float* input_data,
                         T* input_quantized, const float input_scale,
@@ -127,39 +125,6 @@ TF_LITE_MICRO_TEST(FloatPreluActivationsOpTest) {
   tflite::testing::TestPreluFloat(input_shape, input_values, alpha_shape,
                                   alpha_values, golden, output_shape,
                                   output_data);
-}
-
-TF_LITE_MICRO_TEST(QuantizedUint8PreluActivationsOpTest) {
-  int input_shape[] = {3, 2, 2, 3};
-  const float input_values[] = {
-      0.0f,   0.0f,   0.0f,    // Row 1, Column 1
-      0.5f,   0.5f,   0.5f,    // Row 1, Column 2
-      -1.0f,  -1.0f,  -1.0f,   // Row 2, Column 1
-      -0.25f, -0.25f, -0.25f,  // Row 1, Column 2
-  };
-  int alpha_shape[] = {3, 1, 1, 3};
-  const float alpha_values[] = {0.0f, 0.5f, -0.5f};
-  int output_shape[] = {3, 2, 2, 3};
-  const float golden[] = {
-      0.0f, 0.0f,    0.0f,    // Row 1, Column 1
-      0.5f, 0.5f,    0.5f,    // Row 1, Column 2
-      0.0f, -0.5f,   0.5f,    // Row 2, Column 1
-      0.0f, -0.125f, 0.125f,  // Row 1, Column 2
-  };
-
-  const int dims_count = 12;
-
-  uint8_t input_quantized[dims_count];
-  uint8_t alpha_quantized[3];
-  uint8_t golden_quantized[dims_count];
-  float scale = 0.125;
-  int zero_point = 127;
-  uint8_t output_data[dims_count];
-
-  tflite::testing::TestPreluQuantized(
-      input_shape, input_values, input_quantized, scale, zero_point,
-      alpha_shape, alpha_values, alpha_quantized, scale, zero_point, golden,
-      golden_quantized, scale, zero_point, output_shape, output_data);
 }
 
 TF_LITE_MICRO_TEST(QuantizedInt8PreluActivationsOpTest) {

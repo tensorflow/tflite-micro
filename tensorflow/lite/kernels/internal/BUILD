@@ -128,7 +128,10 @@ cc_library(
 
 cc_library(
     name = "types",
-    hdrs = ["types.h"],
+    hdrs = [
+        "runtime_shape.h",
+        "types.h",
+    ],
     copts = tflite_copts(),
     deps = [
         ":compatibility",

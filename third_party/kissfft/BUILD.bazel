@@ -9,10 +9,10 @@ exports_files(["COPYING"])
 cc_library(
     name = "kiss_fftr_16",
     srcs = [
-        "kiss_fft.c",
-        "tools/kiss_fftr.c",
     ],
     hdrs = [
+        "kiss_fft.c",
+        "tools/kiss_fftr.c",
         "_kiss_fft_guts.h",
         "kiss_fft.h",
         "tools/kiss_fftr.h",

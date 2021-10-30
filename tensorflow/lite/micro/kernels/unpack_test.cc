@@ -132,76 +132,6 @@ void TestUnpackOneOutputFloat(int* input_dims_data, const float* input_data,
   }
 }
 
-void TestUnpackThreeOutputsQuantized(
-    int* input_dims_data, const uint8_t* input_data, int axis,
-    int* output1_dims_data, const uint8_t* expected_output1_data,
-    int* output2_dims_data, const uint8_t* expected_output2_data,
-    int* output3_dims_data, const uint8_t* expected_output3_data,
-    uint8_t* output1_data, uint8_t* output2_data, uint8_t* output3_data) {
-  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* output1_dims = IntArrayFromInts(output1_dims_data);
-  TfLiteIntArray* output2_dims = IntArrayFromInts(output2_dims_data);
-  TfLiteIntArray* output3_dims = IntArrayFromInts(output3_dims_data);
-  const int output1_dims_count = ElementCount(*output1_dims);
-  const int output2_dims_count = ElementCount(*output2_dims);
-  const int output3_dims_count = ElementCount(*output3_dims);
-
-  constexpr int input_size = 1;
-  constexpr int output_size = 3;
-  constexpr int tensors_size = input_size + output_size;
-  TfLiteTensor tensors[tensors_size] = {
-      // CreateQuantizedTensor needs min/max values as input, but these values
-      // don't matter as to the functionality of UNPACK, so just set as 0
-      // and 10.
-      CreateQuantizedTensor(input_data, input_dims, 0, 10),
-      CreateQuantizedTensor(output1_data, output1_dims, 0, 10),
-      CreateQuantizedTensor(output2_data, output2_dims, 0, 10),
-      CreateQuantizedTensor(output3_data, output3_dims, 0, 10)};
-
-  // Place a unique value in the uninitialized output buffer.
-  for (int i = 0; i < output1_dims_count; ++i) {
-    output1_data[i] = 23;
-  }
-
-  for (int i = 0; i < output2_dims_count; ++i) {
-    output2_data[i] = 23;
-  }
-
-  for (int i = 0; i < output3_dims_count; ++i) {
-    output3_data[i] = 23;
-  }
-
-  TfLiteUnpackParams builtin_data = {
-      .num = 3,
-      .axis = axis,
-  };
-
-  int inputs_array_data[] = {1, 0};
-  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  int outputs_array_data[] = {3, 1, 2, 3};
-  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
-
-  const TfLiteRegistration registration = tflite::ops::micro::Register_UNPACK();
-  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
-                             outputs_array,
-                             reinterpret_cast<void*>(&builtin_data));
-
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
-
-  for (int i = 0; i < output1_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output1_data[i], output1_data[i]);
-  }
-
-  for (int i = 0; i < output2_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output2_data[i], output2_data[i]);
-  }
-
-  for (int i = 0; i < output3_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output3_data[i], output3_data[i]);
-  }
-}
-
 void TestUnpackThreeOutputsQuantized32(
     int* input_dims_data, const int32_t* input_data, int axis,
     int* output1_dims_data, const int32_t* expected_output1_data,
@@ -325,27 +255,6 @@ TF_LITE_MICRO_TEST(UnpackFloatOneOutput) {
   float output_data[output_dims_count];
   tflite::testing::TestUnpackOneOutputFloat(input_shape, input_values, 0,
                                             output_shape, golden, output_data);
-}
-
-TF_LITE_MICRO_TEST(UnpackQuantizedThreeOutputs) {
-  int input_shape[] = {2, 3, 2};
-  const uint8_t input_values[] = {1, 2, 3, 4, 5, 6};
-  int output1_shape[] = {1, 2};
-  const uint8_t output1_golden[] = {1, 2};
-  int output2_shape[] = {1, 2};
-  const uint8_t output2_golden[] = {3, 4};
-  int output3_shape[] = {1, 2};
-  const uint8_t output3_golden[] = {5, 6};
-  constexpr int output1_dims_count = 2;
-  constexpr int output2_dims_count = 2;
-  constexpr int output3_dims_count = 2;
-  uint8_t output1_data[output1_dims_count];
-  uint8_t output2_data[output2_dims_count];
-  uint8_t output3_data[output3_dims_count];
-  tflite::testing::TestUnpackThreeOutputsQuantized(
-      input_shape, input_values, 0, output1_shape, output1_golden,
-      output2_shape, output2_golden, output3_shape, output3_golden,
-      output1_data, output2_data, output3_data);
 }
 
 TF_LITE_MICRO_TEST(UnpackQuantized32ThreeOutputs) {

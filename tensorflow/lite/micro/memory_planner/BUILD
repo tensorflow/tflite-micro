@@ -5,14 +5,15 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
 
 cc_library(
-    name = "memory_planner",
+    name = "micro_memory_planner",
     hdrs = [
-        "memory_planner.h",
+        "micro_memory_planner.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -31,7 +32,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":memory_planner",
+        ":micro_memory_planner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_error_reporter",
@@ -48,7 +49,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":memory_planner",
+        ":micro_memory_planner",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_string",
@@ -73,6 +74,47 @@ cc_test(
     ],
     deps = [
         ":greedy_memory_planner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "memory_plan_struct",
+    hdrs = [
+        "memory_plan_struct.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:micro_compatibility",
+    ],
+)
+
+cc_library(
+    name = "non_persistent_buffer_planner_shim",
+    srcs = ["non_persistent_buffer_planner_shim.cc"],
+    hdrs = [
+        "non_persistent_buffer_planner_shim.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":memory_plan_struct",
+        ":micro_memory_planner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_error_reporter",
+    ],
+)
+
+cc_test(
+    name = "non_persistent_buffer_planner_shim_test",
+    srcs = [
+        "non_persistent_buffer_planner_shim_test.cc",
+    ],
+    deps = [
+        ":non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

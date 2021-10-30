@@ -21,13 +21,6 @@ ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 pwd
 
-make -f tensorflow/lite/micro/tools/make/Makefile clean_downloads DISABLE_DOWNLOADS=true
-make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn clean DISABLE_DOWNLOADS=true
-if [ -d tensorflow/lite/micro/tools/make/downloads ]; then
-  echo "ERROR: Downloads directory should not exist, but it does."
-  exit 1
-fi
-
 # Check that an incorrect optimized kernel directory results in an error.
 # Without such an error, an incorrect optimized kernel directory can result in
 # an unexpected fallback to reference kernels and which can be hard to debug. We

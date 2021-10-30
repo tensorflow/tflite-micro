@@ -6,6 +6,7 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
+    # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
 )
@@ -60,6 +61,7 @@ cc_library(
         ":micro_allocator",
         ":micro_error_reporter",
         ":micro_profiler",
+        ":micro_resource_variable",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
@@ -101,8 +103,8 @@ cc_library(
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/core/api:op_resolver",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/memory_planner",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
+        "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
@@ -206,6 +208,24 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_resource_variable",
+    srcs = [
+        "micro_resource_variable.cc",
+    ],
+    hdrs = [
+        "micro_resource_variable.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":micro_allocator",
+        ":micro_error_reporter",
+        ":micro_utils",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+    ],
+)
+
+cc_library(
     name = "micro_string",
     srcs = [
         "micro_string.cc",
@@ -254,6 +274,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":memory_helpers",
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:op_macros",
@@ -299,6 +320,7 @@ cc_test(
     ],
     deps = [
         ":micro_error_reporter",
+        ":system_setup",
     ],
 )
 
@@ -369,6 +391,8 @@ cc_test(
         ":micro_error_reporter",
         ":test_helpers",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/memory_planner:memory_plan_struct",
+        "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
     ],
@@ -458,6 +482,15 @@ cc_test(
     ],
     deps = [
         ":micro_time",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "micro_resource_variable_test",
+    srcs = ["micro_resource_variable_test.cc"],
+    deps = [
+        ":micro_resource_variable",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

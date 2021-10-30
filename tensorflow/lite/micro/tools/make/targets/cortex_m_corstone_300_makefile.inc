@@ -154,13 +154,12 @@ else ifeq ($(TOOLCHAIN), gcc)
     -Wl,--gc-sections \
     --entry Reset_Handler
 
+  ldflags_to_remove = -Wl,--fatal-warnings
+  LDFLAGS := $(filter-out $(ldflags_to_remove),$(LDFLAGS))
+
 else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
-
-# TODO(#47718): resolve warnings.
-OMIT_ERRORS = \
-  -Wno-implicit-fallthrough
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
@@ -168,7 +167,6 @@ PLATFORM_FLAGS = \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
   -mlittle-endian \
-  ${OMIT_ERRORS} \
   -fomit-frame-pointer \
   -MD
 
@@ -197,18 +195,7 @@ INCLUDES += \
 
 # TODO(#47070): Examine why some tests fail here.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
-  tensorflow/lite/micro/micro_allocator_test.cc \
-  tensorflow/lite/micro/memory_helpers_test.cc \
-  tensorflow/lite/micro/micro_error_reporter_test.cc \
-  tensorflow/lite/micro/output_handler_test.cc \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc \
-  tensorflow/lite/micro/recording_micro_allocator_test.cc \
-  tensorflow/lite/micro/kernels/circular_buffer_test.cc
+  tensorflow/lite/micro/memory_arena_threshold_test.cc
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
-EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
-MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh

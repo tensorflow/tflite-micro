@@ -37,6 +37,10 @@ ifndef HEXAGON_CPU_VER
   $(error HEXAGON_CPU_VER is undefined)
 endif
 
+ifeq ($(HEXAGON_TFLM_LIB), )
+  $(error HEXAGON_TFLM_LIB is undefined)
+endif
+
 HEXAGON_LPI_BUILD :=
 
 PLATFORM_ARGS = \
@@ -90,12 +94,16 @@ CXXFLAGS += $(PLATFORM_ARGS)
 CCFLAGS += $(PLATFORM_ARGS)
 LDFLAGS += \
   -Wl,--gc-sections -lhexagon \
-  $(HEXAGON_ROOT)/$(HEXAGON_TOOL_VER)/Tools/target/hexagon/lib/v66/libstdc++.a
+  $(HEXAGON_ROOT)/$(HEXAGON_TOOL_VER)/Tools/target/hexagon/lib/v66/libstdc++.a \
+  $(HEXAGON_TFLM_LIB)
 
 # TODO(b/190754463): Remove include path once download_hexagon is removed.
 INCLUDES += \
-  -Itensorflow/lite/micro/kernels/hexagon/inc \
+  -I$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hexagon/inc \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/posix \
-  -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt
+  -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt \
+  -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/posix \
+  -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/qurt
 
-TEST_SCRIPT := tensorflow/lite/micro/testing/test_hexagon_binary.sh
+TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_hexagon_binary.sh
+SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_hexagon_binary.sh

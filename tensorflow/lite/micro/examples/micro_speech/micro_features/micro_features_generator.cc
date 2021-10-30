@@ -22,9 +22,6 @@ limitations under the License.
 #include "tensorflow/lite/experimental/microfrontend/lib/frontend_util.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h"
 
-// Configure FFT to output 16 bit fixed point.
-#define FIXED_POINT 16
-
 namespace {
 
 FrontendState g_micro_features_state;

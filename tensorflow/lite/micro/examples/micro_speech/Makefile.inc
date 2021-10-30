@@ -8,17 +8,15 @@ GENERATED_PROJECT_INCLUDES += \
 PROJECT_INCLUDES += \
 third_party/kissfft
 
-KISSFFT_LIB_SRCS := \
-$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
-$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c
+KISSFFT_LIB_SRCS :=
 
 KISSFFT_LIB_HDRS := \
 $(MAKEFILE_DIR)/downloads/kissfft/COPYING \
+$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
 $(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
 $(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
+$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
-
-$(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_kissfft))
 
 THIRD_PARTY_CC_HDRS += \
 third_party/kissfft/COPYING \
@@ -28,28 +26,22 @@ third_party/kissfft/tools/kiss_fftr.h
 
 MICRO_SPEECH_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc
 
 MICRO_SPEECH_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
 
 SIMPLE_FEATURES_GENERATOR_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.cc \
 tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator_test.cc \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.cc \
 tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.cc \
 tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.cc
 
 SIMPLE_FEATURES_GENERATOR_TEST_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/simple_features/simple_model_settings.h \
 tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.h \
 tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.h \
 tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.h
 
@@ -60,6 +52,7 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.c \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend.c \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.cc \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
@@ -79,6 +72,8 @@ tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
 tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend.h \
 tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_common.h \
+tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h \
 tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
 tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
@@ -104,15 +99,11 @@ MICRO_FEATURES_GENERATOR_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator_test.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.cc \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_FEATURES_GENERATOR_TEST_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h \
-tensorflow/lite/micro/examples/micro_speech/no_30ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_30ms_sample_data.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 AUDIO_PROVIDER_TEST_SRCS := \
@@ -127,14 +118,10 @@ tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 AUDIO_PROVIDER_MOCK_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/audio_provider_mock_test.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.cc \
 tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc
 
 AUDIO_PROVIDER_MOCK_TEST_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.h \
 tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 
 FEATURE_PROVIDER_TEST_SRCS := \
@@ -151,8 +138,6 @@ $(MICRO_FEATURES_GENERATOR_HDRS)
 FEATURE_PROVIDER_MOCK_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/feature_provider_test.cc \
 tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.cc \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
@@ -160,8 +145,6 @@ $(MICRO_FEATURES_GENERATOR_SRCS)
 
 FEATURE_PROVIDER_MOCK_TEST_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.h \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
@@ -190,7 +173,6 @@ tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
 tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
@@ -200,7 +182,6 @@ tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
 tensorflow/lite/micro/examples/micro_speech/command_responder.h \
 tensorflow/lite/micro/examples/micro_speech/main_functions.h \
@@ -210,29 +191,44 @@ MICRO_SPEECH_MOCK_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/main.cc \
 tensorflow/lite/micro/examples/micro_speech/main_functions.cc \
 tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.cc \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.cc \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.cc \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
 tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_SPEECH_MOCK_HDRS := \
 tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/no_1000ms_sample_data.h \
-tensorflow/lite/micro/examples/micro_speech/yes_1000ms_sample_data.h \
 tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
 tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/model.h \
 tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
 tensorflow/lite/micro/examples/micro_speech/command_responder.h \
 tensorflow/lite/micro/examples/micro_speech/main_functions.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
+
+MICRO_SPEECH_GENERATOR_INPUTS := \
+tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite \
+tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms.wav \
+tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms.wav \
+tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms.wav \
+tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms.wav
+
+MICRO_SPEECH_GENERATED_SRCS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.cc \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.cc
+
+MICRO_SPEECH_GENERATED_HDRS := \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.h \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.h \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.h \
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard tensorflow/lite/micro/examples/micro_speech/*/Makefile.inc)
@@ -243,15 +239,15 @@ CCFLAGS := $(filter-out $(CC_WARNINGS),$(CCFLAGS))
 
 # Test the code for feature generation.
 $(eval $(call microlite_test,micro_features_generator_test,\
-$(MICRO_FEATURES_GENERATOR_TEST_SRCS), $(MICRO_FEATURES_GENERATOR_TEST_HDRS)))
+$(MICRO_FEATURES_GENERATOR_TEST_SRCS),$(MICRO_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests loading and running a speech model.
 $(eval $(call microlite_test,micro_speech_test,\
-$(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS)))
+$(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Test the code for feature generation.
 $(eval $(call microlite_test,simple_features_generator_test,\
-$(SIMPLE_FEATURES_GENERATOR_TEST_SRCS), $(SIMPLE_FEATURES_GENERATOR_TEST_HDRS)))
+$(SIMPLE_FEATURES_GENERATOR_TEST_SRCS),$(SIMPLE_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests the audio provider module.
 $(eval $(call microlite_test,audio_provider_test,\
@@ -259,7 +255,7 @@ $(AUDIO_PROVIDER_TEST_SRCS),$(AUDIO_PROVIDER_TEST_HDRS)))
 
 # Tests the audio provider mock module.
 $(eval $(call microlite_test,audio_provider_mock_test,\
-$(AUDIO_PROVIDER_MOCK_TEST_SRCS),$(AUDIO_PROVIDER_MOCK_TEST_HDRS)))
+$(AUDIO_PROVIDER_MOCK_TEST_SRCS),$(AUDIO_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests the feature provider module.
 $(eval $(call microlite_test,feature_provider_test,\
@@ -267,7 +263,7 @@ $(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
 
 # Tests the feature provider module using the mock audio provider.
 $(eval $(call microlite_test,feature_provider_mock_test,\
-$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS)))
+$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests the command recognizer module.
 $(eval $(call microlite_test,recognize_commands_test,\
@@ -279,11 +275,15 @@ $(COMMAND_RESPONDER_TEST_SRCS),$(COMMAND_RESPONDER_TEST_HDRS)))
 
 # Builds a standalone speech command recognizer binary.
 $(eval $(call microlite_test,micro_speech,\
-$(MICRO_SPEECH_SRCS),$(MICRO_SPEECH_HDRS)))
+$(MICRO_SPEECH_SRCS),$(MICRO_SPEECH_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Builds a standalone speech command recognizer binary using fake audio input.
 $(eval $(call microlite_test,micro_speech_mock,\
-$(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS)))
+$(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+
+# Add sources and headers generated from $(MICRO_SPEECH_GENERATOR_INPUTS).
+MICRO_SPEECH_SRCS += $(MICRO_SPEECH_GENERATED_SRCS)
+MICRO_SPEECH_HDRS += $(MICRO_SPEECH_GENERATED_HDRS)
 
 list_micro_speech_example_sources:
 	@echo $(MICRO_SPEECH_SRCS)

@@ -48,10 +48,3 @@ CC=clang readable_run bazel test tensorflow/lite/micro/... \
 
 # TODO(b/178621680): enable ubsan once bazel + clang + ubsan errors are fixed.
 #CC=clang readable_run bazel test tensorflow/lite/micro/... --config=ubsan --test_tag_filters=-no_oss,-noubsan --build_tag_filters=-no_oss,-noubsan
-
-CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --build_tag_filters=-no_oss --copt=-DTF_LITE_STATIC_MEMORY
-CC=clang readable_run bazel test tensorflow/lite/micro/... \
-  --test_tag_filters=-no_oss --build_tag_filters=-no_oss \
-  --copt=-DTF_LITE_STATIC_MEMORY \
-  --test_output=errors

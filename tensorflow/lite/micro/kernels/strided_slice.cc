@@ -153,13 +153,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorShape(output),
                                   tflite::micro::GetTensorData<float>(output));
       break;
-    case kTfLiteUInt8:
-      reference_ops::StridedSlice(
-          op_params, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<uint8_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<uint8_t>(output));
-      break;
     case kTfLiteInt8:
       reference_ops::StridedSlice(op_params,
                                   tflite::micro::GetTensorShape(input),
@@ -173,6 +166,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int16_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
+      break;
+    case kTfLiteInt32:
+      reference_ops::StridedSlice(
+          op_params, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int32_t>(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int32_t>(output));
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
