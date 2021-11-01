@@ -292,8 +292,7 @@ Below are some tips that might be useful and improve the development experience.
 
 ## Python notes
 
-*   [TensorFlow guide](https://www.tensorflow.org/community/contribute/code_style#python_style)
-    for Python development
+*   [TFLM Python guide](docs/python.md)
 
 # Continuous Integration System
   * Some [additional documentation](docs/continuous_integration.md) on the TFLM CI.

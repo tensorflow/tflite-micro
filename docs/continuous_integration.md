@@ -1,8 +1,9 @@
 <!--ts-->
+   * [Continuous Integration System](#continuous-integration-system)
    * [Automated Sync from the Tensorflow Repository](#automated-sync-from-the-tensorflow-repository)
-   * [Third Party GitHub Actions Used](#third-party-github-actions-used)
+   * [Third Party GitHub Actions](#third-party-github-actions)
 
-<!-- Added by: advaitjain, at: Thu 29 Apr 2021 12:54:23 PM PDT -->
+<!-- Added by: advaitjain, at: Wed Oct 27 03:31:51 PM PDT 2021 -->
 
 <!--te-->
 
@@ -12,9 +13,9 @@
   * See the [github workflow files](.github/workflows/ci.yml) for details on
     exactly what is run as part of the GitHub Actions CI.
 
-  * Tests can also be run from within a docker container:
+  * Tests can also be run from within a docker container, which can be built with:
    ```
-   docker build -t tflm-test -f ci/Dockerfile.micro .
+   docker build -t tflm-ci -f ci/Dockerfile.micro .
    ```
 
    or use the tflm-ci docker image from [here](https://github.com/users/TFLM-bot/packages/container/package/tflm-ci).

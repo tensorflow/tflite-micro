@@ -93,6 +93,7 @@ The following resources may also be useful:
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
+ * [Python Dev Guide](docs/python.md)
 
 # RFCs
 

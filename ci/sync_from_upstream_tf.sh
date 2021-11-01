@@ -31,6 +31,13 @@ rm -rf /tmp/tensorflow
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
+# As part of the import from upstream TF, we generate the Python bindings for
+# the TfLite flatbuffer schema.
+cd /tmp/tensorflow
+bazel build tensorflow/lite/python:schema_py
+/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
+cd -
+
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
 for filepath in ${SHARED_TFL_CODE}
@@ -38,6 +45,12 @@ do
   mkdir -p $(dirname ${filepath})
   /bin/cp /tmp/tensorflow/${filepath} ${filepath}
 done
+
+# The shared TFL/TFLM python code uses a different bazel workspace in the two
+# repositories (TF and tflite-micro) which needs the import statements to be
+# modified.
+PY_FILES=$(find tensorflow/lite/tools tensorflow/lite/python -name "*.py")
+sed -i 's/from tensorflow\.lite/from tflite_micro\.tensorflow\.lite/' ${PY_FILES}
 
 # Since the TFLM code was deleted from the tensorflow repository, the
 # microfrontend is no longer sync'd from upstream and instead maintaned as a

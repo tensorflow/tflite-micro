@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-workspace(name = "tflm_bazel")
+workspace(name = "tflite_micro")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -29,7 +29,7 @@ load("@rules_python//python:pip.bzl", "pip_install")
 # third-party packages specified in the requirements.txt file.
 pip_install(
    name = "tflm_pip_deps",
-   requirements = "//third_party:bazel_requirements.txt",
+   requirements = "//third_party:requirements.txt",
 )
 
 load("@//tensorflow:workspace.bzl", "workspace")

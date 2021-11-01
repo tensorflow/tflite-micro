@@ -22,8 +22,8 @@ import io
 
 import numpy as np
 
-from tflm_bazel.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import parse_file
-from tflm_bazel.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import reshape_bitmaps
+from tflite_micro.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import parse_file
+from tflite_micro.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import reshape_bitmaps
 from tensorflow.python.platform import googletest
 
 _RGB_RAW = u"""
