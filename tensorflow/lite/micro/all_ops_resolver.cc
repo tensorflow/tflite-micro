@@ -44,6 +44,7 @@ AllOpsResolver::AllOpsResolver() {
   AddEthosU();
   AddExp();
   AddExpandDims();
+  AddFill();
   AddFloor();
   AddFloorDiv();
   AddFloorMod();

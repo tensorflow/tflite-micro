@@ -80,9 +80,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // The value type and output type must match.
   TF_LITE_ENSURE_EQ(context, value->type, output->type);
 
-  // The dims tensor must match the output tensor shape. As a byproduct,
-  // ensures the dims tensor is of an integer type.
-  TF_LITE_ENSURE_OK(context, EnsureEq(context, output->dims, dims));
+  // The dimension of the output tensor is known in model already.
+  TFLITE_DCHECK(output->dims != nullptr);
+
+  if (dims->data.data != nullptr) {
+    // When the dims tensor is specified in model already (i.e. is not an
+    // activation tensor), the dims tensor must match the output tensor shape.
+    // As a byproduct, ensures the dims tensor is of an integer type.
+    TF_LITE_ENSURE_OK(context, EnsureEq(context, output->dims, dims));
+  }
 
   return kTfLiteOk;
 }
@@ -102,6 +108,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   switch (value->type) {
     case kTfLiteFloat32:
       FillImpl<float>(value, output);
+      break;
+    case kTfLiteInt32:
+      FillImpl<int32_t>(value, output);
+      break;
+    case kTfLiteInt8:
+      FillImpl<int8_t>(value, output);
       break;
     default:
       TF_LITE_KERNEL_LOG(
