@@ -21,48 +21,69 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace {
+using ::tflite::testing::CreateTensor;
+using ::tflite::testing::IntArrayFromInts;
+
+// The layout of tensors is fixed.
+constexpr int kDimsIndex = 0;
+constexpr int kValueIndex = 1;
+constexpr int kOutputIndex = 2;
+constexpr int kInputsTensor[] = {2, kDimsIndex, kValueIndex};
+constexpr int kOutputsTensor[] = {1, kOutputIndex};
+
+// This function is NOT thread safe.
+template <typename DimsType, typename ValueType, typename OutputType>
+tflite::micro::KernelRunner CreateFillTestRunner(
+    int* dims_shape, DimsType* dims_data, int* value_shape,
+    ValueType* value_data, int* output_shape, OutputType* output_data) {
+  // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
+  // the test need to place non-transitent memories in static variables. This is
+  // safe because tests are guarateed to run serially.
+  // Both below structures are trivially destructible.
+  static TfLiteRegistration registration;
+  static TfLiteTensor tensors[3];
+
+  tensors[0] = CreateTensor(dims_data, IntArrayFromInts(dims_shape));
+  tensors[1] = CreateTensor(value_data, IntArrayFromInts(value_shape));
+  tensors[2] = CreateTensor(output_data, IntArrayFromInts(output_shape));
+
+  // The output type matches the value type.
+  TF_LITE_MICRO_EXPECT_EQ(tensors[kOutputIndex].type,
+                          tensors[kValueIndex].type);
+
+  registration = tflite::Register_FILL();
+  tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
+      registration, tensors, sizeof(tensors) / sizeof(TfLiteTensor),
+      IntArrayFromInts(const_cast<int*>(kInputsTensor)),
+      IntArrayFromInts(const_cast<int*>(kOutputsTensor)),
+      /*builtin_data=*/nullptr);
+  return runner;
+}
 
 template <typename DimsType, typename ValueType, typename OutputType>
 void TestFill(int* dims_shape, DimsType* dims_data, int* value_shape,
               ValueType* value_data, int* output_shape,
               OutputType* output_data) {
-  using tflite::testing::CreateTensor;
-  using tflite::testing::IntArrayFromInts;
-
-  TfLiteTensor tensors[] = {
-      CreateTensor(dims_data, IntArrayFromInts(dims_shape)),
-      CreateTensor(value_data, IntArrayFromInts(value_shape)),
-      CreateTensor(output_data, IntArrayFromInts(output_shape))};
-  constexpr int dims_index = 0;
-  constexpr int value_index = 1;
-  constexpr int output_index = 2;
-  int inputs[] = {2, dims_index, value_index};
-  int outputs[] = {1, output_index};
-  const auto registration = tflite::Register_FILL();
-  tflite::micro::KernelRunner runner{registration,
-                                     tensors,
-                                     sizeof(tensors) / sizeof(TfLiteTensor),
-                                     IntArrayFromInts(inputs),
-                                     IntArrayFromInts(outputs),
-                                     /*builtin_data=*/nullptr};
+  tflite::micro::KernelRunner runner =
+      CreateFillTestRunner(dims_shape, dims_data, value_shape, value_data,
+                           output_shape, output_data);
 
   TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteOk);
   TF_LITE_MICRO_EXPECT_EQ(runner.Invoke(), kTfLiteOk);
 
   // The output shape must match the shape requested via dims.
   const auto output_rank = output_shape[0];
-  const auto requested_rank = dims_shape[1];  // yes, 1
-  if (output_rank == requested_rank) {
-    for (int i = 0; i < requested_rank; ++i) {
-      TF_LITE_MICRO_EXPECT_EQ(output_shape[i + 1], dims_data[i]);
+  if (dims_data != nullptr) {
+    const auto requested_rank = dims_shape[1];  // yes, 1
+    if (output_rank == requested_rank) {
+      for (int i = 0; i < requested_rank; ++i) {
+        TF_LITE_MICRO_EXPECT_EQ(output_shape[i + 1], dims_data[i]);
+      }
+    } else {
+      TF_LITE_MICRO_FAIL(
+          "output shape does not match shape requested via dims");
     }
-  } else {
-    TF_LITE_MICRO_FAIL("output shape does not match shape requested via dims");
   }
-
-  // The output type matches the value type.
-  TF_LITE_MICRO_EXPECT_EQ(tensors[output_index].type,
-                          tensors[value_index].type);
 
   // The output elements contain the fill value.
   const auto elements = tflite::ElementCount(*IntArrayFromInts(output_shape));
@@ -88,6 +109,68 @@ TF_LITE_MICRO_TEST(FillFloatInt64Dims) {
 
   int output_shape[] = {3, kDim1, kDim2, kDim3};
   float output_data[kDim1 * kDim2 * kDim3];
+
+  TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
+           output_data);
+}
+
+// Fill a 2x2x2 tensor with a int32 scalar value. The dimension of the tensor is
+// of int64 type.
+TF_LITE_MICRO_TEST(FillInt32Int64Dims) {
+  constexpr int kDim1 = 2;
+  constexpr int kDim2 = 2;
+  constexpr int kDim3 = 2;
+
+  int dims_shape[] = {1, 3};
+  int64_t dims_data[] = {kDim1, kDim2, kDim3};
+
+  int value_shape[] = {0};
+  int32_t value_data[] = {4};
+
+  int output_shape[] = {3, kDim1, kDim2, kDim3};
+  int32_t output_data[kDim1 * kDim2 * kDim3];
+
+  TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
+           output_data);
+}
+
+// Fill a 2x2x2 tensor with a int8 scalar value. The dimension of the tensor is
+// of int32 type.
+TF_LITE_MICRO_TEST(FillInt8Int32Dims) {
+  constexpr int kDim1 = 2;
+  constexpr int kDim2 = 2;
+  constexpr int kDim3 = 2;
+
+  int dims_shape[] = {1, 3};
+  int32_t dims_data[] = {kDim1, kDim2, kDim3};
+
+  int value_shape[] = {0};
+  int8_t value_data[] = {4};
+
+  int output_shape[] = {3, kDim1, kDim2, kDim3};
+  int8_t output_data[kDim1 * kDim2 * kDim3];
+
+  TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
+           output_data);
+}
+
+// Verify the FILL still works when the input dims tensor is an activation
+// tensor (i.e. has not prepopulated value). Fill a 2x2x2 tensor with a int8
+// scalar value.
+TF_LITE_MICRO_TEST(FillInt8NoInputDimsData) {
+  constexpr int kDim1 = 2;
+  constexpr int kDim2 = 2;
+  constexpr int kDim3 = 2;
+
+  // The dims tensor with unknown data. Note that shape is always known.
+  int dims_shape[] = {1, 3};
+  int32_t* dims_data = nullptr;
+
+  int value_shape[] = {0};
+  int8_t value_data[] = {4};
+
+  int output_shape[] = {3, kDim1, kDim2, kDim3};
+  int8_t output_data[kDim1 * kDim2 * kDim3];
 
   TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
            output_data);
@@ -123,6 +206,31 @@ TF_LITE_MICRO_TEST(FillScalar) {
 
   TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
            output_data);
+}
+
+// When input dimension tensor mismatch with the output tensor's dimension,
+// the FILL op shall return error at init/prepare stage.
+TF_LITE_MICRO_TEST(FillInputDimsMismatchWithOutputShallFail) {
+  constexpr int kDim1 = 2;
+  constexpr int kDim2 = 2;
+  constexpr int kDim3 = 2;
+
+  int dims_shape[] = {1, 3};
+  int64_t dims_data[] = {kDim1, kDim2, kDim3};
+
+  int value_shape[] = {0};
+  int8_t value_data[] = {4};
+
+  // Output shape is supposed to be the same as dims_data.
+  // Intentionally +1 to kDim1 to verify the code catches this error.
+  int output_shape[] = {3, kDim1 + 1, kDim2, kDim3};
+  int8_t output_data[(kDim1 + 1) * kDim2 * kDim3];
+
+  tflite::micro::KernelRunner runner =
+      CreateFillTestRunner(dims_shape, dims_data, value_shape, value_data,
+                           output_shape, output_data);
+
+  TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteError);
 }
 
 TF_LITE_MICRO_TESTS_END
