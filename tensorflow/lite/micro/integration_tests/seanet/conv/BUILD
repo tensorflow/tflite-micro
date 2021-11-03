@@ -278,675 +278,675 @@ generate_cc_arrays(
 )
 
 generate_cc_arrays(
-    name = "generated_conv0_input_test_data_cc",
-    src = "conv0_input.csv",
-    out = "conv0_input_test_data.cc",
+    name = "generated_conv0_input_int16_test_data_cc",
+    src = "conv0_input_int16.csv",
+    out = "conv0_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv0_input_test_data_hdr",
-    src = "conv0_input.csv",
-    out = "conv0_input_test_data.h",
+    name = "generated_conv0_input_int16_test_data_hdr",
+    src = "conv0_input_int16.csv",
+    out = "conv0_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv0_golden_test_data_cc",
-    src = "conv0_golden.csv",
-    out = "conv0_golden_test_data.cc",
+    name = "generated_conv0_golden_int16_test_data_cc",
+    src = "conv0_golden_int16.csv",
+    out = "conv0_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv0_golden_test_data_hdr",
-    src = "conv0_golden.csv",
-    out = "conv0_golden_test_data.h",
+    name = "generated_conv0_golden_int16_test_data_hdr",
+    src = "conv0_golden_int16.csv",
+    out = "conv0_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv1_input_test_data_cc",
-    src = "conv1_input.csv",
-    out = "conv1_input_test_data.cc",
+    name = "generated_conv1_input_int16_test_data_cc",
+    src = "conv1_input_int16.csv",
+    out = "conv1_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv1_input_test_data_hdr",
-    src = "conv1_input.csv",
-    out = "conv1_input_test_data.h",
+    name = "generated_conv1_input_int16_test_data_hdr",
+    src = "conv1_input_int16.csv",
+    out = "conv1_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv1_golden_test_data_cc",
-    src = "conv1_golden.csv",
-    out = "conv1_golden_test_data.cc",
+    name = "generated_conv1_golden_int16_test_data_cc",
+    src = "conv1_golden_int16.csv",
+    out = "conv1_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv1_golden_test_data_hdr",
-    src = "conv1_golden.csv",
-    out = "conv1_golden_test_data.h",
+    name = "generated_conv1_golden_int16_test_data_hdr",
+    src = "conv1_golden_int16.csv",
+    out = "conv1_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv2_input_test_data_cc",
-    src = "conv2_input.csv",
-    out = "conv2_input_test_data.cc",
+    name = "generated_conv2_input_int16_test_data_cc",
+    src = "conv2_input_int16.csv",
+    out = "conv2_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv2_input_test_data_hdr",
-    src = "conv2_input.csv",
-    out = "conv2_input_test_data.h",
+    name = "generated_conv2_input_int16_test_data_hdr",
+    src = "conv2_input_int16.csv",
+    out = "conv2_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv2_golden_test_data_cc",
-    src = "conv2_golden.csv",
-    out = "conv2_golden_test_data.cc",
+    name = "generated_conv2_golden_int16_test_data_cc",
+    src = "conv2_golden_int16.csv",
+    out = "conv2_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv2_golden_test_data_hdr",
-    src = "conv2_golden.csv",
-    out = "conv2_golden_test_data.h",
+    name = "generated_conv2_golden_int16_test_data_hdr",
+    src = "conv2_golden_int16.csv",
+    out = "conv2_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv3_input_test_data_cc",
-    src = "conv3_input.csv",
-    out = "conv3_input_test_data.cc",
+    name = "generated_conv3_input_int16_test_data_cc",
+    src = "conv3_input_int16.csv",
+    out = "conv3_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv3_input_test_data_hdr",
-    src = "conv3_input.csv",
-    out = "conv3_input_test_data.h",
+    name = "generated_conv3_input_int16_test_data_hdr",
+    src = "conv3_input_int16.csv",
+    out = "conv3_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv3_golden_test_data_cc",
-    src = "conv3_golden.csv",
-    out = "conv3_golden_test_data.cc",
+    name = "generated_conv3_golden_int16_test_data_cc",
+    src = "conv3_golden_int16.csv",
+    out = "conv3_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv3_golden_test_data_hdr",
-    src = "conv3_golden.csv",
-    out = "conv3_golden_test_data.h",
+    name = "generated_conv3_golden_int16_test_data_hdr",
+    src = "conv3_golden_int16.csv",
+    out = "conv3_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv4_input_test_data_cc",
-    src = "conv4_input.csv",
-    out = "conv4_input_test_data.cc",
+    name = "generated_conv4_input_int16_test_data_cc",
+    src = "conv4_input_int16.csv",
+    out = "conv4_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv4_input_test_data_hdr",
-    src = "conv4_input.csv",
-    out = "conv4_input_test_data.h",
+    name = "generated_conv4_input_int16_test_data_hdr",
+    src = "conv4_input_int16.csv",
+    out = "conv4_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv4_golden_test_data_cc",
-    src = "conv4_golden.csv",
-    out = "conv4_golden_test_data.cc",
+    name = "generated_conv4_golden_int16_test_data_cc",
+    src = "conv4_golden_int16.csv",
+    out = "conv4_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv4_golden_test_data_hdr",
-    src = "conv4_golden.csv",
-    out = "conv4_golden_test_data.h",
+    name = "generated_conv4_golden_int16_test_data_hdr",
+    src = "conv4_golden_int16.csv",
+    out = "conv4_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv5_input_test_data_cc",
-    src = "conv5_input.csv",
-    out = "conv5_input_test_data.cc",
+    name = "generated_conv5_input_int16_test_data_cc",
+    src = "conv5_input_int16.csv",
+    out = "conv5_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv5_input_test_data_hdr",
-    src = "conv5_input.csv",
-    out = "conv5_input_test_data.h",
+    name = "generated_conv5_input_int16_test_data_hdr",
+    src = "conv5_input_int16.csv",
+    out = "conv5_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv5_golden_test_data_cc",
-    src = "conv5_golden.csv",
-    out = "conv5_golden_test_data.cc",
+    name = "generated_conv5_golden_int16_test_data_cc",
+    src = "conv5_golden_int16.csv",
+    out = "conv5_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv5_golden_test_data_hdr",
-    src = "conv5_golden.csv",
-    out = "conv5_golden_test_data.h",
+    name = "generated_conv5_golden_int16_test_data_hdr",
+    src = "conv5_golden_int16.csv",
+    out = "conv5_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv6_input_test_data_cc",
-    src = "conv6_input.csv",
-    out = "conv6_input_test_data.cc",
+    name = "generated_conv6_input_int16_test_data_cc",
+    src = "conv6_input_int16.csv",
+    out = "conv6_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv6_input_test_data_hdr",
-    src = "conv6_input.csv",
-    out = "conv6_input_test_data.h",
+    name = "generated_conv6_input_int16_test_data_hdr",
+    src = "conv6_input_int16.csv",
+    out = "conv6_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv6_golden_test_data_cc",
-    src = "conv6_golden.csv",
-    out = "conv6_golden_test_data.cc",
+    name = "generated_conv6_golden_int16_test_data_cc",
+    src = "conv6_golden_int16.csv",
+    out = "conv6_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv6_golden_test_data_hdr",
-    src = "conv6_golden.csv",
-    out = "conv6_golden_test_data.h",
+    name = "generated_conv6_golden_int16_test_data_hdr",
+    src = "conv6_golden_int16.csv",
+    out = "conv6_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv7_input_test_data_cc",
-    src = "conv7_input.csv",
-    out = "conv7_input_test_data.cc",
+    name = "generated_conv7_input_int16_test_data_cc",
+    src = "conv7_input_int16.csv",
+    out = "conv7_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv7_input_test_data_hdr",
-    src = "conv7_input.csv",
-    out = "conv7_input_test_data.h",
+    name = "generated_conv7_input_int16_test_data_hdr",
+    src = "conv7_input_int16.csv",
+    out = "conv7_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv7_golden_test_data_cc",
-    src = "conv7_golden.csv",
-    out = "conv7_golden_test_data.cc",
+    name = "generated_conv7_golden_int16_test_data_cc",
+    src = "conv7_golden_int16.csv",
+    out = "conv7_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv7_golden_test_data_hdr",
-    src = "conv7_golden.csv",
-    out = "conv7_golden_test_data.h",
+    name = "generated_conv7_golden_int16_test_data_hdr",
+    src = "conv7_golden_int16.csv",
+    out = "conv7_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv8_input_test_data_cc",
-    src = "conv8_input.csv",
-    out = "conv8_input_test_data.cc",
+    name = "generated_conv8_input_int16_test_data_cc",
+    src = "conv8_input_int16.csv",
+    out = "conv8_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv8_input_test_data_hdr",
-    src = "conv8_input.csv",
-    out = "conv8_input_test_data.h",
+    name = "generated_conv8_input_int16_test_data_hdr",
+    src = "conv8_input_int16.csv",
+    out = "conv8_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv8_golden_test_data_cc",
-    src = "conv8_golden.csv",
-    out = "conv8_golden_test_data.cc",
+    name = "generated_conv8_golden_int16_test_data_cc",
+    src = "conv8_golden_int16.csv",
+    out = "conv8_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv8_golden_test_data_hdr",
-    src = "conv8_golden.csv",
-    out = "conv8_golden_test_data.h",
+    name = "generated_conv8_golden_int16_test_data_hdr",
+    src = "conv8_golden_int16.csv",
+    out = "conv8_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv9_input_test_data_cc",
-    src = "conv9_input.csv",
-    out = "conv9_input_test_data.cc",
+    name = "generated_conv9_input_int16_test_data_cc",
+    src = "conv9_input_int16.csv",
+    out = "conv9_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv9_input_test_data_hdr",
-    src = "conv9_input.csv",
-    out = "conv9_input_test_data.h",
+    name = "generated_conv9_input_int16_test_data_hdr",
+    src = "conv9_input_int16.csv",
+    out = "conv9_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv9_golden_test_data_cc",
-    src = "conv9_golden.csv",
-    out = "conv9_golden_test_data.cc",
+    name = "generated_conv9_golden_int16_test_data_cc",
+    src = "conv9_golden_int16.csv",
+    out = "conv9_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv9_golden_test_data_hdr",
-    src = "conv9_golden.csv",
-    out = "conv9_golden_test_data.h",
+    name = "generated_conv9_golden_int16_test_data_hdr",
+    src = "conv9_golden_int16.csv",
+    out = "conv9_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv10_input_test_data_cc",
-    src = "conv10_input.csv",
-    out = "conv10_input_test_data.cc",
+    name = "generated_conv10_input_int16_test_data_cc",
+    src = "conv10_input_int16.csv",
+    out = "conv10_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv10_input_test_data_hdr",
-    src = "conv10_input.csv",
-    out = "conv10_input_test_data.h",
+    name = "generated_conv10_input_int16_test_data_hdr",
+    src = "conv10_input_int16.csv",
+    out = "conv10_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv10_golden_test_data_cc",
-    src = "conv10_golden.csv",
-    out = "conv10_golden_test_data.cc",
+    name = "generated_conv10_golden_int16_test_data_cc",
+    src = "conv10_golden_int16.csv",
+    out = "conv10_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv10_golden_test_data_hdr",
-    src = "conv10_golden.csv",
-    out = "conv10_golden_test_data.h",
+    name = "generated_conv10_golden_int16_test_data_hdr",
+    src = "conv10_golden_int16.csv",
+    out = "conv10_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv11_input_test_data_cc",
-    src = "conv11_input.csv",
-    out = "conv11_input_test_data.cc",
+    name = "generated_conv11_input_int16_test_data_cc",
+    src = "conv11_input_int16.csv",
+    out = "conv11_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv11_input_test_data_hdr",
-    src = "conv11_input.csv",
-    out = "conv11_input_test_data.h",
+    name = "generated_conv11_input_int16_test_data_hdr",
+    src = "conv11_input_int16.csv",
+    out = "conv11_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv11_golden_test_data_cc",
-    src = "conv11_golden.csv",
-    out = "conv11_golden_test_data.cc",
+    name = "generated_conv11_golden_int16_test_data_cc",
+    src = "conv11_golden_int16.csv",
+    out = "conv11_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv11_golden_test_data_hdr",
-    src = "conv11_golden.csv",
-    out = "conv11_golden_test_data.h",
+    name = "generated_conv11_golden_int16_test_data_hdr",
+    src = "conv11_golden_int16.csv",
+    out = "conv11_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv12_input_test_data_cc",
-    src = "conv12_input.csv",
-    out = "conv12_input_test_data.cc",
+    name = "generated_conv12_input_int16_test_data_cc",
+    src = "conv12_input_int16.csv",
+    out = "conv12_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv12_input_test_data_hdr",
-    src = "conv12_input.csv",
-    out = "conv12_input_test_data.h",
+    name = "generated_conv12_input_int16_test_data_hdr",
+    src = "conv12_input_int16.csv",
+    out = "conv12_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv12_golden_test_data_cc",
-    src = "conv12_golden.csv",
-    out = "conv12_golden_test_data.cc",
+    name = "generated_conv12_golden_int16_test_data_cc",
+    src = "conv12_golden_int16.csv",
+    out = "conv12_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv12_golden_test_data_hdr",
-    src = "conv12_golden.csv",
-    out = "conv12_golden_test_data.h",
+    name = "generated_conv12_golden_int16_test_data_hdr",
+    src = "conv12_golden_int16.csv",
+    out = "conv12_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv13_input_test_data_cc",
-    src = "conv13_input.csv",
-    out = "conv13_input_test_data.cc",
+    name = "generated_conv13_input_int16_test_data_cc",
+    src = "conv13_input_int16.csv",
+    out = "conv13_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv13_input_test_data_hdr",
-    src = "conv13_input.csv",
-    out = "conv13_input_test_data.h",
+    name = "generated_conv13_input_int16_test_data_hdr",
+    src = "conv13_input_int16.csv",
+    out = "conv13_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv13_golden_test_data_cc",
-    src = "conv13_golden.csv",
-    out = "conv13_golden_test_data.cc",
+    name = "generated_conv13_golden_int16_test_data_cc",
+    src = "conv13_golden_int16.csv",
+    out = "conv13_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv13_golden_test_data_hdr",
-    src = "conv13_golden.csv",
-    out = "conv13_golden_test_data.h",
+    name = "generated_conv13_golden_int16_test_data_hdr",
+    src = "conv13_golden_int16.csv",
+    out = "conv13_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv14_input_test_data_cc",
-    src = "conv14_input.csv",
-    out = "conv14_input_test_data.cc",
+    name = "generated_conv14_input_int16_test_data_cc",
+    src = "conv14_input_int16.csv",
+    out = "conv14_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv14_input_test_data_hdr",
-    src = "conv14_input.csv",
-    out = "conv14_input_test_data.h",
+    name = "generated_conv14_input_int16_test_data_hdr",
+    src = "conv14_input_int16.csv",
+    out = "conv14_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv14_golden_test_data_cc",
-    src = "conv14_golden.csv",
-    out = "conv14_golden_test_data.cc",
+    name = "generated_conv14_golden_int16_test_data_cc",
+    src = "conv14_golden_int16.csv",
+    out = "conv14_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv14_golden_test_data_hdr",
-    src = "conv14_golden.csv",
-    out = "conv14_golden_test_data.h",
+    name = "generated_conv14_golden_int16_test_data_hdr",
+    src = "conv14_golden_int16.csv",
+    out = "conv14_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv15_input_test_data_cc",
-    src = "conv15_input.csv",
-    out = "conv15_input_test_data.cc",
+    name = "generated_conv15_input_int16_test_data_cc",
+    src = "conv15_input_int16.csv",
+    out = "conv15_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv15_input_test_data_hdr",
-    src = "conv15_input.csv",
-    out = "conv15_input_test_data.h",
+    name = "generated_conv15_input_int16_test_data_hdr",
+    src = "conv15_input_int16.csv",
+    out = "conv15_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv15_golden_test_data_cc",
-    src = "conv15_golden.csv",
-    out = "conv15_golden_test_data.cc",
+    name = "generated_conv15_golden_int16_test_data_cc",
+    src = "conv15_golden_int16.csv",
+    out = "conv15_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv15_golden_test_data_hdr",
-    src = "conv15_golden.csv",
-    out = "conv15_golden_test_data.h",
+    name = "generated_conv15_golden_int16_test_data_hdr",
+    src = "conv15_golden_int16.csv",
+    out = "conv15_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv16_input_test_data_cc",
-    src = "conv16_input.csv",
-    out = "conv16_input_test_data.cc",
+    name = "generated_conv16_input_int16_test_data_cc",
+    src = "conv16_input_int16.csv",
+    out = "conv16_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv16_input_test_data_hdr",
-    src = "conv16_input.csv",
-    out = "conv16_input_test_data.h",
+    name = "generated_conv16_input_int16_test_data_hdr",
+    src = "conv16_input_int16.csv",
+    out = "conv16_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv16_golden_test_data_cc",
-    src = "conv16_golden.csv",
-    out = "conv16_golden_test_data.cc",
+    name = "generated_conv16_golden_int16_test_data_cc",
+    src = "conv16_golden_int16.csv",
+    out = "conv16_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv16_golden_test_data_hdr",
-    src = "conv16_golden.csv",
-    out = "conv16_golden_test_data.h",
+    name = "generated_conv16_golden_int16_test_data_hdr",
+    src = "conv16_golden_int16.csv",
+    out = "conv16_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv17_input_test_data_cc",
-    src = "conv17_input.csv",
-    out = "conv17_input_test_data.cc",
+    name = "generated_conv17_input_int16_test_data_cc",
+    src = "conv17_input_int16.csv",
+    out = "conv17_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv17_input_test_data_hdr",
-    src = "conv17_input.csv",
-    out = "conv17_input_test_data.h",
+    name = "generated_conv17_input_int16_test_data_hdr",
+    src = "conv17_input_int16.csv",
+    out = "conv17_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv17_golden_test_data_cc",
-    src = "conv17_golden.csv",
-    out = "conv17_golden_test_data.cc",
+    name = "generated_conv17_golden_int16_test_data_cc",
+    src = "conv17_golden_int16.csv",
+    out = "conv17_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv17_golden_test_data_hdr",
-    src = "conv17_golden.csv",
-    out = "conv17_golden_test_data.h",
+    name = "generated_conv17_golden_int16_test_data_hdr",
+    src = "conv17_golden_int16.csv",
+    out = "conv17_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv18_input_test_data_cc",
-    src = "conv18_input.csv",
-    out = "conv18_input_test_data.cc",
+    name = "generated_conv18_input_int16_test_data_cc",
+    src = "conv18_input_int16.csv",
+    out = "conv18_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv18_input_test_data_hdr",
-    src = "conv18_input.csv",
-    out = "conv18_input_test_data.h",
+    name = "generated_conv18_input_int16_test_data_hdr",
+    src = "conv18_input_int16.csv",
+    out = "conv18_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv18_golden_test_data_cc",
-    src = "conv18_golden.csv",
-    out = "conv18_golden_test_data.cc",
+    name = "generated_conv18_golden_int16_test_data_cc",
+    src = "conv18_golden_int16.csv",
+    out = "conv18_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv18_golden_test_data_hdr",
-    src = "conv18_golden.csv",
-    out = "conv18_golden_test_data.h",
+    name = "generated_conv18_golden_int16_test_data_hdr",
+    src = "conv18_golden_int16.csv",
+    out = "conv18_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv19_input_test_data_cc",
-    src = "conv19_input.csv",
-    out = "conv19_input_test_data.cc",
+    name = "generated_conv19_input_int16_test_data_cc",
+    src = "conv19_input_int16.csv",
+    out = "conv19_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv19_input_test_data_hdr",
-    src = "conv19_input.csv",
-    out = "conv19_input_test_data.h",
+    name = "generated_conv19_input_int16_test_data_hdr",
+    src = "conv19_input_int16.csv",
+    out = "conv19_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv19_golden_test_data_cc",
-    src = "conv19_golden.csv",
-    out = "conv19_golden_test_data.cc",
+    name = "generated_conv19_golden_int16_test_data_cc",
+    src = "conv19_golden_int16.csv",
+    out = "conv19_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv19_golden_test_data_hdr",
-    src = "conv19_golden.csv",
-    out = "conv19_golden_test_data.h",
+    name = "generated_conv19_golden_int16_test_data_hdr",
+    src = "conv19_golden_int16.csv",
+    out = "conv19_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv20_input_test_data_cc",
-    src = "conv20_input.csv",
-    out = "conv20_input_test_data.cc",
+    name = "generated_conv20_input_int16_test_data_cc",
+    src = "conv20_input_int16.csv",
+    out = "conv20_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv20_input_test_data_hdr",
-    src = "conv20_input.csv",
-    out = "conv20_input_test_data.h",
+    name = "generated_conv20_input_int16_test_data_hdr",
+    src = "conv20_input_int16.csv",
+    out = "conv20_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv20_golden_test_data_cc",
-    src = "conv20_golden.csv",
-    out = "conv20_golden_test_data.cc",
+    name = "generated_conv20_golden_int16_test_data_cc",
+    src = "conv20_golden_int16.csv",
+    out = "conv20_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv20_golden_test_data_hdr",
-    src = "conv20_golden.csv",
-    out = "conv20_golden_test_data.h",
+    name = "generated_conv20_golden_int16_test_data_hdr",
+    src = "conv20_golden_int16.csv",
+    out = "conv20_golden_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv21_input_test_data_cc",
-    src = "conv21_input.csv",
-    out = "conv21_input_test_data.cc",
+    name = "generated_conv21_input_int16_test_data_cc",
+    src = "conv21_input_int16.csv",
+    out = "conv21_input_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv21_input_test_data_hdr",
-    src = "conv21_input.csv",
-    out = "conv21_input_test_data.h",
+    name = "generated_conv21_input_int16_test_data_hdr",
+    src = "conv21_input_int16.csv",
+    out = "conv21_input_int16_test_data.h",
 )
 
 generate_cc_arrays(
-    name = "generated_conv21_golden_test_data_cc",
-    src = "conv21_golden.csv",
-    out = "conv21_golden_test_data.cc",
+    name = "generated_conv21_golden_int16_test_data_cc",
+    src = "conv21_golden_int16.csv",
+    out = "conv21_golden_int16_test_data.cc",
 )
 
 generate_cc_arrays(
-    name = "generated_conv21_golden_test_data_hdr",
-    src = "conv21_golden.csv",
-    out = "conv21_golden_test_data.h",
+    name = "generated_conv21_golden_int16_test_data_hdr",
+    src = "conv21_golden_int16.csv",
+    out = "conv21_golden_int16_test_data.h",
 )
 
 cc_library(
     name = "models_and_testdata",
     srcs = [
-        "generated_conv0_golden_test_data_cc",
-        "generated_conv0_input_test_data_cc",
+        "generated_conv0_golden_int16_test_data_cc",
+        "generated_conv0_input_int16_test_data_cc",
         "generated_conv0_model_data_cc",
-        "generated_conv10_golden_test_data_cc",
-        "generated_conv10_input_test_data_cc",
+        "generated_conv10_golden_int16_test_data_cc",
+        "generated_conv10_input_int16_test_data_cc",
         "generated_conv10_model_data_cc",
-        "generated_conv11_golden_test_data_cc",
-        "generated_conv11_input_test_data_cc",
+        "generated_conv11_golden_int16_test_data_cc",
+        "generated_conv11_input_int16_test_data_cc",
         "generated_conv11_model_data_cc",
-        "generated_conv12_golden_test_data_cc",
-        "generated_conv12_input_test_data_cc",
+        "generated_conv12_golden_int16_test_data_cc",
+        "generated_conv12_input_int16_test_data_cc",
         "generated_conv12_model_data_cc",
-        "generated_conv13_golden_test_data_cc",
-        "generated_conv13_input_test_data_cc",
+        "generated_conv13_golden_int16_test_data_cc",
+        "generated_conv13_input_int16_test_data_cc",
         "generated_conv13_model_data_cc",
-        "generated_conv14_golden_test_data_cc",
-        "generated_conv14_input_test_data_cc",
+        "generated_conv14_golden_int16_test_data_cc",
+        "generated_conv14_input_int16_test_data_cc",
         "generated_conv14_model_data_cc",
-        "generated_conv15_golden_test_data_cc",
-        "generated_conv15_input_test_data_cc",
+        "generated_conv15_golden_int16_test_data_cc",
+        "generated_conv15_input_int16_test_data_cc",
         "generated_conv15_model_data_cc",
-        "generated_conv16_golden_test_data_cc",
-        "generated_conv16_input_test_data_cc",
+        "generated_conv16_golden_int16_test_data_cc",
+        "generated_conv16_input_int16_test_data_cc",
         "generated_conv16_model_data_cc",
-        "generated_conv17_golden_test_data_cc",
-        "generated_conv17_input_test_data_cc",
+        "generated_conv17_golden_int16_test_data_cc",
+        "generated_conv17_input_int16_test_data_cc",
         "generated_conv17_model_data_cc",
-        "generated_conv18_golden_test_data_cc",
-        "generated_conv18_input_test_data_cc",
+        "generated_conv18_golden_int16_test_data_cc",
+        "generated_conv18_input_int16_test_data_cc",
         "generated_conv18_model_data_cc",
-        "generated_conv19_golden_test_data_cc",
-        "generated_conv19_input_test_data_cc",
+        "generated_conv19_golden_int16_test_data_cc",
+        "generated_conv19_input_int16_test_data_cc",
         "generated_conv19_model_data_cc",
-        "generated_conv1_golden_test_data_cc",
-        "generated_conv1_input_test_data_cc",
+        "generated_conv1_golden_int16_test_data_cc",
+        "generated_conv1_input_int16_test_data_cc",
         "generated_conv1_model_data_cc",
-        "generated_conv20_golden_test_data_cc",
-        "generated_conv20_input_test_data_cc",
+        "generated_conv20_golden_int16_test_data_cc",
+        "generated_conv20_input_int16_test_data_cc",
         "generated_conv20_model_data_cc",
-        "generated_conv21_golden_test_data_cc",
-        "generated_conv21_input_test_data_cc",
+        "generated_conv21_golden_int16_test_data_cc",
+        "generated_conv21_input_int16_test_data_cc",
         "generated_conv21_model_data_cc",
-        "generated_conv2_golden_test_data_cc",
-        "generated_conv2_input_test_data_cc",
+        "generated_conv2_golden_int16_test_data_cc",
+        "generated_conv2_input_int16_test_data_cc",
         "generated_conv2_model_data_cc",
-        "generated_conv3_golden_test_data_cc",
-        "generated_conv3_input_test_data_cc",
+        "generated_conv3_golden_int16_test_data_cc",
+        "generated_conv3_input_int16_test_data_cc",
         "generated_conv3_model_data_cc",
-        "generated_conv4_golden_test_data_cc",
-        "generated_conv4_input_test_data_cc",
+        "generated_conv4_golden_int16_test_data_cc",
+        "generated_conv4_input_int16_test_data_cc",
         "generated_conv4_model_data_cc",
-        "generated_conv5_golden_test_data_cc",
-        "generated_conv5_input_test_data_cc",
+        "generated_conv5_golden_int16_test_data_cc",
+        "generated_conv5_input_int16_test_data_cc",
         "generated_conv5_model_data_cc",
-        "generated_conv6_golden_test_data_cc",
-        "generated_conv6_input_test_data_cc",
+        "generated_conv6_golden_int16_test_data_cc",
+        "generated_conv6_input_int16_test_data_cc",
         "generated_conv6_model_data_cc",
-        "generated_conv7_golden_test_data_cc",
-        "generated_conv7_input_test_data_cc",
+        "generated_conv7_golden_int16_test_data_cc",
+        "generated_conv7_input_int16_test_data_cc",
         "generated_conv7_model_data_cc",
-        "generated_conv8_golden_test_data_cc",
-        "generated_conv8_input_test_data_cc",
+        "generated_conv8_golden_int16_test_data_cc",
+        "generated_conv8_input_int16_test_data_cc",
         "generated_conv8_model_data_cc",
-        "generated_conv9_golden_test_data_cc",
-        "generated_conv9_input_test_data_cc",
+        "generated_conv9_golden_int16_test_data_cc",
+        "generated_conv9_input_int16_test_data_cc",
         "generated_conv9_model_data_cc",
     ],
     hdrs = [
-        "generated_conv0_golden_test_data_hdr",
-        "generated_conv0_input_test_data_hdr",
+        "generated_conv0_golden_int16_test_data_hdr",
+        "generated_conv0_input_int16_test_data_hdr",
         "generated_conv0_model_data_hdr",
-        "generated_conv10_golden_test_data_hdr",
-        "generated_conv10_input_test_data_hdr",
+        "generated_conv10_golden_int16_test_data_hdr",
+        "generated_conv10_input_int16_test_data_hdr",
         "generated_conv10_model_data_hdr",
-        "generated_conv11_golden_test_data_hdr",
-        "generated_conv11_input_test_data_hdr",
+        "generated_conv11_golden_int16_test_data_hdr",
+        "generated_conv11_input_int16_test_data_hdr",
         "generated_conv11_model_data_hdr",
-        "generated_conv12_golden_test_data_hdr",
-        "generated_conv12_input_test_data_hdr",
+        "generated_conv12_golden_int16_test_data_hdr",
+        "generated_conv12_input_int16_test_data_hdr",
         "generated_conv12_model_data_hdr",
-        "generated_conv13_golden_test_data_hdr",
-        "generated_conv13_input_test_data_hdr",
+        "generated_conv13_golden_int16_test_data_hdr",
+        "generated_conv13_input_int16_test_data_hdr",
         "generated_conv13_model_data_hdr",
-        "generated_conv14_golden_test_data_hdr",
-        "generated_conv14_input_test_data_hdr",
+        "generated_conv14_golden_int16_test_data_hdr",
+        "generated_conv14_input_int16_test_data_hdr",
         "generated_conv14_model_data_hdr",
-        "generated_conv15_golden_test_data_hdr",
-        "generated_conv15_input_test_data_hdr",
+        "generated_conv15_golden_int16_test_data_hdr",
+        "generated_conv15_input_int16_test_data_hdr",
         "generated_conv15_model_data_hdr",
-        "generated_conv16_golden_test_data_hdr",
-        "generated_conv16_input_test_data_hdr",
+        "generated_conv16_golden_int16_test_data_hdr",
+        "generated_conv16_input_int16_test_data_hdr",
         "generated_conv16_model_data_hdr",
-        "generated_conv17_golden_test_data_hdr",
-        "generated_conv17_input_test_data_hdr",
+        "generated_conv17_golden_int16_test_data_hdr",
+        "generated_conv17_input_int16_test_data_hdr",
         "generated_conv17_model_data_hdr",
-        "generated_conv18_golden_test_data_hdr",
-        "generated_conv18_input_test_data_hdr",
+        "generated_conv18_golden_int16_test_data_hdr",
+        "generated_conv18_input_int16_test_data_hdr",
         "generated_conv18_model_data_hdr",
-        "generated_conv19_golden_test_data_hdr",
-        "generated_conv19_input_test_data_hdr",
+        "generated_conv19_golden_int16_test_data_hdr",
+        "generated_conv19_input_int16_test_data_hdr",
         "generated_conv19_model_data_hdr",
-        "generated_conv1_golden_test_data_hdr",
-        "generated_conv1_input_test_data_hdr",
+        "generated_conv1_golden_int16_test_data_hdr",
+        "generated_conv1_input_int16_test_data_hdr",
         "generated_conv1_model_data_hdr",
-        "generated_conv20_golden_test_data_hdr",
-        "generated_conv20_input_test_data_hdr",
+        "generated_conv20_golden_int16_test_data_hdr",
+        "generated_conv20_input_int16_test_data_hdr",
         "generated_conv20_model_data_hdr",
-        "generated_conv21_golden_test_data_hdr",
-        "generated_conv21_input_test_data_hdr",
+        "generated_conv21_golden_int16_test_data_hdr",
+        "generated_conv21_input_int16_test_data_hdr",
         "generated_conv21_model_data_hdr",
-        "generated_conv2_golden_test_data_hdr",
-        "generated_conv2_input_test_data_hdr",
+        "generated_conv2_golden_int16_test_data_hdr",
+        "generated_conv2_input_int16_test_data_hdr",
         "generated_conv2_model_data_hdr",
-        "generated_conv3_golden_test_data_hdr",
-        "generated_conv3_input_test_data_hdr",
+        "generated_conv3_golden_int16_test_data_hdr",
+        "generated_conv3_input_int16_test_data_hdr",
         "generated_conv3_model_data_hdr",
-        "generated_conv4_golden_test_data_hdr",
-        "generated_conv4_input_test_data_hdr",
+        "generated_conv4_golden_int16_test_data_hdr",
+        "generated_conv4_input_int16_test_data_hdr",
         "generated_conv4_model_data_hdr",
-        "generated_conv5_golden_test_data_hdr",
-        "generated_conv5_input_test_data_hdr",
+        "generated_conv5_golden_int16_test_data_hdr",
+        "generated_conv5_input_int16_test_data_hdr",
         "generated_conv5_model_data_hdr",
-        "generated_conv6_golden_test_data_hdr",
-        "generated_conv6_input_test_data_hdr",
+        "generated_conv6_golden_int16_test_data_hdr",
+        "generated_conv6_input_int16_test_data_hdr",
         "generated_conv6_model_data_hdr",
-        "generated_conv7_golden_test_data_hdr",
-        "generated_conv7_input_test_data_hdr",
+        "generated_conv7_golden_int16_test_data_hdr",
+        "generated_conv7_input_int16_test_data_hdr",
         "generated_conv7_model_data_hdr",
-        "generated_conv8_golden_test_data_hdr",
-        "generated_conv8_input_test_data_hdr",
+        "generated_conv8_golden_int16_test_data_hdr",
+        "generated_conv8_input_int16_test_data_hdr",
         "generated_conv8_model_data_hdr",
-        "generated_conv9_golden_test_data_hdr",
-        "generated_conv9_input_test_data_hdr",
+        "generated_conv9_golden_int16_test_data_hdr",
+        "generated_conv9_input_int16_test_data_hdr",
         "generated_conv9_model_data_hdr",
     ],
     copts = micro_copts(),
 )
 
-cc_binary(
+cc_test(
     name = "integration_test",
     srcs = [
         "integration_tests.cc",
