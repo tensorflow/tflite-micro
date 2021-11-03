@@ -11,4 +11,3 @@ py_binary(
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
-
