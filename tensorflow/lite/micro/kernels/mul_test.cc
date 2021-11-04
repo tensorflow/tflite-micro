@@ -199,4 +199,23 @@ TF_LITE_MICRO_TEST(BroadcastInt8NoAcativationShouldMatchGolden) {
       kTfLiteActNone);
 }
 
+TF_LITE_MICRO_TEST(SimpleInt32NoAcativationShouldMatchGolden) {
+  int32_t input1_quantized[tflite::testing::flat_size_simple];
+  int32_t input2_quantized[tflite::testing::flat_size_simple];
+  int32_t golden_quantized[tflite::testing::flat_size_simple];
+  int32_t output_data[tflite::testing::flat_size_simple];
+
+  // Int32 mul ignores quantization parameters with TFLite and TFLM. Use
+  // TestMulQuantized method to convert float arrays to int32 arrays, but use
+  // quantization parameters of 0.01 for both inputs and 0.0001 for output,
+  // since input scales are multiplied together to get output scale when there
+  // is no rescaling inside the op.
+  tflite::testing::TestMulQuantized(
+      tflite::testing::dims_simple, tflite::testing::input1_simple,
+      input1_quantized, tflite::testing::dims_simple,
+      tflite::testing::input2_simple, input2_quantized, 0.01, 0,
+      tflite::testing::dims_simple, tflite::testing::golden_simple,
+      golden_quantized, 0.0001, 0, output_data, kTfLiteActNone);
+}
+
 TF_LITE_MICRO_TESTS_END

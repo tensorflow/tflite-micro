@@ -58,6 +58,9 @@ TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
     data->input1_zero_point = input1->params.zero_point;
     data->input2_zero_point = input2->params.zero_point;
     data->output_zero_point = output->params.zero_point;
+  } else if (output->type == kTfLiteInt32) {
+    CalculateActivationRange(params->activation, &data->output_activation_min,
+                             &data->output_activation_max);
   } else {
     CalculateActivationRange(params->activation,
                              &data->output_activation_min_f32,
