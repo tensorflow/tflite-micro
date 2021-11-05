@@ -253,7 +253,6 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
                                   values_quantized, output_scale,
                                   output_zero_point, output_quantized);
 }
-#endif  // defined(XTENSA)
 
 TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt32) {
   const int length = 10;
@@ -345,5 +344,6 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
                                   values_quantized, output_scale,
                                   output_zero_point, output_quantized);
 }
+#endif  // defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_END
