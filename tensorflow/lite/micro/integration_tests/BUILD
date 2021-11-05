@@ -7,8 +7,8 @@ py_binary(
     srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
-        "@absl_py//absl:flags",
-        requirement("tensorflow"),
+        "@absl_py//absl/flags",
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
