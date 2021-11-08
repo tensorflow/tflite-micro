@@ -358,88 +358,6 @@ ARDUINO_LIBRARY_ZIPS += $(if $(findstring _mock,$(2)),,$(if $(findstring _test,$
 
 endef
 
-# Creates a set of rules to build a standalone ESP-IDF project for an
-# executable, including all of the source and header files required in a
-# separate folder.
-# Arguments are:
-# 1 - Project file template names.
-# 2 - Name of executable.
-# 3 - List of C/C++ source files needed to build the TF Micro component.
-# 4 - List of C/C++ header files needed to build the TF Micro component.
-# 5 - List of C/C++ source files needed to build this particular project.
-# 6 - List of C/C++ header files needed to build this particular project.
-# 7 - Linker flags required.
-# 8 - C++ compilation flags needed.
-# 9 - C compilation flags needed.
-# 10 - List of includes.
-define generate_esp_project
-$(PRJDIR)$(2)/esp-idf/LICENSE: LICENSE
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/%: tensorflow/lite/micro/examples/$(2)/esp/%
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/main/%.cc: tensorflow/lite/micro/examples/$(2)/%.cc
-	@mkdir -p $$(dir $$@)
-	@python $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/make/transform_source.py \
-        --platform=esp \
-        --is_example_source \
-        --source_path="$$<" \
-        < $$< > $$@
-
-$(PRJDIR)$(2)/esp-idf/main/%.h: tensorflow/lite/micro/examples/$(2)/%.h
-	@mkdir -p $$(dir $$@)
-	@python $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/make/transform_source.py \
-        --platform=esp \
-        --is_example_source \
-        --source_path="$$<" \
-        < $$< > $$@
-
-$(PRJDIR)$(2)/esp-idf/main/%: tensorflow/lite/micro/examples/$(2)/%
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/components/tfmicro/%: % third_party_downloads
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/components/tfmicro/third_party/%: $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/make/downloads/% third_party_downloads
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/sdkconfig.defaults: $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(2)/esp/sdkconfig.defaults
-	@mkdir -p $$(dir $$@)
-	@cp $$< $$@
-
-$(PRJDIR)$(2)/esp-idf/%: $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/make/templates/esp/%.tpl
-# Split the sources into 2 components:
-# - Main component contains only the example's sources, relative from its dir.
-# - TFL Micro component contains everything but the example sources.
-  $(eval MAIN_SRCS := $(filter tensorflow/lite/micro/examples/%,$(5)))
-  $(eval MAIN_SRCS_RELATIVE := $(patsubst tensorflow/lite/micro/examples/$(2)/%,%,$(MAIN_SRCS)))
-  $(eval TFLM_SRCS := $(filter-out tensorflow/lite/micro/examples/%,$(5)) $(3))
-
-	@mkdir -p $$(dir $$@)
-	@sed -E 's#\%\{COMPONENT_SRCS\}\%#$(TFLM_SRCS)#g' $$< | \
-	sed -E 's#\%\{MAIN_SRCS\}\%#$(MAIN_SRCS_RELATIVE)#g' | \
-	sed -E 's#\%\{EXECUTABLE\}\%#$(2)#g' | \
-	sed -E 's#\%\{COMPONENT_INCLUDES\}\%#$(10)#g' | \
-	sed -E 's#\%\{LINKER_FLAGS\}\%#$(7)#g' | \
-	sed -E 's#\%\{CXX_FLAGS\}\%#$(8)#g' | \
-	sed -E 's#\%\{CC_FLAGS\}\%#$(9)#g' > $$@
-
-generate_$(2)_esp_project: \
-$(addprefix $(PRJDIR)$(2)/esp-idf/,\
-$(patsubst tensorflow/%,components/tfmicro/tensorflow/%,\
-$(patsubst third_party/%,components/tfmicro/third_party/%,\
-$(patsubst tensorflow/lite/micro/examples/$(2)/%,main/%,$(3) $(4) $(5) $(6))))) \
-$(addprefix $(PRJDIR)$(2)/esp-idf/,$(1))
-
-ALL_PROJECT_TARGETS += generate_$(2)_esp_project
-endef
-
 # Specialized version of generate_project for TF Lite Micro test targets that
 # automatically includes standard library files, so you just need to pass the
 # test name and any extra source files required.
@@ -455,10 +373,6 @@ $(call generate_arc_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES
 $(call generate_ceva_bx1_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
 $(call generate_ceva_sp500_project,make,$(MAKE_PROJECT_FILES) $($(1)_MAKE_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(LDFLAGS) $(GENERATED_PROJECT_LIBS),$(CXXFLAGS) $(GENERATED_PROJECT_INCLUDES), $(CCFLAGS) $(GENERATED_PROJECT_INCLUDES))
 $(call generate_project,keil,$(KEIL_PROJECT_FILES) $($(1)_KEIL_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(TARGET_TOOLCHAIN_ROOT),$(TARGET_TOOLCHAIN_PREFIX))
-ifeq (,$(findstring _benchmark,$(1)))
-  $(call generate_arduino_project,$(ARDUINO_PROJECT_FILES) $($(1)_ARDUINO_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS) $(2),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS) $(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS))
-endif
-$(call generate_esp_project,$(ESP_PROJECT_FILES) $($(1)_ESP_PROJECT_FILES),$(1),$(MICROLITE_CC_SRCS) $(THIRD_PARTY_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS),$(MICROLITE_CC_HDRS) $(THIRD_PARTY_CC_HDRS) $(MICROLITE_TEST_HDRS),$(2),$(3),$(MICROLITE_LIBS),$(CXXFLAGS),$(CCFLAGS),$(PROJECT_INCLUDES))
 endef
 
 #Handles the details of calculating the size of a binary target.
