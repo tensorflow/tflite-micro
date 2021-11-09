@@ -10,6 +10,7 @@ py_binary(
         "@absl_py//absl/flags",
         requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/python:schema_util",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
