@@ -88,10 +88,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       EvalQuantized(context, node, data, input1, input2, output);
       break;
     case kTfLiteInt32:
-      EvalQuantizedReference(context, node, data, input1, input2, output);
+      EvalMulQuantizedReference(context, node, data, input1, input2, output);
       break;
     case kTfLiteFloat32:
-      EvalFloatReference(context, node, params, data, input1, input2, output);
+      EvalMulFloatReference(context, node, params, data, input1, input2, output);
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",

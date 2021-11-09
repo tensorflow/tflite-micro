@@ -85,7 +85,7 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpDataMul(context, node, params, data);
 }
 
-void EvalQuantizedReference(TfLiteContext* context, TfLiteNode* node,
+void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
                             const OpDataMul* data,
                             const TfLiteEvalTensor* input1,
                             const TfLiteEvalTensor* input2,
@@ -142,7 +142,7 @@ void EvalQuantizedReference(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-void EvalFloatReference(TfLiteContext* context, TfLiteNode* node,
+void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
                         TfLiteMulParams* params, const OpDataMul* data,
                         const TfLiteEvalTensor* input1,
                         const TfLiteEvalTensor* input2,
