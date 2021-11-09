@@ -1,5 +1,9 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
+package(
+    licenses = ["notice"],
+)
+
 py_binary(
     name = "generate_per_layer_tests",
     srcs = ["generate_per_layer_tests.py"],
