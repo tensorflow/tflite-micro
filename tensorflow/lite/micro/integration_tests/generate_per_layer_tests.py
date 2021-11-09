@@ -53,7 +53,6 @@ def BytesFromFlatbufferType(tensor_type):
 
 class TestModelGenerator:
   """Generates test data from tflite file."""
-
   def __init__(self, model, output_dir, inputs):
     self.model = model
     self.output_dir = output_dir
@@ -73,7 +72,8 @@ class TestModelGenerator:
     for input_idx, tensor_idx in enumerate(op.inputs):
       tensor = copy.deepcopy(subgraph.tensors[tensor_idx])
       tensor.buffer = len(generated_model.buffers)
-      buffer = copy.deepcopy(model.buffers[subgraph.tensors[tensor_idx].buffer])
+      buffer = copy.deepcopy(
+          model.buffers[subgraph.tensors[tensor_idx].buffer])
       if input_idx in self.inputs:
         print('setting index ' + str(input_idx) + ' to None')
         buffer.data = None
@@ -95,7 +95,8 @@ class TestModelGenerator:
     for tensor_idx in op.outputs:
       tensor = copy.deepcopy(subgraph.tensors[tensor_idx])
       tensor.buffer = len(generated_model.buffers)
-      buffer = copy.deepcopy(model.buffers[subgraph.tensors[tensor_idx].buffer])
+      buffer = copy.deepcopy(
+          model.buffers[subgraph.tensors[tensor_idx].buffer])
       generated_model.buffers.append(buffer)
       generated_subgraph.tensors.append(tensor)
 
@@ -116,7 +117,8 @@ class TestModelGenerator:
 
   def get_opcode_idx(self, builtin_operator):
     for idx, opcode in enumerate(self.model.operatorCodes):
-      if schema_util.get_builtin_code_from_operator_code(opcode) == builtin_operator:
+      if schema_util.get_builtin_code_from_operator_code(
+          opcode) == builtin_operator:
         return idx
 
   def generate_models(self, subgraph_idx, builtin_operator):
@@ -133,7 +135,6 @@ class TestModelGenerator:
 
 
 class TestDataGenerator:
-
   def __init__(self, output_dir, model_paths, inputs):
     self.output_dir = output_dir
     self.model_paths = model_paths
@@ -147,8 +148,10 @@ class TestDataGenerator:
     input_tensor = interpreter.tensor(
         interpreter.get_input_details()[0]['index'])
     return [
-        np.random.randint(
-            low=-128, high=127, dtype=np.int8, size=input_tensor().shape)
+        np.random.randint(low=-128,
+                          high=127,
+                          dtype=np.int8,
+                          size=input_tensor().shape)
     ]
 
   def generate_goldens(self, builtin_operator):
@@ -216,7 +219,8 @@ package(
       self.cc_srcs.append('"generated_' + target_name + '_model_data_cc",')
 
       build_file.write('generate_cc_arrays(')
-      build_file.write('name = "generated_' + target_name + '_model_data_hdr",')
+      build_file.write('name = "generated_' + target_name +
+                       '_model_data_hdr",')
       build_file.write('src = "' + target_name + '.tflite",')
       build_file.write('out = "' + target_name + '_model_data.h",\n)\n')
       self.cc_hdrs.append('"generated_' + target_name + '_model_data_hdr",')
@@ -325,7 +329,8 @@ void RunModel(const uint8_t* model, """)
     test_file.write('TfLiteTensor* input_tensor = interpreter.input(0);')
     test_file.write('TF_LITE_MICRO_EXPECT_EQ(input_tensor->bytes, ')
     test_file.write('input_size * sizeof(int8_t));')
-    test_file.write('memcpy(interpreter.input(0)->data.raw, input, input_tensor->bytes);')
+    test_file.write(
+        'memcpy(interpreter.input(0)->data.raw, input, input_tensor->bytes);')
     test_file.write("""
   if (kTfLiteOk != interpreter.Invoke()) {
     TF_LITE_MICRO_EXPECT(false);
@@ -372,7 +377,8 @@ TF_LITE_MICRO_TESTS_BEGIN
       makefile.write(
           model_path.split('third_party/tflite_micro/')[-1] + ' \\\n')
     for csv_input in self.csv_filenames:
-      makefile.write(csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
+      makefile.write(
+          csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
     makefile.write(
@@ -418,4 +424,3 @@ def main(_):
 
 if __name__ == '__main__':
   app.run(main)
-
