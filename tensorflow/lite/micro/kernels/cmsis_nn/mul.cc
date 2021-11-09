@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/kernels/internal/reference/mul.h"
-#include "tensorflow/lite/micro/kernels/mul.h"
 
 #include "CMSIS/NN/Include/arm_nnfunctions.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
@@ -23,13 +22,14 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/mul.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 
 namespace tflite {
 namespace {
 
-void EvalQuantized(TfLiteContext* context, TfLiteNode* node, const OpDataMul* data,
-                   const TfLiteEvalTensor* input1,
+void EvalQuantized(TfLiteContext* context, TfLiteNode* node,
+                   const OpDataMul* data, const TfLiteEvalTensor* input1,
                    const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.quantized_activation_min = data->output_activation_min;
@@ -45,26 +45,26 @@ void EvalQuantized(TfLiteContext* context, TfLiteNode* node, const OpDataMul* da
       tflite::micro::GetTensorShape(input1),
       tflite::micro::GetTensorShape(input2), &op_params);
 
-    if (need_broadcast) {
-      reference_integer_ops::BroadcastMul4DSlow(
-          op_params, tflite::micro::GetTensorShape(input1),
-          tflite::micro::GetTensorData<int8_t>(input1),
-          tflite::micro::GetTensorShape(input2),
-          tflite::micro::GetTensorData<int8_t>(input2),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int8_t>(output));
-    } else {
-      arm_elementwise_mul_s8(
-          tflite::micro::GetTensorData<int8_t>(input1),
-          tflite::micro::GetTensorData<int8_t>(input2), op_params.input1_offset,
-          op_params.input2_offset, tflite::micro::GetTensorData<int8_t>(output),
-          op_params.output_offset, op_params.output_multiplier,
-          op_params.output_shift, op_params.quantized_activation_min,
-          op_params.quantized_activation_max,
-          MatchingElementsSize(tflite::micro::GetTensorShape(input1),
-                               tflite::micro::GetTensorShape(input2),
-                               tflite::micro::GetTensorShape(output)));
-    }
+  if (need_broadcast) {
+    reference_integer_ops::BroadcastMul4DSlow(
+        op_params, tflite::micro::GetTensorShape(input1),
+        tflite::micro::GetTensorData<int8_t>(input1),
+        tflite::micro::GetTensorShape(input2),
+        tflite::micro::GetTensorData<int8_t>(input2),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<int8_t>(output));
+  } else {
+    arm_elementwise_mul_s8(
+        tflite::micro::GetTensorData<int8_t>(input1),
+        tflite::micro::GetTensorData<int8_t>(input2), op_params.input1_offset,
+        op_params.input2_offset, tflite::micro::GetTensorData<int8_t>(output),
+        op_params.output_offset, op_params.output_multiplier,
+        op_params.output_shift, op_params.quantized_activation_min,
+        op_params.quantized_activation_max,
+        MatchingElementsSize(tflite::micro::GetTensorShape(input1),
+                             tflite::micro::GetTensorShape(input2),
+                             tflite::micro::GetTensorShape(output)));
+  }
 }
 
 }  // namespace

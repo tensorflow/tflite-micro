@@ -86,8 +86,10 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void EvalQuantizedReference(TfLiteContext* context, TfLiteNode* node,
-                   const OpDataMul* data, const TfLiteEvalTensor* input1,
-                   const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
+                            const OpDataMul* data,
+                            const TfLiteEvalTensor* input1,
+                            const TfLiteEvalTensor* input2,
+                            TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.quantized_activation_min = data->output_activation_min;
   op_params.quantized_activation_max = data->output_activation_max;
@@ -130,21 +132,21 @@ void EvalQuantizedReference(TfLiteContext* context, TfLiteNode* node,
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int32_t>(output));
     } else {
-      reference_ops::Mul(op_params,
-                                 tflite::micro::GetTensorShape(input1),
-                                 tflite::micro::GetTensorData<int32_t>(input1),
-                                 tflite::micro::GetTensorShape(input2),
-                                 tflite::micro::GetTensorData<int32_t>(input2),
-                                 tflite::micro::GetTensorShape(output),
-                                 tflite::micro::GetTensorData<int32_t>(output));
+      reference_ops::Mul(op_params, tflite::micro::GetTensorShape(input1),
+                         tflite::micro::GetTensorData<int32_t>(input1),
+                         tflite::micro::GetTensorShape(input2),
+                         tflite::micro::GetTensorData<int32_t>(input2),
+                         tflite::micro::GetTensorShape(output),
+                         tflite::micro::GetTensorData<int32_t>(output));
     }
   }
 }
 
 void EvalFloatReference(TfLiteContext* context, TfLiteNode* node,
-               TfLiteMulParams* params, const OpDataMul* data,
-               const TfLiteEvalTensor* input1, const TfLiteEvalTensor* input2,
-               TfLiteEvalTensor* output) {
+                        TfLiteMulParams* params, const OpDataMul* data,
+                        const TfLiteEvalTensor* input1,
+                        const TfLiteEvalTensor* input2,
+                        TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.float_activation_min = data->output_activation_min_f32;
   op_params.float_activation_max = data->output_activation_max_f32;
