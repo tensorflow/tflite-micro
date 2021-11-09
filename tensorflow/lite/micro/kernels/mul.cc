@@ -48,7 +48,8 @@ TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
       EvalMulQuantizedReference(context, node, data, input1, input2, output);
       break;
     case kTfLiteFloat32:
-      EvalMulFloatReference(context, node, params, data, input1, input2, output);
+      EvalMulFloatReference(context, node, params, data, input1, input2,
+                            output);
       break;
     default:
       MicroPrintf("Type %s (%d) not supported.",

@@ -86,10 +86,10 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
-                            const OpDataMul* data,
-                            const TfLiteEvalTensor* input1,
-                            const TfLiteEvalTensor* input2,
-                            TfLiteEvalTensor* output) {
+                               const OpDataMul* data,
+                               const TfLiteEvalTensor* input1,
+                               const TfLiteEvalTensor* input2,
+                               TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.quantized_activation_min = data->output_activation_min;
   op_params.quantized_activation_max = data->output_activation_max;
@@ -143,10 +143,10 @@ void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
 }
 
 void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
-                        TfLiteMulParams* params, const OpDataMul* data,
-                        const TfLiteEvalTensor* input1,
-                        const TfLiteEvalTensor* input2,
-                        TfLiteEvalTensor* output) {
+                           TfLiteMulParams* params, const OpDataMul* data,
+                           const TfLiteEvalTensor* input1,
+                           const TfLiteEvalTensor* input2,
+                           TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.float_activation_min = data->output_activation_min_f32;
   op_params.float_activation_max = data->output_activation_max_f32;
