@@ -4,6 +4,7 @@ py_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.py"],
     srcs_version = "PY3",
+    visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),
         requirement("tensorflow-cpu"),
