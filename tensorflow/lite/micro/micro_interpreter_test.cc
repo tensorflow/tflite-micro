@@ -51,10 +51,71 @@ class MockProfiler : public MicroProfiler {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+// Some targets does not support dynamic memory (i.e., no malloc or new), thus,
+// the test need to place non-transitent memories in global variables. This is
+// safe because tests are guarateed to run serially.
+tflite::AllOpsResolver g_op_resolver;
+constexpr size_t kAllocatorBufferSize = 1024 * 2;
+uint8_t g_allocator_buffer[kAllocatorBufferSize];
+
+tflite::MicroInterpreter CreateInterpreterWithSimpleMockModel() {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  g_op_resolver = tflite::testing::GetOpResolver();
+
+  tflite::MicroInterpreter interpreter(model, g_op_resolver, g_allocator_buffer,
+                                       kAllocatorBufferSize,
+                                       tflite::GetMicroErrorReporter());
+  return interpreter;
+}
+
+// Test structure for external context payload.
+struct TestExternalContextPayloadData {
+  // Opaque blob
+  uint8_t blob_data[128];
+};
 }  // namespace
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
+
+// Ensures that a regular set and get pair works ok.
+TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  tflite::TestExternalContextPayloadData payload;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          interpreter.SetMicroExternalContext(&payload));
+
+  tflite::TestExternalContextPayloadData* returned_external_context =
+      reinterpret_cast<tflite::TestExternalContextPayloadData*>(
+          interpreter.GetMicroExternalContext());
+
+  // What is returned should be the same as what is set.
+  TF_LITE_MICRO_EXPECT((void*)returned_external_context == (void*)(&payload));
+}
+
+TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  // Return a null if nothing is set before.
+  TF_LITE_MICRO_EXPECT((void*)interpreter.GetMicroExternalContext() ==
+                       (nullptr));
+}
+
+TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
+  tflite::MicroInterpreter interpreter =
+      tflite::CreateInterpreterWithSimpleMockModel();
+
+  tflite::TestExternalContextPayloadData payload;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          interpreter.SetMicroExternalContext(&payload));
+
+  // Another set should fail.
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          interpreter.SetMicroExternalContext(&payload));
+}
 
 TF_LITE_MICRO_TEST(TestInterpreter) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();

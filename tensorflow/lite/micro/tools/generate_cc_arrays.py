@@ -97,6 +97,8 @@ def get_array_name(input_fname):
     return [base_array_name + '_image_data', 'unsigned char']
   elif input_fname.endswith('.wav'):
     return [base_array_name + '_audio_data', 'int16_t']
+  elif input_fname.endswith('_int32.csv'):
+    return [base_array_name + '_test_data', 'int32_t']
   elif input_fname.endswith('_int16.csv'):
     return [base_array_name + '_test_data', 'int16_t']
   elif input_fname.endswith('_int8.csv'):
