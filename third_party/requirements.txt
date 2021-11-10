@@ -1,2 +1,2 @@
-flatbuffers
+flatbuffers==1.12
 tensorflow-cpu
