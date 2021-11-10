@@ -25,6 +25,7 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # We are using a bazel build followed by bazel test to make sure that the CI
 # covers non-test binary targets as well. These were previousbly covered by
 # having build_test but that was removed with #194.
+readable_run bazel test tensorflow/lite/tools/flatbuffer_utils_test
 
 CC=clang readable_run bazel build tensorflow/lite/micro/... \
   --build_tag_filters=-no_oss
