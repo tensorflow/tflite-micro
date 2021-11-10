@@ -41,10 +41,24 @@ struct OpDataMul {
   float output_activation_max_f32;
 };
 
+void* MulInit(TfLiteContext* context, const char* buffer, size_t length);
+
 TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
                                 TfLiteMulParams* params, OpDataMul* data);
 
 TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node);
+
+void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
+                               const OpDataMul* data,
+                               const TfLiteEvalTensor* input1,
+                               const TfLiteEvalTensor* input2,
+                               TfLiteEvalTensor* output);
+
+void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
+                           TfLiteMulParams* params, const OpDataMul* data,
+                           const TfLiteEvalTensor* input1,
+                           const TfLiteEvalTensor* input2,
+                           TfLiteEvalTensor* output);
 
 }  // namespace tflite
 
