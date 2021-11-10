@@ -215,9 +215,10 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena = RequestScratchBufferInArena;
-  graph_.PrepareSubgraphs();
   // GetExternalContext become available in Prepare stage.
   context_.GetExternalContext = GetExternalContext;
+
+  graph_.PrepareSubgraphs();
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
@@ -406,19 +407,13 @@ void* MicroInterpreter::GetMicroExternalContext() {
 // This callback is an implementation for TfLiteContext::GetExternalContext
 // interface.
 TfLiteExternalContext* MicroInterpreter::GetExternalContext(
-    TfLiteContext* context, TfLiteExternalContextType external_context_type) {
-  // Arbitrarily use kTfLiteMaxExternalContexts as indication of TfLite Micro.
-  // This is a best-effort check to prevent a kernel from directly using
-  // TfLiteContext::GetExternalContext interface to get the external context.
-  if (external_context_type != kTfLiteMaxExternalContexts) {
-    MicroPrintf(
-        "Unsupported context %d. Please use GetMicroExternalContext interface.",
-        external_context_type);
-    return nullptr;
-  }
+    TfLiteContext* context, TfLiteExternalContextType unused) {
+  // TODO(b/205754757): TfLiteExternalContextType is unused in TFLM. This
+  // function is only called by the framework as a way to conform to existing
+  // interface. Users should use GetMicroExternalContext api in kernel_util.h to
+  // get context and shall not directly use this function.
   MicroInterpreter* interpreter =
       reinterpret_cast<MicroInterpreter*>(context->impl_);
-  // Conforming to
   return reinterpret_cast<TfLiteExternalContext*>(
       interpreter->GetMicroExternalContext());
 }

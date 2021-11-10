@@ -92,7 +92,7 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
 //    Prepare(TfliteContext * context) {
 //       ...
 //       payload_ptr =
-//       reinterp_cast<your_data_type>(GetMicroExternalContext(context))
+//       reinterpret_cast<your_data_type>(GetMicroExternalContext(context))
 //       ...
 //    }
 //

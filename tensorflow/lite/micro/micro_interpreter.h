@@ -168,7 +168,7 @@ class MicroInterpreter {
   // This callback is an implementation for TfLiteContext::GetExternalContext
   // interface.
   static TfLiteExternalContext* GetExternalContext(
-      TfLiteContext* context, TfLiteExternalContextType external_context_type);
+      TfLiteContext* context, TfLiteExternalContextType unused);
 
   const Model* model_;
   const MicroOpResolver& op_resolver_;
