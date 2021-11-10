@@ -68,6 +68,7 @@ class RuntimeShape {
   }
   int32_t* DimsData() { return dims_; }
   const int32_t* DimsData() const { return dims_; }
+  const int32_t* DimsDataUpTo5D() const { return dims_; }
 
   void ReplaceWith(int dimensions_count, const int32_t* dims_data) {
     size_ = dimensions_count;
