@@ -27,75 +27,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
-void EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                   const OpDataMul* data, const TfLiteEvalTensor* input1,
-                   const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params = {};
-  op_params.quantized_activation_min = data->output_activation_min;
-  op_params.quantized_activation_max = data->output_activation_max;
-  op_params.float_activation_max = data->output_activation_max_f32;
-  op_params.input1_offset = -data->input1_zero_point;
-  op_params.input2_offset = -data->input2_zero_point;
-  op_params.output_offset = data->output_zero_point;
-  op_params.output_multiplier = data->output_multiplier;
-  op_params.output_shift = data->output_shift;
-
-  bool need_broadcast = reference_ops::ProcessBroadcastShapes(
-      tflite::micro::GetTensorShape(input1),
-      tflite::micro::GetTensorShape(input2), &op_params);
-
-  if (need_broadcast) {
-    reference_integer_ops::BroadcastMul4DSlow(
-        op_params, tflite::micro::GetTensorShape(input1),
-        tflite::micro::GetTensorData<int8_t>(input1),
-        tflite::micro::GetTensorShape(input2),
-        tflite::micro::GetTensorData<int8_t>(input2),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-  } else {
-    reference_integer_ops::Mul(op_params, tflite::micro::GetTensorShape(input1),
-                               tflite::micro::GetTensorData<int8_t>(input1),
-                               tflite::micro::GetTensorShape(input2),
-                               tflite::micro::GetTensorData<int8_t>(input2),
-                               tflite::micro::GetTensorShape(output),
-                               tflite::micro::GetTensorData<int8_t>(output));
-  }
-}
-
-void EvalFloat(TfLiteContext* context, TfLiteNode* node,
-               TfLiteMulParams* params, const OpDataMul* data,
-               const TfLiteEvalTensor* input1, const TfLiteEvalTensor* input2,
-               TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params = {};
-  op_params.float_activation_min = data->output_activation_min_f32;
-  op_params.float_activation_max = data->output_activation_max_f32;
-
-  bool need_broadcast = reference_ops::ProcessBroadcastShapes(
-      tflite::micro::GetTensorShape(input1),
-      tflite::micro::GetTensorShape(input2), &op_params);
-
-  if (need_broadcast) {
-    reference_ops::BroadcastMul4DSlow(
-        op_params, tflite::micro::GetTensorShape(input1),
-        tflite::micro::GetTensorData<float>(input1),
-        tflite::micro::GetTensorShape(input2),
-        tflite::micro::GetTensorData<float>(input2),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<float>(output));
-  } else {
-    reference_ops::Mul(op_params, tflite::micro::GetTensorShape(input1),
-                       tflite::micro::GetTensorData<float>(input1),
-                       tflite::micro::GetTensorShape(input2),
-                       tflite::micro::GetTensorData<float>(input2),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<float>(output));
-  }
-}
-
-void* MulInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataMul));
-}
 
 TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -113,10 +44,12 @@ TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input1->type) {
     case kTfLiteInt8:
-      EvalQuantized(context, node, data, input1, input2, output);
+    case kTfLiteInt32:
+      EvalMulQuantizedReference(context, node, data, input1, input2, output);
       break;
     case kTfLiteFloat32:
-      EvalFloat(context, node, params, data, input1, input2, output);
+      EvalMulFloatReference(context, node, params, data, input1, input2,
+                            output);
       break;
     default:
       MicroPrintf("Type %s (%d) not supported.",

@@ -30,6 +30,11 @@ const int kMulInput1Tensor = 0;
 const int kMulInput2Tensor = 1;
 const int kMulOutputTensor = 0;
 
+void* MulInit(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataMul));
+}
+
 TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
                                 TfLiteMulParams* params, OpDataMul* data) {
   const TfLiteTensor* input1 = GetInput(context, node, kMulInput1Tensor);
@@ -58,6 +63,9 @@ TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
     data->input1_zero_point = input1->params.zero_point;
     data->input2_zero_point = input2->params.zero_point;
     data->output_zero_point = output->params.zero_point;
+  } else if (output->type == kTfLiteInt32) {
+    CalculateActivationRange(params->activation, &data->output_activation_min,
+                             &data->output_activation_max);
   } else {
     CalculateActivationRange(params->activation,
                              &data->output_activation_min_f32,
@@ -75,6 +83,94 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
   OpDataMul* data = static_cast<OpDataMul*>(node->user_data);
 
   return CalculateOpDataMul(context, node, params, data);
+}
+
+void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
+                               const OpDataMul* data,
+                               const TfLiteEvalTensor* input1,
+                               const TfLiteEvalTensor* input2,
+                               TfLiteEvalTensor* output) {
+  tflite::ArithmeticParams op_params = {};
+  op_params.quantized_activation_min = data->output_activation_min;
+  op_params.quantized_activation_max = data->output_activation_max;
+  op_params.float_activation_max = data->output_activation_max_f32;
+  op_params.input1_offset = -data->input1_zero_point;
+  op_params.input2_offset = -data->input2_zero_point;
+  op_params.output_offset = data->output_zero_point;
+  op_params.output_multiplier = data->output_multiplier;
+  op_params.output_shift = data->output_shift;
+
+  bool need_broadcast = reference_ops::ProcessBroadcastShapes(
+      tflite::micro::GetTensorShape(input1),
+      tflite::micro::GetTensorShape(input2), &op_params);
+
+  if (input1->type == kTfLiteInt8) {
+    if (need_broadcast) {
+      reference_integer_ops::BroadcastMul4DSlow(
+          op_params, tflite::micro::GetTensorShape(input1),
+          tflite::micro::GetTensorData<int8_t>(input1),
+          tflite::micro::GetTensorShape(input2),
+          tflite::micro::GetTensorData<int8_t>(input2),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int8_t>(output));
+    } else {
+      reference_integer_ops::Mul(op_params,
+                                 tflite::micro::GetTensorShape(input1),
+                                 tflite::micro::GetTensorData<int8_t>(input1),
+                                 tflite::micro::GetTensorShape(input2),
+                                 tflite::micro::GetTensorData<int8_t>(input2),
+                                 tflite::micro::GetTensorShape(output),
+                                 tflite::micro::GetTensorData<int8_t>(output));
+    }
+  } else if (input1->type == kTfLiteInt32) {
+    if (need_broadcast) {
+      reference_ops::BroadcastMul4DSlow(
+          op_params, tflite::micro::GetTensorShape(input1),
+          tflite::micro::GetTensorData<int32_t>(input1),
+          tflite::micro::GetTensorShape(input2),
+          tflite::micro::GetTensorData<int32_t>(input2),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int32_t>(output));
+    } else {
+      reference_ops::Mul(op_params, tflite::micro::GetTensorShape(input1),
+                         tflite::micro::GetTensorData<int32_t>(input1),
+                         tflite::micro::GetTensorShape(input2),
+                         tflite::micro::GetTensorData<int32_t>(input2),
+                         tflite::micro::GetTensorShape(output),
+                         tflite::micro::GetTensorData<int32_t>(output));
+    }
+  }
+}
+
+void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
+                           TfLiteMulParams* params, const OpDataMul* data,
+                           const TfLiteEvalTensor* input1,
+                           const TfLiteEvalTensor* input2,
+                           TfLiteEvalTensor* output) {
+  tflite::ArithmeticParams op_params = {};
+  op_params.float_activation_min = data->output_activation_min_f32;
+  op_params.float_activation_max = data->output_activation_max_f32;
+
+  bool need_broadcast = reference_ops::ProcessBroadcastShapes(
+      tflite::micro::GetTensorShape(input1),
+      tflite::micro::GetTensorShape(input2), &op_params);
+
+  if (need_broadcast) {
+    reference_ops::BroadcastMul4DSlow(
+        op_params, tflite::micro::GetTensorShape(input1),
+        tflite::micro::GetTensorData<float>(input1),
+        tflite::micro::GetTensorShape(input2),
+        tflite::micro::GetTensorData<float>(input2),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<float>(output));
+  } else {
+    reference_ops::Mul(op_params, tflite::micro::GetTensorShape(input1),
+                       tflite::micro::GetTensorData<float>(input1),
+                       tflite::micro::GetTensorShape(input2),
+                       tflite::micro::GetTensorData<float>(input2),
+                       tflite::micro::GetTensorShape(output),
+                       tflite::micro::GetTensorData<float>(output));
+  }
 }
 
 }  // namespace tflite
