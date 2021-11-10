@@ -98,4 +98,20 @@ TF_LITE_MICRO_TEST(CastInt16ToFloat) {
   tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 
+TF_LITE_MICRO_TEST(CastInt16ToInt32) {
+  int32_t output_data[6];
+  int input_dims[] = {2, 3, 2};
+  const int16_t input_values[] = {123, 0, 1, 2, 3, 4};
+  const int32_t golden[] = {123, 0, 1, 2, 3, 4};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
+TF_LITE_MICRO_TEST(CastInt32ToInt16) {
+  int16_t output_data[6];
+  int input_dims[] = {2, 3, 2};
+  const int32_t input_values[] = {123, 0, 1, 2, 3, 4};
+  const int16_t golden[] = {123, 0, 1, 2, 3, 4};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
 TF_LITE_MICRO_TESTS_END
