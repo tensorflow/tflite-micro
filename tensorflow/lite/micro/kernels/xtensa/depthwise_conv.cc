@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xa_tnne_nw_context.h"
 
 namespace tflite {
 namespace {
@@ -40,6 +41,16 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  
+  XaTnneNetworkContext *foo;
+  foo = reinterpret_cast<XaTnneNetworkContext*>(
+            context->GetExternalContext(context, kTfLiteTnneNetworkContext));
+  if (foo->nw_ctx.init_done == 0) {
+    fprintf(stderr, "init_done = %d, foo: %p \n", foo->nw_ctx.init_done, foo);
+    foo->nw_ctx.init_done = 1;
+  }
+  fprintf(stderr, "init_done = %d, foo: %p \n", foo->nw_ctx.init_done, foo);
+    
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
 
 #if defined(HIFI4) || defined(HIFI5)

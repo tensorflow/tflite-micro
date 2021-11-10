@@ -23,10 +23,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xa_tnne_nw_context.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
 constexpr int tensor_arena_size = 136 * 1024;
 uint8_t tensor_arena[tensor_arena_size];
+
+XaTnneNetworkContext foo;
 
 TF_LITE_MICRO_TESTS_BEGIN
 
@@ -60,6 +63,11 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
                                        tensor_arena_size,
                                        &micro_error_reporter);
+  
+  memset(&foo.nw_ctx, 0, sizeof(xa_tnne_nw_context));
+  foo.type = kTfLiteTnneNetworkContext; 
+  interpreter.SetExternalContext(kTfLiteTnneNetworkContext, &foo);
+
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.
