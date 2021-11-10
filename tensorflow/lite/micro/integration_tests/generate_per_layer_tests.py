@@ -23,13 +23,15 @@ from absl import flags
 import numpy as np
 import tensorflow as tf
 import random as rand
+from mako import template
 
-import flatbuffers
 from tensorflow.python.platform import gfile
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 from tflite_micro.tensorflow.lite.python import schema_util
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
+TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
 def BytesFromFlatbufferType(tensor_type):
   if tensor_type in (schema_fb.TensorType.INT8, schema_fb.TensorType.UINT8,
@@ -193,6 +195,9 @@ class TestDataGenerator:
       self.csv_filenames.append(csv_golden_filename)
 
   def generate_build_file(self):
+    template_file_path = os.path.join(template_abs_path, 'BUILD.mako')
+    build_template = template.Template(filename=template_file_path)
+    
     build_file = open(self.output_dir + '/BUILD', 'w')
     build_file_hdr = """# Description:
 #   generated integration test for one specific kernel in a model.
