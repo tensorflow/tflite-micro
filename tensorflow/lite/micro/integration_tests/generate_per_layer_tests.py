@@ -33,6 +33,7 @@ from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
+
 def BytesFromFlatbufferType(tensor_type):
   if tensor_type in (schema_fb.TensorType.INT8, schema_fb.TensorType.UINT8,
                      schema_fb.TensorType.BOOL):
@@ -195,182 +196,37 @@ class TestDataGenerator:
       self.csv_filenames.append(csv_golden_filename)
 
   def generate_build_file(self):
-    template_file_path = os.path.join(template_abs_path, 'BUILD.mako')
-    build_template = template.Template(filename=template_file_path)
-    
-    build_file = open(self.output_dir + '/BUILD', 'w')
-    build_file_hdr = """# Description:
-#   generated integration test for one specific kernel in a model.
-load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "generate_cc_arrays",
-    "micro_copts",
-)
-
-package(
-    default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
-    licenses = ["notice"],
-)\n\n"""
-    build_file.write(build_file_hdr)
-
+    # Collect all target names into a list
+    targets = []
     for model_path in self.model_paths:
+      print(model_path)
       target_name = model_path.split('/')[-1].split('.')[0]
-      build_file.write('generate_cc_arrays(')
-      build_file.write('name = "generated_' + target_name + '_model_data_cc",')
-      build_file.write('src = "' + target_name + '.tflite",')
-      build_file.write('out = "' + target_name + '_model_data.cc",\n)\n')
-      self.cc_srcs.append('"generated_' + target_name + '_model_data_cc",')
+      targets.append(target_name)
 
-      build_file.write('generate_cc_arrays(')
-      build_file.write('name = "generated_' + target_name +
-                       '_model_data_hdr",')
-      build_file.write('src = "' + target_name + '.tflite",')
-      build_file.write('out = "' + target_name + '_model_data.h",\n)\n')
-      self.cc_hdrs.append('"generated_' + target_name + '_model_data_hdr",')
-      self.includes.append('#include "' +
-                           model_path.split('google3/')[-1].split('.')[0] +
-                           '_model_data.h"\n')
-
-    for csvfile in self.csv_filenames:
-      target_name = csvfile.split('/')[-1].split('.')[0]
-      build_file.write('generate_cc_arrays(')
-      build_file.write('name = "generated_' + target_name + '_test_data_cc",')
-      build_file.write('src = "' + target_name + '.csv",')
-      build_file.write('out = "' + target_name + '_test_data.cc",\n)\n')
-      self.cc_srcs.append('"generated_' + target_name + '_test_data_cc",')
-
-      build_file.write('generate_cc_arrays(')
-      build_file.write('name = "generated_' + target_name + '_test_data_hdr",')
-      build_file.write('src = "' + target_name + '.csv",')
-      build_file.write('out = "' + target_name + '_test_data.h",\n)\n')
-      self.cc_hdrs.append('"generated_' + target_name + '_test_data_hdr",')
-      self.includes.append('#include "' +
-                           csvfile.split('google3/')[-1].split('.')[0] +
-                           '_test_data.h"\n')
-
-    build_file.write("""cc_library(
-    name = "models_and_testdata",
-    srcs = [""")
-    for src in self.cc_srcs:
-      build_file.write(src)
-    build_file.write('],\nhdrs = [')
-    for hdr in self.cc_hdrs:
-      build_file.write(hdr)
-    build_file.write("""    ],
-    copts = micro_copts(),
-)\n""")
-    build_file.write("""
-cc_test(
-    name = "integration_test",
-    srcs = [
-        "integration_tests.cc",
-    ],
-    copts = micro_copts(),
-    deps = [
-        ":models_and_testdata",
-        "//tensorflow/lite/micro:micro_error_reporter",
-        "//tensorflow/lite/micro:micro_framework",
-        "//tensorflow/lite/micro:micro_resource_variable",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:recording_allocators",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)""")
+    template_file_path = os.path.join(TEMPLATE_DIR, 'BUILD.mako')
+    build_template = template.Template(filename=template_file_path)
+    with open(self.output_dir + '/BUILD', 'w') as file_obj:
+      key_values_in_template = {'targets': targets}
+      file_obj.write(build_template.render(**key_values_in_template))
 
   def generate_tests(self):
-    test_file = open(self.output_dir + '/integration_tests.cc', 'w')
-    test_file.write(
-        """/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
-
-#include <string.h>
-
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/recording_micro_allocator.h"
-#include "tensorflow/lite/micro/recording_micro_interpreter.h"
-#include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
-""")
-    for include in self.includes:
-      test_file.write(include)
-    test_file.write("""
-    constexpr size_t kTensorArenaSize = 1024 * 100;
-uint8_t tensor_arena[kTensorArenaSize];
-
-namespace tflite {
-namespace micro {
-namespace {
-
-void RunModel(const uint8_t* model, """)
-    test_file.write("const int8_t* input, const uint32_t input_size,")
-    test_file.write("""
- const int8_t* golden, const uint32_t golden_size, const char* name) {
-  InitializeTarget();
-  MicroProfiler profiler;
-  AllOpsResolver op_resolver;
-
-  MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
-                               kTensorArenaSize, GetMicroErrorReporter(),
-                               nullptr, &profiler);
-  interpreter.AllocateTensors();
-""")
-    test_file.write('TfLiteTensor* input_tensor = interpreter.input(0);')
-    test_file.write('TF_LITE_MICRO_EXPECT_EQ(input_tensor->bytes, ')
-    test_file.write('input_size * sizeof(int8_t));')
-    test_file.write(
-        'memcpy(interpreter.input(0)->data.raw, input, input_tensor->bytes);')
-    test_file.write("""
-  if (kTfLiteOk != interpreter.Invoke()) {
-    TF_LITE_MICRO_EXPECT(false);
-    return;
-  }
-  profiler.Log();
-  MicroPrintf("");
-
-  TfLiteTensor* output_tensor = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(int8_t));
-  int8_t* output = GetTensorData<int8_t>(output_tensor);
-  for (uint32_t i = 0; i < golden_size; i++) {
-    // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
-    // off by 1.
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1);
-  }
-}
-
-}  // namespace
-}  // namespace micro
-}  // namespace tflite
-
-TF_LITE_MICRO_TESTS_BEGIN
-""")
+    # Collect all target names into a list
+    targets = []
+    targets_with_path = []
     for model_path in self.model_paths:
-      model_name = model_path.split('/')[-1].split('.')[0]
-      test_file.write('\nTF_LITE_MICRO_TEST(' + model_name + '_test) {')
-      test_file.write('tflite::micro::RunModel(\n')
-      test_file.write('g_' + model_name + '_model_data,\n')
-      test_file.write('g_' + model_name + '_input0_int8_test_data,\n')
-      test_file.write('g_' + model_name + '_input0_int8_test_data_size,\n')
-      test_file.write('g_' + model_name + '_golden_int8_test_data,\n')
-      test_file.write('g_' + model_name + '_golden_int8_test_data_size,\n')
-      test_file.write('"' + model_name + ' test");\n}\n')
-    test_file.write('\nTF_LITE_MICRO_TESTS_END')
+      print(model_path)
+      targets.append(model_path.split('/')[-1].split('.')[0])
+      targets_with_path.append(model_path.split('google3/')[-1].split('.')[0])
+
+    template_file_path = os.path.join(TEMPLATE_DIR,
+                                      'integration_tests_cc.mako')
+    build_template = template.Template(filename=template_file_path)
+    with open(self.output_dir + '/integration_tests.cc', 'w') as file_obj:
+      key_values_in_template = {
+          'targets': targets,
+          'targets_with_path': targets_with_path
+      }
+      file_obj.write(build_template.render(**key_values_in_template))
 
   def generate_makefile(self):
     makefile = open(self.output_dir + '/Makefile.inc', 'w')
