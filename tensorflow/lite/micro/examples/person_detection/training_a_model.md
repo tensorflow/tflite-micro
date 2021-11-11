@@ -93,7 +93,7 @@ The script takes a long time as the COCO dataset does not have a label for each 
     --dataset_dir=person_detection_dataset \
     --dataset_split_name=train \
     --train_image_size=96 \
-    --input_grayscale=True \
+    --use_grayscale=True \
     --preprocessing_name=mobilenet_v1 \
     --model_name=mobilenet_v1_025 \
     --train_dir=person_detection_train \
@@ -114,7 +114,7 @@ a few hours if you want to experiment early.
 - `--dataset_dir` parameter should match the one where you saved the
 TFRecords from the Visual Wake Words build script from the previous step.
 - `--preprocessing_name` controls how input images are modified before they're
-fed into the model. It reduces each image to the size specified by `--train_image_size` (here 96), convert them to grayscale using `--input_grayscale=True` which is compatible with the monochrome [HM01B0](https://himax.com.tw/products/cmos-image-sensor/image-sensors/hm01b0/) camera we're using on the SparkFun Edge board and scale the pixel values from 0 to 255 integers into -1.0 to +1.0 floating point numbers (which will be [quantized](https://en.wikipedia.org/wiki/Quantization) after training).
+fed into the model. It reduces each image to the size specified by `--train_image_size` (here 96), convert them to grayscale using `--use_grayscale=True` which is compatible with the monochrome [HM01B0](https://himax.com.tw/products/cmos-image-sensor/image-sensors/hm01b0/) camera we're using on the SparkFun Edge board and scale the pixel values from 0 to 255 integers into -1.0 to +1.0 floating point numbers (which will be [quantized](https://en.wikipedia.org/wiki/Quantization) after training).
 - `--model_name` is the model architecture we'll be using; here it's `mobilenet_v1_025`. The 'mobilenet_v1' prefix tells the script to use the first version of MobileNet. We use V1  as it uses the least amount of RAM for its intermediate activation buffers compared to later versions. The '025' is the depth multiplier, which reduces the number of weight parameters. This low setting ensures the model fits within 250KB of Flash.
 - `--train_dir` will contain the trained checkpoints and summaries.
 - The `--learning_rate`, `--label_smoothing`, `--learning_rate_decay_factor`,
@@ -188,7 +188,7 @@ can check the accuracy of any checkpoints in the `--train_dir` folder.)
     --dataset_dir=person_detection_train \
     --dataset_split_name=val \
     --eval_image_size=96 \
-    --input_grayscale=True \
+    --use_grayscale=True \
     --preprocessing_name=mobilenet_v1 \
     --model_name=mobilenet_v1_025 \
     --train_dir=person_detection_train \
@@ -232,7 +232,7 @@ format, since that's understood by both Slim and the rest of TensorFlow. This co
     --alsologtostderr \
     --dataset_name=visualwakewords \
     --image_size=96 \
-    --input_grayscale=True \
+    --use_grayscale=True \
     --model_name=mobilenet_v1_025 \
     --output_file=person_detection_graph.pb
 ```
