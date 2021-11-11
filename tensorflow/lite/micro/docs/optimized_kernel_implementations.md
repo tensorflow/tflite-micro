@@ -144,7 +144,7 @@ to use the optimized NN lib and document the latency improvement.
 This module is the least defined but we strongly recommend the following: 1. A
 single target makefile.inc for all the architectures that you would like to
 support along with optional target-specific
-[system_setup.cc](../arduino/system_setup.cc). See
+[system_setup.cc](../cortex_m_corstone_300/system_setup.cc). See
 [cortex_m_generic_makefile.inc](../tools/make/targets/cortex_m_generic_makefile.inc)
 and [xtensa_makefile.inc](../tools/make/targets/xtensa_makefile.inc) as
 examples.
