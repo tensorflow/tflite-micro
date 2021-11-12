@@ -18,8 +18,6 @@ $(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
 
-$(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_kissfft))
-
 THIRD_PARTY_CC_HDRS += \
 third_party/kissfft/COPYING \
 third_party/kissfft/kiss_fft.h \

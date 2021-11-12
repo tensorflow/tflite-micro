@@ -50,8 +50,8 @@ if [ -d ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} ]; then
 else
   UNAME_S=`uname -s`
   if [ ${UNAME_S} == Linux ]; then
-    ETHOS_U_CORE_PLATFORM_URL=https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git/snapshot/ethos-u-core-platform-b5f7cfe253dfeadd83caf60fde34b5b66f356782.tar.gz
-    EXPECTED_MD5=9431cd98f9d42d3bca9742dd7cab7229
+    ETHOS_U_CORE_PLATFORM_URL=https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git/snapshot/ethos-u-core-platform-e25a89dec1cf990f3168dbd6c565e3b0d51cb151.tar.gz
+    EXPECTED_MD5=0fcba2579f11c4a55ed8c49a2a8a1faa
   else
     echo "OS type ${UNAME_S} not supported."
     exit 1
@@ -64,6 +64,12 @@ else
   mkdir ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
   tar xzf ${TEMPFILE} --strip-components=1 -C ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
 
+  LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
+
+  # Prepend #!cpp to scatter file.
+  SCATTER=${LINKER_PATH}/platform.scatter
+  echo -e "#!cpp\n$(cat ${SCATTER})" > ${SCATTER}
+
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
   if [ ! -f ${COMPILER} ]; then
@@ -73,7 +79,7 @@ else
         exit 1
       fi
   fi
-  LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
+
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld
 
   # Move rodata from ITCM to DDR in order to support a bigger model without a specified section.

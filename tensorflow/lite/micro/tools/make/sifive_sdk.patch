@@ -1,0 +1,253 @@
+diff --git a/bsp/env/encoding.h b/bsp/env/encoding.h
+index 35e0f9f..2573eb7 100644
+--- a/bsp/env/encoding.h
++++ b/bsp/env/encoding.h
+@@ -167,34 +167,34 @@
+ #ifdef __GNUC__
+ 
+ #define read_csr(reg) ({ unsigned long __tmp; \
+-  asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
++  __asm__ volatile ("csrr %0, " #reg : "=r"(__tmp)); \
+   __tmp; })
+ 
+ #define write_csr(reg, val) ({ \
+   if (__builtin_constant_p(val) && (unsigned long)(val) < 32) \
+-    asm volatile ("csrw " #reg ", %0" :: "i"(val)); \
++    __asm__ volatile ("csrw " #reg ", %0" :: "i"(val)); \
+   else \
+-    asm volatile ("csrw " #reg ", %0" :: "r"(val)); })
++    __asm__ volatile ("csrw " #reg ", %0" :: "r"(val)); })
+ 
+ #define swap_csr(reg, val) ({ unsigned long __tmp; \
+   if (__builtin_constant_p(val) && (unsigned long)(val) < 32) \
+-    asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "i"(val)); \
++    __asm__ volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "i"(val)); \
+   else \
+-    asm volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
++    __asm__ volatile ("csrrw %0, " #reg ", %1" : "=r"(__tmp) : "r"(val)); \
+   __tmp; })
+ 
+ #define set_csr(reg, bit) ({ unsigned long __tmp; \
+   if (__builtin_constant_p(bit) && (unsigned long)(bit) < 32) \
+-    asm volatile ("csrrs %0, " #reg ", %1" : "=r"(__tmp) : "i"(bit)); \
++    __asm__ volatile ("csrrs %0, " #reg ", %1" : "=r"(__tmp) : "i"(bit)); \
+   else \
+-    asm volatile ("csrrs %0, " #reg ", %1" : "=r"(__tmp) : "r"(bit)); \
++    __asm__ volatile ("csrrs %0, " #reg ", %1" : "=r"(__tmp) : "r"(bit)); \
+   __tmp; })
+ 
+ #define clear_csr(reg, bit) ({ unsigned long __tmp; \
+   if (__builtin_constant_p(bit) && (unsigned long)(bit) < 32) \
+-    asm volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "i"(bit)); \
++    __asm__ volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "i"(bit)); \
+   else \
+-    asm volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "r"(bit)); \
++    __asm__ volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "r"(bit)); \
+   __tmp; })
+ 
+ #define rdtime() read_csr(time)
+diff --git a/bsp/env/freedom-e300-hifive1/flash-256k.lds b/bsp/env/freedom-e300-hifive1/flash-256k.lds
+new file mode 100644
+index 0000000..4154fa8
+--- /dev/null
++++ b/bsp/env/freedom-e300-hifive1/flash-256k.lds
+@@ -0,0 +1,161 @@
++OUTPUT_ARCH( "riscv" )
++
++ENTRY( _start )
++
++MEMORY
++{
++  flash (rxai!w) : ORIGIN = 0x20400000, LENGTH = 512M
++  ram (wxa!ri) : ORIGIN = 0x80000000, LENGTH = 256K
++}
++
++PHDRS
++{
++  flash PT_LOAD;
++  ram_init PT_LOAD;
++  ram PT_NULL;
++}
++
++SECTIONS
++{
++  __stack_size = DEFINED(__stack_size) ? __stack_size : 2K;
++
++  .init           :
++  {
++    KEEP (*(SORT_NONE(.init)))
++  } >flash AT>flash :flash
++
++  .text           :
++  {
++    *(.text.unlikely .text.unlikely.*)
++    *(.text.startup .text.startup.*)
++    *(.text .text.*)
++    *(.gnu.linkonce.t.*)
++  } >flash AT>flash :flash
++
++  .fini           :
++  {
++    KEEP (*(SORT_NONE(.fini)))
++  } >flash AT>flash :flash
++
++  PROVIDE (__etext = .);
++  PROVIDE (_etext = .);
++  PROVIDE (etext = .);
++
++  .rodata         :
++  {
++    *(.rdata)
++    *(.rodata .rodata.*)
++    *(.gnu.linkonce.r.*)
++  } >flash AT>flash :flash
++
++  . = ALIGN(4);
++
++  .preinit_array  :
++  {
++    PROVIDE_HIDDEN (__preinit_array_start = .);
++    KEEP (*(.preinit_array))
++    PROVIDE_HIDDEN (__preinit_array_end = .);
++  } >flash AT>flash :flash
++
++  .init_array     :
++  {
++    PROVIDE_HIDDEN (__init_array_start = .);
++    KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
++    KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
++    PROVIDE_HIDDEN (__init_array_end = .);
++  } >flash AT>flash :flash
++
++  .fini_array     :
++  {
++    PROVIDE_HIDDEN (__fini_array_start = .);
++    KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
++    KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
++    PROVIDE_HIDDEN (__fini_array_end = .);
++  } >flash AT>flash :flash
++
++  .ctors          :
++  {
++    /* gcc uses crtbegin.o to find the start of
++       the constructors, so we make sure it is
++       first.  Because this is a wildcard, it
++       doesn't matter if the user does not
++       actually link against crtbegin.o; the
++       linker won't look for a file to match a
++       wildcard.  The wildcard also means that it
++       doesn't matter which directory crtbegin.o
++       is in.  */
++    KEEP (*crtbegin.o(.ctors))
++    KEEP (*crtbegin?.o(.ctors))
++    /* We don't want to include the .ctor section from
++       the crtend.o file until after the sorted ctors.
++       The .ctor section from the crtend file contains the
++       end of ctors marker and it must be last */
++    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
++    KEEP (*(SORT(.ctors.*)))
++    KEEP (*(.ctors))
++  } >flash AT>flash :flash
++
++  .dtors          :
++  {
++    KEEP (*crtbegin.o(.dtors))
++    KEEP (*crtbegin?.o(.dtors))
++    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))
++    KEEP (*(SORT(.dtors.*)))
++    KEEP (*(.dtors))
++  } >flash AT>flash :flash
++
++  .lalign         :
++  {
++    . = ALIGN(4);
++    PROVIDE( _data_lma = . );
++  } >flash AT>flash :flash
++
++  .dalign         :
++  {
++    . = ALIGN(4);
++    PROVIDE( _data = . );
++  } >ram AT>flash :ram_init
++
++  .data          :
++  {
++    *(.data .data.*)
++    *(.gnu.linkonce.d.*)
++    . = ALIGN(8);
++    PROVIDE( __global_pointer$ = . + 0x800 );
++    *(.sdata .sdata.*)
++    *(.gnu.linkonce.s.*)
++    . = ALIGN(8);
++    *(.srodata.cst16)
++    *(.srodata.cst8)
++    *(.srodata.cst4)
++    *(.srodata.cst2)
++    *(.srodata .srodata.*)
++  } >ram AT>flash :ram_init
++
++  . = ALIGN(4);
++  PROVIDE( _edata = . );
++  PROVIDE( edata = . );
++
++  PROVIDE( _fbss = . );
++  PROVIDE( __bss_start = . );
++  .bss            :
++  {
++    *(.sbss*)
++    *(.gnu.linkonce.sb.*)
++    *(.bss .bss.*)
++    *(.gnu.linkonce.b.*)
++    *(COMMON)
++    . = ALIGN(4);
++  } >ram AT>ram :ram
++
++  . = ALIGN(8);
++  PROVIDE( _end = . );
++  PROVIDE( end = . );
++
++  .stack ORIGIN(ram) + LENGTH(ram) - __stack_size :
++  {
++    PROVIDE( _heap_end = . );
++    . = __stack_size;
++    PROVIDE( _sp = . );
++  } >ram AT>ram :ram
++}
+diff --git a/bsp/env/freedom-e300-hifive1/init.c b/bsp/env/freedom-e300-hifive1/init.c
+index 621a6e2..f0c2cff 100644
+--- a/bsp/env/freedom-e300-hifive1/init.c
++++ b/bsp/env/freedom-e300-hifive1/init.c
+@@ -222,7 +222,7 @@ void _init()
+   use_pll(0, 0, 1, 31, 1);
+   uart_init(115200);
+ 
+-  printf("core freq at %d Hz\n", get_cpu_freq());
++  printf("core freq at %ld Hz\n", get_cpu_freq());
+ 
+   write_csr(mtvec, &trap_entry);
+   if (read_csr(misa) & (1 << ('F' - 'A'))) { // if F extension is present
+diff --git a/bsp/libwrap/sys/sbrk.c b/bsp/libwrap/sys/sbrk.c
+index 12170b4..ba83e0f 100644
+--- a/bsp/libwrap/sys/sbrk.c
++++ b/bsp/libwrap/sys/sbrk.c
+@@ -13,6 +13,7 @@ void *__wrap_sbrk(ptrdiff_t incr)
+     return NULL - 1;
+ 
+   curbrk += incr;
++  curbrk = (char *)(((unsigned long)curbrk + 3UL) & ~3UL); // Patch
+   return curbrk - incr;
+ }
+ weak_under_alias(sbrk);
+diff --git a/bsp/libwrap/sys/write.c b/bsp/libwrap/sys/write.c
+index b1e9a7e..3f83e8f 100644
+--- a/bsp/libwrap/sys/write.c
++++ b/bsp/libwrap/sys/write.c
+@@ -11,7 +11,7 @@
+ 
+ ssize_t __wrap_write(int fd, const void* ptr, size_t len)
+ {
+-  const uint8_t * current = (const char *)ptr;
++  const uint8_t * current = (const uint8_t *)ptr;
+ 
+   if (isatty(fd)) {
+     for (size_t jj = 0; jj < len; jj++) {

@@ -29,6 +29,11 @@ jobs:
         with:
           token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
 
+      - name: Install dependencies for sync
+        run: |
+          sudo ./ci/install_bazel.sh
+          pip3 install numpy
+
       - name: Sync the code
         run: |
           ./ci/sync_from_upstream_tf.sh

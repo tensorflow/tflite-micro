@@ -91,6 +91,24 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteTensor* tensor,
                                               TfLiteEvalTensor* eval_tensor);
 
+// Returns a blob of payload data. The payload is subjected to interpretation by
+// the OP. This is the recommended API for an OP to get an external context. OP
+// should use this instead of directly calling GetExternalContext function in
+// context. Example usage:
+//
+// An application can set an external context through interpreter as below
+//     interpreter->SetMicroExternalContext(pointer_to_your_payload);
+//
+//  Inside an OP that needs this payload, it get the payload pointer by:
+//    Prepare(TfliteContext * context) {
+//       ...
+//       payload_ptr =
+//       reinterpret_cast<your_data_type>(GetMicroExternalContext(context))
+//       ...
+//    }
+//
+void* GetMicroExternalContext(TfLiteContext* context);
+
 }  // namespace micro
 }  // namespace tflite
 

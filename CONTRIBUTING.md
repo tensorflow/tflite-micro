@@ -223,7 +223,7 @@ Below are some tips that might be useful and improve the development experience.
     *   Always merge upstream/main (***do not rebase***) and no force-pushes
         please.
 
-    *   Having an extra merge commit it ok as the github review tool handles
+    *   Having an extra merge commit is ok as the github review tool handles
         that gracefully.
 
     Assuming that you forked tensorflow and added a remote called upstream with:
@@ -292,8 +292,7 @@ Below are some tips that might be useful and improve the development experience.
 
 ## Python notes
 
-*   [TensorFlow guide](https://www.tensorflow.org/community/contribute/code_style#python_style)
-    for Python development
+*   [TFLM Python guide](docs/python.md)
 
 # Continuous Integration System
   * Some [additional documentation](docs/continuous_integration.md) on the TFLM CI.

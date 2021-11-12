@@ -31,6 +31,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
+    out_cc_file.write('#include <cstdint>\n\n')
     out_cc_file.write('#include "{}"\n\n'.format(
         out_fname.split('genfiles/')[-1].replace('.cc', '.h')))
     out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
@@ -42,6 +43,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
     out_cc_file.close()
   elif out_fname.endswith('.h'):
     out_hdr_file = open(out_fname, 'w')
+    out_hdr_file.write('#include <cstdint>\n\n')
     out_hdr_file.write('extern const {} {}[];\n'.format(
         array_type, array_name))
     out_hdr_file.write('extern const unsigned int {}_size;'.format(array_name))
@@ -94,9 +96,13 @@ def get_array_name(input_fname):
   elif input_fname.endswith('.bmp'):
     return [base_array_name + '_image_data', 'unsigned char']
   elif input_fname.endswith('.wav'):
-    return [base_array_name + '_audio_data', 'short']
-  elif input_fname.endswith('.csv'):
-    return [base_array_name + '_test_data', 'short']
+    return [base_array_name + '_audio_data', 'int16_t']
+  elif input_fname.endswith('_int32.csv'):
+    return [base_array_name + '_test_data', 'int32_t']
+  elif input_fname.endswith('_int16.csv'):
+    return [base_array_name + '_test_data', 'int16_t']
+  elif input_fname.endswith('_int8.csv'):
+    return [base_array_name + '_test_data', 'int8_t']
 
 
 def main():

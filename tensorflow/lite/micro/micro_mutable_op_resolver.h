@@ -459,6 +459,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseSin);
   }
 
+  TfLiteStatus AddSlice() {
+    return AddBuiltin(BuiltinOperator_SLICE, Register_SLICE(), ParseSlice);
+  }
+
   TfLiteStatus AddSoftmax(
       const TfLiteRegistration& registration = Register_SOFTMAX()) {
     return AddBuiltin(BuiltinOperator_SOFTMAX, registration, ParseSoftmax);

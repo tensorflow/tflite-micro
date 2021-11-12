@@ -49,6 +49,17 @@ PaddingType RuntimePaddingType(TfLitePadding padding) {
   }
 }
 
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
 // Relocate tensor dims from FlatBuffer to the persistent storage arena.
 // The old dims data is copied to the new storage area.
 // The tensor and eval_tensor must be the same tensor.
@@ -74,15 +85,13 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-int ValidateTensorIndexing(const TfLiteContext* context, int index,
-                           int max_size, const int* tensor_indices) {
-  if (index >= 0 && index < max_size) {
-    const int tensor_index = tensor_indices[index];
-    if (tensor_index != kTfLiteOptionalTensor) {
-      return tensor_index;
-    }
-  }
-  return -1;
+// Returns a blob of payload data. The payload is subjected to interpretation by
+// the OP. This is the recommended API for an OP to get an external context. OP
+// should use this instead of directly calling GetExternalContext function in
+// context.
+void* GetExternalContext(TfLiteContext* context) {
+  return reinterpret_cast<void*>(
+      context->GetExternalContext(context, kTfLiteMaxExternalContexts));
 }
 
 }  // namespace micro
