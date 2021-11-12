@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -71,6 +72,16 @@ class MicroInterpreter {
   // values other than kTfLiteOk and kTfLiteError.
   // TODO(b/149795762): Add this to the TfLiteStatus enum.
   TfLiteStatus Invoke();
+
+  // This is the recommended API for an application to pass an external payload
+  // pointer as an external context to kernels. The life time of the payload
+  // pointer should be at least as long as this interpreter. TFLM supports only
+  // one external context.
+  TfLiteStatus SetMicroExternalContext(void* external_context_payload);
+
+  // This function is used by the TfLiteContext::GetExternalContext() to get the
+  // external context.
+  void* GetMicroExternalContext();
 
   TfLiteTensor* input(size_t index);
   size_t inputs_size() const {
@@ -154,6 +165,11 @@ class MicroInterpreter {
   static TfLiteStatus GetGraph(struct TfLiteContext* context,
                                TfLiteIntArray** args);
 
+  // This callback is an implementation for TfLiteContext::GetExternalContext
+  // interface.
+  static TfLiteExternalContext* GetExternalContext(
+      TfLiteContext* context, TfLiteExternalContextType unused);
+
   const Model* model_;
   const MicroOpResolver& op_resolver_;
   ErrorReporter* error_reporter_;
@@ -165,6 +181,7 @@ class MicroInterpreter {
   TfLiteStatus initialization_status_;
 
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
+  void* external_context_payload_ = nullptr;
 
   // TODO(b/162311891): Clean these pointers up when this class supports buffers
   // from TfLiteEvalTensor.

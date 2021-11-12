@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
@@ -208,11 +209,15 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
   context_.GetExecutionPlan = GetGraph;
+  context_.GetExternalContext = nullptr;
   graph_.InitSubgraphs();
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena = RequestScratchBufferInArena;
+  // GetExternalContext become available in Prepare stage.
+  context_.GetExternalContext = GetExternalContext;
+
   graph_.PrepareSubgraphs();
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
@@ -379,6 +384,38 @@ TfLiteStatus MicroInterpreter::GetGraph(struct TfLiteContext* context,
       reinterpret_cast<MicroInterpreter*>(context->impl_);
   *args = reinterpret_cast<TfLiteIntArray*>(&interpreter->graph_);
   return kTfLiteOk;
+}
+
+TfLiteStatus MicroInterpreter::SetMicroExternalContext(
+    void* external_context_payload) {
+  if (external_context_payload == nullptr ||
+      external_context_payload_ != nullptr) {
+    MicroPrintf(
+        "Attempting to set external context to %x but it was %x already",
+        external_context_payload, external_context_payload_);
+    return kTfLiteError;
+  }
+
+  external_context_payload_ = external_context_payload;
+  return kTfLiteOk;
+}
+
+void* MicroInterpreter::GetMicroExternalContext() {
+  return external_context_payload_;
+}
+
+// This callback is an implementation for TfLiteContext::GetExternalContext
+// interface.
+TfLiteExternalContext* MicroInterpreter::GetExternalContext(
+    TfLiteContext* context, TfLiteExternalContextType unused) {
+  // TODO(b/205754757): TfLiteExternalContextType is unused in TFLM. This
+  // function is only called by the framework as a way to conform to existing
+  // interface. Users should use GetMicroExternalContext api in kernel_util.h to
+  // get context and shall not directly use this function.
+  MicroInterpreter* interpreter =
+      reinterpret_cast<MicroInterpreter*>(context->impl_);
+  return reinterpret_cast<TfLiteExternalContext*>(
+      interpreter->GetMicroExternalContext());
 }
 
 }  // namespace tflite
