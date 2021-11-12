@@ -65,9 +65,6 @@ TfLiteStatus CalculateOpDataSub(TfLiteContext* context, TfLiteSubParams* params,
     QuantizeMultiplierSmallerThanOneExp(
         real_input2_multiplier, &data->input2_multiplier, &data->input2_shift);
 
-    // Use add kernel for 16-bit sub, since it supports output requantization.
-    // This matches behavior in TFLite.
-    data->input2_multiplier *= (output->type == kTfLiteInt16) ? -1 : 1;
     QuantizeMultiplierSmallerThanOneExp(
         real_output_multiplier, &data->output_multiplier, &data->output_shift);
 
