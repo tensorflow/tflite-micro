@@ -75,12 +75,10 @@ def generate_array(input_fname):
   elif input_fname.endswith('.wav'):
     wav_file = wave.open(input_fname, mode='r')
     num_channels = wav_file.getnchannels()
-    out_string = ''
-    for _ in range(wav_file.getnframes()):
-      frame = wav_file.readframes(1)
-      samples = struct.unpack('<%dh' % num_channels, frame)
-      for sample in samples:
-        out_string += str(sample) + ','
+    n_frames = wav_file.getnframes()
+    frames = wav_file.readframes(n_frames)
+    samples = struct.unpack('<%dh' % (num_channels * n_frames), frames)
+    out_string = ','.join(map(str, samples))
     wav_file.close()
     return [wav_file.getnframes(), out_string]
   elif input_fname.endswith('.csv'):
