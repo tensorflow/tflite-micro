@@ -146,14 +146,16 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
 
   uint32_t operators_size = NumSubgraphOperators(subgraph);
 
-  for (size_t i = 0; i < subgraph->inputs()->size(); ++i) {
+  for (size_t i = 0;
+       subgraph->inputs() != nullptr && i < subgraph->inputs()->size(); ++i) {
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
     current->first_created = 0;
   }
 
   // Mark all outputs as persistent to the end of the invocation.
-  for (size_t i = 0; i < subgraph->outputs()->size(); ++i) {
+  for (size_t i = 0;
+       subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
     AllocationInfo* current = &info_[tensor_index];
     current->last_used = operators_size - 1;
@@ -162,14 +164,16 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
   // Figure out when the first and last use of each tensor is.
   for (int i = (operators_size - 1); i >= 0; --i) {
     const auto* op = subgraph->operators()->Get(i);
-    for (size_t n = 0; n < op->inputs()->size(); ++n) {
+    for (size_t n = 0; op->inputs() != nullptr && n < op->inputs()->size();
+         ++n) {
       const int tensor_index = op->inputs()->Get(n);
       AllocationInfo* current = &info_[tensor_index];
       if (((current->last_used == -1) || (current->last_used < i))) {
         current->last_used = i;
       }
     }
-    for (size_t n = 0; n < op->outputs()->size(); ++n) {
+    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
+         ++n) {
       const int tensor_index = op->outputs()->Get(n);
       AllocationInfo* current = &info_[tensor_index];
       if ((current->first_created == -1) || (current->first_created > i)) {
@@ -289,7 +293,6 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
     const flatbuffers::Vector<kFlatBufferVectorType>* flatbuffer_array,
     kTfLiteArrayType** result) {
   TFLITE_DCHECK(error_reporter != nullptr);
-  TFLITE_DCHECK(flatbuffer_array != nullptr);
   // TODO(b/159668691): Consider adding type assertion or breaking this function
   // into multiple functions for each type. std::is_same is c++11 and has a
   // special updated constructor in c++17 that requires a string argument.
@@ -300,6 +303,9 @@ TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
     *result = const_cast<kTfLiteArrayType*>(
         reinterpret_cast<const kTfLiteArrayType*>(flatbuffer_array));
   } else {
+    // Fixed b/206152717 by removing this check for little endian. This check is
+    // still required for big endian systems.
+    TFLITE_DCHECK(flatbuffer_array != nullptr);
     // Big-endian architecture can not use the same memory layout as
     // flatbuffers::Vector<kFlatBufferVectorType>. Allocate from the tail and
     // copy values from the flatbuffer into the newly allocated chunk.
