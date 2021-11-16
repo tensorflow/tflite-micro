@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import argparse
 import os
+import struct
 import wave
 
 from PIL import Image
@@ -73,11 +74,11 @@ def generate_array(input_fname):
     return [len(image_bytes), out_string]
   elif input_fname.endswith('.wav'):
     wav_file = wave.open(input_fname, mode='r')
-    out_string = ''
-    for _ in range(wav_file.getnframes()):
-      frame = wav_file.readframes(1)
-      out_string += str(int.from_bytes(frame, byteorder='little',
-                                       signed=True)) + ','
+    num_channels = wav_file.getnchannels()
+    n_frames = wav_file.getnframes()
+    frames = wav_file.readframes(n_frames)
+    samples = struct.unpack('<%dh' % (num_channels * n_frames), frames)
+    out_string = ','.join(map(str, samples))
     wav_file.close()
     return [wav_file.getnframes(), out_string]
   elif input_fname.endswith('.csv'):
