@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import argparse
 import os
+import struct
 import wave
 
 from PIL import Image
@@ -31,6 +32,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
   if out_fname.endswith('.cc'):
     out_cc_file = open(out_fname, 'w')
+    out_cc_file.write('#include <cstdint>\n\n')
     out_cc_file.write('#include "{}"\n\n'.format(
         out_fname.split('genfiles/')[-1].replace('.cc', '.h')))
     out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
@@ -42,6 +44,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
     out_cc_file.close()
   elif out_fname.endswith('.h'):
     out_hdr_file = open(out_fname, 'w')
+    out_hdr_file.write('#include <cstdint>\n\n')
     out_hdr_file.write('extern const {} {}[];\n'.format(
         array_type, array_name))
     out_hdr_file.write('extern const unsigned int {}_size;'.format(array_name))
@@ -71,11 +74,11 @@ def generate_array(input_fname):
     return [len(image_bytes), out_string]
   elif input_fname.endswith('.wav'):
     wav_file = wave.open(input_fname, mode='r')
-    out_string = ''
-    for _ in range(wav_file.getnframes()):
-      frame = wav_file.readframes(1)
-      out_string += str(int.from_bytes(frame, byteorder='little',
-                                       signed=True)) + ','
+    num_channels = wav_file.getnchannels()
+    n_frames = wav_file.getnframes()
+    frames = wav_file.readframes(n_frames)
+    samples = struct.unpack('<%dh' % (num_channels * n_frames), frames)
+    out_string = ','.join(map(str, samples))
     wav_file.close()
     return [wav_file.getnframes(), out_string]
   elif input_fname.endswith('.csv'):
@@ -94,9 +97,13 @@ def get_array_name(input_fname):
   elif input_fname.endswith('.bmp'):
     return [base_array_name + '_image_data', 'unsigned char']
   elif input_fname.endswith('.wav'):
-    return [base_array_name + '_audio_data', 'short']
-  elif input_fname.endswith('.csv'):
-    return [base_array_name + '_test_data', 'short']
+    return [base_array_name + '_audio_data', 'int16_t']
+  elif input_fname.endswith('_int32.csv'):
+    return [base_array_name + '_test_data', 'int32_t']
+  elif input_fname.endswith('_int16.csv'):
+    return [base_array_name + '_test_data', 'int16_t']
+  elif input_fname.endswith('_int8.csv'):
+    return [base_array_name + '_test_data', 'int8_t']
 
 
 def main():

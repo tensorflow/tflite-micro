@@ -17,71 +17,71 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv0_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv0_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv0_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv0_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv0_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv10_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv10_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv10_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv10_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv10_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv11_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv11_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv11_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv11_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv11_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv12_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv12_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv12_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv12_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv12_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv13_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv13_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv13_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv13_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv13_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv14_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv14_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv14_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv14_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv14_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv15_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv15_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv15_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv15_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv15_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv16_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv16_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv16_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv16_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv16_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv17_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv17_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv17_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv17_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv17_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv18_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv18_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv18_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv18_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv18_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv19_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv19_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv19_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv19_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv19_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv1_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv1_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv1_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv1_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv1_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv20_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv20_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv20_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv20_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv20_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv21_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv21_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv21_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv21_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv21_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv2_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv2_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv2_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv2_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv2_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv3_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv3_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv3_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv3_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv3_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv4_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv4_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv4_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv4_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv4_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv5_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv5_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv5_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv5_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv5_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv6_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv6_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv6_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv6_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv6_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv7_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv7_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv7_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv7_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv7_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv8_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv8_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv8_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv8_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv8_model_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_golden_test_data.h"
-#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_input_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_golden_int16_test_data.h"
+#include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_model_data.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -133,147 +133,157 @@ void RunModel(const uint8_t* model, const int16_t* input,
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(conv0_test) {
-  tflite::micro::RunModel(
-      g_conv0_model_data, g_conv0_input_test_data, g_conv0_input_test_data_size,
-      g_conv0_golden_test_data, g_conv0_golden_test_data_size, "conv0 test");
+  tflite::micro::RunModel(g_conv0_model_data, g_conv0_input_int16_test_data,
+                          g_conv0_input_int16_test_data_size,
+                          g_conv0_golden_int16_test_data,
+                          g_conv0_golden_int16_test_data_size, "conv0 test");
 }
 
 TF_LITE_MICRO_TEST(conv1_test) {
-  tflite::micro::RunModel(
-      g_conv1_model_data, g_conv1_input_test_data, g_conv1_input_test_data_size,
-      g_conv1_golden_test_data, g_conv1_golden_test_data_size, "conv1 test");
+  tflite::micro::RunModel(g_conv1_model_data, g_conv1_input_int16_test_data,
+                          g_conv1_input_int16_test_data_size,
+                          g_conv1_golden_int16_test_data,
+                          g_conv1_golden_int16_test_data_size, "conv1 test");
 }
 
 TF_LITE_MICRO_TEST(conv2_test) {
-  tflite::micro::RunModel(
-      g_conv2_model_data, g_conv2_input_test_data, g_conv2_input_test_data_size,
-      g_conv2_golden_test_data, g_conv2_golden_test_data_size, "conv2 test");
+  tflite::micro::RunModel(g_conv2_model_data, g_conv2_input_int16_test_data,
+                          g_conv2_input_int16_test_data_size,
+                          g_conv2_golden_int16_test_data,
+                          g_conv2_golden_int16_test_data_size, "conv2 test");
 }
 
 TF_LITE_MICRO_TEST(conv3_test) {
-  tflite::micro::RunModel(
-      g_conv3_model_data, g_conv3_input_test_data, g_conv3_input_test_data_size,
-      g_conv3_golden_test_data, g_conv3_golden_test_data_size, "conv3 test");
+  tflite::micro::RunModel(g_conv3_model_data, g_conv3_input_int16_test_data,
+                          g_conv3_input_int16_test_data_size,
+                          g_conv3_golden_int16_test_data,
+                          g_conv3_golden_int16_test_data_size, "conv3 test");
 }
 
 TF_LITE_MICRO_TEST(conv4_test) {
-  tflite::micro::RunModel(
-      g_conv4_model_data, g_conv4_input_test_data, g_conv4_input_test_data_size,
-      g_conv4_golden_test_data, g_conv4_golden_test_data_size, "conv4 test");
+  tflite::micro::RunModel(g_conv4_model_data, g_conv4_input_int16_test_data,
+                          g_conv4_input_int16_test_data_size,
+                          g_conv4_golden_int16_test_data,
+                          g_conv4_golden_int16_test_data_size, "conv4 test");
 }
 
 TF_LITE_MICRO_TEST(conv5_test) {
-  tflite::micro::RunModel(
-      g_conv5_model_data, g_conv5_input_test_data, g_conv5_input_test_data_size,
-      g_conv5_golden_test_data, g_conv5_golden_test_data_size, "conv5 test");
+  tflite::micro::RunModel(g_conv5_model_data, g_conv5_input_int16_test_data,
+                          g_conv5_input_int16_test_data_size,
+                          g_conv5_golden_int16_test_data,
+                          g_conv5_golden_int16_test_data_size, "conv5 test");
 }
 
 TF_LITE_MICRO_TEST(conv6_test) {
-  tflite::micro::RunModel(
-      g_conv6_model_data, g_conv6_input_test_data, g_conv6_input_test_data_size,
-      g_conv6_golden_test_data, g_conv6_golden_test_data_size, "conv6 test");
+  tflite::micro::RunModel(g_conv6_model_data, g_conv6_input_int16_test_data,
+                          g_conv6_input_int16_test_data_size,
+                          g_conv6_golden_int16_test_data,
+                          g_conv6_golden_int16_test_data_size, "conv6 test");
 }
 
 TF_LITE_MICRO_TEST(conv7_test) {
-  tflite::micro::RunModel(
-      g_conv7_model_data, g_conv7_input_test_data, g_conv7_input_test_data_size,
-      g_conv7_golden_test_data, g_conv7_golden_test_data_size, "conv7 test");
+  tflite::micro::RunModel(g_conv7_model_data, g_conv7_input_int16_test_data,
+                          g_conv7_input_int16_test_data_size,
+                          g_conv7_golden_int16_test_data,
+                          g_conv7_golden_int16_test_data_size, "conv7 test");
 }
 
 TF_LITE_MICRO_TEST(conv8_test) {
-  tflite::micro::RunModel(
-      g_conv8_model_data, g_conv8_input_test_data, g_conv8_input_test_data_size,
-      g_conv8_golden_test_data, g_conv8_golden_test_data_size, "conv8 test");
+  tflite::micro::RunModel(g_conv8_model_data, g_conv8_input_int16_test_data,
+                          g_conv8_input_int16_test_data_size,
+                          g_conv8_golden_int16_test_data,
+                          g_conv8_golden_int16_test_data_size, "conv8 test");
 }
 
 TF_LITE_MICRO_TEST(conv9_test) {
-  tflite::micro::RunModel(
-      g_conv9_model_data, g_conv9_input_test_data, g_conv9_input_test_data_size,
-      g_conv9_golden_test_data, g_conv9_golden_test_data_size, "conv9 test");
+  tflite::micro::RunModel(g_conv9_model_data, g_conv9_input_int16_test_data,
+                          g_conv9_input_int16_test_data_size,
+                          g_conv9_golden_int16_test_data,
+                          g_conv9_golden_int16_test_data_size, "conv9 test");
 }
 
 TF_LITE_MICRO_TEST(conv10_test) {
-  tflite::micro::RunModel(g_conv10_model_data, g_conv10_input_test_data,
-                          g_conv10_input_test_data_size,
-                          g_conv10_golden_test_data,
-                          g_conv10_golden_test_data_size, "conv10 test");
+  tflite::micro::RunModel(g_conv10_model_data, g_conv10_input_int16_test_data,
+                          g_conv10_input_int16_test_data_size,
+                          g_conv10_golden_int16_test_data,
+                          g_conv10_golden_int16_test_data_size, "conv10 test");
 }
 
 TF_LITE_MICRO_TEST(conv11_test) {
-  tflite::micro::RunModel(g_conv11_model_data, g_conv11_input_test_data,
-                          g_conv11_input_test_data_size,
-                          g_conv11_golden_test_data,
-                          g_conv11_golden_test_data_size, "conv11 test");
+  tflite::micro::RunModel(g_conv11_model_data, g_conv11_input_int16_test_data,
+                          g_conv11_input_int16_test_data_size,
+                          g_conv11_golden_int16_test_data,
+                          g_conv11_golden_int16_test_data_size, "conv11 test");
 }
 
 TF_LITE_MICRO_TEST(conv12_test) {
-  tflite::micro::RunModel(g_conv12_model_data, g_conv12_input_test_data,
-                          g_conv12_input_test_data_size,
-                          g_conv12_golden_test_data,
-                          g_conv12_golden_test_data_size, "conv12 test");
+  tflite::micro::RunModel(g_conv12_model_data, g_conv12_input_int16_test_data,
+                          g_conv12_input_int16_test_data_size,
+                          g_conv12_golden_int16_test_data,
+                          g_conv12_golden_int16_test_data_size, "conv12 test");
 }
 
 TF_LITE_MICRO_TEST(conv13_test) {
-  tflite::micro::RunModel(g_conv13_model_data, g_conv13_input_test_data,
-                          g_conv13_input_test_data_size,
-                          g_conv13_golden_test_data,
-                          g_conv13_golden_test_data_size, "conv13 test");
+  tflite::micro::RunModel(g_conv13_model_data, g_conv13_input_int16_test_data,
+                          g_conv13_input_int16_test_data_size,
+                          g_conv13_golden_int16_test_data,
+                          g_conv13_golden_int16_test_data_size, "conv13 test");
 }
 
 TF_LITE_MICRO_TEST(conv14_test) {
-  tflite::micro::RunModel(g_conv14_model_data, g_conv14_input_test_data,
-                          g_conv14_input_test_data_size,
-                          g_conv14_golden_test_data,
-                          g_conv14_golden_test_data_size, "conv14 test");
+  tflite::micro::RunModel(g_conv14_model_data, g_conv14_input_int16_test_data,
+                          g_conv14_input_int16_test_data_size,
+                          g_conv14_golden_int16_test_data,
+                          g_conv14_golden_int16_test_data_size, "conv14 test");
 }
 
 TF_LITE_MICRO_TEST(conv15_test) {
-  tflite::micro::RunModel(g_conv15_model_data, g_conv15_input_test_data,
-                          g_conv15_input_test_data_size,
-                          g_conv15_golden_test_data,
-                          g_conv15_golden_test_data_size, "conv15 test");
+  tflite::micro::RunModel(g_conv15_model_data, g_conv15_input_int16_test_data,
+                          g_conv15_input_int16_test_data_size,
+                          g_conv15_golden_int16_test_data,
+                          g_conv15_golden_int16_test_data_size, "conv15 test");
 }
 
 TF_LITE_MICRO_TEST(conv16_test) {
-  tflite::micro::RunModel(g_conv16_model_data, g_conv16_input_test_data,
-                          g_conv16_input_test_data_size,
-                          g_conv16_golden_test_data,
-                          g_conv16_golden_test_data_size, "conv16 test");
+  tflite::micro::RunModel(g_conv16_model_data, g_conv16_input_int16_test_data,
+                          g_conv16_input_int16_test_data_size,
+                          g_conv16_golden_int16_test_data,
+                          g_conv16_golden_int16_test_data_size, "conv16 test");
 }
 
 TF_LITE_MICRO_TEST(conv17_test) {
-  tflite::micro::RunModel(g_conv17_model_data, g_conv17_input_test_data,
-                          g_conv17_input_test_data_size,
-                          g_conv17_golden_test_data,
-                          g_conv17_golden_test_data_size, "conv17 test");
+  tflite::micro::RunModel(g_conv17_model_data, g_conv17_input_int16_test_data,
+                          g_conv17_input_int16_test_data_size,
+                          g_conv17_golden_int16_test_data,
+                          g_conv17_golden_int16_test_data_size, "conv17 test");
 }
 
 TF_LITE_MICRO_TEST(conv18_test) {
-  tflite::micro::RunModel(g_conv18_model_data, g_conv18_input_test_data,
-                          g_conv18_input_test_data_size,
-                          g_conv18_golden_test_data,
-                          g_conv18_golden_test_data_size, "conv18 test");
+  tflite::micro::RunModel(g_conv18_model_data, g_conv18_input_int16_test_data,
+                          g_conv18_input_int16_test_data_size,
+                          g_conv18_golden_int16_test_data,
+                          g_conv18_golden_int16_test_data_size, "conv18 test");
 }
 
 TF_LITE_MICRO_TEST(conv19_test) {
-  tflite::micro::RunModel(g_conv19_model_data, g_conv19_input_test_data,
-                          g_conv19_input_test_data_size,
-                          g_conv19_golden_test_data,
-                          g_conv19_golden_test_data_size, "conv19 test");
+  tflite::micro::RunModel(g_conv19_model_data, g_conv19_input_int16_test_data,
+                          g_conv19_input_int16_test_data_size,
+                          g_conv19_golden_int16_test_data,
+                          g_conv19_golden_int16_test_data_size, "conv19 test");
 }
 
 TF_LITE_MICRO_TEST(conv20_test) {
-  tflite::micro::RunModel(g_conv20_model_data, g_conv20_input_test_data,
-                          g_conv20_input_test_data_size,
-                          g_conv20_golden_test_data,
-                          g_conv20_golden_test_data_size, "conv20 test");
+  tflite::micro::RunModel(g_conv20_model_data, g_conv20_input_int16_test_data,
+                          g_conv20_input_int16_test_data_size,
+                          g_conv20_golden_int16_test_data,
+                          g_conv20_golden_int16_test_data_size, "conv20 test");
 }
 
 TF_LITE_MICRO_TEST(conv21_test) {
-  tflite::micro::RunModel(g_conv21_model_data, g_conv21_input_test_data,
-                          g_conv21_input_test_data_size,
-                          g_conv21_golden_test_data,
-                          g_conv21_golden_test_data_size, "conv21 test");
+  tflite::micro::RunModel(g_conv21_model_data, g_conv21_input_int16_test_data,
+                          g_conv21_input_int16_test_data_size,
+                          g_conv21_golden_int16_test_data,
+                          g_conv21_golden_int16_test_data_size, "conv21 test");
 }
 
 TF_LITE_MICRO_TESTS_END
