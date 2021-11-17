@@ -845,8 +845,6 @@ const Model* BuildSimpleMockModelWithNullInputsOutputs() {
                    TensorType_INT32, 0,
                    builder->CreateString("test_input_tensor1"), 0, false),
   };
-  constexpr size_t subgraph1_tensors_size = 0;
-  const Offset<Tensor> subgraph1_tensors[subgraph1_tensors_size] = {};
   constexpr size_t subgraph0_inputs_size = 1;
   const int32_t subgraph0_inputs[subgraph0_inputs_size] = {0};
   constexpr size_t subgraph0_outputs_size = 1;
@@ -867,11 +865,9 @@ const Model* BuildSimpleMockModelWithNullInputsOutputs() {
           builder->CreateVector(subgraph0_outputs, subgraph0_outputs_size),
           builder->CreateVector(subgraph0_operators, operators_size),
           builder->CreateString("main_subgraph")),
-      CreateSubGraph(
-          *builder,
-          builder->CreateVector(subgraph1_tensors, subgraph1_tensors_size), {},
-          {}, builder->CreateVector(subgraph1_operators, operators_size),
-          builder->CreateString("secondary subgraph")),
+      CreateSubGraph(*builder, {}, {}, {},
+                     builder->CreateVector(subgraph1_operators, operators_size),
+                     builder->CreateString("secondary subgraph")),
   };
   constexpr size_t operator_codes_size = 2;
   const Offset<OperatorCode> operator_codes[operator_codes_size] = {
