@@ -109,10 +109,10 @@ cc_library(
     ],
     deps = [
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:debug_log",
-        "//tensorflow/lite/kernels:kernel_util",
     ],
 )
 
