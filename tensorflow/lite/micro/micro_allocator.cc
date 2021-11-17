@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
@@ -283,52 +284,6 @@ TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
 
 namespace internal {
 
-// Handles architecture safe mapping of flatbuffer vectors to a TfLite*Array
-// struct. Matching types are required (e.g. float and TfLiteFloatArray).
-// Big-endian systems will always allocate dimension array data in the tail
-// (persistent) section.
-template <typename kFlatBufferVectorType, typename kTfLiteArrayType>
-TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
-    SimpleMemoryAllocator* allocator, ErrorReporter* error_reporter,
-    const flatbuffers::Vector<kFlatBufferVectorType>* flatbuffer_array,
-    kTfLiteArrayType** result) {
-  TFLITE_DCHECK(error_reporter != nullptr);
-  // TODO(b/159668691): Consider adding type assertion or breaking this function
-  // into multiple functions for each type. std::is_same is c++11 and has a
-  // special updated constructor in c++17 that requires a string argument.
-  if (FLATBUFFERS_LITTLEENDIAN) {
-    // On little-endian machines, TfLite*Array happens to have the same memory
-    // layout as flatbuffers:Vector<kFlatBufferVectorType>, so we can
-    // reinterpret_cast the flatbuffer vector and avoid a copy and malloc.
-    *result = const_cast<kTfLiteArrayType*>(
-        reinterpret_cast<const kTfLiteArrayType*>(flatbuffer_array));
-  } else {
-    // Fixed b/206152717 by removing this check for little endian. This check is
-    // still required for big endian systems.
-    TFLITE_DCHECK(flatbuffer_array != nullptr);
-    // Big-endian architecture can not use the same memory layout as
-    // flatbuffers::Vector<kFlatBufferVectorType>. Allocate from the tail and
-    // copy values from the flatbuffer into the newly allocated chunk.
-    kTfLiteArrayType* array = reinterpret_cast<kTfLiteArrayType*>(
-        allocator->SimpleMemoryAllocator::AllocateFromTail(
-            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
-            alignof(kTfLiteArrayType)));
-    if (array == nullptr) {
-      TF_LITE_REPORT_ERROR(
-          error_reporter,
-          "Failed to allocate %d bytes of memory to copy an array.",
-          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()));
-      return kTfLiteError;
-    }
-    array->size = flatbuffer_array->size();
-    for (int i = 0; i < array->size; ++i) {
-      array->data[i] = flatbuffer_array->Get(i);
-    }
-    *result = array;
-  }
-  return kTfLiteOk;
-}
-
 // Returns a pointer to any buffer associated with the flatbuffer tensor. Can
 // return nullptr if no buffer is found.
 void* GetFlatbufferTensorBuffer(
@@ -398,14 +353,14 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
     // tensor.
+    // TODO(b/188459715): figure out why const_cast is required here.
     result->dims = const_cast<TfLiteIntArray*>(&kZeroLengthIntArray);
   } else {
     // TFLM doesn't allow reshaping the tensor which requires dynamic memory
     // allocation so it is safe to drop the const qualifier. In the future, if
     // we really want to update the tensor shape, we can always pass in a new
     // TfLiteIntArray - especially we have to do so if the dimension is
-    TF_LITE_ENSURE_STATUS(FlatBufferVectorToTfLiteTypeArray(
-        allocator, error_reporter, flatbuffer_tensor.shape(), &(result->dims)));
+    result->dims = FlatBufferVectorToTfLiteTypeArray(flatbuffer_tensor.shape());
   }
 
   // Copy the quantization information from the serialized data.
@@ -457,9 +412,8 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
       return kTfLiteError;
     }
 
-    TF_LITE_ENSURE_STATUS(FlatBufferVectorToTfLiteTypeArray(
-        allocator, error_reporter, src_quantization->scale(),
-        &quantization->scale));
+    quantization->scale =
+        FlatBufferVectorToTfLiteTypeArray(src_quantization->scale());
 
     quantization->zero_point->size = channels;
     int* zero_point_data = quantization->zero_point->data;
@@ -492,8 +446,7 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
     // tensor.
     result->dims = const_cast<TfLiteIntArray*>(&kZeroLengthIntArray);
   } else {
-    TF_LITE_ENSURE_STATUS(FlatBufferVectorToTfLiteTypeArray(
-        allocator, error_reporter, flatbuffer_tensor.shape(), &(result->dims)));
+    result->dims = FlatBufferVectorToTfLiteTypeArray(flatbuffer_tensor.shape());
   }
   return kTfLiteOk;
 }
@@ -1021,13 +974,6 @@ internal::ScratchBufferRequest* MicroAllocator::GetScratchBufferRequests() {
   return reinterpret_cast<internal::ScratchBufferRequest*>(
       AlignPointerUp(memory_allocator_->GetHeadBuffer(),
                      alignof(internal::ScratchBufferRequest)));
-}
-
-TfLiteStatus MicroAllocator::FlatBufferVectorToTfLiteTypeArray(
-    const flatbuffers::Vector<int32_t>* flatbuffer_array,
-    TfLiteIntArray** result) {
-  return internal::FlatBufferVectorToTfLiteTypeArray(
-      memory_allocator_, error_reporter_, flatbuffer_array, result);
 }
 
 BuiltinDataAllocator* MicroAllocator::GetBuiltinDataAllocator() {
