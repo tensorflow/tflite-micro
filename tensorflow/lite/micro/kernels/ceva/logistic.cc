@@ -23,15 +23,13 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/ceva/ceva_common.h"
+#include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
-#include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
-#include "tensorflow/lite/micro/kernels/ceva/ceva_common.h"
 #ifdef MCPS_MEASUREMENT
 #include "tensorflow/lite/micro/kernels/ceva/mcps_macros.h"
 #endif
-
-
 
 namespace tflite {
 namespace {
@@ -55,16 +53,18 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
       case kTfLiteFloat32: {
 #if defined(CEVA_BX1) || defined(CEVA_SP500)
 
- const float* input_data = tflite::micro::GetTensorData<float>(input);
-		  float* output_data = tflite::micro::GetTensorData<float>(output);
-		  const int flat_size = MatchingFlatSize(tflite::micro::GetTensorShape(input), 
-												tflite::micro::GetTensorShape(output));
+        const float* input_data = tflite::micro::GetTensorData<float>(input);
+        float* output_data = tflite::micro::GetTensorData<float>(output);
+        const int flat_size =
+            MatchingFlatSize(tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorShape(output));
 #ifdef MCPS_MEASUREMENT
-		  MCPS_START_ONE;
+        MCPS_START_ONE;
 #endif
-		  CEVA_TFLM_Logistic_float32(input_data, output_data, flat_size);
+        CEVA_TFLM_Logistic_float32(input_data, output_data, flat_size);
 #ifdef MCPS_MEASUREMENT
-		  MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_float32 loop = %d", flat_size);
+        MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_float32 loop = %d",
+                      flat_size);
 #endif
 
 #else
@@ -72,7 +72,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
                                 tflite::micro::GetTensorData<float>(input),
                                 tflite::micro::GetTensorShape(output),
                                 tflite::micro::GetTensorData<float>(output));
-#endif // ceva platform
+#endif  // ceva platform
         return kTfLiteOk;
       }
       default:
@@ -85,24 +85,23 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
     switch (output->type) {
       case kTfLiteInt8: {
 #if defined(CEVA_BX1) || defined(CEVA_SP500)
-int32_t input_zero_point = data->input_zero_point;
-		  int32_t input_range_radius = data->input_range_radius;
-		  int32_t input_multiplier = data->input_multiplier;
-		  int32_t input_left_shift = data->input_left_shift;
-		  int32_t input_size = NumElements(input->dims);
-		  const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
-		  int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
+        int32_t input_zero_point = data->input_zero_point;
+        int32_t input_range_radius = data->input_range_radius;
+        int32_t input_multiplier = data->input_multiplier;
+        int32_t input_left_shift = data->input_left_shift;
+        int32_t input_size = NumElements(input->dims);
+        const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
+        int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 
 #ifdef MCPS_MEASUREMENT
-		  MCPS_START_ONE;
+        MCPS_START_ONE;
 #endif
-		  CEVA_TFLM_Logistic_Int8(
-			  input_zero_point, input_range_radius,
-			  input_multiplier, input_left_shift,
-			  input_size, input_data,
-			  output_data);
+        CEVA_TFLM_Logistic_Int8(input_zero_point, input_range_radius,
+                                input_multiplier, input_left_shift, input_size,
+                                input_data, output_data);
 #ifdef MCPS_MEASUREMENT
-		  MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_Int8 loop = %d", input_size);
+        MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_Int8 loop = %d",
+                      input_size);
 #endif
 #else
         reference_integer_ops::Logistic(
@@ -111,7 +110,7 @@ int32_t input_zero_point = data->input_zero_point;
             NumElements(input->dims),
             tflite::micro::GetTensorData<int8_t>(input),
             tflite::micro::GetTensorData<int8_t>(output));
-#endif // ceva platform
+#endif  // ceva platform
         return kTfLiteOk;
       }
       default:
@@ -121,7 +120,6 @@ int32_t input_zero_point = data->input_zero_point;
         return kTfLiteError;
     }
   } else {
-  
     TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
                        TfLiteTypeGetName(input->type),
                        TfLiteTypeGetName(output->type));
