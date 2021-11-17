@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -50,6 +51,14 @@ class FlexbufferWrapper : public flexbuffers::Vector {
 // Return the number of operators in a subgraph tflite
 uint32_t NumSubgraphOperators(const SubGraph* subgraph);
 uint32_t NumSubgraphOperators(const Model* model, int subgraph_idx);
+
+// Converts a flatbuffer array to a TfLiteArray.
+// TODO(b/188459715): These function convert a const input to a non-const via a
+// const_cast. It is unclear exactly why this is required.
+TfLiteIntArray* FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<int32_t>* flatbuffer_array);
+TfLiteFloatArray* FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<float>* flatbuffer_array);
 
 }  // namespace tflite
 
