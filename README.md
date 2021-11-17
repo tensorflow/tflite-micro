@@ -94,6 +94,7 @@ The following resources may also be useful:
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Python Dev Guide](docs/python.md)
+ * [Automatically Generated Files](docs/automatically_generated_files.md)
 
 # RFCs
 
