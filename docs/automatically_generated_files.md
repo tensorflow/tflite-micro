@@ -1,6 +1,6 @@
 <!--ts-->
-   * [Data Files in Examples](#using-bazel)
-   * [](#manual-setup-illustration)
+   * [Background](#background)
+   * [Data Files in Examples](#data-files-in-examples)
 
 <!-- Added by: njeff, at: Wed Nov 17 11:33:14 AM PST 2021 -->
 
