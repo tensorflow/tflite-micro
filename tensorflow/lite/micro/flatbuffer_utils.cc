@@ -61,4 +61,24 @@ uint32_t NumSubgraphOperators(const Model* model, int subgraph_idx) {
   return NumSubgraphOperators(subgraph);
 }
 
+TfLiteIntArray* FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<int32_t>* flatbuffer_array) {
+  // On little-endian machines, TfLiteIntArray happens to have the same memory
+  // layout as flatbuffers:Vector<int32_t>, so we can reinterpret_cast the
+  // flatbuffer vector and avoid a copy and malloc.
+  // TODO(b/188459715): audit this usage of const_cast.
+  return const_cast<TfLiteIntArray*>(
+      reinterpret_cast<const TfLiteIntArray*>(flatbuffer_array));
+}
+
+TfLiteFloatArray* FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<float>* flatbuffer_array) {
+  // On little-endian machines, TfLiteFloatArray happens to have the same memory
+  // layout as flatbuffers:Vector<float>, so we can reinterpret_cast the
+  // flatbuffer vector and avoid a copy and malloc.
+  // TODO(b/188459715): audit this usage of const_cast.
+  return const_cast<TfLiteFloatArray*>(
+      reinterpret_cast<const TfLiteFloatArray*>(flatbuffer_array));
+}
+
 }  // namespace tflite
