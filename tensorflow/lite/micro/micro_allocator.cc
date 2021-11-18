@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -57,9 +58,6 @@ struct AllocationInfo {
   bool needs_allocating;
 };
 
-// We align tensor buffers to 16-byte boundaries, since this is a common
-// requirement for SIMD extensions.
-constexpr int kBufferAlignment = 16;
 constexpr char kOfflineMemAllocMetadata[] = "OfflineMemoryAllocation";
 const TfLiteIntArray kZeroLengthIntArray = {};
 
@@ -247,7 +245,7 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
     const AllocationInfo* current = &allocation_info[i];
     if (current->needs_allocating) {
       size_t aligned_bytes_required =
-          AlignSizeUp(current->bytes, kBufferAlignment);
+          AlignSizeUp(current->bytes, MicroArenaBufferAlignment());
       if (current->offline_offset == kOnlinePlannedBuffer) {
         TF_LITE_ENSURE_STATUS(
             planner->AddBuffer(error_reporter, aligned_bytes_required,
@@ -466,7 +464,8 @@ MicroAllocator::~MicroAllocator() {}
 MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
                                        MicroMemoryPlanner* memory_planner,
                                        ErrorReporter* error_reporter) {
-  uint8_t* aligned_arena = AlignPointerUp(tensor_arena, kBufferAlignment);
+  uint8_t* aligned_arena =
+      AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
   SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
       error_reporter, aligned_arena, aligned_arena_size);
@@ -476,7 +475,8 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
 
 MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
                                        ErrorReporter* error_reporter) {
-  uint8_t* aligned_arena = AlignPointerUp(tensor_arena, kBufferAlignment);
+  uint8_t* aligned_arena =
+      AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
   SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
       error_reporter, aligned_arena, aligned_arena_size);
@@ -572,7 +572,8 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
 }
 
 void* MicroAllocator::AllocatePersistentBuffer(size_t bytes) {
-  return memory_allocator_->AllocateFromTail(bytes, kBufferAlignment);
+  return memory_allocator_->AllocateFromTail(bytes,
+                                             MicroArenaBufferAlignment());
 }
 
 TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
@@ -802,8 +803,8 @@ TfLiteStatus MicroAllocator::AllocateVariables(const SubGraph* subgraph,
       TF_LITE_ENSURE_STATUS(
           TfLiteEvalTensorByteLength(&eval_tensors[i], &buffer_size));
 
-      eval_tensors[i].data.data =
-          memory_allocator_->AllocateFromTail(buffer_size, kBufferAlignment);
+      eval_tensors[i].data.data = memory_allocator_->AllocateFromTail(
+          buffer_size, MicroArenaBufferAlignment());
 
       if (eval_tensors[i].data.data == nullptr) {
         TF_LITE_REPORT_ERROR(error_reporter_,
@@ -887,9 +888,9 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
 
   // Remaining arena size that memory planner can use for calculating offsets.
   size_t remaining_arena_size =
-      memory_allocator_->GetAvailableMemory(kBufferAlignment);
-  uint8_t* planner_arena =
-      memory_allocator_->AllocateTemp(remaining_arena_size, kBufferAlignment);
+      memory_allocator_->GetAvailableMemory(MicroArenaBufferAlignment());
+  uint8_t* planner_arena = memory_allocator_->AllocateTemp(
+      remaining_arena_size, MicroArenaBufferAlignment());
   TF_LITE_ENSURE(error_reporter_, planner_arena != nullptr);
   memory_planner_->Init(planner_arena, remaining_arena_size);
   TF_LITE_ENSURE_STATUS(CreatePlan(error_reporter_, memory_planner_,
@@ -899,7 +900,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   memory_allocator_->ResetTempAllocations();
 
   size_t actual_available_arena_size =
-      memory_allocator_->GetAvailableMemory(kBufferAlignment);
+      memory_allocator_->GetAvailableMemory(MicroArenaBufferAlignment());
 
   // Make sure we have enough arena size.
   if (memory_planner_->GetMaximumMemorySize() > actual_available_arena_size) {
@@ -932,7 +933,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   // memory plan in this function. Ensure that the head is set to the largest
   // memory plan sent through the allocator:
   TF_LITE_ENSURE_STATUS(memory_allocator_->SetHeadBufferSize(
-      max_head_buffer_usage_, kBufferAlignment));
+      max_head_buffer_usage_, MicroArenaBufferAlignment()));
   return kTfLiteOk;
 }
 
