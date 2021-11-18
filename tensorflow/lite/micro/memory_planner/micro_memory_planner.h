@@ -84,6 +84,10 @@ class MicroMemoryPlanner {
                             int scratch_buffer_size) {
     return kTfLiteOk;
   }
+
+  virtual void PrintMemoryPlan() {
+    // Default does nothing.
+  }
 };
 
 }  // namespace tflite
