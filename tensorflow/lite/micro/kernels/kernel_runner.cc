@@ -15,16 +15,13 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
 namespace micro {
-
-namespace {
-constexpr size_t kBufferAlignment = 16;
-}  // namespace
 
 // TODO(b/161841696): Consider moving away from global arena buffers:
 constexpr int KernelRunner::kNumScratchBuffers_;
@@ -112,7 +109,8 @@ void* KernelRunner::AllocatePersistentBuffer(TfLiteContext* context,
   KernelRunner* runner = reinterpret_cast<KernelRunner*>(context->impl_);
   TFLITE_DCHECK(runner != nullptr);
 
-  return runner->allocator_->AllocateFromTail(bytes, kBufferAlignment);
+  return runner->allocator_->AllocateFromTail(bytes,
+                                              MicroArenaBufferAlignment());
 }
 
 TfLiteStatus KernelRunner::RequestScratchBufferInArena(TfLiteContext* context,
@@ -134,7 +132,7 @@ TfLiteStatus KernelRunner::RequestScratchBufferInArena(TfLiteContext* context,
   // for the lifetime of model. This means that the arena size in the tests will
   // be more than what we would have if the scratch buffers could share memory.
   runner->scratch_buffers_[runner->scratch_buffer_count_] =
-      runner->allocator_->AllocateFromTail(bytes, kBufferAlignment);
+      runner->allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
   TFLITE_DCHECK(runner->scratch_buffers_[runner->scratch_buffer_count_] !=
                 nullptr);
 
