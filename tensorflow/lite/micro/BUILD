@@ -96,6 +96,7 @@ cc_library(
     deps = [
         ":flatbuffer_utils",
         ":memory_helpers",
+        ":micro_arena_constants",
         ":micro_compatibility",
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
@@ -109,6 +110,15 @@ cc_library(
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
     ],
+)
+
+cc_library(
+    name = "micro_arena_constants",
+    hdrs = [
+        "micro_arena_constants.h",
+    ],
+    copts = micro_copts(),
+    deps = [],
 )
 
 cc_library(
@@ -389,6 +399,7 @@ cc_test(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_arena_constants",
         ":micro_error_reporter",
         ":test_helpers",
         "//tensorflow/lite/c:common",
