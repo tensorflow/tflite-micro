@@ -554,4 +554,26 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MultipleInputs::freed_, true);
 }
 
+TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
+  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+}
+
 TF_LITE_MICRO_TESTS_END
