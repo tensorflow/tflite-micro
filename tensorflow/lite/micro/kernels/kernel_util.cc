@@ -13,12 +13,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
-
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace micro {
+
+namespace {
+
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
+}  // namespace
 
 bool HaveSameShapes(const TfLiteEvalTensor* input1,
                     const TfLiteEvalTensor* input2) {
@@ -47,17 +61,6 @@ PaddingType RuntimePaddingType(TfLitePadding padding) {
     default:
       return PaddingType::kNone;
   }
-}
-
-int ValidateTensorIndexing(const TfLiteContext* context, int index,
-                           int max_size, const int* tensor_indices) {
-  if (index >= 0 && index < max_size) {
-    const int tensor_index = tensor_indices[index];
-    if (tensor_index != kTfLiteOptionalTensor) {
-      return tensor_index;
-    }
-  }
-  return -1;
 }
 
 // Relocate tensor dims from FlatBuffer to the persistent storage arena.

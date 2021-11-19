@@ -232,10 +232,9 @@ int representative_64x16_output_dims[] = {2, 1, 16};
 
 template <typename T>
 TfLiteStatus ValidateFullyConnectedGoldens(
-    TfLiteTensor* tensors, const int tensors_size,
+    TfLiteTensor* tensors, const int tensors_size, bool null_bias,
     const TfLiteFusedActivation activation, const float tolerance,
-    const int output_len, const T* golden, T* output_data,
-    bool null_bias = false) {
+    const int output_len, const T* golden, T* output_data) {
   TfLiteFullyConnectedParams builtin_data = {
       activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false};
 
@@ -311,9 +310,9 @@ TfLiteStatus TestFullyConnectedFloat(
     tensors[3] = CreateTensor(output_data, output_dims);
   }
 
-  return ValidateFullyConnectedGoldens(tensors, tensors_size, activation, 1e-4f,
-                                       output_dims_count, golden, output_data,
-                                       null_bias);
+  return ValidateFullyConnectedGoldens(tensors, tensors_size, null_bias,
+                                       activation, 1e-4f, output_dims_count,
+                                       golden, output_data);
 }
 #endif
 
@@ -358,9 +357,9 @@ TfLiteStatus TestFullyConnectedQuantized(
   Quantize(golden, golden_quantized, output_dims_count, output_scale,
            output_zero_point);
 
-  return ValidateFullyConnectedGoldens(tensors, tensors_size, activation, 0.0f,
-                                       output_dims_count, golden_quantized,
-                                       output_data, null_bias);
+  return ValidateFullyConnectedGoldens(tensors, tensors_size, null_bias,
+                                       activation, 0.0f, output_dims_count,
+                                       golden_quantized, output_data);
 }
 
 }  // namespace
