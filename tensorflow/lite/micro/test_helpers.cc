@@ -263,8 +263,8 @@ const Model* BuildSimpleStatefulModel() {
 
   const int op_id =
       model_builder.RegisterOp(BuiltinOperator_CUSTOM, "simple_stateful_op");
-  const int input_tensor = model_builder.AddTensor(TensorType_UINT8, {3});
-  const int median_tensor = model_builder.AddTensor(TensorType_UINT8, {3});
+  const int input_tensor = model_builder.AddTensor(TensorType_INT8, {3});
+  const int median_tensor = model_builder.AddTensor(TensorType_INT8, {3});
   const int invoke_count_tensor =
       model_builder.AddTensor(TensorType_INT32, {1});
 
@@ -430,7 +430,7 @@ const Model* BuildSimpleMockModel() {
                    builder->CreateString("test_input_tensor"), 0, false),
       CreateTensor(*builder,
                    builder->CreateVector(tensor_shape, tensor_shape_size),
-                   TensorType_UINT8, 1,
+                   TensorType_INT8, 1,
                    builder->CreateString("test_weight_tensor"), 0, false),
       CreateTensor(*builder,
                    builder->CreateVector(tensor_shape, tensor_shape_size),
@@ -526,7 +526,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_1"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_1"), 0,
           false /* is_variable */),
       // Op 1 output / Op 2 input:
       CreateTensor(
@@ -540,7 +540,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_2"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_2"), 0,
           false /* is_variable */),
       // Op 2 output / Op 3 input:
       CreateTensor(
@@ -554,7 +554,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_3"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_3"), 0,
           false /* is_variable */),
       // Op 3 output:
       CreateTensor(
@@ -920,7 +920,7 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
   // Make sure that the input is in uint8_t with at least 1 data entry.
   const TfLiteTensor* input;
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
-  if (input->type != kTfLiteUInt8) return kTfLiteError;
+  if (input->type != kTfLiteInt8) return kTfLiteError;
   if (NumElements(input->dims) == 0) return kTfLiteError;
 
   // Allocate a temporary buffer with the same size of input for sorting.
