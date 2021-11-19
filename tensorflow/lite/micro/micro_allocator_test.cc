@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -31,8 +32,6 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// TODO(b/203825161): consolidate buffer alignment constant
-constexpr int kExpectedAlignment = 4;
 constexpr int t0 = 0;
 constexpr int t1 = 1;
 constexpr int t2 = 2;
@@ -49,12 +48,12 @@ void VerifyMockTfLiteTensor(TfLiteTensor* tensor, bool is_variable = false) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
-                           kExpectedAlignment));
+                           MicroArenaBufferAlignment()));
 }
 
 // TODO(b/203663932): remove the usage of uint8 weight, which is deprecated.
 void VerifyMockWeightTfLiteTensor(TfLiteTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), tensor->bytes);
@@ -72,11 +71,11 @@ void VerifyMockTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
-                           kExpectedAlignment));
+                           MicroArenaBufferAlignment()));
 }
 
 void VerifyMockWeightTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   size_t buffer_size;
@@ -1003,9 +1002,8 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
 
   // Offset is relative to the arena after the buffer alignment adjustment which
   // happens when MicroAllocator is created.
-  // TODO(b/203825161): consolidate buffer alignment constant
-  constexpr int kBufferAlignment = 16;
-  uint8_t* aligned_arena = tflite::AlignPointerUp(arena, kBufferAlignment);
+  uint8_t* aligned_arena =
+      tflite::AlignPointerUp(arena, tflite::MicroArenaBufferAlignment());
 
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[0].data.data) ==
                             (aligned_arena + kOffset0));

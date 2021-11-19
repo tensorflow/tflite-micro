@@ -162,13 +162,10 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
                                      (void**)(&builtin_data)));
       }
 
-      TfLiteIntArray* inputs_array;
-      TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-          op->inputs(), &inputs_array));
-
-      TfLiteIntArray* outputs_array;
-      TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-          op->outputs(), &outputs_array));
+      TfLiteIntArray* inputs_array =
+          FlatBufferVectorToTfLiteTypeArray(op->inputs());
+      TfLiteIntArray* outputs_array =
+          FlatBufferVectorToTfLiteTypeArray(op->outputs());
 
       TfLiteNode* node = &(
           graph_.GetAllocations()[subgraph_idx].node_and_registrations[i].node);
@@ -180,10 +177,8 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
       node->custom_initial_data_size = custom_data_size;
 
       if (op->intermediates() && (op->intermediates()->size() > 0)) {
-        TfLiteIntArray* intermediates_array;
-        TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-            op->intermediates(), &intermediates_array));
-        node->intermediates = intermediates_array;
+        node->intermediates =
+            FlatBufferVectorToTfLiteTypeArray(op->intermediates());
       }
     }
   }
@@ -210,7 +205,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.GetScratchBuffer = nullptr;
   context_.GetExecutionPlan = GetGraph;
   context_.GetExternalContext = nullptr;
-  graph_.InitSubgraphs();
+  TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
@@ -218,7 +213,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // GetExternalContext become available in Prepare stage.
   context_.GetExternalContext = GetExternalContext;
 
-  graph_.PrepareSubgraphs();
+  TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
