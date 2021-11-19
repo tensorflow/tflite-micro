@@ -31,16 +31,25 @@ constexpr int32_t kBuffer1Offset = 10;
 //       [1] = { .offset = 10}
 //   }
 // };
-constexpr int32_t kBufferPlanInBinary[] = {kBufferCnt, kBuffer0Offset,
-                                           kBuffer1Offset};
+tflite::BufferPlan* CreateBufferPlan() {
+  // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
+  // the test need to place non-transitent memories in static variables. This is
+  // safe because tests are guarateed to run serially.
+  static int8_t buffer_plan_buffer[tflite::SizeOfBufferPlan(kBufferCnt)];
+  tflite::BufferPlan* buffer_plan_ptr =
+      reinterpret_cast<tflite::BufferPlan*>(buffer_plan_buffer);
+  buffer_plan_ptr->buffer_count = kBufferCnt;
+  buffer_plan_ptr->buffer_plan_entries[0].offset = kBuffer0Offset;
+  buffer_plan_ptr->buffer_plan_entries[1].offset = kBuffer1Offset;
+  return buffer_plan_ptr;
+}
 
 }  // namespace
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
-  tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+  tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset0 = -1;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -54,8 +63,7 @@ TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
 }
 
 TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
-  tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+  tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset = -1;
   TF_LITE_MICRO_EXPECT_EQ(
@@ -63,8 +71,7 @@ TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
-  tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+  tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
@@ -77,8 +84,7 @@ TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferFailWhenExceedRange) {
-  tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+  tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
@@ -95,8 +101,7 @@ TF_LITE_MICRO_TEST(TestAddBufferFailWhenExceedRange) {
 }
 
 TF_LITE_MICRO_TEST(TestBasics) {
-  tflite::NonPersistentMemoryPlannerShim planner(
-      reinterpret_cast<const tflite::BufferPlan*>(kBufferPlanInBinary));
+  tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           planner.GetMaximumMemorySize());

@@ -16,7 +16,10 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLAN_STRUCT_H_
 #define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MEMORY_PLAN_STRUCT_H_
 
+#include <stddef.h>
 #include <stdint.h>
+
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 
@@ -39,22 +42,31 @@ struct BufferDescriptor {
 struct BufferPlan {
   // Number of buffers described in this plan.
   int32_t buffer_count;
+
   // Each element describes one buffer.
   // Buffer index is implicit by the order of AddBuffer() call.
   // Specifically, indices of activation tensors are 0 … N-1 where N is the
   // number of activation tensors.
   // The rest are based on the order of OP requests.
-#if (!defined(__clang__) && defined(__GNUC__) && __GNUC__ == 6 && \
-     __GNUC_MINOR__ >= 1) ||                                      \
-    defined(HEXAGON) ||                                           \
-    (defined(__clang__) && __clang_major__ == 7 && __clang_minor__ == 1)
-  // gcc 6.1+ have a bug where flexible members aren't properly handled
-  // https://github.com/google/re2/commit/b94b7cd42e9f02673cd748c1ac1d16db4052514c
-  BufferDescriptor buffer_plan_entries[0];
-#else
-  BufferDescriptor buffer_plan_entries[];
-#endif
+  //
+  // This is a flexible array member and should ideally be
+  // arena_entries[]; However, in order to support a variety
+  // of compilers (and without needing to add ifdef's), we
+  // are implementing the flexible array member with an array of
+  // length 1 as the last member of the struct. When the size of a BufferPlan
+  // is needed, use the provided SizeOfBufferPlan(buffer_count) that
+  // accounts for this implemenatation caveat.
+  BufferDescriptor buffer_plan_entries[1];
 };
+
+// Returns size of a BufferPlan given a buffer count. This size is compile time
+// known if buffer_count is a compile time constant.
+constexpr size_t SizeOfBufferPlan(int32_t buffer_count) {
+  // Minus 1 because a BufferPlan struct have a BufferDescriptor already.
+  // Max to provide a lower bound for the corner case of buffer_count = 0.
+  return sizeof(BufferPlan) +
+         sizeof(BufferDescriptor) * Max(buffer_count - 1, 0);
+}
 
 }  // namespace tflite
 
