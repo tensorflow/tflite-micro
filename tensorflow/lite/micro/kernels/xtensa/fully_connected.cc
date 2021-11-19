@@ -185,6 +185,10 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output) {
+      const int32_t* bias_data =
+          nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias)
+                          : nullptr;
+
   // TODO(b/154032858): Investigate removing extra copies (i.e.
   // data.ToQuantizedParams), and also passing by value.
   //
@@ -199,7 +203,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                  tflite::micro::GetTensorShape(filter),
                  tflite::micro::GetTensorData<int8_t>(filter),
                  tflite::micro::GetTensorShape(bias),
-                 tflite::micro::GetTensorData<int32_t>(bias),
+                 bias_data,
                  tflite::micro::GetTensorShape(output),
                  tflite::micro::GetTensorData<int8_t>(output));
 #elif ((defined(HIFI4)) || (defined(HIFI5)))
@@ -219,7 +223,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
             (tflite::micro::GetTensorData<int8_t>(output) + b * output_depth),
             tflite::micro::GetTensorData<int8_t>(filter),
             (tflite::micro::GetTensorData<int8_t>(input) + b * accum_depth),
-            tflite::micro::GetTensorData<int32_t>(bias), accum_depth,
+            bias_data, accum_depth,
             output_depth, op_params.input_offset, op_params.output_multiplier,
             op_params.output_shift, op_params.output_offset),
         0);
@@ -239,7 +243,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(filter),
       tflite::micro::GetTensorData<int8_t>(filter),
       tflite::micro::GetTensorShape(bias),
-      tflite::micro::GetTensorData<int32_t>(bias),
+      bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 #endif
