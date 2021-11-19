@@ -53,7 +53,7 @@ void VerifyMockTfLiteTensor(TfLiteTensor* tensor, bool is_variable = false) {
 
 // TODO(b/203663932): remove the usage of uint8 weight, which is deprecated.
 void VerifyMockWeightTfLiteTensor(TfLiteTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), tensor->bytes);
@@ -75,7 +75,7 @@ void VerifyMockTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
 }
 
 void VerifyMockWeightTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   size_t buffer_size;
