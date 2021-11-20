@@ -457,6 +457,16 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 
 }  // namespace internal
 
+extern const size_t kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner =
+    AlignSizeUp(sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator)) +
+    AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
+    AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
+                alignof(MicroBuiltinDataAllocator)) +
+    AlignSizeUp(sizeof(SubgraphAllocations), alignof(SubgraphAllocations));
+const size_t kMicroAllocatorDefaultTailUsage =
+    kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner +
+    AlignSizeUp(sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+
 MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
                                MicroMemoryPlanner* memory_planner,
                                ErrorReporter* error_reporter)

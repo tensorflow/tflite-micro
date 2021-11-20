@@ -85,6 +85,12 @@ typedef struct {
   TfLiteEvalTensor* tensors;
 } SubgraphAllocations;
 
+// The fixed amount of memory overhead of MicroAllocator. You can image this
+// number as the arena usage after MicroAllocator is given a model that has zero
+// tensors and zero OPs.
+extern const size_t kMicroAllocatorDefaultTailUsage;
+extern const size_t kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner;
+
 // Allocator responsible for allocating memory for all intermediate tensors
 // necessary to invoke a model.
 //

@@ -78,6 +78,11 @@ else
   unzip -qo "$TEMPFILE" -d ${DOWNLOADS_DIR} >&2
 
   rm -rf "${TEMPDIR}"
+
+  pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
+  chmod -R +w ./
+  apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch"
 fi
+
 
 echo "SUCCESS"
