@@ -247,9 +247,15 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
       size_t aligned_bytes_required =
           AlignSizeUp(current->bytes, MicroArenaBufferAlignment());
       if (current->offline_offset == kOnlinePlannedBuffer) {
+        // Ensure unused operator outputs do not overlap other buffers used in
+        // that operator.
+        int last_used = current->last_used;
+        if (last_used == -1) {
+          last_used = current->first_created;
+        }
         TF_LITE_ENSURE_STATUS(
             planner->AddBuffer(error_reporter, aligned_bytes_required,
-                               current->first_created, current->last_used));
+                               current->first_created, last_used));
       } else {
         TF_LITE_ENSURE_STATUS(planner->AddBuffer(
             error_reporter, aligned_bytes_required, current->first_created,
