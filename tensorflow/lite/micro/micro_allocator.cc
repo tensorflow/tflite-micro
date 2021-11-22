@@ -250,8 +250,6 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
       size_t aligned_bytes_required =
           AlignSizeUp(current->bytes, MicroArenaBufferAlignment());
       if (current->offline_offset == kOnlinePlannedBuffer) {
-        printf("tensor %d first created %d last used %d\n", (int)i,
-               current->first_created, current->last_used);
         TF_LITE_ENSURE_STATUS(
             planner->AddBuffer(error_reporter, aligned_bytes_required,
                                current->first_created, current->last_used));
