@@ -178,6 +178,7 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
       if ((current->first_created == -1) || (current->first_created > i)) {
         current->first_created = i;
       }
+      // Since operator outputs are written to, they must be marked as used.
       if ((current->last_used == -1) || (current->last_used < i)) {
         current->last_used = i;
       }
