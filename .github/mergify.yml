@@ -1,0 +1,11 @@
+pull_request_rules:
+  - name: Automatic merge on approval
+    conditions:
+      - check-success=Bazel (presubmit)
+      - check-success=Cortex-M (presubmit)
+      - check-success=Project Generation (presubmit)
+      - check-success=Makefile x86 (presubmit)
+      - label=ci:mergify
+    actions:
+      merge:
+        method: squash
