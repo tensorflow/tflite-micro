@@ -178,6 +178,9 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
       if ((current->first_created == -1) || (current->first_created > i)) {
         current->first_created = i;
       }
+      if ((current->last_used == -1) || (current->last_used < i)) {
+        current->last_used = i;
+      }
     }
   }
   return kTfLiteOk;
@@ -247,15 +250,11 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
       size_t aligned_bytes_required =
           AlignSizeUp(current->bytes, MicroArenaBufferAlignment());
       if (current->offline_offset == kOnlinePlannedBuffer) {
-        // Ensure unused operator outputs do not overlap other buffers used in
-        // that operator.
-        int last_used = current->last_used;
-        if (last_used == -1) {
-          last_used = current->first_created;
-        }
+        printf("tensor %d first created %d last used %d\n", (int)i,
+               current->first_created, current->last_used);
         TF_LITE_ENSURE_STATUS(
             planner->AddBuffer(error_reporter, aligned_bytes_required,
-                               current->first_created, last_used));
+                               current->first_created, current->last_used));
       } else {
         TF_LITE_ENSURE_STATUS(planner->AddBuffer(
             error_reporter, aligned_bytes_required, current->first_created,
