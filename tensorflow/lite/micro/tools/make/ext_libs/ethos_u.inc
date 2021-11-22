@@ -1,3 +1,18 @@
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 # Arm Compiler will not link the Math library (see below), therefore we're filtering it out.
 # See Fatal error: L6450U: Cannot find library m:
 # "Arm Compiler is designed to run in a bare metal environment,
@@ -56,7 +71,5 @@ ifeq ($(TOOLCHAIN), gcc)
 endif
 
 # Convert downloaded person detect int8 model.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${MAKEFILE_DIR}/downloads $(GENERATED_SRCS_DIR))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the person detection int8 model conversion: $(DOWNLOAD_RESULT))
-endif
+$(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc:
+	$(info Result of person detect int8 model conversion: $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${MAKEFILE_DIR}/downloads $(GENERATED_SRCS_DIR)))

@@ -263,8 +263,8 @@ const Model* BuildSimpleStatefulModel() {
 
   const int op_id =
       model_builder.RegisterOp(BuiltinOperator_CUSTOM, "simple_stateful_op");
-  const int input_tensor = model_builder.AddTensor(TensorType_UINT8, {3});
-  const int median_tensor = model_builder.AddTensor(TensorType_UINT8, {3});
+  const int input_tensor = model_builder.AddTensor(TensorType_INT8, {3});
+  const int median_tensor = model_builder.AddTensor(TensorType_INT8, {3});
   const int invoke_count_tensor =
       model_builder.AddTensor(TensorType_INT32, {1});
 
@@ -430,7 +430,7 @@ const Model* BuildSimpleMockModel() {
                    builder->CreateString("test_input_tensor"), 0, false),
       CreateTensor(*builder,
                    builder->CreateVector(tensor_shape, tensor_shape_size),
-                   TensorType_UINT8, 1,
+                   TensorType_INT8, 1,
                    builder->CreateString("test_weight_tensor"), 0, false),
       CreateTensor(*builder,
                    builder->CreateVector(tensor_shape, tensor_shape_size),
@@ -526,7 +526,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_1"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_1"), 0,
           false /* is_variable */),
       // Op 1 output / Op 2 input:
       CreateTensor(
@@ -540,7 +540,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_2"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_2"), 0,
           false /* is_variable */),
       // Op 2 output / Op 3 input:
       CreateTensor(
@@ -554,7 +554,7 @@ const Model* BuildComplexMockModel() {
           0, true /* is_variable */),
       CreateTensor(
           *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
-          TensorType_UINT8, 2, builder->CreateString("test_weight_tensor_3"), 0,
+          TensorType_INT8, 2, builder->CreateString("test_weight_tensor_3"), 0,
           false /* is_variable */),
       // Op 3 output:
       CreateTensor(
@@ -825,6 +825,68 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   return model;
 }
 
+// Mock model with one main subgraph containing a single CALL_ONCE op (with null
+// inputs and outputs) which invokes a second subgraph which has null inputs and
+// outputs.
+const Model* BuildSimpleMockModelWithNullInputsOutputs() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  constexpr size_t buffers_size = 1;
+  const Offset<Buffer> buffers[buffers_size] = {
+      CreateBuffer(*builder),
+  };
+  constexpr size_t tensor_shape_size = 1;
+  const int32_t tensor_shape[tensor_shape_size] = {0};
+  constexpr size_t tensors_size = 1;
+  const Offset<Tensor> tensors[tensors_size] = {
+      CreateTensor(*builder,
+                   builder->CreateVector(tensor_shape, tensor_shape_size),
+                   TensorType_INT32, 0,
+                   builder->CreateString("test_input_tensor1"), 0, false),
+  };
+  constexpr size_t subgraph0_inputs_size = 1;
+  const int32_t subgraph0_inputs[subgraph0_inputs_size] = {0};
+  constexpr size_t subgraph0_outputs_size = 1;
+  const int32_t subgraph0_outputs[subgraph0_outputs_size] = {0};
+  constexpr size_t operators_size = 1;
+  const Offset<Operator> subgraph0_operators[operators_size] = {
+      CreateOperator(*builder, 0, {}, {}, BuiltinOptions_CallOnceOptions,
+                     CreateCallOnceOptions(*builder, 1).Union()),
+  };
+  const Offset<Operator> subgraph1_operators[operators_size] = {
+      CreateOperator(*builder, 1, {}, {}, BuiltinOptions_NONE)};
+  constexpr size_t subgraphs_size = 2;
+  const Offset<SubGraph> subgraphs[subgraphs_size] = {
+      CreateSubGraph(
+          *builder, builder->CreateVector(tensors, tensors_size),
+          builder->CreateVector(subgraph0_inputs, subgraph0_inputs_size),
+          builder->CreateVector(subgraph0_outputs, subgraph0_outputs_size),
+          builder->CreateVector(subgraph0_operators, operators_size),
+          builder->CreateString("main_subgraph")),
+      CreateSubGraph(*builder, builder->CreateVector(tensors, tensors_size), {},
+                     {},
+                     builder->CreateVector(subgraph1_operators, operators_size),
+                     builder->CreateString("secondary subgraph")),
+  };
+  constexpr size_t operator_codes_size = 2;
+  const Offset<OperatorCode> operator_codes[operator_codes_size] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "call_once_op",
+                               /*version=*/0, BuiltinOperator_CALL_ONCE),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0, "no_op",
+                               /*version=*/0, BuiltinOperator_CUSTOM)};
+  const Offset<Model> model_offset = CreateModel(
+      *builder, 0, builder->CreateVector(operator_codes, operator_codes_size),
+      builder->CreateVector(subgraphs, subgraphs_size),
+      builder->CreateString("test_model"),
+      builder->CreateVector(buffers, buffers_size));
+  FinishModelBuffer(*builder, model_offset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 }  // namespace
 
 const TfLiteRegistration* SimpleStatefulOp::getRegistration() {
@@ -858,7 +920,7 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
   // Make sure that the input is in uint8_t with at least 1 data entry.
   const TfLiteTensor* input;
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
-  if (input->type != kTfLiteUInt8) return kTfLiteError;
+  if (input->type != kTfLiteInt8) return kTfLiteError;
   if (NumElements(input->dims) == 0) return kTfLiteError;
 
   // Allocate a temporary buffer with the same size of input for sorting.
@@ -1012,6 +1074,40 @@ TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool MultipleInputs::freed_ = false;
 
+const TfLiteRegistration* NoOp::getRegistration() {
+  return GetMutableRegistration();
+}
+
+TfLiteRegistration* NoOp::GetMutableRegistration() {
+  static TfLiteRegistration r;
+  r.init = Init;
+  r.prepare = Prepare;
+  r.invoke = Invoke;
+  r.free = Free;
+  return &r;
+}
+
+void* NoOp::Init(TfLiteContext* context, const char* buffer, size_t length) {
+  // We don't support delegate in TFL micro. This is a weak check to test if
+  // context struct being zero-initialized.
+  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
+  freed_ = false;
+  // Do nothing.
+  return nullptr;
+}
+
+void NoOp::Free(TfLiteContext* context, void* buffer) { freed_ = true; }
+
+TfLiteStatus NoOp::Prepare(TfLiteContext* context, TfLiteNode* node) {
+  return kTfLiteOk;
+}
+
+TfLiteStatus NoOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
+  return kTfLiteOk;
+}
+
+bool NoOp::freed_ = false;
+
 AllOpsResolver GetOpResolver() {
   AllOpsResolver op_resolver;
   op_resolver.AddCustom("mock_custom", MockCustom::GetMutableRegistration());
@@ -1019,6 +1115,7 @@ AllOpsResolver GetOpResolver() {
                         SimpleStatefulOp::GetMutableRegistration());
   op_resolver.AddCustom("multiple_inputs_op",
                         MultipleInputs::GetMutableRegistration());
+  op_resolver.AddCustom("no_op", NoOp::GetMutableRegistration());
   return op_resolver;
 }
 const Model* GetModelWithUnusedInputs() {
@@ -1049,6 +1146,14 @@ const Model* GetSimpleModelWithSubgraphsAndIf() {
   static Model* model = nullptr;
   if (!model) {
     model = const_cast<Model*>(BuildSimpleModelWithSubgraphsAndIf());
+  }
+  return model;
+}
+
+const Model* GetSimpleModelWithNullInputsAndOutputs() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildSimpleMockModelWithNullInputsOutputs());
   }
   return model;
 }

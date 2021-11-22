@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -31,8 +32,6 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// TODO(b/203825161): consolidate buffer alignment constant
-constexpr int kExpectedAlignment = 4;
 constexpr int t0 = 0;
 constexpr int t1 = 1;
 constexpr int t2 = 2;
@@ -49,12 +48,12 @@ void VerifyMockTfLiteTensor(TfLiteTensor* tensor, bool is_variable = false) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
-                           kExpectedAlignment));
+                           MicroArenaBufferAlignment()));
 }
 
 // TODO(b/203663932): remove the usage of uint8 weight, which is deprecated.
 void VerifyMockWeightTfLiteTensor(TfLiteTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), tensor->bytes);
@@ -72,11 +71,11 @@ void VerifyMockTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
-                           kExpectedAlignment));
+                           MicroArenaBufferAlignment()));
 }
 
 void VerifyMockWeightTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteUInt8, tensor->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, tensor->type);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   size_t buffer_size;
@@ -87,9 +86,9 @@ void VerifyMockWeightTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
 }
 
 // TODO(b/203664378): rename to reflect the function does more than just verify.
-void VerifyMockTensor(const Model* model, MicroAllocator* allocator,
-                      SubgraphAllocations* subgraph_allocations, int tensor_idx,
-                      bool is_variable = false) {
+void AllocateAndVerifyMockTensor(const Model* model, MicroAllocator* allocator,
+                                 SubgraphAllocations* subgraph_allocations,
+                                 int tensor_idx, bool is_variable = false) {
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     VerifyMockTfLiteTensor(
@@ -101,9 +100,9 @@ void VerifyMockTensor(const Model* model, MicroAllocator* allocator,
   }
 }
 
-void VerifyMockWeightTensor(const Model* model, MicroAllocator* allocator,
-                            SubgraphAllocations* subgraph_allocations,
-                            int tensor_idx) {
+void AllocateAndVerifyMockWeightTensor(
+    const Model* model, MicroAllocator* allocator,
+    SubgraphAllocations* subgraph_allocations, int tensor_idx) {
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     VerifyMockWeightTfLiteTensor(allocator->AllocatePersistentTfLiteTensor(
@@ -134,6 +133,27 @@ void VerifyRegistrationAndNodeAllocation(
                                             .registration);
     }
   }
+}
+
+size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
+  const int tensor_count = 4;
+  const int node_count = 2;
+  size_t eval_tensor_size = AlignSizeUp(sizeof(TfLiteEvalTensor) * tensor_count,
+                                        alignof(TfLiteEvalTensor));
+  size_t node_registration_size = AlignSizeUp(
+      sizeof(NodeAndRegistration) * node_count, alignof(NodeAndRegistration));
+
+  const int activation_tensor_count = 3;
+  size_t activation_tensor_buffer =
+      activation_tensor_count * AlignSizeUp(1, MicroArenaBufferAlignment());
+
+  size_t default_tail_usage = kMicroAllocatorDefaultTailUsage;
+  if (is_memory_planner_injected) {
+    default_tail_usage = kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner;
+  }
+
+  return default_tail_usage + eval_tensor_size + node_registration_size +
+         activation_tensor_buffer;
 }
 
 }  // namespace
@@ -301,15 +321,22 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
+  size_t expected_arena_used_bytes =
+      tflite::testing::GetArenaUsedBytesBySimpleMockModel(
+          /*is_memory_planner_injected=*/false);
+  TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
   size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 0);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 1);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 2);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 3);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 0);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 1);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 2);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 3);
 
   TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[1].data.raw, eval_tensors[0].data.raw);
@@ -318,8 +345,6 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[0].data.raw);
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[1].data.raw);
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[2].data.raw);
-  TF_LITE_MICRO_EXPECT_LE(allocator->used_bytes(),
-                          856 + 100 + sizeof(tflite::GreedyMemoryPlanner));
 
   // SimpleMockModel has 2 operators:
   tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
@@ -343,15 +368,22 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
+  size_t expected_arena_used_bytes =
+      tflite::testing::GetArenaUsedBytesBySimpleMockModel(
+          /*is_memory_planner_injected=*/true);
+  TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
   size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 0);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 1);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 2);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 3);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 0);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 1);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 2);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 3);
 
   TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[1].data.raw, eval_tensors[0].data.raw);
@@ -360,7 +392,6 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[0].data.raw);
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[1].data.raw);
   TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[2].data.raw);
-  TF_LITE_MICRO_EXPECT_LE(allocator->used_bytes(), 856 + 100);
 
   // SimpleMockModel has 2 operators:
   tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
@@ -470,22 +501,32 @@ TF_LITE_MICRO_TEST(TestAllocationForComplexModelAllocation) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(10), model_tensor_size);
 
   // NOTE: Tensor indexes match the values in GetComplexMockModel().
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 0);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 1,
-                                    /*is_variable=*/true);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 2);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 3);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 4,
-                                    /*is_variable=*/true);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 5);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 6);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 7,
-                                    /*is_variable=*/true);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 8);
-  tflite::testing::VerifyMockTensor(model, allocator, subgraph_allocations, 9);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 0);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 1,
+                                               /*is_variable=*/
+                                               true);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 2);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 3);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 4,
+                                               /*is_variable=*/
+                                               true);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 5);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 6);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 7,
+                                               /*is_variable=*/
+                                               true);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 8);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 9);
 
   // // Ensure that variable tensors have unique address
   tflite::testing::EnsureUniqueVariableTensorBuffer(
@@ -996,16 +1037,15 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
 
   size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
-  tflite::testing::VerifyMockWeightTensor(model, allocator,
-                                          subgraph_allocations, 1);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 1);
 
   TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
 
   // Offset is relative to the arena after the buffer alignment adjustment which
   // happens when MicroAllocator is created.
-  // TODO(b/203825161): consolidate buffer alignment constant
-  constexpr int kBufferAlignment = 16;
-  uint8_t* aligned_arena = tflite::AlignPointerUp(arena, kBufferAlignment);
+  uint8_t* aligned_arena =
+      tflite::AlignPointerUp(arena, tflite::MicroArenaBufferAlignment());
 
   TF_LITE_MICRO_EXPECT_TRUE(static_cast<uint8_t*>(eval_tensors[0].data.data) ==
                             (aligned_arena + kOffset0));

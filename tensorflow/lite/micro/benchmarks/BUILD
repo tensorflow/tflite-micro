@@ -22,6 +22,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:micro_time",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",

@@ -88,6 +88,7 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_utils",
     ],
 )
 
