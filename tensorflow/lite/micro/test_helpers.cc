@@ -409,6 +409,63 @@ const Model* BuildModelWithUnusedInputs() {
   return model;
 }
 
+const Model* BuildModelWithUnusedOperatorOutputs() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  constexpr size_t buffers_size = 1;
+  const Offset<Buffer> buffers[buffers_size] = {CreateBuffer(*builder)};
+  constexpr size_t tensor_shape_size = 2;
+  const int32_t tensor_shape[tensor_shape_size] = {1, 64};
+  constexpr size_t tensors_size = 2;
+  const Offset<Tensor> tensors[tensors_size] = {
+      CreateTensor(*builder,
+                   builder->CreateVector(tensor_shape, tensor_shape_size),
+                   TensorType_INT8, 0,
+                   builder->CreateString("test_input_tensor"), 0, false),
+      CreateTensor(
+          *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
+          TensorType_INT8, 0,
+          builder->CreateString("test_unused_output_tensor"), 0, false)};
+  constexpr size_t inputs_size = 0;
+  const int32_t inputs[inputs_size] = {};
+  constexpr size_t outputs_size = 1;
+  const int32_t outputs[outputs_size] = {0};
+  constexpr size_t operator_inputs_size = 0;
+  const int32_t operator_inputs[operator_inputs_size] = {};
+  constexpr size_t operator_outputs_size = 2;
+  const int32_t operator_outputs[operator_outputs_size] = {0, 1};
+  constexpr size_t operators_size = 1;
+  const Offset<Operator> operators[operators_size] = {
+      CreateOperator(
+          *builder, 0,
+          builder->CreateVector(operator_inputs, operator_inputs_size),
+          builder->CreateVector(operator_outputs, operator_outputs_size),
+          BuiltinOptions_NONE),
+  };
+  constexpr size_t subgraphs_size = 1;
+  const Offset<SubGraph> subgraphs[subgraphs_size] = {
+      CreateSubGraph(*builder, builder->CreateVector(tensors, tensors_size),
+                     builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(outputs, outputs_size),
+                     builder->CreateVector(operators, operators_size),
+                     builder->CreateString("test_subgraph"))};
+  constexpr size_t operator_codes_size = 1;
+  const Offset<OperatorCode> operator_codes[operator_codes_size] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "mock_custom",
+                               /*version=*/0, BuiltinOperator_CUSTOM)};
+  const Offset<Model> model_offset = CreateModel(
+      *builder, 0, builder->CreateVector(operator_codes, operator_codes_size),
+      builder->CreateVector(subgraphs, subgraphs_size),
+      builder->CreateString("test_model"),
+      builder->CreateVector(buffers, buffers_size));
+  FinishModelBuffer(*builder, model_offset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 const Model* BuildSimpleMockModel() {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
@@ -1118,10 +1175,19 @@ AllOpsResolver GetOpResolver() {
   op_resolver.AddCustom("no_op", NoOp::GetMutableRegistration());
   return op_resolver;
 }
+
 const Model* GetModelWithUnusedInputs() {
   static Model* model = nullptr;
   if (!model) {
     model = const_cast<Model*>(BuildModelWithUnusedInputs());
+  }
+  return model;
+}
+
+const Model* GetModelWithUnusedOperatorOutputs() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildModelWithUnusedOperatorOutputs());
   }
   return model;
 }

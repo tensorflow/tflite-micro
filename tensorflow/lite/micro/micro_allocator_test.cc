@@ -988,6 +988,30 @@ TF_LITE_MICRO_TEST(TestModelWithUnusedTensors) {
       0, subgraph_allocations[0].tensors[3].data.uint8 - start);
 }
 
+TF_LITE_MICRO_TEST(TestModelWithUnusedOperatorOutputs) {
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  const tflite::Model* model =
+      tflite::testing::GetModelWithUnusedOperatorOutputs();
+
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+  constexpr size_t arena_size = 4096;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
+      arena, arena_size, tflite::GetMicroErrorReporter());
+
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
+                                                  &scratch_buffer_handles));
+
+  // Unused output tensor should have its own allocation.
+  TF_LITE_MICRO_EXPECT_NE(subgraph_allocations[0].tensors[0].data.uint8,
+                          subgraph_allocations[0].tensors[1].data.uint8);
+}
+
 // Manually create an offline plan for the SimpleMockModel. Pass that into the
 // interpreter and confirm that the eval tensors' offsets are exactly what was
 // specified in the offline plan.
