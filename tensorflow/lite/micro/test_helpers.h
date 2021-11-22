@@ -141,6 +141,10 @@ const Model* GetModelWithOfflinePlanning(int num_tensors,
 // output.
 const Model* GetModelWithUnusedInputs();
 
+// Returns a flatbuffer with a single operator, zero inputs and two outputs
+// (one unused).
+const Model* GetModelWithUnusedOperatorOutputs();
+
 // Returns a flatbuffer model with `simple_stateful_op`
 const Model* GetSimpleStatefulModel();
 
