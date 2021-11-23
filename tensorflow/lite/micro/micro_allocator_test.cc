@@ -1008,8 +1008,11 @@ TF_LITE_MICRO_TEST(TestModelWithUnusedOperatorOutputs) {
                                                   &scratch_buffer_handles));
 
   // Unused output tensor should have its own allocation.
-  TF_LITE_MICRO_EXPECT_NE(subgraph_allocations[0].tensors[0].data.uint8,
-                          subgraph_allocations[0].tensors[1].data.uint8);
+  uint8_t* start = subgraph_allocations[0].tensors[1].data.uint8;
+  TF_LITE_MICRO_EXPECT_EQ(
+      64, subgraph_allocations[0].tensors[0].data.uint8 - start);
+  TF_LITE_MICRO_EXPECT_EQ(
+      0, subgraph_allocations[0].tensors[1].data.uint8 - start);
 }
 
 // Manually create an offline plan for the SimpleMockModel. Pass that into the
