@@ -70,6 +70,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                        input, filter, bias, output, data);
 }
 
+__attribute__ ((optnone))
 TfLiteStatus EvalQuantizedInt8CEVA(TfLiteContext* context, TfLiteNode* node,
                                    const OpDataFullyConnected& data,
                                    const TfLiteEvalTensor* input,
