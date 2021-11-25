@@ -69,7 +69,7 @@ inline PaddingType RuntimePaddingType(TfLitePadding padding) {
 }
 
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
-                             const TfLiteConvParams* params, int width,
+                             const TfLiteTransposeConvParams* params, int width,
                              int height, int filter_width, int filter_height,
                              int out_width, int out_height,
                              const TfLiteType data_type, OpData* data) {
@@ -82,8 +82,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   auto padding = params->padding;
   TfLitePaddingValues padding_values = ComputePaddingHeightWidth(
       params->stride_height, params->stride_width,
-      params->dilation_height_factor, params->dilation_width_factor, height,
-      width, filter_height, filter_width, padding, &out_height, &out_width);
+      1, 1, //params->dilation_height_factor and params->dilation_width_factor,
+      height, width, filter_height, filter_width, padding, &out_height, &out_width);
 
   data->params.padding_type = RuntimePaddingType(padding);
   data->params.padding_values.width = padding_values.width;
@@ -103,7 +103,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     int output_channels = filter->dims->data[kConvQuantizedDimension];
 
     TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
-        context, input, filter, bias, output, params->activation,
+        context, input, filter, bias, output, kTfLiteActNone,
         &data->params.output_multiplier, &data->params.output_shift,
         &data->params.quantized_activation_min,
         &data->params.quantized_activation_max,
@@ -136,7 +136,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   OpData* data = static_cast<OpData*>(node->user_data);
-  const auto params = static_cast<const TfLiteConvParams*>(node->builtin_data);
+  const auto params = static_cast<const TfLiteTransposeConvParams*>(node->builtin_data);
 
   TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
@@ -207,19 +207,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   data->params.weights_offset = -filter->params.zero_point;
   data->params.output_offset = output->params.zero_point;
 
-  // Stride + dilation
+  // Stride
   data->params.stride_width = params->stride_width;
   data->params.stride_height = params->stride_height;
-  data->params.dilation_width_factor = params->dilation_width_factor;
-  data->params.dilation_height_factor = params->dilation_height_factor;
 
-  float output_activation_min, output_activation_max;
-  CalculateActivationRange(params->activation, &output_activation_min,
-                           &output_activation_max);
-  data->params.float_activation_min = output_activation_min;
-  data->params.float_activation_max = output_activation_max;
   return kTfLiteOk;
-}  // namespace conv
+}
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
