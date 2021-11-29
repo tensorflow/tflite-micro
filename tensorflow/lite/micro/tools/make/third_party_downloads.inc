@@ -22,12 +22,6 @@ else
   RISCV_TOOLCHAIN_MD5="2366b7afe36a54dc94fb0ff8a0830934"
 endif
 
-SIFIVE_FE310_LIB_URL := "http://mirror.tensorflow.org/github.com/sifive/freedom-e-sdk/archive/baeeb8fd497a99b3c141d7494309ec2e64f19bdf.zip"
-SIFIVE_FE310_LIB_MD5 := "06ee24c4956f8e21670ab3395861fe64"
-
-KISSFFT_URL="http://mirror.tensorflow.org/github.com/mborgerding/kissfft/archive/v130.zip"
-KISSFFT_MD5="438ba1fef5783cc5f5f201395cc477ca"
-
 RUY_URL="https://github.com/google/ruy/archive/d37128311b445e758136b8602d1bbd2a755e115d.zip"
 RUY_MD5="abf7a91eb90d195f016ebe0be885bb6e"
 

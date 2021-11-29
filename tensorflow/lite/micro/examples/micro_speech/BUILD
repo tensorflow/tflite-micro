@@ -1,6 +1,6 @@
 # Description:
 #   TensorFlow Lite microcontroller example.
-load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -20,63 +20,63 @@ cc_library(
 )
 
 generate_cc_arrays(
-    name="generated_yes_1000ms_wav_cc",
-    src="testdata/yes_1000ms.wav",
-    out="testdata/yes_1000ms_audio_data.cc",
+    name = "generated_yes_1000ms_wav_cc",
+    src = "testdata/yes_1000ms.wav",
+    out = "testdata/yes_1000ms_audio_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_yes_1000ms_wav_hdr",
-    src="testdata/yes_1000ms.wav",
-    out="testdata/yes_1000ms_audio_data.h",
+    name = "generated_yes_1000ms_wav_hdr",
+    src = "testdata/yes_1000ms.wav",
+    out = "testdata/yes_1000ms_audio_data.h",
 )
 
 generate_cc_arrays(
-    name="generated_no_1000ms_wav_cc",
-    src="testdata/no_1000ms.wav",
-    out="testdata/no_1000ms_audio_data.cc",
+    name = "generated_no_1000ms_wav_cc",
+    src = "testdata/no_1000ms.wav",
+    out = "testdata/no_1000ms_audio_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_no_1000ms_wav_hdr",
-    src="testdata/no_1000ms.wav",
-    out="testdata/no_1000ms_audio_data.h",
+    name = "generated_no_1000ms_wav_hdr",
+    src = "testdata/no_1000ms.wav",
+    out = "testdata/no_1000ms_audio_data.h",
 )
 
 generate_cc_arrays(
-    name="generated_yes_30ms_wav_cc",
-    src="testdata/yes_30ms.wav",
-    out="testdata/yes_30ms_audio_data.cc",
+    name = "generated_yes_30ms_wav_cc",
+    src = "testdata/yes_30ms.wav",
+    out = "testdata/yes_30ms_audio_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_yes_30ms_wav_hdr",
-    src="testdata/yes_30ms.wav",
-    out="testdata/yes_30ms_audio_data.h",
+    name = "generated_yes_30ms_wav_hdr",
+    src = "testdata/yes_30ms.wav",
+    out = "testdata/yes_30ms_audio_data.h",
 )
 
 generate_cc_arrays(
-    name="generated_no_30ms_wav_cc",
-    src="testdata/no_30ms.wav",
-    out="testdata/no_30ms_audio_data.cc",
+    name = "generated_no_30ms_wav_cc",
+    src = "testdata/no_30ms.wav",
+    out = "testdata/no_30ms_audio_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_no_30ms_wav_hdr",
-    src="testdata/no_30ms.wav",
-    out="testdata/no_30ms_audio_data.h",
+    name = "generated_no_30ms_wav_hdr",
+    src = "testdata/no_30ms.wav",
+    out = "testdata/no_30ms_audio_data.h",
 )
 
 generate_cc_arrays(
-    name="generated_micro_speech_model_cc",
-    src="micro_speech.tflite",
-    out="micro_speech_model_data.cc",
+    name = "generated_micro_speech_model_cc",
+    src = "micro_speech.tflite",
+    out = "micro_speech_model_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_micro_speech_model_hdr",
-    src="micro_speech.tflite",
-    out="micro_speech_model_data.h",
+    name = "generated_micro_speech_model_hdr",
+    src = "micro_speech.tflite",
+    out = "micro_speech_model_data.h",
 )
 
 cc_library(
@@ -120,24 +120,24 @@ cc_test(
 cc_library(
     name = "audio_sample_test_data",
     srcs = [
-        ":generated_yes_30ms_wav_cc",
         ":generated_no_30ms_wav_cc",
+        ":generated_yes_30ms_wav_cc",
     ],
     hdrs = [
-        ":generated_yes_30ms_wav_hdr",
         ":generated_no_30ms_wav_hdr",
+        ":generated_yes_30ms_wav_hdr",
     ],
 )
 
 cc_library(
     name = "audio_large_sample_test_data",
     srcs = [
-        ":generated_yes_1000ms_wav_cc",
         ":generated_no_1000ms_wav_cc",
+        ":generated_yes_1000ms_wav_cc",
     ],
     hdrs = [
-        ":generated_yes_1000ms_wav_hdr",
         ":generated_no_1000ms_wav_hdr",
+        ":generated_yes_1000ms_wav_hdr",
     ],
 )
 
@@ -440,10 +440,10 @@ cc_binary(
         "main_functions.h",
     ],
     deps = [
-        ":micro_speech_model_data",
         ":audio_provider_mock",
         ":command_responder",
         ":feature_provider",
+        ":micro_speech_model_data",
         ":recognize_commands",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",

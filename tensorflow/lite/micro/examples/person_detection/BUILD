@@ -1,6 +1,6 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
-load("//tensorflow/lite/micro:build_def.bzl","generate_cc_arrays")
+load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -20,27 +20,27 @@ cc_library(
 )
 
 generate_cc_arrays(
-    name="generated_no_person_bmp_cc",
-    src="testdata/no_person.bmp",
-    out="testdata/no_person_image_data.cc",
+    name = "generated_no_person_bmp_cc",
+    src = "testdata/no_person.bmp",
+    out = "testdata/no_person_image_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_no_person_bmp_hdr",
-    src="testdata/no_person.bmp",
-    out="testdata/no_person_image_data.h",
+    name = "generated_no_person_bmp_hdr",
+    src = "testdata/no_person.bmp",
+    out = "testdata/no_person_image_data.h",
 )
 
 generate_cc_arrays(
-    name="generated_person_bmp_cc",
-    src="testdata/person.bmp",
-    out="testdata/person_image_data.cc",
+    name = "generated_person_bmp_cc",
+    src = "testdata/person.bmp",
+    out = "testdata/person_image_data.cc",
 )
 
 generate_cc_arrays(
-    name="generated_person_bmp_hdr",
-    src="testdata/person.bmp",
-    out="testdata/person_image_data.h",
+    name = "generated_person_bmp_hdr",
+    src = "testdata/person.bmp",
+    out = "testdata/person_image_data.h",
 )
 
 cc_library(
@@ -56,12 +56,12 @@ cc_library(
 cc_library(
     name = "simple_images_test_data",
     srcs = [
-        ":generated_person_bmp_cc",
         ":generated_no_person_bmp_cc",
+        ":generated_person_bmp_cc",
     ],
     hdrs = [
-        ":generated_person_bmp_hdr",
         ":generated_no_person_bmp_hdr",
+        ":generated_person_bmp_hdr",
     ],
     deps = [
         ":model_settings",

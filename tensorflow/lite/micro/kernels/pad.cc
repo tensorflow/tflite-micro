@@ -177,6 +177,16 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                            tflite::micro::GetTensorData<int8_t>(output));
       }
     } break;
+    case kTfLiteInt16: {
+      int16_t pad_value =
+          constant_values == nullptr
+              ? 0
+              : *tflite::micro::GetTensorData<int16_t>(constant_values);
+      reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
+                         tflite::micro::GetTensorData<int16_t>(input),
+                         &pad_value, tflite::micro::GetTensorShape(output),
+                         tflite::micro::GetTensorData<int16_t>(output));
+    } break;
     case kTfLiteInt32: {
       int32_t pad_value =
           constant_values == nullptr
@@ -193,7 +203,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                          TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
-#undef TF_LITE_PAD
   return kTfLiteOk;
 }
 

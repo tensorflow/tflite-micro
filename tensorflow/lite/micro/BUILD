@@ -96,6 +96,7 @@ cc_library(
     deps = [
         ":flatbuffer_utils",
         ":memory_helpers",
+        ":micro_arena_constants",
         ":micro_compatibility",
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
@@ -112,10 +113,20 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_arena_constants",
+    hdrs = [
+        "micro_arena_constants.h",
+    ],
+    copts = micro_copts(),
+    deps = [],
+)
+
+cc_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
     deps = [
+        "//tensorflow/lite/c:common",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
@@ -388,9 +399,12 @@ cc_test(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_arena_constants",
         ":micro_error_reporter",
         ":test_helpers",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/memory_planner:memory_plan_struct",
+        "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
     ],

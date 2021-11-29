@@ -154,13 +154,12 @@ else ifeq ($(TOOLCHAIN), gcc)
     -Wl,--gc-sections \
     --entry Reset_Handler
 
+  ldflags_to_remove = -Wl,--fatal-warnings
+  LDFLAGS := $(filter-out $(ldflags_to_remove),$(LDFLAGS))
+
 else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
-
-# TODO(#47718): resolve warnings.
-OMIT_ERRORS = \
-  -Wno-implicit-fallthrough
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
@@ -168,7 +167,6 @@ PLATFORM_FLAGS = \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
   -mlittle-endian \
-  ${OMIT_ERRORS} \
   -fomit-frame-pointer \
   -MD
 

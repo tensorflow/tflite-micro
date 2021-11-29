@@ -17,6 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
@@ -48,13 +49,19 @@ TfLiteStatus copyToTensor(TfLiteContext* context, const FromT* in,
     case kTfLiteInt8:
       copyCast(in, out->data.int8, num_elements);
       break;
+    case kTfLiteInt16:
+      copyCast(in, out->data.i16, num_elements);
+      break;
+    case kTfLiteInt32:
+      copyCast(in, out->data.i32, num_elements);
+      break;
     case kTfLiteFloat32:
       copyCast(in, tflite::micro::GetTensorData<float>(out), num_elements);
       break;
     default:
       // Unsupported type.
-      TF_LITE_KERNEL_LOG(context, "Output type %s (%d) not supported.",
-                         TfLiteTypeGetName(out->type), out->type);
+      MicroPrintf("Output type %s (%d) not supported.",
+                  TfLiteTypeGetName(out->type), out->type);
   }
   return kTfLiteOk;
 }
@@ -70,13 +77,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   switch (input->type) {
     case kTfLiteInt8:
       return copyToTensor(context, input->data.int8, output, num_elements);
+    case kTfLiteInt16:
+      return copyToTensor(context, tflite::micro::GetTensorData<int16_t>(input),
+                          output, num_elements);
+    case kTfLiteInt32:
+      return copyToTensor(context, tflite::micro::GetTensorData<int32_t>(input),
+                          output, num_elements);
     case kTfLiteFloat32:
       return copyToTensor(context, tflite::micro::GetTensorData<float>(input),
                           output, num_elements);
     default:
       // Unsupported type.
-      TF_LITE_KERNEL_LOG(context, "Input type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Input type %s (%d) not supported.",
+                  TfLiteTypeGetName(input->type), input->type);
   }
   return kTfLiteOk;
 }

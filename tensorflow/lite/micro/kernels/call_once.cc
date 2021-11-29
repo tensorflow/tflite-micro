@@ -47,8 +47,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   op_data->init_subgraph_index = params->init_subgraph_index;
   op_data->has_run = false;
 
-  TF_LITE_ENSURE(context, node->inputs->size == 0);
-  TF_LITE_ENSURE(context, node->outputs->size == 0);
+  TF_LITE_ENSURE(context, NumInputs(node) == 0);
+  TF_LITE_ENSURE(context, NumOutputs(node) == 0);
 
   // Casting to TfliteIntArray is required since we are re-using
   // GetExecutionPlan from TfLiteContext. On TFLM this method returns a

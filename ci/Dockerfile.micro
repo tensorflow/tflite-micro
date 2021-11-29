@@ -2,11 +2,13 @@
 #
 # It is only used as part of the GitHub workflows to test for code-style. But
 # the container is available and ready for use to run all the checks locally,
-# in case that is useful for debugging.
+# in case that is useful for debugging. See all the versions at
+# https://github.com/users/TFLM-bot/packages/container/tflm-ci/versions
 #
-# docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:latest .
-#    or
-# docker pull ghcr.io/tflm-bot/tflm-ci:latest
+# docker pull ghcr.io/tflm-bot/tflm-ci:<version>
+#
+# Build you own container with:
+# docker build -f ci/Dockerfile.micro -t tflm-ci .
 #
 # Use a prebuilt Python image instead of base Ubuntu to speed up the build process,
 # since it has all the build dependencies we need for Micro and downloads much faster
@@ -41,7 +43,7 @@ RUN pip install Wave
 RUN pip install six
 
 # Install Renode test dependencies
-RUN pip install pyyaml requests psutil robotframework==3.1
+RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 COPY ci/*.sh /install/
 RUN /install/install_bazel.sh

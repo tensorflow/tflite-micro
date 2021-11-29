@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -86,10 +87,18 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorData<int32_t>(size),
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int8_t>(output));
+  } else if (output->type == kTfLiteInt16) {
+    reference_ops::ResizeNearestNeighbor(
+        op_params, tflite::micro::GetTensorShape(input),
+        tflite::micro::GetTensorData<int16_t>(input),
+        tflite::micro::GetTensorShape(size),
+        tflite::micro::GetTensorData<int32_t>(size),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<int16_t>(output));
   } else {
-    TF_LITE_KERNEL_LOG(context,
-                       "Output type is %d, requires float, uint8_t or int8_t.",
-                       output->type);
+    MicroPrintf("Output tensor type %s (%d) not supported.",
+                TfLiteTypeGetName(output->type), output->type);
+
     return kTfLiteError;
   }
 

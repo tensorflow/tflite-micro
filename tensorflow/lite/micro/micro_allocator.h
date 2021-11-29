@@ -85,6 +85,12 @@ typedef struct {
   TfLiteEvalTensor* tensors;
 } SubgraphAllocations;
 
+// The fixed amount of memory overhead of MicroAllocator. You can image this
+// number as the arena usage after MicroAllocator is given a model that has zero
+// tensors and zero OPs.
+extern const size_t kMicroAllocatorDefaultTailUsage;
+extern const size_t kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner;
+
 // Allocator responsible for allocating memory for all intermediate tensors
 // necessary to invoke a model.
 //
@@ -208,12 +214,6 @@ class MicroAllocator {
   // Returns the arena usage in bytes, only available after
   // `FinishModelAllocation`. Otherwise, it will return 0.
   size_t used_bytes() const;
-
-  // Converts a flatbuffer int32_t array to a TfLiteIntArray, accounting for
-  // endiannes.
-  TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
-      const flatbuffers::Vector<int32_t>* flatbuffer_array,
-      TfLiteIntArray** result);
 
   BuiltinDataAllocator* GetBuiltinDataAllocator();
 

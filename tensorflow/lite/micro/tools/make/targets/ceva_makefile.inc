@@ -9,13 +9,19 @@ endif
 #   TARGET_ARCH=CEVA_SP500 --> -DCEVA_SP500
 TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
 
-TARGET_TOOLCHAIN_PREFIX := ceva
+CORE_OPTIMIZATION_LEVEL := -O4
+
+#no need for -lm:
+MICROLITE_LIBS :=
+
+TARGET_TOOLCHAIN_PREFIX := 
 CXX_TOOL = clang++
 CC_TOOL = clang
 LD_TOOL = ceva-elf-ld
 LD = ceva-elf-ld
+AR = ceva-elf-ar
 
-PLATFORM_ARGS += \
+PLATFORM_FLAGS = \
 $(TARGET_ARCH_DEFINES) \
 	-fmessage-length=0 \
 	-fpermissive \
@@ -31,7 +37,7 @@ CXXFLAGS := -std=c++11 -DTF_LITE_STATIC_MEMORY
 CCFLAGS  := -std=c11   -DTF_LITE_STATIC_MEMORY 
 
 ifeq ($(TARGET_ARCH), CEVA_BX1)
-PLATFORM_ARGS += \
+PLATFORM_FLAGS += \
 	--target=cevabx1-elf \
 	-mcpu=cevabx1v1.0.0 \
 	-m32x32 \
@@ -43,18 +49,20 @@ PLATFORM_ARGS += \
 
 LDFLAGS += \
 	  -T \
-	CEVA_TFLM.ld \
-	--no-relax \
-	--no-gc-sections \
-	-defsym \
-	__internal_data_size=512k \
-	-defsym \
-	__internal_code_size=256k \
+	tensorflow/lite/micro/tools/make/targets/ceva/CEVA_BX1_TFLM_18.0.5.ld \
+     -L${TARGET_TOOLCHAIN_ROOT}_cevatools/lib/clang/9.0.1/cevabx1-unknown-unknown-elf/rtlv1.0.0-fp1-dpfp1/lib/ \
+    -lc++ -lc++abi -lc -lcompiler-rt -lCEVA_TFLM_lib -lceva_dsp_lib  \
+	--for-linker --no-relax \
+	--for-linker --no-gc-sections \
+	--for-linker -defsym \
+	--for-linker __internal_data_size=2048k \
+	--for-linker -defsym \
+	--for-linker __internal_code_size=256k \
 
 endif
 
 ifeq ($(TARGET_ARCH), CEVA_SP500)
-PLATFORM_ARGS = \
+PLATFORM_FLAGS = \
  -pedantic \
  -Wa,--no-rstr-check \
  --target=senspro-elf \
@@ -75,8 +83,8 @@ PLATFORM_ARGS = \
  
 endif
 
-CXXFLAGS += $(PLATFORM_ARGS)
-CCFLAGS += $(PLATFORM_ARGS)
+CXXFLAGS += $(PLATFORM_FLAGS)
+CCFLAGS += $(PLATFORM_FLAGS)
 
 MICROLITE_CC_HDRS += \
   tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h \

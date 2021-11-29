@@ -139,7 +139,14 @@ else ifeq ($(TOOLCHAIN), gcc)
 
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH) -mfpu=auto
+  FLAGS_GCC = -mcpu=$(GCC_TARGET_ARCH)
+  ifeq ($(TARGET_ARCH), cortex-m4)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else ifeq ($(TARGET_ARCH), cortex-m7)
+    FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else
+    FLAGS_GCC += -mfpu=auto
+  endif
   CXXFLAGS += $(FLAGS_GCC)
   CCFLAGS += $(FLAGS_GCC)
 
@@ -147,18 +154,12 @@ else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
 
-# TODO(#47718): resolve warnings.
-OMIT_ERRORS = \
-  -Wno-implicit-fallthrough \
-  -Wno-unused-variable
-
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
   -mlittle-endian \
-   ${OMIT_ERRORS} \
   -Wno-type-limits \
   -Wno-unused-private-field \
   -fomit-frame-pointer \

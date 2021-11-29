@@ -88,6 +88,19 @@ class MultipleInputs {
   static bool freed_;
 };
 
+// A simple no-op operator.
+class NoOp {
+ public:
+  static const TfLiteRegistration* getRegistration();
+  static TfLiteRegistration* GetMutableRegistration();
+  static void* Init(TfLiteContext* context, const char* buffer, size_t length);
+  static void Free(TfLiteContext* context, void* buffer);
+  static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
+  static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
+
+  static bool freed_;
+};
+
 // Returns an Op Resolver that can be used in the testing code.
 AllOpsResolver GetOpResolver();
 
@@ -128,11 +141,18 @@ const Model* GetModelWithOfflinePlanning(int num_tensors,
 // output.
 const Model* GetModelWithUnusedInputs();
 
+// Returns a flatbuffer with a single operator, zero inputs and two outputs
+// (one unused).
+const Model* GetModelWithUnusedOperatorOutputs();
+
 // Returns a flatbuffer model with `simple_stateful_op`
 const Model* GetSimpleStatefulModel();
 
 // Returns a flatbuffer model with "if" and two subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndIf();
+
+// Returns a flatbuffer model with null subgraph/operator inputs and outputs.
+const Model* GetSimpleModelWithNullInputsAndOutputs();
 
 // Builds a one-dimensional flatbuffer tensor of the given size.
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable = false);

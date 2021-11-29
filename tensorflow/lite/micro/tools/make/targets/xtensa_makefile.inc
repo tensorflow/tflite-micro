@@ -11,6 +11,9 @@
 TARGET_ARCH :=
 XTENSA_USE_LIBC :=
 
+# Allow additional flags on the command line for debugging.
+XTENSA_EXTRA_CFLAGS :=
+
 ifndef XTENSA_BASE
   $(error XTENSA_BASE is undefined)
 endif
@@ -68,6 +71,9 @@ endif
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
+CCFLAGS += $(XTENSA_EXTRA_CFLAGS)
+CXXFLAGS += $(XTENSA_EXTRA_CFLAGS)
+
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_xtensa_binary.sh
 
 # TODO(b/158651472): Fix the memory_arena_threshold_test
@@ -88,7 +94,12 @@ MICRO_LITE_EXAMPLE_TESTS += $(shell find third_party/xtensa/examples/ -name Make
 
 # Needed for LSTM support.
 MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
-tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc \
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
 tensorflow/lite/kernels/kernel_util.cc
+
+ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
+  MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
+  tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
+  tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
+  tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
+endif

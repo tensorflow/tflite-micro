@@ -26,4 +26,3 @@ cc_library(
     hdrs = ["c_api_types.h"],
     copts = tflite_copts(),
 )
-

@@ -42,7 +42,9 @@ AllOpsResolver::AllOpsResolver() {
   AddElu();
   AddEqual();
   AddEthosU();
+  AddExp();
   AddExpandDims();
+  AddFill();
   AddFloor();
   AddFloorDiv();
   AddFloorMod();

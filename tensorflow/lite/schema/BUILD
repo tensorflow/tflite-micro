@@ -5,7 +5,6 @@ package(
     licenses = ["notice"],
 )
 
-
 # The name schema_fbs is unchanged from upstream TF so that sync'ing shared
 # TfLite/TFLM code does not require a change in the name for this BUILD target.
 # For upstream TFL code, schema_fbs is a flatbuffer_cc_library whereas it is a
@@ -28,5 +27,3 @@ cc_library(
         "@flatbuffers//:runtime_cc",
     ],
 )
-
-

@@ -16,6 +16,7 @@ def clean_dep(dep):
 
 def tf_repositories(path_prefix = "", tf_repo_name = ""):
     """All external dependencies for TF builds."""
+
     # https://github.com/bazelbuild/bazel-skylib/releases
     tf_http_archive(
         name = "bazel_skylib",
@@ -34,6 +35,26 @@ def tf_repositories(path_prefix = "", tf_repo_name = ""):
             "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/gemmlowp/archive/fda83bdc38b118cc6b56753bd540caa49e570745.zip",
             "https://github.com/google/gemmlowp/archive/fda83bdc38b118cc6b56753bd540caa49e570745.zip",
         ],
+    )
+
+    tf_http_archive(
+        name = "absl_py",
+        sha256 = "516e83df99fe7c365727ef09c9e1f83b55985afaf23dd1ca572b3e160057f5f8",
+        strip_prefix = "abseil-py-b188d9080c8e5628bb52a93a04ad930abb1717eb",
+        urls = [
+            "https://github.com/abseil/abseil-py/archive/b188d9080c8e5628bb52a93a04ad930abb1717eb.zip",
+        ],
+    )
+
+    tf_http_archive(
+        name = "six_archive",
+        urls = [
+            "http://mirror.bazel.build/pypi.python.org/packages/source/s/six/six-1.10.0.tar.gz",
+            "https://pypi.python.org/packages/source/s/six/six-1.10.0.tar.gz",
+        ],
+        sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",
+        strip_prefix = "six-1.10.0",
+        build_file = "@//third_party:six.BUILD",
     )
 
     initialize_third_party()

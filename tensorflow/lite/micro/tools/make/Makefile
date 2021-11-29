@@ -21,11 +21,6 @@ endif
 TENSORFLOW_ROOT :=
 MAKEFILE_DIR := tensorflow/lite/micro/tools/make
 
-#  Override this on make command line to parse third party downloads during project generation
-#  make -f tensorflow/lite/micro/tools/make/Makefile PARSE_THIRD_PARTY=true TARGET=apollo3evb generate_hello_world_make_project
-PARSE_THIRD_PARTY :=
-
-
 # Pull in some convenience functions.
 include $(MAKEFILE_DIR)/helper_functions.inc
 
@@ -258,6 +253,9 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdep
 # Internal examples are copied outside the TFLM repo in ../google.
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 
+# Kernel integration tests must be excluded on certain targets.
+MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
+
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
@@ -281,12 +279,14 @@ tensorflow/lite/micro/recording_simple_memory_allocator_test.cc \
 tensorflow/lite/micro/simple_memory_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
-tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc
+tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
+tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
 tensorflow/lite/micro/kernels/activations.cc \
 tensorflow/lite/micro/kernels/activations_common.cc \
 tensorflow/lite/micro/kernels/add.cc \
+tensorflow/lite/micro/kernels/add_common.cc \
 tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
 tensorflow/lite/micro/kernels/assign_variable.cc \
@@ -305,6 +305,7 @@ tensorflow/lite/micro/kernels/depth_to_space.cc \
 tensorflow/lite/micro/kernels/depthwise_conv.cc \
 tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 tensorflow/lite/micro/kernels/dequantize.cc \
+tensorflow/lite/micro/kernels/dequantize_common.cc \
 tensorflow/lite/micro/kernels/detection_postprocess.cc \
 tensorflow/lite/micro/kernels/elementwise.cc \
 tensorflow/lite/micro/kernels/elu.cc \
@@ -335,12 +336,14 @@ tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
 tensorflow/lite/micro/kernels/mul.cc \
+tensorflow/lite/micro/kernels/mul_common.cc \
 tensorflow/lite/micro/kernels/neg.cc \
 tensorflow/lite/micro/kernels/pack.cc \
 tensorflow/lite/micro/kernels/pad.cc \
 tensorflow/lite/micro/kernels/pooling.cc \
 tensorflow/lite/micro/kernels/pooling_common.cc \
 tensorflow/lite/micro/kernels/prelu.cc \
+tensorflow/lite/micro/kernels/prelu_common.cc \
 tensorflow/lite/micro/kernels/quantize.cc \
 tensorflow/lite/micro/kernels/quantize_common.cc \
 tensorflow/lite/micro/kernels/read_variable.cc \
@@ -350,6 +353,7 @@ tensorflow/lite/micro/kernels/resize_bilinear.cc \
 tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 tensorflow/lite/micro/kernels/round.cc \
 tensorflow/lite/micro/kernels/shape.cc \
+tensorflow/lite/micro/kernels/slice.cc \
 tensorflow/lite/micro/kernels/softmax.cc \
 tensorflow/lite/micro/kernels/softmax_common.cc \
 tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
@@ -359,6 +363,7 @@ tensorflow/lite/micro/kernels/split_v.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
 tensorflow/lite/micro/kernels/strided_slice.cc \
 tensorflow/lite/micro/kernels/sub.cc \
+tensorflow/lite/micro/kernels/sub_common.cc \
 tensorflow/lite/micro/kernels/svdf.cc \
 tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
@@ -392,12 +397,6 @@ $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
 
-# Load custom kernels.
-include $(MAKEFILE_DIR)/additional_kernels.inc
-
-MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
-MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
-
 # For project generation v1, the headers that are common to all targets need to
 # have a third_party prefix. Other third_party headers (e.g. CMSIS) do not have
 # this requirement and are added to THIRD_PARTY_CC_HDRS with full path from the
@@ -413,6 +412,14 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # TODO(#47413): remove this additional logic once we are ready to switch over to
 # project generation v2.
 THIRD_PARTY_CC_HDRS :=
+THIRD_PARTY_CC_SRCS :=
+
+# Load custom kernels.
+include $(MAKEFILE_DIR)/additional_kernels.inc
+
+MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
+MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
+
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
 # platform-specific headers.
@@ -430,29 +437,6 @@ flatbuffers/include/flatbuffers/util.h \
 flatbuffers/LICENSE.txt \
 ruy/ruy/profiler/instrumentation.h
 
-MAKE_PROJECT_FILES := \
-  Makefile \
-  README_MAKE.md \
-  .vscode/tasks.json
-
-KEIL_PROJECT_FILES := \
-  README_KEIL.md \
-  keil_project.uvprojx
-
-ARDUINO_PROJECT_FILES := \
-  library.properties
-
-ESP_PROJECT_FILES := \
-  README_ESP.md \
-  CMakeLists.txt \
-  main/CMakeLists.txt \
-  components/tfmicro/CMakeLists.txt
-
-ALL_PROJECT_TARGETS :=
-
-ARDUINO_LIBRARY_TARGETS :=
-ARDUINO_LIBRARY_ZIPS :=
-
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
 # directory.
@@ -462,6 +446,11 @@ $(shell mkdir -p ${MAKEFILE_DIR}/downloads)
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
+endif
+
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${MAKEFILE_DIR}/downloads)
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
 endif
 
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
@@ -477,13 +466,8 @@ $(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
 # The target-specific makefile must have a name that is exactly
 # TARGET_makefile.inc and is only needed for cross-compilation (i.e. when TARGET
 # is different from the HOST_OS).
-# There are also some other targets like arduino and CHRE that are also special
-# in that they do no have a <target>_makefile but are still used to create a
-# directory for the generated artifacts. We are using a workaround right now and
-# will be separating the project generation from the Makefile in the future.
 TARGETS_WITHOUT_MAKEFILES := \
-$(HOST_OS) \
-arduino
+$(HOST_OS)
 
 # This specific string needs to be outputted for a test to be recognized as
 # having passed.
@@ -573,6 +557,9 @@ INCLUDES += -I$(GENERATED_SRCS_DIR)
 
 # Load the examples.
 include $(MICRO_LITE_EXAMPLE_TESTS)
+
+# Load the integration tests.
+include $(MICRO_LITE_INTEGRATION_TESTS)
 
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
@@ -720,17 +707,11 @@ $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET)
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
+integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 endif
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
-
-generate_projects: $(ALL_PROJECT_TARGETS)
-
-ARDUINO_PROJECT_TARGETS := $(foreach TARGET,$(ALL_PROJECT_TARGETS),$(if $(findstring _arduino,$(TARGET)),$(TARGET),))
-
-generate_arduino_zip: $(ARDUINO_PROJECT_TARGETS) $(ARDUINO_LIBRARY_ZIPS)
-	python tensorflow/lite/micro/tools/make/merge_arduino_zips.py $(PRJDIR)/tensorflow_lite.zip $(ARDUINO_LIBRARY_ZIPS)
 
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)

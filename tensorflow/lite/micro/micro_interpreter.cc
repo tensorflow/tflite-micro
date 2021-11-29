@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
@@ -161,13 +162,10 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
                                      (void**)(&builtin_data)));
       }
 
-      TfLiteIntArray* inputs_array;
-      TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-          op->inputs(), &inputs_array));
-
-      TfLiteIntArray* outputs_array;
-      TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-          op->outputs(), &outputs_array));
+      TfLiteIntArray* inputs_array =
+          FlatBufferVectorToTfLiteTypeArray(op->inputs());
+      TfLiteIntArray* outputs_array =
+          FlatBufferVectorToTfLiteTypeArray(op->outputs());
 
       TfLiteNode* node = &(
           graph_.GetAllocations()[subgraph_idx].node_and_registrations[i].node);
@@ -179,10 +177,8 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
       node->custom_initial_data_size = custom_data_size;
 
       if (op->intermediates() && (op->intermediates()->size() > 0)) {
-        TfLiteIntArray* intermediates_array;
-        TF_LITE_ENSURE_STATUS(allocator_.FlatBufferVectorToTfLiteTypeArray(
-            op->intermediates(), &intermediates_array));
-        node->intermediates = intermediates_array;
+        node->intermediates =
+            FlatBufferVectorToTfLiteTypeArray(op->intermediates());
       }
     }
   }
@@ -208,12 +204,16 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
   context_.GetExecutionPlan = GetGraph;
-  graph_.InitSubgraphs();
+  context_.GetExternalContext = nullptr;
+  TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena = RequestScratchBufferInArena;
-  graph_.PrepareSubgraphs();
+  // GetExternalContext become available in Prepare stage.
+  context_.GetExternalContext = GetExternalContext;
+
+  TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
@@ -379,6 +379,38 @@ TfLiteStatus MicroInterpreter::GetGraph(struct TfLiteContext* context,
       reinterpret_cast<MicroInterpreter*>(context->impl_);
   *args = reinterpret_cast<TfLiteIntArray*>(&interpreter->graph_);
   return kTfLiteOk;
+}
+
+TfLiteStatus MicroInterpreter::SetMicroExternalContext(
+    void* external_context_payload) {
+  if (external_context_payload == nullptr ||
+      external_context_payload_ != nullptr) {
+    MicroPrintf(
+        "Attempting to set external context to %x but it was %x already",
+        external_context_payload, external_context_payload_);
+    return kTfLiteError;
+  }
+
+  external_context_payload_ = external_context_payload;
+  return kTfLiteOk;
+}
+
+void* MicroInterpreter::GetMicroExternalContext() {
+  return external_context_payload_;
+}
+
+// This callback is an implementation for TfLiteContext::GetExternalContext
+// interface.
+TfLiteExternalContext* MicroInterpreter::GetExternalContext(
+    TfLiteContext* context, TfLiteExternalContextType unused) {
+  // TODO(b/205754757): TfLiteExternalContextType is unused in TFLM. This
+  // function is only called by the framework as a way to conform to existing
+  // interface. Users should use GetMicroExternalContext api in kernel_util.h to
+  // get context and shall not directly use this function.
+  MicroInterpreter* interpreter =
+      reinterpret_cast<MicroInterpreter*>(context->impl_);
+  return reinterpret_cast<TfLiteExternalContext*>(
+      interpreter->GetMicroExternalContext());
 }
 
 }  // namespace tflite
