@@ -68,6 +68,9 @@ endif
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
+CCFLAGS += $(XA_EXTRA_CFLAGS)
+CXXFLAGS += $(XA_EXTRA_CFLAGS)
+
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_xtensa_binary.sh
 
 # TODO(b/158651472): Fix the memory_arena_threshold_test
