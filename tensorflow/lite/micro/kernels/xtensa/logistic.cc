@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
@@ -44,82 +45,66 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataLogistic* data = static_cast<OpDataLogistic*>(node->user_data);
 
-  if (input->type == kTfLiteFloat32) {
-    switch (output->type) {
-      case kTfLiteFloat32: {
-#if HIFI_VFPU && defined(HIFI5)
-        int err;
-        const float* inp_data_ptr;
-        float* out_data_ptr;
-        const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
-        const RuntimeShape& output_shape =
-            tflite::micro::GetTensorShape(output);
-        const int flat_size = MatchingFlatSize(input_shape, output_shape);
-
-        inp_data_ptr = tflite::micro::GetTensorData<float>(input);
-        out_data_ptr = tflite::micro::GetTensorData<float>(output);
-
-        err = xa_nn_vec_sigmoid_f32_f32(out_data_ptr, inp_data_ptr, flat_size);
-        TF_LITE_ENSURE(context, err == 0);
-#else
-        reference_ops::Logistic(tflite::micro::GetTensorShape(input),
-                                tflite::micro::GetTensorData<float>(input),
-                                tflite::micro::GetTensorShape(output),
-                                tflite::micro::GetTensorData<float>(output));
-#endif // HIFI_VFPU && defined(HIFI5)
-        return kTfLiteOk;
-      }
-      default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
-        return kTfLiteError;
-    }
-  } else if (input->type == kTfLiteInt8) {
-    switch (output->type) {
-      case kTfLiteInt8: {
-#if defined(HIFI5)
-        int err;
-        const int8_t *input_data_ptr;
-        int8_t *output_data_ptr;
-        const RuntimeShape& input_shape  = tflite::micro::GetTensorShape(input);
-        const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-        const int flat_size = MatchingFlatSize(input_shape, output_shape);
-
-        input_data_ptr  = tflite::micro::GetTensorData<int8_t>(input);
-        output_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
-
-        err = xa_nn_vec_sigmoid_asym8s_asym8s(output_data_ptr,
-                                              input_data_ptr,
-                                              data->input_zero_point,
-                                              data->input_range_radius,
-                                              data->input_multiplier,
-                                              data->input_left_shift,
-                                              flat_size);
-        TF_LITE_ENSURE(context, err == 0);
-#else
-        reference_integer_ops::Logistic(
-            data->input_zero_point, data->input_range_radius,
-            data->input_multiplier, data->input_left_shift,
-            NumElements(input->dims),
-            tflite::micro::GetTensorData<int8_t>(input),
-            tflite::micro::GetTensorData<int8_t>(output));
-#endif // defined(HIFI5)
-        return kTfLiteOk;
-      }
-      default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
-        return kTfLiteError;
-    }
-  } else {
-    // TODO(b/141211002): Also support other data types once we have supported
-    // temporary tensors in TFLM.
-    TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                       TfLiteTypeGetName(input->type),
-                       TfLiteTypeGetName(output->type));
+  if (input->type != output->type) {
+    MicroPrintf(
+        "Input and output types must be identical. Input %s, output %s.",
+        TfLiteTypeGetName(input->type), TfLiteTypeGetName(output->type));
     return kTfLiteError;
+  }
+
+  switch (input->type) {
+    case kTfLiteFloat32: {
+#if HIFI_VFPU && defined(HIFI5)
+      const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
+      const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
+      const int flat_size = MatchingFlatSize(input_shape, output_shape);
+
+      const float* inp_data_ptr = tflite::micro::GetTensorData<float>(input);
+      float* out_data_ptr = tflite::micro::GetTensorData<float>(output);
+
+      TF_LITE_ENSURE_EQ(
+          context,
+          xa_nn_vec_sigmoid_f32_f32(out_data_ptr, inp_data_ptr, flat_size), 0);
+#else
+      reference_ops::Logistic(tflite::micro::GetTensorShape(input),
+                              tflite::micro::GetTensorData<float>(input),
+                              tflite::micro::GetTensorShape(output),
+                              tflite::micro::GetTensorData<float>(output));
+#endif  // HIFI_VFPU && defined(HIFI5)
+      break;
+    }
+    case kTfLiteInt8: {
+#if defined(HIFI5)
+      const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
+      const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
+      const int flat_size = MatchingFlatSize(input_shape, output_shape);
+
+      const int8_t* input_data_ptr =
+          tflite::micro::GetTensorData<int8_t>(input);
+      int8_t* output_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
+
+      TF_LITE_ENSURE_EQ(
+          context,
+          xa_nn_vec_sigmoid_asym8s_asym8s(
+              output_data_ptr, input_data_ptr, data->input_zero_point,
+              data->input_range_radius, data->input_multiplier,
+              data->input_left_shift, flat_size),
+          0);
+#else
+      reference_integer_ops::Logistic(
+          data->input_zero_point, data->input_range_radius,
+          data->input_multiplier, data->input_left_shift,
+          NumElements(input->dims), tflite::micro::GetTensorData<int8_t>(input),
+          tflite::micro::GetTensorData<int8_t>(output));
+#endif  // defined(HIFI5)
+      break;
+    }
+    default: {
+      MicroPrintf("Input %s, output %s not supported.",
+                  TfLiteTypeGetName(input->type),
+                  TfLiteTypeGetName(output->type));
+      return kTfLiteError;
+    }
   }
   return kTfLiteOk;
 }
