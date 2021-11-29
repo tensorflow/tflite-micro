@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ inline PaddingType RuntimePaddingType(TfLitePadding padding) {
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
                              const TfLiteConvParams* params, int width,
                              int height, int filter_width, int filter_height,
-                             int out_width, int out_height,
                              const TfLiteType data_type, OpData* data) {
+  int unused_output_height, unused_output_width;
   bool has_bias = node->inputs->size == 4;
   // Check number of inputs/outputs
   TF_LITE_ENSURE(context, has_bias || node->inputs->size == 3);
@@ -81,9 +81,9 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   // Matching GetWindowedOutputSize in TensorFlow.
   auto padding = params->padding;
   TfLitePaddingValues padding_values = ComputePaddingHeightWidth(
-      params->stride_height, params->stride_width,
-      params->dilation_height_factor, params->dilation_width_factor, height,
-      width, filter_height, filter_width, padding, &out_height, &out_width);
+      params->stride_height, params->stride_width, 1, 1, height, width,
+      filter_height, filter_width, padding, &unused_output_height,
+      &unused_output_width);
 
   data->params.padding_type = RuntimePaddingType(padding);
   data->params.padding_values.width = padding_values.width;
@@ -145,12 +145,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* filter = GetInput(context, node, kFilterTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
-  int input_width = input->dims->data[2];
-  int input_height = input->dims->data[1];
-  int filter_width = filter->dims->data[2];
-  int filter_height = filter->dims->data[1];
-  int output_width = output->dims->data[2];
-  int output_height = output->dims->data[1];
+  // Get height and width of the output image.
+  const int width = SizeOfDimension(output, 2);
+  const int height = SizeOfDimension(output, 1);
+  const int filter_width = SizeOfDimension(filter, 2);
+  const int filter_height = SizeOfDimension(filter, 1);
 
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels = filter->dims->data[kConvQuantizedDimension];
@@ -198,9 +197,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                       affine_quantization->zero_point->size);
   }
 
-  TF_LITE_ENSURE_STATUS(CalculateOpData(
-      context, node, params, input_width, input_height, filter_width,
-      filter_height, output_width, output_height, input->type, data));
+  TF_LITE_ENSURE_STATUS(CalculateOpData(context, node, params, width, height,
+                                        filter_width, filter_height,
+                                        input->type, data));
 
   // Offsets (zero points)
   data->params.input_offset = -input->params.zero_point;
@@ -210,8 +209,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Stride + dilation
   data->params.stride_width = params->stride_width;
   data->params.stride_height = params->stride_height;
-  data->params.dilation_width_factor = params->dilation_width_factor;
-  data->params.dilation_height_factor = params->dilation_height_factor;
+  data->params.dilation_width_factor = 1;
+  data->params.dilation_height_factor = 1;
 
   float output_activation_min, output_activation_max;
   CalculateActivationRange(params->activation, &output_activation_min,
