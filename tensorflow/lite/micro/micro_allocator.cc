@@ -178,6 +178,10 @@ TfLiteStatus AllocationInfoBuilder::AddTensors(const SubGraph* subgraph,
       if ((current->first_created == -1) || (current->first_created > i)) {
         current->first_created = i;
       }
+      // Since operator outputs are written to, they must be marked as used.
+      if ((current->last_used == -1) || (current->last_used < i)) {
+        current->last_used = i;
+      }
     }
   }
   return kTfLiteOk;
@@ -450,6 +454,16 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 }
 
 }  // namespace internal
+
+extern const size_t kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner =
+    AlignSizeUp(sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator)) +
+    AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
+    AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
+                alignof(MicroBuiltinDataAllocator)) +
+    AlignSizeUp(sizeof(SubgraphAllocations), alignof(SubgraphAllocations));
+const size_t kMicroAllocatorDefaultTailUsage =
+    kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner +
+    AlignSizeUp(sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
 
 MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
                                MicroMemoryPlanner* memory_planner,
