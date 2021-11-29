@@ -70,13 +70,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                        input, filter, bias, output, data);
 }
 
-__attribute__ ((optnone))
-TfLiteStatus EvalQuantizedInt8CEVA(TfLiteContext* context, TfLiteNode* node,
-                                   const OpDataFullyConnected& data,
-                                   const TfLiteEvalTensor* input,
-                                   const TfLiteEvalTensor* filter,
-                                   const TfLiteEvalTensor* bias,
-                                   TfLiteEvalTensor* output) {
+__attribute__((optnone)) TfLiteStatus EvalQuantizedInt8CEVA(
+    TfLiteContext* context, TfLiteNode* node, const OpDataFullyConnected& data,
+    const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
+    const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
   tflite::FullyConnectedParams op_params = FullyConnectedParamsQuantized(data);
 
   int input_shape_dimensions_count =
