@@ -1,11 +1,16 @@
-pull_request_rules:
-  - name: Automatic merge on approval
+queue_rules:
+  - name: default
     conditions:
-      - check-success=Bazel (presubmit)
-      - check-success=Cortex-M (presubmit)
-      - check-success=Project Generation (presubmit)
-      - check-success=Makefile x86 (presubmit)
+      - label=ci:mergify
+    
+   
+pull_request_rules:
+  - name: push to default merge queue
+    conditions:
+      - base=main
       - label=ci:mergify
     actions:
-      merge:
+      queue:
+        name: default
+        require_branch_protection: true
         method: squash
