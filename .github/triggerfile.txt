@@ -1,2 +1,1 @@
 This file is only to create a commit for mergify testing. Delete at will.
-Change.
