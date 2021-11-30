@@ -46,16 +46,6 @@ uint8_t keyword_model_tensor_arena[kKeywordModelTensorArenaSize];
 constexpr int kKeywordModelTensorCount = 54;
 constexpr int kKeywordModelNodeAndRegistrationCount = 15;
 
-// By default, GreedyMemoryPlanner is the first buffer to be allocated from
-// the tail of arena. Its size after alignment needs to be accounted in
-// total size and tail size.
-// The buffer alignment is 16 bytes.
-constexpr int kBufferAlignment = 16;
-constexpr int kGreedyMemoryPlannerSize =
-    ((sizeof(tflite::GreedyMemoryPlanner) + (kBufferAlignment - 1)) /
-     kBufferAlignment) *
-    kBufferAlignment;
-
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.
 // TODO(b/199414774): use expression for hardcoded constants such as
@@ -64,13 +54,25 @@ constexpr int kGreedyMemoryPlannerSize =
 // Run this test with '--copt=-DTF_LITE_STATIC_MEMORY' to get optimized memory
 // runtime values:
 #ifdef TF_LITE_STATIC_MEMORY
-constexpr int kKeywordModelTotalSize = 14416 + kGreedyMemoryPlannerSize;
-constexpr int kKeywordModelTailSize = 13744 + kGreedyMemoryPlannerSize;
+// Total size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTotalSize = 14528;
+// Tail size contributed by the kdyword model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTailSize = 13856;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #else
-constexpr int kKeywordModelTotalSize = 14992 + kGreedyMemoryPlannerSize;
-constexpr int kKeywordModelTailSize = 14320 + kGreedyMemoryPlannerSize;
+// Total size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTotalSize = 14752;
+// Tail size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTailSize = 14080;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #endif
@@ -88,13 +90,25 @@ constexpr int kTestConvModelNodeAndRegistrationCount = 7;
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.
 #ifdef TF_LITE_STATIC_MEMORY
-constexpr int kTestConvModelTotalSize = 9792 + kGreedyMemoryPlannerSize;
-constexpr int kTestConvModelTailSize = 2048 + kGreedyMemoryPlannerSize;
+// Total size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTotalSize = 9712;
+// Tail size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTailSize = 1968;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #else
-constexpr int kTestConvModelTotalSize = 10112 + kGreedyMemoryPlannerSize;
-constexpr int kTestConvModelTailSize = 2368 + kGreedyMemoryPlannerSize;
+// Total size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTotalSize = 9760;
+// Tail size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTailSize = 2016;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #endif
@@ -137,6 +151,8 @@ void EnsureAllocatedSizeThreshold(const char* allocation_type, size_t actual,
 void ValidateModelAllocationThresholds(
     const tflite::RecordingMicroAllocator& allocator,
     const ModelAllocationThresholds& thresholds) {
+  MicroPrintf("Overhead from RecordingMicroAllocator is %d",
+              tflite::kRecordingMicroAllocatorDefaultTailUsage);
   allocator.PrintAllocations();
 
   EnsureAllocatedSizeThreshold(
@@ -219,9 +235,12 @@ TF_LITE_MICRO_TEST(TestKeywordModelMemoryThreshold) {
   thresholds.tensor_count = kKeywordModelTensorCount;
   thresholds.node_and_registration_count =
       kKeywordModelNodeAndRegistrationCount;
-  thresholds.total_alloc_size = kKeywordModelTotalSize;
+  thresholds.total_alloc_size =
+      kKeywordModelOnlyTotalSize +
+      tflite::kRecordingMicroAllocatorDefaultTailUsage;
   thresholds.head_alloc_size = kKeywordModelHeadSize;
-  thresholds.tail_alloc_size = kKeywordModelTailSize;
+  thresholds.tail_alloc_size = kKeywordModelOnlyTailSize +
+                               tflite::kRecordingMicroAllocatorDefaultTailUsage;
   thresholds.tensor_variable_buffer_data_size =
       kKeywordModelTfLiteTensorVariableBufferDataSize;
   thresholds.op_runtime_data_size = kKeywordModelOpRuntimeDataSize;
@@ -248,9 +267,12 @@ TF_LITE_MICRO_TEST(TestConvModelMemoryThreshold) {
   thresholds.tensor_count = kTestConvModelTensorCount;
   thresholds.node_and_registration_count =
       kTestConvModelNodeAndRegistrationCount;
-  thresholds.total_alloc_size = kTestConvModelTotalSize;
+  thresholds.total_alloc_size =
+      kTestConvModelOnlyTotalSize +
+      tflite::kRecordingMicroAllocatorDefaultTailUsage;
   thresholds.head_alloc_size = kTestConvModelHeadSize;
-  thresholds.tail_alloc_size = kTestConvModelTailSize;
+  thresholds.tail_alloc_size = kTestConvModelOnlyTailSize +
+                               tflite::kRecordingMicroAllocatorDefaultTailUsage;
   thresholds.op_runtime_data_size = kTestConvModelOpRuntimeDataSize;
   thresholds.persistent_buffer_data = kTestConvModelPersistentBufferDataSize;
   thresholds.persistent_tflite_tensor_data_size =

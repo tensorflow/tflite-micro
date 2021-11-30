@@ -18,11 +18,24 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
 
 namespace tflite {
+
+// RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
+// similar with MicroAllocator with SimpleMemoryAllocator and MicroAllocator
+// being replaced.
+const size_t kRecordingMicroAllocatorDefaultTailUsage =
+    kMicroAllocatorDefaultTailUsage +
+    AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),
+                alignof(RecordingSimpleMemoryAllocator)) -
+    AlignSizeUp(sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator)) +
+    AlignSizeUp(sizeof(RecordingMicroAllocator),
+                alignof(RecordingMicroAllocator)) -
+    AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator));
 
 RecordingMicroAllocator::RecordingMicroAllocator(
     RecordingSimpleMemoryAllocator* recording_memory_allocator,
