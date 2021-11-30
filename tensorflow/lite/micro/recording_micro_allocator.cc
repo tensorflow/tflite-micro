@@ -21,21 +21,25 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
 
 namespace tflite {
 
-// RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
-// similar with MicroAllocator with SimpleMemoryAllocator and MicroAllocator
-// being replaced.
-const size_t kRecordingMicroAllocatorDefaultTailUsage =
-    kMicroAllocatorDefaultTailUsage +
-    AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),
-                alignof(RecordingSimpleMemoryAllocator)) -
-    AlignSizeUp(sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator)) +
-    AlignSizeUp(sizeof(RecordingMicroAllocator),
-                alignof(RecordingMicroAllocator)) -
-    AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator));
+size_t RecordingMicroAllocator::GetDefaultTailUsage() {
+  // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
+  // similar with MicroAllocator with SimpleMemoryAllocator and MicroAllocator
+  // being replaced.
+  return MicroAllocator::GetDefaultTailUsage(
+             /*is_memory_planner_given=*/false) +
+         AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),
+                     alignof(RecordingSimpleMemoryAllocator)) -
+         AlignSizeUp(sizeof(SimpleMemoryAllocator),
+                     alignof(SimpleMemoryAllocator)) +
+         AlignSizeUp(sizeof(RecordingMicroAllocator),
+                     alignof(RecordingMicroAllocator)) -
+         AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator));
+}
 
 RecordingMicroAllocator::RecordingMicroAllocator(
     RecordingSimpleMemoryAllocator* recording_memory_allocator,

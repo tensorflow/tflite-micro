@@ -57,24 +57,22 @@ constexpr int kKeywordModelNodeAndRegistrationCount = 15;
 // Total size contributed by the keyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTotalSize = 14528;
+constexpr int kKeywordModelOnlyTotalSize = 14304;
 // Tail size contributed by the kdyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTailSize = 13856;
+constexpr int kKeywordModelOnlyTailSize = 13632;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #else
-// Even though bazel build with no_tf_lite_static_memory, these numbers are
-// measured via make command with BUILD_TYPE=no_tf_lite_static_memory, which
-// produce a larger memory footprint than bazel. Total size contributed by the
-// keyword model excluding the RecordingMicroAllocator's overhead.
+// Total size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead.
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTotalSize = 14976;
+constexpr int kKeywordModelOnlyTotalSize = 14752;
 // Tail size contributed by the keyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTailSize = 14304;
+constexpr int kKeywordModelOnlyTailSize = 14080;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #endif
@@ -95,24 +93,22 @@ constexpr int kTestConvModelNodeAndRegistrationCount = 7;
 // Total size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTotalSize = 9712;
+constexpr int kTestConvModelOnlyTotalSize = 9488;
 // Tail size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTailSize = 1968;
+constexpr int kTestConvModelOnlyTailSize = 1744;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #else
-// Even though bazel build with no_tf_lite_static_memory, these numbers are
-// measured via make command with BUILD_TYPE=no_tf_lite_static_memory, which
-// produce a larger memory footprint than bazel. Total size contributed by the
-// conv model excluding the RecordingMicroAllocator's overhead
+// Total size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTotalSize = 9984;
+constexpr int kTestConvModelOnlyTotalSize = 9760;
 // Tail size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTailSize = 2240;
+constexpr int kTestConvModelOnlyTailSize = 2016;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #endif
@@ -156,7 +152,7 @@ void ValidateModelAllocationThresholds(
     const tflite::RecordingMicroAllocator& allocator,
     const ModelAllocationThresholds& thresholds) {
   MicroPrintf("Overhead from RecordingMicroAllocator is %d",
-              tflite::kRecordingMicroAllocatorDefaultTailUsage);
+              tflite::RecordingMicroAllocator::GetDefaultTailUsage());
   allocator.PrintAllocations();
 
   EnsureAllocatedSizeThreshold(
@@ -241,10 +237,11 @@ TF_LITE_MICRO_TEST(TestKeywordModelMemoryThreshold) {
       kKeywordModelNodeAndRegistrationCount;
   thresholds.total_alloc_size =
       kKeywordModelOnlyTotalSize +
-      tflite::kRecordingMicroAllocatorDefaultTailUsage;
+      tflite::RecordingMicroAllocator::GetDefaultTailUsage();
   thresholds.head_alloc_size = kKeywordModelHeadSize;
-  thresholds.tail_alloc_size = kKeywordModelOnlyTailSize +
-                               tflite::kRecordingMicroAllocatorDefaultTailUsage;
+  thresholds.tail_alloc_size =
+      kKeywordModelOnlyTailSize +
+      tflite::RecordingMicroAllocator::GetDefaultTailUsage();
   thresholds.tensor_variable_buffer_data_size =
       kKeywordModelTfLiteTensorVariableBufferDataSize;
   thresholds.op_runtime_data_size = kKeywordModelOpRuntimeDataSize;
@@ -273,10 +270,11 @@ TF_LITE_MICRO_TEST(TestConvModelMemoryThreshold) {
       kTestConvModelNodeAndRegistrationCount;
   thresholds.total_alloc_size =
       kTestConvModelOnlyTotalSize +
-      tflite::kRecordingMicroAllocatorDefaultTailUsage;
+      tflite::RecordingMicroAllocator::GetDefaultTailUsage();
   thresholds.head_alloc_size = kTestConvModelHeadSize;
-  thresholds.tail_alloc_size = kTestConvModelOnlyTailSize +
-                               tflite::kRecordingMicroAllocatorDefaultTailUsage;
+  thresholds.tail_alloc_size =
+      kTestConvModelOnlyTailSize +
+      tflite::RecordingMicroAllocator::GetDefaultTailUsage();
   thresholds.op_runtime_data_size = kTestConvModelOpRuntimeDataSize;
   thresholds.persistent_buffer_data = kTestConvModelPersistentBufferDataSize;
   thresholds.persistent_tflite_tensor_data_size =

@@ -45,11 +45,6 @@ struct RecordedAllocation {
   size_t count;
 };
 
-// The fixed amount of memory overhead of RecordingMicroAllocator. You can image
-// this number as the arena usage after RecordingMicroAllocator is given a model
-// that has zero tensors and zero OPs.
-extern const size_t kRecordingMicroAllocatorDefaultTailUsage;
-
 // Utility subclass of MicroAllocator that records all allocations
 // inside the arena. A summary of allocations can be logged through the
 // ErrorReporter by invoking LogAllocations(). This special allocator requires
@@ -62,6 +57,11 @@ class RecordingMicroAllocator : public MicroAllocator {
   static RecordingMicroAllocator* Create(uint8_t* tensor_arena,
                                          size_t arena_size,
                                          ErrorReporter* error_reporter);
+
+  // Returns the fixed amount of memory overhead of RecordingMicroAllocator. You
+  // can image this number as the arena usage after RecordingMicroAllocator is
+  // given a model that has zero tensors and zero OPs.
+  static size_t GetDefaultTailUsage();
 
   // Returns the recorded allocations information for a given allocation type.
   RecordedAllocation GetRecordedAllocation(
