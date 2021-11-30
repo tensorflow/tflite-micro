@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Neasures the size of a Qualcomm Hexagon binary by parsing the output of
+# Measures the size of a Qualcomm Hexagon binary by parsing the output of
 # xt-size. If an optional list of symbols is provided, the symbols' sizes
 # are excluded from the total. This is useful when the binary contains symbols
 # that are only used during testing.
