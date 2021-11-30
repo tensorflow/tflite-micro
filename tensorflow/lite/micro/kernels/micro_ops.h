@@ -62,6 +62,7 @@ TfLiteRegistration Register_LOGICAL_AND();
 TfLiteRegistration Register_LOGICAL_OR();
 TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
+TfLiteRegistration Register_MIRROR_PAD();
 TfLiteRegistration Register_PRELU();
 TfLiteRegistration Register_MUL();
 TfLiteRegistration Register_QUANTIZE();

@@ -73,6 +73,7 @@ tensorflow/lite/micro/kernels/logical_test.cc \
 tensorflow/lite/micro/kernels/logistic_test.cc \
 tensorflow/lite/micro/kernels/log_softmax_test.cc \
 tensorflow/lite/micro/kernels/maximum_minimum_test.cc \
+tensorflow/lite/micro/kernels/mirror_pad_test.cc \
 tensorflow/lite/micro/kernels/mul_test.cc \
 tensorflow/lite/micro/kernels/neg_test.cc \
 tensorflow/lite/micro/kernels/pack_test.cc \

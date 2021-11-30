@@ -335,6 +335,7 @@ tensorflow/lite/micro/kernels/logistic.cc \
 tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
+tensorflow/lite/micro/kernels/mirror_pad.cc \
 tensorflow/lite/micro/kernels/mul.cc \
 tensorflow/lite/micro/kernels/mul_common.cc \
 tensorflow/lite/micro/kernels/neg.cc \

@@ -83,7 +83,7 @@ TF_LITE_MICRO_TEST(EmptyPad) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {0, 0, 0, 0};
-  int32_t output_data[6];
+  int8_t output_data[6];
   const int8_t golden_data[] = {1, 2, 3, 4, 5, 6};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -98,7 +98,7 @@ TF_LITE_MICRO_TEST(PadOneSide_right_Reflect) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {0, 1, 0, 1};
-  int32_t output_data[12];
+  int8_t output_data[12];
   const int8_t golden_data[] = {1, 2, 3, 2, 4, 5, 6, 5, 1, 2, 3, 2};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -113,7 +113,7 @@ TF_LITE_MICRO_TEST(PadOneSide_left_Reflect) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 0, 1, 0};
-  int32_t output_data[12];
+  int8_t output_data[12];
   const int8_t golden_data[] = {5, 4, 5, 6, 2, 1, 2, 3, 5, 4, 5, 6};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -128,7 +128,7 @@ TF_LITE_MICRO_TEST(PadOneSide_right_Symmetric) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {0, 1, 0, 1};
-  int32_t output_data[12];
+  int8_t output_data[12];
   const int8_t golden_data[] = {1, 2, 3, 3, 4, 5, 6, 6, 4, 5, 6, 6};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -143,7 +143,7 @@ TF_LITE_MICRO_TEST(PadOneSide_left_Symmetric) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 0, 1, 0};
-  int32_t output_data[12];
+  int8_t output_data[12];
   const int8_t golden_data[] = {1, 1, 2, 3, 1, 1, 2, 3, 4, 4, 5, 6};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -157,9 +157,9 @@ TF_LITE_MICRO_TEST(PadBothSides_Symmetric) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 1, 1, 1};
-  int32_t output_data[20];
+  int8_t output_data[20];
   const int8_t golden_data[] = {1, 1, 2, 3, 3, 1, 1, 2, 3, 3,
-                                 4, 4, 5, 6, 6, 4, 4, 5, 6, 6};
+                                4, 4, 5, 6, 6, 4, 4, 5, 6, 6};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
                                  output_shape, golden_data,
@@ -173,9 +173,9 @@ TF_LITE_MICRO_TEST(PadBothSides_Reflect) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 1, 1, 1};
-  int32_t output_data[20];
+  int8_t output_data[20];
   const int8_t golden_data[] = {5, 4, 5, 6, 5, 2, 1, 2, 3, 2,
-                                 5, 4, 5, 6, 5, 2, 1, 2, 3, 2};
+                                5, 4, 5, 6, 5, 2, 1, 2, 3, 2};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
                                  output_shape, golden_data,
@@ -189,11 +189,11 @@ TF_LITE_MICRO_TEST(PadBothSides_Symmetric_Whole) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {2, 2, 3, 3};
-  int32_t output_data[54];
+  int8_t output_data[54];
   const int8_t golden_data[] = {6, 5, 4, 4, 5, 6, 6, 5, 4, 3, 2, 1, 1, 2,
-                                 3, 3, 2, 1, 3, 2, 1, 1, 2, 3, 3, 2, 1, 6,
-                                 5, 4, 4, 5, 6, 6, 5, 4, 6, 5, 4, 4, 5, 6,
-                                 6, 5, 4, 3, 2, 1, 1, 2, 3, 3, 2, 1};
+                                3, 3, 2, 1, 3, 2, 1, 1, 2, 3, 3, 2, 1, 6,
+                                5, 4, 4, 5, 6, 6, 5, 4, 6, 5, 4, 4, 5, 6,
+                                6, 5, 4, 3, 2, 1, 1, 2, 3, 3, 2, 1};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
                                  output_shape, golden_data,
@@ -207,9 +207,9 @@ TF_LITE_MICRO_TEST(PadBothSides_Reflect_Whole) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 1, 2, 2};
-  int32_t output_data[28];
+  int8_t output_data[28];
   const int8_t golden_data[] = {6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1,
-                                 6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1};
+                                6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
                                  output_shape, golden_data,
@@ -223,9 +223,9 @@ TF_LITE_MICRO_TEST(Pad_Symmetric) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {1, 1, 2, 2};
-  int32_t output_data[28];
+  int8_t output_data[28];
   const int8_t golden_data[] = {2, 1, 1, 2, 3, 3, 2, 2, 1, 1, 2, 3, 3, 2,
-                                 5, 4, 4, 5, 6, 6, 5, 5, 4, 4, 5, 6, 6, 5};
+                                5, 4, 4, 5, 6, 6, 5, 5, 4, 4, 5, 6, 6, 5};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
                                  output_shape, golden_data,
@@ -239,7 +239,7 @@ TF_LITE_MICRO_TEST(Pad_1D_Reflect) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {0, 2};
-  int32_t output_data[5];
+  int8_t output_data[5];
   const int8_t golden_data[] = {1, 2, 3, 2, 1};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,
@@ -254,7 +254,7 @@ TF_LITE_MICRO_TEST(Pad_1D_Symmetric) {
 
   const int8_t input_data[] = {1, 2, 3, 4, 5, 6};
   const int32_t pad_data[] = {0, 2};
-  int32_t output_data[5];
+  int8_t output_data[5];
   const int8_t golden_data[] = {1, 2, 3, 3, 2};
 
   tflite::testing::TestMirrorPad(input_shape, input_data, pad_shape, pad_data,

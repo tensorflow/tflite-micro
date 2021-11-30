@@ -29,46 +29,12 @@ struct OpDataMirrorPad {
   int input_dims_num_elements_buffer_index;
 };
 
-// Nil value for paddingMode/offset.
-const int kUnsetOffset = -1;
-
-// Wrapper for params passed to the Eval<T> function.
-template <typename T>
-struct EvalData {
-  const TfLiteEvalTensor* padding_matrix = nullptr;
-  const TfLiteIntArray* input_dims = nullptr;
-  // Holds number of elements at the nth dimension.
-  // value at last dimension = 1, at second to last = sizeof last dimension.
-  int* output_dims_num_elements;
-  int* input_dims_num_elements;
-
-  const T* input_data = nullptr;
-
-  int offset = kUnsetOffset;
-  T* output_data = nullptr;
-  int num_dims = 0;
-};
-
 // Helper method that fills the left and right pads.
 template <typename T>
 inline void GetPadding(const T* data, int offset, int64_t* left_pad,
                        int64_t* right_pad) {
   *left_pad = static_cast<int64_t>(*(data + offset * 2));
   *right_pad = static_cast<int64_t>(*(data + offset * 2 + 1));
-}
-
-inline void GetPadding(const TfLiteEvalTensor* padding_matrix, int dimension,
-                       int64_t* left_pad, int64_t* right_pad) {
-  switch (padding_matrix->type) {
-    case kTfLiteInt32:
-      GetPadding(padding_matrix->data.i32, dimension, left_pad, right_pad);
-      break;
-    case kTfLiteInt64:
-      GetPadding(padding_matrix->data.i64, dimension, left_pad, right_pad);
-      break;
-    default:
-      return;
-  }
 }
 
 // Given dimension index and the left/right padding.
@@ -90,55 +56,50 @@ inline int GetInputDimension(int padded_dimension, int left_pad, int right_pad,
 
 // Given and index in output array, returns the index of the value
 // in input array.
-template <typename T>
-int GetFlatIndex(int index, EvalData<T>* eval_data) {
+int GetFlatIndex(int index, int num_dims,
+                 const TfLiteEvalTensor* padding_matrix,
+                 const TfLiteIntArray* input_dims,
+                 int* output_dims_num_elements, int* input_dims_num_elements,
+                 const int offset) {
   int flat_index = 0;
   int64_t left_pad = 0, right_pad = 0, dimension_index, index_in_input;
 
-  for (int i = 0; i < eval_data->num_dims; ++i) {
-    switch (eval_data->padding_matrix->type) {
+  for (int i = 0; i < num_dims; ++i) {
+    switch (padding_matrix->type) {
       case kTfLiteInt32:
-        GetPadding(eval_data->padding_matrix->data.i32, i, &left_pad,
-                   &right_pad);
+        GetPadding(padding_matrix->data.i32, i, &left_pad, &right_pad);
         // printf("correct  %d %d\n", left_pad, right_pad);
         break;
       case kTfLiteInt64:
-        GetPadding(eval_data->padding_matrix->data.i64, i, &left_pad,
-                   &right_pad);
+        GetPadding(padding_matrix->data.i64, i, &left_pad, &right_pad);
         break;
       default:
         break;
     }
-    dimension_index = index / (eval_data->output_dims_num_elements)[i];
+    dimension_index = index / output_dims_num_elements[i];
 
-    index_in_input =
-        GetInputDimension(dimension_index, left_pad, right_pad,
-                          eval_data->input_dims->data[i], eval_data->offset);
+    index_in_input = GetInputDimension(dimension_index, left_pad, right_pad,
+                                       input_dims->data[i], offset);
 
-    flat_index += index_in_input * (eval_data->input_dims_num_elements)[i];
-    index %= (eval_data->output_dims_num_elements)[i];
+    flat_index += index_in_input * (input_dims_num_elements)[i];
+    index %= output_dims_num_elements[i];
   }
 
   return flat_index;
 }
 
 template <typename T>
-struct MirrorPadWorkerTask {
-  MirrorPadWorkerTask(EvalData<T>* eval_data_, int start_, int end_)
-      : eval_data(eval_data_), start(start_), end(end_) {}
-  void Run() {
-    auto* input_data = eval_data->input_data;
-    auto* output_data = eval_data->output_data;
-    for (int i = start; i < end; ++i) {
-      output_data[i] = input_data[GetFlatIndex(i, eval_data)];
-    }
+void MirrorPad(const TfLiteEvalTensor* padding_matrix,
+               const TfLiteIntArray* input_dims, int* output_dims_num_elements,
+               int* input_dims_num_elements, const T* input_data,
+               T* output_data, const int offset, const int num_dims,
+               const int output_size) {
+  for (int i = 0; i < output_size; ++i) {
+    output_data[i] = input_data[GetFlatIndex(
+        i, num_dims, padding_matrix, input_dims, output_dims_num_elements,
+        input_dims_num_elements, offset)];
   }
-
- private:
-  EvalData<T>* eval_data;
-  int start;
-  int end;
-};
+}
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -174,26 +135,21 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         input_dims_num_elements[i + 1] * input_tensor->dims->data[i + 1];
   }
 
-#define TF_LITE_MIRROR_PAD(type)                                             \
-  EvalData<type> eval_data;                                                  \
-  eval_data.input_data = tflite::micro::GetTensorData<type>(input_tensor);   \
-  eval_data.input_dims = input_tensor->dims;                                 \
-  eval_data.output_dims_num_elements = output_dims_num_elements;             \
-  eval_data.input_dims_num_elements = input_dims_num_elements;               \
-  eval_data.num_dims = input_dims;                                           \
-  eval_data.offset = data->offset;                                           \
-  eval_data.output_data = tflite::micro::GetTensorData<type>(output_tensor); \
-  eval_data.padding_matrix = padding_matrix;                                 \
-  MirrorPadWorkerTask<type> task(&eval_data, 0, output_size);                \
-  task.Run();
-
   switch (output_tensor->type) {
     case kTfLiteFloat32: {
-      TF_LITE_MIRROR_PAD(float);
+      MirrorPad(padding_matrix, input_tensor->dims, output_dims_num_elements,
+                input_dims_num_elements,
+                tflite::micro::GetTensorData<float>(input_tensor),
+                tflite::micro::GetTensorData<float>(output_tensor),
+                data->offset, input_dims, output_size);
       break;
     }
     case kTfLiteInt8: {
-      TF_LITE_MIRROR_PAD(int8_t);
+      MirrorPad(padding_matrix, input_tensor->dims, output_dims_num_elements,
+                input_dims_num_elements,
+                tflite::micro::GetTensorData<int8_t>(input_tensor),
+                tflite::micro::GetTensorData<int8_t>(output_tensor),
+                data->offset, input_dims, output_size);
       break;
     }
     default:
