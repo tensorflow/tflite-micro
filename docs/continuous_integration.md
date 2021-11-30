@@ -10,7 +10,7 @@
 [TensorFlow repo]: https://github.com/tensorflow/tensorflow
 
 # Continuous Integration System
-  * See the [github workflow files](.github/workflows/ci.yml) for details on
+  * See the [github workflow files](../.github/workflows/ci.yml) for details on
     exactly what is run as part of the GitHub Actions CI.
 
   * Tests can also be run from within a docker container, which can be built with:
