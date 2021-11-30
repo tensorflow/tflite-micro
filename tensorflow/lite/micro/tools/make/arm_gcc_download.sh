@@ -62,8 +62,16 @@ else
   fi
 
   if [ "${HOST_OS}" == "linux" ]; then
-    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2"
-    EXPECTED_MD5="8312c4c91799885f222f663fc81f9a31"
+    # host architechture
+    UNAME_M=`uname -m`
+    if [ "${UNAME_M}" == "x86_64" ]; then
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2"
+      EXPECTED_MD5="8312c4c91799885f222f663fc81f9a31"
+    elif [ "${UNAME_M}" == "aarch64" ]; then
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.07/gcc-arm-none-eabi-10.3-2021.07-aarch64-linux.tar.bz2"
+      EXPECTED_MD5="c20b0535d01f8d4418341d893c62a782"
+    fi
+    
   elif [ "${HOST_OS}" == "osx" ]; then
     GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-mac.tar.bz2"
     EXPECTED_MD5="e588d21be5a0cc9caa60938d2422b058"
