@@ -65,14 +65,16 @@ constexpr int kKeywordModelOnlyTailSize = 13856;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #else
-// Total size contributed by the keyword model excluding the
-// RecordingMicroAllocator's overhead
+// Even though bazel build with no_tf_lite_static_memory, these numbers are
+// measured via make command with BUILD_TYPE=no_tf_lite_static_memory, which
+// produce a larger memory footprint than bazel. Total size contributed by the
+// keyword model excluding the RecordingMicroAllocator's overhead.
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTotalSize = 14752;
+constexpr int kKeywordModelOnlyTotalSize = 14976;
 // Tail size contributed by the keyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kKeywordModelOnlyTailSize = 14080;
+constexpr int kKeywordModelOnlyTailSize = 14304;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kKeywordModelPersistentBufferDataSize = 676;
 #endif
@@ -101,14 +103,16 @@ constexpr int kTestConvModelOnlyTailSize = 1968;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #else
-// Total size contributed by the conv model excluding the
-// RecordingMicroAllocator's overhead
+// Even though bazel build with no_tf_lite_static_memory, these numbers are
+// measured via make command with BUILD_TYPE=no_tf_lite_static_memory, which
+// produce a larger memory footprint than bazel. Total size contributed by the
+// conv model excluding the RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTotalSize = 9760;
+constexpr int kTestConvModelOnlyTotalSize = 9984;
 // Tail size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTailSize = 2016;
+constexpr int kTestConvModelOnlyTailSize = 2240;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
 constexpr int kTestConvModelPersistentBufferDataSize = 680;
 #endif
