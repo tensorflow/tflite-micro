@@ -30,6 +30,8 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
   // similar with MicroAllocator with SimpleMemoryAllocator and MicroAllocator
   // being replaced.
+  // TODO(b/208703041): a template version of AlignSizeUp to make expression
+  // shorter.
   return MicroAllocator::GetDefaultTailUsage(
              /*is_memory_planner_given=*/false) +
          AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),

@@ -456,6 +456,8 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 }  // namespace internal
 
 size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
+  // TODO(b/208703041): a template version of AlignSizeUp to make expression
+  // shorter.
   size_t total_size =
       AlignSizeUp(sizeof(SimpleMemoryAllocator),
                   alignof(SimpleMemoryAllocator)) +
