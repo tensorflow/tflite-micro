@@ -134,9 +134,7 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Returns the fixed amount of memory overhead of MicroAllocator. You can
-  // image this number as the arena usage after MicroAllocator is given a model
-  // that has zero tensors and zero OPs.
+  // Returns the fixed amount of memory overhead of MicroAllocator.
   static size_t GetDefaultTailUsage(bool is_memory_planner_given);
 
   // Allocates internal resources required for model inference for each subgraph
