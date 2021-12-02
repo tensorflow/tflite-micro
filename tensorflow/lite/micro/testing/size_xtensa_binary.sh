@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Measures the size of a Qualcomm Hexagon binary by parsing the output of
+# Measures the size of an xtensa binary by parsing the output of
 # xt-size. If an optional list of symbols is provided, the symbols' sizes
 # are excluded from the total. This is useful when the binary contains symbols
 # that are only used during testing.
