@@ -455,15 +455,22 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 
 }  // namespace internal
 
-extern const size_t kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner =
-    AlignSizeUp(sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator)) +
-    AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
-    AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
-                alignof(MicroBuiltinDataAllocator)) +
-    AlignSizeUp(sizeof(SubgraphAllocations), alignof(SubgraphAllocations));
-const size_t kMicroAllocatorDefaultTailUsage =
-    kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner +
-    AlignSizeUp(sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
+  // TODO(b/208703041): a template version of AlignSizeUp to make expression
+  // shorter.
+  size_t total_size =
+      AlignSizeUp(sizeof(SimpleMemoryAllocator),
+                  alignof(SimpleMemoryAllocator)) +
+      AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
+      AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
+                  alignof(MicroBuiltinDataAllocator)) +
+      AlignSizeUp(sizeof(SubgraphAllocations), alignof(SubgraphAllocations));
+  if (!is_memory_planner_given) {
+    total_size +=
+        AlignSizeUp(sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+  }
+  return total_size;
+}
 
 MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
                                MicroMemoryPlanner* memory_planner,
