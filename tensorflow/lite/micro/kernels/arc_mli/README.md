@@ -17,34 +17,27 @@ quantization).
 
 embARC MLI Library is used to speed up execution of some kernels for 
 asymmetrically quantized layers and can be applied with the option `OPTIMIZED_KERNEL_DIR=arc_mli`.
-This means that usual project generation for
+This means that usual library generation for
 ARC specific target implies usage of embARC MLI.
 
 For example:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_vpx OPTIMIZED_KERNEL_DIR=arc_mli generate_person_detection_int8_make_project
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \
+OPTIMIZED_KERNEL_DIR=arc_mli TARGET_ARCH=arc \
+microlite
 ```
 
 In case MLI implementation can’t be used, kernels in this folder fallback to
 TFLM reference implementations. For applications which may not benefit from MLI
-library, projects can be generated without these implementations **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line, which can reduce overall code size:
+library, TF Lite Micro library can be generated without these implementations **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line, which can reduce overall code size:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_vpx generate_person_detection_int8_make_project
-```
-
-For ARC EM SDP board, a pre-compiled MLI library is downloaded and used in the
-application. For a custom target ARC-based platform, MLI sources are downloaded
-and compiled during project generation phase. To build library from sources for
-ARC EM SDP platform, add `BUILD_ARC_MLI=true` option to make command:
-
-```
-make -f tensorflow/lite/micro/tools/make/Makefile \
-TARGET=arc_emsdp \
-OPTIMIZED_KERNEL_DIR=arc_mli \
-BUILD_ARC_MLI=true \
-generate_person_detection_int8_make_project
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \
+TARGET_ARCH=arc \
+microlite
 ```
 ---
 ### Optional (experimental features):
@@ -60,21 +53,6 @@ Some of configurations may require a custom run-time library specified using the
 ```
 BUILD_LIB_DIR=<path_to_buildlib>
 ```
----
-If an application exclusively uses accelerated MLI kernel implementations, one
-can strip out TFLM reference kernel implementations to reduce code size of
-application. Build application with `MLI_ONLY=true` option in generated project
-(after the project was built):
-
-```
-cd tensorflow/lite/micro/tools/make/gen/arc_vpx_arc_default/prj/person_detection_int8/make
-
-make app MLI_ONLY=true
-```
-
-if you try this and application execution fails, then most probably MLI can’t be
-used for some nodes and you need to revert to using TFLM reference kernels.
-
 ## Limitations
 
 Currently, the MLI Library provides optimized implementation only for int8
@@ -105,18 +83,20 @@ replacing **<size[a|b|c]>** with required values:
 
 **For EM:**
 ```
-EXT_CFLAGS=”-DSCRATCH_MEM_Z_SIZE=<size_a> -DSCRATCH_MEM_X_SIZE=<size_b> -DSCRATCH_MEM_Y_SIZE=<size_c>”
+EXT_CFLAGS="-DSCRATCH_MEM_Z_SIZE=<size_a> -DSCRATCH_MEM_X_SIZE=<size_b> -DSCRATCH_MEM_Y_SIZE=<size_c>"
 ```
 **For VPX:**
 ```
-EXT_CFLAGS=”-DSCRATCH_MEM_VEC_SIZE=<size_a>”
+EXT_CFLAGS="-DSCRATCH_MEM_VEC_SIZE=<size_a>"
 ```
 
 For example, to reduce sizes of arrays placed in DCCM and XCCM to 32k and 8k
 respectively, use next command:
 
 ```
-make app EXT_CFLAGS=”-DSCRATCH_MEM_Z_SIZE=32*1024 -DSCRATCH_MEM_X_SIZE=8*1024”
+make -f tensorflow/lite/micro/tools/make/Makefile <...> \
+EXT_CFLAGS="-DSCRATCH_MEM_Z_SIZE=32*1024 -DSCRATCH_MEM_X_SIZE=8*1024" \
+microlite
 ```
 
 ## License
