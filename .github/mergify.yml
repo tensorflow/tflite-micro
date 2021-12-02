@@ -1,14 +1,14 @@
 queue_rules:
   - name: default
     conditions:
-      - label=ci:mergify
+      - label=ci:run
     
    
 pull_request_rules:
   - name: push to default merge queue
     conditions:
       - base=main
-      - label=ci:mergify
+      - label=ci:run
     actions:
       queue:
         name: default
