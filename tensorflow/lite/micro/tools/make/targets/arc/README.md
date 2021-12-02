@@ -84,8 +84,9 @@ card instead of using the debugger.
 #### Make Tool
 
 A `'make'` tool is required for both phases of deploying Tensorflow Lite Micro
-applications on ARC EM SDP: 1. Application project generation 2. Working with
-generated application (build and run)
+applications on ARC EM SDP: 
+1. Test binaries generation.
+2. TFLM static library generation.
 
 For the first phase you need an environment and make tool compatible with
 Tensorflow Lite for Micro build system. At the moment of this writing, this
@@ -142,108 +143,24 @@ Board: ARC EM Software Development Platform v1.0
 …
 ```
 
-### Generate Application Project for ARC EM SDP
+### Generate TFLM as Static Library for ARC EM SDP
 
-Before building an example or test application, you need to generate a TFLM
-project for this application from TensorFlow sources and external dependencies.
-To generate it for ARC EM SDP board you need to set `TARGET=arc_emsdp` on the
-make command line. For instance, to build the Person Detect test application,
-use a shell to execute the following command from the root directory of the
-TensorFlow repo:
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library for ARC EM SDP:
 
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp OPTIMIZED_KERNEL_DIR=arc_mli
-generate_person_detection_test_int8_make_project
+make -f tensorflow/lite/micro/tools/make/Makefile clean
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=arc_emsdp \ 
+TARGET_ARCH=arc \
+OPTIMIZED_KERNEL_DIR=arc_mli \
+microlite
 ```
 
-The application project will be generated into
-*tensorflow/lite/micro/tools/make/gen/arc_emsdp_arc/prj/person_detection_test_int8/make*
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
 
-Info on generating and building example applications for EM SDP
-(*tensorflow/lite/micro/examples*) can be found in the appropriate readme file
-placed in the same directory with the examples. In general, it’s the same
-process which described in this Readme.
+### Example Applications for ARC EM SDP
 
-The
-[embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
-is used by default to speed up execution of some kernels for asymmetrically
-quantized layers. Kernels which use MLI-based implementations are kept in the
-*tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
-benefit from MLI library, the project can be generated without these
-implementations by **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line. This can reduce
-code size when the optimized kernels are not required.
-
-For more options on embARC MLI usage see
-[kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).
-
-### Build the Application
-
-You may need to adjust the following commands in order to use the appropriate
-make tool available in your environment (ie: `make` or `gmake`)
-
-1.  Open command shell and change the working directory to the location which
-    contains the generated project, as described in the previous section
-
-2.  Clean previous build artifacts (optional)
-
-    make clean
-
-3.  Build application
-
-    make app
-
-### Run the Application with MetaWare Debugger on the nSim Simulator.
-
-To run application from the console, use the following command:
-
-```
-   make run
-```
-
-If application runs in an infinite loop, type `Ctrl+C` several times to exit the
-debugger.
-
-To run the application in the GUI debugger, use the following command:
-
-```
-   make debug
-```
-
-You will see the application output in the same console where you ran it.
-
-### Run the Application on the Board from the microSD Card
-
-1.  Use the following command in the same command shell you used for building
-    the application, as described in the previous step
-
-```
-    make flash
-```
-
-1.  Copy the content of the created *./bin* folder into the root of microSD
-    card. Note that the card must be formatted as FAT32 with default cluster
-    size (but less than 32 Kbytes)
-
-2.  Plug in the microSD card into the J11 connector.
-
-3.  Push the RST button. If a red LED is lit beside RST button, push the CFG
-    button.
-
-4.  Using serial terminal, create uboot environment file to automatically run
-    the application on start-up. Type or copy next sequence of commands into
-    serial terminal one-by-another:
-
-```
-   setenv loadaddr 0x10800000
-   setenv bootfile app.elf
-   setenv bootdelay 1
-   setenv bootcmd fatload mmc 0 \$\{loadaddr\} \$\{bootfile\} \&\& bootelf
-   saveenv
-```
-
-1.  Reset the board (see step 4 above)
-
-You will see the application output in the serial terminal.
+Example applications can be found on ARC examples repository.
 
 ## Using EmbARC MLI Library 2.0 (experimental feature)
 
@@ -310,92 +227,39 @@ section for instructions on toolchain installation. See
 [Make Tool](#Make-Tool) sections for instructions on toolchain installation and
 comments about make versions.
 
+### Generate TFLM as Static Library
 
-### Generate Application Project
-
-Before building the application itself, you need to generate the project for
-this application from TensorFlow sources and external dependencies. To generate
-it for a custom TCF you need to set the following variables in the make command
-line: * TARGET=arc_custom * TCF_FILE=<path to TCF file> * (optional)
-LCF_FILE=<path to LCF file>
-
-If you don’t supply an external LCF, the one embedded in the TCF will be used
-instead
-
-For instance, to build **Person Detection** test application, use the following
-command from the root directory of the TensorFlow repo:
+If you want to use TensorFlow Lite Micro framework in your own application, you need to generate TFLM as a static library.
+Next command can be used to generate TFLM library:
 
 ```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
 make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
 TARGET=arc_custom \
 OPTIMIZED_KERNEL_DIR=arc_mli \
 TCF_FILE=<path_to_tcf_file> \
 LCF_FILE=<path_to_lcf_file> \
-generate_person_detection_int8_make_project
+microlite
 ```
 For MLI Library 2.0 (experimental feature):
 ```
+make -f tensorflow/lite/micro/tools/make/Makefile clean
 make -f tensorflow/lite/micro/tools/make/Makefile \
+TARGET_ARCH=arc \
 TARGET=arc_custom \
 OPTIMIZED_KERNEL_DIR=arc_mli \
 ARC_TAGS=mli20_experimental \
 BUILD_LIB_DIR=<path_to_buildlib> \
 TCF_FILE=<path_to_tcf_file> \
-LCF_FILE=<path_to_lcf_file> \
-generate_person_detection_int8_make_project
+microlite
 ```
 
-The application project will be generated into
-*tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_arc_default/prj/person_detection_test_int8/make*\
-or\
-  *tensorflow/lite/micro/tools/make/gen/<tcf_file_basename>_mli20_arc_default/prj/person_detection_test_int8/make* in case of usage MLI Library 2.0.
+Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
 
-The
-[embARC MLI Library](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli)
-is used by default to speed up execution of some kernels for asymmetrically
-quantized layers. Kernels which use MLI-based implementations are kept in the
-*tensorflow/lite/micro/kernels/arc_mli* folder. For applications which may not
-benefit from MLI library, the project can be generated without these
-implementations by **removing** `OPTIMIZED_KERNEL_DIR=arc_mli` in the command line. This can reduce
-code size when the optimized kernels are not required.
+### Example Applications for ARC EM/HS/VPX custom configuration.
 
-For more options on embARC MLI usage see
-[kernels/arc_mli/README.md](/tensorflow/lite/micro/kernels/arc_mli/README.md).
-
-### Build the Application
-
-You may need to adjust the following commands in order to use the appropriate
-make tool available in your environment (ie: `make` or `gmake`)
-
-1.  Open command shell and change the working directory to the location which
-    contains the generated project, as described in the previous section
-
-2.  Clean previous build artifacts (optional)
-
-    make clean
-
-3.  Build application
-
-    make app
-
-### Run the Application with MetaWare Debugger on the nSim Simulator.
-
-To run application from the console, use the following command:
-
-```
-   make run
-```
-
-If application runs in an infinite loop, type `Ctrl+C` several times to exit the
-debugger.
-
-To run the application in the GUI debugger, use the following command:
-
-```
-   make debug
-```
-
-You will see the application output in the same console where you ran it.
+Example applications can be found on ARC examples repository.
 
 ## License
 
