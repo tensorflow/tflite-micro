@@ -147,9 +147,11 @@ size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
   size_t activation_tensor_buffer =
       activation_tensor_count * AlignSizeUp(1, MicroArenaBufferAlignment());
 
-  size_t default_tail_usage = kMicroAllocatorDefaultTailUsage;
+  size_t default_tail_usage =
+      MicroAllocator::GetDefaultTailUsage(/*is_memory_plan_given=*/false);
   if (is_memory_planner_injected) {
-    default_tail_usage = kMicroAllocatorDefaultTailUsageWithGivenMemoryPlanner;
+    default_tail_usage =
+        MicroAllocator::GetDefaultTailUsage(/*is_memory_plan_given=*/true);
   }
 
   return default_tail_usage + eval_tensor_size + node_registration_size +
