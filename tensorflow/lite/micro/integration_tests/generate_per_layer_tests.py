@@ -168,6 +168,8 @@ class TestDataGenerator:
 
       if builtin_operator == schema_fb.BuiltinOperator.CONV_2D:
         generated_inputs = self.generate_inputs_conv(interpreter)
+      if builtin_operator == schema_fb.BuiltinOperator.SVDF:
+        generated_inputs = self.generate_inputs_conv(interpreter)
       else:
         raise RuntimeError(f'Unsupported BuiltinOperator: {builtin_operator}')
 
@@ -254,6 +256,8 @@ class TestDataGenerator:
 def op_info_from_name(name):
   if 'conv' in name:
     return [[0], schema_fb.BuiltinOperator.CONV_2D]
+  if 'svdf' in name:
+    return [[0], schema_fb.BuiltinOperator.SVDF]
   else:
     raise RuntimeError(f'Unsupported op: {name}')
 
