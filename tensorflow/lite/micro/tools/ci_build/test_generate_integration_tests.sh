@@ -25,9 +25,11 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 KERNEL=conv
 
 TEST_TFLITE_FILE="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/models/person_detect.tflite)"
-TEST_OUTPUT_DIR="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/integration_tests/person_detect/${KERNEL})"
+TEST_OUTPUT_DIR=${ROOT_DIR}/tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}
+mkdir -p ${TEST_OUTPUT_DIR}
+TEST_OUTPUT_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})"
 
-readable_run bazel run tensorflow/lite/micro/integration_tests:generate_per_layer_tests -- --input_tflite_file=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_DIR}
+readable_run bazel run tensorflow/lite/micro/integration_tests:generate_per_layer_tests -- --input_tflite_file=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_DIR_REALPATH}
 
 readable_run bazel test tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}:integration_test \
   --test_output=errors
