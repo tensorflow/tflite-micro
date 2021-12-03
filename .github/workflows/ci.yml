@@ -98,6 +98,13 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
 
+  integration_test_generation:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     name: Integration Test Generation (presubmit)
     steps:
       - uses: actions/checkout@v2
