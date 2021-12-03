@@ -1,5 +1,5 @@
 diff --git a/algo/kernels/fc/hifi4/xa_nn_fully_connected.c b/algo/kernels/fc/hifi4/xa_nn_fully_connected.c
-index 26a2b73..b153274 100644
+index 26a2b73..61f0a64 100644
 --- a/algo/kernels/fc/hifi4/xa_nn_fully_connected.c
 +++ b/algo/kernels/fc/hifi4/xa_nn_fully_connected.c
 @@ -298,7 +298,6 @@ WORD32 xa_nn_fully_connected_sym8sxasym8s_asym8s
@@ -20,18 +20,11 @@ index 26a2b73..b153274 100644
  #endif
    /* Basic Parameter checks */
    XA_NNLIB_ARG_CHK_COND((out_depth <= 0), -1);
-@@ -337,5 +337,6 @@ WORD32 xa_nn_fully_connected_sym8sxasym8s_asym8s
-      ,out_shift
-      ,out_zero_bias
-     );
-+
-   return ret;
- }
 diff --git a/algo/kernels/matXvec/hifi4/xa_nn_matXvec_sym8sxasym8s.c b/algo/kernels/matXvec/hifi4/xa_nn_matXvec_sym8sxasym8s.c
-index 14b7d6f..36d6fab 100644
+index df6779e..d92eaa5 100644
 --- a/algo/kernels/matXvec/hifi4/xa_nn_matXvec_sym8sxasym8s.c
 +++ b/algo/kernels/matXvec/hifi4/xa_nn_matXvec_sym8sxasym8s.c
-@@ -510,9 +510,9 @@ WORD32 xa_nn_matXvec_sym8sxasym8s_asym8s(
+@@ -1033,9 +1033,9 @@ WORD32 xa_nn_matXvec_sym8sxasym8s_asym8s(
    XA_NNLIB_ARG_CHK_PTR(p_out, -1);
    XA_NNLIB_ARG_CHK_PTR(p_mat1, -1);
    XA_NNLIB_ARG_CHK_PTR(p_vec1, -1);
