@@ -82,7 +82,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   auto padding = params->padding;
   TfLitePaddingValues padding_values = ComputePaddingHeightWidth(
       params->stride_height, params->stride_width,
-      1, 1, //params->dilation_height_factor and params->dilation_width_factor,
+      1, 1, // Dilation height and width are always 1 for transpose_conv.
       height, width, filter_height, filter_width, padding, &out_height, &out_width);
 
   data->params.padding_type = RuntimePaddingType(padding);
