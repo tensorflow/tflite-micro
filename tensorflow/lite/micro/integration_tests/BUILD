@@ -6,7 +6,13 @@ package(
 
 py_binary(
     name = "generate_per_layer_tests",
-    srcs = ["generate_per_layer_tests.py"],
+    srcs = [
+        "generate_per_layer_tests.py",
+    ],
+    data = [
+        "templates/BUILD.mako",
+        "templates/integration_tests_cc.mako",
+    ],
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
