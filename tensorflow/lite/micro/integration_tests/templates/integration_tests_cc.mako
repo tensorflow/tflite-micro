@@ -26,8 +26,10 @@ limitations under the License.
 
 % for target_with_path in targets_with_path:
 #include "${target_with_path}_model_data.h"
-#include "${target_with_path}_input0_int8_test_data.h"
-#include "${target_with_path}_golden_int8_test_data.h"
+% for input_idx, input in enumerate(inputs):
+#include "${target_with_path}_input${input_idx}_${input_dtypes[input_idx]}_test_data.h"
+% endfor
+#include "${target_with_path}_golden_${output_dtype}_test_data.h"
 % endfor
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
@@ -37,8 +39,14 @@ namespace tflite {
 namespace micro {
 namespace {
 
-void RunModel(const uint8_t* model, const int8_t* input, const uint32_t input_size,
- const int8_t* golden, const uint32_t golden_size, const char* name) {
+void RunModel(const uint8_t* model,
+% for input_idx, input in enumerate(inputs):
+              const ${input_dtypes[input_idx]}_t* input${input_idx},
+              const uint32_t input${input_idx}_size,
+% endfor
+              const ${output_dtype}_t* golden,
+              const uint32_t golden_size,
+              const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
   AllOpsResolver op_resolver;
@@ -47,7 +55,15 @@ void RunModel(const uint8_t* model, const int8_t* input, const uint32_t input_si
                                kTensorArenaSize, GetMicroErrorReporter(),
                                nullptr, &profiler);
   interpreter.AllocateTensors();
-TfLiteTensor* input_tensor = interpreter.input(0);TF_LITE_MICRO_EXPECT_EQ(input_tensor->bytes, input_size * sizeof(int8_t));memcpy(interpreter.input(0)->data.raw, input, input_tensor->bytes);
+% for input_idx, input in enumerate(inputs):
+  TfLiteTensor* input_tensor${input_idx} = interpreter.input(${input_idx});
+  TF_LITE_MICRO_EXPECT_EQ(input_tensor${input_idx}->bytes,
+                          input${input_idx}_size * sizeof(
+                              ${input_dtypes[input_idx]}_t));
+  memcpy(interpreter.input(${input_idx})->data.raw,
+         input${input_idx},
+         input_tensor${input_idx}->bytes);
+% endfor
   if (kTfLiteOk != interpreter.Invoke()) {
     TF_LITE_MICRO_EXPECT(false);
     return;
@@ -56,8 +72,9 @@ TfLiteTensor* input_tensor = interpreter.input(0);TF_LITE_MICRO_EXPECT_EQ(input_
   MicroPrintf("");
 
   TfLiteTensor* output_tensor = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(int8_t));
-  int8_t* output = GetTensorData<int8_t>(output_tensor);
+  TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes,
+                          golden_size * sizeof(${output_dtype}_t));
+  ${output_dtype}_t* output = GetTensorData<${output_dtype}_t>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
     // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
     // off by 1.
@@ -75,14 +92,15 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(${target}_test) {tflite::micro::RunModel(
 g_${target}_model_data,
-g_${target}_input0_int8_test_data,
-g_${target}_input0_int8_test_data_size,
-g_${target}_golden_int8_test_data,
-g_${target}_golden_int8_test_data_size,
+% for input_idx, input in enumerate(inputs):
+g_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data,
+g_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data_size,
+% endfor
+g_${target}_golden_${output_dtype}_test_data,
+g_${target}_golden_${output_dtype}_test_data_size,
 "${target} test");
 }
 
 % endfor
-
 
 TF_LITE_MICRO_TESTS_END

@@ -35,9 +35,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace add {
 
 constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
@@ -358,12 +355,12 @@ TfLiteStatus EvalMLIAddInt8(TfLiteContext* context, TfLiteNode* node,
 #endif
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* AddInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -383,7 +380,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteStatus ret_val = kTfLiteOk;
   auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
 
@@ -413,19 +410,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return ret_val;
 }
 
-}  // namespace add
-
 TfLiteRegistration Register_ADD() {
-  return {/*init=*/add::Init,
+  return {/*init=*/AddInit,
           /*free=*/nullptr,
-          /*prepare=*/add::Prepare,
-          /*invoke=*/add::Eval,
+          /*prepare=*/AddPrepare,
+          /*invoke=*/AddEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
           /*version=*/0};
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
