@@ -19,10 +19,31 @@ generate_cc_arrays(name = "generated_${target}_model_data_hdr",src = "${target}.
 % endfor
 
 % for target in targets:
-generate_cc_arrays(name = "generated_${target}_input0_int8_test_data_cc",src = "${target}_input0_int8.csv",out = "${target}_input0_int8_test_data.cc",)
-generate_cc_arrays(name = "generated_${target}_input0_int8_test_data_hdr",src = "${target}_input0_int8.csv",out = "${target}_input0_int8_test_data.h",)
-generate_cc_arrays(name = "generated_${target}_golden_int8_test_data_cc",src = "${target}_golden_int8.csv",out = "${target}_golden_int8_test_data.cc",)
-generate_cc_arrays(name = "generated_${target}_golden_int8_test_data_hdr",src = "${target}_golden_int8.csv",out = "${target}_golden_int8_test_data.h",)
+% for input_idx, input in enumerate(inputs):
+generate_cc_arrays(
+  name = "generated_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data_cc",
+  src = "${target}_input${input_idx}_${input_dtypes[input_idx]}.csv",
+  out = "${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data.cc",
+)
+
+generate_cc_arrays(
+  name = "generated_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data_hdr",
+  src = "${target}_input${input_idx}_${input_dtypes[input_idx]}.csv",
+  out = "${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data.h",
+)
+% endfor
+
+generate_cc_arrays(
+  name = "generated_${target}_golden_${output_dtype}_test_data_cc",
+  src = "${target}_golden_${output_dtype}.csv",
+  out = "${target}_golden_${output_dtype}_test_data.cc",
+)
+
+generate_cc_arrays(
+  name = "generated_${target}_golden_${output_dtype}_test_data_hdr",
+  src = "${target}_golden_${output_dtype}.csv",
+  out = "${target}_golden_${output_dtype}_test_data.h",
+)
 % endfor
 
 cc_library(
@@ -30,15 +51,19 @@ cc_library(
     srcs = [
 % for target in targets:
         "generated_${target}_model_data_cc",
-        "generated_${target}_input0_int8_test_data_cc",
-        "generated_${target}_golden_int8_test_data_cc",
+% for input_idx, input in enumerate(inputs):
+        "generated_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data_cc",
+% endfor
+        "generated_${target}_golden_${output_dtype}_test_data_cc",
 % endfor
     ],
     hdrs = [
 % for target in targets:
         "generated_${target}_model_data_hdr",
-        "generated_${target}_input0_int8_test_data_hdr",
-        "generated_${target}_golden_int8_test_data_hdr",
+% for input_idx, input in enumerate(inputs):
+        "generated_${target}_input${input_idx}_${input_dtypes[input_idx]}_test_data_hdr",
+% endfor
+        "generated_${target}_golden_${output_dtype}_test_data_hdr",
 % endfor
     ],    
     copts = micro_copts(),
