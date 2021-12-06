@@ -78,7 +78,6 @@ class TestModelGenerator:
       buffer = copy.deepcopy(
           model.buffers[subgraph.tensors[tensor_idx].buffer])
       if input_idx in self.inputs:
-        print('setting index ' + str(input_idx) + ' to None')
         buffer.data = None
       bytes_per_element = BytesFromFlatbufferType(tensor.type)
       if buffer.data is not None and len(tensor.shape) > 1:
@@ -127,7 +126,6 @@ class TestModelGenerator:
   def generate_models(self, subgraph_idx, builtin_operator):
     subgraph = self.model.subgraphs[subgraph_idx]
     opcode_idx = self.get_opcode_idx(builtin_operator)
-    print(f'opcode_idx: {opcode_idx}')
     output_models = []
     for op in subgraph.operators:
       if op.opcodeIndex == opcode_idx:
@@ -143,43 +141,106 @@ class TestDataGenerator:
     self.model_paths = model_paths
     self.csv_filenames = []
     self.inputs = inputs
+    self.input_types = {}
     self.cc_srcs = []
     self.cc_hdrs = []
     self.includes = []
 
-  def generate_inputs_conv(self, interpreter):
+  def generate_inputs_single(self, interpreter, dtype):
     input_tensor = interpreter.tensor(
         interpreter.get_input_details()[0]['index'])
     return [
-        np.random.randint(low=-128,
-                          high=127,
-                          dtype=np.int8,
-                          size=input_tensor().shape)
+        np.random.randint(low=np.iinfo(dtype).min,
+                          high=np.iinfo(dtype).max,
+                          dtype=dtype,
+                          size=input_tensor().shape),
     ]
+
+  def generate_inputs_add_sub(self, interpreter, dtype):
+    input_tensor0 = interpreter.tensor(
+        interpreter.get_input_details()[0]['index'])
+    input_tensor1 = interpreter.tensor(
+        interpreter.get_input_details()[1]['index'])
+    return [
+        np.random.randint(low=np.iinfo(dtype).min,
+                          high=np.iinfo(dtype).max,
+                          dtype=dtype,
+                          size=input_tensor0().shape),
+        np.random.randint(low=np.iinfo(dtype).min,
+                          high=np.iinfo(dtype).max,
+                          dtype=dtype,
+                          size=input_tensor1().shape)
+    ]
+
+  def generate_inputs_transpose_conv(self, interpreter, dtype):
+    input_tensor0 = interpreter.tensor(0)
+    filter_tensor = interpreter.tensor(1)
+    input_tensor1 = interpreter.tensor(2)
+    output_shape = np.array([
+        1,
+        filter_tensor().shape[1] + input_tensor1().shape[1] - 1,
+        int(input_tensor1().shape[2] * 2 + filter_tensor().shape[2] / 2),
+        filter_tensor().shape[0]
+    ],
+                            dtype=np.int32)
+    return [
+        output_shape,
+        np.random.randint(low=np.iinfo(dtype).min,
+                          high=np.iinfo(dtype).max,
+                          dtype=dtype,
+                          size=input_tensor1().shape)
+    ]
+
+  def GetTypeStringFromTensor(self, tensor):
+    if tensor.dtype == np.int8:
+      return 'int8'
+    if tensor.dtype == np.int16:
+      return 'int16'
+    if tensor.dtype == np.int32:
+      return 'int32'
+    if tensor.dtype == np.float:
+      return 'float'
 
   def generate_goldens(self, builtin_operator):
     for model_path in self.model_paths:
-      print(model_path)
       # Load model and run a single inference with random inputs.
       interpreter = tf.lite.Interpreter(model_path=model_path)
       interpreter.allocate_tensors()
+      input_tensor = interpreter.tensor(
+          interpreter.get_input_details()[0]['index'])
       output_tensor = interpreter.tensor(
           interpreter.get_output_details()[0]['index'])
 
-      if builtin_operator == schema_fb.BuiltinOperator.CONV_2D:
-        generated_inputs = self.generate_inputs_conv(interpreter)
+      if builtin_operator in (schema_fb.BuiltinOperator.CONV_2D,
+                              schema_fb.BuiltinOperator.DEPTHWISE_CONV_2D,
+                              schema_fb.BuiltinOperator.STRIDED_SLICE,
+                              schema_fb.BuiltinOperator.LEAKY_RELU):
+        generated_inputs = self.generate_inputs_single(interpreter,
+                                                       input_tensor().dtype)
+      elif builtin_operator in (schema_fb.BuiltinOperator.ADD,
+                                schema_fb.BuiltinOperator.SUB):
+        generated_inputs = self.generate_inputs_add_sub(
+            interpreter,
+            input_tensor().dtype)
+      elif builtin_operator == schema_fb.BuiltinOperator.TRANSPOSE_CONV:
+        input_tensor = interpreter.tensor(
+            interpreter.get_input_details()[1]['index'])
+        generated_inputs = self.generate_inputs_transpose_conv(
+            interpreter,
+            input_tensor().dtype)
       else:
         raise RuntimeError(f'Unsupported BuiltinOperator: {builtin_operator}')
 
-      print(generated_inputs[0])
-      for idx, input_tensor in enumerate(self.inputs):
-        interpreter.set_tensor(input_tensor, generated_inputs[idx])
+      for idx, input_tensor_idx in enumerate(self.inputs):
+        interpreter.set_tensor(input_tensor_idx, generated_inputs[idx])
       interpreter.invoke()
 
-      for input_idx, input_tensor in enumerate(generated_inputs):
-        input_flat = input_tensor.flatten().tolist()
+      for input_idx, input_tensor_data in enumerate(generated_inputs):
+        input_type = self.GetTypeStringFromTensor(input_tensor_data)
+        self.input_types[input_idx] = input_type
+        input_flat = input_tensor_data.flatten().tolist()
         csv_input_filename = \
-            f"{model_path.split('.')[0]}_input{input_idx}_int8.csv"
+            f"{model_path.split('.')[0]}_input{input_idx}_{input_type}.csv"
         input_csvfile = open(csv_input_filename, 'w', newline='')
         input_csvwriter = csv.writer(input_csvfile)
         input_csvwriter.writerow(input_flat)
@@ -188,7 +249,9 @@ class TestDataGenerator:
       output_flat = output_tensor().flatten().tolist()
 
       # Write inputs and goldens to CSV file.
-      csv_golden_filename = f"{model_path.split('.')[0]}_golden_int8.csv"
+      output_type = self.GetTypeStringFromTensor(output_tensor())
+      self.output_type = output_type
+      csv_golden_filename = f"{model_path.split('.')[0]}_golden_{output_type}.csv"
       golden_csvfile = open(csv_golden_filename, 'w', newline='')
       golden_csvwriter = csv.writer(golden_csvfile)
       np.set_printoptions(threshold=np.inf)
@@ -199,14 +262,18 @@ class TestDataGenerator:
     # Collect all target names into a list
     targets = []
     for model_path in self.model_paths:
-      print(model_path)
       target_name = model_path.split('/')[-1].split('.')[0]
       targets.append(target_name)
 
     template_file_path = os.path.join(TEMPLATE_DIR, 'BUILD.mako')
     build_template = template.Template(filename=template_file_path)
     with open(self.output_dir + '/BUILD', 'w') as file_obj:
-      key_values_in_template = {'targets': targets}
+      key_values_in_template = {
+          'targets': targets,
+          'inputs': self.inputs,
+          'input_dtypes': self.input_types,
+          'output_dtype': self.output_type
+      }
       file_obj.write(build_template.render(**key_values_in_template))
 
   def generate_tests(self):
@@ -214,9 +281,10 @@ class TestDataGenerator:
     targets = []
     targets_with_path = []
     for model_path in self.model_paths:
-      print(model_path)
       targets.append(model_path.split('/')[-1].split('.')[0])
-      targets_with_path.append(model_path.split('google3/')[-1].split('.')[0])
+      targets_with_path.append(
+          model_path.split('tflite_micro/')[-1].split('tflite-micro/')
+          [-1].split('.')[0])
 
     template_file_path = os.path.join(TEMPLATE_DIR,
                                       'integration_tests_cc.mako')
@@ -224,7 +292,10 @@ class TestDataGenerator:
     with open(self.output_dir + '/integration_tests.cc', 'w') as file_obj:
       key_values_in_template = {
           'targets': targets,
-          'targets_with_path': targets_with_path
+          'targets_with_path': targets_with_path,
+          'inputs': self.inputs,
+          'input_dtypes': self.input_types,
+          'output_dtype': self.output_type
       }
       file_obj.write(build_template.render(**key_values_in_template))
 
@@ -252,8 +323,20 @@ class TestDataGenerator:
 
 
 def op_info_from_name(name):
-  if 'conv' in name:
+  if 'transpose_conv' in name:
+    return [[0, 2], schema_fb.BuiltinOperator.TRANSPOSE_CONV]
+  elif 'depthwise_conv' in name:
+    return [[0], schema_fb.BuiltinOperator.DEPTHWISE_CONV_2D]
+  elif 'conv' in name:
     return [[0], schema_fb.BuiltinOperator.CONV_2D]
+  elif 'add' in name:
+    return [[0, 1], schema_fb.BuiltinOperator.ADD]
+  elif 'sub' in name:
+    return [[0, 1], schema_fb.BuiltinOperator.SUB]
+  elif 'strided_slice' in name:
+    return [[0], schema_fb.BuiltinOperator.STRIDED_SLICE]
+  elif 'leaky_relu' in name:
+    return [[0], schema_fb.BuiltinOperator.LEAKY_RELU]
   else:
     raise RuntimeError(f'Unsupported op: {name}')
 
@@ -272,15 +355,16 @@ def main(_):
   model = flatbuffer_utils.read_model(FLAGS.input_tflite_file)
   os.makedirs(FLAGS.output_dir, exist_ok=True)
   inputs, builtin_operator = op_info_from_name(FLAGS.output_dir.split('/')[-1])
-  print(f"inputs: {inputs}, builtin_operator: {builtin_operator}")
   generator = TestModelGenerator(model, FLAGS.output_dir, inputs)
   model_names = generator.generate_models(0, builtin_operator)
-  print(f"model_names: {model_names}")
   data_generator = TestDataGenerator(FLAGS.output_dir, model_names, inputs)
   data_generator.generate_goldens(builtin_operator)
   data_generator.generate_build_file()
   data_generator.generate_makefile()
   data_generator.generate_tests()
+  print(
+      f'successfully generated integration tests. Output location: {FLAGS.output_dir}'
+  )
 
 
 if __name__ == '__main__':
