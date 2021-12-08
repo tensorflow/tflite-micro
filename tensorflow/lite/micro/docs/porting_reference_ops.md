@@ -9,7 +9,7 @@
 [PR #45457]: https://github.com/tensorflow/tensorflow/pull/45457
 [PR #45646]: https://github.com/tensorflow/tensorflow/pull/45646
 [PR #45647]: https://github.com/tensorflow/tensorflow/pull/45647
-[pre-submit checklist]: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/CONTRIBUTING.md#before-submitting-your-pr
+[pre-submit checklist]: https://github.com/tensorflow/tflite-micro/blob/main/CONTRIBUTING.md#before-submitting-your-pr
 [reference_ops.h]: https://github.com/tensorflow/tensorflow/blob/92f459e6b917fa5099ef5317d14c5100d33a86f0/tensorflow/lite/kernels/internal/reference/reference_ops.h
 [general porting guidelines]: #general-porting-guidelines
 
