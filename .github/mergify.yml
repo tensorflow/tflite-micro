@@ -1,6 +1,7 @@
 queue_rules:
   - name: default
     conditions:
+      - base=main
       - label=ci:ready_to_merge
     
    
@@ -16,6 +17,8 @@ pull_request_rules:
         method: squash
 
   - name: remove ci:ready_to_merge label
+    conditions:
+      - merged
     actions:
       label:
         remove:
