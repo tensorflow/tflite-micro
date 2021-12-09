@@ -45,13 +45,15 @@ inline void ConvertToMliTensorData(const TfLiteTensor* tfT,
   const int32_t dims_count = GetTensorShape(tfT).DimensionsCount();
   *mliT->Rank() = is_bias_tensor ? 1 : dims_count;
 
+  int mli_tensor_memstride = 1;
   if (is_bias_tensor) {
     mliT->Shape()[0] = GetTensorShape(tfT).Dims(dims_count - 1);
-    mliT->MemStride()[0] = 0;
+    mliT->MemStride()[0] = mli_tensor_memstride;
   } else {
-    for (int i = 0; i < dims_count; i++) {
+    for (int i = dims_count - 1; i >= 0; --i) {
       mliT->Shape()[i] = GetTensorShape(tfT).Dims(i);
-      mliT->MemStride()[i] = 0;
+      mliT->MemStride()[i] = mli_tensor_memstride;
+      mli_tensor_memstride *= GetTensorShape(tfT).Dims(i);
     }
   }
 }
@@ -144,6 +146,35 @@ inline void ConvertToMliTensorPerChannel(const TfLiteTensor* tfT,
   ConvertToMliQuantParamsPerChannel(tfT, mliT, is_bias_tensor);
 }
 
+inline void PrepareLocalTensor(mli_tensor* tensor, mli_tensor* tensor_local) {
+#ifdef MLI_2_0
+  int8_t* local_data = tensor_local->data.mem.pi8;
+  *tensor_local = *tensor;
+  tensor_local->data.mem.pi8 = local_data;
+#else
+  int8_t* local_data = static_cast<int8_t*>(tensor_local->data);
+  *tensor_local = *tensor;
+  tensor_local->data = local_data;
+#endif
+}
+
+inline void AdjustBiasTensor(MliTensorInterface* bias, MliTensorInterface* in,
+                             MliTensorInterface* weights) {
+  int32_t quantized_dimension = *bias->Dim();
+  const int num_channels =
+      quantized_dimension < 0 ? 1 : bias->Shape()[quantized_dimension];
+  for (int i = 0; i < num_channels; i++) {
+    int32_t adjusted_bias_scale =
+        (*in->Scale<int16_t*>()) * (*weights->Scale<int16_t**>())[i];
+    int in_shift = *in->ScaleFracBits<int8_t*>();
+    int w_shift = (*weights->ScaleFracBits<int8_t**>())[i];
+    int b_shift = (*bias->ScaleFracBits<int8_t**>())[i];
+    int bias_shift = in_shift + w_shift - b_shift;
+    (*bias->Scale<int16_t**>())[i] =
+        (int16_t)(adjusted_bias_scale >> bias_shift);
+  }
+}
+
 #ifdef MLI_2_0_KRNL_TEST
 // Reorder an array according to given indexes. If backward is true, order of
 // index array must be reversed.
@@ -185,6 +216,10 @@ inline void permute_weights(const mli_tensor* weights_src,
   int weights_size = mli_hlp_count_elem_num(weights_src, 0) *
                      mli_hlp_tensor_element_size(weights_src);
 
+  // Need to change shape of distanation weights buffer according to permute
+  // dimensions order to calculate slice sizes
+  change_shape(weights_dst, permute_cfg->perm_dim);
+
   if (buffer_size >= weights_size) {
     mli_mov_cfg_t copy_config;
     mli_mov_cfg_for_copy(&copy_config);
@@ -201,10 +236,6 @@ inline void permute_weights(const mli_tensor* weights_src,
     uint32_t src_offsets[] = {0, 0, 0, 0};
     uint32_t src_sizes[] = {0, 0, 0, 0};
     int dst_mem_stride[] = {0, 0, 0, 0};
-
-    // Need to change shape of distanation weights buffer according to permute
-    // dimensions order to calculate slice sizes
-    change_shape(weights_dst, permute_cfg->perm_dim);
 
     mli_tensor weights_dst_sub_tensor;
     mli_sub_tensor_cfg sub_tensor_cfg = {};
