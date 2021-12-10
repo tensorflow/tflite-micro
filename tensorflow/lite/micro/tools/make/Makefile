@@ -112,6 +112,7 @@ endif
 
 CORE_OPTIMIZATION_LEVEL := -Os
 KERNEL_OPTIMIZATION_LEVEL := -O2
+THIRD_PARTY_C_OPTIMIZATION_LEVEL := -Os
 
 # Warn if deprecated optimization level is set.
 OPTIMIZATION_LEVEL :=
@@ -599,7 +600,7 @@ $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 
 $(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(THIRD_PARTY_C_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
