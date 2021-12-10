@@ -579,7 +579,7 @@ TF_LITE_MICRO_TEST(FilterDimsNotMatchingAffineQuantization) {
   int8_t input_quantized[input_size];
   int8_t filter_quantized[filter_size];
   int32_t bias_quantized[bias_size];
-  int8_t golden_quantized[output_size] = {0};
+  int8_t golden_quantized[output_size] = {};
   int zero_points[bias_size + 1];
   float scales[bias_size + 1];
   int8_t output_data[output_size];
