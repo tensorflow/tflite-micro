@@ -16,8 +16,6 @@
 
 ifeq ($(TARGET_ARCH), arc)
 
-ALL_TAGS += arc_mli
-
 ifeq ($(BUILD_ARC_MLI),true)
   MLI_LIB_DIR ?= arc_mli_$(notdir $(basename $(TCF_FILE_NAME)))
 
@@ -25,35 +23,37 @@ ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
   MLI_LIB_DIR := $(MLI_LIB_DIR)_mli20
 endif
 
+ifneq ($(findstring test, $(MAKECMDGOALS)),)
   $(eval $(call add_third_party_download,$(EMBARC_MLI_URL),$(EMBARC_MLI_MD5),$(MLI_LIB_DIR),build_embarc_mli,$(TCF_FILE)))
+else
+  $(eval $(call add_third_party_download,$(EMBARC_MLI_URL),$(EMBARC_MLI_MD5),$(MLI_LIB_DIR)))
+endif
 
   MLI_INCLUDE_FOLDER = $(MLI_LIB_DIR)/include
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
-  MLI_LIB = third_party/$(MLI_LIB_DIR)/bin/arc/libmli.a
   MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/arc/libmli.a
 else
-  MLI_LIB = third_party/$(MLI_LIB_DIR)/bin/libmli.a
   MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/libmli.a
 endif
 
-  THIRD_PARTY_CC_HDRS += \
-    third_party/$(MLI_LIB_DIR)/LICENSE
 else
 ifneq ($(ARC_MLI_PRE_COMPILED_TARGET),)
   MLI_LIB_DIR ?= arc_mli_package
   $(eval $(call add_third_party_download,$(EMBARC_MLI_PRE_COMPILED_URL),$(EMBARC_MLI_PRE_COMPILED_MD5),$(MLI_LIB_DIR),))
 
   MLI_INCLUDE_FOLDER = $(MLI_LIB_DIR)/include
-  MLI_LIB = third_party/$(MLI_LIB_DIR)/bin/$(ARC_MLI_PRE_COMPILED_TARGET)/release/libmli.a
   MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/$(ARC_MLI_PRE_COMPILED_TARGET)/release/libmli.a
 
-  THIRD_PARTY_CC_HDRS += \
-    third_party/$(MLI_LIB_DIR)/LICENSE
 else 
 $(error Target for pre compiled ARC MLI library is not defined)
-endif
-endif
+endif # ARC_MLI_PRE_COMPILED_TARGET
+endif # BUILD_ARC_MLI
+
+ifeq ($(filter $(ARC_TAGS), project_generation),)
+
+  THIRD_PARTY_CC_HDRS += \
+    $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/LICENSE
 
   THIRD_PARTY_CC_HDRS += $(MLI_LIB)
   GENERATED_PROJECT_LIBS += $(MLI_LIB)
@@ -69,25 +69,27 @@ endif
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
   THIRD_PARTY_CC_HDRS += \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_config.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_types.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_config.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_types.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
 else
   THIRD_PARTY_CC_HDRS += \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_config.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/mli_types.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_krn_avepool_spec_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_krn_conv2d_spec_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_krn_depthwise_conv2d_spec_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_krn_maxpool_spec_api.h \
-    third_party/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_config.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_types.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_avepool_spec_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_conv2d_spec_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_depthwise_conv2d_spec_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_maxpool_spec_api.h \
+    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
 endif
+
+endif # project_generation
 
     MICROLITE_CC_HDRS += tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h
     MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.cc
@@ -97,24 +99,14 @@ endif
     MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/mli_slicers.cc
     MICROLITE_CC_HDRS += tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h
     MICROLITE_CC_HDRS += tensorflow/lite/micro/kernels/arc_mli/mli_interface.h
-ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
+    MICROLITE_CC_HDRS += tensorflow/lite/micro/kernels/arc_mli/mli_function_specializations.h
+ifneq ($(filter $(ARC_TAGS), project_generation),)
+    MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/mli_interface_mli_20.cc
+    MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/mli_interface.cc
+else ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
     MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/mli_interface_mli_20.cc
 else
     MICROLITE_CC_SRCS += tensorflow/lite/micro/kernels/arc_mli/mli_interface.cc
-
-    MICROLITE_TEST_SRCS += $(wildcard tensorflow/lite/micro/kernels/arc_mli/*test.cc)
 endif
-
-  ARC_MLI_TESTS := conv depthwise_conv pooling fully_connected
-  ARC_MLI_TESTS += $(foreach TEST,$(ARC_MLI_TESTS), $(TEST)_slicing)
-
-generate_arc_mli_test_projects: $(foreach TEST,$(ARC_MLI_TESTS), generate_kernel_$(TEST)_test_make_project)
-  
-  ARC_EXTRA_APP_SETTINGS += \
-    \nMLI_ONLY ?= false\n\
-    \nifeq \($(DLR)\(MLI_ONLY\), true\)\
-    \nCCFLAGS += -DTF_LITE_STRIP_REFERENCE_IMPL\
-    \nCXXFLAGS += -DTF_LITE_STRIP_REFERENCE_IMPL\
-    \nendif\n
 
 endif # TARGET_ARCH
