@@ -32,6 +32,8 @@ void MicroPrintf(const char* format, ...);
 
 namespace tflite {
 
+// From
+// https://stackoverflow.com/questions/23235910/variadic-unused-function-macro
 template <typename... Args>
 void Unused(Args&&... args) {
   (void)(sizeof...(args));
