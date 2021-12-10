@@ -27,10 +27,15 @@ void MicroPrintf(const char* format, ...);
 #else
 // We use a #define to ensure that the strings are completely stripped, to
 // prevent an unnecessary increase in the binary size.
-#define MicroPrintf(format, ...)
+#define MicroPrintf(...) tflite::Unused(__VA_ARGS__)
 #endif
 
 namespace tflite {
+
+template <typename... Args>
+void Unused(Args&&... args) {
+  (void)(sizeof...(args));
+}
 
 // Get a pointer to a singleton global error reporter.
 ErrorReporter* GetMicroErrorReporter();
