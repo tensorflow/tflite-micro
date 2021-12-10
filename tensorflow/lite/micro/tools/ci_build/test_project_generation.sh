@@ -86,4 +86,28 @@ PATH=${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded
 
 popd > /dev/null
 
-#rm -rf ${TEST_OUTPUT_DIR_CMSIS}
+rm -rf ${TEST_OUTPUT_DIR_CMSIS}
+
+# Test that C++ files are renamed to .cpp
+
+TEST_OUTPUT_DIR_RENAME_CC=$(mktemp -d)
+
+readable_run \
+  python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+  --rename-cc-to-cpp \
+  ${TEST_OUTPUT_DIR_RENAME_CC}
+
+CC_FILES=$(find ${TEST_OUTPUT_DIR_RENAME_CC} -name "*.cc" | head)
+CPP_FILES=$(find ${TEST_OUTPUT_DIR_RENAME_CC} -name "*.cpp" | head)
+
+if test -n "${CC_FILES}"; then
+  echo "Expected no .cc file to exist"
+  echo "${CC_FILES}"
+  exit 1;
+fi
+
+if test -z "${CPP_FILES}"; then
+  echo "Expected a .cpp file to exist"
+  echo "${CPP_FILES}}}"
+  exit 1;
+fi
