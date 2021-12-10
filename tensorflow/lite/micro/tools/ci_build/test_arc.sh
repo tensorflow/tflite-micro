@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Tests the microcontroller code using arc platform.
-# These tests require a metaware compiler.
+# Tests the microcontroller code using ARC platform.
+# These tests require a MetaWare C/C++ Compiler.
 
 set -e
 
@@ -28,9 +28,17 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
 TARGET_ARCH=arc
+TARGET=arc_custom
+OPTIMIZED_KERNEL_DIR=arc_mli
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile TARGET_ARCH=${TARGET_ARCH} third_party_downloads
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET_ARCH=${TARGET_ARCH} generate_hello_world_test_make_project
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET_ARCH=${TARGET_ARCH} generate_person_detection_test_make_project
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile TARGET_ARCH=${TARGET_ARCH} hello_world_test
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=${TARGET} \
+  TARGET_ARCH=${TARGET_ARCH} \
+  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+  build -j$(nproc)
+
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=${TARGET} \
+  TARGET_ARCH=${TARGET_ARCH} \
+  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+  test -j$(nproc)
