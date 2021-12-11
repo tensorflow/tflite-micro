@@ -71,6 +71,8 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
+TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_CONV_H_
