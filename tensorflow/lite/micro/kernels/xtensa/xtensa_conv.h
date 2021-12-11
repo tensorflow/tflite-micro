@@ -28,6 +28,15 @@ struct XtensaConvOpData {
 #if defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
 #endif  // defined(HIFI4) || defined(HIFI5)
+
+#if defined (VISIONP6)
+  uint32_t enableXtensaKernel; // flag indicating if xtensa kernel to be used
+  int8_t* reordCoeffnBias; // buffers used to keep reordered coeff and biases.
+  uint32_t reordCoeffnBiasSize;
+  int8_t* per_channel_output_shift_int8;
+  uint8_t* pContext; // persistent lib context for this instance saved here
+  uint32_t contextSize;
+#endif // VISIONP6
 };
 
 #if defined(HIFIMINI)
@@ -59,6 +68,11 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteEvalTensor* filter,
                           const TfLiteEvalTensor* bias,
                           TfLiteEvalTensor* output);
+#elif defined(VISIONP6)
+
+TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus ConvEvalVision(TfLiteContext* context, TfLiteNode* node); 
 
 #endif
 

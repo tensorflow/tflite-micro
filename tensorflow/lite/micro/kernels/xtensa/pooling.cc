@@ -20,6 +20,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
@@ -236,6 +238,12 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8:
 #if defined(HIFI5)
       AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#elif defined(VISIONP6)
+      if (params->stride_height == params->stride_width)
+        return AveragePoolingEvalQuantizedVision(context, node);
+      else
+        AveragePoolingEvalQuantized(context, node, params, reference_op_data,
+                                    input, output);
 #else
       AveragePoolingEvalQuantized(context, node, params, reference_op_data,
                                   input, output);
@@ -292,10 +300,27 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if defined(HIFI5)
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
+#elif defined(VISIONP6)
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(XtensaOpDataPooling));
+  if (InitXtensaContext()) return nullptr;
+  return data;
 #else
   return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
 #endif
 }
+
+#if defined(VISIONP6)
+TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
+  if (params->stride_height == params->stride_width)
+    TF_LITE_ENSURE_OK(context, AveragePoolingPrepareVision(context, node));
+  return kTfLiteOk;
+}
+#endif // VISIONP6
 
 }  // namespace
 
@@ -305,6 +330,8 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
         /*free=*/nullptr,
 #if defined(HIFI5)
         /*prepare=*/AveragePrepareHifi,
+#elif defined(VISIONP6)
+        /*prepare=*/AveragePrepare,
 #else
         /*prepare=*/PoolingPrepare,
 #endif
