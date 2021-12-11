@@ -119,16 +119,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
                      output);
 #else
-      reference_integer_ops::ConvPerChannel(
-          ConvParamsQuantized(params, data), data.per_channel_output_multiplier,
-          data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int16_t>(input),
-          tflite::micro::GetTensorShape(filter),
-          tflite::micro::GetTensorData<int8_t>(filter),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<std::int64_t>(bias),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int16_t>(output));
+      return ConvReferenceEvalInt16(context, node);
 #endif
       break;
     }
