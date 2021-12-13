@@ -6,7 +6,9 @@ on:
 jobs:
   check_tflite_files:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:run')
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'ci:run') ||
+      contains(github.event.pull_request.labels.*,name, 'ci:ready_to_merge')
     name: Check PR Modifies TfLite Files
     steps:
       - uses: actions/checkout@v2
