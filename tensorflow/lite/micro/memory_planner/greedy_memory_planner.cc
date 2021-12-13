@@ -366,9 +366,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
     for (int c = 0; c < kLineWidth; ++c) {
       line[c] = '.';
     }
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
     int memory_use = 0;
-#endif
     for (int i = 0; i < buffer_count_; ++i) {
       BufferRequirements* requirements = &requirements_[i];
       if ((t < requirements->first_time_used) ||
@@ -380,9 +378,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
         continue;
       }
       const int size = requirements->size;
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
       memory_use += size;
-#endif
       const int line_start = (offset * kLineWidth) / max_size;
       const int line_end = ((offset + size) * kLineWidth) / max_size;
       for (int n = line_start; n < line_end; ++n) {
