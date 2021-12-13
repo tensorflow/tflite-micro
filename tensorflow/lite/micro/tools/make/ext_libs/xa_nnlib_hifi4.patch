@@ -36,3 +36,123 @@ index df6779e..d92eaa5 100644
    /* Basic Parameter checks */
    XA_NNLIB_ARG_CHK_COND((rows <= 0), -1);
    XA_NNLIB_ARG_CHK_COND((cols1 <= 0), -1);
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_pointwise_sym8sxsym16s_stub.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_pointwise_sym8sxsym16s_stub.c
+new file mode 100644
+index 0000000..77a196e
+--- /dev/null
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_pointwise_sym8sxsym16s_stub.c
+@@ -0,0 +1,21 @@
++#include "common_fpu.h"
++#include "xa_nnlib_common.h"
++#include "xa_nnlib_common_macros.h"
++
++WORD32 xa_nn_conv2d_pointwise_per_chan_sym8sxsym16s(
++    WORD16* __restrict__ p_out,
++    WORD8* __restrict__ p_kernel,
++    WORD16* __restrict__ p_inp,
++    WORD64* __restrict__ p_bias,
++    WORD32  input_height,
++    WORD32  input_width,
++    WORD32  input_channels,
++    WORD32  out_channels,
++    WORD32  input_zero_bias,
++    WORD32* __restrict__ p_out_multiplier,
++    WORD32* __restrict__ p_out_shift,
++    WORD32  out_zero_bias,
++    WORD32  out_data_format)
++{
++  return 0;
++}
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s_stub.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s_stub.c
+new file mode 100644
+index 0000000..fc8f16c
+--- /dev/null
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s_stub.c
+@@ -0,0 +1,30 @@
++#include "xa_nnlib_common.h"
++#include "xa_nnlib_common_macros.h"
++#include "xa_nn_conv2d_std_state.h"
++
++WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
++    WORD16* __restrict__ p_out,
++    const WORD16* __restrict__ p_inp,
++    const WORD8* __restrict__ p_kernel,
++    const WORD64* __restrict__ p_bias,
++    WORD32 input_height,
++    WORD32 input_width,
++    WORD32 input_channels,
++    WORD32 kernel_height,
++    WORD32 kernel_width,
++    WORD32 out_channels,
++    WORD32 x_stride,
++    WORD32 y_stride,
++    WORD32 x_padding,
++    WORD32 y_padding,
++    WORD32 out_height,
++    WORD32 out_width,
++    WORD32 input_zero_bias,
++    WORD32 * p_out_multiplier,
++    WORD32 * p_out_shift,
++    WORD32 out_zero_bias,
++    WORD32 out_data_format,
++    VOID *p_scratch)
++{
++  return 0;
++}
+diff --git a/include/nnlib/xa_nnlib_kernels_api.h b/include/nnlib/xa_nnlib_kernels_api.h
+index 6fe0c87..8f83a00 100644
+--- a/include/nnlib/xa_nnlib_kernels_api.h
++++ b/include/nnlib/xa_nnlib_kernels_api.h
+@@ -1510,6 +1510,30 @@ WORD32 xa_nn_conv2d_std_asym8uxasym8u(
+     WORD32 out_data_format,
+     VOID *p_scratch);
+ 
++WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
++    WORD16* __restrict__ p_out,
++    const WORD16* __restrict__ p_inp,
++    const WORD8* __restrict__ p_kernel,
++    const WORD64* __restrict__ p_bias,
++    WORD32 input_height,
++    WORD32 input_width,
++    WORD32 input_channels,
++    WORD32 kernel_height,
++    WORD32 kernel_width,
++    WORD32 out_channels,
++    WORD32 x_stride,
++    WORD32 y_stride,
++    WORD32 x_padding,
++    WORD32 y_padding,
++    WORD32 out_height,
++    WORD32 out_width,
++    WORD32 input_zero_bias,
++    WORD32 * p_out_multiplier,
++    WORD32 * p_out_shift,
++    WORD32 out_zero_bias,
++    WORD32 out_data_format,
++    VOID *p_scratch);
++
+ WORD32 xa_nn_conv2d_std_per_chan_sym8sxasym8s(
+     WORD8* __restrict__ p_out,
+     const WORD8* __restrict__ p_inp,
+@@ -1692,6 +1716,21 @@ WORD32 xa_nn_conv2d_pointwise_per_chan_sym8sxasym8s(
+     WORD32  out_zero_bias,
+     WORD32  out_data_format);
+ 
++WORD32 xa_nn_conv2d_pointwise_per_chan_sym8sxsym16s(
++    WORD16* __restrict__ p_out,
++    WORD8* __restrict__ p_kernel,
++    WORD16* __restrict__ p_inp,
++    WORD64* __restrict__ p_bias,
++    WORD32  input_height,
++    WORD32  input_width,
++    WORD32  input_channels,
++    WORD32  out_channels,
++    WORD32  input_zero_bias,
++    WORD32* __restrict__ p_out_multiplier,
++    WORD32* __restrict__ p_out_shift,
++    WORD32  out_zero_bias,
++    WORD32  out_data_format);
++
+ WORD32 xa_nn_matXvec_acc_batch_sym8sx8_asym16s(
+     WORD16 * __restrict__ p_out,           /* output pointer */
+     const WORD8 *  __restrict__ p_mat1,    /* matrix1: rows x cols1 */
