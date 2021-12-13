@@ -114,6 +114,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #endif
       break;
     }
+    case kTfLiteInt16: {
+#if defined(HIFI4)
+      ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
+                     output);
+#else
+      return ConvReferenceEvalInt16(context, node);
+#endif
+      break;
+    }
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input->type), input->type);
