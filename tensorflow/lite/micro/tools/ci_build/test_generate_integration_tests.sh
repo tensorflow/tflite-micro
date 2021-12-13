@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-#
-# Tests the microcontroller code using ARC platform.
-# These tests require a MetaWare C/C++ Compiler.
 
 set -e
 
@@ -25,20 +22,16 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+KERNEL=conv
 
-TARGET_ARCH=arc
-TARGET=arc_custom
-OPTIMIZED_KERNEL_DIR=arc_mli
+TEST_TFLITE_FILE="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/models/person_detect.tflite)"
+TEST_OUTPUT_DIR=${ROOT_DIR}/tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}
+mkdir -p ${TEST_OUTPUT_DIR}
+TEST_OUTPUT_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})"
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=${TARGET} \
-  TARGET_ARCH=${TARGET_ARCH} \
-  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
-  build -j$(nproc)
+readable_run bazel run tensorflow/lite/micro/integration_tests:generate_per_layer_tests -- --input_tflite_file=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_DIR_REALPATH}
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=${TARGET} \
-  TARGET_ARCH=${TARGET_ARCH} \
-  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
-  test -j$(nproc)
+readable_run bazel test tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}:integration_test \
+  --test_output=errors
+
+readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile test_integration_tests_person_detect_${KERNEL}_test

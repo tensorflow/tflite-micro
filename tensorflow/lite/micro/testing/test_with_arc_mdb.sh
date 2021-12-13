@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 # Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,28 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-# Select bazel version.
-BAZEL_VERSION="4.2.1"
-
-set +e
-local_bazel_ver=$(bazel version 2>&1 | grep -i label | awk '{print $3}')
-
-if [[ "$local_bazel_ver" == "$BAZEL_VERSION" ]]; then
-  exit 0
-fi
+#
+#
+# Parameters:
+#  ${1} - test binary
+#  ${2} - tcf file location.
+#  ${3} - string that is checked for pass/fail.
 
 set -e
 
-# Install bazel.
-mkdir -p /bazel
-cd /bazel
-if [[ ! -f "bazel-$BAZEL_VERSION-installer-linux-x86_64.sh" ]]; then
-  curl -fSsL -O https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
-fi
-chmod +x /bazel/bazel-*.sh
-/bazel/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
-rm -f /bazel/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
+TEST_BINARY=${1}
+TCF_FILE=${2}
+PASS_STRING=${3}
 
-# Enable bazel auto completion.
-echo "source /usr/local/lib/bazel/bin/bazel-complete.bash" >> ~/.bashrc
+# Running test using MDB. If "non_test_binary" is passed as PASS_STRING, skip check. Otherwise, check if test passed.
+mdb -run -tcf=${TCF_FILE} ${TEST_BINARY} 2>&1 | tee /dev/stderr | grep "${PASS_STRING}" &>/dev/null || [[ "${PASS_STRING}" == "non_test_binary" ]]
+
+if [ $? == 0 ]; then
+  exit 0
+else
+  exit 1
+fi
+
+set +e
+

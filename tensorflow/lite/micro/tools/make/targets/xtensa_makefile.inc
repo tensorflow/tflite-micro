@@ -74,7 +74,8 @@ CCFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(XTENSA_EXTRA_CFLAGS)
 CXXFLAGS += $(XTENSA_EXTRA_CFLAGS)
 
-TEST_SCRIPT := tensorflow/lite/micro/testing/test_xtensa_binary.sh
+TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_xtensa_binary.sh
+SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_xtensa_binary.sh
 
 # TODO(b/158651472): Fix the memory_arena_threshold_test
 # TODO(b/174707181): Fix the micro_interpreter_test

@@ -41,12 +41,12 @@ def convert_c_source_to_bytes(input_cc_file):
   Returns:
     A bytearray corresponding to the input cc file array.
   """
-  pattern = re.compile(r'\W*(0x[0-9a-fA-F,x ]+).*')
+  pattern = re.compile(r'(((0x[0-9a-fA-F]+), ?)+)')
   model_bytearray = bytearray()
 
   with open(input_cc_file) as file_handle:
     for line in file_handle:
-      values_match = pattern.match(line)
+      values_match = pattern.search(line)
 
       if values_match is None:
         continue
