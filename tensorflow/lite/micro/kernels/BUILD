@@ -213,6 +213,7 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
+        "transpose_conv_common.cc",
         "unpack.cc",
         "var_handle.cc",
         "zeros_like.cc",
@@ -238,6 +239,7 @@ tflm_kernel_cc_library(
         "softmax.h",
         "sub.h",
         "svdf.h",
+        "transpose_conv.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),

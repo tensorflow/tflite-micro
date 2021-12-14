@@ -369,6 +369,7 @@ tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
+tensorflow/lite/micro/kernels/transpose_conv_common.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
 tensorflow/lite/micro/kernels/var_handle.cc \
 tensorflow/lite/micro/kernels/zeros_like.cc

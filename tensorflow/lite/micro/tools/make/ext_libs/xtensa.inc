@@ -4,10 +4,13 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
-  tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
+  tensorflow/lite/micro/kernels/xtensa/conv_int16x8_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
-  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
+  tensorflow/lite/micro/kernels/xtensa/quantize_int16_int32_reference.cc \
+  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
+  tensorflow/lite/micro/kernels/xtensa/transpose_conv_int16x8_reference.cc
+
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)

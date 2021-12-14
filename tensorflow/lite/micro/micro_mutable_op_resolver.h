@@ -28,7 +28,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/quantize.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/kernels/transpose_conv.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -400,9 +402,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParsePrelu);
   }
 
-  TfLiteStatus AddQuantize() {
-    return AddBuiltin(BuiltinOperator_QUANTIZE, Register_QUANTIZE(),
-                      ParseQuantize);
+  TfLiteStatus AddQuantize(
+      const TfLiteRegistration& registration = tflite::Register_QUANTIZE()) {
+    return AddBuiltin(BuiltinOperator_QUANTIZE, registration, ParseQuantize);
   }
 
   TfLiteStatus AddReadVariable() {
@@ -523,9 +525,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseTanh);
   }
 
-  TfLiteStatus AddTransposeConv() {
-    return AddBuiltin(BuiltinOperator_TRANSPOSE_CONV,
-                      tflite::Register_TRANSPOSE_CONV(), ParseTransposeConv);
+  TfLiteStatus AddTransposeConv(const TfLiteRegistration& registration =
+                                    tflite::Register_TRANSPOSE_CONV()) {
+    return AddBuiltin(BuiltinOperator_TRANSPOSE_CONV, registration,
+                      ParseTransposeConv);
   }
 
   TfLiteStatus AddTranspose() {

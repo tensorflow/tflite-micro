@@ -32,6 +32,22 @@ struct OpDataQuantizeReference {
 
 TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus PrepareQuantizeReference(TfLiteContext* context, TfLiteNode* node);
+
+// This is the most generic TfLiteRegistration. The actual supported types may
+// still be target dependent. The only requirement is that every implementation
+// (reference or optimized) must define this function.
+TfLiteRegistration Register_QUANTIZE();
+
+#if defined(XTENSA)
+// Returns a TfLiteRegistration struct for kernel variant that only supports
+// int8 inputs and outputs.
+TfLiteRegistration Register_QUANTIZE_INT16_INT32REF();
+
+#else
+inline TfLiteRegistration Register_QUANTIZE_INT16_INT32REF() {
+  return Register_QUANTIZE();
+}
+#endif
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_QUANTIZE_H_

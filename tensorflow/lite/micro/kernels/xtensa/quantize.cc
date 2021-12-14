@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/quantize.h"
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_quantize.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -122,6 +123,10 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
+  if ((input->type == kTfLiteInt32 && output->type == kTfLiteInt16) ||
+      (input->type == kTfLiteInt16 && output->type == kTfLiteInt32)) {
+    return tflite::EvalQuantizeInt16Int32Reference(context, node);
+  }
   if (output->type == kTfLiteInt8 && input->type == kTfLiteInt16) {
 #if defined(HIFIMINI)
     AffineQuantize(op_data->scale_multiplier, op_data->zero_point,
