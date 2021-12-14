@@ -7,7 +7,8 @@ on:
 jobs:
   test_private_container:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ci:test')
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'ci:test')
     name: Test Private Container
     steps:
       - run: |
