@@ -111,14 +111,16 @@ void AffineQuantize(int scale_multiplier, const int32_t zero_point,
 
 #endif  // defined(HIFIMINI)
 
-#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI4_INTERNAL) || \
+    defined(HIFI5)
 TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
 #if defined(HIFIMINI)
   auto* op_data = static_cast<OpData*>(node->user_data);
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
-#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined (HIFI4_INTERNAL) ||
+        // defined(HIFI5)
 
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
@@ -134,7 +136,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                    tflite::micro::GetTensorData<int16_t>(input),
                    tflite::micro::GetTensorShape(output),
                    tflite::micro::GetTensorData<int8_t>(output));
-#elif defined(HIFI4)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL)
     int size = ElementCount(*input->dims);
     TF_LITE_ENSURE_EQ(
         context,
@@ -158,7 +160,8 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         0);
 #else
     static_assert(false, "Unsupported xtensa architecture.");
-#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined (HIFI4_INTERNAL) ||
+        // defined(HIFI5)
   } else if (output->type == kTfLiteInt32 &&
              (input->type == kTfLiteInt16 || input->type == kTfLiteInt8)) {
     int size = ElementCount(*input->dims);
@@ -168,9 +171,10 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
     // same structs as much as possible and reduce the need for such ifdefs.
 #if defined(HIFIMINI)
     int32_t zero_point = op_data->zero_point;
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
     int32_t zero_point = op_data->quantization_params.zero_point;
-#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined (HIFI4_INTERNAL) ||
+        // defined(HIFI5)
     if (input->type == kTfLiteInt16) {
 #if defined(HIFI5)
       int size = ElementCount(*input->dims);
@@ -220,7 +224,8 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined (HIFI4_INTERNAL) ||
+        // defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -262,11 +267,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI4_INTERNAL) || \
+    defined(HIFI5)
   return EvalXtensa(context, node);
 #else
   return EvalQuantizeReference(context, node);
-#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined (HIFI4_INTERNAL) ||
+        // defined(HIFI5)
 }
 
 }  // namespace

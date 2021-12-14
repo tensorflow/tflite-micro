@@ -26,7 +26,7 @@ namespace tflite {
 struct XtensaSoftmaxOpData {
   uint16_t* exp_lut;
 };
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 struct XtensaSoftmaxOpData {
   SoftmaxParams params;
   int scratch_tensor_index;
