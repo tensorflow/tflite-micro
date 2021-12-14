@@ -29,7 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_depthwise_conv.h"
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 namespace tflite {
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
                                       TfLiteNode* node) {
@@ -179,4 +179,4 @@ TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 }  // namespace tflite
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
