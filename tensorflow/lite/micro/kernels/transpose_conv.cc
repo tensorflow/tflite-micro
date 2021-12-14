@@ -89,7 +89,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
-      return TransposeConvEvalInt16x8Reference(context, node);
+      return tflite::TransposeConvEvalInt16x8Reference(context, node);
     }
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",

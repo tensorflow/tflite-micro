@@ -35,45 +35,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 }  // namespace.
 
-TfLiteStatus TransposeConvEvalInt16x8Reference(TfLiteContext* context,
-                                               TfLiteNode* node) {
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kTransposeConvInputTensor);
-  const TfLiteEvalTensor* filter =
-      tflite::micro::GetEvalInput(context, node, kTransposeConvFilterTensor);
-  const TfLiteEvalTensor* bias =
-      (NumInputs(node) == 4)
-          ? tflite::micro::GetEvalInput(context, node, kTransposeConvBiasTensor)
-          : nullptr;
-  TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kTransposeConvOutputTensor);
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-  const OpDataTransposeConv& data =
-      *(static_cast<const OpDataTransposeConv*>(node->user_data));
-
-  TF_LITE_ENSURE_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_EQ(context, input->type, kTfLiteInt16);
-  TF_LITE_ENSURE_EQ(context, filter->type, kTfLiteInt8);
-
-  std::int64_t* scratch_buffer = static_cast<int64_t*>(
-      context->GetScratchBuffer(context, data.scratch_buffer_index));
-
-  reference_integer_ops::TransposeConv(
-      data.params, data.per_channel_output_multiplier,
-      data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<int16_t>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<int8_t>(filter),
-      tflite::micro::GetTensorShape(bias),
-      tflite::micro::GetTensorData<std::int64_t>(bias),
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<int16_t>(output),
-      tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
-
-  return kTfLiteOk;
-}
-
 TfLiteRegistration Register_TRANSPOSE_CONV_INT16X8REF() {
   return {/*init=*/Init,
           /*free=*/nullptr,
