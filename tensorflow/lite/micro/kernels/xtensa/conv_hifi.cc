@@ -77,7 +77,7 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4_INTERNAL)
 TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteConvParams& params,
                             const XtensaConvOpData& data,
@@ -190,7 +190,7 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorData<int16_t>(output));
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
+#endif  // defined (HIFI4_INTERNAL)
 
 TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteConvParams& params,
