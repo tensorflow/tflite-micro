@@ -25,9 +25,9 @@ namespace tflite {
 struct XtensaDepthwiseConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   int scratch_tensor_index;
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
 };
 
 #if defined(HIFIMINI)
@@ -48,7 +48,7 @@ inline void DepthwiseConv4x32MatchingInputAndFilterHifiMini(
     const RuntimeShape& bias_shape, const int32_t* bias_data,
     const RuntimeShape& output_shape, int8_t* output_data);
 
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,

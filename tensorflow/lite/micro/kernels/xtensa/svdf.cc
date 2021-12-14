@@ -244,7 +244,7 @@ void EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 
 TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteEvalTensor* input_tensor,
@@ -317,7 +317,8 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4) || defined(HIFIMINI) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFIMINI) ||
+        // defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
@@ -477,7 +478,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   EvalIntegerSvdfHifimini(context, node, input, weights_feature, weights_time,
                           bias, params, activation_state, output, data);
   return kTfLiteOk;
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   return EvalIntegerSvdfHifi(context, node, input, weights_feature,
                              weights_time, bias, params, activation_state,
                              output, data);
