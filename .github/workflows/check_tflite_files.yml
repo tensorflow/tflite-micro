@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-      contains(github.event.pull_request.labels.*,name, 'ci:ready_to_merge')
+      contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
     name: Check PR Modifies TfLite Files
     steps:
       - uses: actions/checkout@v2
