@@ -49,7 +49,7 @@ ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
 
-else ifeq ($(TARGET_ARCH), hifi4)
+else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
 
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi4)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
