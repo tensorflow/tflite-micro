@@ -68,7 +68,6 @@ int GetFlatIndex(int index, int num_dims,
     switch (padding_matrix->type) {
       case kTfLiteInt32:
         GetPadding(padding_matrix->data.i32, i, &left_pad, &right_pad);
-        // printf("correct  %d %d\n", left_pad, right_pad);
         break;
       case kTfLiteInt64:
         GetPadding(padding_matrix->data.i64, i, &left_pad, &right_pad);
