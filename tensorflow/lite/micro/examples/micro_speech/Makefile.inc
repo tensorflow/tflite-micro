@@ -285,8 +285,17 @@ $(MICRO_SPEECH_MOCK_SRCS),$(MICRO_SPEECH_MOCK_HDRS),$(MICRO_SPEECH_GENERATOR_INP
 MICRO_SPEECH_SRCS += $(MICRO_SPEECH_GENERATED_SRCS)
 MICRO_SPEECH_HDRS += $(MICRO_SPEECH_GENERATED_HDRS)
 
+MICRO_SPEECH_MOCK_SRCS += $(MICRO_SPEECH_GENERATED_SRCS)
+MICRO_SPEECH_MOCK_HDRS += $(MICRO_SPEECH_GENERATED_HDRS)
+
 list_micro_speech_example_sources:
 	@echo $(MICRO_SPEECH_SRCS)
 
 list_micro_speech_example_headers:
 	@echo $(MICRO_SPEECH_HDRS)
+
+list_micro_speech_mock_example_sources:
+	@echo $(MICRO_SPEECH_MOCK_SRCS)
+
+list_micro_speech_mock_example_headers:
+	@echo $(MICRO_SPEECH_MOCK_HDRS)
