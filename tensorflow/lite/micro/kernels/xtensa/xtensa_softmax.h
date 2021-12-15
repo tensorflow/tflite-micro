@@ -22,16 +22,12 @@ limitations under the License.
 
 namespace tflite {
 
-#if defined(HIFIMINI)
-struct XtensaSoftmaxOpData {
-  uint16_t* exp_lut;
-};
-#elif defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 struct XtensaSoftmaxOpData {
   SoftmaxParams params;
   int scratch_tensor_index;
 };
-#endif
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length);

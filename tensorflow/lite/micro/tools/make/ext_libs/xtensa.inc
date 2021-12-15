@@ -2,11 +2,9 @@
 # implementations.
 MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifimini.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
 ifeq ($(TARGET_ARCH), hifi5)
@@ -49,7 +47,7 @@ ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
 
-else ifeq ($(TARGET_ARCH), hifi4)
+else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
 
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi4)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -94,22 +92,4 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   $(info We do not have XaNNlib for TARGET_ARCH=vision_p6)
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
-endif
-
-# tensorflow/tensorflow#49117 enabled support for all datatypes for the
-# optimized Xtensa softmax kernel (and enabled the person_detection and micro_speech
-# examples as well). However, the hifimini optimized implementations have
-# inaccuracies that cause these new tests to fail. Root-causing and fixing these
-# are not priority at this time so we are currently excluding these
-# known-failing tests.
-ifeq ($(TARGET_ARCH), hifimini)
-  EXCLUDED_TESTS += \
-    tensorflow/lite/micro/kernels/softmax_test.cc
-  MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
-
-  EXCLUDED_EXAMPLE_TESTS += \
-    tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-    tensorflow/lite/micro/examples/person_detection/Makefile.inc
-
-  MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif
