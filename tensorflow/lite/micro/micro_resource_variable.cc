@@ -92,13 +92,13 @@ TfLiteStatus MicroResourceVariables::Allocate(int id, TfLiteContext* context,
     variable.bytes = tensor->bytes;
     variable.resource_buffer =
         context->AllocatePersistentBuffer(context, tensor->bytes);
-    // Zero out resource buffers by deafult. Buffers can be initialized to
-    // nonzero values using ASSIGN_VARIABLE.
-    memset(variable.resource_buffer, 0, variable.bytes);
     if (variable.resource_buffer == nullptr) {
       MicroPrintf("Failed to allocate resource buffer.");
       return kTfLiteError;
     }
+    // Zero out resource buffers by deafult. Buffers can be initialized to
+    // nonzero values using ASSIGN_VARIABLE.
+    memset(variable.resource_buffer, 0, variable.bytes);
   }
 
   return kTfLiteOk;
