@@ -20,12 +20,17 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
+#if (defined(VISIONP6) && defined(XTENSA))
+constexpr int tensor_arena_size = 136 * 1024 + (216 * 1024);
+#else
 constexpr int tensor_arena_size = 136 * 1024;
+#endif
 uint8_t tensor_arena[tensor_arena_size];
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -57,9 +62,11 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   micro_op_resolver.AddSoftmax();
 
   // Build an interpreter to run the model with.
+
+  tflite::MicroProfiler profiler;
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
                                        tensor_arena_size,
-                                       &micro_error_reporter);
+                                       &micro_error_reporter, nullptr, &profiler);
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.

@@ -30,7 +30,7 @@ limitations under the License.
 
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 namespace tflite {
-TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
+TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
                                       TfLiteNode* node) {
   XtensaDepthwiseConvOpData* data =
       static_cast<XtensaDepthwiseConvOpData*>(node->user_data);
@@ -81,7 +81,7 @@ TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                                    const TfLiteDepthwiseConvParams& params,
                                    const XtensaDepthwiseConvOpData& data,
                                    const TfLiteEvalTensor* input,

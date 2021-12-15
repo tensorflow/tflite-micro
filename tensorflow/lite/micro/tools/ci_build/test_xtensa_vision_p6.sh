@@ -30,9 +30,9 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downl
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=xtensa \
-  TARGET_ARCH=vision_p6 \
+  TARGET_ARCH=visionp6 \
   OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=P6_200528 \
+  XTENSA_CORE=P29A_VP6 \
   build -j$(nproc)
 
 
@@ -43,8 +43,8 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
 if [[ ${1} == "RUN_TESTS" ]]; then
   readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=vision_p6 \
+    TARGET_ARCH=visionp6 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P6_200528 \
+    XTENSA_CORE=P29A_VP6 \
     test -j$(nproc)
 fi

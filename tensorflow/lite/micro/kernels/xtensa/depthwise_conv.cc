@@ -34,16 +34,22 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context,
+  void* data = context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaDepthwiseConvOpData));
+#if defined(VISIONP6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif // defined(VISIONP6)
+  return data;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-  TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
-#endif  // defined(FUISON_F1) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
+  TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareXtensa(context, node));
+#endif // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
   return kTfLiteOk;
 }
 
@@ -68,8 +74,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      DepthwiseConvEvalHifi(context, node, params, op_data, input, filter, bias,
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
+      DepthwiseConvEvalXtensa(context, node, params, op_data, input, filter, bias,
                             output);
 #else
       reference_integer_ops::DepthwiseConvPerChannel(

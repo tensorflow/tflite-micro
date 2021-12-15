@@ -28,19 +28,29 @@ struct XtensaConvOpData {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   int scratch_tensor_index;
 #endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+
+#if defined(VISIONP6)
+  int8_t* reorder_coefficient_bias; // buffers used to keep reordered coeff and biases.
+  uint32_t reorder_coefficient_bias_size;
+  int8_t* per_channel_output_shift_int8;
+  uint8_t* p_context; // persistent lib context for this instance saved here
+  uint32_t context_size;
+#endif // VISIONP6
 };
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
+TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus ConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteConvParams& params,
                           const XtensaConvOpData& data,
                           const TfLiteEvalTensor* input,
                           const TfLiteEvalTensor* filter,
                           const TfLiteEvalTensor* bias,
                           TfLiteEvalTensor* output);
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+#else
+  TFLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
 
 #if defined(HIFI4_INTERNAL)
 TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
@@ -50,11 +60,9 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteEvalTensor* filter,
                             const TfLiteEvalTensor* bias,
                             TfLiteEvalTensor* output);
+#else
+  TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 #endif  // defined (HIFI4_INTERNAL)
-
-TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
-
-TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
