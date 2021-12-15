@@ -1,0 +1,18 @@
+on:
+  pull_request_target:
+    types: [synchronize]
+
+jobs:
+  apply-label:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
+    steps:
+      - uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['ci:run']
+            })
