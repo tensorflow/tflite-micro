@@ -27,7 +27,6 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Fusion F1 Unit Tests (presubmit)
