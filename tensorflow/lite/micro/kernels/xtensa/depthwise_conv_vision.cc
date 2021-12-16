@@ -15,7 +15,7 @@
 namespace tflite {
 
 TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
-                                      TfLiteNode* node) {
+                                        TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -48,7 +48,8 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   uint32_t context_size = 0;
   uint32_t status = xiDepthwiseConvGetMemReqd_Context(&context_size);
   if (!status && context_size) {
-    void* context_data = context->AllocatePersistentBuffer(context, context_size);
+    void* context_data =
+        context->AllocatePersistentBuffer(context, context_size);
     if (context_data == nullptr) {
       return kTfLiteError;
     }
@@ -68,10 +69,11 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   const uint32_t filter_width = SizeOfDimension(filter, 2);
 
   status = xiDepthwiseConvSetContext(
-      data->p_context, data->context_size, input_depth, input_width, input_height, output_depth,
-      output_width, output_height, filter_width, filter_height, params.stride_width,
-      input->params.zero_point, filter->params.zero_point,
-      output->params.zero_point, data->reference_op_data.output_multiplier,
+      data->p_context, data->context_size, input_depth, input_width,
+      input_height, output_depth, output_width, output_height, filter_width,
+      filter_height, params.stride_width, input->params.zero_point,
+      filter->params.zero_point, output->params.zero_point,
+      data->reference_op_data.output_multiplier,
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
       data->reference_op_data.output_activation_max);
@@ -81,9 +83,10 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
 
   uint32_t coefficent_size = 0;
   status = xiDepthwiseConvGetMemReqd_Coeff(data->p_context, data->context_size,
-                                            &coefficent_size);
+                                           &coefficent_size);
   if (!status && coefficent_size) {
-    void* coeff_data = context->AllocatePersistentBuffer(context, coefficent_size);
+    void* coeff_data =
+        context->AllocatePersistentBuffer(context, coefficent_size);
     if (coeff_data == nullptr) {
       return kTfLiteError;
     }
@@ -93,10 +96,12 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
     return kTfLiteError;
   }
 
-  status = xiDepthwiseConvDoCoeffReorder(
-      data->p_context, data->context_size, (uint8_t*)data->reorder_coefficient_bias,
-      data->reorder_coefficient_bias_size, (uint8_t*)GetTensorData<uint8_t>(filter),
-      (int32_t*)GetTensorData<int32_t>(bias));
+  status =
+      xiDepthwiseConvDoCoeffReorder(data->p_context, data->context_size,
+                                    (uint8_t*)data->reorder_coefficient_bias,
+                                    data->reorder_coefficient_bias_size,
+                                    (uint8_t*)GetTensorData<uint8_t>(filter),
+                                    (int32_t*)GetTensorData<int32_t>(bias));
   if (status) {
     return kTfLiteError;
   }
@@ -111,20 +116,20 @@ TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                                      const TfLiteEvalTensor* filter,
                                      const TfLiteEvalTensor* bias,
                                      TfLiteEvalTensor* output) {
-    uint32_t input_size = input->dims->data[0] * input->dims->data[1] *
-                          input->dims->data[2] * input->dims->data[3];
-    uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
-                           output->dims->data[2] * output->dims->data[3];
-    uint32_t num_channels =
-        filter->dims->data[kDepthwiseConvQuantizedDimension];
-    xiDepthwiseConv(data.p_context, data.context_size,
-                    (int8_t*)tflite::micro::GetTensorData<int8_t>(input),
-                    input_size, tflite::micro::GetTensorData<int8_t>(output),
-                    output_size, data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
-                    data.reference_op_data.per_channel_output_multiplier,
-                    data.per_channel_output_shift_int8, num_channels,
-                    data.reference_op_data.padding.width,
-                    data.reference_op_data.padding.height);
+  uint32_t input_size = input->dims->data[0] * input->dims->data[1] *
+                        input->dims->data[2] * input->dims->data[3];
+  uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
+                         output->dims->data[2] * output->dims->data[3];
+  uint32_t num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
+  xiDepthwiseConv(data.p_context, data.context_size,
+                  (int8_t*)tflite::micro::GetTensorData<int8_t>(input),
+                  input_size, tflite::micro::GetTensorData<int8_t>(output),
+                  output_size, data.reorder_coefficient_bias,
+                  data.reorder_coefficient_bias_size,
+                  data.reference_op_data.per_channel_output_multiplier,
+                  data.per_channel_output_shift_int8, num_channels,
+                  data.reference_op_data.padding.width,
+                  data.reference_op_data.padding.height);
   return kTfLiteOk;
 }
 }  // namespace tflite

@@ -65,7 +65,8 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   uint32_t context_size = 0;
   uint32_t status = xiConvGetMemReqd_Context(&context_size);
   if (!status && context_size) {
-    void* context_data = context->AllocatePersistentBuffer(context, context_size);
+    void* context_data =
+        context->AllocatePersistentBuffer(context, context_size);
     if (context_data == nullptr) {
       return kTfLiteError;
     }
@@ -83,13 +84,16 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
       data->reference_op_data.output_activation_max);
-  if (status) {return kTfLiteError;}
+  if (status) {
+    return kTfLiteError;
+  }
 
   uint32_t coefficient_size = 0;
-  status =
-      xiConvGetMemReqd_Coeff(data->p_context, data->context_size, &coefficient_size);
+  status = xiConvGetMemReqd_Coeff(data->p_context, data->context_size,
+                                  &coefficient_size);
   if (!status && coefficient_size) {
-    void* coefficient_data = context->AllocatePersistentBuffer(context, coefficient_size);
+    void* coefficient_data =
+        context->AllocatePersistentBuffer(context, coefficient_size);
     if (coefficient_data == nullptr) {
       return kTfLiteError;
     }
@@ -99,11 +103,14 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
-  status = xiConvDoCoeffReorder(
-      data->p_context, data->context_size, (uint8_t*)data->reorder_coefficient_bias,
-      data->reorder_coefficient_bias_size, (uint8_t*)GetTensorData<uint8_t>(filter),
-      (int32_t*)GetTensorData<int32_t>(bias));
-  if (status) {return kTfLiteError;}
+  status = xiConvDoCoeffReorder(data->p_context, data->context_size,
+                                (uint8_t*)data->reorder_coefficient_bias,
+                                data->reorder_coefficient_bias_size,
+                                (uint8_t*)GetTensorData<uint8_t>(filter),
+                                (int32_t*)GetTensorData<int32_t>(bias));
+  if (status) {
+    return kTfLiteError;
+  }
 
   return kTfLiteOk;
 }
@@ -118,15 +125,15 @@ TfLiteStatus ConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
   uint32_t input_size = input->dims->data[0] * input->dims->data[1] *
                         input->dims->data[2] * input->dims->data[3];
   uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
-                          output->dims->data[2] * output->dims->data[3];
+                         output->dims->data[2] * output->dims->data[3];
   uint32_t num_channels = filter->dims->data[kConvQuantizedDimension];
 
   xiConv(data.p_context, data.context_size,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(input), input_size,
-          tflite::micro::GetTensorData<int8_t>(output), output_size,
-          data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
-          data.reference_op_data.per_channel_output_multiplier,
-          data.per_channel_output_shift_int8, num_channels);
+         (int8_t*)tflite::micro::GetTensorData<int8_t>(input), input_size,
+         tflite::micro::GetTensorData<int8_t>(output), output_size,
+         data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
+         data.reference_op_data.per_channel_output_multiplier,
+         data.per_channel_output_shift_int8, num_channels);
   return kTfLiteOk;
 }
 }  // namespace tflite

@@ -65,8 +65,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   tflite::MicroProfiler profiler;
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
-                                       tensor_arena_size,
-                                       &micro_error_reporter, nullptr, &profiler);
+                                       tensor_arena_size, &micro_error_reporter,
+                                       nullptr, &profiler);
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.
