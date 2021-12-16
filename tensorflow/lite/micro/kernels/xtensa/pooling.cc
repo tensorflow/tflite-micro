@@ -20,25 +20,35 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
-
 namespace {
+
+TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+#if defined(HIFI5) || defined(VISIONP6)
+  TF_LITE_ENSURE_OK(context, AveragePrepareXtensa(context, node));
+#endif  // defined(HIFI5) || defined(VISIONP6)
+  return kTfLiteOk;
+}
 
 TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(HIFI5)
-  const XtensaOpDataPooling* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
+#if defined(HIFI5) || defined(VISIONP6)
+  const XtensaOpDataPooling* op_data =
+      static_cast<const XtensaOpDataPooling*>(node->user_data);
   const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
 #else
   const OpDataPooling* reference_op_data =
       static_cast<const OpDataPooling*>(node->user_data);
-#endif
+#endif  // defined(HIFI5) || defined(VISIONP6)
 
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kPoolingInputTensor);
@@ -52,20 +62,13 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     case kTfLiteInt8:
-#if defined(HIFI5)
-      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
-#elif defined(VISIONP6)
-      if (params->stride_height == params->stride_width) {
-        return AveragePoolingEvalQuantizedXtensa(context, node);
-      }
-      else {
-        AveragePoolingEvalQuantized(context, node, params, reference_op_data,
-                                    input, output);
-      }
+#if defined(HIFI5) || defined(VISIONP6)
+      return AverageEvalQuantizedXtensa(context, node, params, op_data, input,
+                                        output);
 #else
       AveragePoolingEvalQuantized(context, node, params, reference_op_data,
                                   input, output);
-#endif
+#endif  // defined(HIFI5) || defined(VISIONP6)
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Input type %s is not currently supported",
@@ -75,18 +78,29 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus MaxPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+#if defined(HIFI5)
+  TF_LITE_ENSURE_OK(context, MaxPrepareXtensa(context, node));
+#endif  // defined(HIFI5)
+  return kTfLiteOk;
+}
+
 TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
 #if defined(HIFI5)
-  const XtensaOpDataPooling* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
+  const XtensaOpDataPooling* op_data =
+      static_cast<const XtensaOpDataPooling*>(node->user_data);
   const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
 #else
   const OpDataPooling* reference_op_data =
       static_cast<const OpDataPooling*>(node->user_data);
-#endif
+#endif  // defined(HIFI5)
 
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kPoolingInputTensor);
@@ -100,11 +114,11 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt8:
 #if defined(HIFI5)
-      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+      MaxEvalQuantizedXtensa(context, node, params, op_data, input, output);
 #else
       MaxPoolingEvalQuantized(context, node, params, reference_op_data, input,
                               output);
-#endif
+#endif  // defined(HIFI5)
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
@@ -116,68 +130,41 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-#if defined(HIFI5)
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
-#elif defined(VISIONP6)
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(XtensaOpDataPooling));
+
+#if defined(VISIONP6)
   if (InitXtensaContext()) {
     return nullptr;
   }
+#endif  // defined(VISIONP6)
   return data;
-#else
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
-#endif
 }
-
-#if defined(VISIONP6)
-TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
-
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
-  if (params->stride_height == params->stride_width)
-    TF_LITE_ENSURE_OK(context, AveragePoolingPrepareXtensa(context, node));
-  return kTfLiteOk;
-}
-#endif // VISIONP6
 
 }  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
-  return { /*init=*/
-    Init,
-        /*free=*/nullptr,
-#if defined(HIFI5)
-        /*prepare=*/AveragePrepareHifi,
-#elif defined(VISIONP6)
-        /*prepare=*/AveragePrepare,
-#else
-        /*prepare=*/PoolingPrepare,
-#endif
-        /*invoke=*/AverageEval,
-        /*profiling_string=*/nullptr,
-        /*builtin_code=*/0,
-        /*custom_name=*/nullptr,
-        /*version=*/0
-  };
+  return {/*init=*/
+          Init,
+          /*free=*/nullptr,
+          /*prepare=*/AveragePrepare,
+          /*invoke=*/AverageEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {
-  return { /*init=*/
-    Init,
-        /*free=*/nullptr,
-#if defined(HIFI5)
-        /*prepare=*/MaxPrepareHifi,
-#else
-        /*prepare=*/PoolingPrepare,
-#endif
-        /*invoke=*/MaxEval,
-        /*profiling_string=*/nullptr,
-        /*builtin_code=*/0,
-        /*custom_name=*/nullptr,
-        /*version=*/0
-  };
+  return {/*init=*/
+          Init,
+          /*free=*/nullptr,
+          /*prepare=*/MaxPrepare,
+          /*invoke=*/MaxEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 }  // namespace tflite

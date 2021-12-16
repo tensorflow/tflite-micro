@@ -15,22 +15,19 @@ limitations under the License.
 
 #if defined(HIFI5)
 
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/kernels/internal/reference/pooling.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
-TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
-
+TfLiteStatus AveragePrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
 
   if (input->type == kTfLiteInt8) {
@@ -68,12 +65,12 @@ TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
-                                      const TfLiteNode* node,
-                                      const TfLitePoolParams* params,
-                                      const XtensaOpDataPooling* data,
-                                      const TfLiteEvalTensor* input,
-                                      TfLiteEvalTensor* output) {
+TfLiteStatus AverageEvalQuantizedXtensa(TfLiteContext* context,
+                                        const TfLiteNode* node,
+                                        const TfLitePoolParams* params,
+                                        const XtensaOpDataPooling* data,
+                                        const TfLiteEvalTensor* input,
+                                        TfLiteEvalTensor* output) {
   TFLITE_DCHECK(input->type == kTfLiteInt8);
 
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
@@ -117,7 +114,7 @@ TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus MaxPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
 
   const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
@@ -157,10 +154,11 @@ TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
-                                  TfLitePoolParams* params, const XtensaOpDataPooling* data,
-                                  const TfLiteEvalTensor* input,
-                                  TfLiteEvalTensor* output) {
+TfLiteStatus MaxEvalQuantizedXtensa(TfLiteContext* context, TfLiteNode* node,
+                                    TfLitePoolParams* params,
+                                    const XtensaOpDataPooling* data,
+                                    const TfLiteEvalTensor* input,
+                                    TfLiteEvalTensor* output) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int batches = MatchingDim(input_shape, 0, output_shape, 0);
@@ -202,6 +200,6 @@ TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-}
+}  // namespace tflite
 
 #endif

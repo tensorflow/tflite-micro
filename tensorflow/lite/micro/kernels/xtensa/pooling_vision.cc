@@ -13,7 +13,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/kernels/internal/reference/pooling.h"
-
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
@@ -21,8 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 
 namespace tflite {
-TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context,
-                                         TfLiteNode* node) {
+TfLiteStatus AveragePrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -50,19 +48,20 @@ TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context,
   uint32_t filterWidth = params.filter_height;
   uint32_t filterHeight = params.filter_width;
 
-  uint32_t contextSize = 0;
-  uint32_t status = xiPoolGetMemReqd_Context(&contextSize);
-  if (!status && contextSize) {
-    void* data2 = context->AllocatePersistentBuffer(context, contextSize);
-    if (data2 == nullptr) {
+  uint32_t context_size = 0;
+  uint32_t status = xiPoolGetMemReqd_Context(&context_size);
+  if (!status && context_size) {
+    void* context_data =
+        context->AllocatePersistentBuffer(context, context_size);
+    if (context_data == nullptr) {
       return kTfLiteError;
     }
-    data->pContext = (uint8_t*)data2;
-    data->contextSize = contextSize;
+    data->p_context = reinterpret_cast<uint8_t*>(context_data);
+    data->context_size = context_size;
   }
 
   status = xiAveragePoolSetContext(
-      data->pContext, data->contextSize, inputD, inputW, inputH, inputN,
+      data->p_context, data->context_size, inputD, inputW, inputH, inputN,
       outputD, outputW, outputH, outputN, filterWidth, filterHeight,
       strideWidth, data->reference_op_data.padding.height,
       data->reference_op_data.padding.width,
@@ -75,23 +74,19 @@ TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus AveragePoolingEvalQuantizedXtensa(TfLiteContext* context,
-                                               TfLiteNode* node) {
-  const XtensaOpDataPooling* data =
-      static_cast<const XtensaOpDataPooling*>(node->user_data);
-  const TfLiteEvalTensor* input =
-      micro::GetEvalInput(context, node, kPoolingInputTensor);
-  TfLiteEvalTensor* output =
-      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
-
-  int8_t* input_data = (int8_t*)tflite::micro::GetTensorData<int8_t>(input);
+TfLiteStatus AverageEvalQuantizedXtensa(TfLiteContext* context,
+                                        const TfLiteNode* node,
+                                        const TfLitePoolParams* params,
+                                        const XtensaOpDataPooling* data,
+                                        const TfLiteEvalTensor* input,
+                                        TfLiteEvalTensor* output) {
+  int8_t* input_data =
+      const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input));
   int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
-  uint32_t input_size = input->dims->data[0] * input->dims->data[1] *
-                        input->dims->data[2] * input->dims->data[3];
-  uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
-                         output->dims->data[2] * output->dims->data[3];
+  const uint32_t input_size = NumElements(input->dims);
+  const uint32_t output_size = NumElements(output->dims);
 
-  xiAverageEvalQuantized(data->pContext, data->contextSize, input_data,
+  xiAverageEvalQuantized(data->p_context, data->context_size, input_data,
                          input_size, output_data, output_size);
   return kTfLiteOk;
 }

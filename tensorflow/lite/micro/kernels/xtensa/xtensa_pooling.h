@@ -28,39 +28,36 @@ struct XtensaOpDataPooling {
   int scratch_tensor_index;
 #endif
 
-#if defined (VISIONP6)
-  uint8_t* pContext; // persistent lib context for this instance saved here
-  uint32_t contextSize;
-#endif // VISIONP6
+#if defined(VISIONP6)
+  // Persistent lib context.
+  uint8_t* p_context;
+  uint32_t context_size;
+#endif  // VISIONP6
 };
 
-#if defined(VISIONP6)
+#if defined(VISIONP6) || defined(HIFI5)
 
-TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus AveragePrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus AveragePoolingEvalQuantizedXtensa(TfLiteContext* context, TfLiteNode* node);
-
-#endif
+TfLiteStatus AverageEvalQuantizedXtensa(TfLiteContext* context,
+                                        const TfLiteNode* node,
+                                        const TfLitePoolParams* params,
+                                        const XtensaOpDataPooling* data,
+                                        const TfLiteEvalTensor* input,
+                                        TfLiteEvalTensor* output);
+#endif  // defined(VISIONP6) || defined(HIFI5)
 
 #if defined(HIFI5)
 
-TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus MaxPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
-                                      const TfLiteNode* node,
-                                      const TfLitePoolParams* params,
-                                      const XtensaOpDataPooling* data,
-                                      const TfLiteEvalTensor* input,
-                                      TfLiteEvalTensor* output);
+TfLiteStatus MaxEvalQuantizedXtensa(TfLiteContext* context, TfLiteNode* node,
+                                    TfLitePoolParams* params,
+                                    const XtensaOpDataPooling* data,
+                                    const TfLiteEvalTensor* input,
+                                    TfLiteEvalTensor* output);
 
-TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node);
-
-TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
-                                  TfLitePoolParams* params, const XtensaOpDataPooling* data,
-                                  const TfLiteEvalTensor* input,
-                                  TfLiteEvalTensor* output);
-
-#endif
+#endif  // defined(HIFI5)
 
 }  // namespace tflite
 
