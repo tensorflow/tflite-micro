@@ -20,9 +20,9 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   XtensaDepthwiseConvOpData* data =
-      static_cast<XtensaDepthwiseConvOpData*>(node->user_data);
+      reinterpret_cast<XtensaDepthwiseConvOpData*>(node->user_data);
   const auto& params =
-      *(static_cast<const TfLiteDepthwiseConvParams*>(node->builtin_data));
+      *(reinterpret_cast<const TfLiteDepthwiseConvParams*>(node->builtin_data));
 
   TfLiteTensor* output = GetOutput(context, node, kDepthwiseConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
@@ -41,8 +41,8 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
       context->AllocatePersistentBuffer(context, num_channels));
 
   for (int i = 0; i < num_channels; i++) {
-    data->per_channel_output_shift_int8[i] =
-        (int8_t)(-1 * data->reference_op_data.per_channel_output_shift[i]);
+    data->per_channel_output_shift_int8[i] = static_cast<int8_t>(
+        -1 * data->reference_op_data.per_channel_output_shift[i]);
   }
 
   uint32_t context_size = 0;
@@ -84,24 +84,24 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   uint32_t coefficent_size = 0;
   status = xiDepthwiseConvGetMemReqd_Coeff(data->p_context, data->context_size,
                                            &coefficent_size);
-  if (!status && coefficent_size) {
-    void* coeff_data =
-        context->AllocatePersistentBuffer(context, coefficent_size);
-    if (coeff_data == nullptr) {
-      return kTfLiteError;
-    }
-    data->reorder_coefficient_bias = (int8_t*)coeff_data;
-    data->reorder_coefficient_bias_size = coefficent_size;
-  } else {
+  if (status || coefficent_size == 0) {
     return kTfLiteError;
   }
 
-  status =
-      xiDepthwiseConvDoCoeffReorder(data->p_context, data->context_size,
-                                    (uint8_t*)data->reorder_coefficient_bias,
-                                    data->reorder_coefficient_bias_size,
-                                    (uint8_t*)GetTensorData<uint8_t>(filter),
-                                    (int32_t*)GetTensorData<int32_t>(bias));
+  void* coeff_data =
+      context->AllocatePersistentBuffer(context, coefficent_size);
+  if (coeff_data == nullptr) {
+    return kTfLiteError;
+  }
+  data->reorder_coefficient_bias = reinterpret_cast<int8_t*>(coeff_data);
+  data->reorder_coefficient_bias_size = coefficent_size;
+
+  status = xiDepthwiseConvDoCoeffReorder(
+      data->p_context, data->context_size,
+      reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
+      data->reorder_coefficient_bias_size,
+      const_cast<uint8_t*>(GetTensorData<uint8_t>(filter)),
+      const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
   if (status) {
     return kTfLiteError;
   }
@@ -121,15 +121,15 @@ TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
   uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
                          output->dims->data[2] * output->dims->data[3];
   uint32_t num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
-  xiDepthwiseConv(data.p_context, data.context_size,
-                  (int8_t*)tflite::micro::GetTensorData<int8_t>(input),
-                  input_size, tflite::micro::GetTensorData<int8_t>(output),
-                  output_size, data.reorder_coefficient_bias,
-                  data.reorder_coefficient_bias_size,
-                  data.reference_op_data.per_channel_output_multiplier,
-                  data.per_channel_output_shift_int8, num_channels,
-                  data.reference_op_data.padding.width,
-                  data.reference_op_data.padding.height);
+  xiDepthwiseConv(
+      data.p_context, data.context_size,
+      const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input)),
+      input_size, tflite::micro::GetTensorData<int8_t>(output), output_size,
+      data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
+      data.reference_op_data.per_channel_output_multiplier,
+      data.per_channel_output_shift_int8, num_channels,
+      data.reference_op_data.padding.width,
+      data.reference_op_data.padding.height);
   return kTfLiteOk;
 }
 }  // namespace tflite

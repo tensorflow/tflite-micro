@@ -30,9 +30,9 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
-  XtensaConvOpData* data = static_cast<XtensaConvOpData*>(node->user_data);
+  XtensaConvOpData* data = reinterpret_cast<XtensaConvOpData*>(node->user_data);
   const auto& params =
-      *(static_cast<const TfLiteConvParams*>(node->builtin_data));
+      *(reinterpret_cast<const TfLiteConvParams*>(node->builtin_data));
 
   TfLiteTensor* output = GetOutput(context, node, kConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
@@ -53,13 +53,13 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   const uint32_t filter_width = SizeOfDimension(filter, 2);
 
   // Dynamically allocate per-channel quantization parameters.
-  const int num_channels = filter->dims->data[kConvQuantizedDimension];
+  const int num_channels = SizeOfDimension(filter, kConvQuantizedDimension);
   data->per_channel_output_shift_int8 = static_cast<int8_t*>(
       context->AllocatePersistentBuffer(context, num_channels));
 
   for (int i = 0; i < num_channels; i++) {
-    data->per_channel_output_shift_int8[i] =
-        (int8_t)(-1 * data->reference_op_data.per_channel_output_shift[i]);
+    data->per_channel_output_shift_int8[i] = static_cast<int8_t>(
+        -1 * data->reference_op_data.per_channel_output_shift[i]);
   }
 
   uint32_t context_size = 0;
@@ -70,11 +70,12 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
     if (context_data == nullptr) {
       return kTfLiteError;
     }
-    data->p_context = (uint8_t*)context_data;
+    data->p_context = reinterpret_cast<uint8_t*>(context_data);
     data->context_size = context_size;
   }
-  uint32_t input_depth = SizeOfDimension(input, 3);
-  uint32_t output_depth = SizeOfDimension(output, 3);
+
+  const uint32_t input_depth = SizeOfDimension(input, 3);
+  const uint32_t output_depth = SizeOfDimension(output, 3);
   status = xiConvSetContext(
       data->p_context, data->context_size, input_depth, input_width,
       input_height, output_depth, output_width, output_height, filter_width,
@@ -91,23 +92,24 @@ TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   uint32_t coefficient_size = 0;
   status = xiConvGetMemReqd_Coeff(data->p_context, data->context_size,
                                   &coefficient_size);
-  if (!status && coefficient_size) {
-    void* coefficient_data =
-        context->AllocatePersistentBuffer(context, coefficient_size);
-    if (coefficient_data == nullptr) {
-      return kTfLiteError;
-    }
-    data->reorder_coefficient_bias = (int8_t*)coefficient_data;
-    data->reorder_coefficient_bias_size = coefficient_size;
-  } else {
+  if (status || coefficient_size == 0) {
     return kTfLiteError;
   }
 
-  status = xiConvDoCoeffReorder(data->p_context, data->context_size,
-                                (uint8_t*)data->reorder_coefficient_bias,
-                                data->reorder_coefficient_bias_size,
-                                (uint8_t*)GetTensorData<uint8_t>(filter),
-                                (int32_t*)GetTensorData<int32_t>(bias));
+  void* coefficient_data =
+      context->AllocatePersistentBuffer(context, coefficient_size);
+  if (coefficient_data == nullptr) {
+    return kTfLiteError;
+  }
+  data->reorder_coefficient_bias = reinterpret_cast<int8_t*>(coefficient_data);
+  data->reorder_coefficient_bias_size = coefficient_size;
+
+  status = xiConvDoCoeffReorder(
+      data->p_context, data->context_size,
+      reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
+      data->reorder_coefficient_bias_size,
+      const_cast<uint8_t*>(GetTensorData<uint8_t>(filter)),
+      const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
   if (status) {
     return kTfLiteError;
   }
@@ -129,8 +131,8 @@ TfLiteStatus ConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
   uint32_t num_channels = filter->dims->data[kConvQuantizedDimension];
 
   xiConv(data.p_context, data.context_size,
-         (int8_t*)tflite::micro::GetTensorData<int8_t>(input), input_size,
-         tflite::micro::GetTensorData<int8_t>(output), output_size,
+         const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input)),
+         input_size, tflite::micro::GetTensorData<int8_t>(output), output_size,
          data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
          data.reference_op_data.per_channel_output_multiplier,
          data.per_channel_output_shift_int8, num_channels);
