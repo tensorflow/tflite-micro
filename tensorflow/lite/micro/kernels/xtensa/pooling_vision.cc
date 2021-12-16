@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 
 namespace tflite {
-TfLiteStatus AveragePoolingPrepareVision(TfLiteContext* context,
+TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context,
                                          TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -74,7 +74,8 @@ TfLiteStatus AveragePoolingPrepareVision(TfLiteContext* context,
 
   return kTfLiteOk;
 }
-TfLiteStatus AveragePoolingEvalQuantizedVision(TfLiteContext* context,
+
+TfLiteStatus AveragePoolingEvalQuantizedXtensa(TfLiteContext* context,
                                                TfLiteNode* node) {
   const XtensaOpDataPooling* data =
       static_cast<const XtensaOpDataPooling*>(node->user_data);

@@ -34,22 +34,24 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = context->AllocatePersistentBuffer(context,
-                                           sizeof(XtensaDepthwiseConvOpData));
+  void* data = context->AllocatePersistentBuffer(
+      context, sizeof(XtensaDepthwiseConvOpData));
 #if defined(VISIONP6)
   if (InitXtensaContext()) {
     return nullptr;
   }
-#endif // defined(VISIONP6)
+#endif  // defined(VISIONP6)
   return data;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
+    defined(VISIONP6)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareXtensa(context, node));
-#endif // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) ||
+        // defined(VISIONP6)
   return kTfLiteOk;
 }
 
@@ -74,11 +76,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
-      DepthwiseConvEvalXtensa(context, node, params, op_data, input, filter, bias,
-                            output);
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
+    defined(VISIONP6)
+      return DepthwiseConvEvalXtensa(context, node, params, op_data, input,
+                                     filter, bias, output);
 #else
-      reference_integer_ops::DepthwiseConvPerChannel(
+      return reference_integer_ops::DepthwiseConvPerChannel(
           DepthwiseConvParamsQuantized(params, op_data.reference_op_data),
           op_data.reference_op_data.per_channel_output_multiplier,
           op_data.reference_op_data.per_channel_output_shift,
@@ -90,7 +93,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int32_t>(bias),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) ||
+        // defined(VISIONP6)
       break;
     }
     default:

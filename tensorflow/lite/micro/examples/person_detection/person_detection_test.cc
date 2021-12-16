@@ -92,6 +92,9 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
 
+  profiler.Log();
+  return 0;
+
   // Get the output from the model, and make sure it's the expected size and
   // type.
   TfLiteTensor* output = interpreter.output(0);

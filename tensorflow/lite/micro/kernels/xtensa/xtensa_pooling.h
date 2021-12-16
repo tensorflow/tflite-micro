@@ -21,8 +21,13 @@ limitations under the License.
 
 namespace tflite {
 
-  struct XtensaOpDataPooling {
+struct XtensaOpDataPooling {
   OpDataPooling reference_op_data;
+
+#if defined(HIFI5)
+  int scratch_tensor_index;
+#endif
+
 #if defined (VISIONP6)
   uint8_t* pContext; // persistent lib context for this instance saved here
   uint32_t contextSize;
@@ -31,9 +36,29 @@ namespace tflite {
 
 #if defined(VISIONP6)
 
-TfLiteStatus AveragePoolingPrepareVision(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus AveragePoolingPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus AveragePoolingEvalQuantizedVision(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus AveragePoolingEvalQuantizedXtensa(TfLiteContext* context, TfLiteNode* node);
+
+#endif
+
+#if defined(HIFI5)
+
+TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
+                                      const TfLiteNode* node,
+                                      const TfLitePoolParams* params,
+                                      const XtensaOpDataPooling* data,
+                                      const TfLiteEvalTensor* input,
+                                      TfLiteEvalTensor* output);
+
+TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
+                                  TfLitePoolParams* params, const XtensaOpDataPooling* data,
+                                  const TfLiteEvalTensor* input,
+                                  TfLiteEvalTensor* output);
 
 #endif
 
