@@ -36,7 +36,8 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   TF_LITE_ENSURE(context, filter != nullptr);
 
   // Dynamically allocate per-channel quantization parameters.
-  const int num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
+  const int num_channels =
+      SizeOfDimension(filter, kDepthwiseConvQuantizedDimension);
   data->per_channel_output_shift_int8 = static_cast<int8_t*>(
       context->AllocatePersistentBuffer(context, num_channels));
 
@@ -116,11 +117,9 @@ TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                                      const TfLiteEvalTensor* filter,
                                      const TfLiteEvalTensor* bias,
                                      TfLiteEvalTensor* output) {
-  uint32_t input_size = input->dims->data[0] * input->dims->data[1] *
-                        input->dims->data[2] * input->dims->data[3];
-  uint32_t output_size = output->dims->data[0] * output->dims->data[1] *
-                         output->dims->data[2] * output->dims->data[3];
-  uint32_t num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
+  const uint32_t input_size = NumElements(input->dims);
+  const uint32_t output_size = NumElements(output->dims);
+  const int num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
   xiDepthwiseConv(
       data.p_context, data.context_size,
       const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input)),
