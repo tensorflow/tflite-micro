@@ -576,4 +576,32 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 }
 
+TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
+  const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
+  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  constexpr size_t arena_buffer_size = 256 * 1024;
+  uint8_t arena_buffer[arena_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, arena_buffer,
+                                       arena_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  size_t used_arena_size = interpreter.arena_used_bytes();
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+
+  // The reported used_arena_size is sufficient for this model to run
+  tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
+                                        used_arena_size,
+                                        tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
+}
 TF_LITE_MICRO_TESTS_END
