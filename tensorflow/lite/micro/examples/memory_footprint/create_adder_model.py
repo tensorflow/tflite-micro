@@ -19,27 +19,31 @@ import tensorflow as tf
 
 
 def main(_):
-  input_shape = (1, 1, 1)
+  input_shape = (128, 128, 1)
   x1 = tf.keras.layers.Input(input_shape)
   x2 = tf.keras.layers.Input(input_shape)
 
-  # equivalent to `added = tf.keras.layers.add([x1, x2])`
   added = tf.keras.layers.Add()([x1, x2])
   model = tf.keras.models.Model(inputs=[x1, x2], outputs=added)
-  model.save("simple_add_model")
 
-  converter = tf.lite.TFLiteConverter.from_saved_model("simple_add_model")
+  converter = tf.lite.TFLiteConverter.from_keras_model(model)
   converter.optimizations = [tf.lite.Optimize.DEFAULT]
   # Enforce integer only quantization
   converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
   converter.inference_input_type = tf.int8
   converter.inference_output_type = tf.int8
 
+  # Fix random seed to keep the model reproducible.
+  tf.random.set_seed(3)
+
   # Convert the model to the TensorFlow Lite format with quantization and
   # quantization requires a representative data set
   def representative_dataset():
     for i in range(500):
-      yield ([tf.random.normal(input_shape), tf.random.normal(input_shape)])
+      yield ([
+          tf.random.normal(input_shape, seed=i),
+          tf.random.normal(input_shape, seed=i * 2)
+      ])
 
   converter.representative_dataset = representative_dataset
   model_tflite = converter.convert()
