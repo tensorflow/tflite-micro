@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -594,19 +595,20 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
-  size_t used_arena_size = interpreter.arena_used_bytes();
+  size_t required_arena_size =
+      interpreter.arena_used_bytes() + tflite::MicroArenaBufferAlignment();
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   // The reported used_arena_size is sufficient for this model to run
   tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
-                                        used_arena_size,
+                                        required_arena_size,
                                         tflite::GetMicroErrorReporter());
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
 }
-#endif // !defined(RENODE)
+#endif  // !defined(RENODE)
 
 TF_LITE_MICRO_TESTS_END
