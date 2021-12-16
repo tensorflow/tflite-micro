@@ -30,7 +30,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus ConvPrepareXtensa((TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   XtensaConvOpData* data = static_cast<XtensaConvOpData*>(node->user_data);
   const auto params = static_cast<const TfLiteConvParams*>(node->builtin_data);
 
