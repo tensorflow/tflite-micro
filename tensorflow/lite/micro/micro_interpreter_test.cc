@@ -576,6 +576,9 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 }
 
+#if !defined(RENODE)
+// This test is disabled from Bluepill platform because it requires more SRAM
+// than what our Bluepill simulation platform specifies.
 TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
   TF_LITE_MICRO_EXPECT_NE(nullptr, model);
@@ -604,4 +607,6 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
 }
+#endif // !defined(RENODE)
+
 TF_LITE_MICRO_TESTS_END
