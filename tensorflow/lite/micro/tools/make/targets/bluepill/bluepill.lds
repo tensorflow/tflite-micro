@@ -26,7 +26,7 @@ limitations under the License.
  * 0x08000000 - 0x080fffff - Flash.
  * 0x1ffff000 - 0x1ffff7ff - Boot firmware in system memory.
  * 0x1ffff800 - 0x1fffffff - Option bytes.
- * 0x20000000 - 0x2003ffff - SRAM.
+ * 0x20000000 - 0x2007ffff - SRAM.
  * 0x40000000 - 0x40023400 - Peripherals
  */
 
@@ -34,7 +34,7 @@ limitations under the License.
 ENTRY(_main)
 
 MEMORY {
-RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 256K
+RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K
 FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 1024K
 }
 
