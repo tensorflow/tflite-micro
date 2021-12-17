@@ -17,7 +17,7 @@ limitations under the License.
    https://github.com/google/stm32_bare_lib/blob/master/stm32_linker_layout.lds
 
    Modifications:
-    * increased the flash size to 512K and RAM to 256K. This far exceeds the
+    * increased the flash size to 1024K and RAM to 512K. This far exceeds the
       actual hardware but enables running the tests in the emulator.
 */
 
