@@ -13,92 +13,67 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/conv.h"
-
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/conv.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
-#include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
 
 namespace tflite {
 namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(XtensaConvOpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataConv));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
+}  // namespace.
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-  TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
-#endif
-  return kTfLiteOk;
-}
-
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
-
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
-  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  const auto& op_data = *(reinterpret_cast<OpDataConv*>(node->user_data));
 
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
   const TfLiteEvalTensor* filter =
       tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
   const TfLiteEvalTensor* bias =
       (NumInputs(node) == 3)
           ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
           : nullptr;
-#endif
 
-  switch (input->type) {
-    case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      ConvEvalHifi(context, node, params, op_data, input, filter, bias, output);
-#else
-      return ConvReferenceEvalInt8(context, node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      break;
-    }
-    case kTfLiteInt16: {
-#if defined(HIFI4_INTERNAL)
-      ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
-                     output);
-#else
-      return ConvReferenceEvalInt16(context, node);
-#endif  // defined(HIFI4_INTERNAL)
-      break;
-    }
-    default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
-      return kTfLiteError;
-  }
+  reference_integer_ops::ConvPerChannel(
+      ConvParamsQuantized(params, op_data),
+      op_data.per_channel_output_multiplier, op_data.per_channel_output_shift,
+      tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int16_t>(input),
+      tflite::micro::GetTensorShape(filter),
+      tflite::micro::GetTensorData<int8_t>(filter),
+      tflite::micro::GetTensorShape(bias),
+      tflite::micro::GetTensorData<std::int64_t>(bias),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int16_t>(output));
   return kTfLiteOk;
 }
-}  // namespace
 
-TfLiteRegistration Register_CONV_2D() {
+// TODO(b/189981943): This variant can be used for a smaller binary
+// since the optimized conv implementation currently adds a lot to
+// the binary size (~30KB to text section).
+TfLiteRegistration Register_CONV_2D_INT16REF() {
   return {/*init=*/Init,
           /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
+          /*prepare=*/ConvPrepare,
+          /*invoke=*/ConvReferenceEvalInt16,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,

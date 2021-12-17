@@ -1,4 +1,4 @@
-# Settings for Xtensa toolchain for the hifimini kernels.
+# Settings for Xtensa toolchain for the kernels.
 # REQUIRED:
 #  Environment variables:
 #   - XTENSA_BASE  must be set to location of
@@ -6,10 +6,13 @@
 #  Command line arguments:
 #   - XTENSA_TOOLS_VERSION: For example: RI-2019.2-linux
 #   - XTENSA_CORE: The name of the Xtensa core to use
-#      For example: hifimini
+#      For example: HIFI_190304_swupgrade
 
 TARGET_ARCH :=
 XTENSA_USE_LIBC :=
+
+# Allow additional flags on the command line for debugging.
+XTENSA_EXTRA_CFLAGS :=
 
 ifndef XTENSA_BASE
   $(error XTENSA_BASE is undefined)
@@ -67,6 +70,9 @@ endif
 
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
+
+CCFLAGS += $(XTENSA_EXTRA_CFLAGS)
+CXXFLAGS += $(XTENSA_EXTRA_CFLAGS)
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_xtensa_binary.sh
 SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_xtensa_binary.sh

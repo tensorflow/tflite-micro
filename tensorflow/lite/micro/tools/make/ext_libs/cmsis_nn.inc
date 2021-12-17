@@ -21,7 +21,7 @@ ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
 endif
 
 ifeq (,$(CMSIS_NN_LIBS))
-  THIRD_PARTY_CC_SRCS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
+  THIRD_PARTY_KERNEL_CC_SRCS += $(call recursive_find,$(CMSIS_PATH)/CMSIS/NN/Source,*.c)
 else
   MICROLITE_LIBS += $(CMSIS_NN_LIBS)
 endif
