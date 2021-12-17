@@ -118,7 +118,7 @@ cc_library(
 
 HIFI4_COPTS = [
     "-DXTENSA=1",
-    "-DHIFI4=1",
+    "-DHIFI4_INTERNAL=1",
 ]
 
 HIFI5_COPTS = [
