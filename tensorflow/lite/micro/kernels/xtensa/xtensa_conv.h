@@ -30,26 +30,7 @@ struct XtensaConvOpData {
 #endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
 };
 
-#if defined(HIFIMINI)
-void ConvEvalHifiMini(const ConvParams& params,
-                      const int32_t* output_multiplier,
-                      const int32_t* output_shift,
-                      const RuntimeShape& input_shape, const int8_t* input_data,
-                      const RuntimeShape& filter_shape,
-                      const int8_t* filter_data, const RuntimeShape& bias_shape,
-                      const int32_t* bias_data,
-                      const RuntimeShape& output_shape, int8_t* output_data);
-
-void Conv1x32Input32x32FilterHifiMini(
-    const int input_offset, const int output_offset,
-    const int quantized_activation_min, const int quantized_activation_max,
-    const int32_t* output_multiplier, const int32_t* output_shift,
-    const RuntimeShape& input_shape, const int8_t* input_data,
-    const RuntimeShape& filter_shape, const int8_t* filter_data,
-    const RuntimeShape& bias_shape, const int32_t* bias_data,
-    const RuntimeShape& output_shape, int8_t* output_data);
-
-#elif defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
