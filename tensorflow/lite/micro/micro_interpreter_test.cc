@@ -595,12 +595,18 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
-  size_t required_arena_size =
-      interpreter.arena_used_bytes() + tflite::MicroArenaBufferAlignment();
+  // Store the required arena size before Invoke() because this is what this
+  // api might be used.
+  size_t used_arena_size = interpreter.arena_used_bytes();
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
-  // The reported used_arena_size is sufficient for this model to run
+  // The reported used_arena_size plus alignment padding is sufficient for this
+  // model to run. Plus alignment padding is because SimpleMemoryAllocator is
+  // given the arena after the alignment.
+  size_t required_arena_size =
+      used_arena_size + tflite::MicroArenaBufferAlignment();
+
   tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
                                         required_arena_size,
                                         tflite::GetMicroErrorReporter());
