@@ -1,7 +1,7 @@
 * [Quick Start](#quick-start)
 * [ci:run](#ci:run)
 * [mergify.yml](#mergify.yml)
-* [ci:run application in queue](ci:run-application-in-queue)
+* [ci:run Application in Queue](ci:run-application-in-queue)
 * [Viewing a PRs Merge Status](viewing-a-prs-merge-queue-status)
 # Continuious Integration and Merge Queues
 The tflite-micro github repo uses a number of Github Actions workflows to run tests as well as [Mergify](https://mergify.com/) to provide merge queue functionality. This document explains the setup and interactions between the two. 
