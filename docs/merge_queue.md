@@ -31,7 +31,7 @@ When the conditions under `pull_request_rules` are met the PR will be placed in 
 The queue goes in order and when the current PR at the head of the queue has met all the requirements of the repository Branch Protection Rules it will be merged with with main. In our case that means one approved review and all of the CI tests triggered by `ci:run` pass.
 
 # ci:run Application in Queue
-When a PR is one of a number in the queue, when previous PRs are merged into main the queue machinery to merge main into our PR, causing the test status reset. Since our tests are only run when the `ci:run` label is applied, the queue will stall waiting for the ci tests to pass.
+When a PR is one of a number in the queue, when previous PRs are merged into main the queue machinery will merge main into our PR, causing the test status reset. Since our tests are only run when the `ci:run` label is applied, the queue will stall waiting for the ci tests to pass.
 
 The action workflow .github/workflows/apply_cirun.yml reapplies the `ci:run` label on merge events if a PR has the `ci:ready_to_merge` label to rerun the ci test suite and allow the queue to continue.
 
