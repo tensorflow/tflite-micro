@@ -1,0 +1,13 @@
+diff --git a/platforms/cpus/stm32f4.repl b/platforms/cpus/stm32f4.repl
+index b8242e7..c8228a4 100644
+--- a/platforms/cpus/stm32f4.repl
++++ b/platforms/cpus/stm32f4.repl
+@@ -2,7 +2,7 @@ fsmcBank1: Memory.MappedMemory @ sysbus 0x60000000
+     size: 0x10000000
+ 
+ sram: Memory.MappedMemory @ sysbus 0x20000000
+-    size: 0x00040000
++    size: 0x00080000
+ 
+ flash: Memory.MappedMemory @ sysbus 0x08000000
+     size: 0x200000
