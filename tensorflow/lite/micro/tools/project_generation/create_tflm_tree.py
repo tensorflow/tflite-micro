@@ -36,6 +36,7 @@ import re
 import shutil
 import subprocess
 
+
 def _get_dirs(file_list):
   dirs = set()
   for filepath in file_list:
@@ -98,6 +99,7 @@ def _get_src_and_dest_files(prefix_dir, makefile_options):
   all_src_files = tflm_src_files + third_party_srcs
   all_dest_files = tflm_dest_files + third_party_dests
   return all_src_files, all_dest_files
+
 
 def _copy(src_files, dest_files):
   for dirname in _get_dirs(dest_files):
@@ -177,12 +179,13 @@ def _create_examples_tree(prefix_dir, examples_list):
         # in-place find and replace.
         print(line, end="")
 
-def _rename_cc_to_cpp (output_dir):
-  for path, subdirs, files in os.walk(output_dir):
+
+def _rename_cc_to_cpp(output_dir):
+  for path, _, files in os.walk(output_dir):
     for name in files:
-      if name.endswith (".cc"):
-        baseName, extension = os.path.splitext(name)
-        os.rename (path + '/' + name, path + '/' + baseName + ".cpp")
+      if name.endswith(".cc"):
+        base_name_with_path = os.path.join(path, os.path.splitext(name)[0])
+        os.rename(base_name_with_path + ".cc", base_name_with_path + ".cpp")
 
 
 def main():
@@ -211,9 +214,10 @@ def main():
                       action="append",
                       help="Examples to add to the output tree. For example: "
                       "-e hello_world -e micro_speech")
-  parser.add_argument("--rename-cc-to-cpp",
-                      action="store_true",
-                      help="Rename all .cc files to .cpp in the destination files location.")
+  parser.add_argument(
+      "--rename_cc_to_cpp",
+      action="store_true",
+      help="Rename all .cc files to .cpp in the destination files location.")
   args = parser.parse_args()
 
   makefile_options = args.makefile_options
@@ -250,6 +254,7 @@ def main():
 
   if args.rename_cc_to_cpp:
     _rename_cc_to_cpp(args.output_dir)
+
 
 if __name__ == "__main__":
   main()
