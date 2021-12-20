@@ -45,7 +45,7 @@ TEST_OUTPUT_DIR="$(mktemp -d)"
 readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   "${TEST_OUTPUT_DIR}" \
-  "${EXAMPLES}"
+  ${EXAMPLES}
 
 # Confirm that print_src_files and print_dest_files output valid paths (and
 # nothing else).
@@ -74,7 +74,7 @@ readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
   "${TEST_OUTPUT_DIR_CMSIS}" \
-  "${EXAMPLES}"
+  ${EXAMPLES}
 
 readable_run \
   cp tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR_CMSIS}"
