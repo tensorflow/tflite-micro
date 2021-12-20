@@ -54,7 +54,7 @@ FILES="$(python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree
            ${TEST_OUTPUT_DIR} \
            --print_src_files --print_dest_files --no_copy)"
 
-readable_run ls "${FILES}" > /dev/null
+readable_run ls ${FILES} > /dev/null
 
 # Next, make sure that the output tree has all the files needed buld the
 # examples.
