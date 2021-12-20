@@ -112,6 +112,12 @@ const Model* GetSimpleMockModel();
 // tensors, and operators.
 const Model* GetComplexMockModel();
 
+// Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
+// 1 layer of weights, 1 output Tensor, and 1 operator.
+// The size of all three tensors is 256 x 256, which is larger than what other
+// models provide from this test helper.
+const Model* GetModelWith256x256Tensor();
+
 // Returns a simple flatbuffer model with two branches.
 const Model* GetSimpleModelWithBranch();
 
