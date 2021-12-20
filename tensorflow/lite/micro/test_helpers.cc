@@ -28,6 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -464,6 +465,26 @@ const Model* BuildModelWithUnusedOperatorOutputs() {
   void* model_pointer = builder->GetBufferPointer();
   const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
   return model;
+}
+
+const Model* BuildModelWith256x256Tensor() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
+
+  ModelBuilder model_builder(fb_builder);
+
+  const int op_id =
+      model_builder.RegisterOp(BuiltinOperator_CUSTOM, "mock_custom");
+  const int input1_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+  const int input2_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+  const int output_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+
+  model_builder.AddNode(op_id, {input1_tensor, input2_tensor}, {output_tensor});
+  return model_builder.BuildModel({input1_tensor, input2_tensor},
+                                  {output_tensor});
 }
 
 const Model* BuildSimpleMockModel() {
@@ -1061,14 +1082,15 @@ TfLiteStatus MockCustom::Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
   const int32_t* input_data = input->data.i32;
-  const TfLiteTensor* weight;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &weight));
+  const TfLiteEvalTensor* weight =
+      tflite::micro::GetEvalInput(context, node, 1);
+  TF_LITE_ENSURE(context, weight != nullptr);
   const uint8_t* weight_data = weight->data.uint8;
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
   int32_t* output_data = output->data.i32;
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
@@ -1189,6 +1211,11 @@ const Model* GetModelWithUnusedOperatorOutputs() {
   if (!model) {
     model = const_cast<Model*>(BuildModelWithUnusedOperatorOutputs());
   }
+  return model;
+}
+
+const Model* GetModelWith256x256Tensor() {
+  static const Model* model = BuildModelWith256x256Tensor();
   return model;
 }
 
