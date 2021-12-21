@@ -420,7 +420,12 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     quantization->zero_point->size = channels;
     int* zero_point_data = quantization->zero_point->data;
     for (int i = 0; i < channels; i++) {
-      zero_point_data[i] = src_quantization->zero_point()->Get(i);
+      // As a space-saving optimization, zero point arrays for weights can be
+      // reduced to a single value, since all zero points for weights are 0.
+      zero_point_data[i] = src_quantization->zero_point()->size() ==
+                                   src_quantization->scale()->size()
+                               ? src_quantization->zero_point()->Get(i)
+                               : src_quantization->zero_point()->Get(0);
     }
     // TODO(rocky): Need to add a micro_allocator test case that fails when
     // this is not copied:
