@@ -24,6 +24,8 @@ namespace tflite {
 namespace testing {
 namespace {
 
+// TODO(b/211699458): Add 16-bit tests for logistic with proper tolerances
+
 // The Logistic kernel assumes an output in the range [0, 1.0], leading to these
 // quantization parameters.
 const float quantized_output_scale = 1.0 / 255.0;

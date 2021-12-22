@@ -23,6 +23,8 @@ namespace tflite {
 namespace testing {
 namespace {
 
+// TODO(b/211699458): Add 16-bit tests for tanh with proper tolerances
+
 constexpr int tanh_vec_size = 90;
 
 const float tanh_input_vec_fp[tanh_vec_size] = {
