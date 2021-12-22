@@ -52,6 +52,7 @@ class MockProfiler : public MicroProfiler {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+#if 0
 // Some targets does not support dynamic memory (i.e., no malloc or new), thus,
 // the test need to place non-transitent memories in global variables. This is
 // safe because tests are guarateed to run serially.
@@ -74,11 +75,13 @@ struct TestExternalContextPayloadData {
   // Opaque blob
   uint8_t blob_data[128];
 };
+#endif
 }  // namespace
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
 
+#if 0
 // Ensures that a regular set and get pair works ok.
 TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
   tflite::MicroInterpreter interpreter =
@@ -117,6 +120,7 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           interpreter.SetMicroExternalContext(&payload));
 }
+#endif
 
 TF_LITE_MICRO_TEST(TestInterpreter) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();

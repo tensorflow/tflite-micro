@@ -113,6 +113,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:micro_context",
     ],
 )
 

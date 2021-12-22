@@ -37,6 +37,7 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_context",
         ":micro_error_reporter",
         ":micro_graph",
         ":micro_profiler",
@@ -49,6 +50,25 @@ cc_library(
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
+    name = "micro_context",
+    srcs = [
+        "micro_context.cc",
+    ],
+    hdrs = [
+        "micro_context.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":memory_helpers",
+        ":micro_allocator",
+        ":micro_error_reporter",
+        ":micro_graph",
+        ":micro_profiler",
+        "//tensorflow/lite/c:common",
     ],
 )
 
