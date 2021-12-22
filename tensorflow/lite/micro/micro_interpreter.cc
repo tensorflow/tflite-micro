@@ -203,15 +203,16 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.AllocatePersistentBuffer = context_helper_.AllocatePersistentBuffer;
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
-  context_.GetExecutionPlan = context_helper_.GetGraph;
+  // context_.GetExecutionPlan = context_helper_.GetGraph;
   context_.GetExternalContext = nullptr;
   TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
-  context_.RequestScratchBufferInArena = context_.RequestScratchBufferInArena;
+  context_.RequestScratchBufferInArena =
+      context_helper_.RequestScratchBufferInArena;
   // GetExternalContext become available in Prepare stage.
-  context_.GetExternalContext = context_.GetExternalContext;
+  context_.GetExternalContext = context_helper_.GetExternalContext;
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
@@ -219,7 +220,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
   context_.AllocatePersistentBuffer = nullptr;
   context_.RequestScratchBufferInArena = nullptr;
-  context_.GetScratchBuffer = context_.GetScratchBuffer;
+  context_.GetScratchBuffer = context_helper_.GetScratchBuffer;
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),

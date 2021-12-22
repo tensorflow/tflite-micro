@@ -273,7 +273,7 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  constexpr size_t allocator_buffer_size = 4096;
+  constexpr size_t allocator_buffer_size = 4096 + 1024;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::RecordingMicroAllocator* allocator =

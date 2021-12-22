@@ -65,9 +65,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
   // MicroGraph.
   // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  MicroGraph* graph_info = micro::GetMicroGraph(context);
 
   TF_LITE_ENSURE(context,
                  op_data->then_subgraph_index < graph_info->NumSubgraphs());
@@ -91,13 +89,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &cond));
   bool cond_value = cond->data.b[0];
 
-  // Casting to TfliteIntArray is required since we are re-using
-  // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
-  // MicroGraph.
-  // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  MicroGraph* graph_info = micro::GetMicroGraph(context);
 
   // Currently we copy the input / output between the subgraphs. This isn't
   // optimized yet.

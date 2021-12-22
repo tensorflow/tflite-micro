@@ -24,12 +24,12 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/micro/micro_context.h"
 
 // Copied from tensorflow/lite/version.h to avoid a dependency chain into
 // tensorflow/core.
@@ -162,7 +162,6 @@ class MicroInterpreter {
   TfLiteStatus initialization_status_;
 
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
-
 
   // TODO(b/162311891): Clean these pointers up when this class supports buffers
   // from TfLiteEvalTensor.

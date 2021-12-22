@@ -16,17 +16,18 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
 
 class MicroContext {
  public:
-  explicit MicroContext(MicroAllocator* allocator, const Model* model, MicroGraph* graph);
+  explicit MicroContext(MicroAllocator* allocator, const Model* model,
+                        MicroGraph* graph);
 
   // Functions that will be assigned to function pointers on TfLiteContext:
   static void* AllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes);
@@ -39,26 +40,26 @@ class MicroContext {
                                  int tensor_idx);
   static TfLiteEvalTensor* GetEvalTensor(const struct TfLiteContext* context,
                                          int tensor_idx);
-  static void ReportOpError(struct TfLiteContext* context,
-                                     const char* format, ...);
+  static void ReportOpError(struct TfLiteContext* context, const char* format,
+                            ...);
 
-  static TfLiteStatus GetGraph(struct TfLiteContext* context,
-                                        TfLiteIntArray** args);
-
-  static MicroContext * GetMicroContext(const struct TfLiteContext* context);
+  static MicroContext* GetMicroContext(const struct TfLiteContext* context);
 
   TfLiteStatus SetExternalContext(void* external_context_payload);
-  void* GetExternalContext();
+  static TfLiteExternalContext* GetExternalContext(
+      TfLiteContext* context, TfLiteExternalContextType unused);
 
   // Sets the pointer to a list of ScratchBufferHandle instances.
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
+
+  MicroGraph* GetGraph();
 
  private:
   MicroAllocator* allocator_ = nullptr;
   const Model* model_ = nullptr;
   MicroGraph* graph_ = nullptr;
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
-    void* external_context_payload_ = nullptr;
+  void* external_context_payload_ = nullptr;
 };
 
 }  // namespace tflite

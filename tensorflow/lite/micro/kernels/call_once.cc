@@ -54,9 +54,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
   // MicroGraph.
   // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  MicroGraph* graph_info = micro::GetMicroGraph(context);
 
   TF_LITE_ENSURE(context,
                  op_data->init_subgraph_index < graph_info->NumSubgraphs());
@@ -76,9 +74,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
   // MicroGraph.
   // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  MicroGraph* graph_info = micro::GetMicroGraph(context);
 
   TF_LITE_ENSURE_OK(context,
                     graph_info->InvokeSubgraph(op_data->init_subgraph_index));

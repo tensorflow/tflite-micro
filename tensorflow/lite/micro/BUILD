@@ -73,6 +73,26 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_micro_context",
+    srcs = [
+        "mock_micro_context.cc",
+    ],
+    hdrs = [
+        "mock_micro_context.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":memory_helpers",
+        ":micro_allocator",
+        ":micro_context",
+        ":micro_error_reporter",
+        ":micro_profiler",
+        ":mock_micro_graph",
+        "//tensorflow/lite/c:common",
+    ],
+)
+
+cc_library(
     name = "micro_graph",
     srcs = ["micro_graph.cc"],
     hdrs = ["micro_graph.h"],

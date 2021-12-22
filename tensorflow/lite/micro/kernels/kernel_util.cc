@@ -125,8 +125,13 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
 // should use this instead of directly calling GetExternalContext function in
 // context.
 void* GetExternalContext(TfLiteContext* context) {
-  MicroContext * micro_context = MicroContext::GetMicroContext(context);
-  return micro_context->GetExternalContext();
+  return reinterpret_cast<void*>(
+      context->GetExternalContext(context, kTfLiteMaxExternalContexts));
+}
+
+MicroGraph* GetMicroGraph(TfLiteContext* context) {
+  MicroContext* micro_context = MicroContext::GetMicroContext(context);
+  return micro_context->GetGraph();
 }
 
 }  // namespace micro
