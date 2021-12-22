@@ -103,12 +103,12 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     } break;
     case kTfLiteInt16: {
-      TanhParams params;
-      params.input_left_shift = data.input_left_shift;
-      reference_ops::Tanh(params, tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<int16_t>(input),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<int16_t>(output));
+      reference_integer_ops::Tanh(
+          data.input_multiplier, data.input_left_shift,
+          tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int16_t>(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(output));
       return kTfLiteOk;
     } break;
     case kTfLiteInt8: {
