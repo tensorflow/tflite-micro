@@ -69,7 +69,7 @@ index 89f3f30..6e6d0b3 100644
 +#pragma GCC diagnostic push
 +#pragma GCC diagnostic ignored "-Wnull-dereference"
 +#endif
-+					// See b/173239141 for additional context. Patched via
++          // See b/173239141 for additional context. Patched via
 +          // micro/tools/make/flexbuffers_download.sh
 +          // Introduce a segfault for an unsupported code path for TFLM.
 +          return *(static_cast<double*>(nullptr));
