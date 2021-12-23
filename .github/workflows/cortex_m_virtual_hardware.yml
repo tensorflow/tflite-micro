@@ -23,14 +23,17 @@ jobs:
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     name: Cortex-M Generic
     steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install Wave
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
+      - uses: actions/checkout@v2    
+      - name: Execute test suite on Virtual Hardware at AWS
+        uses: Arm-Software/VHT-AMI@master
+        with:
+          vht_in: ./tensorflow/lite/micro/cortex_m_generic
+          instance_id: ${{ secrets.AWS_INSTANCE_ID }}
+          aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
+          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
+          s3_bucket_name: ${{ secrets.AWS_S3_BUCKET }}
+ 
   cortex_m_corstone_300:
     runs-on: ubuntu-latest
 
