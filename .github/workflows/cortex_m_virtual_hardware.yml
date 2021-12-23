@@ -21,13 +21,16 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      
     name: Cortex-M Generic
     steps:
       - uses: actions/checkout@v2    
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_generic/vht ./vht_cm_g
       - name: Execute test suite on Virtual Hardware at AWS
         uses: Arm-Software/VHT-AMI@master
         with:
-          vht_in: ./tensorflow/lite/micro/cortex_m_generic/vht
+          vht_in: ./vht_cm_g
           instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
           aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
