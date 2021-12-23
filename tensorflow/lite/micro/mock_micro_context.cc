@@ -24,7 +24,7 @@ using ::tflite::MicroArenaBufferAlignment;
 MockMicroContext::MockMicroContext(TfLiteTensor* tensors,
                                    SimpleMemoryAllocator* allocator,
                                    MockMicroGraph* mock_micro_graph)
-    : MicroContext(nullptr, nullptr, mock_micro_graph),
+    : MicroContext(nullptr, nullptr, nullptr),
       tensors_(tensors),
       allocator_(allocator),
       mock_micro_graph_(mock_micro_graph) {}
@@ -116,6 +116,10 @@ void MockMicroContext::ReportOpError(struct TfLiteContext* context,
   va_start(args, format);
   GetMicroErrorReporter()->Report(format, args);
   va_end(args);
+}
+
+MicroGraph* MockMicroContext::GetGraph() {
+  return mock_micro_graph_;
 }
 
 }  // namespace tflite

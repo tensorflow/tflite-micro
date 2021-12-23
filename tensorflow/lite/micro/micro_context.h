@@ -52,7 +52,7 @@ class MicroContext {
   // Sets the pointer to a list of ScratchBufferHandle instances.
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
 
-  MicroGraph* GetGraph();
+  virtual MicroGraph* GetGraph();
 
  private:
   MicroAllocator* allocator_ = nullptr;
@@ -60,6 +60,8 @@ class MicroContext {
   MicroGraph* graph_ = nullptr;
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite

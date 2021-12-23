@@ -39,6 +39,8 @@ class MockMicroContext : public MicroContext {
   static void ReportOpError(struct TfLiteContext* context, const char* format,
                             ...);
 
+  MicroGraph* GetGraph() override;
+
  private:
   static MockMicroContext* GetMicroContext(const struct TfLiteContext* context);
 
@@ -50,6 +52,8 @@ class MockMicroContext : public MicroContext {
   TfLiteTensor* tensors_;
   SimpleMemoryAllocator* allocator_;
   MockMicroGraph* mock_micro_graph_;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite
