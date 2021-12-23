@@ -85,3 +85,20 @@ index 89f3f30..6e6d0b3 100644
          }
          case FBT_VECTOR: return static_cast<double>(AsVector().size());
          case FBT_BOOL:
+diff --git a/include/flatbuffers/util.h b/include/flatbuffers/util.h
+index 93a39de..1cd4e8f 100644
+--- a/include/flatbuffers/util.h
++++ b/include/flatbuffers/util.h
+@@ -23,6 +23,12 @@
+ #include "flatbuffers/base.h"
+ #include "flatbuffers/stl_emulation.h"
+ 
++// For TFLM we always want to use FLATBUFFERS_PREFER_PRINTF=1. See
++// http://b/211811553 for more context.
++#ifndef FLATBUFFERS_PREFER_PRINTF
++#define FLATBUFFERS_PREFER_PRINTF 1
++#endif
++
+ #ifndef FLATBUFFERS_PREFER_PRINTF
+ #  include <sstream>
+ #  include <iomanip>
