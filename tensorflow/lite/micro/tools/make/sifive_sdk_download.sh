@@ -62,7 +62,8 @@ else
   rm -rf "${TEMPDIR}"
 
   pushd ${DOWNLOADED_SIFIVE_SDK_PATH} > /dev/null
-  apply_patch_to_folder ./ ../../sifive_sdk.patch
+  create_git_repo ./
+  apply_patch_to_folder ./ ../../sifive_sdk.patch "TFLM patch"
   popd > /dev/null
 fi
 

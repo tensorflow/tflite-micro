@@ -55,7 +55,8 @@ else
   rm -rf ${DOWNLOADED_PIGWEED_PATH}/.git
   rm -f `find . -name BUILD`
 
-  apply_patch_to_folder ./ ../../pigweed.patch
+  create_git_repo ./
+  apply_patch_to_folder ./ ../../pigweed.patch "TFLM patch"
 
   popd > /dev/null
 fi
