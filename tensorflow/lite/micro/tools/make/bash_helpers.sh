@@ -72,7 +72,7 @@ function apply_patch_to_folder() {
   pushd ${1} > /dev/null
   echo >&2 "Applying ${PWD}/${1}/${2} to ${PWD}/${1}"
   git apply ${2}
-  git commit -a -m ${3} > /dev/null
+  git commit -a -m "${3}" > /dev/null
   popd > /dev/null
 }
 
