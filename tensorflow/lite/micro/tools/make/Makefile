@@ -432,6 +432,7 @@ gemmlowp/fixedpoint/fixedpoint_neon.h \
 gemmlowp/fixedpoint/fixedpoint_sse.h \
 gemmlowp/internal/detect_platform.h \
 gemmlowp/LICENSE \
+flatbuffers/include/flatbuffers/allocator.h \
 flatbuffers/include/flatbuffers/array.h \
 flatbuffers/include/flatbuffers/base.h \
 flatbuffers/include/flatbuffers/buffer.h \
