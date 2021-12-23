@@ -1,0 +1,49 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+name: Cortex-M
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  schedule:
+    - cron: '0 4 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  cortex_m_generic:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Generic
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install Wave
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
+  cortex_m_corstone_300:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Corstone 300 (FVP)
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install Wave
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
