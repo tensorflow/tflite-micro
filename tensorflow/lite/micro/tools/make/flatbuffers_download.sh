@@ -80,6 +80,7 @@ else
   # updated to use a version of flatbuffers that includes that change.
   apply_patch_to_folder ./ ../../flatbuffers_temporary.patch \
     "Temp patch to match https://github.com/google/flatbuffers/pull/7003"
+
   popd > /dev/null
 fi
 
