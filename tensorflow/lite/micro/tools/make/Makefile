@@ -432,10 +432,22 @@ gemmlowp/fixedpoint/fixedpoint_neon.h \
 gemmlowp/fixedpoint/fixedpoint_sse.h \
 gemmlowp/internal/detect_platform.h \
 gemmlowp/LICENSE \
+flatbuffers/include/flatbuffers/array.h \
 flatbuffers/include/flatbuffers/base.h \
-flatbuffers/include/flatbuffers/stl_emulation.h \
+flatbuffers/include/flatbuffers/buffer.h \
+flatbuffers/include/flatbuffers/buffer_ref.h \
+flatbuffers/include/flatbuffers/default_allocator.h \
+flatbuffers/include/flatbuffers/detached_buffer.h \
+flatbuffers/include/flatbuffers/flatbuffer_builder.h \
 flatbuffers/include/flatbuffers/flatbuffers.h \
 flatbuffers/include/flatbuffers/flexbuffers.h \
+flatbuffers/include/flatbuffers/stl_emulation.h \
+flatbuffers/include/flatbuffers/string.h \
+flatbuffers/include/flatbuffers/struct.h \
+flatbuffers/include/flatbuffers/table.h \
+flatbuffers/include/flatbuffers/vector.h \
+flatbuffers/include/flatbuffers/vector_downward.h \
+flatbuffers/include/flatbuffers/verifier.h \
 flatbuffers/include/flatbuffers/util.h \
 flatbuffers/LICENSE.txt \
 ruy/ruy/profiler/instrumentation.h
