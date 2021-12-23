@@ -2,7 +2,7 @@ suite:
   name: "tensorflow-kernel-tests-reference"
   model: "VHT-Corstone-300"
   configuration: ""
-  working_dir: "/home/ubuntu/vhtwork"
+  working_dir: "/home/ubuntu/vhtwork/lite/micro/cortex_m_generic/vht"
   pre: "git clone https://github.com/tensorflow/tflite-micro.git && mv ./tflite-micro/tensorflow/ ."
   post: ""
 
