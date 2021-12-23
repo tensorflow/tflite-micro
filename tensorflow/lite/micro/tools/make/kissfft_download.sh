@@ -62,7 +62,8 @@ else
   rm -rf "${TEMPDIR}"
 
   pushd ${DOWNLOADED_KISSFFT_PATH} > /dev/null
-  apply_patch_to_folder ./ ../../kissfft.patch
+  create_git_repo ./
+  apply_patch_to_folder ./ ../../kissfft.patch "TFLM patch"
   popd > /dev/null
 fi
 

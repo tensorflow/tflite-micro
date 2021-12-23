@@ -72,7 +72,8 @@ else
 
   pushd ${DOWNLOADED_FLATBUFFERS_PATH} > /dev/null
   delete_build_files ${DOWNLOADED_FLATBUFFERS_PATH}
-  apply_patch_to_folder ./ ../../flatbuffers.patch
+  create_git_repo ./
+  apply_patch_to_folder ./ ../../flatbuffers.patch "TFLM patch"
   popd > /dev/null
 fi
 
