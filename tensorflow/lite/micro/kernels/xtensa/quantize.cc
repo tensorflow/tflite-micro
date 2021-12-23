@@ -86,12 +86,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                                 op_data->input_zero_point, zero_point,
                                 tflite::micro::GetTensorData<int32_t>(output));
 #endif  // defined(HIFI5)
-    } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt32) {
-      reference_ops::Requantize(tflite::micro::GetTensorData<int32_t>(input),
-                                size, op_data->requantize_output_multiplier,
-                                op_data->requantize_output_shift,
-                                op_data->input_zero_point, zero_point,
-                                tflite::micro::GetTensorData<int16_t>(output));
     } else {
 #if defined(HIFI5)
       const int8_t* input_data_ptr;
@@ -114,6 +108,14 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                                 tflite::micro::GetTensorData<int32_t>(output));
 #endif  // defined(HIFI5)
     }
+  } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt32) {
+    int size = ElementCount(*input->dims);
+    int32_t zero_point = op_data->quantization_params.zero_point;
+    reference_ops::Requantize(tflite::micro::GetTensorData<int32_t>(input),
+                              size, op_data->requantize_output_multiplier,
+                              op_data->requantize_output_shift,
+                              op_data->input_zero_point, zero_point,
+                              tflite::micro::GetTensorData<int16_t>(output));
   } else {
     TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
                        TfLiteTypeGetName(input->type),
