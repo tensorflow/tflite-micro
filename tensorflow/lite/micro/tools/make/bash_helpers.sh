@@ -58,7 +58,7 @@ create_git_repo() {
   git config user.name "TFLM" --local
   git add . >&2 2> /dev/null
   git commit -a -m "Commit for a temporary repository." > /dev/null
-  git checkout -b tflm
+  git checkout -b tflm > /dev/null
   popd > /dev/null
 }
 
