@@ -118,8 +118,6 @@ void MockMicroContext::ReportOpError(struct TfLiteContext* context,
   va_end(args);
 }
 
-MicroGraph* MockMicroContext::GetGraph() {
-  return mock_micro_graph_;
-}
+MicroGraph* MockMicroContext::GetGraph() { return mock_micro_graph_; }
 
 }  // namespace tflite
