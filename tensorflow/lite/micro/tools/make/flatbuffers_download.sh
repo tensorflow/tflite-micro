@@ -74,6 +74,12 @@ else
   delete_build_files ${DOWNLOADED_FLATBUFFERS_PATH}
   create_git_repo ./
   apply_patch_to_folder ./ ../../flatbuffers.patch "TFLM patch"
+
+  # This temporary patch can be removed once
+  # https://github.com/google/flatbuffers/pull/7003 is merged and TFLM is
+  # updated to use a version of flatbuffers that includes that change.
+  apply_patch_to_folder ./ ../../flatbuffers_temporary.patch \
+    "Temp patch to match https://github.com/google/flatbuffers/pull/7003"
   popd > /dev/null
 fi
 
