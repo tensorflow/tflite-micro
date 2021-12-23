@@ -27,7 +27,7 @@ jobs:
       - name: Execute test suite on Virtual Hardware at AWS
         uses: Arm-Software/VHT-AMI@master
         with:
-          vht_in: ./tensorflow/lite/micro/cortex_m_generic
+          vht_in: ./tensorflow/lite/micro/cortex_m_generic/vht
           instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
           aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
