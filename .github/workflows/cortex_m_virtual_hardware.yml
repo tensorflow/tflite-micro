@@ -4,7 +4,7 @@
 # Helpful YAML parser to clarify YAML syntax:
 # https://yaml-online-parser.appspot.com/
 
-name: Cortex-M
+name: Cortex-M on Arm Virtual Hardware
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
