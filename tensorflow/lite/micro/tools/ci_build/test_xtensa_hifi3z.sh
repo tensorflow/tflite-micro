@@ -57,6 +57,13 @@ if [[ ${1} == "INTERNAL" ]]; then
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     test_integration_tests_seanet_add_test -j$(nproc)
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test_integration_tests_seanet_leaky_relu_test -j$(nproc)
 else
   readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
