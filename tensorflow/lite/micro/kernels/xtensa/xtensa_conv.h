@@ -60,7 +60,7 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             TfLiteEvalTensor* output);
 #endif  // defined (HIFI4_INTERNAL)
 
-TFLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
