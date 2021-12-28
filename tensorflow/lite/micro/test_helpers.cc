@@ -28,6 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -464,6 +465,26 @@ const Model* BuildModelWithUnusedOperatorOutputs() {
   void* model_pointer = builder->GetBufferPointer();
   const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
   return model;
+}
+
+const Model* BuildModelWith256x256Tensor() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
+
+  ModelBuilder model_builder(fb_builder);
+
+  const int op_id =
+      model_builder.RegisterOp(BuiltinOperator_CUSTOM, "mock_custom");
+  const int input1_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+  const int input2_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+  const int output_tensor =
+      model_builder.AddTensor(TensorType_INT8, {256, 256});
+
+  model_builder.AddNode(op_id, {input1_tensor, input2_tensor}, {output_tensor});
+  return model_builder.BuildModel({input1_tensor, input2_tensor},
+                                  {output_tensor});
 }
 
 const Model* BuildSimpleMockModel() {
@@ -1061,14 +1082,15 @@ TfLiteStatus MockCustom::Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
   const int32_t* input_data = input->data.i32;
-  const TfLiteTensor* weight;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &weight));
+  const TfLiteEvalTensor* weight =
+      tflite::micro::GetEvalInput(context, node, 1);
+  TF_LITE_ENSURE(context, weight != nullptr);
   const uint8_t* weight_data = weight->data.uint8;
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
   int32_t* output_data = output->data.i32;
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
@@ -1192,6 +1214,11 @@ const Model* GetModelWithUnusedOperatorOutputs() {
   return model;
 }
 
+const Model* GetModelWith256x256Tensor() {
+  static const Model* model = BuildModelWith256x256Tensor();
+  return model;
+}
+
 const Model* GetSimpleMockModel() {
   static Model* model = nullptr;
   if (!model) {
@@ -1276,13 +1303,21 @@ const Tensor* Create1dFlatbufferTensor(int size, bool is_variable) {
 const Tensor* CreateQuantizedFlatbufferTensor(int size) {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+  constexpr size_t quant_params_size = 1;
+  const float min_array[quant_params_size] = {0.1f};
+  const float max_array[quant_params_size] = {0.2f};
+  const float scale_array[quant_params_size] = {0.3f};
+  const int64_t zero_point_array[quant_params_size] = {100ll};
+
   const Offset<QuantizationParameters> quant_params =
       CreateQuantizationParameters(
           *builder,
-          /*min=*/builder->CreateVector<float>({0.1f}),
-          /*max=*/builder->CreateVector<float>({0.2f}),
-          /*scale=*/builder->CreateVector<float>({0.3f}),
-          /*zero_point=*/builder->CreateVector<int64_t>({100ll}));
+          /*min=*/builder->CreateVector<float>(min_array, quant_params_size),
+          /*max=*/builder->CreateVector<float>(max_array, quant_params_size),
+          /*scale=*/
+          builder->CreateVector<float>(scale_array, quant_params_size),
+          /*zero_point=*/
+          builder->CreateVector<int64_t>(zero_point_array, quant_params_size));
 
   constexpr size_t tensor_shape_size = 1;
   const int32_t tensor_shape[tensor_shape_size] = {size};

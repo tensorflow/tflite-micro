@@ -86,7 +86,8 @@ else
   pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
   chmod -R +w ./
   if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
-    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch"
+    create_git_repo ./
+    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
   fi
 fi
 

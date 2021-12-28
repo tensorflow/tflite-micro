@@ -112,6 +112,7 @@ endif
 
 CORE_OPTIMIZATION_LEVEL := -Os
 KERNEL_OPTIMIZATION_LEVEL := -O2
+THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL := -O2
 
 # Warn if deprecated optimization level is set.
 OPTIMIZATION_LEVEL :=
@@ -234,6 +235,7 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
 THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
 GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
@@ -413,6 +415,7 @@ $(TFL_CC_HDRS)
 # project generation v2.
 THIRD_PARTY_CC_HDRS :=
 THIRD_PARTY_CC_SRCS :=
+THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
 include $(MAKEFILE_DIR)/additional_kernels.inc
@@ -429,10 +432,23 @@ gemmlowp/fixedpoint/fixedpoint_neon.h \
 gemmlowp/fixedpoint/fixedpoint_sse.h \
 gemmlowp/internal/detect_platform.h \
 gemmlowp/LICENSE \
+flatbuffers/include/flatbuffers/allocator.h \
+flatbuffers/include/flatbuffers/array.h \
 flatbuffers/include/flatbuffers/base.h \
-flatbuffers/include/flatbuffers/stl_emulation.h \
+flatbuffers/include/flatbuffers/buffer.h \
+flatbuffers/include/flatbuffers/buffer_ref.h \
+flatbuffers/include/flatbuffers/default_allocator.h \
+flatbuffers/include/flatbuffers/detached_buffer.h \
+flatbuffers/include/flatbuffers/flatbuffer_builder.h \
 flatbuffers/include/flatbuffers/flatbuffers.h \
 flatbuffers/include/flatbuffers/flexbuffers.h \
+flatbuffers/include/flatbuffers/stl_emulation.h \
+flatbuffers/include/flatbuffers/string.h \
+flatbuffers/include/flatbuffers/struct.h \
+flatbuffers/include/flatbuffers/table.h \
+flatbuffers/include/flatbuffers/vector.h \
+flatbuffers/include/flatbuffers/vector_downward.h \
+flatbuffers/include/flatbuffers/verifier.h \
 flatbuffers/include/flatbuffers/util.h \
 flatbuffers/LICENSE.txt \
 ruy/ruy/profiler/instrumentation.h
@@ -578,6 +594,9 @@ $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))
 MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
+MICROLITE_THIRD_PARTY_KERNEL_OBJS := $(addprefix $(THIRD_PARTY_KERNEL_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_CC_SRCS)))))
+
 MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
@@ -605,6 +624,18 @@ $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
 $(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
@@ -620,10 +651,10 @@ $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 microlite: $(MICROLITE_LIB_PATH)
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
+$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
-	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
 
 $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
@@ -720,7 +751,7 @@ list_library_headers:
 	@echo $(MICROLITE_CC_HDRS)
 
 list_third_party_sources:
-	@echo $(THIRD_PARTY_CC_SRCS)
+	@echo $(THIRD_PARTY_CC_SRCS) $(THIRD_PARTY_KERNEL_CC_SRCS)
 
 list_third_party_headers:
 	@echo $(addprefix $(MAKEFILE_DIR)/downloads/,$(THIRD_PARTY_CC_HDRS_BASE)) $(THIRD_PARTY_CC_HDRS_V2)
