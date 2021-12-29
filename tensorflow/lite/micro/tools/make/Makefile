@@ -538,7 +538,19 @@ endif
 ifneq ($(CO_PROCESSOR),)
   include $(MAKEFILE_DIR)/ext_libs/$(CO_PROCESSOR).inc
   # Specialize for the coprocessor kernels.
-  MICROLITE_CC_KERNEL_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_KERNEL_SRCS),$(CO_PROCESSOR))
+  PATH_TO_COPROCESSOR_KERNELS := tensorflow/lite/micro/kernels/$(CO_PROCESSOR)
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+    --base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+    --specialize_directory $(PATH_TO_COPROCESSOR_KERNELS))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
+  endif
 endif
 
 # TODO(#47413): Remove this logic once we are switched over to the newer version
@@ -551,7 +563,19 @@ THIRD_PARTY_CC_HDRS_V2 := $(THIRD_PARTY_CC_HDRS)
 THIRD_PARTY_CC_HDRS += $(addprefix third_party/,$(THIRD_PARTY_CC_HDRS_BASE))
 
 # Specialize for debug_log. micro_time etc.
-MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),$(TARGET))
+PATH_TO_TARGET_SRCS := tensorflow/lite/micro/$(TARGET)
+MICROLITE_CC_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+  --base_files "$(MICROLITE_CC_SRCS)" \
+  --specialize_directory $(PATH_TO_TARGET_SRCS))
+
+# The first ifneq is needed to be compatible with make versions prior to 4.2
+# which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+# Ubuntu 18.04 only has version 4.1
+ifneq ($(.SHELLSTATUS),)
+  ifneq ($(.SHELLSTATUS),0)
+    $(error Error with specialize_files.py $(MICROLITE_CC_SRCS))
+  endif
+endif
 
 ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
