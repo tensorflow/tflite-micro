@@ -1,12 +1,5 @@
 DOWNLOAD_SCRIPT := $(MAKEFILE_DIR)/download_and_extract.sh
 
-# TODO(b/205886269): Replace all uses of this macro with with a call to
-# specialize_files.py and then delete this macro.
-substitute_specialized_implementation = \
-  $(if $(wildcard $(1)),$(firstword $(wildcard $(dir $(1))$(2)/$(notdir $(1))) $(wildcard $(1))),$(1))
-substitute_specialized_implementations = \
-  $(foreach source,$(1),$(call substitute_specialized_implementation,$(source),$(2)))
-
 #Handles the details of calculating the size of a binary target.
 #
 #Arguments are:
