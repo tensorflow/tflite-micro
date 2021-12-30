@@ -11,3 +11,10 @@ suite:
       shell: "tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./out/cortex_m_generic.log"
       pre: ""
       post: ""
+     
+  tests:
+  - "dummy":
+    executable: ""
+    arguments: "--cyclelimit=1"
+    pre: ""
+    post: ""
