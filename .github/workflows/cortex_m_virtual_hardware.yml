@@ -36,6 +36,10 @@ jobs:
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
           s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+      - name: Fetch results from VHT
+        run: |
+          tar xvzf out.tar
+          cat ./home/ubuntu/vhtwork/out/cortex_m_generic.log
  
   cortex_m_corstone_300:
     runs-on: ubuntu-latest
