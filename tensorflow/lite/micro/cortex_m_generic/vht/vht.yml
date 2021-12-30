@@ -13,8 +13,9 @@ suite:
       post: ""
      
   tests:
-  - "dummy":
-    executable: ""
-    arguments: "--cyclelimit=1"
-    pre: ""
-    post: ""
+   - "dummy entry":
+      executable: ""
+      arguments: "--cyclelimit 1"
+      pre: ""
+      post: ""
+      timeout: 20
