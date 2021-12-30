@@ -1,14 +1,18 @@
 /* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
 #if defined(VISIONP6)
 
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -35,18 +39,15 @@ TfLiteStatus AveragePrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
   TFLITE_DCHECK_EQ(params.stride_height, params.stride_width);
 
-  uint32_t inputN = input->dims->data[0];
-  uint32_t inputH = input->dims->data[1];
-  uint32_t inputW = input->dims->data[2];
-  uint32_t inputD = input->dims->data[3];
+  const uint32_t input_n = SizeOfDimension(input, 0);
+  const uint32_t input_h = SizeOfDimension(input, 1);
+  const uint32_t input_w = SizeOfDimension(input, 2);
+  const uint32_t input_d = SizeOfDimension(input, 3);
 
-  uint32_t outputN = output->dims->data[0];
-  uint32_t outputH = output->dims->data[1];
-  uint32_t outputW = output->dims->data[2];
-  uint32_t outputD = output->dims->data[3];
-  uint32_t strideWidth = params.stride_width;
-  uint32_t filterWidth = params.filter_height;
-  uint32_t filterHeight = params.filter_width;
+  const uint32_t output_n = SizeOfDimension(output, 0);
+  const uint32_t output_h = SizeOfDimension(output, 1);
+  const uint32_t output_w = SizeOfDimension(output, 2);
+  const uint32_t output_d = SizeOfDimension(output, 3);
 
   uint32_t context_size = 0;
   uint32_t status = xiPoolGetMemReqd_Context(&context_size);
@@ -61,9 +62,10 @@ TfLiteStatus AveragePrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   }
 
   status = xiAveragePoolSetContext(
-      data->p_context, data->context_size, inputD, inputW, inputH, inputN,
-      outputD, outputW, outputH, outputN, filterWidth, filterHeight,
-      strideWidth, data->reference_op_data.padding.height,
+      data->p_context, data->context_size, input_d, input_w, input_h, input_n,
+      output_d, output_w, output_h, output_n, params.filter_width,
+      params.filter_height, params.stride_width,
+      data->reference_op_data.padding.height,
       data->reference_op_data.padding.width,
       data->reference_op_data.activation_min,
       data->reference_op_data.activation_max);

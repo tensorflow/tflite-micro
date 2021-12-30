@@ -32,7 +32,7 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=xtensa \
   TARGET_ARCH=visionp6 \
   OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=P29A_VP6 \
+  XTENSA_CORE=P6_200528 \
   build -j$(nproc)
 
 
@@ -45,6 +45,6 @@ if [[ ${1} == "RUN_TESTS" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=visionp6 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P29A_VP6 \
+    XTENSA_CORE=P6_200528 \
     test -j$(nproc)
 fi
