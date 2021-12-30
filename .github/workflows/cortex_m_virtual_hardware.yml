@@ -1,0 +1,65 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+name: Cortex-M on Arm Virtual Hardware
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  schedule:
+    - cron: '0 4 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  cortex_m_generic:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+
+    name: Cortex-M Generic
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_generic/vht ./vht_cm_g
+      - name: Execute test suite on Virtual Hardware at AWS
+        uses: Arm-Software/VHT-AMI@v2
+        with:
+          vht_in: ./vht_cm_g
+          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
+          s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      - name: Fetch results from VHT
+        run: |
+          tar xvzf out.tar
+          cat ./home/ubuntu/vhtwork/out/cortex_m_generic.log
+
+  cortex_m_corstone_300:
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Corstone 300 (FVP)
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
+      - name: Execute test suite on Virtual Hardware at AWS
+        uses: Arm-Software/VHT-AMI@v2
+        with:
+          vht_in: ./vht_cm_corstone300
+          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
+          s3_bucket_name: ${{ secrets.S3_BUCKET_2 }}
+        env: 
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
