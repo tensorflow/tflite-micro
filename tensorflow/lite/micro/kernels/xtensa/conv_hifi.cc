@@ -30,7 +30,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   XtensaConvOpData* data = static_cast<XtensaConvOpData*>(node->user_data);
   const auto params = static_cast<const TfLiteConvParams*>(node->builtin_data);
 
@@ -192,13 +192,13 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
 }
 #endif  // defined (HIFI4_INTERNAL)
 
-TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
-                          const TfLiteConvParams& params,
-                          const XtensaConvOpData& data,
-                          const TfLiteEvalTensor* input,
-                          const TfLiteEvalTensor* filter,
-                          const TfLiteEvalTensor* bias,
-                          TfLiteEvalTensor* output) {
+TfLiteStatus ConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
+                            const TfLiteConvParams& params,
+                            const XtensaConvOpData& data,
+                            const TfLiteEvalTensor* input,
+                            const TfLiteEvalTensor* filter,
+                            const TfLiteEvalTensor* bias,
+                            TfLiteEvalTensor* output) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   /* Dilation is currently not supported on HiFi 4 NN Library */
