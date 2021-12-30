@@ -2,12 +2,6 @@
 INCLUDES += \
  -I$(MAKEFILE_DIR)/downloads/kissfft
 
-GENERATED_PROJECT_INCLUDES += \
--I./third_party/kissfft
-
-PROJECT_INCLUDES += \
-third_party/kissfft
-
 KISSFFT_LIB_SRCS :=
 
 KISSFFT_LIB_HDRS := \
@@ -17,12 +11,6 @@ $(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
 $(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
-
-THIRD_PARTY_CC_HDRS += \
-third_party/kissfft/COPYING \
-third_party/kissfft/kiss_fft.h \
-third_party/kissfft/_kiss_fft_guts.h \
-third_party/kissfft/tools/kiss_fftr.h
 
 MICRO_SPEECH_TEST_SRCS := \
 tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc \
