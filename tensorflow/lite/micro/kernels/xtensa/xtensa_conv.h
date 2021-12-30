@@ -48,8 +48,6 @@ TfLiteStatus ConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteEvalTensor* filter,
                           const TfLiteEvalTensor* bias,
                           TfLiteEvalTensor* output);
-#else
-  TFLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 #endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5) || defined(VISIONP6)
 
 #if defined(HIFI4_INTERNAL)
@@ -60,9 +58,10 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteEvalTensor* filter,
                             const TfLiteEvalTensor* bias,
                             TfLiteEvalTensor* output);
-#else
-  TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 #endif  // defined (HIFI4_INTERNAL)
+
+TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 

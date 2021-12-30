@@ -62,7 +62,6 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   micro_op_resolver.AddSoftmax();
 
   // Build an interpreter to run the model with.
-
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
                                        tensor_arena_size,
                                        &micro_error_reporter);
@@ -90,9 +89,6 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
-
-  profiler.Log();
-  return 0;
 
   // Get the output from the model, and make sure it's the expected size and
   // type.

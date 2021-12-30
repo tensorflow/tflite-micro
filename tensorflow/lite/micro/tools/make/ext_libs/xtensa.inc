@@ -30,7 +30,7 @@ ifeq ($(TARGET_ARCH), hifi5)
 
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi5
 
-  THIRD_PARTY_CC_SRCS += \
+  THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
@@ -38,7 +38,7 @@ ifeq ($(TARGET_ARCH), hifi5)
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
     $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
 
-  THIRD_PARTY_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_CC_SRCS))
+  THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
   THIRD_PARTY_CC_HDRS += \
     $(shell find $(NNLIB_PATH) -name "*.h")
@@ -71,7 +71,7 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
 
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi4
 
-  THIRD_PARTY_CC_SRCS += \
+  THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
@@ -79,7 +79,7 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
     $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
 
-  THIRD_PARTY_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_CC_SRCS))
+  THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
   THIRD_PARTY_CC_HDRS += \
     $(shell find $(NNLIB_PATH) -name "*.h")

@@ -62,6 +62,11 @@ else
   echo >&2 "Unpacked to directory: ${DOWNLOADED_RENODE_PATH}"
 
   pip3 install -r ${DOWNLOADED_RENODE_PATH}/tests/requirements.txt >&2
+
+  pushd ${DOWNLOADED_RENODE_PATH} > /dev/null
+  create_git_repo ./
+  apply_patch_to_folder ./ ../../renode.patch "TFLM patch"
+  popd > /dev/null
 fi
 
 echo "SUCCESS"
