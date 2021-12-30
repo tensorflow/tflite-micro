@@ -25,11 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
-#if (defined(VISIONP6) && defined(XTENSA))
-constexpr int tensor_arena_size = 136 * 1024 + (216 * 1024);
-#else
 constexpr int tensor_arena_size = 136 * 1024;
-#endif
 uint8_t tensor_arena[tensor_arena_size];
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -61,7 +57,6 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   micro_op_resolver.AddSoftmax();
 
   // Build an interpreter to run the model with.
-
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
                                        tensor_arena_size,
                                        &micro_error_reporter);
