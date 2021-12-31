@@ -7,6 +7,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/pooling_hifi.cc \
+  tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
 
 ifeq ($(TARGET_ARCH), hifi5)

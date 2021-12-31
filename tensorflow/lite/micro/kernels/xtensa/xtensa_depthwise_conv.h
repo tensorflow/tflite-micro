@@ -52,11 +52,11 @@ TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
                                      const TfLiteEvalTensor* filter,
                                      const TfLiteEvalTensor* bias,
                                      TfLiteEvalTensor* output);
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) ||
+        // defined(VISIONP6)
 
 TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
                                             TfLiteNode* node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) ||
-        // defined(VISIONP6)
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DEPTHWISE_CONV_H_

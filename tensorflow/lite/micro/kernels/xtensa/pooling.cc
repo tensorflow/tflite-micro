@@ -20,207 +20,35 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
-
 namespace {
 
-#if defined(HIFI5)
+TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
 
-struct OpData {
-  OpDataPooling reference_op_data;
-  int scratch_tensor_index;
-};
-
-TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
-
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
-
-  if (input->type == kTfLiteInt8) {
-    const RuntimeShape& input_shape = GetTensorShape(input);
-    const RuntimeShape& output_shape =
-        GetTensorShape(GetOutput(context, node, kPoolingOutputTensor));
-
-    const int depth = MatchingDim(input_shape, 3, output_shape, 3);
-    const int input_height = input_shape.Dims(1);
-    const int input_width = input_shape.Dims(2);
-    const int output_height = output_shape.Dims(1);
-    const int output_width = output_shape.Dims(2);
-
-    auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
-    auto* data = static_cast<OpData*>(node->user_data);
-
-    int required_scratch = xa_nn_avgpool_getsize(
-        depth, PREC_8, PREC_8, input_height, input_width, params->filter_height,
-        params->filter_width,
-        params->stride_width,                    // x_stride,
-        params->stride_height,                   // y_stride,
-        data->reference_op_data.padding.width,   // x_padding,
-        data->reference_op_data.padding.height,  // y_padding,
-        output_height, output_width, 0 /*NHWC input */, 0 /* NHWC output */);
-
-    if (required_scratch <= 0) {
-      MicroPrintf("Averagepool: xa_nn_avgpool_getsize failed");
-      return kTfLiteError;
-    }
-
-    TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
-        context, required_scratch, &(data->scratch_tensor_index)));
-  }
-
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+#if defined(HIFI5) || defined(VISIONP6)
+  TF_LITE_ENSURE_OK(context, AveragePrepareXtensa(context, node));
+#endif  // defined(HIFI5) || defined(VISIONP6)
   return kTfLiteOk;
 }
-
-TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
-                                      const TfLiteNode* node,
-                                      const TfLitePoolParams* params,
-                                      const OpData* data,
-                                      const TfLiteEvalTensor* input,
-                                      TfLiteEvalTensor* output) {
-  TFLITE_DCHECK(input->type == kTfLiteInt8);
-
-  const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
-  const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int batches = MatchingDim(input_shape, 0, output_shape, 0);
-  const int depth = MatchingDim(input_shape, 3, output_shape, 3);
-  const int input_height = input_shape.Dims(1);
-  const int input_width = input_shape.Dims(2);
-  const int output_height = output_shape.Dims(1);
-  const int output_width = output_shape.Dims(2);
-
-  void* p_scratch = static_cast<void*>(
-      context->GetScratchBuffer(context, data->scratch_tensor_index));
-
-  const int8_t* inp_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
-  int8_t* out_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
-
-  for (int batch = 0; batch < batches; ++batch) {
-    TF_LITE_ENSURE_EQ(
-        context,
-        xa_nn_avgpool_8(
-            &out_data_ptr[output_height * output_width * depth * batch],
-            const_cast<int8_t*>(
-                &inp_data_ptr[output_height * output_width * depth * batch]),
-            input_height, input_width, depth, params->filter_height,
-            params->filter_width, params->stride_width, params->stride_height,
-            data->reference_op_data.padding.width,
-            data->reference_op_data.padding.height, output_height, output_width,
-            0, 0, p_scratch),
-        0);
-  }
-
-  const int out_length = batches * output_height * output_width * depth;
-  TF_LITE_ENSURE_EQ(
-      context,
-      xa_nn_vec_activation_min_max_8_8(
-          out_data_ptr, out_data_ptr, data->reference_op_data.activation_min,
-          data->reference_op_data.activation_max, out_length),
-      0);
-
-  return kTfLiteOk;
-}
-
-TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
-
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
-
-  if (input->type == kTfLiteInt8) {
-    auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
-    auto* data = static_cast<OpData*>(node->user_data);
-
-    const RuntimeShape& input_shape = GetTensorShape(input);
-    const RuntimeShape& output_shape =
-        GetTensorShape(GetOutput(context, node, kPoolingOutputTensor));
-
-    const int depth = MatchingDim(input_shape, 3, output_shape, 3);
-    const int input_height = input_shape.Dims(1);
-    const int input_width = input_shape.Dims(2);
-    const int output_height = output_shape.Dims(1);
-    const int output_width = output_shape.Dims(2);
-
-    int required_scratch = xa_nn_maxpool_getsize(
-        depth, PREC_8, PREC_8, input_height, input_width, params->filter_height,
-        params->filter_width,
-        params->stride_width,                    // x_stride,
-        params->stride_height,                   // y_stride,
-        data->reference_op_data.padding.width,   // x_padding,
-        data->reference_op_data.padding.height,  // y_padding,
-        output_height, output_width, 0 /* NHWC inpput */, 0 /* NHWC output */);
-
-    if (required_scratch <= 0) {
-      MicroPrintf("Maxpool: xa_nn_maxpool_getsize failed");
-      return kTfLiteError;
-    }
-
-    TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
-        context, required_scratch, &(data->scratch_tensor_index)));
-  }
-
-  return kTfLiteOk;
-}
-
-TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
-                                  TfLitePoolParams* params, const OpData* data,
-                                  const TfLiteEvalTensor* input,
-                                  TfLiteEvalTensor* output) {
-  const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
-  const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int batches = MatchingDim(input_shape, 0, output_shape, 0);
-  const int depth = MatchingDim(input_shape, 3, output_shape, 3);
-  const int input_height = input_shape.Dims(1);
-  const int input_width = input_shape.Dims(2);
-  const int output_height = output_shape.Dims(1);
-  const int output_width = output_shape.Dims(2);
-
-  void* p_scratch = static_cast<void*>(
-      context->GetScratchBuffer(context, data->scratch_tensor_index));
-
-  const int8_t* inp_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
-  int8_t* out_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
-
-  for (int batch = 0; batch < batches; ++batch) {
-    TF_LITE_ENSURE_EQ(
-        context,
-        xa_nn_maxpool_8(
-            &out_data_ptr[output_height * output_width * depth * batch],
-            const_cast<int8_t*>(
-                &inp_data_ptr[output_height * output_width * depth * batch]),
-            input_height, input_width, depth, params->filter_height,
-            params->filter_width, params->stride_width, params->stride_height,
-            data->reference_op_data.padding.width,
-            data->reference_op_data.padding.height, output_height, output_width,
-            0, 0, p_scratch),
-        0);
-  }
-
-  const int out_length = batches * output_height * output_width * depth;
-  TF_LITE_ENSURE_EQ(
-      context,
-      xa_nn_vec_activation_min_max_8_8(
-          out_data_ptr, out_data_ptr, data->reference_op_data.activation_min,
-          data->reference_op_data.activation_max, out_length),
-      0);
-
-  return kTfLiteOk;
-}
-
-#endif  // defined(HIFI5)
 
 TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(HIFI5)
-  const OpData* op_data = static_cast<const OpData*>(node->user_data);
+#if defined(HIFI5) || defined(VISIONP6)
+  const XtensaOpDataPooling* op_data =
+      static_cast<const XtensaOpDataPooling*>(node->user_data);
   const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
 #else
   const OpDataPooling* reference_op_data =
       static_cast<const OpDataPooling*>(node->user_data);
-#endif
+#endif  // defined(HIFI5) || defined(VISIONP6)
 
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kPoolingInputTensor);
@@ -234,12 +62,13 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     case kTfLiteInt8:
-#if defined(HIFI5)
-      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#if defined(HIFI5) || defined(VISIONP6)
+      return AverageEvalQuantizedXtensa(context, node, params, op_data, input,
+                                        output);
 #else
       AveragePoolingEvalQuantized(context, node, params, reference_op_data,
                                   input, output);
-#endif
+#endif  // defined(HIFI5) || defined(VISIONP6)
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Input type %s is not currently supported",
@@ -249,18 +78,29 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus MaxPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, PoolingPrepare(context, node));
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+#if defined(HIFI5)
+  TF_LITE_ENSURE_OK(context, MaxPrepareXtensa(context, node));
+#endif  // defined(HIFI5)
+  return kTfLiteOk;
+}
+
 TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
 #if defined(HIFI5)
-  const OpData* op_data = static_cast<const OpData*>(node->user_data);
+  const XtensaOpDataPooling* op_data =
+      static_cast<const XtensaOpDataPooling*>(node->user_data);
   const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
 #else
   const OpDataPooling* reference_op_data =
       static_cast<const OpDataPooling*>(node->user_data);
-#endif
+#endif  // defined(HIFI5)
 
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kPoolingInputTensor);
@@ -274,11 +114,11 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt8:
 #if defined(HIFI5)
-      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+      MaxEvalQuantizedXtensa(context, node, params, op_data, input, output);
 #else
       MaxPoolingEvalQuantized(context, node, params, reference_op_data, input,
                               output);
-#endif
+#endif  // defined(HIFI5)
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
@@ -290,47 +130,41 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-#if defined(HIFI5)
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
-#else
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
-#endif
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(XtensaOpDataPooling));
+
+#if defined(VISIONP6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif  // defined(VISIONP6)
+  return data;
 }
 
 }  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
-  return { /*init=*/
-    Init,
-        /*free=*/nullptr,
-#if defined(HIFI5)
-        /*prepare=*/AveragePrepareHifi,
-#else
-        /*prepare=*/PoolingPrepare,
-#endif
-        /*invoke=*/AverageEval,
-        /*profiling_string=*/nullptr,
-        /*builtin_code=*/0,
-        /*custom_name=*/nullptr,
-        /*version=*/0
-  };
+  return {/*init=*/
+          Init,
+          /*free=*/nullptr,
+          /*prepare=*/AveragePrepare,
+          /*invoke=*/AverageEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {
-  return { /*init=*/
-    Init,
-        /*free=*/nullptr,
-#if defined(HIFI5)
-        /*prepare=*/MaxPrepareHifi,
-#else
-        /*prepare=*/PoolingPrepare,
-#endif
-        /*invoke=*/MaxEval,
-        /*profiling_string=*/nullptr,
-        /*builtin_code=*/0,
-        /*custom_name=*/nullptr,
-        /*version=*/0
-  };
+  return {/*init=*/
+          Init,
+          /*free=*/nullptr,
+          /*prepare=*/MaxPrepare,
+          /*invoke=*/MaxEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 }  // namespace tflite
