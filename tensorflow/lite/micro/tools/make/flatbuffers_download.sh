@@ -57,9 +57,9 @@ DOWNLOADED_FLATBUFFERS_PATH=${DOWNLOADS_DIR}/flatbuffers
 if [ -d ${DOWNLOADED_FLATBUFFERS_PATH} ]; then
   echo >&2 "${DOWNLOADED_FLATBUFFERS_PATH} already exists, skipping the download."
 else
-  ZIP_PREFIX="96f3cf690feec0739e57c183b698779ab4d7d0c0"
+  ZIP_PREFIX="f28c2b29364970e23c8ba3d751ca188f8a08c71e"
   FLATBUFFERS_URL="https://github.com/google/flatbuffers/archive/${ZIP_PREFIX}.zip"
-  FLATBUFFERS_MD5="85cd3d8ccc1bd16dfb41cc35017a376b"
+  FLATBUFFERS_MD5="41017cbbdd280e191656d2e8d7a06432"
 
   TEMPDIR="$(mktemp -d)"
   TEMPFILE="${TEMPDIR}/${ZIP_PREFIX}.zip"
@@ -74,12 +74,6 @@ else
   delete_build_files ${DOWNLOADED_FLATBUFFERS_PATH}
   create_git_repo ./
   apply_patch_to_folder ./ ../../flatbuffers.patch "TFLM patch"
-
-  # This temporary patch can be removed once
-  # https://github.com/google/flatbuffers/pull/7003 is merged and TFLM is
-  # updated to use a version of flatbuffers that includes that change.
-  apply_patch_to_folder ./ ../../flatbuffers_temporary.patch \
-    "Temp patch to match https://github.com/google/flatbuffers/pull/7003"
 
   popd > /dev/null
 fi
