@@ -3,6 +3,9 @@ EXAMPLE_NAME:=hello_world
 HELLO_WORLD_TEST_SRCS := \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/$(EXAMPLE_NAME)_test.cc
 
+HELLO_WORLD_TEST_PIGWEED_SRCS := \
+tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/$(EXAMPLE_NAME)_test.pigweed.cc
+
 OUTPUT_HANDLER_TEST_SRCS := \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler_test.cc \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler.cc
@@ -37,6 +40,10 @@ include $(wildcard tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/*/Makefile.inc
 # Tests loading and running the sine model.
 $(eval $(call microlite_test,$(EXAMPLE_NAME)_test,\
 $(HELLO_WORLD_TEST_SRCS),,$(HELLO_WORLD_GENERATOR_INPUTS)))
+
+# Tests using Pigweed's unit test module.
+$(eval $(call pigweed_unit_test,$(EXAMPLE_NAME)_test_pigweed,\
+$(HELLO_WORLD_TEST_PIGWEED_SRCS),,$(HELLO_WORLD_GENERATOR_INPUTS)))
 
 # Tests producing an output.
 $(eval $(call microlite_test,output_handler_test,\
