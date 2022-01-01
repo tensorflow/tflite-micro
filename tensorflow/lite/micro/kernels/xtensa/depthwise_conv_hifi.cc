@@ -30,8 +30,8 @@ limitations under the License.
 
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 namespace tflite {
-TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
-                                        TfLiteNode* node) {
+TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
+                                      TfLiteNode* node) {
   XtensaDepthwiseConvOpData* data =
       static_cast<XtensaDepthwiseConvOpData*>(node->user_data);
   const auto& params =
@@ -81,13 +81,13 @@ TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
-                                     const TfLiteDepthwiseConvParams& params,
-                                     const XtensaDepthwiseConvOpData& data,
-                                     const TfLiteEvalTensor* input,
-                                     const TfLiteEvalTensor* filter,
-                                     const TfLiteEvalTensor* bias,
-                                     TfLiteEvalTensor* output) {
+TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output) {
   // If dilation is not required use the optimized NN Library kernel.
   // Otherwise call the reference implementation.
   if ((params.dilation_width_factor == 1) &&

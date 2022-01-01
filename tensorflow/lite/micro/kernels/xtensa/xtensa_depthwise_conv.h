@@ -28,35 +28,23 @@ struct XtensaDepthwiseConvOpData {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   int scratch_tensor_index;
 #endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
-
-#if defined(VISIONP6)
-  // Buffers used to keep reordered coeff and biases.
-  int8_t* reorder_coefficient_bias;
-  uint32_t reorder_coefficient_bias_size;
-  int8_t* per_channel_output_shift_int8;
-  // Persistent lib context for this instance.
-  uint8_t* p_context;
-  uint32_t context_size;
-#endif  // VISIONP6
 };
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
-    defined(VISIONP6)
-TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
-                                        TfLiteNode* node);
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus DepthwiseConvEvalXtensa(TfLiteContext* context, TfLiteNode* node,
-                                     const TfLiteDepthwiseConvParams& params,
-                                     const XtensaDepthwiseConvOpData& data,
-                                     const TfLiteEvalTensor* input,
-                                     const TfLiteEvalTensor* filter,
-                                     const TfLiteEvalTensor* bias,
-                                     TfLiteEvalTensor* output);
+TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output);
 
 TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
                                             TfLiteNode* node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) ||
-        // defined(VISIONP6)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DEPTHWISE_CONV_H_
