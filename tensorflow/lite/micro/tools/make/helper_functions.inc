@@ -107,3 +107,5 @@ endef
 # 2 - File pattern, e.g: *.h
 recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))
 
+# Include helpers for declaring unit tests that use Pigweed's pw_unit_test module
+include $(MAKEFILE_DIR)/pigweed_unit_test.inc
