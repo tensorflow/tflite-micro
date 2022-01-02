@@ -105,3 +105,7 @@ tensorflow/lite/micro/kernels/zeros_like_test.cc
 # Generate simple kernel test targets in a common way
 $(foreach TEST_TARGET,$(MICROLITE_KERNEL_SIMPLE_TEST_SRCS),\
 $(eval $(call microlite_test,kernel_$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET))))
+
+# Tests using Pigweed's unit test module
+$(eval $(call pigweed_unit_test,kernel_fill_test_pigweed,\
+  tensorflow/lite/micro/kernels/fill_test.pigweed.cc))
