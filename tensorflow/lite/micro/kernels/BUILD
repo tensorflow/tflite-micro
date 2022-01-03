@@ -184,6 +184,7 @@ tflm_kernel_cc_library(
         "logistic.cc",
         "logistic_common.cc",
         "maximum_minimum.cc",
+        "mirror_pad.cc",
         "mul.cc",
         "mul_common.cc",
         "neg.cc",
@@ -813,6 +814,20 @@ cc_test(
     name = "maximum_minimum_test",
     srcs = [
         "maximum_minimum_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "mirror_pad_test",
+    srcs = [
+        "mirror_pad_test.cc",
     ],
     deps = [
         ":kernel_runner",

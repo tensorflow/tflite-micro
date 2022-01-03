@@ -356,6 +356,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::Register_MAX_POOL_2D(), ParsePool);
   }
 
+  TfLiteStatus AddMirrorPad() {
+    return AddBuiltin(BuiltinOperator_MIRROR_PAD, tflite::Register_MIRROR_PAD(),
+                      ParseMirrorPad);
+  }
+
   TfLiteStatus AddMean() {
     return AddBuiltin(BuiltinOperator_MEAN, tflite::ops::micro::Register_MEAN(),
                       ParseReducer);
