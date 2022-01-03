@@ -16,14 +16,12 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
 
-#if defined(HIFIMINI)
-#include <xtensa/tie/xt_hifi2.h>
-#elif ((defined(HIFI4)) || (defined(HIFI5)))
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 #include "include/nnlib/xa_nnlib_api.h"
 #include "include/nnlib/xa_nnlib_standards.h"
 
 #define ALIGNED_SIZE(x, bytes) (((x) + (bytes - 1)) & (~(bytes - 1)))
 #define ALIGN_PTR(x, bytes) ((((unsigned)(x)) + (bytes - 1)) & (~(bytes - 1)))
-#endif
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_

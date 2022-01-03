@@ -112,6 +112,7 @@ endif
 
 CORE_OPTIMIZATION_LEVEL := -Os
 KERNEL_OPTIMIZATION_LEVEL := -O2
+THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL := -O2
 
 # Warn if deprecated optimization level is set.
 OPTIMIZATION_LEVEL :=
@@ -234,6 +235,7 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
+THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
 THIRD_PARTY_OBJDIR := $(GENDIR)obj/third_party/
 GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
@@ -398,22 +400,37 @@ $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
 
-# For project generation v1, the headers that are common to all targets need to
-# have a third_party prefix. Other third_party headers (e.g. CMSIS) do not have
-# this requirement and are added to THIRD_PARTY_CC_HDRS with full path from the
-# tensorflow root. This inconsistency may also be the reason why (for
-# example) these different third party libraries are fund in different paths in
-# the Arduino output tree.
-#
-# The convention with the (under development) project generation v2 is for all
-# third party paths to be relative to the root of the git repository. We are
-# keeping backwards compatibility between v1 and v2 by having a
-# THIRD_PARTY_CC_HDRS_BASE variable and adding in a third_party prefix to
-# THIRD_PARTY_CC_HDRS later on in the Makefile logic.
-# TODO(#47413): remove this additional logic once we are ready to switch over to
-# project generation v2.
-THIRD_PARTY_CC_HDRS :=
+# TODO(b/165940489): Figure out how to avoid including fixed point
+# platform-specific headers.
+THIRD_PARTY_CC_HDRS := \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_neon.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_sse.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/internal/detect_platform.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/LICENSE \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/allocator.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/array.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/base.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/buffer.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/buffer_ref.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/default_allocator.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/detached_buffer.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flatbuffer_builder.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flatbuffers.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flexbuffers.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/stl_emulation.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/string.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/struct.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/table.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/vector.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/vector_downward.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/verifier.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/util.h \
+$(MAKEFILE_DIR)/downloads/flatbuffers/LICENSE.txt \
+$(MAKEFILE_DIR)/downloads/ruy/ruy/profiler/instrumentation.h
+
 THIRD_PARTY_CC_SRCS :=
+THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
 include $(MAKEFILE_DIR)/additional_kernels.inc
@@ -422,21 +439,6 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SR
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
 
 
-# TODO(b/165940489): Figure out how to avoid including fixed point
-# platform-specific headers.
-THIRD_PARTY_CC_HDRS_BASE := \
-gemmlowp/fixedpoint/fixedpoint.h \
-gemmlowp/fixedpoint/fixedpoint_neon.h \
-gemmlowp/fixedpoint/fixedpoint_sse.h \
-gemmlowp/internal/detect_platform.h \
-gemmlowp/LICENSE \
-flatbuffers/include/flatbuffers/base.h \
-flatbuffers/include/flatbuffers/stl_emulation.h \
-flatbuffers/include/flatbuffers/flatbuffers.h \
-flatbuffers/include/flatbuffers/flexbuffers.h \
-flatbuffers/include/flatbuffers/util.h \
-flatbuffers/LICENSE.txt \
-ruy/ruy/profiler/instrumentation.h
 
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
@@ -523,20 +525,35 @@ endif
 ifneq ($(CO_PROCESSOR),)
   include $(MAKEFILE_DIR)/ext_libs/$(CO_PROCESSOR).inc
   # Specialize for the coprocessor kernels.
-  MICROLITE_CC_KERNEL_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_KERNEL_SRCS),$(CO_PROCESSOR))
+  PATH_TO_COPROCESSOR_KERNELS := tensorflow/lite/micro/kernels/$(CO_PROCESSOR)
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+    --base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+    --specialize_directory $(PATH_TO_COPROCESSOR_KERNELS))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
+  endif
 endif
 
-# TODO(#47413): Remove this logic once we are switched over to the newer version
-# of project generation (v2). Project generation v1 needs the "base" third party
-# headers to have a prefix of third_party/. In order to support v2 prototyping
-# without a lot of changes with the v1 system, we are manually adding in this
-# prefix, and also making a copy in THIRD_PARTY_CC_HDRS_V2 that will be used in
-# the list_third_party_headers target.
-THIRD_PARTY_CC_HDRS_V2 := $(THIRD_PARTY_CC_HDRS)
-THIRD_PARTY_CC_HDRS += $(addprefix third_party/,$(THIRD_PARTY_CC_HDRS_BASE))
-
 # Specialize for debug_log. micro_time etc.
-MICROLITE_CC_SRCS := $(call substitute_specialized_implementations,$(MICROLITE_CC_SRCS),$(TARGET))
+PATH_TO_TARGET_SRCS := tensorflow/lite/micro/$(TARGET)
+MICROLITE_CC_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+  --base_files "$(MICROLITE_CC_SRCS)" \
+  --specialize_directory $(PATH_TO_TARGET_SRCS))
+
+# The first ifneq is needed to be compatible with make versions prior to 4.2
+# which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+# Ubuntu 18.04 only has version 4.1
+ifneq ($(.SHELLSTATUS),)
+  ifneq ($(.SHELLSTATUS),0)
+    $(error Error with specialize_files.py $(MICROLITE_CC_SRCS))
+  endif
+endif
 
 ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
@@ -579,6 +596,9 @@ $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))
 MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
+MICROLITE_THIRD_PARTY_KERNEL_OBJS := $(addprefix $(THIRD_PARTY_KERNEL_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_CC_SRCS)))))
+
 MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
@@ -606,6 +626,18 @@ $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_KERNEL_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
 $(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
@@ -621,10 +653,10 @@ $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 microlite: $(MICROLITE_LIB_PATH)
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
+$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
-	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS)
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
 
 $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
@@ -721,10 +753,10 @@ list_library_headers:
 	@echo $(MICROLITE_CC_HDRS)
 
 list_third_party_sources:
-	@echo $(THIRD_PARTY_CC_SRCS)
+	@echo $(THIRD_PARTY_CC_SRCS) $(THIRD_PARTY_KERNEL_CC_SRCS)
 
 list_third_party_headers:
-	@echo $(addprefix $(MAKEFILE_DIR)/downloads/,$(THIRD_PARTY_CC_HDRS_BASE)) $(THIRD_PARTY_CC_HDRS_V2)
+	@echo $(THIRD_PARTY_CC_HDRS)
 
 list_generator_dir:
 	@echo $(GENERATED_SRCS_DIR)

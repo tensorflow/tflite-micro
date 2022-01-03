@@ -3,7 +3,7 @@ name: Remove Labels
 on:
   pull_request_target:
     types: [labeled]
-
+  
 jobs:
   label_cleanup:
     runs-on: ubuntu-latest
