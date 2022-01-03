@@ -36,7 +36,9 @@ class MicroContext {
   explicit MicroContext(MicroAllocator* allocator, const Model* model,
                         MicroGraph* graph);
 
-  // Functions that will be assigned to function pointers on TfLiteContext:
+  // Functions that will be assigned to function pointers on TfLiteContext.
+  // TODO(b/213010668): remove static and let these functions be member
+  // functions that do not depend on TfLiteContext.
   static void* AllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes);
   static TfLiteStatus RequestScratchBufferInArena(TfLiteContext* ctx,
                                                   size_t bytes,
