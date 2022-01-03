@@ -80,10 +80,6 @@ class MicroInterpreter {
   // one external context.
   TfLiteStatus SetMicroExternalContext(void* external_context_payload);
 
-  // This function is used by the TfLiteContext::GetExternalContext() to get the
-  // external context.
-  void* GetMicroExternalContext();
-
   TfLiteTensor* input(size_t index);
   size_t inputs_size() const {
     return model_->subgraphs()->Get(0)->inputs()->size();
@@ -168,7 +164,7 @@ class MicroInterpreter {
   TfLiteTensor** input_tensors_;
   TfLiteTensor** output_tensors_;
 
-  MicroContext context_helper_;
+  MicroContext micro_context_;
 };
 
 }  // namespace tflite

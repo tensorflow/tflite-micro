@@ -22,7 +22,6 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
 namespace micro {
@@ -87,8 +86,6 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
 //    }
 //
 void* GetMicroExternalContext(TfLiteContext* context);
-
-MicroGraph* GetMicroGraph(TfLiteContext* context);
 
 }  // namespace micro
 }  // namespace tflite

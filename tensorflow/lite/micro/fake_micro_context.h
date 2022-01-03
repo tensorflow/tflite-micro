@@ -13,18 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MOCK_MICRO_CONTEXT_H_
-#define TENSORFLOW_LITE_MICRO_MOCK_MICRO_CONTEXT_H_
+#ifndef TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_
+#define TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_
 
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/mock_micro_graph.h"
+#include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
 
-class MockMicroContext : public MicroContext {
+class FakeMicroContext : public MicroContext {
  public:
-  MockMicroContext(TfLiteTensor* tensors, SimpleMemoryAllocator* allocator,
-                   MockMicroGraph* mock_micro_graph);
+  FakeMicroContext(TfLiteTensor* tensors, SimpleMemoryAllocator* allocator,
+                   MicroGraph* micro_graph);
 
   // Overload
   static TfLiteTensor* GetTensor(const struct TfLiteContext* context,
@@ -42,7 +42,7 @@ class MockMicroContext : public MicroContext {
   MicroGraph* GetGraph() override;
 
  private:
-  static MockMicroContext* GetMicroContext(const struct TfLiteContext* context);
+  static FakeMicroContext* GetMicroContext(const struct TfLiteContext* context);
 
   static constexpr int kNumScratchBuffers_ = 12;
 
@@ -51,11 +51,11 @@ class MockMicroContext : public MicroContext {
 
   TfLiteTensor* tensors_;
   SimpleMemoryAllocator* allocator_;
-  MockMicroGraph* mock_micro_graph_;
+  MicroGraph* micro_graph_;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MOCK_MICRO_CONTEXT_H_
+#endif  // TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_

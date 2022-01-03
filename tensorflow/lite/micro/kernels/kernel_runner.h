@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/mock_micro_context.h"
+#include "tensorflow/lite/micro/fake_micro_context.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 
@@ -61,7 +61,7 @@ class KernelRunner {
 
   SimpleMemoryAllocator* allocator_;
   MockMicroGraph mock_micro_graph_;
-  MockMicroContext mock_micro_context_;
+  FakeMicroContext fake_micro_context_;
 };
 
 }  // namespace micro

@@ -73,12 +73,12 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_micro_context",
+    name = "fake_micro_context",
     srcs = [
-        "mock_micro_context.cc",
+        "fake_micro_context.cc",
     ],
     hdrs = [
-        "mock_micro_context.h",
+        "fake_micro_context.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -383,6 +383,21 @@ cc_test(
     deps = [
         ":micro_framework",
         ":op_resolvers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "micro_context_test",
+    srcs = [
+        "micro_context_test.cc",
+    ],
+    deps = [
+        ":micro_allocator",
+        ":micro_context",
+        ":micro_error_reporter",
+        ":test_helpers",
+        "//tensorflow/lite/core/api",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

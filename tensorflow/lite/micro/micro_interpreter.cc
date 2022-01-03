@@ -52,7 +52,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
       output_tensors_(nullptr),
-      context_helper_(&allocator_, model_, &graph_) {
+      micro_context_(&allocator_, model_, &graph_) {
   Init(profiler);
 }
 
@@ -71,7 +71,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
       output_tensors_(nullptr),
-      context_helper_(&allocator_, model_, &graph_) {
+      micro_context_(&allocator_, model_, &graph_) {
   Init(profiler);
 }
 
@@ -82,10 +82,10 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfiler* profiler) {
-  context_.impl_ = static_cast<void*>(&context_helper_);
+  context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = context_.ReportError;
-  context_.GetTensor = context_helper_.GetTensor;
-  context_.GetEvalTensor = context_helper_.GetEvalTensor;
+  context_.GetTensor = micro_context_.GetTensor;
+  context_.GetEvalTensor = micro_context_.GetEvalTensor;
   context_.profiler = profiler;
 
   initialization_status_ = kTfLiteOk;
@@ -200,19 +200,18 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
   // Only allow AllocatePersistentBuffer in Init stage.
-  context_.AllocatePersistentBuffer = context_helper_.AllocatePersistentBuffer;
+  context_.AllocatePersistentBuffer = micro_context_.AllocatePersistentBuffer;
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
-  // context_.GetExecutionPlan = context_helper_.GetGraph;
   context_.GetExternalContext = nullptr;
   TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena =
-      context_helper_.RequestScratchBufferInArena;
+      micro_context_.RequestScratchBufferInArena;
   // GetExternalContext become available in Prepare stage.
-  context_.GetExternalContext = context_helper_.GetExternalContext;
+  context_.GetExternalContext = micro_context_.GetExternalContext;
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
@@ -220,13 +219,13 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
   context_.AllocatePersistentBuffer = nullptr;
   context_.RequestScratchBufferInArena = nullptr;
-  context_.GetScratchBuffer = context_helper_.GetScratchBuffer;
+  context_.GetScratchBuffer = micro_context_.GetScratchBuffer;
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),
                                    &scratch_buffer_handles_));
 
-  context_helper_.SetScratchBufferHandles(scratch_buffer_handles_);
+  micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
 
   // TODO(b/162311891): Drop these allocations when the interpreter supports
   // handling buffers from TfLiteEvalTensor.
@@ -325,7 +324,7 @@ TfLiteStatus MicroInterpreter::ResetVariableTensors() {
 
 TfLiteStatus MicroInterpreter::SetMicroExternalContext(
     void* external_context_payload) {
-  return context_helper_.SetExternalContext(external_context_payload);
+  return micro_context_.SetExternalContext(external_context_payload);
 }
 
 }  // namespace tflite

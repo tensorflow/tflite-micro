@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/mock_micro_context.h"
+#include "tensorflow/lite/micro/fake_micro_context.h"
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
@@ -21,32 +21,32 @@ limitations under the License.
 namespace tflite {
 using ::tflite::MicroArenaBufferAlignment;
 
-MockMicroContext::MockMicroContext(TfLiteTensor* tensors,
+FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SimpleMemoryAllocator* allocator,
-                                   MockMicroGraph* mock_micro_graph)
+                                   MicroGraph* micro_graph)
     : MicroContext(nullptr, nullptr, nullptr),
       tensors_(tensors),
       allocator_(allocator),
-      mock_micro_graph_(mock_micro_graph) {}
+      micro_graph_(micro_graph) {}
 
-MockMicroContext* MockMicroContext::GetMicroContext(
+FakeMicroContext* FakeMicroContext::GetMicroContext(
     const struct TfLiteContext* context) {
-  return reinterpret_cast<MockMicroContext*>(context->impl_);
+  return reinterpret_cast<FakeMicroContext*>(context->impl_);
 }
 
-TfLiteTensor* MockMicroContext::GetTensor(const struct TfLiteContext* context,
+TfLiteTensor* FakeMicroContext::GetTensor(const struct TfLiteContext* context,
                                           int tensor_index) {
   TFLITE_DCHECK(context != nullptr);
 
-  MockMicroContext* mock_context = GetMicroContext(context);
+  FakeMicroContext* mock_context = GetMicroContext(context);
   TFLITE_DCHECK(mock_context != nullptr);
   return &mock_context->tensors_[tensor_index];
 }
 
-TfLiteEvalTensor* MockMicroContext::GetEvalTensor(
+TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(
     const struct TfLiteContext* context, int tensor_index) {
   TFLITE_DCHECK(context != nullptr);
-  MockMicroContext* runner = GetMicroContext(context);
+  FakeMicroContext* runner = GetMicroContext(context);
   TFLITE_DCHECK(runner != nullptr);
 
   TfLiteEvalTensor* eval_tensor =
@@ -62,21 +62,21 @@ TfLiteEvalTensor* MockMicroContext::GetEvalTensor(
   return eval_tensor;
 }
 
-void* MockMicroContext::AllocatePersistentBuffer(TfLiteContext* context,
+void* FakeMicroContext::AllocatePersistentBuffer(TfLiteContext* context,
                                                  size_t bytes) {
   TFLITE_DCHECK(context != nullptr);
-  MockMicroContext* runner = GetMicroContext(context);
+  FakeMicroContext* runner = GetMicroContext(context);
   TFLITE_DCHECK(runner != nullptr);
   return runner->allocator_->AllocateFromTail(bytes,
                                               MicroArenaBufferAlignment());
 }
 
-TfLiteStatus MockMicroContext::RequestScratchBufferInArena(
+TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(
     TfLiteContext* context, size_t bytes, int* buffer_index) {
   TFLITE_DCHECK(context != nullptr);
   TFLITE_DCHECK(buffer_index != nullptr);
 
-  MockMicroContext* runner = GetMicroContext(context);
+  FakeMicroContext* runner = GetMicroContext(context);
   TFLITE_DCHECK(runner != nullptr);
 
   if (runner->scratch_buffer_count_ == kNumScratchBuffers_) {
@@ -97,10 +97,10 @@ TfLiteStatus MockMicroContext::RequestScratchBufferInArena(
   return kTfLiteOk;
 }
 
-void* MockMicroContext::GetScratchBuffer(TfLiteContext* context,
+void* FakeMicroContext::GetScratchBuffer(TfLiteContext* context,
                                          int buffer_index) {
   TFLITE_DCHECK(context != nullptr);
-  MockMicroContext* runner = GetMicroContext(context);
+  FakeMicroContext* runner = GetMicroContext(context);
   TFLITE_DCHECK(runner != nullptr);
 
   TFLITE_DCHECK(runner->scratch_buffer_count_ <= kNumScratchBuffers_);
@@ -110,7 +110,7 @@ void* MockMicroContext::GetScratchBuffer(TfLiteContext* context,
   return runner->scratch_buffers_[buffer_index];
 }
 
-void MockMicroContext::ReportOpError(struct TfLiteContext* context,
+void FakeMicroContext::ReportOpError(struct TfLiteContext* context,
                                      const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -118,6 +118,6 @@ void MockMicroContext::ReportOpError(struct TfLiteContext* context,
   va_end(args);
 }
 
-MicroGraph* MockMicroContext::GetGraph() { return mock_micro_graph_; }
+MicroGraph* FakeMicroContext::GetGraph() { return micro_graph_; }
 
 }  // namespace tflite

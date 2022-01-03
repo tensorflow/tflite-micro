@@ -16,7 +16,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
 namespace micro {
@@ -127,11 +126,6 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
 void* GetExternalContext(TfLiteContext* context) {
   return reinterpret_cast<void*>(
       context->GetExternalContext(context, kTfLiteMaxExternalContexts));
-}
-
-MicroGraph* GetMicroGraph(TfLiteContext* context) {
-  MicroContext* micro_context = MicroContext::GetMicroContext(context);
-  return micro_context->GetGraph();
 }
 
 }  // namespace micro

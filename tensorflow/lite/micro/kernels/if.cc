@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -61,11 +62,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   size_t num_inputs = node->inputs->size - 1;
   size_t num_outputs = node->outputs->size;
 
-  // Casting to TfliteIntArray is required since we are re-using
-  // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
-  // MicroGraph.
-  // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info = micro::GetMicroGraph(context);
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  MicroGraph* graph_info = micro_context->GetGraph();
 
   TF_LITE_ENSURE(context,
                  op_data->then_subgraph_index < graph_info->NumSubgraphs());
@@ -89,7 +87,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &cond));
   bool cond_value = cond->data.b[0];
 
-  MicroGraph* graph_info = micro::GetMicroGraph(context);
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  MicroGraph* graph_info = micro_context->GetGraph();
 
   // Currently we copy the input / output between the subgraphs. This isn't
   // optimized yet.

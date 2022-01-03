@@ -20,20 +20,19 @@ limitations under the License.
 #include <cstdint>
 
 namespace tflite {
-
 MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
-    : allocator_(allocator), model_(model), graph_(graph) {}
+    : allocator_(*allocator), model_(model), graph_(graph) {}
 
 void* MicroContext::AllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes) {
-  return GetMicroContext(ctx)->allocator_->AllocatePersistentBuffer(bytes);
+  return GetMicroContext(ctx)->allocator_.AllocatePersistentBuffer(bytes);
 }
 
 TfLiteStatus MicroContext::RequestScratchBufferInArena(TfLiteContext* context,
                                                        size_t bytes,
                                                        int* buffer_idx) {
   MicroContext* micro_context = GetMicroContext(context);
-  return micro_context->allocator_->RequestScratchBufferInArena(
+  return micro_context->allocator_.RequestScratchBufferInArena(
       bytes, micro_context->graph_->GetCurrentSubgraphIndex(), buffer_idx);
 }
 
@@ -55,7 +54,7 @@ MicroGraph* MicroContext::GetGraph() { return graph_; }
 TfLiteTensor* MicroContext::GetTensor(const struct TfLiteContext* context,
                                       int tensor_idx) {
   MicroContext* micro_context = GetMicroContext(context);
-  return micro_context->allocator_->AllocateTempTfLiteTensor(
+  return micro_context->allocator_.AllocateTempTfLiteTensor(
       micro_context->model_, micro_context->graph_->GetAllocations(),
       tensor_idx, micro_context->graph_->GetCurrentSubgraphIndex());
 }
@@ -67,11 +66,6 @@ TfLiteEvalTensor* MicroContext::GetEvalTensor(
               ->GetAllocations()[micro_context->graph_
                                      ->GetCurrentSubgraphIndex()]
               .tensors[tensor_idx];
-}
-
-MicroContext* MicroContext::GetMicroContext(
-    const struct TfLiteContext* context) {
-  return reinterpret_cast<MicroContext*>(context->impl_);
 }
 
 void MicroContext::SetScratchBufferHandles(

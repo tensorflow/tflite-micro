@@ -23,9 +23,16 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
-
+// MicroContext is eventually going to become the API between TFLM and the
+// kernels, replacing all the functions in TfLiteContext. The end state is code
+// kernels to have code like:
+//
+// MicroContext* micro_context = GetMicroContext(context);
+// micro_context-><TFLM kernel API>
 class MicroContext {
  public:
+  // Does not take any ownership, and all pointers must refer to valid objects
+  // that outlive the one constructed.
   explicit MicroContext(MicroAllocator* allocator, const Model* model,
                         MicroGraph* graph);
 
@@ -42,27 +49,31 @@ class MicroContext {
                                          int tensor_idx);
   static void ReportOpError(struct TfLiteContext* context, const char* format,
                             ...);
-
-  static MicroContext* GetMicroContext(const struct TfLiteContext* context);
-
-  TfLiteStatus SetExternalContext(void* external_context_payload);
   static TfLiteExternalContext* GetExternalContext(
       TfLiteContext* context, TfLiteExternalContextType unused);
+  TfLiteStatus SetExternalContext(void* external_context_payload);
 
-  // Sets the pointer to a list of ScratchBufferHandle instances.
-  void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
-
+  // Functions that provide unique API between TFLM and kernels.
+  // Virtual so that it can be mocked.
   virtual MicroGraph* GetGraph();
 
+  // Sets the pointer to a list of ScratchBufferHandle instances. This is used
+  // by the framework only.
+  void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
+
  private:
-  MicroAllocator* allocator_ = nullptr;
-  const Model* model_ = nullptr;
-  MicroGraph* graph_ = nullptr;
+  MicroAllocator& allocator_;
+  const Model* model_;
+  MicroGraph* graph_;
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+inline MicroContext* GetMicroContext(const struct TfLiteContext* context) {
+  return reinterpret_cast<MicroContext*>(context->impl_);
+}
 
 }  // namespace tflite
 
