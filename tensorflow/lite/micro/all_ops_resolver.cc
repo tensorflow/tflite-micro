@@ -66,6 +66,7 @@ AllOpsResolver::AllOpsResolver() {
   AddMaximum();
   AddMean();
   AddMinimum();
+  AddMirrorPad();
   AddMul();
   AddNeg();
   AddNotEqual();
