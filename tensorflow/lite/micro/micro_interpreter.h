@@ -157,7 +157,7 @@ class MicroInterpreter {
 
   TfLiteStatus initialization_status_;
 
-  ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
+  void* external_context_payload_ = nullptr;
 
   // TODO(b/162311891): Clean these pointers up when this class supports buffers
   // from TfLiteEvalTensor.

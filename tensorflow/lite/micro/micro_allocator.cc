@@ -107,7 +107,7 @@ class AllocationInfoBuilder {
   // Add allocation information for the scratch buffers.
   TfLiteStatus AddScratchBuffers(
       internal::ScratchBufferRequest* scratch_buffer_requests,
-      ScratchBufferHandle* scratch_buffer_handles);
+      ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx);
 
   // Returns a pointer to the built AllocationInfo array.
   const AllocationInfo* Finish() const { return info_; }
@@ -221,21 +221,24 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
 
 TfLiteStatus AllocationInfoBuilder::AddScratchBuffers(
     internal::ScratchBufferRequest* scratch_buffer_requests,
-    ScratchBufferHandle* scratch_buffer_handles) {
+    ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx) {
   // Set up allocation info for buffers.
-  for (size_t i = tensor_count_; i < tensor_count_ + buffer_count_; ++i) {
+  for (size_t i = 0, buffers_added = 0; i < buffer_count_; ++i) {
     internal::ScratchBufferRequest* current_request =
-        &(scratch_buffer_requests[i - tensor_count_]);
-    ScratchBufferHandle* current_handle =
-        &(scratch_buffer_handles[i - tensor_count_]);
+        &(scratch_buffer_requests[i]);
+    if (current_request->subgraph_idx == subgraph_idx) {
+      ScratchBufferHandle* current_handle =
+          &(scratch_buffer_handles[buffers_added]);
 
-    AllocationInfo* current = &info_[i];
-    current->output_ptr = reinterpret_cast<void**>(&current_handle->data);
-    current->bytes = current_request->bytes;
-    current->first_created = current_request->node_idx;
-    current->last_used = current_request->node_idx;
-    current->offline_offset = kOnlinePlannedBuffer;
-    current->needs_allocating = true;
+      AllocationInfo* current = &info_[tensor_count_ + buffers_added];
+      current->output_ptr = reinterpret_cast<void**>(&current_handle->data);
+      current->bytes = current_request->bytes;
+      current->first_created = current_request->node_idx;
+      current->last_used = current_request->node_idx;
+      current->offline_offset = kOnlinePlannedBuffer;
+      current->needs_allocating = true;
+      buffers_added++;
+    }
   }
   return kTfLiteOk;
 }
@@ -570,8 +573,7 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
 }
 
 TfLiteStatus MicroAllocator::FinishModelAllocation(
-    const Model* model, SubgraphAllocations* subgraph_allocations,
-    ScratchBufferHandle** scratch_buffer_handles) {
+    const Model* model, SubgraphAllocations* subgraph_allocations) {
   if (!model_is_allocating_) {
     TF_LITE_REPORT_ERROR(error_reporter_,
                          "MicroAllocator: Model allocation finished before "
@@ -586,10 +588,12 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
     TFLITE_DCHECK(subgraph != nullptr);
 
     TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
-        scratch_buffer_handles, scratch_buffer_request_count_));
+        &subgraph_allocations[subgraph_idx].scratch_buffer_handles,
+        subgraph_allocations[subgraph_idx].scratch_buffer_request_count_));
     TF_LITE_ENSURE_STATUS(CommitStaticMemoryPlan(
         model, subgraph_allocations[subgraph_idx].tensors,
-        *scratch_buffer_handles, subgraph_idx));
+        subgraph_allocations[subgraph_idx].scratch_buffer_handles,
+        subgraph_idx));
     TF_LITE_ENSURE_STATUS(AllocateVariables(
         subgraph, subgraph_allocations[subgraph_idx].tensors));
   }
@@ -602,9 +606,9 @@ void* MicroAllocator::AllocatePersistentBuffer(size_t bytes) {
                                              MicroArenaBufferAlignment());
 }
 
-TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
-                                                         int subgraph_idx,
-                                                         int* buffer_idx) {
+TfLiteStatus MicroAllocator::RequestScratchBufferInArena(
+    SubgraphAllocations* subgraph_allocations, size_t bytes, int subgraph_idx,
+    int* buffer_idx) {
   // All scratch buffer requests are stored in the head section of the arena
   // when a model is in the prepare phase. First align a scratch buffer request
   // pointer to the start of the head:
@@ -612,7 +616,7 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
 
   // Count the number of requested scratch buffers for the current node:
   size_t current_node_request_count = 0;
-  for (size_t i = 0; i < scratch_buffer_request_count_; ++i) {
+  for (size_t i = 0; i < total_scratch_requests_; ++i) {
     if (requests[i].node_idx == kUnassignedScratchBufferRequestIndex) {
       ++current_node_request_count;
     }
@@ -629,18 +633,20 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
 
   // Initialize and assign values for the request at the current index:
   internal::ScratchBufferRequest* current_request =
-      &requests[scratch_buffer_request_count_];
+      &requests[total_scratch_requests_];
   *current_request = {};
   // Assign -1 as a sentinel value that will be updated when the node finishes
   // allocating:
   current_request->bytes = bytes;
+  current_request->subgraph_idx = subgraph_idx;
+  subgraph_allocations[subgraph_idx].scratch_buffer_request_count_++;
   current_request->node_idx = kUnassignedScratchBufferRequestIndex;
 
   // Assign the current request index to the out-param:
-  *buffer_idx = scratch_buffer_request_count_;
+  *buffer_idx = total_scratch_requests_;
 
   // Bump the request count to prepare for the next request:
-  ++scratch_buffer_request_count_;
+  ++total_scratch_requests_;
   return kTfLiteOk;
 }
 
@@ -652,7 +658,7 @@ TfLiteStatus MicroAllocator::FinishPrepareNodeAllocations(int node_id) {
   // Find and update any new scratch buffer requests for the current node:
   internal::ScratchBufferRequest* requests = GetScratchBufferRequests();
 
-  for (size_t i = 0; i < scratch_buffer_request_count_; ++i) {
+  for (size_t i = 0; i < total_scratch_requests_; ++i) {
     // A request with a node_idx of -1 is a sentinel value used to indicate this
     // was a new request for the current node. The allocator finally knows the
     // node index at this point. Assign the value and update the list of new
@@ -667,7 +673,7 @@ TfLiteStatus MicroAllocator::FinishPrepareNodeAllocations(int node_id) {
   // kMaxScratchBuffersPerOp scratch buffer requests in the next operator:
   TF_LITE_ENSURE_STATUS(memory_allocator_->SetHeadBufferSize(
       sizeof(internal::ScratchBufferRequest) *
-          (scratch_buffer_request_count_ + kMaxScratchBuffersPerOp),
+          (total_scratch_requests_ + kMaxScratchBuffersPerOp),
       alignof(internal::ScratchBufferRequest)));
 
   return kTfLiteOk;
@@ -880,7 +886,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
 
   const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
   size_t allocation_info_count =
-      subgraph->tensors()->size() + scratch_buffer_request_count_;
+      subgraph->tensors()->size() + total_scratch_requests_;
   size_t bytes = sizeof(AllocationInfo) * allocation_info_count;
 
   // Allocate an array of AllocationInfo structs from the temp section. This
@@ -898,7 +904,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   // Use the AllocationInfoBuilder class to help determine where buffers are
   // used in the subgraph.
   AllocationInfoBuilder builder(allocation_info, subgraph->tensors()->size(),
-                                scratch_buffer_request_count_, error_reporter_);
+                                total_scratch_requests_, error_reporter_);
 
   const int32_t* offline_planner_offsets = nullptr;
   TF_LITE_ENSURE_STATUS(
@@ -909,8 +915,8 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   internal::ScratchBufferRequest* scratch_buffer_requests =
       GetScratchBufferRequests();
 
-  TF_LITE_ENSURE_STATUS(builder.AddScratchBuffers(scratch_buffer_requests,
-                                                  scratch_buffer_handles));
+  TF_LITE_ENSURE_STATUS(builder.AddScratchBuffers(
+      scratch_buffer_requests, scratch_buffer_handles, subgraph_idx));
 
   // Remaining arena size that memory planner can use for calculating offsets.
   size_t remaining_arena_size =
@@ -970,7 +976,7 @@ TfLiteStatus MicroAllocator::AllocateScratchBufferHandles(
     ScratchBufferHandle** scratch_buffer_handles, size_t handle_count) {
   TFLITE_DCHECK(scratch_buffer_handles != nullptr);
 
-  if (scratch_buffer_request_count_ == 0) {
+  if (total_scratch_requests_ == 0) {
     // No scratch buffer requests were requested during model allocation.
     return kTfLiteOk;
   }
@@ -988,7 +994,7 @@ TfLiteStatus MicroAllocator::AllocateScratchBufferHandles(
 TfLiteStatus MicroAllocator::InitScratchBufferData() {
   // A model is preparing to allocate resources, ensure that scratch buffer
   // request counter is cleared:
-  scratch_buffer_request_count_ = 0;
+  total_scratch_requests_ = 0;
 
   // All requests will be stored in the head section. Each kernel is allowed at
   // most kMaxScratchBuffersPerOp requests. Adjust the head to reserve at most

@@ -222,13 +222,8 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
-                                   model_, graph_.GetAllocations(),
-                                   &scratch_buffer_handles_));
+                                   model_, graph_.GetAllocations()));
 
-  micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
-
-  // TODO(b/162311891): Drop these allocations when the interpreter supports
-  // handling buffers from TfLiteEvalTensor.
   input_tensors_ =
       reinterpret_cast<TfLiteTensor**>(allocator_.AllocatePersistentBuffer(
           sizeof(TfLiteTensor*) * inputs_size()));
@@ -251,8 +246,6 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     }
   }
 
-  // TODO(b/162311891): Drop these allocations when the interpreter supports
-  // handling buffers from TfLiteEvalTensor.
   output_tensors_ =
       reinterpret_cast<TfLiteTensor**>(allocator_.AllocatePersistentBuffer(
           sizeof(TfLiteTensor*) * outputs_size()));
