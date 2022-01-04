@@ -564,6 +564,7 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
     MicroPrintf("Failed to allocate memory for model metadata.");
     return nullptr;
   }
+  memset(output, 0, sizeof(SubgraphAllocations) * model->subgraphs()->size());
 
   if (AllocateTfLiteEvalTensors(model, output) != kTfLiteOk ||
       AllocateNodeAndRegistrations(model, output) != kTfLiteOk) {

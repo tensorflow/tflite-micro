@@ -37,7 +37,6 @@ constexpr int kTestConvArenaSize = 1024 * 12;
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
-  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
   tflite::AllOpsResolver all_ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
   uint8_t arena[kTestConvArenaSize];
@@ -55,8 +54,8 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
   TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
   if (subgraph_allocations == nullptr) return 1;
 
-  TfLiteStatus status = micro_allocator->FinishModelAllocation(
-      model, subgraph_allocations, &scratch_buffer_handles);
+  TfLiteStatus status =
+      micro_allocator->FinishModelAllocation(model, subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(status, kTfLiteOk);
   if (status != kTfLiteOk) return 1;
 
@@ -78,7 +77,6 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
 }
 
 TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
-  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
   tflite::AllOpsResolver all_ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
   uint8_t arena[kTestConvArenaSize];
@@ -94,8 +92,8 @@ TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
   TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
   if (subgraph_allocations == nullptr) return 1;
 
-  TfLiteStatus status = micro_allocator->FinishModelAllocation(
-      model, subgraph_allocations, &scratch_buffer_handles);
+  TfLiteStatus status =
+      micro_allocator->FinishModelAllocation(model, subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(status, kTfLiteOk);
   if (status != kTfLiteOk) return 1;
 
@@ -112,7 +110,6 @@ TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
 }
 
 TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
-  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
   tflite::AllOpsResolver all_ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
 
@@ -133,8 +130,7 @@ TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
   if (subgraph_allocations == nullptr) return 1;
 
-  status = micro_allocator->FinishModelAllocation(model, subgraph_allocations,
-                                                  &scratch_buffer_handles);
+  status = micro_allocator->FinishModelAllocation(model, subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(status, kTfLiteOk);
   if (status != kTfLiteOk) return 1;
 
@@ -143,8 +139,8 @@ TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
   if (subgraph_allocations == nullptr) return 1;
 
-  status = kTfLiteOk, micro_allocator->FinishModelAllocation(
-                          model, subgraph_allocations, &scratch_buffer_handles);
+  status = kTfLiteOk,
+  micro_allocator->FinishModelAllocation(model, subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(status, kTfLiteOk);
   if (status != kTfLiteOk) return 1;
 
