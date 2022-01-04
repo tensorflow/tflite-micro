@@ -61,6 +61,9 @@ typedef struct {
   // determine the lifetime of the buffer. In AllocationInfo, this buffer will
   // have `before` = node_idx and `after` = node_idx.
   int node_idx;
+  // Subgraph for which the scratch buffer is allocated. The scratch buffer will
+  // only be part of the memory plan for its subgraph.
+  int subgraph_idx;
 } ScratchBufferRequest;
 
 }  // namespace internal
@@ -79,10 +82,13 @@ typedef struct {
 } ScratchBufferHandle;
 
 // Stores all per-subgraph allocations. This includes the node and registration
-// array, tensor list and scratch buffer handles for each subgraph.
+// array, tensor list, scratch buffer handles and scratch buffer counts for each
+// subgraph.
 typedef struct {
   NodeAndRegistration* node_and_registrations;
   TfLiteEvalTensor* tensors;
+  ScratchBufferHandle* scratch_buffer_handles;
+  int scratch_buffer_request_count_;
 } SubgraphAllocations;
 
 // Allocator responsible for allocating memory for all intermediate tensors
@@ -160,9 +166,8 @@ class MicroAllocator {
   // handles are stored in the out-param `scratch_buffer_handles` array which is
   // allocated in this method. This value will be used in `GetScratchBuffer`
   // call to retrieve scratch buffers.
-  TfLiteStatus FinishModelAllocation(
-      const Model* model, SubgraphAllocations* subgraph_allocations,
-      ScratchBufferHandle** scratch_buffer_handles);
+  TfLiteStatus FinishModelAllocation(const Model* model,
+                                     SubgraphAllocations* subgraph_allocations);
 
   // Allocates a TfLiteTensor struct and populates the returned value with
   // properties from the model flatbuffer. This struct is allocated from
@@ -205,8 +210,9 @@ class MicroAllocator {
   // This method only requests a buffer with a given size to be used after a
   // model has finished allocation via FinishModelAllocation(). All requested
   // buffers will be accessible by the out-param in that method.
-  TfLiteStatus RequestScratchBufferInArena(size_t bytes, int subgraph_idx,
-                                           int* buffer_idx);
+  TfLiteStatus RequestScratchBufferInArena(
+      SubgraphAllocations* subgraph_allocations, size_t bytes, int subgraph_idx,
+      int* buffer_idx);
 
   // Finish allocating a specific NodeAndRegistration prepare block (kernel
   // entry for a model) with a given node ID. This call ensures that any scratch
@@ -297,7 +303,7 @@ class MicroAllocator {
 
   // Holds the number of ScratchBufferRequest instances stored in the head
   // section when a model is allocating.
-  size_t scratch_buffer_request_count_ = 0;
+  size_t total_scratch_requests_ = 0;
 
   // Holds the byte length of the memory plan with the largest head usage. Used
   // to ensure that multi-tenant allocations can share the head for buffers.
