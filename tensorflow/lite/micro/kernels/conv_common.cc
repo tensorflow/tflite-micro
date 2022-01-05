@@ -168,8 +168,6 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
                    affine_quantization->scale->size == 1 ||
                        affine_quantization->scale->size ==
                            filter->dims->data[kConvQuantizedDimension]);
-    TF_LITE_ENSURE_EQ(context, affine_quantization->scale->size,
-                      affine_quantization->zero_point->size);
   }
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataConv(

@@ -118,6 +118,11 @@ cc_library(
     ],
 )
 
+FUSION_F1_COPS = [
+    "-DXTENSA=1",
+    "-DHIFI4=1",
+]
+
 HIFI4_COPTS = [
     "-DXTENSA=1",
     "-DHIFI4_INTERNAL=1",
@@ -181,6 +186,7 @@ tflm_kernel_cc_library(
         "logistic.cc",
         "logistic_common.cc",
         "maximum_minimum.cc",
+        "mirror_pad.cc",
         "mul.cc",
         "mul_common.cc",
         "neg.cc",
@@ -252,7 +258,7 @@ tflm_kernel_cc_library(
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
-        xtensa_fusion_f1_config(): HIFI4_COPTS,
+        xtensa_fusion_f1_config(): FUSION_F1_COPS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
         "//conditions:default": [],
@@ -810,6 +816,20 @@ cc_test(
     name = "maximum_minimum_test",
     srcs = [
         "maximum_minimum_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "mirror_pad_test",
+    srcs = [
+        "mirror_pad_test.cc",
     ],
     deps = [
         ":kernel_runner",
