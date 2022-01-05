@@ -404,6 +404,7 @@ $(TFL_CC_HDRS)
 # platform-specific headers.
 # some kiss fft source file has to be included in header sections because
 # the implemenation of three different resolution fft from one single c file.
+# See http://b/201319430 for additional context.
 THIRD_PARTY_CC_HDRS := \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/allocator.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/array.h \
