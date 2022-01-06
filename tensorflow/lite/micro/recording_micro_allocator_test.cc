@@ -67,7 +67,7 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
 
   micro_allocator->PrintAllocations();
 
-  size_t tensors_count = tflite::testing::GetModelTensorCount(model);
+  size_t tensors_count = tflite::testing::GetModelTensorCount(model, 0);
 
   TF_LITE_MICRO_EXPECT_EQ(recorded_allocation.count, tensors_count);
   TF_LITE_MICRO_EXPECT_EQ(recorded_allocation.requested_bytes,
@@ -144,7 +144,7 @@ TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   TF_LITE_MICRO_EXPECT_EQ(status, kTfLiteOk);
   if (status != kTfLiteOk) return 1;
 
-  size_t tensors_count = tflite::testing::GetModelTensorCount(model);
+  size_t tensors_count = tflite::testing::GetModelTensorCount(model, 0);
 
   tflite::RecordedAllocation recorded_allocation =
       micro_allocator->GetRecordedAllocation(

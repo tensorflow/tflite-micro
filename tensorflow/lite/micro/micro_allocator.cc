@@ -86,10 +86,11 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
 class AllocationInfoBuilder {
  public:
   AllocationInfoBuilder(AllocationInfo* info, size_t tensor_count,
-                        size_t scratch_buffer_count, ErrorReporter* reporter)
+                        size_t total_scratch_buffer_count,
+                        ErrorReporter* reporter)
       : info_(info),
         tensor_count_(tensor_count),
-        buffer_count_(scratch_buffer_count),
+        buffer_count_(total_scratch_buffer_count),
         reporter_(reporter) {}
 
   // Check if model contains offline planned buffer offsets.
@@ -230,6 +231,7 @@ TfLiteStatus AllocationInfoBuilder::AddScratchBuffers(
       ScratchBufferHandle* current_handle =
           &(scratch_buffer_handles[buffers_added]);
 
+      // Scratch buffers start at the end of the tensor allocations.
       AllocationInfo* current = &info_[tensor_count_ + buffers_added];
       current->output_ptr = reinterpret_cast<void**>(&current_handle->data);
       current->bytes = current_request->bytes;
@@ -594,6 +596,7 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
     TF_LITE_ENSURE_STATUS(CommitStaticMemoryPlan(
         model, subgraph_allocations[subgraph_idx].tensors,
         subgraph_allocations[subgraph_idx].scratch_buffer_handles,
+        subgraph_allocations[subgraph_idx].scratch_buffer_request_count_,
         subgraph_idx));
     TF_LITE_ENSURE_STATUS(AllocateVariables(
         subgraph, subgraph_allocations[subgraph_idx].tensors));
@@ -873,7 +876,8 @@ ErrorReporter* MicroAllocator::error_reporter() const {
 
 TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
     const Model* model, TfLiteEvalTensor* eval_tensors,
-    ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx) {
+    ScratchBufferHandle* scratch_buffer_handles, int scratch_request_count,
+    int subgraph_idx) {
   size_t head_usage = 0;
   // Create static memory plan
   // 1. Calculate AllocationInfo to know the lifetime of each tensor/buffer.
@@ -887,7 +891,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
 
   const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
   size_t allocation_info_count =
-      subgraph->tensors()->size() + total_scratch_requests_;
+      subgraph->tensors()->size() + scratch_request_count;
   size_t bytes = sizeof(AllocationInfo) * allocation_info_count;
 
   // Allocate an array of AllocationInfo structs from the temp section. This

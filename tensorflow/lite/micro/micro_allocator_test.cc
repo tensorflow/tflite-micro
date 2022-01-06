@@ -115,7 +115,7 @@ void AllocateAndVerifyMockWeightTensor(
 void EnsureUniqueVariableTensorBuffer(const Model* model,
                                       TfLiteEvalTensor* eval_tensors,
                                       const int variable_tensor_idx) {
-  for (size_t i = 0; i < GetModelTensorCount(model); i++) {
+  for (size_t i = 0; i < GetModelTensorCount(model, 0); i++) {
     if (i != static_cast<size_t>(variable_tensor_idx)) {
       TF_LITE_MICRO_EXPECT_NE(eval_tensors[variable_tensor_idx].data.raw,
                               eval_tensors[i].data.raw);
@@ -324,7 +324,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
           /*is_memory_planner_injected=*/false);
   TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
   tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
@@ -369,7 +369,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
           /*is_memory_planner_injected=*/true);
   TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
   tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
@@ -393,6 +393,49 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
                                                        /*count=*/2,
                                                        /*num_subgraphs=*/1);
+}
+
+TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithSubgraphsAndIf();
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  constexpr size_t arena_size = 10 * 1024;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
+      arena, arena_size, tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  for (int subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+       subgraph_idx++) {
+    int buffer_idx = -1;
+    TF_LITE_MICRO_EXPECT_EQ(
+        kTfLiteOk,
+        allocator->RequestScratchBufferInArena(
+            subgraph_allocations, sizeof(uint8_t), subgraph_idx, &buffer_idx));
+    TF_LITE_MICRO_EXPECT_GE(buffer_idx, 0);
+    allocator->FinishPrepareNodeAllocations(0);
+  }
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
+
+  // SimpleModelWithSubgraphsAndIf has 1 operators per subgraph and 3 subgraphs:
+  tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
+                                                       /*count=*/1,
+                                                       /*num_subgraphs=*/3);
+
+  for (int subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+       subgraph_idx++) {
+    tflite::SubgraphAllocations* allocations =
+        &subgraph_allocations[subgraph_idx];
+    TfLiteEvalTensor* eval_tensors = allocations->tensors;
+    void* scratch_buffer = allocations->scratch_buffer_handles[0].data;
+    for (int i = 0;
+         i < tflite::testing::GetModelTensorCount(model, subgraph_idx); i++) {
+      TF_LITE_MICRO_EXPECT_NE(eval_tensors[i].data.raw, scratch_buffer);
+    }
+  }
 }
 
 TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
@@ -486,7 +529,7 @@ TF_LITE_MICRO_TEST(TestAllocationForComplexModelAllocation) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(10), model_tensor_size);
 
   // NOTE: Tensor indexes match the values in GetComplexMockModel().
@@ -1032,7 +1075,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
   tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
                                                      subgraph_allocations, 1);

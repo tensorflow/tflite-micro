@@ -267,7 +267,8 @@ class MicroAllocator {
   // the head section.
   virtual TfLiteStatus CommitStaticMemoryPlan(
       const Model* model, TfLiteEvalTensor* eval_tensors,
-      ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx);
+      ScratchBufferHandle* scratch_buffer_handles, int scratch_request_count,
+      int subgraph_idx);
 
   // Allocates an array of ScratchBufferHandle structs in the tail section for a
   // given number of handles.
