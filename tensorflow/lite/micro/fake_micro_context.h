@@ -31,10 +31,11 @@ class FakeMicroContext : public MicroContext {
                                  int tensor_index);
   static TfLiteEvalTensor* GetEvalTensor(const struct TfLiteContext* context,
                                          int tensor_index);
-  static void* AllocatePersistentBuffer(TfLiteContext* context, size_t bytes);
-  static TfLiteStatus RequestScratchBufferInArena(TfLiteContext* context,
-                                                  size_t bytes,
-                                                  int* buffer_index);
+
+  void* AllocatePersistentBuffer(size_t bytes) override;
+  TfLiteStatus RequestScratchBufferInArena(size_t bytes,
+                                           int* buffer_index) override;
+
   static void* GetScratchBuffer(TfLiteContext* context, int buffer_index);
   static void ReportOpError(struct TfLiteContext* context, const char* format,
                             ...);

@@ -43,10 +43,9 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.recommended_num_threads = 1;
   context_.GetTensor = fake_micro_context_.GetTensor;
   context_.GetEvalTensor = fake_micro_context_.GetEvalTensor;
-  context_.AllocatePersistentBuffer =
-      fake_micro_context_.AllocatePersistentBuffer;
+  context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
   context_.RequestScratchBufferInArena =
-      fake_micro_context_.RequestScratchBufferInArena;
+      MicroContextRequestScratchBufferInArena;
   context_.GetScratchBuffer = fake_micro_context_.GetScratchBuffer;
 
   context_.recommended_num_threads = 0;

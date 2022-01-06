@@ -24,25 +24,22 @@ MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
     : allocator_(*allocator), model_(model), graph_(graph) {}
 
-void* MicroContext::AllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes) {
-  return GetMicroContext(ctx)->allocator_.AllocatePersistentBuffer(bytes);
+void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
+  return allocator_.AllocatePersistentBuffer(bytes);
 }
 
-TfLiteStatus MicroContext::RequestScratchBufferInArena(TfLiteContext* context,
-                                                       size_t bytes,
+TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
-  MicroContext* micro_context = GetMicroContext(context);
-  return micro_context->allocator_.RequestScratchBufferInArena(
-      bytes, micro_context->graph_->GetCurrentSubgraphIndex(), buffer_idx);
+  return allocator_.RequestScratchBufferInArena(
+      bytes, graph_->GetCurrentSubgraphIndex(), buffer_idx);
 }
 
-void* MicroContext::GetScratchBuffer(TfLiteContext* context, int buffer_idx) {
-  ScratchBufferHandle* handle =
-      GetMicroContext(context)->scratch_buffer_handles_ + buffer_idx;
+void* MicroContext::GetScratchBuffer(int buffer_idx) {
+  ScratchBufferHandle* handle = scratch_buffer_handles_ + buffer_idx;
   return handle->data;
 }
-void MicroContext::ReportOpError(struct TfLiteContext* context,
-                                 const char* format, ...) {
+
+void MicroContext::ReportOpError(const char* format, ...) {
   va_list args;
   va_start(args, format);
   MicroPrintf(format, args);
@@ -51,20 +48,14 @@ void MicroContext::ReportOpError(struct TfLiteContext* context,
 
 MicroGraph* MicroContext::GetGraph() { return graph_; }
 
-TfLiteTensor* MicroContext::GetTensor(const struct TfLiteContext* context,
-                                      int tensor_idx) {
-  MicroContext* micro_context = GetMicroContext(context);
-  return micro_context->allocator_.AllocateTempTfLiteTensor(
-      micro_context->model_, micro_context->graph_->GetAllocations(),
-      tensor_idx, micro_context->graph_->GetCurrentSubgraphIndex());
+TfLiteTensor* MicroContext::GetTensor(int tensor_idx) {
+  return allocator_.AllocateTempTfLiteTensor(model_, graph_->GetAllocations(),
+                                             tensor_idx,
+                                             graph_->GetCurrentSubgraphIndex());
 }
 
-TfLiteEvalTensor* MicroContext::GetEvalTensor(
-    const struct TfLiteContext* context, int tensor_idx) {
-  MicroContext* micro_context = GetMicroContext(context);
-  return &micro_context->graph_
-              ->GetAllocations()[micro_context->graph_
-                                     ->GetCurrentSubgraphIndex()]
+TfLiteEvalTensor* MicroContext::GetEvalTensor(int tensor_idx) {
+  return &graph_->GetAllocations()[graph_->GetCurrentSubgraphIndex()]
               .tensors[tensor_idx];
 }
 
@@ -86,10 +77,8 @@ TfLiteStatus MicroContext::SetExternalContext(void* external_context_payload) {
   return kTfLiteOk;
 }
 
-TfLiteExternalContext* MicroContext::GetExternalContext(
-    TfLiteContext* context, TfLiteExternalContextType unused) {
-  return reinterpret_cast<TfLiteExternalContext*>(
-      GetMicroContext(context)->external_context_payload_);
+TfLiteExternalContext* MicroContext::GetExternalContext() {
+  return reinterpret_cast<TfLiteExternalContext*>(external_context_payload_);
 }
 
 }  // namespace tflite

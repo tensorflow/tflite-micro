@@ -84,8 +84,8 @@ MicroInterpreter::~MicroInterpreter() {
 void MicroInterpreter::Init(MicroProfiler* profiler) {
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = context_.ReportError;
-  context_.GetTensor = micro_context_.GetTensor;
-  context_.GetEvalTensor = micro_context_.GetEvalTensor;
+  context_.GetTensor = MicroContextGetTensor;
+  context_.GetEvalTensor = MicroContextGetEvalTensor;
   context_.profiler = profiler;
 
   initialization_status_ = kTfLiteOk;
@@ -200,7 +200,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
   // Only allow AllocatePersistentBuffer in Init stage.
-  context_.AllocatePersistentBuffer = micro_context_.AllocatePersistentBuffer;
+  context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
   context_.GetExternalContext = nullptr;
@@ -209,9 +209,9 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
   context_.RequestScratchBufferInArena =
-      micro_context_.RequestScratchBufferInArena;
+      MicroContextRequestScratchBufferInArena;
   // GetExternalContext become available in Prepare stage.
-  context_.GetExternalContext = micro_context_.GetExternalContext;
+  context_.GetExternalContext = MicroContextGetExternalContext;
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
@@ -219,7 +219,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
   context_.AllocatePersistentBuffer = nullptr;
   context_.RequestScratchBufferInArena = nullptr;
-  context_.GetScratchBuffer = micro_context_.GetScratchBuffer;
+  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),

@@ -55,14 +55,9 @@ TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           micro_context.SetExternalContext(&payload));
 
-  TfLiteContext tf_lite_context;
-  tf_lite_context.impl_ = &micro_context;
-
   tflite::TestExternalContextPayloadData* returned_external_context =
       reinterpret_cast<tflite::TestExternalContextPayloadData*>(
-          tflite::MicroContext::GetExternalContext(
-              &tf_lite_context,
-              TfLiteExternalContextType::kTfLiteMaxExternalContexts));
+          micro_context.GetExternalContext());
 
   // What is returned should be the same as what is set.
   TF_LITE_MICRO_EXPECT((void*)returned_external_context == (void*)(&payload));
@@ -71,14 +66,9 @@ TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
 TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
 
-  TfLiteContext tf_lite_context;
-  tf_lite_context.impl_ = &micro_context;
-
   tflite::TestExternalContextPayloadData* returned_external_context =
       reinterpret_cast<tflite::TestExternalContextPayloadData*>(
-          tflite::MicroContext::GetExternalContext(
-              &tf_lite_context,
-              TfLiteExternalContextType::kTfLiteMaxExternalContexts));
+          micro_context.GetExternalContext());
 
   // Return a null if nothing is set before.
   TF_LITE_MICRO_EXPECT((void*)returned_external_context == (nullptr));

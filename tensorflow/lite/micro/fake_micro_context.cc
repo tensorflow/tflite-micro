@@ -62,24 +62,15 @@ TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(
   return eval_tensor;
 }
 
-void* FakeMicroContext::AllocatePersistentBuffer(TfLiteContext* context,
-                                                 size_t bytes) {
-  TFLITE_DCHECK(context != nullptr);
-  FakeMicroContext* runner = GetMicroContext(context);
-  TFLITE_DCHECK(runner != nullptr);
-  return runner->allocator_->AllocateFromTail(bytes,
-                                              MicroArenaBufferAlignment());
+void* FakeMicroContext::AllocatePersistentBuffer(size_t bytes) {
+  return allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
 }
 
-TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(
-    TfLiteContext* context, size_t bytes, int* buffer_index) {
-  TFLITE_DCHECK(context != nullptr);
+TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(size_t bytes,
+                                                           int* buffer_index) {
   TFLITE_DCHECK(buffer_index != nullptr);
 
-  FakeMicroContext* runner = GetMicroContext(context);
-  TFLITE_DCHECK(runner != nullptr);
-
-  if (runner->scratch_buffer_count_ == kNumScratchBuffers_) {
+  if (scratch_buffer_count_ == kNumScratchBuffers_) {
     MicroPrintf("Exceeded the maximum number of scratch tensors allowed (%d).",
                 kNumScratchBuffers_);
     return kTfLiteError;
@@ -88,12 +79,11 @@ TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(
   // For tests, we allocate scratch buffers from the tail and keep them around
   // for the lifetime of model. This means that the arena size in the tests will
   // be more than what we would have if the scratch buffers could share memory.
-  runner->scratch_buffers_[runner->scratch_buffer_count_] =
-      runner->allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
-  TFLITE_DCHECK(runner->scratch_buffers_[runner->scratch_buffer_count_] !=
-                nullptr);
+  scratch_buffers_[scratch_buffer_count_] =
+      allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
+  TFLITE_DCHECK(scratch_buffers_[scratch_buffer_count_] != nullptr);
 
-  *buffer_index = runner->scratch_buffer_count_++;
+  *buffer_index = scratch_buffer_count_++;
   return kTfLiteOk;
 }
 
