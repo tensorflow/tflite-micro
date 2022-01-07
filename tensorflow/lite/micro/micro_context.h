@@ -67,9 +67,6 @@ class MicroContext {
   // WARNING: This is an experimental interface that is subject to change.
   virtual TfLiteEvalTensor* GetEvalTensor(int tensor_idx);
 
-  // Requests that an error be reported with format string msg.
-  void ReportOpError(const char* format, ...);
-
   // Accesses external contexts by type.
   // WARNING: This is an experimental interface that is subject to change.
   TfLiteExternalContext* GetExternalContext();
@@ -131,13 +128,11 @@ inline TfLiteExternalContext* MicroContextGetExternalContext(
     TfLiteContext* context, TfLiteExternalContextType unused) {
   return GetMicroContext(context)->GetExternalContext();
 }
-inline void MicroContextReportOpError(struct TfLiteContext* context,
-                                      const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  GetMicroContext(context)->ReportOpError(format, args);
-  va_end(args);
-}
+
+// Requests that an error be reported with format string msg.
+void MicroContextReportOpError(struct TfLiteContext* context,
+                               const char* format, ...);
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_

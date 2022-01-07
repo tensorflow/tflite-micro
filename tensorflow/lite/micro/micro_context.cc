@@ -41,13 +41,6 @@ void* MicroContext::GetScratchBuffer(int buffer_idx) {
   return handle->data;
 }
 
-void MicroContext::ReportOpError(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  GetMicroErrorReporter()->Report(format, args);
-  va_end(args);
-}
-
 MicroGraph* MicroContext::GetGraph() { return graph_; }
 
 TfLiteTensor* MicroContext::GetTensor(int tensor_idx) {
@@ -81,6 +74,14 @@ TfLiteStatus MicroContext::SetExternalContext(void* external_context_payload) {
 
 TfLiteExternalContext* MicroContext::GetExternalContext() {
   return reinterpret_cast<TfLiteExternalContext*>(external_context_payload_);
+}
+
+void MicroContextReportOpError(struct TfLiteContext* context,
+                               const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  GetMicroErrorReporter()->Report(format, args);
+  va_end(args);
 }
 
 }  // namespace tflite
