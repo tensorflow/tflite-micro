@@ -113,7 +113,7 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 START_HEADER="################## START ##############################"
 END_HEADER="#################### END ############################"
 HEAD_SHA=`git rev-parse HEAD`
-SIZE_LOG=${SCRIPT_DIR}/size_log_x86.csv
+SIZE_LOG=${SCRIPT_DIR}/size_data/size_linux_x86_64_release.csv
 
 # Clean previous build including downloads
 make -f tensorflow/lite/micro/tools/make/Makefile clean clean_downloads
@@ -132,7 +132,7 @@ end_size_report ${SIZE_LOG}
 if [[ ${KEYWORD_BENCHMARK_STATUS} != 0 || ${BASELINE_MEMORY_FOOTPRINT_STATUS} != 0 || ${INTERPRETER_MEMORY_FOOTPRINT_STATUS} != 0 ]]
 then
   echo "Failure in profiling."
-  return -1
+  exit -1
 fi
 
 ## TODO: run difference detection and also return error code if detecting large increase

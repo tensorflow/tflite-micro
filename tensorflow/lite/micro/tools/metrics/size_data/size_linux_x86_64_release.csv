@@ -1,0 +1,19 @@
+################## START ##############################
+Fri Jan  7 12:37:28 AM PST 2022
+Profiled at e8e00b1c9c36725ea6575709b539075de6f7e2a0
+binary name, text, data, bss, total
+linux_x86_64_release/bin/keyword_benchmark, 81105, 1512, 22400, 105017
+linux_x86_64_release/bin/baseline_memory_footprint, 1394, 520, 8, 1922
+linux_x86_64_release/bin/interpreter_memory_footprint, 22031, 1408, 24, 23463
+#################### END ############################
+
+
+################## START ##############################
+Fri Jan  7 07:48:26 AM PST 2022
+Profiled at 8409c0c587518d0e04c5ef451c74314c3374397f
+binary name, text, data, bss, total
+linux_x86_64_release/bin/keyword_benchmark, 81105, 1512, 22400, 105017
+linux_x86_64_release/bin/baseline_memory_footprint, 1394, 520, 8, 1922
+linux_x86_64_release/bin/interpreter_memory_footprint, 22031, 1408, 24, 23463
+#################### END ############################
+
