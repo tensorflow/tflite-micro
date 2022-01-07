@@ -20,31 +20,22 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
-
+// A fake of MicroContext for kernel util tests.
 class FakeMicroContext : public MicroContext {
  public:
   FakeMicroContext(TfLiteTensor* tensors, SimpleMemoryAllocator* allocator,
                    MicroGraph* micro_graph);
 
   // Overload
-  static TfLiteTensor* GetTensor(const struct TfLiteContext* context,
-                                 int tensor_index);
-  static TfLiteEvalTensor* GetEvalTensor(const struct TfLiteContext* context,
-                                         int tensor_index);
-
   void* AllocatePersistentBuffer(size_t bytes) override;
   TfLiteStatus RequestScratchBufferInArena(size_t bytes,
                                            int* buffer_index) override;
+  void* GetScratchBuffer(int buffer_index) override;
 
-  static void* GetScratchBuffer(TfLiteContext* context, int buffer_index);
-  static void ReportOpError(struct TfLiteContext* context, const char* format,
-                            ...);
-
-  MicroGraph* GetGraph() override;
+  TfLiteTensor* GetTensor(int tensor_index) override;
+  TfLiteEvalTensor* GetEvalTensor(int tensor_index) override;
 
  private:
-  static FakeMicroContext* GetMicroContext(const struct TfLiteContext* context);
-
   static constexpr int kNumScratchBuffers_ = 12;
 
   int scratch_buffer_count_ = 0;
@@ -52,7 +43,6 @@ class FakeMicroContext : public MicroContext {
 
   TfLiteTensor* tensors_;
   SimpleMemoryAllocator* allocator_;
-  MicroGraph* micro_graph_;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

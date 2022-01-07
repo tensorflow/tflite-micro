@@ -19,6 +19,8 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
+#include "tensorflow/lite/micro/micro_error_reporter.h"
+
 namespace tflite {
 MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
@@ -42,7 +44,7 @@ void* MicroContext::GetScratchBuffer(int buffer_idx) {
 void MicroContext::ReportOpError(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  MicroPrintf(format, args);
+  GetMicroErrorReporter()->Report(format, args);
   va_end(args);
 }
 

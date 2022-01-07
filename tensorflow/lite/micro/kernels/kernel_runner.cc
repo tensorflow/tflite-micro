@@ -39,14 +39,14 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
       fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
   // Prepare TfLiteContext:
   context_.impl_ = static_cast<void*>(&fake_micro_context_);
-  context_.ReportError = fake_micro_context_.ReportOpError;
+  context_.ReportError = MicroContextReportOpError;
   context_.recommended_num_threads = 1;
-  context_.GetTensor = fake_micro_context_.GetTensor;
-  context_.GetEvalTensor = fake_micro_context_.GetEvalTensor;
+  context_.GetTensor = MicroContextGetTensor;
+  context_.GetEvalTensor = MicroContextGetEvalTensor;
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
   context_.RequestScratchBufferInArena =
       MicroContextRequestScratchBufferInArena;
-  context_.GetScratchBuffer = fake_micro_context_.GetScratchBuffer;
+  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   context_.recommended_num_threads = 0;
 

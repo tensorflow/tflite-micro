@@ -17,6 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 using ::tflite::MicroArenaBufferAlignment;
@@ -24,45 +25,32 @@ using ::tflite::MicroArenaBufferAlignment;
 FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SimpleMemoryAllocator* allocator,
                                    MicroGraph* micro_graph)
-    : MicroContext(nullptr, nullptr, nullptr),
+    : MicroContext(nullptr, nullptr, micro_graph),
       tensors_(tensors),
-      allocator_(allocator),
-      micro_graph_(micro_graph) {}
+      allocator_(allocator) {}
 
-FakeMicroContext* FakeMicroContext::GetMicroContext(
-    const struct TfLiteContext* context) {
-  return reinterpret_cast<FakeMicroContext*>(context->impl_);
+TfLiteTensor* FakeMicroContext::GetTensor(int tensor_index) {
+  return &tensors_[tensor_index];
 }
 
-TfLiteTensor* FakeMicroContext::GetTensor(const struct TfLiteContext* context,
-                                          int tensor_index) {
-  TFLITE_DCHECK(context != nullptr);
-
-  FakeMicroContext* mock_context = GetMicroContext(context);
-  TFLITE_DCHECK(mock_context != nullptr);
-  return &mock_context->tensors_[tensor_index];
-}
-
-TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(
-    const struct TfLiteContext* context, int tensor_index) {
-  TFLITE_DCHECK(context != nullptr);
-  FakeMicroContext* runner = GetMicroContext(context);
-  TFLITE_DCHECK(runner != nullptr);
-
+TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(int tensor_index) {
   TfLiteEvalTensor* eval_tensor =
-      reinterpret_cast<TfLiteEvalTensor*>(runner->allocator_->AllocateTemp(
+      reinterpret_cast<TfLiteEvalTensor*>(allocator_->AllocateTemp(
           sizeof(TfLiteEvalTensor), alignof(TfLiteEvalTensor)));
   TFLITE_DCHECK(eval_tensor != nullptr);
 
   // In unit tests, the TfLiteTensor pointer contains the source of truth for
   // buffers and values:
-  eval_tensor->data = runner->tensors_[tensor_index].data;
-  eval_tensor->dims = runner->tensors_[tensor_index].dims;
-  eval_tensor->type = runner->tensors_[tensor_index].type;
+  eval_tensor->data = tensors_[tensor_index].data;
+  eval_tensor->dims = tensors_[tensor_index].dims;
+  eval_tensor->type = tensors_[tensor_index].type;
   return eval_tensor;
 }
 
 void* FakeMicroContext::AllocatePersistentBuffer(size_t bytes) {
+  // FakeMicroContext use SimpleMemoryAllocator, which does not automatically
+  // apply the buffer alignment like MicroAllocator. The buffer alignment is
+  // necessarily since some optimized kernels requires the buffer alignment.
   return allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
 }
 
@@ -87,27 +75,12 @@ TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(size_t bytes,
   return kTfLiteOk;
 }
 
-void* FakeMicroContext::GetScratchBuffer(TfLiteContext* context,
-                                         int buffer_index) {
-  TFLITE_DCHECK(context != nullptr);
-  FakeMicroContext* runner = GetMicroContext(context);
-  TFLITE_DCHECK(runner != nullptr);
-
-  TFLITE_DCHECK(runner->scratch_buffer_count_ <= kNumScratchBuffers_);
-  if (buffer_index >= runner->scratch_buffer_count_) {
+void* FakeMicroContext::GetScratchBuffer(int buffer_index) {
+  TFLITE_DCHECK(scratch_buffer_count_ <= kNumScratchBuffers_);
+  if (buffer_index >= scratch_buffer_count_) {
     return nullptr;
   }
-  return runner->scratch_buffers_[buffer_index];
+  return scratch_buffers_[buffer_index];
 }
-
-void FakeMicroContext::ReportOpError(struct TfLiteContext* context,
-                                     const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  GetMicroErrorReporter()->Report(format, args);
-  va_end(args);
-}
-
-MicroGraph* FakeMicroContext::GetGraph() { return micro_graph_; }
 
 }  // namespace tflite

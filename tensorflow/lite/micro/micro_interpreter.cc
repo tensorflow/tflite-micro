@@ -83,7 +83,7 @@ MicroInterpreter::~MicroInterpreter() {
 
 void MicroInterpreter::Init(MicroProfiler* profiler) {
   context_.impl_ = static_cast<void*>(&micro_context_);
-  context_.ReportError = context_.ReportError;
+  context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
   context_.profiler = profiler;
