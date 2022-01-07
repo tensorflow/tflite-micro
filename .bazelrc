@@ -22,7 +22,8 @@
 #
 
 # Address sanitizer
-# CC=clang bazel build --config asan
+# bazel build --config asan
+build:asan --repo_env CC=clang
 build:asan --strip=never
 build:asan --copt -fsanitize=address
 build:asan --copt -DADDRESS_SANITIZER
@@ -32,7 +33,8 @@ build:asan --copt -fno-omit-frame-pointer
 build:asan --linkopt -fsanitize=address
 
 # Memory sanitizer
-# CC=clang bazel build --config msan
+# bazel build --config msan
+build:msan --repo_env CC=clang
 build:msan --strip=never
 build:msan --copt -fsanitize=memory
 build:msan --copt -DADDRESS_SANITIZER
@@ -42,7 +44,8 @@ build:msan --copt -fno-omit-frame-pointer
 build:msan --linkopt -fsanitize=memory
 
 # Undefined Behavior Sanitizer
-# CC=clang bazel build --config ubsan
+# bazel build --config ubsan
+build:ubsan --repo_env CC=clang
 build:ubsan --strip=never
 build:ubsan --copt -fsanitize=undefined
 build:ubsan --copt -g
