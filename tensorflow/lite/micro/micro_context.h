@@ -83,9 +83,9 @@ class MicroContext {
   // WARNING: This is an experimental interface that is subject to change.
   MicroGraph* GetGraph();
 
-  // Below functions are not API between TFLM and kernels. They are primarily
-  // used by the framework for housingkeeping in MicroContext. Sets the pointer
-  // to a list of ScratchBufferHandle instances.
+  // Sets the pointer to a list of ScratchBufferHandle instances.
+  // Not API between TFLM and kernels. Primarily used by the framework for
+  // housekeeping in MicroContext.
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
 
  private:
