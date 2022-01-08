@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -61,25 +62,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   size_t num_inputs = node->inputs->size - 1;
   size_t num_outputs = node->outputs->size;
 
-  // Casting to TfliteIntArray is required since we are re-using
-  // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
-  // MicroGraph.
-  // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE(context,
-                 op_data->then_subgraph_index < graph_info->NumSubgraphs());
+                 op_data->then_subgraph_index < graph_info.NumSubgraphs());
   TF_LITE_ENSURE(context,
-                 op_data->else_subgraph_index < graph_info->NumSubgraphs());
+                 op_data->else_subgraph_index < graph_info.NumSubgraphs());
 
-  TF_LITE_ENSURE_EQ(
-      context, num_inputs,
-      graph_info->NumSubgraphInputs(op_data->then_subgraph_index));
+  TF_LITE_ENSURE_EQ(context, num_inputs,
+                    graph_info.NumSubgraphInputs(op_data->then_subgraph_index));
   TF_LITE_ENSURE_EQ(
       context, num_outputs,
-      graph_info->NumSubgraphOutputs(op_data->then_subgraph_index));
+      graph_info.NumSubgraphOutputs(op_data->then_subgraph_index));
 
   return kTfLiteOk;
 }
@@ -91,13 +86,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &cond));
   bool cond_value = cond->data.b[0];
 
-  // Casting to TfliteIntArray is required since we are re-using
-  // GetExecutionPlan from TfLiteContext. On TFLM this method returns a
-  // MicroGraph.
-  // TODO(b/188226309): Design a cleaner way to get a graph from kernel context.
-  MicroGraph* graph_info;
-  context->GetExecutionPlan(context,
-                            reinterpret_cast<TfLiteIntArray**>(&graph_info));
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  MicroGraph& graph_info = micro_context->graph();
 
   // Currently we copy the input / output between the subgraphs. This isn't
   // optimized yet.
@@ -105,12 +95,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       cond_value ? op_data->then_subgraph_index : op_data->else_subgraph_index;
 
   for (size_t i = 0;
-       i < graph_info->NumSubgraphInputs(active_branch_subgraph_index); ++i) {
+       i < graph_info.NumSubgraphInputs(active_branch_subgraph_index); ++i) {
     const TfLiteEvalTensor* input =
         tflite::micro::GetEvalInput(context, node, i + 1);
 
     TfLiteEvalTensor* subgraph_input =
-        graph_info->GetSubgraphInput(active_branch_subgraph_index, i);
+        graph_info.GetSubgraphInput(active_branch_subgraph_index, i);
 
     // These checks must occur in Eval since TfLiteEvalTensors are not available
     // during Prepare.
@@ -125,15 +115,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   TF_LITE_ENSURE_OK(context,
-                    graph_info->InvokeSubgraph(active_branch_subgraph_index));
+                    graph_info.InvokeSubgraph(active_branch_subgraph_index));
 
   for (size_t i = 0;
-       i < graph_info->NumSubgraphOutputs(active_branch_subgraph_index); ++i) {
+       i < graph_info.NumSubgraphOutputs(active_branch_subgraph_index); ++i) {
     const TfLiteEvalTensor* output =
         tflite::micro::GetEvalOutput(context, node, i);
 
     TfLiteEvalTensor* subgraph_output =
-        graph_info->GetSubgraphOutput(active_branch_subgraph_index, i);
+        graph_info.GetSubgraphOutput(active_branch_subgraph_index, i);
 
     // These checks must occur in Eval since TfLiteEvalTensors are not available
     // during Prepare.
