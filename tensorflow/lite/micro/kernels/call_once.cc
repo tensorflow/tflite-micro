@@ -52,10 +52,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumOutputs(node) == 0);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  MicroGraph* graph_info = micro_context->GetGraph();
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE(context,
-                 op_data->init_subgraph_index < graph_info->NumSubgraphs());
+                 op_data->init_subgraph_index < graph_info.NumSubgraphs());
 
   return kTfLiteOk;
 }
@@ -69,10 +69,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  MicroGraph* graph_info = micro_context->GetGraph();
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE_OK(context,
-                    graph_info->InvokeSubgraph(op_data->init_subgraph_index));
+                    graph_info.InvokeSubgraph(op_data->init_subgraph_index));
 
   op_data->has_run = true;
 

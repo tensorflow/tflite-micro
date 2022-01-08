@@ -53,11 +53,11 @@ TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
 
   tflite::TestExternalContextPayloadData payload;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          micro_context.SetExternalContext(&payload));
+                          micro_context.set_external_context(&payload));
 
   tflite::TestExternalContextPayloadData* returned_external_context =
       reinterpret_cast<tflite::TestExternalContextPayloadData*>(
-          micro_context.GetExternalContext());
+          micro_context.external_context());
 
   // What is returned should be the same as what is set.
   TF_LITE_MICRO_EXPECT((void*)returned_external_context == (void*)(&payload));
@@ -68,7 +68,7 @@ TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
 
   tflite::TestExternalContextPayloadData* returned_external_context =
       reinterpret_cast<tflite::TestExternalContextPayloadData*>(
-          micro_context.GetExternalContext());
+          micro_context.external_context());
 
   // Return a null if nothing is set before.
   TF_LITE_MICRO_EXPECT((void*)returned_external_context == (nullptr));
@@ -80,21 +80,11 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
   tflite::TestExternalContextPayloadData payload;
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          micro_context.SetExternalContext(&payload));
+                          micro_context.set_external_context(&payload));
 
   // Another set should fail.
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
-                          micro_context.SetExternalContext(&payload));
-}
-
-TF_LITE_MICRO_TEST(TestGetGraph) {
-  tflite::MicroGraph* fake_micro_graph =
-      reinterpret_cast<tflite::MicroGraph*>(0xdeadbeef);
-
-  tflite::MicroContext micro_context =
-      tflite::CreateMicroContext(fake_micro_graph);
-
-  TF_LITE_MICRO_EXPECT(micro_context.GetGraph() == fake_micro_graph);
+                          micro_context.set_external_context(&payload));
 }
 
 TF_LITE_MICRO_TESTS_END

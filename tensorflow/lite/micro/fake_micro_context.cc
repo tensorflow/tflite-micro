@@ -49,8 +49,9 @@ TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(int tensor_index) {
 
 void* FakeMicroContext::AllocatePersistentBuffer(size_t bytes) {
   // FakeMicroContext use SimpleMemoryAllocator, which does not automatically
-  // apply the buffer alignment like MicroAllocator. The buffer alignment is
-  // necessarily since some optimized kernels requires the buffer alignment.
+  // apply the buffer alignment like MicroAllocator.
+  // The buffer alignment is potentially wasteful but allows the
+  // fake_micro_context to work correctly with optimized kernels.
   return allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
 }
 

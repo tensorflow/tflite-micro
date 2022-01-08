@@ -36,49 +36,39 @@ class MicroContext {
 
   // Allocate persistent buffer which has the same life time as the interpreter.
   // Returns nullptr on failure.
-  // The memory is allocated from from tail.
+  // The memory is allocated from the tail.
   // This method is only available in Init or Prepare stage.
-  // Virtual so that it can be mocked for kernel tests.
-  // WARNING: This is an experimental interface that is subject to change.
+  // Virtual so that it can be faked for kernel tests.
   virtual void* AllocatePersistentBuffer(size_t bytes);
 
   // Request a scratch buffer in the arena through static memory planning.
   // This method is only available in Prepare stage and the buffer is allocated
   // by the interpreter between Prepare and Eval stage. In Eval stage,
   // GetScratchBuffer API can be used to fetch the address.
-  // Virtual so that it can be mocked for kernel tests.
-  // WARNING: This is an experimental interface that is subject to change.
+  // Virtual so that it can be faked for kernel tests.
   virtual TfLiteStatus RequestScratchBufferInArena(size_t bytes,
                                                    int* buffer_idx);
 
   // Get the scratch buffer pointer.
   // This method is only available in Eval stage.
-  // Virtual so that it can be mocked for kernel tests.
-  // WARNING: This is an experimental interface that is subject to change.
+  // Virtual so that it can be faked for kernel tests.
   virtual void* GetScratchBuffer(int buffer_idx);
 
   // Returns a TfLiteTensor struct for a given index.
-  // Virtual so that it can be mocked for kernel tests.
-  // WARNING: This is an experimental interface that is subject to change.
+  // Virtual so that it can be faked for kernel tests.
   virtual TfLiteTensor* GetTensor(int tensor_idx);
 
   // Returns a TfLiteEvalTensor struct for a given index.
-  // Virtual so that it can be mocked for kernel tests.
-  // WARNING: This is an experimental interface that is subject to change.
+  // Virtual so that it can be faked for kernel tests.
   virtual TfLiteEvalTensor* GetEvalTensor(int tensor_idx);
 
-  // Accesses external contexts by type.
-  // WARNING: This is an experimental interface that is subject to change.
-  TfLiteExternalContext* GetExternalContext();
+  // Does not take ownership of the pointer and the pointer must refer to valid
+  // an object that outlive this class instance.
+  TfLiteStatus set_external_context(void* external_context_payload);
 
-  // Sets the value of an external context. Does not take ownership of the
-  // pointer.
-  // WARNING: This is an experimental interface that is subject to change.
-  TfLiteStatus SetExternalContext(void* external_context_payload);
+  void* external_context() { return external_context_payload_; }
 
-  // Returns the associated MicroGraph.
-  // WARNING: This is an experimental interface that is subject to change.
-  MicroGraph* GetGraph();
+  MicroGraph& graph() { return graph_; }
 
   // Sets the pointer to a list of ScratchBufferHandle instances.
   // Not API between TFLM and kernels. Primarily used by the framework for
@@ -87,8 +77,9 @@ class MicroContext {
 
  private:
   MicroAllocator& allocator_;
+  MicroGraph& graph_;
   const Model* model_;
-  MicroGraph* graph_;
+
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
 
@@ -126,7 +117,8 @@ inline TfLiteEvalTensor* MicroContextGetEvalTensor(
 }
 inline TfLiteExternalContext* MicroContextGetExternalContext(
     TfLiteContext* context, TfLiteExternalContextType unused) {
-  return GetMicroContext(context)->GetExternalContext();
+  return reinterpret_cast<TfLiteExternalContext*>(
+      GetMicroContext(context)->external_context());
 }
 
 // Requests that an error be reported with format string msg.

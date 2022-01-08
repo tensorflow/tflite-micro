@@ -210,7 +210,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   // available in Prepare stage.
   context_.RequestScratchBufferInArena =
       MicroContextRequestScratchBufferInArena;
-  // GetExternalContext become available in Prepare stage.
+  // external_context become available in Prepare stage.
   context_.GetExternalContext = MicroContextGetExternalContext;
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
@@ -324,7 +324,7 @@ TfLiteStatus MicroInterpreter::ResetVariableTensors() {
 
 TfLiteStatus MicroInterpreter::SetMicroExternalContext(
     void* external_context_payload) {
-  return micro_context_.SetExternalContext(external_context_payload);
+  return micro_context_.set_external_context(external_context_payload);
 }
 
 }  // namespace tflite

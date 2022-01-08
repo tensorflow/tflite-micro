@@ -26,7 +26,6 @@ class FakeMicroContext : public MicroContext {
   FakeMicroContext(TfLiteTensor* tensors, SimpleMemoryAllocator* allocator,
                    MicroGraph* micro_graph);
 
-  // Overload
   void* AllocatePersistentBuffer(size_t bytes) override;
   TfLiteStatus RequestScratchBufferInArena(size_t bytes,
                                            int* buffer_index) override;
