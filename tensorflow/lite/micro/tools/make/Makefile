@@ -269,6 +269,7 @@ tensorflow/lite/micro/flatbuffer_utils_test.cc \
 tensorflow/lite/micro/memory_arena_threshold_test.cc \
 tensorflow/lite/micro/memory_helpers_test.cc \
 tensorflow/lite/micro/micro_allocator_test.cc \
+tensorflow/lite/micro/micro_context_test.cc \
 tensorflow/lite/micro/micro_error_reporter_test.cc \
 tensorflow/lite/micro/micro_interpreter_test.cc \
 tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
@@ -402,12 +403,10 @@ $(TFL_CC_HDRS)
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
 # platform-specific headers.
+# some kiss fft source file has to be included in header sections because
+# the implemenation of three different resolution fft from one single c file.
+# See http://b/201319430 for additional context.
 THIRD_PARTY_CC_HDRS := \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_neon.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_sse.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/internal/detect_platform.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/LICENSE \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/allocator.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/array.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/base.h \
@@ -427,6 +426,17 @@ $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/vector_downward.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/verifier.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/util.h \
 $(MAKEFILE_DIR)/downloads/flatbuffers/LICENSE.txt \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_neon.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_sse.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/internal/detect_platform.h \
+$(MAKEFILE_DIR)/downloads/gemmlowp/LICENSE \
+$(MAKEFILE_DIR)/downloads/kissfft/COPYING \
+$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
+$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
+$(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
+$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
+$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h \
 $(MAKEFILE_DIR)/downloads/ruy/ruy/profiler/instrumentation.h
 
 THIRD_PARTY_CC_SRCS :=
