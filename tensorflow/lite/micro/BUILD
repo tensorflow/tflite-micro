@@ -37,6 +37,7 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_context",
         ":micro_error_reporter",
         ":micro_graph",
         ":micro_profiler",
@@ -49,6 +50,45 @@ cc_library(
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
+    name = "micro_context",
+    srcs = [
+        "micro_context.cc",
+    ],
+    hdrs = [
+        "micro_context.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":memory_helpers",
+        ":micro_allocator",
+        ":micro_error_reporter",
+        ":micro_graph",
+        ":micro_profiler",
+        "//tensorflow/lite/c:common",
+    ],
+)
+
+cc_library(
+    name = "fake_micro_context",
+    srcs = [
+        "fake_micro_context.cc",
+    ],
+    hdrs = [
+        "fake_micro_context.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":memory_helpers",
+        ":micro_allocator",
+        ":micro_context",
+        ":micro_error_reporter",
+        ":micro_profiler",
+        ":mock_micro_graph",
+        "//tensorflow/lite/c:common",
     ],
 )
 
@@ -343,6 +383,21 @@ cc_test(
     deps = [
         ":micro_framework",
         ":op_resolvers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "micro_context_test",
+    srcs = [
+        "micro_context_test.cc",
+    ],
+    deps = [
+        ":micro_allocator",
+        ":micro_context",
+        ":micro_error_reporter",
+        ":test_helpers",
+        "//tensorflow/lite/core/api",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

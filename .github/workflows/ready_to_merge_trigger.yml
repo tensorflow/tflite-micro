@@ -1,0 +1,37 @@
+name: Ready To Merge Trigger
+
+###
+#
+# On an approved review, stores the PR number as an artifact. Success triggers
+# ready_to_merge_apply, which will apply the ci:ready_to_merge tag to the pr. The two step
+# process is to deal with issues around permissions related to triggers originating from
+# the context of a PR from a fork.
+# A good deal of this code comes from github's recommendations at:
+# https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+#
+###
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  send_pr:
+    runs-on: ubuntu-latest
+    name: archive pr number
+    if: github.event.review.state == 'approved'
+
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - run: echo ${{ github.event.review.state }}
+      - name: save pr number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.pull_request.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
