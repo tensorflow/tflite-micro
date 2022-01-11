@@ -32,13 +32,24 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downl
 
 BINARY_LIST="keyword_benchmark,baseline_memory_footprint,interpreter_memory_footprint"
 python3 tensorflow/lite/micro/tools/metrics/create_size_log.py --build_type=${BUILD_TYPE} --target=${TARGET} --target_arch=${TARGET_ARCH} --binary_list=${BINARY_LIST}
-STATUS=$?
+LOG_GENERATION_STATUS=$?
 
-if [[ ${STATUS} != 0 ]]
+if [[ ${LOG_GENERATION_STATUS} != 0 ]]
 then
   echo "Failure in profiling."
   exit -1
 fi
 
-## TODO(b/213646558): run difference detection and also return error code if detecting large increase
-echo "Profiling succeed"
+echo "Success in size log generation"
+
+LOG_DIR="${ROOT_DIR}/data/continuous_builds/size_profiling/${TARGET}_${TARGET_ARCH}_${BUILD_TYPE}"
+python3 tensorflow/lite/micro/tools/metrics/detect_size_increase_and_plot_history.py --input_dir=${LOG_DIR} --output_dir=${LOG_DIR} --binary_list=${BINARY_LIST}
+SIZE_ALERT_STATUS=$?
+
+if [[ ${SIZE_ALERT_STATUS} != 0 ]]
+then
+  echo "Size increase may exceed threshold"
+  exit -1
+fi
+
+echo "Size does not increase or size increase does not exceed threshold"
