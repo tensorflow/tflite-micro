@@ -912,7 +912,7 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
 // corner case outlined in go/avoid-memory-corruption-in-if-operator.
 //
 //                Subgraph0
-//            A0(1) A1_0(2)  A2_0(4)
+//            A0(1) A2_0(4)  A1_0(2)
 //             |      |      | ---+
 //             v      v      v    |
 //            +--------------+    |
@@ -963,8 +963,13 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
 //
 //
 // A1_1 of subgraph 1 will overlap with A2_0 of subgraph 0.
-// In a buggy implementation of IF, copying from A1_0 to A1_1 overwrites A2_0
-// before A2_0 is copied to A2_1; thus subgraph 1 produce incorrect output.
+// In a buggy implementation of IF, two overwrite may happen:
+// 1. copying input from A1_0 to A1_1 overwrites A2_0 before A2_0 is copied to
+// A2_1; thus subgraph 1 produce incorrect output.
+// 2. copying output from A3_1 to A4_0 overwrites A1_0, which should remain
+// intact so that it can be used by the OP after the IF operator in subgraph 0
+//
+
 const Model* BuildModelWithIfAndSubgraphInputTensorOverlap() {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
