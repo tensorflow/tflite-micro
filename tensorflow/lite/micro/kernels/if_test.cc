@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/test_helper_custom_ops.h"
 
 namespace tflite {
 namespace testing {
@@ -158,6 +159,42 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
 
   TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 6.0f);
   TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 35.0f);
+}
+
+TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
+  constexpr int kArenaSize = 5000;
+  uint8_t arena[kArenaSize];
+
+  const tflite::Model* model =tflite::testing::GetModelWithIfAndSubgraphInputTensorOverlap();
+
+    tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+    op_resolver.AddIf();
+  tflite::MicroErrorReporter reporter;
+  tflite::MicroInterpreter interpreter(model, op_resolver, arena, kArenaSize,
+                                       &reporter);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+
+  TfLiteTensor* condition = interpreter.input(0);
+  TfLiteTensor* input1 = interpreter.input(1);
+  TfLiteTensor* input2 = interpreter.input(2);
+  TfLiteTensor* output = interpreter.output(0);
+  int32_t input1_data[2] = {1, 2};
+  int32_t input2_data[4] = {3, 4, 5, 6};
+  memcpy(input1->data.i32, input1_data, 2* sizeof(int32_t));
+  memcpy(input2->data.i32, input2_data, 4 * sizeof(int32_t));
+  condition->data.b[0] = false;
+
+  interpreter.Invoke();
+
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[0], 1);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[1], 2);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[2], 3);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[3], 4);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[4], 5);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[5], 6);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[6], 0);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.i32[7], 0);
+
 }
 
 TF_LITE_MICRO_TESTS_END
