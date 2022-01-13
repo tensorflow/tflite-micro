@@ -36,14 +36,13 @@ class PackerOp {
   static const TfLiteRegistration* getRegistration();
   static TfLiteRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
-  static void Free(TfLiteContext* context, void* buffer) ;
+  static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
   static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
 
  private:
   static bool freed_;
 };
-
 
 }  // namespace testing
 }  // namespace tflite

@@ -64,13 +64,15 @@ TfLiteStatus PackerOp::Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus PackerOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input1 = tflite::micro::GetEvalInput(context, node, 0);
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, 0);
   TF_LITE_ENSURE(context, input1 != nullptr);
   const int32_t* input1_data = input1->data.i32;
   TF_LITE_ENSURE_EQ(context, input1->dims->size, 1);
   const int32_t input1_len = input1->dims->data[0];
 
-  const TfLiteEvalTensor* input2 = tflite::micro::GetEvalInput(context, node, 0);
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, 1);
   TF_LITE_ENSURE(context, input2 != nullptr);
   const int32_t* input2_data = input2->data.i32;
   TF_LITE_ENSURE_EQ(context, input2->dims->size, 1);
@@ -81,21 +83,25 @@ TfLiteStatus PackerOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
   int32_t* output_data = output->data.i32;
   int32_t output_len = output->dims->data[0];
 
-  // Fill output with input: first with the first tensor, then with the second tensor
-  // up to the size of the output tensor.
+  // Fill output with input: first with the first tensor, then with the second
+  // tensor up to the size of the output tensor.
   int cnt = 0;
   int i;
-  for(i = 0; i < input1_len && cnt < output_len ; i++, cnt ++) {
+  for (i = 0; i < input1_len && cnt < output_len; i++, cnt++) {
     output_data[cnt] = input1_data[i];
   }
-  if (cnt >= output_len) {return kTfLiteOk;}
+  if (cnt >= output_len) {
+    return kTfLiteOk;
+  }
 
-  for(i = 0; i < input2_len && cnt < output_len ; i++, cnt ++) {
+  for (i = 0; i < input2_len && cnt < output_len; i++, cnt++) {
     output_data[cnt] = input2_data[i];
   }
-  if (cnt >= output_len) {return kTfLiteOk;}
+  if (cnt >= output_len) {
+    return kTfLiteOk;
+  }
 
-  for(;cnt < output_len; cnt++) {
+  for (; cnt < output_len; cnt++) {
     output_data[cnt] = 0;
   }
   return kTfLiteOk;
