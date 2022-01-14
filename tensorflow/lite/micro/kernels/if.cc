@@ -275,23 +275,35 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
   MicroGraph& graph_info = micro_context->graph();
 
-  // Currently we copy the input / output between the subgraphs. This isn't
-  // optimized yet.
+  // Currently we copy the input / output between the subgraphs.
   int active_branch_subgraph_index =
       cond_value ? op_data->then_subgraph_index : op_data->else_subgraph_index;
 
+  // The input tensors of the IF subgraph and active branch subgraphs are
+  // planned separately and can overlap. So copying one tensor from the IF
+  // subgraph to one other tensor of the active subgraph can unintentionally
+  // overwrite another tensor of the IF subgraph. So we need to copy all input
+  // tensor of the IF subgraph to an intermediate buffer and then copied to
+  // input tensors of the active branch subgraph.
   CopyFromIfInputToIntermediate(context, node, graph_info,
                                 active_branch_subgraph_index);
-
   CopyFromIntermediateToSubgraphInput(context, node, graph_info,
                                       active_branch_subgraph_index);
 
   TF_LITE_ENSURE_OK(context,
                     graph_info.InvokeSubgraph(active_branch_subgraph_index));
 
+  // The input tensors of the IF subgraph may already get overwritten; these
+  // tensors may still be used by other OPs and we need to restore it first from
+  // intermediate buffers.
   CopyFromIntermediateToIfInput(context, node, graph_info,
                                 active_branch_subgraph_index);
-
+  // The output tensors of the IF subgraph and active branch subgraphs are
+  // planned separately and can overlap. So copying one tensor from the IF
+  // subgraph to one other tensor of the active subgraph can unintentionally
+  // overwrite another tensor of the IF subgraph. So we need to copy all output
+  // tensors of the IF subgraph to an intermediate buffer and then copied to
+  // output tensors of the active branch subgraph.
   CopyFromSubgraphOutputToIntermediate(context, node, graph_info,
                                        active_branch_subgraph_index);
   CopyFromIntermediateToIfOutput(context, node, graph_info,
