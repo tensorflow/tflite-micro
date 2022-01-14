@@ -26,6 +26,8 @@ MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
     : allocator_(*allocator), graph_(*graph), model_(model) {}
 
+MicroContext::~MicroContext() {}
+
 void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
   return allocator_.AllocatePersistentBuffer(bytes);
 }
