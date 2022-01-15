@@ -26,11 +26,11 @@ MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
     : allocator_(*allocator), graph_(*graph), model_(model) {}
 
-MicroContext::~MicroContext() {}
-
 void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
   return allocator_.AllocatePersistentBuffer(bytes);
 }
+
+MicroContext::~MicroContext() {}
 
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
