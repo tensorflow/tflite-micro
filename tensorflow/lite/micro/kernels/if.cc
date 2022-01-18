@@ -126,7 +126,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context, num_outputs,
       graph_info.NumSubgraphOutputs(op_data->then_subgraph_index));
 
-  TF_LITE_ENSURE(context, AllocateIntermediateBuffer(context, node));
+  TF_LITE_ENSURE_OK(context, AllocateIntermediateBuffer(context, node));
 
   return kTfLiteOk;
 }
