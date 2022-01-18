@@ -34,7 +34,8 @@ namespace {
 struct OpData {
   int then_subgraph_index;
   int else_subgraph_index;
-  void* intermediate_copy_buffer;
+  void* intermediate_input_buffer;
+  void* intermediate_output_buffer;
 };
 
 enum class CopyInputDirection {
@@ -53,8 +54,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-size_t CalculateIntermediateBufferSize(TfLiteContext* context,
-                                       TfLiteNode* node) {
+TfLiteStatus AllocateIntermediateBuffer(TfLiteContext* context,
+                                        TfLiteNode* node) {
   // The first input is the condition.
   constexpr int kInputTensorIndexBasis = 1;
   size_t num_inputs = node->inputs->size - kInputTensorIndexBasis;
@@ -71,6 +72,9 @@ size_t CalculateIntermediateBufferSize(TfLiteContext* context,
         TfLiteTypeSizeOf(input_data_tensor->type, &type_size));
     total_input_bytes += NumElements(input_data_tensor) * type_size;
   }
+  OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
+  op_data->intermediate_input_buffer =
+      context->AllocatePersistentBuffer(context, total_input_bytes);
 
   size_t total_output_bytes = 0;
   TfLiteTensor* output_data_tensor;
@@ -82,8 +86,9 @@ size_t CalculateIntermediateBufferSize(TfLiteContext* context,
         TfLiteTypeSizeOf(output_data_tensor->type, &type_size));
     total_output_bytes += NumElements(output_data_tensor) * type_size;
   }
-
-  return std::max(total_input_bytes, total_output_bytes);
+  op_data->intermediate_output_buffer =
+      context->AllocatePersistentBuffer(context, total_output_bytes);
+  return kTfLiteOk;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -121,8 +126,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context, num_outputs,
       graph_info.NumSubgraphOutputs(op_data->then_subgraph_index));
 
-  op_data->intermediate_copy_buffer = context->AllocatePersistentBuffer(
-      context, CalculateIntermediateBufferSize(context, node));
+  TF_LITE_ENSURE(context, AllocateIntermediateBuffer(context, node));
 
   return kTfLiteOk;
 }
@@ -132,7 +136,7 @@ TfLiteStatus CopyOutputBetweenIfAndSubgraph(
     int active_branch_subgraph_index, CopyOutputDirection copy_direction) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   int8_t* intermediate_copy_buffer =
-      reinterpret_cast<int8_t*>(op_data->intermediate_copy_buffer);
+      reinterpret_cast<int8_t*>(op_data->intermediate_output_buffer);
   for (size_t i = 0;
        i < graph_info.NumSubgraphOutputs(active_branch_subgraph_index); ++i) {
     const TfLiteEvalTensor* output =
@@ -179,7 +183,7 @@ TfLiteStatus CopyInputBetweenIfAndSubgraph(TfLiteContext* context,
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
   int8_t* intermediate_copy_buffer =
-      reinterpret_cast<int8_t*>(op_data->intermediate_copy_buffer);
+      reinterpret_cast<int8_t*>(op_data->intermediate_input_buffer);
   for (size_t i = 0;
        i < graph_info.NumSubgraphInputs(active_branch_subgraph_index); ++i) {
     const TfLiteEvalTensor* input =
@@ -205,7 +209,6 @@ TfLiteStatus CopyInputBetweenIfAndSubgraph(TfLiteContext* context,
       case CopyInputDirection::kFromIfToIntermediate:
         destination = intermediate_copy_buffer;
         source = input->data.raw;
-
         break;
       case CopyInputDirection::kFromIntermediateToSubgraph:
         destination = subgraph_input->data.raw;
@@ -223,24 +226,22 @@ TfLiteStatus CopyInputBetweenIfAndSubgraph(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus CopyFromIfInputToIntermediate(TfLiteContext* context,
-                                           TfLiteNode* node,
-                                           MicroGraph& graph_info,
-                                           int active_branch_subgraph_index) {
+TfLiteStatus CopyFromIfInputToIntermediateInput(
+    TfLiteContext* context, TfLiteNode* node, MicroGraph& graph_info,
+    int active_branch_subgraph_index) {
   return CopyInputBetweenIfAndSubgraph(
       context, node, graph_info, active_branch_subgraph_index,
       CopyInputDirection::kFromIfToIntermediate);
 }
 
-TfLiteStatus CopyFromIntermediateToIfInput(TfLiteContext* context,
-                                           TfLiteNode* node,
-                                           MicroGraph& graph_info,
-                                           int active_branch_subgraph_index) {
+TfLiteStatus CopyFromIntermediateInputToIfInput(
+    TfLiteContext* context, TfLiteNode* node, MicroGraph& graph_info,
+    int active_branch_subgraph_index) {
   return CopyInputBetweenIfAndSubgraph(
       context, node, graph_info, active_branch_subgraph_index,
       CopyInputDirection::kFromIntermediateToIf);
 }
-TfLiteStatus CopyFromIntermediateToSubgraphInput(
+TfLiteStatus CopyFromIntermediateInputToSubgraphInput(
     TfLiteContext* context, TfLiteNode* node, MicroGraph& graph_info,
     int active_branch_subgraph_index) {
   return CopyInputBetweenIfAndSubgraph(
@@ -248,16 +249,15 @@ TfLiteStatus CopyFromIntermediateToSubgraphInput(
       CopyInputDirection::kFromIntermediateToSubgraph);
 }
 
-TfLiteStatus CopyFromIntermediateToIfOutput(TfLiteContext* context,
-                                            TfLiteNode* node,
-                                            MicroGraph& graph_info,
-                                            int active_branch_subgraph_index) {
+TfLiteStatus CopyFromIntermediateOutputToIfOutput(
+    TfLiteContext* context, TfLiteNode* node, MicroGraph& graph_info,
+    int active_branch_subgraph_index) {
   return CopyOutputBetweenIfAndSubgraph(
       context, node, graph_info, active_branch_subgraph_index,
       CopyOutputDirection::kFromIntermediateToIf);
 }
 
-TfLiteStatus CopyFromSubgraphOutputToIntermediate(
+TfLiteStatus CopyFromSubgraphOutputToIntermediateOutput(
     TfLiteContext* context, TfLiteNode* node, MicroGraph& graph_info,
     int active_branch_subgraph_index) {
   return CopyOutputBetweenIfAndSubgraph(
@@ -279,35 +279,34 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   int active_branch_subgraph_index =
       cond_value ? op_data->then_subgraph_index : op_data->else_subgraph_index;
 
-  // The input tensors of the IF subgraph and active branch subgraphs are
-  // planned separately and can overlap. So copying one tensor from the IF
-  // subgraph to one other tensor of the active subgraph can unintentionally
-  // overwrite another tensor of the IF subgraph. So we need to copy all input
-  // tensor of the IF subgraph to an intermediate buffer and then copied to
-  // input tensors of the active branch subgraph.
-  CopyFromIfInputToIntermediate(context, node, graph_info,
-                                active_branch_subgraph_index);
-  CopyFromIntermediateToSubgraphInput(context, node, graph_info,
-                                      active_branch_subgraph_index);
+  // The tensors of the IF op's subgraph and the active branch subgraphs are
+  // planned separately and can overlap. So copying one tensor of the IF op to
+  // one other tensor of the active subgraph can unintentionally overwrite
+  // another tensor of the IF op. So we need to copy all input tensor of the IF
+  // op to an intermediate buffer and then copied to input tensors of the active
+  // branch subgraph.
+  CopyFromIfInputToIntermediateInput(context, node, graph_info,
+                                     active_branch_subgraph_index);
+  CopyFromIntermediateInputToSubgraphInput(context, node, graph_info,
+                                           active_branch_subgraph_index);
 
   TF_LITE_ENSURE_OK(context,
                     graph_info.InvokeSubgraph(active_branch_subgraph_index));
 
-  // The input tensors of the IF subgraph may already get overwritten; these
-  // tensors may still be used by other OPs and we need to restore it first from
-  // intermediate buffers.
-  CopyFromIntermediateToIfInput(context, node, graph_info,
-                                active_branch_subgraph_index);
-  // The output tensors of the IF subgraph and active branch subgraphs are
-  // planned separately and can overlap. So copying one tensor from the IF
-  // subgraph to one other tensor of the active subgraph can unintentionally
-  // overwrite another tensor of the IF subgraph. So we need to copy all output
-  // tensors of the IF subgraph to an intermediate buffer and then copied to
-  // output tensors of the active branch subgraph.
-  CopyFromSubgraphOutputToIntermediate(context, node, graph_info,
+  // Copying to the IF op's tensors can unintentionally
+  // overwrite the output tensor of the active subgraph. So we need to store all
+  // output tensor of the active branch subgraph to an intermediate buffer and
+  // then copy them to the IF op's output tensors.
+  CopyFromSubgraphOutputToIntermediateOutput(context, node, graph_info,
+                                             active_branch_subgraph_index);
+  CopyFromIntermediateOutputToIfOutput(context, node, graph_info,
                                        active_branch_subgraph_index);
-  CopyFromIntermediateToIfOutput(context, node, graph_info,
-                                 active_branch_subgraph_index);
+
+  // The IF op's input tensors may already get overwritten; these tensors may
+  // still be used by other OPs and we need to restore them first from
+  // intermediate buffers.
+  CopyFromIntermediateInputToIfInput(context, node, graph_info,
+                                     active_branch_subgraph_index);
 
   return kTfLiteOk;
 }
