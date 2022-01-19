@@ -28,7 +28,7 @@ jobs:
       - name: Prepare Execution (workaround)
         run:  mv ./tensorflow/lite/micro/cortex_m_generic/vht ./vht_cm_g
       - name: Execute test suite on Virtual Hardware at AWS
-        uses: Arm-Software/VHT-AMI@master
+        uses: Arm-Software/VHT-AMI@v1
         with:
           vht_in: ./vht_cm_g
           instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
