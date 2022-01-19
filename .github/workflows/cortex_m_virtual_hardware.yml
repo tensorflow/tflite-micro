@@ -31,7 +31,7 @@ jobs:
         uses: Arm-Software/VHT-AMI@v1
         with:
           vht_in: ./vht_cm_g
-          instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
+          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
           aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
@@ -54,7 +54,7 @@ jobs:
         uses: Arm-Software/VHT-AMI@master
         with:
           vht_in: ./tensorflow/lite/micro/cortex_m_corstone_300/vht
-          instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
+          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
           aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
           access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
