@@ -29,8 +29,8 @@ namespace testing {
 namespace {
 
 void TestIf(int* input1_dims_data, const bool* input1_data,
-            int* input2_dims_data, float* input2_data,
-            int* output_dims_data, const float* expected_output_data,
+            int* input2_dims_data, float* input2_data, int* output_dims_data,
+            const float* expected_output_data,
             const int subgraph1_invoke_count_golden,
             const int subgraph2_invoke_count_golden, float* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
