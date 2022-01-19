@@ -52,10 +52,12 @@ jobs:
     name: Cortex-M Corstone 300 (FVP)
     steps:
       - uses: actions/checkout@v2
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
       - name: Execute test suite on Virtual Hardware at AWS
         uses: Arm-Software/VHT-AMI@master
         with:
-          vht_in: ./tensorflow/lite/micro/cortex_m_corstone_300/vht
+          vht_in: ./vht_cm_corstone300/vht
           ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
           s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
         env: 
