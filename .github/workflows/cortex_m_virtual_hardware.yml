@@ -58,8 +58,8 @@ jobs:
         uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_corstone300
-          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
-          s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
+          s3_bucket_name: ${{ secrets.S3_BUCKET_2 }}
         env: 
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
