@@ -32,10 +32,12 @@ jobs:
         with:
           vht_in: ./vht_cm_g
           ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
-          aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
-          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
           s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+        env: 
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          
       - name: Fetch results from VHT
         run: |
           tar xvzf out.tar
