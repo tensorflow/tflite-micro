@@ -33,6 +33,7 @@ class MicroContext {
   // that outlive the one constructed.
   explicit MicroContext(MicroAllocator* allocator, const Model* model,
                         MicroGraph* graph);
+  virtual ~MicroContext();
 
   // Allocate persistent buffer which has the same life time as the interpreter.
   // Returns nullptr on failure.
