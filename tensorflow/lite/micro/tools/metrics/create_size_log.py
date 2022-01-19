@@ -57,9 +57,8 @@ def _profile_a_binary(root_dir, binary_name, makefile_options, build_info):
                        (binary_name, stderr.decode()))
 
   output_str = stdout.decode()
-  df = pd.DataFrame(
-      [line.split() for line in output_str.split('\n')[1:]],
-      columns=[title for title in output_str.split('\n')[0].split()])
+  df = pd.DataFrame([line.split() for line in output_str.split('\n')[1:]],
+                    columns=list(output_str.split('\n')[0].split()))
 
   # Append the output from the size to the CSV file
   report = _create_or_read_csv(csv_path)
