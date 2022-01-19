@@ -28,7 +28,7 @@ jobs:
       - name: Prepare Execution (workaround)
         run:  mv ./tensorflow/lite/micro/cortex_m_generic/vht ./vht_cm_g
       - name: Execute test suite on Virtual Hardware at AWS
-        uses: spcaipers-arm/VHT-AMI@fix_delete_vht_folders_from_ami
+        uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_g
           ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
@@ -55,7 +55,7 @@ jobs:
       - name: Prepare Execution (workaround)
         run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
       - name: Execute test suite on Virtual Hardware at AWS
-        uses: Arm-Software/VHT-AMI@master
+        uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_corstone300/vht
           ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
