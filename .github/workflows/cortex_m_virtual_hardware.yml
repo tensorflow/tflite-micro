@@ -57,7 +57,7 @@ jobs:
       - name: Execute test suite on Virtual Hardware at AWS
         uses: Arm-Software/VHT-AMI@v2
         with:
-          vht_in: ./vht_cm_corstone300/vht
+          vht_in: ./vht_cm_corstone300
           ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
           s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
         env: 
