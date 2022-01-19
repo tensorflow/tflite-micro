@@ -32,8 +32,6 @@ void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
   return allocator_.AllocatePersistentBuffer(bytes);
 }
 
-MicroContext::~MicroContext() {}
-
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
   return allocator_.RequestScratchBufferInArena(
