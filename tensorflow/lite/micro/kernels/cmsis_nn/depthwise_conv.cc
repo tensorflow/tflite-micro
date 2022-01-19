@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -136,6 +136,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     cmsis_nn_dw_conv_params dw_conv_params;
     dw_conv_params.padding.h = data->reference_op_data.padding.height;
     dw_conv_params.padding.w = data->reference_op_data.padding.width;
+    dw_conv_params.dilation.h = params.dilation_height_factor;
+    dw_conv_params.dilation.w = params.dilation_width_factor;
 
     const int32_t buf_size = arm_depthwise_conv_wrapper_s8_get_buffer_size(
         &dw_conv_params, &input_dims, &filter_dims, &output_dims);
@@ -159,95 +161,79 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   cmsis_nn_dw_conv_params dw_conv_params;
   dw_conv_params.dilation.h = params.dilation_height_factor;
   dw_conv_params.dilation.w = params.dilation_width_factor;
-  // Call to reference implementation can be removed when dilation is supported
-  // in the optimized implementations.
-  if (1 == dw_conv_params.dilation.h && 1 == dw_conv_params.dilation.w) {
-    dw_conv_params.input_offset = -data.reference_op_data.input_zero_point;
-    dw_conv_params.output_offset = data.reference_op_data.output_zero_point;
-    dw_conv_params.stride.h = params.stride_height;
-    dw_conv_params.stride.w = params.stride_width;
-    dw_conv_params.padding.h = data.reference_op_data.padding.height;
-    dw_conv_params.padding.w = data.reference_op_data.padding.width;
-    // TODO(b/130439627): Use calculated value for clamping.
-    dw_conv_params.activation.min = std::numeric_limits<int8_t>::min();
-    dw_conv_params.activation.max = std::numeric_limits<int8_t>::max();
-    dw_conv_params.ch_mult = params.depth_multiplier;
 
-    cmsis_nn_per_channel_quant_params quant_params;
-    quant_params.multiplier =
-        data.reference_op_data.per_channel_output_multiplier;
-    quant_params.shift = data.reference_op_data.per_channel_output_shift;
+  dw_conv_params.input_offset = -data.reference_op_data.input_zero_point;
+  dw_conv_params.output_offset = data.reference_op_data.output_zero_point;
+  dw_conv_params.stride.h = params.stride_height;
+  dw_conv_params.stride.w = params.stride_width;
+  dw_conv_params.padding.h = data.reference_op_data.padding.height;
+  dw_conv_params.padding.w = data.reference_op_data.padding.width;
+  // TODO(b/130439627): Use calculated value for clamping.
+  dw_conv_params.activation.min = std::numeric_limits<int8_t>::min();
+  dw_conv_params.activation.max = std::numeric_limits<int8_t>::max();
+  dw_conv_params.ch_mult = params.depth_multiplier;
 
-    RuntimeShape filter_shape = tflite::micro::GetTensorShape(filter);
-    RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
-    RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
-    RuntimeShape bias_shape = tflite::micro::GetTensorShape(bias);
+  cmsis_nn_per_channel_quant_params quant_params;
+  quant_params.multiplier =
+      data.reference_op_data.per_channel_output_multiplier;
+  quant_params.shift = data.reference_op_data.per_channel_output_shift;
 
-    TFLITE_DCHECK_LE(dw_conv_params.activation.min,
-                     dw_conv_params.activation.max);
+  RuntimeShape filter_shape = tflite::micro::GetTensorShape(filter);
+  RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
+  RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
+  RuntimeShape bias_shape = tflite::micro::GetTensorShape(bias);
 
-    const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
-    const int output_depth = MatchingDim(filter_shape, 3, output_shape, 3);
+  TFLITE_DCHECK_LE(dw_conv_params.activation.min,
+                   dw_conv_params.activation.max);
 
-    if (tflite::micro::GetTensorData<int8_t>(bias)) {
-      TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
-    }
+  const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
+  const int output_depth = MatchingDim(filter_shape, 3, output_shape, 3);
 
-    cmsis_nn_dims input_dims;
-    input_dims.n = batch_size;
-    input_dims.h = input_shape.Dims(1);
-    input_dims.w = input_shape.Dims(2);
-    input_dims.c = input_shape.Dims(3);
-
-    cmsis_nn_dims filter_dims;
-    filter_dims.n = filter_shape.Dims(0);
-    filter_dims.h = filter_shape.Dims(1);
-    filter_dims.w = filter_shape.Dims(2);
-    filter_dims.c = output_depth;
-
-    cmsis_nn_dims bias_dims;
-    bias_dims.n = 1;
-    bias_dims.h = 1;
-    bias_dims.w = 1;
-    bias_dims.c = output_depth;
-
-    cmsis_nn_dims output_dims;
-    output_dims.n = batch_size;
-    output_dims.h = output_shape.Dims(1);
-    output_dims.w = output_shape.Dims(2);
-    output_dims.c = output_depth;
-
-    cmsis_nn_context ctx;
-    ctx.buf = nullptr;
-    /* 'size' is unused */
-    ctx.size = 0;
-
-    if (data.buffer_idx > -1) {
-      ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
-    }
-
-    TFLITE_DCHECK_EQ(
-        arm_depthwise_conv_wrapper_s8(
-            &ctx, &dw_conv_params, &quant_params, &input_dims,
-            tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
-            tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
-            tflite::micro::GetTensorData<int32_t>(bias), &output_dims,
-            tflite::micro::GetTensorData<int8_t>(output)),
-        ARM_MATH_SUCCESS);
-  } else {
-    reference_integer_ops::DepthwiseConvPerChannel(
-        DepthwiseConvParamsQuantized(params, data.reference_op_data),
-        data.reference_op_data.per_channel_output_multiplier,
-        data.reference_op_data.per_channel_output_shift,
-        tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(filter),
-        tflite::micro::GetTensorData<int8_t>(filter),
-        tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetTensorData<int32_t>(bias),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
+  if (tflite::micro::GetTensorData<int8_t>(bias)) {
+    TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
   }
+
+  cmsis_nn_dims input_dims;
+  input_dims.n = batch_size;
+  input_dims.h = input_shape.Dims(1);
+  input_dims.w = input_shape.Dims(2);
+  input_dims.c = input_shape.Dims(3);
+
+  cmsis_nn_dims filter_dims;
+  filter_dims.n = filter_shape.Dims(0);
+  filter_dims.h = filter_shape.Dims(1);
+  filter_dims.w = filter_shape.Dims(2);
+  filter_dims.c = output_depth;
+
+  cmsis_nn_dims bias_dims;
+  bias_dims.n = 1;
+  bias_dims.h = 1;
+  bias_dims.w = 1;
+  bias_dims.c = output_depth;
+
+  cmsis_nn_dims output_dims;
+  output_dims.n = batch_size;
+  output_dims.h = output_shape.Dims(1);
+  output_dims.w = output_shape.Dims(2);
+  output_dims.c = output_depth;
+
+  cmsis_nn_context ctx;
+  ctx.buf = nullptr;
+  /* 'size' is unused */
+  ctx.size = 0;
+
+  if (data.buffer_idx > -1) {
+    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
+  }
+
+  TFLITE_DCHECK_EQ(
+      arm_depthwise_conv_wrapper_s8(
+          &ctx, &dw_conv_params, &quant_params, &input_dims,
+          tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
+          tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
+          tflite::micro::GetTensorData<int32_t>(bias), &output_dims,
+          tflite::micro::GetTensorData<int8_t>(output)),
+      ARM_MATH_SUCCESS);
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {

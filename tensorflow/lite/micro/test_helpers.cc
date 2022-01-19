@@ -1303,13 +1303,21 @@ const Tensor* Create1dFlatbufferTensor(int size, bool is_variable) {
 const Tensor* CreateQuantizedFlatbufferTensor(int size) {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+  constexpr size_t quant_params_size = 1;
+  const float min_array[quant_params_size] = {0.1f};
+  const float max_array[quant_params_size] = {0.2f};
+  const float scale_array[quant_params_size] = {0.3f};
+  const int64_t zero_point_array[quant_params_size] = {100ll};
+
   const Offset<QuantizationParameters> quant_params =
       CreateQuantizationParameters(
           *builder,
-          /*min=*/builder->CreateVector<float>({0.1f}),
-          /*max=*/builder->CreateVector<float>({0.2f}),
-          /*scale=*/builder->CreateVector<float>({0.3f}),
-          /*zero_point=*/builder->CreateVector<int64_t>({100ll}));
+          /*min=*/builder->CreateVector<float>(min_array, quant_params_size),
+          /*max=*/builder->CreateVector<float>(max_array, quant_params_size),
+          /*scale=*/
+          builder->CreateVector<float>(scale_array, quant_params_size),
+          /*zero_point=*/
+          builder->CreateVector<int64_t>(zero_point_array, quant_params_size));
 
   constexpr size_t tensor_shape_size = 1;
   const int32_t tensor_shape[tensor_shape_size] = {size};

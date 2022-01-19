@@ -206,7 +206,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* output_tensor = GetOutput(context, node, kOutputTensor);
+  const TfLiteEvalTensor* output_tensor =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   TF_LITE_ENSURE(context, output_tensor != nullptr);
   TfLiteType output_type = output_tensor->type;
 

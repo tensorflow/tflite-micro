@@ -90,6 +90,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:fake_micro_context",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_error_reporter",
@@ -113,6 +114,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:micro_context",
     ],
 )
 
@@ -184,6 +186,7 @@ tflm_kernel_cc_library(
         "logistic.cc",
         "logistic_common.cc",
         "maximum_minimum.cc",
+        "mirror_pad.cc",
         "mul.cc",
         "mul_common.cc",
         "neg.cc",
@@ -813,6 +816,20 @@ cc_test(
     name = "maximum_minimum_test",
     srcs = [
         "maximum_minimum_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "mirror_pad_test",
+    srcs = [
+        "mirror_pad_test.cc",
     ],
     deps = [
         ":kernel_runner",
