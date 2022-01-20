@@ -54,13 +54,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Prepare Execution (workaround)
         run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
-      - name: Execute test suite on Virtual Hardware at AWS
-        uses: Arm-Software/VHT-AMI@v2
-        with:
-          vht_in: ./vht_cm_corstone300
-          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
-          s3_bucket_name: ${{ secrets.S3_BUCKET_2 }}
-        env: 
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+    #  - name: Execute test suite on Virtual Hardware at AWS
+    #    uses: Arm-Software/VHT-AMI@v2
+    #    with:
+    #      vht_in: ./vht_cm_corstone300
+    #      ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
+    #      s3_bucket_name: ${{ secrets.S3_BUCKET_2 }}
+    #    env: 
+    #      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+    #      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
