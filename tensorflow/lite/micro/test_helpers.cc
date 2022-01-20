@@ -29,7 +29,9 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/test_helper_custom_ops.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // TODO(b/170464050): Use TFLM test only version of schema_utils.
@@ -903,6 +905,227 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   return model;
 }
 
+// Build a model with If and two subgraphs: two data tensors A1 of size 2, A2 of
+// size 4 are first concatenated, then cut to a new tensor A3 of size 3; the new
+// tensor A3 of size 3 is then concatenated with A2 tensor of size 4 to produce
+// a final output tensor A4. This model is specially crafted to capture the
+// corner case outlined in go/avoid-memory-corruption-in-if-operator.
+//
+//                Subgraph0
+//            A0(1) A2_0(4)  A1_0(2)
+//             |      |      | ---+
+//             v      v      v    |
+//            +--------------+    |
+//            |     IF       |    |
+//            +------+-------+    |
+//                   | A3_0(3)      |
+//                   v            |
+//            +--------------+    |
+//            |    CUSTOM    |<---+
+//            +------+-------+
+//                   |
+//                   v
+//                    A4_0(8)
+//
+//                Subgraph1/2
+//              A1_1(2)      A2_1(4)
+//                 |         |
+//                 v         v
+//             +---------------+
+//             |   CUSTOM      |
+//             +-------+-------+
+//                     |
+//                     v A3_1(3)
+//
+// And it leads to memory plan as below
+//
+//                  Subgraph0 Layout
+//
+//
+//   <------------A4_0        -------------> <----- A2_0-------> <----A3_0 --->
+//  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+//  |    |    |    |    |    |    |    |    | 3  | 4  | 5  |  6 |    |    |    |
+//  +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+//
+//  +----+----+----+
+//  | 1  |  2 | A0 |
+//  +----+----+----+
+//  <---A1_0-->
+//
+//                 Subgraph 1 Layout
+//
+//  +----+----+----+----+----+----+----+----+----+
+//  |    |    |    |    |    |    |    |    |    |
+//  +----+----+----+----+----+----+----+----+----+
+//
+//
+//  <------A2_1 -------><----A3_1  ---><--A1_1--->
+//
+//
+// A1_1 of subgraph 1 will overlap with A2_0 of subgraph 0.
+// In a buggy implementation of IF, two overwrite may happen:
+// 1. copying input from A1_0 to A1_1 overwrites A2_0 before A2_0 is copied to
+// A2_1; thus subgraph 1 produce incorrect output.
+// 2. copying output from A3_1 to A4_0 overwrites A1_0, which should remain
+// intact so that it can be used by the OP after the IF operator in subgraph 0
+//
+
+const Model* BuildModelWithIfAndSubgraphInputTensorOverlap() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  constexpr TensorType kTensorType = TensorType_INT32;
+  constexpr int kBlockSize =
+      tflite::MicroArenaBufferAlignment() / sizeof(int32_t);
+  constexpr size_t kBuffersCount = 1;
+  const Offset<Buffer> buffers[kBuffersCount] = {
+      CreateBuffer(*builder),
+  };
+  const int32_t kConditionTensorShape[] = {1};
+  const int32_t kIfInput1TensorShape[] = {2 * kBlockSize};
+  const int32_t kIfInput2TensorShape[] = {4 * kBlockSize};
+  const int32_t kIfOutputTensorShape[] = {3 * kBlockSize};
+  const int32_t kFinalOutputTensorShape[] = {8 * kBlockSize};
+  constexpr size_t kSubgraph0TensorsCount = 5;
+  const Offset<Tensor> kSubgraph0Tensors[kSubgraph0TensorsCount] = {
+      CreateTensor(*builder, builder->CreateVector(kConditionTensorShape, 1),
+                   TensorType_BOOL, 0,
+                   builder->CreateString("condition tensor"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(kIfInput1TensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_input_tensor1"), 0,
+                   false),
+      CreateTensor(*builder, builder->CreateVector(kIfInput2TensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_input_tensor2"), 0,
+                   false),
+      CreateTensor(*builder, builder->CreateVector(kIfOutputTensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_output_tensor"), 0,
+                   false),
+      CreateTensor(*builder, builder->CreateVector(kFinalOutputTensorShape, 1),
+                   kTensorType, 0, builder->CreateString("final_output_tensor"),
+                   0, false),
+  };
+
+  // Subgraph 1 is the chosen path if condition tensor in IF is true.
+  constexpr size_t kSubgraph1TensorsCount = 3;
+  const Offset<Tensor> kSubgraph1Tensors[kSubgraph1TensorsCount] = {
+      CreateTensor(*builder, builder->CreateVector(kIfInput1TensorShape, 1),
+                   kTensorType, 0,
+                   builder->CreateString("subgraph1_input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(kIfInput2TensorShape, 1),
+                   kTensorType, 0,
+                   builder->CreateString("subgraph1_input_tensor2"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(kIfOutputTensorShape, 1),
+                   kTensorType, 0,
+                   builder->CreateString("subgraph1_output_tensor"), 0, false),
+  };
+
+  // Subgraph 2 is the chosen path if condition tensor in IF is false
+  constexpr size_t kSubgraph2TensorsCount = 3;
+  const Offset<Tensor> kSubgraph2Tensors[kSubgraph2TensorsCount] = {
+      CreateTensor(*builder, builder->CreateVector(kIfInput1TensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_input_tensor1"), 0,
+                   false),
+      CreateTensor(*builder, builder->CreateVector(kIfInput2TensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_input_tensor2"), 0,
+                   false),
+      CreateTensor(*builder, builder->CreateVector(kIfOutputTensorShape, 1),
+                   kTensorType, 0, builder->CreateString("if_output_tensor"), 0,
+                   false),
+  };
+
+  constexpr int kIfOpCodeIndex = 0;
+  constexpr int kCustomOpCodeIndex = 1;
+
+  constexpr size_t kIfInputsCount = 3;
+  const int32_t kIfInputs[kIfInputsCount] = {0, 1, 2};
+  constexpr size_t kOutputsCount = 1;
+  const int32_t kIfOutputs[kOutputsCount] = {3};
+  constexpr size_t kOpAfterIfInputsCount = 2;
+  const int32_t kOpAfterIfInputs[kOpAfterIfInputsCount] = {3, 2};
+  const int32_t kOpAfterIfOutputs[kOutputsCount] = {4};
+  constexpr size_t kOperatorsCount = 2;
+  const Offset<Operator> kSubgraph0Operators[kOperatorsCount] = {
+      CreateOperator(*builder, kIfOpCodeIndex,
+                     builder->CreateVector(kIfInputs, kIfInputsCount),
+                     builder->CreateVector(kIfOutputs, kOutputsCount),
+                     BuiltinOptions_IfOptions,
+                     CreateIfOptions(*builder, 1, 2).Union()),
+      CreateOperator(
+          *builder, kCustomOpCodeIndex,
+          builder->CreateVector(kOpAfterIfInputs, kOpAfterIfInputsCount),
+          builder->CreateVector(kOpAfterIfOutputs, kOutputsCount)),
+  };
+
+  constexpr size_t kSubgraph1InputsCount = 2;
+  const int32_t kSubgraph1Inputs[kSubgraph1InputsCount] = {0, 1};
+  constexpr size_t kSubgraph1OutputsCount = 1;
+  const int32_t kSubgraph1Outputs[kSubgraph1OutputsCount] = {2};
+  constexpr size_t kSubgraph1OperatorsCount = 1;
+  const Offset<Operator> kSubgraph1Operators[kSubgraph1OperatorsCount] = {
+      CreateOperator(
+          *builder, kCustomOpCodeIndex,
+          builder->CreateVector(kSubgraph1Inputs, kSubgraph1InputsCount),
+          builder->CreateVector(kSubgraph1Outputs, kSubgraph1OutputsCount),
+          BuiltinOptions_NONE),
+  };
+
+  constexpr size_t kSubgraph2InputsCount = 2;
+  const int32_t kSubgraph2Inputs[kSubgraph2InputsCount] = {0, 1};
+  constexpr size_t kSubgraph2OutputsCount = 1;
+  const int32_t kSubgraph2Outputs[kSubgraph2OutputsCount] = {2};
+  constexpr size_t kSubgraph2OperatorsCount = 1;
+  const Offset<Operator> kSubgraph2Operators[kSubgraph2OperatorsCount] = {
+      CreateOperator(
+          *builder, kCustomOpCodeIndex,
+          builder->CreateVector(kSubgraph2Inputs, kSubgraph2InputsCount),
+          builder->CreateVector(kSubgraph2Outputs, kSubgraph2OutputsCount),
+          BuiltinOptions_NONE),
+  };
+
+  constexpr size_t kSubgraphsCount = 3;
+  const Offset<SubGraph> kSubgraphs[kSubgraphsCount] = {
+      CreateSubGraph(
+          *builder,
+          builder->CreateVector(kSubgraph0Tensors, kSubgraph0TensorsCount),
+          builder->CreateVector(kIfInputs, kIfInputsCount),
+          builder->CreateVector(kOpAfterIfOutputs, kOutputsCount),
+          builder->CreateVector(kSubgraph0Operators, kOperatorsCount),
+          builder->CreateString("if_subgraph")),
+      CreateSubGraph(
+          *builder,
+          builder->CreateVector(kSubgraph1Tensors, kSubgraph1TensorsCount),
+          builder->CreateVector(kSubgraph1Inputs, kSubgraph1InputsCount),
+          builder->CreateVector(kSubgraph1Outputs, kSubgraph1OutputsCount),
+          builder->CreateVector(kSubgraph1Operators, kSubgraph1OperatorsCount),
+          builder->CreateString("then_subgraph")),
+      CreateSubGraph(
+          *builder,
+          builder->CreateVector(kSubgraph2Tensors, kSubgraph2TensorsCount),
+          builder->CreateVector(kSubgraph2Inputs, kSubgraph2InputsCount),
+          builder->CreateVector(kSubgraph2Outputs, kSubgraph2OutputsCount),
+          builder->CreateVector(kSubgraph2Operators, kSubgraph2OperatorsCount),
+          builder->CreateString("else_subgraph")),
+  };
+
+  constexpr size_t kOperatorCodesCount = 2;
+  const Offset<OperatorCode> kOperatorCodes[kOperatorCodesCount] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0, "if",
+                               /*version=*/0, BuiltinOperator_IF),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "custom_packer_op",
+                               /*version=*/0, BuiltinOperator_CUSTOM),
+  };
+  const Offset<Model> kModelOffset = CreateModel(
+      *builder, 0, builder->CreateVector(kOperatorCodes, kOperatorCodesCount),
+      builder->CreateVector(kSubgraphs, kSubgraphsCount),
+      builder->CreateString("test_model"),
+      builder->CreateVector(buffers, kBuffersCount));
+  FinishModelBuffer(*builder, kModelOffset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 // Mock model with one main subgraph containing a single CALL_ONCE op (with null
 // inputs and outputs) which invokes a second subgraph which has null inputs and
 // outputs.
@@ -1195,6 +1418,7 @@ AllOpsResolver GetOpResolver() {
   op_resolver.AddCustom("multiple_inputs_op",
                         MultipleInputs::GetMutableRegistration());
   op_resolver.AddCustom("no_op", NoOp::GetMutableRegistration());
+  op_resolver.AddCustom("custom_packer_op", PackerOp::GetMutableRegistration());
   return op_resolver;
 }
 
@@ -1239,6 +1463,14 @@ const Model* GetSimpleModelWithSubgraphsAndIf() {
   static Model* model = nullptr;
   if (!model) {
     model = const_cast<Model*>(BuildSimpleModelWithSubgraphsAndIf());
+  }
+  return model;
+}
+
+const Model* GetModelWithIfAndSubgraphInputTensorOverlap() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildModelWithIfAndSubgraphInputTensorOverlap());
   }
   return model;
 }

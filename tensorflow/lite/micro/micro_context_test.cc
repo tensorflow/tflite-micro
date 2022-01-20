@@ -24,16 +24,18 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-tflite::MicroContext CreateMicroContext(MicroGraph* micro_graph = nullptr) {
+tflite::MicroContext CreateMicroContext() {
   using ::tflite::MicroAllocator;
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+
+  MicroGraph micro_graph(nullptr, nullptr, nullptr, nullptr);
 
   const size_t kArenaSize = 1024;
   uint8_t tensor_arena[kArenaSize];
   MicroAllocator* micro_allocator = MicroAllocator::Create(
       tensor_arena, kArenaSize, tflite::GetMicroErrorReporter());
 
-  tflite::MicroContext micro_context(micro_allocator, model, micro_graph);
+  tflite::MicroContext micro_context(micro_allocator, model, &micro_graph);
   return micro_context;
 }
 

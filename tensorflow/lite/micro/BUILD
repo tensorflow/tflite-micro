@@ -188,9 +188,11 @@ cc_library(
 cc_library(
     name = "test_helpers",
     srcs = [
+        "test_helper_custom_ops.cc",
         "test_helpers.cc",
     ],
     hdrs = [
+        "test_helper_custom_ops.h",
         "test_helpers.h",
     ],
     copts = micro_copts(),
