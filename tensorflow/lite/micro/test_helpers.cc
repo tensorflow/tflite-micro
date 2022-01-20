@@ -1126,6 +1126,73 @@ const Model* BuildModelWithIfAndSubgraphInputTensorOverlap() {
   return model;
 }
 
+const Model* BuildModelWithTwoSubgraphs() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  const Offset<Buffer> buffers[] = {
+      CreateBuffer(*builder),
+  };
+  const int32_t tensor_shape[] = {1, 128};
+  const Offset<Tensor> subgraph0_tensors[] = {
+      CreateTensor(*builder, builder->CreateVector(tensor_shape, 2),
+                   TensorType_INT8, 0,
+                   builder->CreateString("subgraph0 tensor0"), 0, false),
+
+      CreateTensor(*builder, builder->CreateVector(tensor_shape, 2),
+                   TensorType_INT8, 0,
+                   builder->CreateString("subgraph0 tensor1"), 0, false),
+  };
+  const Offset<Tensor> subgraph1_tensors[] = {
+      CreateTensor(*builder, builder->CreateVector(tensor_shape, 2),
+                   TensorType_INT8, 0,
+                   builder->CreateString("subgraph1 tensor0"), 0, false),
+  };
+
+  const int32_t subgraph0_inputs_outputs[] = {0, 1};
+  const int32_t subgraph1_inputs_outputs[] = {0};
+
+  const int32_t subgraph0_inputs[] = {0, 1};
+  const int32_t subgraph0_outputs[] = {0, 1};
+  const int32_t subgraph1_inputs[] = {0};
+  const int32_t subgraph1_outputs[] = {0};
+  const Offset<Operator> subgraph0_operators[] = {
+      CreateOperator(*builder, 0, builder->CreateVector(subgraph0_inputs, 2),
+                     builder->CreateVector(subgraph0_outputs, 2),
+                     BuiltinOptions_NONE),
+  };
+  const Offset<Operator> subgraph1_operators[] = {
+      CreateOperator(*builder, 0, builder->CreateVector(subgraph1_inputs, 1),
+                     builder->CreateVector(subgraph1_outputs, 1),
+                     BuiltinOptions_NONE),
+  };
+  constexpr size_t subgraphs_size = 2;
+  const Offset<SubGraph> subgraphs[subgraphs_size] = {
+      CreateSubGraph(*builder, builder->CreateVector(subgraph0_tensors, 2),
+                     builder->CreateVector(subgraph0_inputs_outputs, 2),
+                     builder->CreateVector(subgraph0_inputs_outputs, 2),
+                     builder->CreateVector(subgraph0_operators, 1),
+                     builder->CreateString("first_subgraph")),
+      CreateSubGraph(*builder, builder->CreateVector(subgraph1_tensors, 1),
+                     builder->CreateVector(subgraph1_inputs_outputs, 1),
+                     builder->CreateVector(subgraph1_inputs_outputs, 1),
+                     builder->CreateVector(subgraph1_operators, 1),
+                     builder->CreateString("second_subgraph")),
+  };
+  constexpr size_t operator_codes_size = 1;
+  const Offset<OperatorCode> operator_codes[operator_codes_size] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0, "no_op",
+                               /*version=*/0, BuiltinOperator_CUSTOM)};
+  const Offset<Model> model_offset = CreateModel(
+      *builder, 0, builder->CreateVector(operator_codes, operator_codes_size),
+      builder->CreateVector(subgraphs, subgraphs_size),
+      builder->CreateString("test_model"), builder->CreateVector(buffers, 1));
+  FinishModelBuffer(*builder, model_offset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 // Mock model with one main subgraph containing a single CALL_ONCE op (with null
 // inputs and outputs) which invokes a second subgraph which has null inputs and
 // outputs.
@@ -1471,6 +1538,14 @@ const Model* GetModelWithIfAndSubgraphInputTensorOverlap() {
   static Model* model = nullptr;
   if (!model) {
     model = const_cast<Model*>(BuildModelWithIfAndSubgraphInputTensorOverlap());
+  }
+  return model;
+}
+
+const Model* GetModelWithTwoSubgraphs() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildModelWithTwoSubgraphs());
   }
   return model;
 }

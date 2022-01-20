@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -396,8 +397,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
 }
 
 TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
-  const tflite::Model* model =
-      tflite::testing::GetSimpleModelWithSubgraphsAndIf();
+  const tflite::Model* model = tflite::testing::GetModelWithTwoSubgraphs();
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
   constexpr size_t arena_size = 10 * 1024;
   uint8_t arena[arena_size];
@@ -407,7 +407,8 @@ TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
   TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
-  for (int subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+  for (int subgraph_idx = 0;
+       subgraph_idx < static_cast<int>(model->subgraphs()->size());
        subgraph_idx++) {
     int buffer_idx = -1;
     TF_LITE_MICRO_EXPECT_EQ(
@@ -425,17 +426,25 @@ TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
                                                        /*count=*/1,
                                                        /*num_subgraphs=*/3);
 
-  for (int subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
-       subgraph_idx++) {
-    tflite::SubgraphAllocations* allocations =
-        &subgraph_allocations[subgraph_idx];
-    TfLiteEvalTensor* eval_tensors = allocations->tensors;
-    void* scratch_buffer = allocations->scratch_buffer_handles[0].data;
-    for (int i = 0;
-         i < tflite::testing::GetModelTensorCount(model, subgraph_idx); i++) {
-      TF_LITE_MICRO_EXPECT_NE(eval_tensors[i].data.raw, scratch_buffer);
-    }
-  }
+  uintptr_t subgraph0_tensor0_ptr =
+      reinterpret_cast<uintptr_t>(subgraph_allocations[0].tensors[0].data.raw);
+  uintptr_t subgraph0_tensor1_ptr =
+      reinterpret_cast<uintptr_t>(subgraph_allocations[0].tensors[1].data.raw);
+  uintptr_t subgraph1_tensor0_ptr =
+      reinterpret_cast<uintptr_t>(subgraph_allocations[1].tensors[0].data.raw);
+  uintptr_t subgraph0_scratch_ptr = reinterpret_cast<uintptr_t>(
+      subgraph_allocations[0].scratch_buffer_handles[0].data);
+  uintptr_t subgraph1_scratch_ptr = reinterpret_cast<uintptr_t>(
+      subgraph_allocations[1].scratch_buffer_handles[0].data);
+
+  // The memory layout is expected to be:
+  // subgraph 0:
+  // [tensor1 (128 bytes)] [tensor 0 (128 bytes)] [scratch (16 bytes)]
+  // subgraph 1:
+  // [tensor0 (128 bytes)] [scratch (16 bytes)]
+  TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor1_ptr + 128, subgraph0_tensor0_ptr);
+  TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor0_ptr + 128, subgraph0_scratch_ptr);
+  TF_LITE_MICRO_EXPECT_EQ(subgraph1_tensor0_ptr + 128, subgraph1_scratch_ptr);
 }
 
 TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
@@ -449,6 +458,10 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
+  printf("arena used bytes %lu\n", allocator->used_bytes());
+  printf("sizeof(MicroAllocator=%ld\n", sizeof(tflite::MicroAllocator));
+  printf("sizeof(GreedyMemoryPlanner=%ld\n",
+         sizeof(tflite::GreedyMemoryPlanner));
 
   // Allocate for model 1. We use ComplexMockModel here to cover the code path
   // allocatig variables.

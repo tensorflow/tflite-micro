@@ -161,6 +161,9 @@ const Model* GetSimpleModelWithSubgraphsAndIf();
 // of "if" subgraph overlaps with the input tensor 2 of subgraph 1.
 const Model* GetModelWithIfAndSubgraphInputTensorOverlap();
 
+// Returns a flatbuffer model with two subgraphs.
+const Model* GetModelWithTwoSubgraphs();
+
 // Returns a flatbuffer model with null subgraph/operator inputs and outputs.
 const Model* GetSimpleModelWithNullInputsAndOutputs();
 

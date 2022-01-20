@@ -72,11 +72,6 @@ class MicroContext {
 
   MicroGraph& graph() { return graph_; }
 
-  // Sets the pointer to a list of ScratchBufferHandle instances.
-  // Not API between TFLM and kernels. Primarily used by the framework for
-  // housekeeping in MicroContext.
-  void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
-
  private:
   MicroAllocator& allocator_;
   MicroGraph& graph_;
