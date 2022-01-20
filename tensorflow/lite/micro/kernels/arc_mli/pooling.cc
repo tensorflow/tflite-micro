@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/arc_mli/mli_function_specializations.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_slicers.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
@@ -47,6 +48,10 @@ struct OpData {
   mutable ops::micro::MliTensorInterface mli_in;
   mutable ops::micro::MliTensorInterface mli_out;
   mli_pool_cfg* cfg;
+
+  // Pointer to the mli convolution function.
+  pooling_func_ptr p_mli_krn_avepool_hwc_sa8;
+  pooling_func_ptr p_mli_krn_maxpool_hwc_sa8;
 };
 
 enum MliPoolingType { AveragePooling = 0, MaxPooling = 1 };
@@ -134,6 +139,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->cfg->padding_bottom =
           data->padding.height + data->padding.height_offset;
     }
+
+    // Choose pooling mli specialized functions.
+    data->p_mli_krn_avepool_hwc_sa8 = mli_krn_avepool(data->cfg);
+    data->p_mli_krn_maxpool_hwc_sa8 = mli_krn_maxpool(data->cfg);
   }
   return kTfLiteOk;
 }
@@ -224,14 +233,21 @@ TfLiteStatus EvalMli(TfLiteContext* context, const TfLitePoolParams* params,
   mli_tensor* out_ptr = out_is_local ? out_slice.Sub() : &out_local;
 
   while (!out_slice.Done()) {
+    if (!out_is_local) {
+      ops::micro::PrepareLocalTensor(out_slice.Sub(), &out_local);
+      ops::micro::PrepareLocalTensor(in_slice.Sub(), &in_local);
+    }
     cfg_local.padding_top = in_slice.GetPaddingPre();
     cfg_local.padding_bottom = in_slice.GetPaddingPost();
 
     mli_mov_tensor_sync(in_slice.Sub(), &copy_config, in_ptr);
-    if (pooling_type == AveragePooling)
-      mli_krn_avepool_hwc_sa8(in_ptr, &cfg_local, out_ptr);
-    else if (pooling_type == MaxPooling)
-      mli_krn_maxpool_hwc_sa8(in_ptr, &cfg_local, out_ptr);
+    if (pooling_type == AveragePooling) {
+      TFLITE_DCHECK(data.p_mli_krn_avepool_hwc_sa8 != nullptr);
+      data.p_mli_krn_avepool_hwc_sa8(in_ptr, &cfg_local, out_ptr);
+    } else if (pooling_type == MaxPooling) {
+      TFLITE_DCHECK(data.p_mli_krn_maxpool_hwc_sa8 != nullptr);
+      data.p_mli_krn_maxpool_hwc_sa8(in_ptr, &cfg_local, out_ptr);
+    }
     mli_mov_tensor_sync(out_ptr, &copy_config, out_slice.Sub());
 
     in_slice.Next();

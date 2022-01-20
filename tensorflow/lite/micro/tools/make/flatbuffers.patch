@@ -1,5 +1,5 @@
 diff --git a/include/flatbuffers/base.h b/include/flatbuffers/base.h
-index 8e97c08..6f3fea5 100644
+index a5ac10d..371b6fd 100644
 --- a/include/flatbuffers/base.h
 +++ b/include/flatbuffers/base.h
 @@ -1,6 +1,16 @@
@@ -19,11 +19,11 @@ index 8e97c08..6f3fea5 100644
  // clang-format off
  
  // If activate should be declared and included first.
-diff --git a/include/flatbuffers/flatbuffers.h b/include/flatbuffers/flatbuffers.h
-index 799f647..362c6e7 100644
---- a/include/flatbuffers/flatbuffers.h
-+++ b/include/flatbuffers/flatbuffers.h
-@@ -653,24 +653,18 @@ class DefaultAllocator : public Allocator {
+diff --git a/include/flatbuffers/default_allocator.h b/include/flatbuffers/default_allocator.h
+index 8b173af..975d938 100644
+--- a/include/flatbuffers/default_allocator.h
++++ b/include/flatbuffers/default_allocator.h
+@@ -39,26 +39,20 @@ class DefaultAllocator : public Allocator {
  // This is to avoid having a statically or dynamically allocated default
  // allocator, or having to move it between the classes that may own it.
  inline uint8_t *Allocate(Allocator *allocator, size_t size) {
@@ -37,7 +37,7 @@ index 799f647..362c6e7 100644
 -    allocator->deallocate(p, size);
 -  else
 -    DefaultAllocator().deallocate(p, size);
-+  return allocator->deallocate(p, size);
++  allocator->deallocate(p, size);
  }
  
  inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
@@ -47,26 +47,35 @@ index 799f647..362c6e7 100644
 -                                                    in_use_back, in_use_front)
 -                   : DefaultAllocator().reallocate_downward(
 -                         old_p, old_size, new_size, in_use_back, in_use_front);
-+  return allocator->reallocate_downward(old_p, old_size, new_size,
-+                                        in_use_back, in_use_front);
++  return allocator->reallocate_downward(old_p, old_size, new_size, in_use_back,
++                                        in_use_front);
  }
  
- // DetachedBuffer is a finished flatbuffer memory region, detached from its
+ }  // namespace flatbuffers
+ 
+-#endif  // FLATBUFFERS_DEFAULT_ALLOCATOR_H_
+\ No newline at end of file
++#endif  // FLATBUFFERS_DEFAULT_ALLOCATOR_H_
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
-index a45d14b..393e96d 100644
+index 89f3f30..6e6d0b3 100644
 --- a/include/flatbuffers/flexbuffers.h
 +++ b/include/flatbuffers/flexbuffers.h
-@@ -493,9 +493,19 @@ class Reference {
+@@ -496,9 +496,24 @@ class Reference {
            return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
          case FBT_NULL: return 0.0;
          case FBT_STRING: {
++#if 1
 +#if !defined( _MSC_VER)
 +#pragma GCC diagnostic push
 +#pragma GCC diagnostic ignored "-Wnull-dereference"
-+          // TODO(b/173239141): Patched via micro/tools/make/flexbuffers_download.sh
++#endif
++          // See b/173239141 for additional context. Patched via
++          // micro/tools/make/flexbuffers_download.sh
 +          // Introduce a segfault for an unsupported code path for TFLM.
 +          return *(static_cast<double*>(nullptr));
++#if !defined( _MSC_VER)
 +#pragma GCC diagnostic pop
++#endif
 +#else
 +          // This is the original code
            double d;
@@ -76,3 +85,20 @@ index a45d14b..393e96d 100644
          }
          case FBT_VECTOR: return static_cast<double>(AsVector().size());
          case FBT_BOOL:
+diff --git a/include/flatbuffers/util.h b/include/flatbuffers/util.h
+index 93a39de..1cd4e8f 100644
+--- a/include/flatbuffers/util.h
++++ b/include/flatbuffers/util.h
+@@ -23,6 +23,12 @@
+ #include "flatbuffers/base.h"
+ #include "flatbuffers/stl_emulation.h"
+ 
++// For TFLM we always want to use FLATBUFFERS_PREFER_PRINTF=1. See
++// http://b/211811553 for more context.
++#ifndef FLATBUFFERS_PREFER_PRINTF
++#define FLATBUFFERS_PREFER_PRINTF 1
++#endif
++
+ #ifndef FLATBUFFERS_PREFER_PRINTF
+ #  include <sstream>
+ #  include <iomanip>

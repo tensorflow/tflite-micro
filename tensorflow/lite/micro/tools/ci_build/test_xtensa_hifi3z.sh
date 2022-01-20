@@ -28,16 +28,54 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 # TODO(b/143904317): downloading first to allow for parallel builds.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi4 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=HIFI_190304_swupgrade \
-  build -j$(nproc)
+# optional command line parameter "INTERNAL" uses internal test code
+if [[ ${1} == "INTERNAL" ]]; then
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    build -j$(nproc)
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi4 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=HIFI_190304_swupgrade \
-  test -j$(nproc)
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test -j$(nproc)
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test_integration_tests_seanet_conv -j$(nproc)
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test_integration_tests_seanet_add_test -j$(nproc)
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4_internal \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test_integration_tests_seanet_leaky_relu_test -j$(nproc)
+else
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4 \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    build -j$(nproc)
+
+  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+    TARGET=xtensa \
+    TARGET_ARCH=hifi4 \
+    OPTIMIZED_KERNEL_DIR=xtensa \
+    XTENSA_CORE=HIFI_190304_swupgrade \
+    test -j$(nproc)
+fi

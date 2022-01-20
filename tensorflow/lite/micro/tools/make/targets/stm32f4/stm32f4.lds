@@ -18,8 +18,12 @@ ENTRY(_main)
 
 /* 256K of RAM and 2048K of FLASH. Source: */
 /* https://github.com/renode/renode/blob/master/platforms/cpus/stm32f4.repl*/
+/* Modifications:
+    * increased the RAM to 512K. This far exceeds the
+      actual hardware but enables running the tests in the emulator.
+*/
 MEMORY {
- RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 256K
+ RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K
  FLASH (rx) : ORIGIN = 0x8000000, LENGTH =  2048K
 }
 
