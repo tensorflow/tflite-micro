@@ -25,17 +25,21 @@ namespace tflite {
 namespace {
 
 tflite::MicroContext CreateMicroContext() {
-  using ::tflite::MicroAllocator;
+  // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
+  // the test need to place non-transitent memories in static variables. This is
+  // safe because tests are guarateed to run serially.
+  constexpr size_t kMicroGraphPlacementBufferSize = 1024;
+  static uint8_t micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
+  constexpr size_t kArenaSize = 1024;
+  static uint8_t tensor_arena[kArenaSize];
+
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-
-  MicroGraph micro_graph(nullptr, nullptr, nullptr, nullptr);
-
-  const size_t kArenaSize = 1024;
-  uint8_t tensor_arena[kArenaSize];
   MicroAllocator* micro_allocator = MicroAllocator::Create(
       tensor_arena, kArenaSize, tflite::GetMicroErrorReporter());
+  MicroGraph* micro_graph = new (micro_graph_placement_buffer)
+      MicroGraph(nullptr, nullptr, nullptr, nullptr);
 
-  tflite::MicroContext micro_context(micro_allocator, model, &micro_graph);
+  tflite::MicroContext micro_context(micro_allocator, model, micro_graph);
   return micro_context;
 }
 
@@ -87,6 +91,13 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
   // Another set should fail.
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           micro_context.set_external_context(&payload));
+}
+
+TF_LITE_MICRO_TEST(TestSetExternalContextToNullShouldFail) {
+  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          micro_context.set_external_context(nullptr));
 }
 
 TF_LITE_MICRO_TESTS_END
