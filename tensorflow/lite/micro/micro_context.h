@@ -65,6 +65,7 @@ class MicroContext {
 
   // Does not take ownership of the pointer and the pointer must refer to valid
   // an object that outlive this class instance.
+  // This can only be called once to set one external context.
   TfLiteStatus set_external_context(void* external_context_payload);
 
   void* external_context() { return external_context_payload_; }

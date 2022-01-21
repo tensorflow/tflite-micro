@@ -30,6 +30,7 @@ AllOpsResolver::AllOpsResolver() {
   AddAveragePool2D();
   AddBatchToSpaceNd();
   AddCallOnce();
+  AddCast();
   AddCeil();
   AddConcatenation();
   AddConv2D();

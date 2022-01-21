@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <algorithm>
 #include <numeric>
+#include <tuple>
 
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -313,9 +315,10 @@ TfLiteStatus DecodeCenterSizeBoxes(TfLiteContext* context, TfLiteNode* node,
 void DecreasingPartialArgSort(const float* values, int num_values,
                               int num_to_sort, int* indices) {
   std::iota(indices, indices + num_values, 0);
-  std::partial_sort(
-      indices, indices + num_to_sort, indices + num_values,
-      [&values](const int i, const int j) { return values[i] > values[j]; });
+  std::partial_sort(indices, indices + num_to_sort, indices + num_values,
+                    [&values](const int i, const int j) {
+                      return std::tie(values[i], j) > std::tie(values[j], i);
+                    });
 }
 
 template <typename Compare>
