@@ -405,6 +405,21 @@ cc_test(
 )
 
 cc_test(
+    name = "fake_micro_context_test",
+    srcs = [
+        "fake_micro_context_test.cc",
+    ],
+    deps = [
+        ":fake_micro_context",
+        ":micro_allocator",
+        ":micro_error_reporter",
+        ":test_helpers",
+        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "micro_interpreter_test",
     srcs = [
         "micro_interpreter_test.cc",
