@@ -923,6 +923,9 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
                                    allocation_info, allocation_info_count));
 
   // Reset all temp allocations used above:
+  memory_allocator_->DeallocateTemp(
+      reinterpret_cast<uint8_t*>(allocation_info));
+  memory_allocator_->DeallocateTemp(planner_arena);
   memory_allocator_->ResetTempAllocations();
 
   size_t actual_available_arena_size =
