@@ -114,15 +114,13 @@ uint8_t* SimpleMemoryAllocator::AllocateTemp(size_t size, size_t alignment) {
     return nullptr;
   }
   temp_ = aligned_result + size;
-  temp_buffer_ptr_check_sum_ =
-      temp_buffer_ptr_check_sum_ ^ (reinterpret_cast<intptr_t>(aligned_result));
+  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(aligned_result));
   temp_buffer_count_++;
   return aligned_result;
 }
 
 void SimpleMemoryAllocator::DeallocateTemp(uint8_t* temp_buf) {
-  temp_buffer_ptr_check_sum_ =
-      temp_buffer_ptr_check_sum_ ^ (reinterpret_cast<intptr_t>(temp_buf));
+  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(temp_buf));
   temp_buffer_count_--;
 }
 
