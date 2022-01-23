@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,33 +22,23 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
 namespace micro {
 
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
-inline TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
-                                             const TfLiteNode* node,
-                                             int index) {
-  TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(node != nullptr);
-  return context->GetEvalTensor(context, node->inputs->data[index]);
-}
+TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
+                                      const TfLiteNode* node, int index);
 
 // Returns the TfLiteEvalTensor struct for a given input index in a node.
-inline const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
-                                            const TfLiteNode* node, int index) {
-  return GetMutableEvalInput(context, node, index);
-}
+const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
+                                     const TfLiteNode* node, int index);
 
 // Returns the TfLiteEvalTensor struct for a given output index in a node.
-inline TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
-                                       const TfLiteNode* node, int index) {
-  TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(node != nullptr);
-  return context->GetEvalTensor(context, node->outputs->data[index]);
-}
+TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
+                                const TfLiteNode* node, int index);
 
 // Returns data for a TfLiteEvalTensor struct.
 template <typename T>

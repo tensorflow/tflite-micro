@@ -131,12 +131,12 @@ currently no fixed recipe for this refactor and we will evaluate on a
 case-by-case basis during the PR review.
 
 For example, to add an optimized implementation for `fully_conntected` for the
-Xtensa Fusion F1 the steps were: *
-[PR 1](https://github.com/tensorflow/tensorflow/pull/45464): refactor for
-reference fallbacks and a baseline latency. *
-[PR 2](https://github.com/tensorflow/tensorflow/pull/46242): refactor to share
-code between reference and optimized kernels. *
-[PR 3](https://github.com/tensorflow/tensorflow/pull/46411): add the code needed
+Xtensa Fusion F1 the steps were: 
+* [PR 1](https://github.com/tensorflow/tensorflow/pull/45464): refactor for
+reference fallbacks and a baseline latency. 
+* [PR 2](https://github.com/tensorflow/tensorflow/pull/46242): refactor to share
+code between reference and optimized kernels. 
+* [PR 3](https://github.com/tensorflow/tensorflow/pull/46411): add the code needed
 to use the optimized NN lib and document the latency improvement.
 
 ## Build System Integration
@@ -144,7 +144,7 @@ to use the optimized NN lib and document the latency improvement.
 This module is the least defined but we strongly recommend the following: 1. A
 single target makefile.inc for all the architectures that you would like to
 support along with optional target-specific
-[system_setup.cc](../arduino/system_setup.cc). See
+[system_setup.cc](../cortex_m_corstone_300/system_setup.cc). See
 [cortex_m_generic_makefile.inc](../tools/make/targets/cortex_m_generic_makefile.inc)
 and [xtensa_makefile.inc](../tools/make/targets/xtensa_makefile.inc) as
 examples.

@@ -19,10 +19,12 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -71,6 +73,12 @@ class MicroInterpreter {
   // values other than kTfLiteOk and kTfLiteError.
   // TODO(b/149795762): Add this to the TfLiteStatus enum.
   TfLiteStatus Invoke();
+
+  // This is the recommended API for an application to pass an external payload
+  // pointer as an external context to kernels. The life time of the payload
+  // pointer should be at least as long as this interpreter. TFLM supports only
+  // one external context.
+  TfLiteStatus SetMicroExternalContext(void* external_context_payload);
 
   TfLiteTensor* input(size_t index);
   size_t inputs_size() const {
@@ -139,21 +147,6 @@ class MicroInterpreter {
   // Gets the current subgraph index used from within context methods.
   int get_subgraph_index() { return graph_.GetCurrentSubgraphIndex(); }
 
-  // Static functions that are bound to the TfLiteContext instance:
-  static void* AllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes);
-  static TfLiteStatus RequestScratchBufferInArena(TfLiteContext* ctx,
-                                                  size_t bytes,
-                                                  int* buffer_idx);
-  static void* GetScratchBuffer(TfLiteContext* ctx, int buffer_idx);
-  static void ReportOpError(struct TfLiteContext* context, const char* format,
-                            ...);
-  static TfLiteTensor* GetTensor(const struct TfLiteContext* context,
-                                 int tensor_idx);
-  static TfLiteEvalTensor* GetEvalTensor(const struct TfLiteContext* context,
-                                         int tensor_idx);
-  static TfLiteStatus GetGraph(struct TfLiteContext* context,
-                               TfLiteIntArray** args);
-
   const Model* model_;
   const MicroOpResolver& op_resolver_;
   ErrorReporter* error_reporter_;
@@ -170,6 +163,8 @@ class MicroInterpreter {
   // from TfLiteEvalTensor.
   TfLiteTensor** input_tensors_;
   TfLiteTensor** output_tensors_;
+
+  MicroContext micro_context_;
 };
 
 }  // namespace tflite

@@ -47,21 +47,32 @@ function check_md5() {
 
 }
 
-# Create a git repo in a folder and apply patch.
+# Create a git repo in a folder.
 #
 # Parameter(s):
 #   $[1} - relative path to folder
-#   ${2} - path to patch file (relative to ${1})
-function apply_patch_to_folder() {
-  echo >&2 "Applying ${PWD}/${1}/${2} to ${PWD}/${1}"
+create_git_repo() {
   pushd ${1} > /dev/null
   git init . > /dev/null
   git config user.email "tflm@google.com" --local
   git config user.name "TFLM" --local
   git add . >&2 2> /dev/null
   git commit -a -m "Commit for a temporary repository." > /dev/null
-  git checkout -b tflm-patch
+  git checkout -b tflm > /dev/null
+  popd > /dev/null
+}
+
+# Create a new commit with a patch in a folder that has a git repo.
+#
+# Parameter(s):
+#   $[1} - relative path to folder
+#   ${2} - path to patch file (relative to ${1})
+#   ${3} - commit nessage for the patch
+function apply_patch_to_folder() {
+  pushd ${1} > /dev/null
+  echo >&2 "Applying ${PWD}/${1}/${2} to ${PWD}/${1}"
   git apply ${2}
+  git commit -a -m "${3}" > /dev/null
   popd > /dev/null
 }
 

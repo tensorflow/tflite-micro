@@ -20,6 +20,51 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+namespace {
+
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
+}  // namespace
+
+// Returns a mutable tensor for a given input index. is_variable must be checked
+// during prepare when the full TfLiteTensor is available.
+TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
+                                      const TfLiteNode* node, int index) {
+  TFLITE_DCHECK(context != nullptr);
+  TFLITE_DCHECK(node != nullptr);
+  const int tensor_index = ValidateTensorIndexing(
+      context, index, node->inputs->size, node->inputs->data);
+
+  if (tensor_index < 0) {
+    return nullptr;
+  }
+
+  return context->GetEvalTensor(context, node->inputs->data[index]);
+}
+
+// Returns the TfLiteEvalTensor struct for a given input index in a node.
+const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
+                                     const TfLiteNode* node, int index) {
+  return GetMutableEvalInput(context, node, index);
+}
+
+// Returns the TfLiteEvalTensor struct for a given output index in a node.
+TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
+                                const TfLiteNode* node, int index) {
+  TFLITE_DCHECK(context != nullptr);
+  TFLITE_DCHECK(node != nullptr);
+  return context->GetEvalTensor(context, node->outputs->data[index]);
+}
+
 bool HaveSameShapes(const TfLiteEvalTensor* input1,
                     const TfLiteEvalTensor* input2) {
   TFLITE_DCHECK(input1 != nullptr);

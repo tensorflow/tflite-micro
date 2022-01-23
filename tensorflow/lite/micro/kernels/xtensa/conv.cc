@@ -25,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
 
@@ -40,7 +39,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
 #endif
   return kTfLiteOk;
@@ -53,7 +52,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
 
-#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
@@ -68,50 +67,22 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           : nullptr;
 #endif
 
-#if defined(HIFIMINI)
-  int* input_dims = input->dims->data;
-  int* filter_dims = filter->dims->data;
-  if (input_dims[0] == 1 && input_dims[1] == 1 && input_dims[2] == 1 &&
-      input_dims[3] == 32 && filter_dims[0] == 32 && filter_dims[1] == 1 &&
-      filter_dims[2] == 1 && filter_dims[3] == 32) {
-    Conv1x32Input32x32FilterHifiMini(
-        -op_data.reference_op_data.input_zero_point,
-        op_data.reference_op_data.output_zero_point,
-        op_data.reference_op_data.output_activation_min,
-        op_data.reference_op_data.output_activation_max,
-        op_data.reference_op_data.per_channel_output_multiplier,
-        op_data.reference_op_data.per_channel_output_shift,
-        tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(filter),
-        tflite::micro::GetTensorData<int8_t>(filter),
-        tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetTensorData<int32_t>(bias),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-    return kTfLiteOk;
-  }
-#endif  // defined(HIFIMINI)
-
   switch (input->type) {
     case kTfLiteInt8: {
-#if defined(HIFIMINI)
-      ConvEvalHifiMini(ConvParamsQuantized(params, op_data.reference_op_data),
-                       op_data.reference_op_data.per_channel_output_multiplier,
-                       op_data.reference_op_data.per_channel_output_shift,
-                       tflite::micro::GetTensorShape(input),
-                       tflite::micro::GetTensorData<int8_t>(input),
-                       tflite::micro::GetTensorShape(filter),
-                       tflite::micro::GetTensorData<int8_t>(filter),
-                       tflite::micro::GetTensorShape(bias),
-                       tflite::micro::GetTensorData<int32_t>(bias),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<int8_t>(output));
-#elif defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
       ConvEvalHifi(context, node, params, op_data, input, filter, bias, output);
 #else
       return ConvReferenceEvalInt8(context, node);
-#endif
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+      break;
+    }
+    case kTfLiteInt16: {
+#if defined(HIFI4_INTERNAL)
+      ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
+                     output);
+#else
+      return ConvReferenceEvalInt16(context, node);
+#endif  // defined(HIFI4_INTERNAL)
       break;
     }
     default:

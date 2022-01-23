@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -207,7 +208,7 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
-  constexpr size_t allocator_buffer_size = 4096;
+  constexpr size_t allocator_buffer_size = 4096 + 1024;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::RecordingMicroAllocator* allocator =
@@ -491,6 +492,66 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   }
 
   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MultipleInputs::freed_, true);
+}
+
+TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
+  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+}
+
+// This test is disabled from Bluepill platform because it requires more SRAM
+// than what our Bluepill simulation platform specifies.
+TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
+  const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
+  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  constexpr size_t arena_buffer_size = 256 * 1024;
+  uint8_t arena_buffer[arena_buffer_size];
+
+  tflite::MicroInterpreter interpreter(model, op_resolver, arena_buffer,
+                                       arena_buffer_size,
+                                       tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  // Store the required arena size before Invoke() because this is what this
+  // api might be used.
+  size_t used_arena_size = interpreter.arena_used_bytes();
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+
+  // The reported used_arena_size plus alignment padding is sufficient for this
+  // model to run. Plus alignment padding is because SimpleMemoryAllocator is
+  // given the arena after the alignment.
+  size_t required_arena_size =
+      used_arena_size + tflite::MicroArenaBufferAlignment();
+
+  tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
+                                        required_arena_size,
+                                        tflite::GetMicroErrorReporter());
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
 }
 
 TF_LITE_MICRO_TESTS_END

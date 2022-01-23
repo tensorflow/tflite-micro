@@ -58,6 +58,9 @@ class RecordingMicroAllocator : public MicroAllocator {
                                          size_t arena_size,
                                          ErrorReporter* error_reporter);
 
+  // Returns the fixed amount of memory overhead of RecordingMicroAllocator.
+  static size_t GetDefaultTailUsage();
+
   // Returns the recorded allocations information for a given allocation type.
   RecordedAllocation GetRecordedAllocation(
       RecordedAllocationType allocation_type) const;

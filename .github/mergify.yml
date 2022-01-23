@@ -1,0 +1,25 @@
+queue_rules:
+  - name: default
+    conditions:
+      - base=main
+      - label=ci:ready_to_merge
+    
+   
+pull_request_rules:
+  - name: push to default merge queue
+    conditions:
+      - base=main
+      - label=ci:ready_to_merge
+    actions:
+      queue:
+        name: default
+        require_branch_protection: true
+        method: squash
+
+  - name: remove ci:ready_to_merge label
+    conditions:
+      - merged
+    actions:
+      label:
+        remove:
+          - ci:ready_to_merge

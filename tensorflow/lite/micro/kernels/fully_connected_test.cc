@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,6 +47,10 @@ const float simple_bias_data[] = {1, 2, 3};
 const float simple_golden[] = {
     24, 25, 26, 58, 59, 60,
 };
+const float simple_golden_null_bias[] = {
+    23, 23, 23, 57, 57, 57,
+};
+
 const int simple_output_size = 6;
 int simple_output_dims[] = {2, 2, 3};
 
@@ -228,15 +232,32 @@ int representative_64x16_output_dims[] = {2, 1, 16};
 
 template <typename T>
 TfLiteStatus ValidateFullyConnectedGoldens(
-    TfLiteTensor* tensors, const int tensors_size,
+    TfLiteTensor* tensors, const int tensors_size, bool null_bias,
     const TfLiteFusedActivation activation, const float tolerance,
     const int output_len, const T* golden, T* output_data) {
   TfLiteFullyConnectedParams builtin_data = {
       activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false};
 
-  int inputs_array_data[] = {3, 0, 1, 2};
+  // Avoid variable length array warning.
+  constexpr int inputs_array_len = 4;
+  constexpr int outputs_array_len = 2;
+  int inputs_array_data[inputs_array_len];
+  int outputs_array_data[outputs_array_len];
+
+  outputs_array_data[0] = 1;
+  inputs_array_data[1] = 0;
+  inputs_array_data[2] = 1;
+
+  if (null_bias) {
+    inputs_array_data[0] = 2;
+    outputs_array_data[1] = 2;
+  } else {
+    inputs_array_data[0] = 3;
+    inputs_array_data[3] = 2;
+    outputs_array_data[1] = 3;
+  }
+
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  int outputs_array_data[] = {1, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TfLiteRegistration registration = Register_FULLY_CONNECTED();
@@ -271,19 +292,27 @@ TfLiteStatus TestFullyConnectedFloat(
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
+  bool null_bias = bias_data == nullptr ? true : false;
 
-  constexpr int inputs_size = 3;
+  constexpr int array_size = 4;  // Avoid variable length array warning.
+  const int inputs_size = bias_data == nullptr ? 2 : 3;
   constexpr int outputs_size = 1;
-  constexpr int tensors_size = inputs_size + outputs_size;
-  TfLiteTensor tensors[tensors_size] = {
-      CreateTensor(input_data, input_dims),
-      CreateTensor(weights_data, weights_dims),
-      CreateTensor(bias_data, bias_dims),
-      CreateTensor(output_data, output_dims),
-  };
+  const int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[array_size];
 
-  return ValidateFullyConnectedGoldens(tensors, tensors_size, activation, 1e-4f,
-                                       output_dims_count, golden, output_data);
+  tensors[0] = CreateTensor(input_data, input_dims);
+  tensors[1] = CreateTensor(weights_data, weights_dims);
+
+  if (bias_data == nullptr) {
+    tensors[2] = CreateTensor(output_data, output_dims);
+  } else {
+    tensors[2] = CreateTensor(bias_data, bias_dims);
+    tensors[3] = CreateTensor(output_data, output_dims);
+  }
+
+  return ValidateFullyConnectedGoldens(tensors, tensors_size, null_bias,
+                                       activation, 1e-4f, output_dims_count,
+                                       golden, output_data);
 }
 #endif
 
@@ -302,27 +331,35 @@ TfLiteStatus TestFullyConnectedQuantized(
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
+  bool null_bias = bias_data == nullptr ? true : false;
 
-  constexpr int inputs_size = 3;
+  constexpr int array_size = 4;  // Avoid variable length array warning.
+  const int inputs_size = bias_data == nullptr ? 2 : 3;
   constexpr int outputs_size = 1;
-  constexpr int tensors_size = inputs_size + outputs_size;
-  TfLiteTensor tensors[tensors_size] = {
-      CreateQuantizedTensor(input_data, input_quantized, input_dims,
-                            input_scale, input_zero_point),
+  const int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[array_size];
+
+  tensors[0] = CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                                     input_scale, input_zero_point);
+  tensors[1] =
       CreateQuantizedTensor(weights_data, weights_quantized, weights_dims,
-                            weights_scale, weights_zero_point),
-      CreateQuantizedBiasTensor(bias_data, bias_quantized, bias_dims,
-                                input_scale, weights_scale),
-      CreateQuantizedTensor(output_data, output_dims, output_scale,
-                            output_zero_point),
-  };
+                            weights_scale, weights_zero_point);
+  if (bias_data == nullptr) {
+    tensors[2] = CreateQuantizedTensor(output_data, output_dims, output_scale,
+                                       output_zero_point);
+  } else {
+    tensors[2] = CreateQuantizedBiasTensor(bias_data, bias_quantized, bias_dims,
+                                           input_scale, weights_scale),
+    tensors[3] = CreateQuantizedTensor(output_data, output_dims, output_scale,
+                                       output_zero_point);
+  }
 
   Quantize(golden, golden_quantized, output_dims_count, output_scale,
            output_zero_point);
 
-  return ValidateFullyConnectedGoldens(tensors, tensors_size, activation, 0.0f,
-                                       output_dims_count, golden_quantized,
-                                       output_data);
+  return ValidateFullyConnectedGoldens(tensors, tensors_size, null_bias,
+                                       activation, 0.0f, output_dims_count,
+                                       golden_quantized, output_data);
 }
 
 }  // namespace
@@ -352,6 +389,19 @@ TF_LITE_MICRO_TEST(SimpleTest) {
           tflite::testing::simple_bias_dims, tflite::testing::simple_bias_data,
           tflite::testing::simple_golden, tflite::testing::simple_output_dims,
           kTfLiteActNone, output_data),
+      kTfLiteOk);
+}
+
+TF_LITE_MICRO_TEST(SimpleTestNullBias) {
+  float output_data[tflite::testing::simple_output_size];
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedFloat(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data,
+          tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, nullptr, nullptr,
+          tflite::testing::simple_golden_null_bias,
+          tflite::testing::simple_output_dims, kTfLiteActNone, output_data),
       kTfLiteOk);
 }
 
@@ -510,6 +560,32 @@ TF_LITE_MICRO_TEST(Representative1x64Input1x16OutputQuantizedInt8) {
           tflite::testing::representative_64x16_golden, golden_quantized,
           tflite::testing::representative_64x16_output_dims, output_scale,
           output_zero_point, kTfLiteActNone, output_data),
+      kTfLiteOk);
+}
+
+TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
+  const float input_scale = 1.0f;
+  const int input_zero_point = -1;
+  const float weights_scale = 1.0f;
+  const int weights_zero_point = 0;
+  const float output_scale = 0.5f;
+  const int output_zero_point = -1;
+
+  int8_t input_quantized[tflite::testing::simple_input_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int8_t golden_quantized[tflite::testing::simple_output_size];
+  int8_t output_data[tflite::testing::simple_output_size];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantized(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, weights_quantized,
+          weights_scale, weights_zero_point, nullptr, nullptr, nullptr,
+          tflite::testing::simple_golden_null_bias, golden_quantized,
+          tflite::testing::simple_output_dims, output_scale, output_zero_point,
+          kTfLiteActNone, output_data),
       kTfLiteOk);
 }
 

@@ -88,7 +88,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
   switch (output->type) {
     case kTfLiteInt8: {
       if (need_broadcast) {
-        tflite::reference_ops::BroadcastSubSlow(
+        tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int8_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -108,7 +108,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
     }
     case kTfLiteInt16: {
       if (need_broadcast) {
-        tflite::reference_ops::BroadcastAdd4DSlow(
+        tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int16_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -116,13 +116,13 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       } else {
-        tflite::reference_ops::Add(
+        tflite::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int16_t>(input1),
             tflite::micro::GetTensorShape(input2),
             tflite::micro::GetTensorData<int16_t>(input2),
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output), false);
+            tflite::micro::GetTensorData<int16_t>(output));
       }
       break;
     }

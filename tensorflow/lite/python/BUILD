@@ -13,8 +13,19 @@ py_library(
     name = "schema_py",
     srcs = ["schema_py_generated.py"],
     srcs_version = "PY3",
-    visibility = ["//visibility:public"],
+    visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),
+    ],
+)
+
+py_library(
+    name = "schema_util",
+    srcs = ["schema_util.py"],
+    srcs_version = "PY3",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        requirement("flatbuffers"),
+        requirement("tensorflow-cpu"),
     ],
 )

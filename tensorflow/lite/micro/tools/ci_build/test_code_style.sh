@@ -78,7 +78,7 @@ fi
 
 tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
   ${FIX_FORMAT_OPTIONS} \
-  -e .github \
+  -e "\.github" \
   -e third_party/hexagon \
   -e third_party/xtensa \
   -e ci \

@@ -134,6 +134,9 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
+  // Returns the fixed amount of memory overhead of MicroAllocator.
+  static size_t GetDefaultTailUsage(bool is_memory_planner_given);
+
   // Allocates internal resources required for model inference for each subgraph
   // from the arena.
   //
@@ -208,12 +211,6 @@ class MicroAllocator {
   // Returns the arena usage in bytes, only available after
   // `FinishModelAllocation`. Otherwise, it will return 0.
   size_t used_bytes() const;
-
-  // Converts a flatbuffer int32_t array to a TfLiteIntArray, accounting for
-  // endiannes.
-  TfLiteStatus FlatBufferVectorToTfLiteTypeArray(
-      const flatbuffers::Vector<int32_t>* flatbuffer_array,
-      TfLiteIntArray** result);
 
   BuiltinDataAllocator* GetBuiltinDataAllocator();
 

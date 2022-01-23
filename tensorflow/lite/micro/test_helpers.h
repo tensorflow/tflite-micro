@@ -88,6 +88,19 @@ class MultipleInputs {
   static bool freed_;
 };
 
+// A simple no-op operator.
+class NoOp {
+ public:
+  static const TfLiteRegistration* getRegistration();
+  static TfLiteRegistration* GetMutableRegistration();
+  static void* Init(TfLiteContext* context, const char* buffer, size_t length);
+  static void Free(TfLiteContext* context, void* buffer);
+  static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
+  static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
+
+  static bool freed_;
+};
+
 // Returns an Op Resolver that can be used in the testing code.
 AllOpsResolver GetOpResolver();
 
@@ -98,6 +111,12 @@ const Model* GetSimpleMockModel();
 // Returns a flatbuffer TensorFlow Lite model with more inputs, variable
 // tensors, and operators.
 const Model* GetComplexMockModel();
+
+// Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
+// 1 layer of weights, 1 output Tensor, and 1 operator.
+// The size of all three tensors is 256 x 256, which is larger than what other
+// models provide from this test helper.
+const Model* GetModelWith256x256Tensor();
 
 // Returns a simple flatbuffer model with two branches.
 const Model* GetSimpleModelWithBranch();
@@ -128,11 +147,22 @@ const Model* GetModelWithOfflinePlanning(int num_tensors,
 // output.
 const Model* GetModelWithUnusedInputs();
 
+// Returns a flatbuffer with a single operator, zero inputs and two outputs
+// (one unused).
+const Model* GetModelWithUnusedOperatorOutputs();
+
 // Returns a flatbuffer model with `simple_stateful_op`
 const Model* GetSimpleStatefulModel();
 
 // Returns a flatbuffer model with "if" and two subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndIf();
+
+// Returns a flatbuffer model with "if" and two subgraphs and the input tensor 1
+// of "if" subgraph overlaps with the input tensor 2 of subgraph 1.
+const Model* GetModelWithIfAndSubgraphInputTensorOverlap();
+
+// Returns a flatbuffer model with null subgraph/operator inputs and outputs.
+const Model* GetSimpleModelWithNullInputsAndOutputs();
 
 // Builds a one-dimensional flatbuffer tensor of the given size.
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable = false);
