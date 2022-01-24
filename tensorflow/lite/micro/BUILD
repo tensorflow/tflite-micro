@@ -188,9 +188,11 @@ cc_library(
 cc_library(
     name = "test_helpers",
     srcs = [
+        "test_helper_custom_ops.cc",
         "test_helpers.cc",
     ],
     hdrs = [
+        "test_helper_custom_ops.h",
         "test_helpers.h",
     ],
     copts = micro_copts(),
@@ -395,6 +397,21 @@ cc_test(
     deps = [
         ":micro_allocator",
         ":micro_context",
+        ":micro_error_reporter",
+        ":test_helpers",
+        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "fake_micro_context_test",
+    srcs = [
+        "fake_micro_context_test.cc",
+    ],
+    deps = [
+        ":fake_micro_context",
+        ":micro_allocator",
         ":micro_error_reporter",
         ":test_helpers",
         "//tensorflow/lite/core/api",

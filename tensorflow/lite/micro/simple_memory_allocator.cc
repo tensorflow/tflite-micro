@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -113,10 +114,31 @@ uint8_t* SimpleMemoryAllocator::AllocateTemp(size_t size, size_t alignment) {
     return nullptr;
   }
   temp_ = aligned_result + size;
+  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(aligned_result));
+  temp_buffer_count_++;
   return aligned_result;
 }
 
-void SimpleMemoryAllocator::ResetTempAllocations() { temp_ = head_; }
+void SimpleMemoryAllocator::DeallocateTemp(uint8_t* temp_buf) {
+  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(temp_buf));
+  temp_buffer_count_--;
+}
+
+bool SimpleMemoryAllocator::IsAllTempDeallocated() {
+  if (temp_buffer_count_ != 0 || temp_buffer_ptr_check_sum_ != 0) {
+    MicroPrintf(
+        "Number of allocated temp buffers: %d. Checksum passing status: %d",
+        temp_buffer_count_, !temp_buffer_ptr_check_sum_);
+    return false;
+  }
+  return true;
+}
+
+void SimpleMemoryAllocator::ResetTempAllocations() {
+  // TODO(b/209453859): enable error check based on IsAllTempDeallocated after
+  // all AllocateTemp have been paird with DeallocateTemp
+  temp_ = head_;
+}
 
 uint8_t* SimpleMemoryAllocator::GetHeadBuffer() const { return buffer_head_; }
 
