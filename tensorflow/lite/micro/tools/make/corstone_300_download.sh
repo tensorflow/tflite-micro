@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ if [ -d ${DOWNLOADED_CORSTONE_PATH} ]; then
 else
   UNAME_S=`uname -s`
   if [ ${UNAME_S} == Linux ]; then
-    CORSTONE_URL=https://developer.arm.com/-/media/Arm%20Developer%20Community/Downloads/OSS/FVP/Corstone-300/MPS3/FVP_Corstone_SSE-300_Ethos-U55_11.14_24.tgz
-    EXPECTED_MD5=89ca3355452072f879c134d04b6f94e2
+    CORSTONE_URL=https://developer.arm.com/-/media/Arm%20Developer%20Community/Downloads/OSS/FVP/Corstone-300/FVP_Corstone_SSE-300_11.16_26.tgz
+    EXPECTED_MD5=29d9208127b24a0d83356efb8343162d
   else
     echo "OS type ${UNAME_S} not supported."
     exit 1
@@ -64,7 +64,7 @@ else
   TEMPDIR=$(mktemp -d)
   tar -C ${TEMPDIR} -xvzf ${TEMPFILE} >&2
   mkdir ${DOWNLOADED_CORSTONE_PATH}
-  ${TEMPDIR}/FVP_Corstone_SSE-300_Ethos-U55.sh --i-agree-to-the-contained-eula --no-interactive -d ${DOWNLOADED_CORSTONE_PATH} >&2
+  ${TEMPDIR}/FVP_Corstone_SSE-300.sh --i-agree-to-the-contained-eula --no-interactive -d ${DOWNLOADED_CORSTONE_PATH} >&2
 fi
 
 echo "SUCCESS"
