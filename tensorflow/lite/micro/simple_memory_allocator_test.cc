@@ -125,14 +125,15 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemoryWithTempAllocations) {
                                           arena, arena_size);
 
   constexpr size_t allocation_size = 100;
-  allocator.AllocateTemp(/*size=*/allocation_size,
-                         /*alignment=*/1);
+  uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
+                                         /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
                           arena_size - allocation_size);
 
   // Reset temp allocations and ensure GetAvailableMemory() is back to the
   // starting size:
+  allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
@@ -162,13 +163,14 @@ TF_LITE_MICRO_TEST(TestGetUsedBytesTempAllocations) {
                                           arena, arena_size);
 
   constexpr size_t allocation_size = 100;
-  allocator.AllocateTemp(/*size=*/allocation_size,
-                         /*alignment=*/1);
+  uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
+                                         /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), allocation_size);
 
   // Reset temp allocations and ensure GetUsedBytes() is back to the starting
   // size:
+  allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(0));
@@ -237,6 +239,7 @@ TF_LITE_MICRO_TEST(TestResetTempAllocations) {
   uint8_t* temp1 = allocator.AllocateTemp(100, 1);
   TF_LITE_MICRO_EXPECT(nullptr != temp1);
 
+  allocator.DeallocateTemp(temp1);
   allocator.ResetTempAllocations();
 
   uint8_t* temp2 = allocator.AllocateTemp(100, 1);
@@ -259,6 +262,7 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
   // call to ResetTempAllocations().
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, allocator.SetHeadBufferSize(100, 1));
 
+  allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
 
   // Reduce head size back to zero.
@@ -267,6 +271,25 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
   // The most recent head allocation should be in the same location as the
   // original temp allocation pointer.
   TF_LITE_MICRO_EXPECT(temp == allocator.GetHeadBuffer());
+}
+
+TF_LITE_MICRO_TEST(TestIsAllTempDeallocated) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::SimpleMemoryAllocator allocator(tflite::GetMicroErrorReporter(),
+                                          arena, arena_size);
+
+  uint8_t* temp1 = allocator.AllocateTemp(100, 1);
+  TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);
+
+  uint8_t* temp2 = allocator.AllocateTemp(100, 1);
+  TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);
+
+  allocator.DeallocateTemp(temp1);
+  TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);
+
+  allocator.DeallocateTemp(temp2);
+  TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == true);
 }
 
 TF_LITE_MICRO_TESTS_END
