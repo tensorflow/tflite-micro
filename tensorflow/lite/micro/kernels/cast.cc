@@ -85,8 +85,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                           output, num_elements);
     case kTfLiteUInt32:
       return copyToTensor(context,
-                          tflite::micro::GetTensorData<uint32_t>(input),
-                          output, num_elements);
+                          tflite::micro::GetTensorData<uint32_t>(input), output,
+                          num_elements);
     case kTfLiteFloat32:
       return copyToTensor(context, tflite::micro::GetTensorData<float>(input),
                           output, num_elements);
