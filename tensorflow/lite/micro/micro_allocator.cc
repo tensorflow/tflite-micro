@@ -939,18 +939,6 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   memory_allocator_->DeallocateTemp(planner_arena);
   memory_allocator_->ResetTempAllocations();
 
-  size_t actual_available_arena_size =
-      memory_allocator_->GetAvailableMemory(MicroArenaBufferAlignment());
-
-  // Make sure we have enough arena size.
-  if (memory_planner_->GetMaximumMemorySize() > actual_available_arena_size) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
-        "Arena size is too small for all buffers. Needed %u but only "
-        "%u was available.",
-        memory_planner_->GetMaximumMemorySize(), actual_available_arena_size);
-    return kTfLiteError;
-  }
   // Commit the plan.
   TF_LITE_ENSURE_STATUS(CommitPlan(error_reporter_, memory_planner_,
                                    memory_allocator_->GetHeadBuffer(),
