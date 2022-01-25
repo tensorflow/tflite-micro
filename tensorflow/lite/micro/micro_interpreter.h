@@ -157,8 +157,6 @@ class MicroInterpreter {
 
   TfLiteStatus initialization_status_;
 
-  void* external_context_payload_ = nullptr;
-
   // TODO(b/162311891): Clean these pointers up when this class supports buffers
   // from TfLiteEvalTensor.
   TfLiteTensor** input_tensors_;

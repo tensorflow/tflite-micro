@@ -77,7 +77,6 @@ class MicroContext {
   MicroGraph& graph_;
   const Model* model_;
 
-  ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
