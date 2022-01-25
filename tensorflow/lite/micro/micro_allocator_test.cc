@@ -458,10 +458,6 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
-  printf("arena used bytes %lu\n", allocator->used_bytes());
-  printf("sizeof(MicroAllocator=%ld\n", sizeof(tflite::MicroAllocator));
-  printf("sizeof(GreedyMemoryPlanner=%ld\n",
-         sizeof(tflite::GreedyMemoryPlanner));
 
   // Allocate for model 1. We use ComplexMockModel here to cover the code path
   // allocatig variables.
