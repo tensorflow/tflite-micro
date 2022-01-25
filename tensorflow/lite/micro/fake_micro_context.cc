@@ -16,16 +16,26 @@ limitations under the License.
 #include "tensorflow/lite/micro/fake_micro_context.h"
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/simple_memory_allocator.h"
 
 namespace tflite {
-using ::tflite::MicroArenaBufferAlignment;
+namespace {
+// Dummy static variables to allow creation of dummy MicroAllocator.
+// All tests are guarateed to run serially.
+static constexpr int KDummyTensorArenaSize = 256;
+static uint8_t dummy_tensor_arena[KDummyTensorArenaSize];
+}  // namespace
 
 FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SimpleMemoryAllocator* allocator,
                                    MicroGraph* micro_graph)
-    : MicroContext(nullptr, nullptr, micro_graph),
+    : MicroContext(
+          MicroAllocator::Create(dummy_tensor_arena, KDummyTensorArenaSize,
+                                 GetMicroErrorReporter()),
+          nullptr, micro_graph),
       tensors_(tensors),
       allocator_(allocator) {}
 
