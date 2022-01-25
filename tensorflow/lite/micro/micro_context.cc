@@ -35,13 +35,13 @@ void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
   return allocator_.RequestScratchBufferInArena(
-      graph_.GetAllocations(), bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
+      graph_.GetAllocations(), bytes, graph_.GetCurrentSubgraphIndex(),
+      buffer_idx);
 }
 
 void* MicroContext::GetScratchBuffer(int buffer_idx) {
   ScratchBufferHandle* handle =
-      graph_
-          .GetAllocations()[graph_.GetCurrentSubgraphIndex()]
+      graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()]
           .scratch_buffer_handles +
       buffer_idx;
   return handle->data;
