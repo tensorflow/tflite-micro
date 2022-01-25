@@ -1,52 +1,37 @@
-# Estimate the size of a specific binary and update the size history 
-# with a new commit.
-
-name: binary-size-check
+name: Update Binary Size Log
 
 on:
-  pull_request_target:
-    types: [labeled]
-  
-  # Allow manually triggering of the workflow.
   workflow_dispatch: {}
- 
+#  schedule:
+    # 6am or 7am PT depending on daylight savings
+#    - cron: '0 13 * * *'
+    
+
 jobs:
-  size_test:
+  binary-size-log:
     runs-on: ubuntu-latest
-
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:test'))
-
-    name: Binary Size Estimation
     steps:
-      - name: Get build with PR
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          path: pr_head_ref
-
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install Wave
-
-      # If PR has MEM_CHANGE_OK tag, then does not error out on memory footprint
-      # increase and simply produce a report for reviewer to check.
-      # Example tag format:
-      # MEM_CHANGE_OK=why_the_change_is_ok
-      # Comparison of size before and after that change: (A copy from the below step output)
-      #  data: old xxxx, new xxx
-      - name: Compare size between main and PR build
-        if: ${{ contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
-        run: |
-          cd pr_head_ref
-          tensorflow/lite/micro/tools/ci_build/test_size.sh
-
-      # If PR does not have MEM_CHANGE_OK tag, then error out on memory footprint
-      # increase.
-      - name: Check size does not increase between main and PR build
-        if: ${{ !contains(github.event.pull_request.body, 'MEM_CHANGE_OK=') }}
-        run: |
-          cd pr_head_ref
-          tensorflow/lite/micro/tools/ci_build/test_size.sh error_on_mem_increase
+    - uses: actions/checkout@v2
+    - name: update logs x86
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.1
+      with:
+        args: tensorflow/lite/micro/tools/metrics/create_size_log_x86.sh
+    - name: commit logs
+      run: |
+        git config --local user.name 'TFLM-bot'
+        git config --local user.email 'tflm-github-bot@google.com'
+        git commit -am "Automated size log update"
+    - name: Create Logs PR Request
+      id: create-pr
+      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
+      with:
+         branch: size-log-update
+         delete-branch: true
+         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+         title: Automated binary size log update
+         commit-message: Automated binary size log update
+         committer: TFLM-bot <tflm-github-bot@google.com>
+         author: TFLM-bot <tflm-github-bot@google.com>
+         body: "BUG=automated binary size log update"
+         labels: ci:run
+         reviewers: advaitjain
