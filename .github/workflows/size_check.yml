@@ -25,7 +25,7 @@ jobs:
       id: create-pr
       uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
       with:
-         branch: size-log-update
+         branch: nightly_binary_size_profiling
          delete-branch: true
          token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
          title: Automated binary size log update
