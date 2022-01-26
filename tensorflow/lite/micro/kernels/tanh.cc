@@ -95,7 +95,9 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
     param_scale_pot &=
         (data->input_left_shift == 0 || data->input_left_shift == 1);
 
-    if (!param_scale_pot) {
+    if (param_scale_pot) {
+      data->input_multiplier = 0;
+    } else {
       // Calculate multiplier to change input scale to 1/(3*4096)
       // as required by the table lookup.
       // The number 3.0 in the multiplier comes from here,
