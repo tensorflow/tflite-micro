@@ -2,18 +2,30 @@ name: Update Binary Size Log
 
 on:
   workflow_dispatch: {}
+
+# uncomment this section to run on schedule
 #  schedule:
     # 6am or 7am PT depending on daylight savings
 #    - cron: '0 13 * * *'
-    
+
+# uncomment this section to run on a tag
+#  pull_request:
+#    types: [labeled]
+#    branches:
+#      - main
+
 
 jobs:
   binary-size-log:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
+      github.event_name == 'schedule'
     steps:
     - uses: actions/checkout@v2
     - name: update logs x86
-      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.1
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
       with:
         args: tensorflow/lite/micro/tools/metrics/create_size_log_x86.sh
     - name: commit logs
