@@ -396,57 +396,6 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
                                                        /*num_subgraphs=*/1);
 }
 
-TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
-  const tflite::Model* model = tflite::testing::GetModelWithTwoSubgraphs();
-  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-  constexpr size_t arena_size = 10 * 1024;
-  uint8_t arena[arena_size];
-  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
-      arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
-  tflite::SubgraphAllocations* subgraph_allocations =
-      allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
-  for (int subgraph_idx = 0;
-       subgraph_idx < static_cast<int>(model->subgraphs()->size());
-       subgraph_idx++) {
-    int buffer_idx = -1;
-    TF_LITE_MICRO_EXPECT_EQ(
-        kTfLiteOk,
-        allocator->RequestScratchBufferInArena(
-            subgraph_allocations, sizeof(uint8_t), subgraph_idx, &buffer_idx));
-    TF_LITE_MICRO_EXPECT_GE(buffer_idx, 0);
-    allocator->FinishPrepareNodeAllocations(0);
-  }
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
-
-  // SimpleModelWithSubgraphsAndIf has 1 operators per subgraph and 3 subgraphs:
-  tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
-                                                       /*count=*/1,
-                                                       /*num_subgraphs=*/3);
-
-  uintptr_t subgraph0_tensor0_ptr =
-      reinterpret_cast<uintptr_t>(subgraph_allocations[0].tensors[0].data.raw);
-  uintptr_t subgraph0_tensor1_ptr =
-      reinterpret_cast<uintptr_t>(subgraph_allocations[0].tensors[1].data.raw);
-  uintptr_t subgraph1_tensor0_ptr =
-      reinterpret_cast<uintptr_t>(subgraph_allocations[1].tensors[0].data.raw);
-  uintptr_t subgraph0_scratch_ptr = reinterpret_cast<uintptr_t>(
-      subgraph_allocations[0].scratch_buffer_handles[0].data);
-  uintptr_t subgraph1_scratch_ptr = reinterpret_cast<uintptr_t>(
-      subgraph_allocations[1].scratch_buffer_handles[0].data);
-
-  // The memory layout is expected to be:
-  // subgraph 0:
-  // [tensor1 (128 bytes)] [tensor 0 (128 bytes)] [scratch (16 bytes)]
-  // subgraph 1:
-  // [tensor0 (128 bytes)] [scratch (16 bytes)]
-  TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor1_ptr + 128, subgraph0_tensor0_ptr);
-  TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor0_ptr + 128, subgraph0_scratch_ptr);
-  TF_LITE_MICRO_EXPECT_EQ(subgraph1_tensor0_ptr + 128, subgraph1_scratch_ptr);
-}
-
 TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   // The `OpResolver` is shared among different models in this test for
   // simplicity but in practice you could have different `OpResolver`.
