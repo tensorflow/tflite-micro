@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -168,6 +168,8 @@ endif
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
+  -DETHOSU_ARCH=u55 \
+  -DETHOSU55 \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
