@@ -819,6 +819,37 @@ TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
   TF_LITE_MICRO_EXPECT_GT(tensor2, tensor1);
 }
 
+TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
+      arena, arena_size, tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT_NE(allocator, nullptr);
+
+  TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
+      /*subgraph_index=*/0);
+  TF_LITE_MICRO_EXPECT_NE(tensor1, nullptr);
+
+  TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
+      /*subgraph_index=*/0);
+  TF_LITE_MICRO_EXPECT_NE(tensor2, nullptr);
+
+  // The address of tensor2 should be higher than the address of tensor1
+  // (chained allocations):
+  TF_LITE_MICRO_EXPECT_GT(tensor2, tensor1);
+
+  // Deallocate only one temp TfLiteTensor does not deallocate all temp buffers.
+  allocator->DeallocateTempTfLiteTensor(tensor1);
+  TF_LITE_MICRO_EXPECT_FALSE(allocator->IsAllTempDeallocated());
+
+  // Deallocate both temp TfLiteTensor deallocate all temp buffers.
+  allocator->DeallocateTempTfLiteTensor(tensor2);
+  TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
+}
+
 TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   constexpr size_t arena_size = 1024;

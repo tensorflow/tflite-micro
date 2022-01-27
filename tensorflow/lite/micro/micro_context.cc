@@ -43,10 +43,45 @@ void* MicroContext::GetScratchBuffer(int buffer_idx) {
   return handle->data;
 }
 
-TfLiteTensor* MicroContext::GetTensor(int tensor_idx) {
+TfLiteTensor* MicroContext::AllocateTempTfLiteTensor(int tensor_idx) {
   return allocator_.AllocateTempTfLiteTensor(model_, graph_.GetAllocations(),
                                              tensor_idx,
                                              graph_.GetCurrentSubgraphIndex());
+}
+
+int MicroContext::GetTensorIndex(int index, int max_size,
+                                 const int* tensor_indices) {
+  if (index >= 0 && index < max_size) {
+    const int tensor_index = tensor_indices[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
+TfLiteTensor* MicroContext::AllocateTempInputTensor(const TfLiteNode* node,
+                                                    int index) {
+  const int tensor_index =
+      GetTensorIndex(index, node->inputs->size, node->inputs->data);
+  if (tensor_index < 0) {
+    return nullptr;
+  }
+  return AllocateTempTfLiteTensor(tensor_index);
+}
+
+TfLiteTensor* MicroContext::AllocateTempOutputTensor(const TfLiteNode* node,
+                                                     int index) {
+  const int tensor_index =
+      GetTensorIndex(index, node->outputs->size, node->outputs->data);
+  if (tensor_index < 0) {
+    return nullptr;
+  }
+  return AllocateTempTfLiteTensor(tensor_index);
+}
+
+void MicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
+  return allocator_.DeallocateTempTfLiteTensor(tensor);
 }
 
 TfLiteEvalTensor* MicroContext::GetEvalTensor(int tensor_idx) {

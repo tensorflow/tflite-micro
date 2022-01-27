@@ -21,13 +21,15 @@ limitations under the License.
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
+using ::tflite::testing::IntArrayFromInts;
+
 namespace tflite {
 namespace {
 
 tflite::MicroContext CreateMicroContext() {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
-  // the test need to place non-transitent memories in static variables. This is
-  // safe because tests are guarateed to run serially.
+  // the test need to place non-transient memories in static variables. This is
+  // safe because tests are guaranteed to run serially.
   constexpr size_t kMicroGraphPlacementBufferSize = 1024;
   static uint8_t micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
   constexpr size_t kArenaSize = 1024;
@@ -98,6 +100,41 @@ TF_LITE_MICRO_TEST(TestSetExternalContextToNullShouldFail) {
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           micro_context.set_external_context(nullptr));
+}
+
+TF_LITE_MICRO_TEST(TestGetTempInputTensor) {
+  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+
+  TfLiteNode node;
+  int input_data[] = {2, 0, 1};
+  node.inputs = IntArrayFromInts(input_data);
+
+  TfLiteTensor* input1 = micro_context.AllocateTempInputTensor(&node, 0);
+  TF_LITE_MICRO_EXPECT_TRUE(input1 != nullptr);
+  micro_context.DeallocateTempTfLiteTensor(input1);
+
+  TfLiteTensor* input2 = micro_context.AllocateTempInputTensor(&node, 1);
+  TF_LITE_MICRO_EXPECT_TRUE(input2 != nullptr);
+  micro_context.DeallocateTempTfLiteTensor(input2);
+
+  TfLiteTensor* invalid_input = micro_context.AllocateTempInputTensor(&node, 2);
+  TF_LITE_MICRO_EXPECT_TRUE(invalid_input == nullptr);
+}
+
+TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
+  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+
+  TfLiteNode node;
+  int output_data[] = {1, 0};
+  node.outputs = IntArrayFromInts(output_data);
+
+  TfLiteTensor* output = micro_context.AllocateTempOutputTensor(&node, 0);
+  TF_LITE_MICRO_EXPECT_TRUE(output != nullptr);
+  micro_context.DeallocateTempTfLiteTensor(output);
+
+  TfLiteTensor* invalid_output =
+      micro_context.AllocateTempOutputTensor(&node, 1);
+  TF_LITE_MICRO_EXPECT_TRUE(invalid_output == nullptr);
 }
 
 TF_LITE_MICRO_TESTS_END
