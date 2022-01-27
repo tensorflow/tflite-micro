@@ -445,6 +445,10 @@ TF_LITE_MICRO_TEST(TestScratchBufferAllocationMultipleSubgraphs) {
   TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor1_ptr + 128, subgraph0_tensor0_ptr);
   TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor0_ptr + 128, subgraph0_scratch_ptr);
   TF_LITE_MICRO_EXPECT_EQ(subgraph1_tensor0_ptr + 128, subgraph1_scratch_ptr);
+
+  // Each subgraph is planned separately, so the first planned tensor in each
+  // (the last, largest tensor) should occupy the same memory.
+  TF_LITE_MICRO_EXPECT_EQ(subgraph0_tensor1_ptr, subgraph1_tensor0_ptr);
 }
 
 TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
