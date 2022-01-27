@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -168,9 +168,10 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   dw_conv_params.stride.w = params.stride_width;
   dw_conv_params.padding.h = data.reference_op_data.padding.height;
   dw_conv_params.padding.w = data.reference_op_data.padding.width;
-  // TODO(b/130439627): Use calculated value for clamping.
-  dw_conv_params.activation.min = std::numeric_limits<int8_t>::min();
-  dw_conv_params.activation.max = std::numeric_limits<int8_t>::max();
+
+  dw_conv_params.activation.min = data.reference_op_data.output_activation_min;
+  dw_conv_params.activation.max = data.reference_op_data.output_activation_max;
+
   dw_conv_params.ch_mult = params.depth_multiplier;
 
   cmsis_nn_per_channel_quant_params quant_params;
