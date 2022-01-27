@@ -39,8 +39,17 @@ FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
       tensors_(tensors),
       allocator_(allocator) {}
 
-TfLiteTensor* FakeMicroContext::GetTensor(int tensor_index) {
+TfLiteTensor* FakeMicroContext::AllocateTempTfLiteTensor(int tensor_index) {
+  allocated_tensor_count_++;
   return &tensors_[tensor_index];
+}
+
+void FakeMicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
+  allocated_tensor_count_--;
+}
+
+bool FakeMicroContext::IsAllTempTfLiteTensorDeallocated() {
+  return !allocated_tensor_count_;
 }
 
 TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(int tensor_index) {

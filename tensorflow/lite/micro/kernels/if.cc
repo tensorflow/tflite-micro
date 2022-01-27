@@ -60,17 +60,20 @@ TfLiteStatus AllocateIntermediateBuffer(TfLiteContext* context,
   constexpr int kInputTensorIndexBasis = 1;
   size_t num_inputs = node->inputs->size - kInputTensorIndexBasis;
   size_t num_outputs = node->outputs->size;
-  const TfLiteTensor* input_data_tensor;
+  TfLiteTensor* input_data_tensor;
 
   size_t total_input_bytes = 0;
+  MicroContext* micro_context = GetMicroContext(context);
   for (size_t i = 0; i < num_inputs; i++) {
-    TF_LITE_ENSURE_OK(context,
-                      GetInputSafe(context, node, kInputTensorIndexBasis + i,
-                                   &input_data_tensor));
+    input_data_tensor = micro_context->AllocateTempInputTensor(
+        node, kInputTensorIndexBasis + i);
+    TF_LITE_ENSURE(context, input_data_tensor != nullptr);
     size_t type_size;
     TF_LITE_ENSURE_STATUS(
         TfLiteTypeSizeOf(input_data_tensor->type, &type_size));
     total_input_bytes += NumElements(input_data_tensor) * type_size;
+
+    micro_context->DeallocateTempTfLiteTensor(input_data_tensor);
   }
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   op_data->intermediate_input_buffer =
@@ -79,12 +82,13 @@ TfLiteStatus AllocateIntermediateBuffer(TfLiteContext* context,
   size_t total_output_bytes = 0;
   TfLiteTensor* output_data_tensor;
   for (size_t i = 0; i < num_outputs; i++) {
-    TF_LITE_ENSURE_OK(context,
-                      GetOutputSafe(context, node, i, &output_data_tensor));
+    output_data_tensor = micro_context->AllocateTempOutputTensor(node, i);
+
     size_t type_size;
     TF_LITE_ENSURE_STATUS(
         TfLiteTypeSizeOf(output_data_tensor->type, &type_size));
     total_output_bytes += NumElements(output_data_tensor) * type_size;
+    micro_context->DeallocateTempTfLiteTensor(output_data_tensor);
   }
   op_data->intermediate_output_buffer =
       context->AllocatePersistentBuffer(context, total_output_bytes);
@@ -101,10 +105,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, node->inputs->size > 0);
 
   // The first input is the condition.
-  const TfLiteTensor* cond;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &cond));
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  TfLiteTensor* cond = micro_context->AllocateTempInputTensor(node, 0);
+
+  TF_LITE_ENSURE(context, cond != nullptr);
   TF_LITE_ENSURE_EQ(context, cond->type, kTfLiteBool);
   TF_LITE_ENSURE_EQ(context, NumElements(cond), 1);
+
+  micro_context->DeallocateTempTfLiteTensor(cond);
 
   // The first input of the node is the condition. The rest of inputs are
   // passed to the branch subgraphs. Therefore, the number of subgraph inputs
@@ -112,7 +120,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   size_t num_inputs = node->inputs->size - 1;
   size_t num_outputs = node->outputs->size;
 
-  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
   MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE(context,
@@ -268,13 +275,14 @@ TfLiteStatus CopyFromSubgraphOutputToIntermediateOutput(
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
-  const TfLiteTensor* cond;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &cond));
-  bool cond_value = cond->data.b[0];
-
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  MicroGraph& graph_info = micro_context->graph();
+  TfLiteTensor* cond = micro_context->AllocateTempInputTensor(node, 0);
 
+  TF_LITE_ENSURE(context, cond != nullptr);
+  bool cond_value = cond->data.b[0];
+  micro_context->DeallocateTempTfLiteTensor(cond);
+
+  MicroGraph& graph_info = micro_context->graph();
   // Currently we copy the input / output between the subgraphs.
   int active_branch_subgraph_index =
       cond_value ? op_data->then_subgraph_index : op_data->else_subgraph_index;

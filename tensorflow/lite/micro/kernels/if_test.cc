@@ -61,6 +61,9 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
                              outputs_array, &params);
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+
+  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
+
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 2);
@@ -72,6 +75,8 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
                           runner.GetMockGraph()->get_invoke_count(1));
   TF_LITE_MICRO_EXPECT_EQ(subgraph2_invoke_count_golden,
                           runner.GetMockGraph()->get_invoke_count(2));
+
+  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 }
 
 }  // namespace
