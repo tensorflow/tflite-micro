@@ -33,6 +33,7 @@ DATA_NAME = "accel_ms2_xyz"
 
 class DataLoader(object):
   """Loads data and prepares for training."""
+
   def __init__(self, train_data_path, valid_data_path, test_data_path,
                seq_length):
     self.dim = 3

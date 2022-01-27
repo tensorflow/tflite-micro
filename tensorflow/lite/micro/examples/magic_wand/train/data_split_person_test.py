@@ -25,6 +25,7 @@ from data_split_person import read_data
 
 
 class TestSplitPerson(unittest.TestCase):
+
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.data = read_data("./data/complete_data")
 
