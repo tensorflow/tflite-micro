@@ -1831,10 +1831,10 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
   return result;
 }
 
-size_t GetModelTensorCount(const Model* model, int subgraph_idx) {
+size_t GetModelTensorCount(const Model* model) {
   auto* subgraphs = model->subgraphs();
   if (subgraphs) {
-    return (*subgraphs)[subgraph_idx]->tensors()->size();
+    return (*subgraphs)[0]->tensors()->size();
   }
   return 0;
 }

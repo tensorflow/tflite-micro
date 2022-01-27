@@ -116,7 +116,7 @@ void AllocateAndVerifyMockWeightTensor(
 void EnsureUniqueVariableTensorBuffer(const Model* model,
                                       TfLiteEvalTensor* eval_tensors,
                                       const int variable_tensor_idx) {
-  for (size_t i = 0; i < GetModelTensorCount(model, 0); i++) {
+  for (size_t i = 0; i < GetModelTensorCount(model); i++) {
     if (i != static_cast<size_t>(variable_tensor_idx)) {
       TF_LITE_MICRO_EXPECT_NE(eval_tensors[variable_tensor_idx].data.raw,
                               eval_tensors[i].data.raw);
@@ -325,7 +325,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
           /*is_memory_planner_injected=*/false);
   TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
   tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
@@ -370,7 +370,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
           /*is_memory_planner_injected=*/true);
   TF_LITE_MICRO_EXPECT_EQ(allocator->used_bytes(), expected_arena_used_bytes);
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
 
   tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
@@ -538,7 +538,7 @@ TF_LITE_MICRO_TEST(TestAllocationForComplexModelAllocation) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(10), model_tensor_size);
 
   // NOTE: Tensor indexes match the values in GetComplexMockModel().
@@ -1084,7 +1084,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations));
 
-  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model, 0);
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
   tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
                                                      subgraph_allocations, 1);

@@ -161,7 +161,8 @@ const Model* GetSimpleModelWithSubgraphsAndIf();
 // of "if" subgraph overlaps with the input tensor 2 of subgraph 1.
 const Model* GetModelWithIfAndSubgraphInputTensorOverlap();
 
-// Returns a flatbuffer model with two subgraphs.
+// Returns a flatbuffer model with two subgraphs. Subgraph 0 has two tensors
+// and subgraph 1 has one tensor.
 const Model* GetModelWithTwoSubgraphs();
 
 // Returns a flatbuffer model with null subgraph/operator inputs and outputs.
@@ -274,8 +275,8 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     int* zero_points, TfLiteAffineQuantization* affine_quant,
     int quantized_dimension, bool is_variable = false);
 
-// Returns the number of tensors in the given subgraph for a tflite::Model.
-size_t GetModelTensorCount(const Model* model, int subgraph_idx);
+// Returns the number of tensors in the default subgraph for a tflite::Model.
+size_t GetModelTensorCount(const Model* model);
 
 // Derives the quantization scaling factor from a min and max range.
 template <typename T>

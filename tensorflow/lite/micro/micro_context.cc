@@ -40,10 +40,10 @@ TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
 }
 
 void* MicroContext::GetScratchBuffer(int buffer_idx) {
+  SubgraphAllocations subgraph_allocations =
+      graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()];
   ScratchBufferHandle* handle =
-      graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()]
-          .scratch_buffer_handles +
-      buffer_idx;
+      subgraph_allocations.scratch_buffer_handles + buffer_idx;
   return handle->data;
 }
 
