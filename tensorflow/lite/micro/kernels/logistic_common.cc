@@ -74,7 +74,9 @@ TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
         (15 - kInputIntegerBits) + input_scale_log2_rounded;
     param_scale_pot &= (data->input_left_shift == 0);
 
-    if (!param_scale_pot) {
+    if (param_scale_pot) {
+      data->input_multiplier = 0;
+    } else {
       // Calculate multiplier to change input scale to 1/(3*4096)
       // as required by the table lookup.
       // In this scaling +/-2^17 represents +/-10.7
