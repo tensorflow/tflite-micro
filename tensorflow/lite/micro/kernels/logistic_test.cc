@@ -46,7 +46,6 @@ const float golden_wide_range[] = {
     0.26894142, 0.11920292, 0.04742587, 0.01798621, 0.0,
 };
 
-#if !defined(XTENSA)
 constexpr int int16_vec_size = 177;
 
 int shape_int16_vec[] = {2, 1, int16_vec_size};
@@ -135,7 +134,6 @@ const float int16_golden_vec_fp[int16_vec_size] = {
     0.9999999749, 0.9999999800, 0.9999999841, 0.9999999873, 0.9999999899,
     0.9999999919, 0.9999999936, 0.9999999949, 0.9999999959, 0.9999999968,
     0.9999999974, 0.9999999979};
-#endif  // XTENSA
 
 template <typename T>
 void ValidateLogisticGoldens(TfLiteTensor* tensors, const int tensor_count,
@@ -258,7 +256,6 @@ TF_LITE_MICRO_TEST(LogisticQuantizedInt8WideRangeShouldMatchGolden) {
       tflite::testing::quantized_output_zero_point_int8, output_data, 1.0f);
 }
 
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(LogisticQuantizedInt16ShouldMatchGolden) {
   const float input_scale = 32.f / 65536.f;
   const int input_zero_point = 0;
@@ -275,6 +272,5 @@ TF_LITE_MICRO_TEST(LogisticQuantizedInt16ShouldMatchGolden) {
       tflite::testing::shape_int16_vec, output_scale, output_zero_point,
       output_data, 16.0f);
 }
-#endif  // XTENSA
 
 TF_LITE_MICRO_TESTS_END
