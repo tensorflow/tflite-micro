@@ -40,6 +40,10 @@ RUN pip install yapf
 RUN pip install Pillow
 RUN pip install Wave
 
+# necessary bits for create_size_log scripts
+RUN pip install pandas
+RUN pip install matplotlib
+
 RUN pip install six
 
 # Install Renode test dependencies
