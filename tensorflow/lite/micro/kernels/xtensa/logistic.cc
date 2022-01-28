@@ -99,6 +99,23 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // defined(HIFI5)
       break;
     }
+    case kTfLiteInt16: {
+      switch (output->type) {
+        case kTfLiteInt16:
+          reference_integer_ops::Logistic(
+              data->input_multiplier, data->input_left_shift,
+              NumElements(input->dims),
+              tflite::micro::GetTensorData<int16_t>(input),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        default:
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+      }
+      break;
+    }
     default: {
       MicroPrintf("Input %s, output %s not supported.",
                   TfLiteTypeGetName(input->type),
