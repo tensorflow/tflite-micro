@@ -56,6 +56,7 @@ def BytesFromFlatbufferType(tensor_type):
 
 class TestModelGenerator:
   """Generates test data from tflite file."""
+
   def __init__(self, model, output_dir, inputs):
     self.model = model
     self.output_dir = output_dir
@@ -136,6 +137,7 @@ class TestModelGenerator:
 
 
 class TestDataGenerator:
+
   def __init__(self, output_dir, model_paths, inputs):
     self.output_dir = output_dir
     self.model_paths = model_paths
