@@ -46,6 +46,8 @@ const float golden_wide_range[] = {
     0.26894142, 0.11920292, 0.04742587, 0.01798621, 0.0,
 };
 
+// Test vector and expected results are directly ported from TensorFlow Lite's
+// int16 logistic test.
 constexpr int int16_vec_size = 177;
 
 int shape_int16_vec[] = {2, 1, int16_vec_size};

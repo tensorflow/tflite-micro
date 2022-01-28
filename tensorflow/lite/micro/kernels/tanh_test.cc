@@ -65,6 +65,8 @@ const float tanh_output_vec_fp[tanh_vec_size] = {
     0.9999958722,  0.9999971306,  0.9999980053,  0.9999986134,  0.9999990361,
     0.9999993300,  0.9999995342,  0.9999996762,  0.9999997749};
 
+// Test vector and expected results are directly ported from TensorFlow Lite's
+// int16 tanh test.
 constexpr int tanh_int16_vec_size = 177;
 
 const float tanh_int16_input_vec_fp[tanh_int16_vec_size] = {
