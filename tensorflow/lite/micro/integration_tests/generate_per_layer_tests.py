@@ -56,7 +56,6 @@ def BytesFromFlatbufferType(tensor_type):
 
 class TestModelGenerator:
   """Generates test data from tflite file."""
-
   def __init__(self, model, output_dir, inputs):
     self.model = model
     self.output_dir = output_dir
@@ -81,7 +80,7 @@ class TestModelGenerator:
       if input_idx in self.inputs:
         buffer.data = None
       bytes_per_element = BytesFromFlatbufferType(tensor.type)
-      if buffer.data is not None and len(tensor.shape) > 1:
+      if buffer.data is not None and len(tensor.shape) > 2:
         for i in range(len(buffer.data)):
           buffer.data[i] = buffer.data[i] * np.random.uniform(
               low=0.5, high=1.0, size=1)
@@ -137,7 +136,6 @@ class TestModelGenerator:
 
 
 class TestDataGenerator:
-
   def __init__(self, output_dir, model_paths, inputs):
     self.output_dir = output_dir
     self.model_paths = model_paths
@@ -216,6 +214,7 @@ class TestDataGenerator:
       if builtin_operator in (schema_fb.BuiltinOperator.CONV_2D,
                               schema_fb.BuiltinOperator.DEPTHWISE_CONV_2D,
                               schema_fb.BuiltinOperator.STRIDED_SLICE,
+                              schema_fb.BuiltinOperator.PAD,
                               schema_fb.BuiltinOperator.LEAKY_RELU):
         generated_inputs = self.generate_inputs_single(interpreter,
                                                        input_tensor().dtype)
@@ -339,6 +338,8 @@ def op_info_from_name(name):
     return [[0], schema_fb.BuiltinOperator.STRIDED_SLICE]
   elif 'leaky_relu' in name:
     return [[0], schema_fb.BuiltinOperator.LEAKY_RELU]
+  elif 'pad' in name:
+    return [[0], schema_fb.BuiltinOperator.PAD]
   else:
     raise RuntimeError(f'Unsupported op: {name}')
 
