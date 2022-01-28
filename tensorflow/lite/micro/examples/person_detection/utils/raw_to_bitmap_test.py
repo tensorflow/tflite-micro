@@ -92,6 +92,7 @@ _GRAYSCALE_RESHAPED_MULTI = [
 
 
 class RawToBitmapTest(googletest.TestCase):
+
   def test_parse_rgb(self):
     frame_list = parse_file(io.StringIO(_RGB_RAW), 4, 4, 3)
     self.assertTrue(np.array_equal(_RGB_FLAT, frame_list))

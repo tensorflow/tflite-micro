@@ -30,6 +30,7 @@ from train import reshape_function
 
 
 class TestTrain(unittest.TestCase):
+
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.seq_length = 128
     self.train_len, self.train_data, self.valid_len, self.valid_data, \

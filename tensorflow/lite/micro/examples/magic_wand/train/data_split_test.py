@@ -26,6 +26,7 @@ from data_split import split_data
 
 
 class TestSplit(unittest.TestCase):
+
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.data = read_data("./data/complete_data")
     self.num_dic = {"wing": 0, "ring": 0, "slope": 0, "negative": 0}
