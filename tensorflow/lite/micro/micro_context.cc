@@ -35,7 +35,7 @@ void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
   return allocator_.RequestScratchBufferInArena(
-      bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
+      graph_.GetAllocations(), bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
 }
 
 void* MicroContext::GetScratchBuffer(int buffer_idx) {
@@ -87,11 +87,6 @@ void MicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
 TfLiteEvalTensor* MicroContext::GetEvalTensor(int tensor_idx) {
   return &graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()]
               .tensors[tensor_idx];
-}
-
-void MicroContext::SetScratchBufferHandles(
-    ScratchBufferHandle* scratch_buffer_handles) {
-  scratch_buffer_handles_ = scratch_buffer_handles;
 }
 
 TfLiteStatus MicroContext::set_external_context(
