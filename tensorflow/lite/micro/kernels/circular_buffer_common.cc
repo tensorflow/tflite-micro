@@ -40,8 +40,9 @@ const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
 
 TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input =
-      GetInput(context, node, kCircularBufferInputTensor);
-  TfLiteTensor* output = GetOutput(context, node, kCircularBufferOutputTensor);
+      AllocateTempInputTensor(node, kCircularBufferInputTensor);
+  TfLiteTensor* output =
+      AllocateTempOutputTensor(node, kCircularBufferOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataCircularBuffer* op_data =

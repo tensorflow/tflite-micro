@@ -34,9 +34,9 @@ TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   // TODO(b/140515557): Add cached dequant to improve hybrid model performance.
-  const TfLiteTensor* input = GetInput(context, node, 0);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, 0);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE(context,

@@ -38,11 +38,11 @@ constexpr int kOutputTensor = 0;
 struct StridedSliceContext {
   StridedSliceContext(TfLiteContext* context, TfLiteNode* node) {
     params = reinterpret_cast<TfLiteStridedSliceParams*>(node->builtin_data);
-    input = GetInput(context, node, kInputTensor);
-    begin = GetInput(context, node, kBeginTensor);
-    end = GetInput(context, node, kEndTensor);
-    strides = GetInput(context, node, kStridesTensor);
-    output = GetOutput(context, node, kOutputTensor);
+    input = AllocateTempInputTensor(node, kInputTensor);
+    begin = AllocateTempInputTensor(node, kBeginTensor);
+    end = AllocateTempInputTensor(node, kEndTensor);
+    strides = AllocateTempInputTensor(node, kStridesTensor);
+    output = AllocateTempOutputTensor(node, kOutputTensor);
     dims = NumDimensions(input);
   }
   const TfLiteStridedSliceParams* params;

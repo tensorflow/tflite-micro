@@ -157,11 +157,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Inputs: box_encodings, scores, anchors
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   const TfLiteTensor* input_box_encodings =
-      GetInput(context, node, kInputTensorBoxEncodings);
+      AllocateTempInputTensor(node, kInputTensorBoxEncodings);
   const TfLiteTensor* input_class_predictions =
-      GetInput(context, node, kInputTensorClassPredictions);
+      AllocateTempInputTensor(node, kInputTensorClassPredictions);
   const TfLiteTensor* input_anchors =
-      GetInput(context, node, kInputTensorAnchors);
+      AllocateTempInputTensor(node, kInputTensorAnchors);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_box_encodings), 3);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_class_predictions), 3);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_anchors), 2);

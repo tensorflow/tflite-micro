@@ -103,13 +103,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const auto* params =
       reinterpret_cast<const TfLiteGatherParams*>(node->builtin_data);
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
   const TfLiteTensor* coords;
   TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputPositions, &coords));
+                    AllocateTempInputTensor(node, kInputPositions));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
   switch (coords->type) {
     case kTfLiteInt32:
       break;

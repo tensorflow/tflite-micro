@@ -371,18 +371,18 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
   // [3] = Bias (optional), {1, num_units}
   // [4] = Activation State (variable),
   //         {2, batch_size, memory_size * num_filters}
-  const TfLiteTensor* input = GetInput(context, node, kSvdfInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kSvdfInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   const TfLiteTensor* weights_feature =
-      GetInput(context, node, kSvdfWeightsFeatureTensor);
+      AllocateTempInputTensor(node, kSvdfWeightsFeatureTensor);
   TF_LITE_ENSURE(context, weights_feature != nullptr);
   const TfLiteTensor* weights_time =
-      GetInput(context, node, kSvdfWeightsTimeTensor);
+      AllocateTempInputTensor(node, kSvdfWeightsTimeTensor);
   TF_LITE_ENSURE(context, weights_time != nullptr);
   const TfLiteTensor* bias =
       GetOptionalInputTensor(context, node, kSvdfBiasTensor);
   const TfLiteTensor* activation_state =
-      GetInput(context, node, kSvdfInputActivationStateTensor);
+      AllocateTempInputTensor(node, kSvdfInputActivationStateTensor);
   TF_LITE_ENSURE(context, activation_state != nullptr);
 
   // Define input constants based on input tensor definition above:
@@ -402,7 +402,7 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
   // Validate Tensor Output:
   // [0] = float/int8_t, {2, batch_size, num_units}
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
-  TfLiteTensor* output = GetOutput(context, node, kSvdfOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kSvdfOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), 2);
   TF_LITE_ENSURE_EQ(context, output->dims->data[0], batch_size);

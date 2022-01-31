@@ -93,13 +93,13 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
       params.dilation_width_factor, height, width, filter_height, filter_width,
       padding, &out_height, &out_width);
 
-  const TfLiteTensor* input = GetInput(context, node, kConvInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = GetInput(context, node, kConvWeightsTensor);
+  const TfLiteTensor* filter = AllocateTempInputTensor(node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   const TfLiteTensor* bias =
       GetOptionalInputTensor(context, node, kConvBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kConvOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   // Note that quantized inference requires that all tensors have their
@@ -130,11 +130,11 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   const auto& params =
       *(static_cast<const TfLiteConvParams*>(node->builtin_data));
 
-  TfLiteTensor* output = GetOutput(context, node, kConvOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  const TfLiteTensor* input = GetInput(context, node, kConvInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = GetInput(context, node, kConvWeightsTensor);
+  const TfLiteTensor* filter = AllocateTempInputTensor(node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
   const int input_width = input->dims->data[2];

@@ -52,16 +52,16 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
 
   const TfLiteTensor* input_tensor_first;
   TF_LITE_ENSURE_OK(
-      context, GetInputSafe(context, node, kInputTensor0, &input_tensor_first));
+      context, AllocateTempInputTensor(node, kInputTensor0));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
 
   // Check that all tensors have the same shape and type.
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, input_tensor_first->type);
   for (int i = kInputTensor0 + 1; i < num_inputs; ++i) {
     const TfLiteTensor* input;
-    TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, i, &input));
+    TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, i));
     TF_LITE_ENSURE(context, HaveSameShapes(input_tensor_first, input));
     TF_LITE_ENSURE_TYPES_EQ(context, input_tensor_first->type, input->type);
 

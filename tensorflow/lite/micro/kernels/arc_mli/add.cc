@@ -364,11 +364,11 @@ TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
-  const TfLiteTensor* input1 = GetInput(context, node, kInputTensor1);
+  const TfLiteTensor* input1 = AllocateTempInputTensor(node, kInputTensor1);
   TF_LITE_ENSURE(context, input1 != nullptr);
-  const TfLiteTensor* input2 = GetInput(context, node, kInputTensor2);
+  const TfLiteTensor* input2 = AllocateTempInputTensor(node, kInputTensor2);
   TF_LITE_ENSURE(context, input2 != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   OpData* data = static_cast<OpData*>(node->user_data);

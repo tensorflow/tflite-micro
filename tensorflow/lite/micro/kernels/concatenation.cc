@@ -115,10 +115,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteConcatenationParams* params =
       reinterpret_cast<TfLiteConcatenationParams*>(node->builtin_data);
 
-  const TfLiteTensor* input_tensor = GetInput(context, node, 0);
+  const TfLiteTensor* input_tensor = AllocateTempInputTensor(node, 0);
   TF_LITE_ENSURE(context, input_tensor != nullptr);
   TfLiteType input_type = input_tensor->type;
-  const TfLiteTensor* output_tensor = GetOutput(context, node, kOutputTensor);
+  const TfLiteTensor* output_tensor =
+      AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output_tensor != nullptr);
   TfLiteType output_type = output_tensor->type;
 
@@ -138,7 +139,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Shapes with dimensions >4 are not yet supported with static allocation.
   for (int i = 0; i < num_inputs; ++i) {
-    const TfLiteTensor* input = GetInput(context, node, i);
+    const TfLiteTensor* input = AllocateTempInputTensor(node, i);
     TF_LITE_ENSURE(context, input != nullptr);
     int num_dimensions = NumDimensions(input);
 
@@ -156,7 +157,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   switch (output_type) {  // Already know in/outtypes are same.
@@ -183,7 +184,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       // Allocate persistent scale and zeropoint buffers.
       // Store input scale and zero point values in OpParams:
       for (int i = 0; i < node->inputs->size; ++i) {
-        const TfLiteTensor* t = GetInput(context, node, i);
+        const TfLiteTensor* t = AllocateTempInputTensor(node, i);
         TF_LITE_ENSURE(context, t != nullptr);
         input_scales[i] = t->params.scale;
         input_zero_points[i] = t->params.zero_point;

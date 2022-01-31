@@ -40,7 +40,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(NumOutputs(node) == 1);
 
   const TfLiteTensor* input_resource_id_tensor =
-      GetInput(context, node, kInputVariableId);
+      AllocateTempInputTensor(node, kInputVariableId);
 
   TFLITE_DCHECK(input_resource_id_tensor != nullptr);
   TFLITE_DCHECK(input_resource_id_tensor->type == kTfLiteResource);

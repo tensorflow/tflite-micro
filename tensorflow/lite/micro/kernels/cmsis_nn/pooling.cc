@@ -153,8 +153,8 @@ TfLiteStatus MaxPrepare(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
 
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
-  TfLiteTensor* output = GetOutput(context, node, kPoolingOutputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kPoolingInputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kPoolingOutputTensor);
 
   if (input->type == kTfLiteInt8) {
     RuntimeShape input_shape = GetTensorShape(input);

@@ -55,14 +55,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   const TfLiteTensor* input =
-      GetInput(context, node, kFullyConnectedInputTensor);
+      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   const TfLiteTensor* filter =
-      GetInput(context, node, kFullyConnectedWeightsTensor);
+      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   const TfLiteTensor* bias =
       GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
+  TfLiteTensor* output =
+      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);

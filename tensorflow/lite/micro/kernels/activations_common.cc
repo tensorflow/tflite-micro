@@ -117,9 +117,11 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   ReluOpData* data = static_cast<ReluOpData*>(node->user_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kActivationsInputTensor);
+  const TfLiteTensor* input =
+      AllocateTempInputTensor(node, kActivationsInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kActivationsOutputTensor);
+  TfLiteTensor* output =
+      AllocateTempOutputTensor(node, kActivationsOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   if (input->type == kTfLiteInt8) {
@@ -133,7 +135,8 @@ TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   Relu6OpData* data = static_cast<Relu6OpData*>(node->user_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kActivationsInputTensor);
+  const TfLiteTensor* input =
+      AllocateTempInputTensor(node, kActivationsInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
 
   if (input->type == kTfLiteInt8) {

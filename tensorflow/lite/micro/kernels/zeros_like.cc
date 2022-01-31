@@ -28,10 +28,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
   output->type = input->type;
 
   return kTfLiteOk;

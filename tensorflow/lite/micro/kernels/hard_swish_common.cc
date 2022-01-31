@@ -36,9 +36,10 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input = GetInput(context, node, kHardSwishInputTensor);
+  const TfLiteTensor* input =
+      AllocateTempInputTensor(node, kHardSwishInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kHardSwishOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kHardSwishOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   if (input->type == kTfLiteInt8) {

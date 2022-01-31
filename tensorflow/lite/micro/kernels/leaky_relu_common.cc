@@ -33,10 +33,10 @@ TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context,
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {

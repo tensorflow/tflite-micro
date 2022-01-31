@@ -37,11 +37,11 @@ void* MulInit(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
                                 TfLiteMulParams* params, OpDataMul* data) {
-  const TfLiteTensor* input1 = GetInput(context, node, kMulInput1Tensor);
+  const TfLiteTensor* input1 = AllocateTempInputTensor(node, kMulInput1Tensor);
   TF_LITE_ENSURE(context, input1 != nullptr);
-  const TfLiteTensor* input2 = GetInput(context, node, kMulInput2Tensor);
+  const TfLiteTensor* input2 = AllocateTempInputTensor(node, kMulInput2Tensor);
   TF_LITE_ENSURE(context, input2 != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kMulOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kMulOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);

@@ -54,9 +54,9 @@ TfLiteStatus PoolingPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataPooling* data = static_cast<OpDataPooling*>(node->user_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kPoolingInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kPoolingOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kPoolingOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_STATUS(

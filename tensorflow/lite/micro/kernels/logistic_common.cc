@@ -32,9 +32,10 @@ const int kLogisticOutputTensor = 0;
 TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
                                                TfLiteNode* node,
                                                OpDataLogistic* data) {
-  const TfLiteTensor* input = GetInput(context, node, kLogisticInputTensor);
+  const TfLiteTensor* input =
+      AllocateTempInputTensor(node, kLogisticInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kLogisticOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kLogisticOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);

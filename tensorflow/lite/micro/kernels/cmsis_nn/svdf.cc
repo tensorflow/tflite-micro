@@ -295,17 +295,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // [3] = Bias (optional), {1, num_units}
   // [4] = Activation State (variable),
   //         {2, batch_size, memory_size * num_filters}
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   const TfLiteTensor* weights_feature =
-      GetInput(context, node, kWeightsFeatureTensor);
+      AllocateTempInputTensor(node, kWeightsFeatureTensor);
   TF_LITE_ENSURE(context, weights_feature != nullptr);
   const TfLiteTensor* weights_time =
-      GetInput(context, node, kWeightsTimeTensor);
+      AllocateTempInputTensor(node, kWeightsTimeTensor);
   TF_LITE_ENSURE(context, weights_time != nullptr);
   const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
   const TfLiteTensor* activation_state =
-      GetInput(context, node, kInputActivationStateTensor);
+      AllocateTempInputTensor(node, kInputActivationStateTensor);
   TF_LITE_ENSURE(context, activation_state != nullptr);
 
   // Define input constants based on input tensor definition above:
@@ -325,7 +325,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Validate Tensor Output:
   // [0] = float/int8, {2, batch_size, num_units}
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), 2);
   TF_LITE_ENSURE_EQ(context, output->dims->data[0], batch_size);
   TF_LITE_ENSURE_EQ(context, output->dims->data[1], num_units);

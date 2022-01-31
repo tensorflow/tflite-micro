@@ -67,12 +67,12 @@ constexpr int kOutputTensor = 0;
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Ensure inputs and outputs exist.
   const TfLiteTensor* dims;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kDimsTensor, &dims));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kDimsTensor));
   const TfLiteTensor* value;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kValueTensor, &value));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kValueTensor));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
 
   // The value tensor must be a scalar.
   TF_LITE_ENSURE_EQ(context, NumDimensions(value), 0);

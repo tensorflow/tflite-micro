@@ -83,11 +83,11 @@ TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node) {
   OpDataSub* data = static_cast<OpDataSub*>(node->user_data);
   auto* params = reinterpret_cast<TfLiteSubParams*>(node->builtin_data);
 
-  const TfLiteTensor* input1 = GetInput(context, node, kSubInputTensor1);
+  const TfLiteTensor* input1 = AllocateTempInputTensor(node, kSubInputTensor1);
   TF_LITE_ENSURE(context, input1 != nullptr);
-  const TfLiteTensor* input2 = GetInput(context, node, kSubInputTensor2);
+  const TfLiteTensor* input2 = AllocateTempInputTensor(node, kSubInputTensor2);
   TF_LITE_ENSURE(context, input2 != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kSubOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kSubOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_STATUS(

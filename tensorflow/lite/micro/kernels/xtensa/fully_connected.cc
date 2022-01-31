@@ -64,12 +64,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<TfLiteFullyConnectedParams*>(node->builtin_data);
 
   const TfLiteTensor* input =
-      GetInput(context, node, kFullyConnectedInputTensor);
+      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   const TfLiteTensor* filter =
-      GetInput(context, node, kFullyConnectedWeightsTensor);
+      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   const TfLiteTensor* bias =
       GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
+  TfLiteTensor* output =
+      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
 
   if (input->type != kTfLiteInt8) {
     TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",

@@ -48,13 +48,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
   TFLITE_DCHECK(input != nullptr);
-  const TfLiteTensor* begin = GetInput(context, node, kBeginTensor);
+  const TfLiteTensor* begin = AllocateTempInputTensor(node, kBeginTensor);
   TFLITE_DCHECK(begin != nullptr);
-  const TfLiteTensor* size = GetInput(context, node, kSizeTensor);
+  const TfLiteTensor* size = AllocateTempInputTensor(node, kSizeTensor);
   TFLITE_DCHECK(size != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
   TFLITE_DCHECK(output != nullptr);
 
   // Ensure validity of input tensor and its dimension.

@@ -53,7 +53,7 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node) {
   // Inputs Tensor (dtype depends on quantization):
   // [0] = Input
   // [1] = Axis
-  const TfLiteTensor* input = GetInput(context, node, 0);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
 
   // Outputs Tensor (dtype depends on quantization):
   // [0] = Output
@@ -63,13 +63,13 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
 
   // Validate axis type
-  const TfLiteTensor* axis = GetInput(context, node, 1);
+  const TfLiteTensor* axis = AllocateTempInputTensor(node, 1);
   TF_LITE_ENSURE(context, axis != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, axis->type, kTfLiteInt32);
 
   if (input->type == kTfLiteInt8) {
     OpData* data = static_cast<OpData*>(node->user_data);
-    const TfLiteTensor* output = GetOutput(context, node, 0);
+    const TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
     const double real_multiplier = static_cast<double>(input->params.scale) /
                                    static_cast<double>(output->params.scale);
     QuantizeMultiplier(real_multiplier, &data->multiplier, &data->shift);
@@ -82,9 +82,9 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, PrepareSimple(context, node));
 
   OpData* op_data = static_cast<OpData*>(node->user_data);
-  const TfLiteTensor* input = GetInput(context, node, 0);
-  const TfLiteTensor* output = GetOutput(context, node, 0);
-  const TfLiteTensor* axis = GetInput(context, node, 1);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
+  const TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
+  const TfLiteTensor* axis = AllocateTempInputTensor(node, 1);
 
   op_data->input_scale = input->params.scale;
   op_data->output_scale = output->params.scale;
@@ -100,9 +100,9 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* input = GetInput(context, node, 0);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
-  const TfLiteTensor* output = GetOutput(context, node, 0);
+  const TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const double real_multiplier = static_cast<double>(input->params.scale) /
                                    static_cast<double>(output->params.scale);

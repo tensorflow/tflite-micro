@@ -135,8 +135,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
 
-  TfLiteTensor* output = GetOutput(context, node, 0);
-  const TfLiteTensor* input = GetInput(context, node, 0);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
 
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
   op_data->quantization_params.zero_point = output->params.zero_point;

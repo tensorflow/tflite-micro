@@ -87,12 +87,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
   const TfLiteTensor* axis;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kAxisTensor, &axis));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kAxisTensor));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
   output->type = input->type;
   if (IsDynamicTensor(axis)) {
     TF_LITE_KERNEL_LOG(context,

@@ -52,7 +52,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                            input_resource_id_tensor->type == kTfLiteInt32));
   TF_LITE_ENSURE_EQ(context, NumElements(input_resource_id_tensor->dims), 1);
 
-  const TfLiteTensor* input_value = GetInput(context, node, kInputValue);
+  const TfLiteTensor* input_value = AllocateTempInputTensor(node, kInputValue);
   TFLITE_DCHECK(input_value != nullptr);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);

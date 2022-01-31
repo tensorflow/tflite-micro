@@ -47,8 +47,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
-  const TfLiteTensor* axis = GetInput(context, node, kAxisTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
+  const TfLiteTensor* axis = AllocateTempInputTensor(node, kAxisTensor);
 
   TF_LITE_ENSURE(context,
                  input->type == kTfLiteFloat32 || input->type == kTfLiteInt8);
@@ -58,7 +58,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE(context, NumDimensions(input) >= 1);
 
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
 
   TF_LITE_ENSURE_EQ(context, input->type, output->type);
   TF_LITE_ENSURE(context, HaveSameShapes(input, output));

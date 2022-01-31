@@ -170,9 +170,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataMirrorPad* data = static_cast<OpDataMirrorPad*>(node->user_data);
 
-  const TfLiteTensor* input_tensor = GetInput(context, node, 0);
-  const TfLiteTensor* padding_matrix = GetInput(context, node, 1);
-  TfLiteTensor* output_tensor = GetOutput(context, node, 0);
+  const TfLiteTensor* input_tensor = AllocateTempInputTensor(node, 0);
+  const TfLiteTensor* padding_matrix = AllocateTempInputTensor(node, 1);
+  TfLiteTensor* output_tensor = AllocateTempOutputTensor(node, 0);
 
   TF_LITE_ENSURE_EQ(context, NumDimensions(padding_matrix), 2);
   TF_LITE_ENSURE_EQ(context, SizeOfDimension(padding_matrix, 0),

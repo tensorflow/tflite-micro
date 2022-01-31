@@ -36,13 +36,13 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
 
   const TfLiteTensor* input1;
   TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor1, &input1));
+                    AllocateTempInputTensor(node, kInputTensor1));
   const TfLiteTensor* input2;
   TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor2, &input2));
+                    AllocateTempInputTensor(node, kInputTensor2));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
 
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, output->type);

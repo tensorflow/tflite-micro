@@ -32,12 +32,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   const TfLiteTensor* params;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kParams, &params));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kParams));
   const TfLiteTensor* indices;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kIndices, &indices));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kIndices));
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
 
   switch (params->type) {
     case kTfLiteFloat32:

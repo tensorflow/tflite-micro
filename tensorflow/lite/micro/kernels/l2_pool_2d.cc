@@ -42,9 +42,9 @@ TfLiteStatus L2Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   TfLiteTensor* output;
   TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+                    AllocateTempOutputTensor(node, kOutputTensor));
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
   TF_LITE_ENSURE_EQ(context, NumDimensions(input), kTensorShapeRank);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), kTensorShapeRank);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);

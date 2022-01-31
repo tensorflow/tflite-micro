@@ -52,11 +52,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       *(static_cast<const TfLiteConvParams*>(node->builtin_data));
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kConvInputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = GetInput(context, node, kConvWeightsTensor);
+  const TfLiteTensor* filter = AllocateTempInputTensor(node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  const TfLiteTensor* output = GetOutput(context, node, kConvOutputTensor);
+  const TfLiteTensor* output = AllocateTempOutputTensor(node, kConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   RuntimeShape input_shape = GetTensorShape(input);

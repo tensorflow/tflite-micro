@@ -36,9 +36,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
-  const TfLiteTensor* size = GetInput(context, node, kSizeTensor);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
+  const TfLiteTensor* size = AllocateTempInputTensor(node, kSizeTensor);
+  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
 
   // Our current implementations rely on the input being 4D,
   // and the size being 1D tensor with exactly 2 elements.
