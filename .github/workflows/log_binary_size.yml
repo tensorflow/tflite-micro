@@ -1,0 +1,49 @@
+name: Update Binary Size Log
+
+on:
+  workflow_dispatch: {}
+
+# uncomment this section to run on schedule
+#  schedule:
+    # 6am or 7am PT depending on daylight savings
+#    - cron: '0 13 * * *'
+
+# uncomment this section to run on a tag
+#  pull_request:
+#    types: [labeled]
+#    branches:
+#      - main
+
+
+jobs:
+  binary-size-log:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
+      github.event_name == 'schedule'
+    steps:
+    - uses: actions/checkout@v2
+    - name: update logs x86
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+      with:
+        args: tensorflow/lite/micro/tools/metrics/create_size_log_x86.sh
+    - name: commit logs
+      run: |
+        git config --local user.name 'TFLM-bot'
+        git config --local user.email 'tflm-github-bot@google.com'
+        git commit -am "Automated size log update"
+    - name: Create Logs PR Request
+      id: create-pr
+      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
+      with:
+         branch: nightly_binary_size_profiling
+         delete-branch: true
+         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+         title: Automated binary size log update
+         commit-message: Automated binary size log update
+         committer: TFLM-bot <tflm-github-bot@google.com>
+         author: TFLM-bot <tflm-github-bot@google.com>
+         body: "BUG=automated binary size log update"
+         labels: ci:run
+         reviewers: advaitjain

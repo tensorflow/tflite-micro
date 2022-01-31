@@ -56,14 +56,25 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   node_.builtin_data = builtin_data;
 }
 
+bool KernelRunner::ValidateTempBufferDeallocated() {
+  return fake_micro_context_.IsAllTempTfLiteTensorDeallocated();
+}
+
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
     node_.user_data = registration_.init(&context_, init_data, length);
   }
+  // TODO(b/209453859): enforce all temp buffers are deallocated at the end of
+  // init TF_LITE_MICRO_EXPECT_TRUE(ValidateTempBufferDeallocated() );
+
   if (registration_.prepare) {
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
   }
+
+  // TODO(b/209453859): enforce all temp buffers are deallocated at the end of
+  // init TF_LITE_MICRO_EXPECT_TRUE(ValidateTempBufferDeallocated() );
+
   return kTfLiteOk;
 }
 

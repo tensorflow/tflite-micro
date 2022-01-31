@@ -185,10 +185,16 @@ class MicroAllocator {
       const Model* model, const SubgraphAllocations* subgraph_allocations,
       int tensor_index, int subgraph_index);
 
+  virtual void DeallocateTempTfLiteTensor(TfLiteTensor*);
+
   // Resets all temporary allocations. This method should be called after a
   // chain of temp allocations (e.g. chain of TfLiteTensor objects via
   // AllocateTfLiteTensor()).
   virtual void ResetTempAllocations();
+
+  // Returns true if all temporary buffers including temp TfLiteTensor are
+  // already deallocated.
+  virtual bool IsAllTempDeallocated();
 
   // Allocates persistent buffer which has the same life time as the allocator.
   // The memory is immediately available and is allocated from the tail of the

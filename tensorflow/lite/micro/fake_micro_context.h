@@ -31,7 +31,10 @@ class FakeMicroContext : public MicroContext {
                                            int* buffer_index) override;
   void* GetScratchBuffer(int buffer_index) override;
 
-  TfLiteTensor* GetTensor(int tensor_index) override;
+  TfLiteTensor* AllocateTempTfLiteTensor(int tensor_index) override;
+  void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override;
+  bool IsAllTempTfLiteTensorDeallocated();
+
   TfLiteEvalTensor* GetEvalTensor(int tensor_index) override;
 
  private:
@@ -41,6 +44,8 @@ class FakeMicroContext : public MicroContext {
   uint8_t* scratch_buffers_[kNumScratchBuffers_];
 
   TfLiteTensor* tensors_;
+  int allocated_tensor_count_ = 0;
+
   SimpleMemoryAllocator* allocator_;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE

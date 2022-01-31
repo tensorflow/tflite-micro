@@ -69,6 +69,60 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
     data->input_range_radius =
         CalculateInputRadius(kInputIntegerBits, data->input_left_shift, 31);
   }
+
+  if (input->type == kTfLiteInt16) {
+    static constexpr int kInputIntegerBits = 3;
+    static constexpr int kOutputFractionalBits = 15;
+
+    // These operators are implemented in fixed-point arithmetic,
+    // which intrinsically wants symmetric ranges (zero_point==0)
+    // and power-of-two scales (power-of-two is abbreviated below as POT).
+    // While more general support would be possible by means of rescaling,
+    // that would add some overhead and some loss of accuracy and wouldn't
+    // be used at the moment as current quantized LSTM applications are
+    // happy with symmetric, power-of-two-scales quantization. So we just
+    // implement that narrow case only for now.
+
+    TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+
+    int input_scale_log2_rounded;
+    bool param_scale_pot =
+        CheckedLog2(input->params.scale, &input_scale_log2_rounded);
+
+    data->input_left_shift =
+        (15 - kInputIntegerBits) + input_scale_log2_rounded;
+    param_scale_pot &=
+        (data->input_left_shift == 0 || data->input_left_shift == 1);
+
+    if (param_scale_pot) {
+      data->input_multiplier = 0;
+    } else {
+      // Calculate multiplier to change input scale to 1/(3*4096)
+      // as required by the table lookup.
+      // The number 3.0 in the multiplier comes from here,
+      // because the interval is [-10.7, 10.7] instead of [-8, 8].
+      // So, in this scaling +/-2^17 represents +/-10.7.
+
+      double multiplier =
+          static_cast<double>(input->params.scale) * 4096.0 * 3.0;
+      data->input_left_shift = 0;
+
+      while (multiplier <= 32767.0 / 2.0 && data->input_left_shift <= 30) {
+        data->input_left_shift++;
+        multiplier = multiplier * 2.0;
+      }
+
+      data->input_multiplier = static_cast<int32_t>(multiplier);
+    }
+
+    int output_scale_log2_rounded;
+    TF_LITE_ENSURE(
+        context, CheckedLog2(output->params.scale, &output_scale_log2_rounded));
+    TF_LITE_ENSURE_EQ(context, output_scale_log2_rounded,
+                      -kOutputFractionalBits);
+  }
+
   return kTfLiteOk;
 }
 

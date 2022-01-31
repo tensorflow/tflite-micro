@@ -71,7 +71,7 @@ class SimpleMemoryAllocator {
   // ResetTempAllocations is called as it is right now.
   virtual void DeallocateTemp(uint8_t* buf);
 
-  // Returns true if all temporary buffers are already deallocted.
+  // Returns true if all temporary buffers are already deallocated.
   virtual bool IsAllTempDeallocated();
 
   // Resets a chain of temporary allocations back to the current head of the

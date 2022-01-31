@@ -27,6 +27,7 @@ import tensorflow as tf
 
 
 class TestLoad(unittest.TestCase):
+
   def setUp(self):  # pylint: disable=g-missing-super-call
     self.loader = DataLoader("./data/train",
                              "./data/valid",
