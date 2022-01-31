@@ -24,9 +24,9 @@ namespace {
 
 struct TransposeContext {
   TransposeContext(TfLiteContext* context, TfLiteNode* node) {
-    input = AllocateTempInputTensor(node, 0);
-    perm = AllocateTempInputTensor(node, 1);
-    output = AllocateTempOutputTensor(node, 0);
+    input = GetInput(context, node, 0);
+    perm = GetInput(context, node, 1);
+    output = GetOutput(context, node, 0);
   }
   const TfLiteTensor* input;
   const TfLiteTensor* perm;

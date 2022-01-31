@@ -29,8 +29,8 @@ namespace {
 struct SqueezeContext {
   SqueezeContext(TfLiteContext* context, TfLiteNode* node)
       : params(reinterpret_cast<TfLiteSqueezeParams*>(node->builtin_data)),
-        input(AllocateTempInputTensor(node, 0)),
-        output(AllocateTempOutputTensor(node, 0)) {}
+        input(GetInput(context, node, 0)),
+        output(GetOutput(context, node, 0)) {}
   TfLiteSqueezeParams* params;
   const TfLiteTensor* const input;
   TfLiteTensor* output;

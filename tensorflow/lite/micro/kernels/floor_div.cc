@@ -31,21 +31,27 @@ constexpr int kInputTensor2 = 1;
 constexpr int kOutputTensor = 0;
 
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
+  MicroContext* micro_context = GetMicroContext(context);
+
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node, kInputTensor1));
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node, kInputTensor2));
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context,
-                    AllocateTempOutputTensor(node, kOutputTensor));
+  TfLiteTensor* input1 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
+  TfLiteTensor* input2 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, output->type);
+
+  micro_context->DeallocateTempTfLiteTensor(input1);
+  micro_context->DeallocateTempTfLiteTensor(input2);
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
 }

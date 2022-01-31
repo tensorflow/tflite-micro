@@ -63,12 +63,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const auto* params =
       reinterpret_cast<TfLiteFullyConnectedParams*>(node->builtin_data);
 
+  MicroContext* micro_context = GetMicroContext(context);
+
   const TfLiteTensor* input =
       AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   const TfLiteTensor* filter =
       AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   const TfLiteTensor* bias =
-      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
+      AllocateTempInputTensor(context, node, kFullyConnectedBiasTensor);
   TfLiteTensor* output =
       AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
 
@@ -84,8 +86,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
 
-  return CalculateOpData(context, params->activation, input->type, input,
-                         filter, bias, output, data);
+  TF_LITE_ENSURE_OK(
+      context, CalculateOpData(context, params->activation, input->type, input,
+                               filter, bias, output, data));
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(bias);
+  return kTfLiteOk;
 }
 
 TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,

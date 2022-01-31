@@ -54,16 +54,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const auto params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
-  const TfLiteTensor* input =
-      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter =
-      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
+  TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
+      node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  const TfLiteTensor* bias =
-      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output =
-      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
+  TfLiteTensor* bias = micro_context->AllocateTempInputTensor(
+      context, node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
@@ -98,6 +99,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->buffer_idx = -1;
     }
   }
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  micro_context->DeallocateTempTfLiteTensor(bias);
+
   return kTfLiteOk;
 }
 

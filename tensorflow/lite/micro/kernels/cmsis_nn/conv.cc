@@ -52,11 +52,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       *(static_cast<const TfLiteConvParams*>(node->builtin_data));
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kConvInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = AllocateTempInputTensor(node, kConvWeightsTensor);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  const TfLiteTensor* output = AllocateTempOutputTensor(node, kConvOutputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   RuntimeShape input_shape = GetTensorShape(input);
@@ -121,6 +126,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->buffer_idx = -1;
     }
   }
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
 
   return kTfLiteOk;
 }

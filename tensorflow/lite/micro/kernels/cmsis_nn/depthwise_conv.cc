@@ -51,14 +51,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const auto& params =
       *(reinterpret_cast<TfLiteDepthwiseConvParams*>(node->builtin_data));
 
-  const TfLiteTensor* input =
-      AllocateTempInputTensor(node, kDepthwiseConvInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter =
-      AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* output =
-      AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
+      micro_context->AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   const TfLiteType data_type = input->type;
@@ -150,6 +152,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->buffer_idx = -1;
     }
   }
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+
   return kTfLiteOk;
 }
 

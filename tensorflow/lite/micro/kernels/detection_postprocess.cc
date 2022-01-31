@@ -154,14 +154,17 @@ void Free(TfLiteContext* context, void* buffer) {}
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   auto* op_data = static_cast<OpData*>(node->user_data);
 
+  MicroContext* micro_context = GetMicroContext(context);
+
   // Inputs: box_encodings, scores, anchors
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
-  const TfLiteTensor* input_box_encodings =
-      AllocateTempInputTensor(node, kInputTensorBoxEncodings);
-  const TfLiteTensor* input_class_predictions =
-      AllocateTempInputTensor(node, kInputTensorClassPredictions);
-  const TfLiteTensor* input_anchors =
-      AllocateTempInputTensor(node, kInputTensorAnchors);
+  TfLiteTensor* input_box_encodings =
+      micro_context->AllocateTempInputTensor(node, kInputTensorBoxEncodings);
+  TfLiteTensor* input_class_predictions =
+      micro_context->AllocateTempInputTensor(node,
+                                             kInputTensorClassPredictions);
+  TfLiteTensor* input_anchors =
+      micro_context->AllocateTempInputTensor(node, kInputTensorAnchors);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_box_encodings), 3);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_class_predictions), 3);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input_anchors), 2);
@@ -218,6 +221,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Outputs: detection_boxes, detection_scores, detection_classes,
   // num_detections
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 4);
+
+  micro_context->DeallocateTempTfLiteTensor(input_box_encodings);
+  micro_context->DeallocateTempTfLiteTensor(input_class_predictions);
+  micro_context->DeallocateTempTfLiteTensor(input_anchors);
 
   return kTfLiteOk;
 }

@@ -59,7 +59,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* filter =
       AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   const TfLiteTensor* bias =
-      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
+      AllocateTempInputTensor(context, node, kFullyConnectedBiasTensor);
   TfLiteTensor* output =
       AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
 

@@ -59,7 +59,8 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   TF_LITE_ENSURE(context, cell_state != nullptr);
   TfLiteTensor* output_tensor;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempOutputTensor(node, micro::lstm::full::kOutputTensor));
+      context, GetOutputSafe(context, node, micro::lstm::full::kOutputTensor,
+                             &output_tensor));
 
   auto* cell_state_params =
       static_cast<TfLiteAffineQuantization*>(cell_state->quantization.params);
@@ -86,38 +87,43 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   const TfLiteTensor* input;
   TF_LITE_ENSURE_OK(
       context,
-      AllocateTempInputTensor(node, micro::lstm::full::kInputTensor));
+      GetInputSafe(context, node, micro::lstm::full::kInputTensor, &input));
 
   const TfLiteTensor* input_to_input_weights = GetOptionalInputTensor(
       context, node, micro::lstm::full::kInputToInputWeightsTensor);
   const TfLiteTensor* input_to_forget_weights;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node,
-                                            micro::lstm::full::kInputToForgetWeightsTensor));
+                    GetInputSafe(context, node,
+                                 micro::lstm::full::kInputToForgetWeightsTensor,
+                                 &input_to_forget_weights));
   const TfLiteTensor* input_to_cell_weights;
   TF_LITE_ENSURE_OK(
       context,
-      AllocateTempInputTensor(node,
-                              micro::lstm::full::kInputToCellWeightsTensor));
+      GetInputSafe(context, node, micro::lstm::full::kInputToCellWeightsTensor,
+                   &input_to_cell_weights));
   const TfLiteTensor* input_to_output_weights;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node,
-                                            micro::lstm::full::kInputToOutputWeightsTensor));
+                    GetInputSafe(context, node,
+                                 micro::lstm::full::kInputToOutputWeightsTensor,
+                                 &input_to_output_weights));
 
   const TfLiteTensor* recurrent_to_input_weights = GetOptionalInputTensor(
       context, node, micro::lstm::full::kRecurrentToInputWeightsTensor);
   const TfLiteTensor* recurrent_to_forget_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToForgetWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToForgetWeightsTensor,
+                            &recurrent_to_forget_weights));
   const TfLiteTensor* recurrent_to_cell_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToCellWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToCellWeightsTensor,
+                            &recurrent_to_cell_weights));
   const TfLiteTensor* recurrent_to_output_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToOutputWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToOutputWeightsTensor,
+                            &recurrent_to_output_weights));
 
   const TfLiteTensor* cell_to_input_weights = GetOptionalInputTensor(
       context, node, micro::lstm::full::kCellToInputWeightsTensor);
@@ -685,7 +691,7 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   const TfLiteTensor* input;
   TF_LITE_ENSURE_OK(
       context,
-      AllocateTempInputTensor(node, micro::lstm::full::kInputTensor));
+      GetInputSafe(context, node, micro::lstm::full::kInputTensor, &input));
   const TfLiteTensor* output_state =
       GetVariableInput(context, node, micro::lstm::full::kOutputStateTensor);
   TF_LITE_ENSURE(context, output_state != nullptr);
@@ -697,32 +703,37 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
       context, node, micro::lstm::full::kInputToInputWeightsTensor);
   const TfLiteTensor* input_to_forget_weights;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node,
-                                            micro::lstm::full::kInputToForgetWeightsTensor));
+                    GetInputSafe(context, node,
+                                 micro::lstm::full::kInputToForgetWeightsTensor,
+                                 &input_to_forget_weights));
   const TfLiteTensor* input_to_cell_weights;
   TF_LITE_ENSURE_OK(
       context,
-      AllocateTempInputTensor(node,
-                              micro::lstm::full::kInputToCellWeightsTensor));
+      GetInputSafe(context, node, micro::lstm::full::kInputToCellWeightsTensor,
+                   &input_to_cell_weights));
   const TfLiteTensor* input_to_output_weights;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempInputTensor(node,
-                                            micro::lstm::full::kInputToOutputWeightsTensor));
+                    GetInputSafe(context, node,
+                                 micro::lstm::full::kInputToOutputWeightsTensor,
+                                 &input_to_output_weights));
 
   const TfLiteTensor* recurrent_to_input_weights = GetOptionalInputTensor(
       context, node, micro::lstm::full::kRecurrentToInputWeightsTensor);
   const TfLiteTensor* recurrent_to_forget_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToForgetWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToForgetWeightsTensor,
+                            &recurrent_to_forget_weights));
   const TfLiteTensor* recurrent_to_cell_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToCellWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToCellWeightsTensor,
+                            &recurrent_to_cell_weights));
   const TfLiteTensor* recurrent_to_output_weights;
   TF_LITE_ENSURE_OK(
-      context, AllocateTempInputTensor(node,
-                                       micro::lstm::full::kRecurrentToOutputWeightsTensor));
+      context, GetInputSafe(context, node,
+                            micro::lstm::full::kRecurrentToOutputWeightsTensor,
+                            &recurrent_to_output_weights));
 
   const TfLiteTensor* projection_weights = GetOptionalInputTensor(
       context, node, lstm::full::kProjectionWeightsTensor);
@@ -748,8 +759,7 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   const TfLiteTensor* forget_gate_bias =
       is_layer_norm
           ? nullptr
-          : AllocateTempInputTensor(node,
-                                    micro::lstm::full::kForgetGateBiasTensor);
+          : GetInput(context, node, micro::lstm::full::kForgetGateBiasTensor);
   TF_LITE_ENSURE_OK(
       context,
       PrecomputeZeroPointTimesWeightWithBias(
@@ -766,8 +776,7 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   const TfLiteTensor* cell_gate_bias =
       is_layer_norm
           ? nullptr
-          : AllocateTempInputTensor(node,
-                                    micro::lstm::full::kCellGateBiasTensor);
+          : GetInput(context, node, micro::lstm::full::kCellGateBiasTensor);
   TF_LITE_ENSURE_OK(
       context,
       PrecomputeZeroPointTimesWeightWithBias(
@@ -783,8 +792,7 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   const TfLiteTensor* output_gate_bias =
       is_layer_norm
           ? nullptr
-          : AllocateTempInputTensor(node,
-                                    micro::lstm::full::kOutputGateBiasTensor);
+          : GetInput(context, node, micro::lstm::full::kOutputGateBiasTensor);
   TF_LITE_ENSURE_OK(
       context,
       PrecomputeZeroPointTimesWeightWithBias(
@@ -801,8 +809,7 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   const TfLiteTensor* input_gate_bias =
       is_layer_norm
           ? nullptr
-          : AllocateTempInputTensor(node,
-                                    micro::lstm::full::kInputGateBiasTensor);
+          : GetInput(context, node, micro::lstm::full::kInputGateBiasTensor);
   TF_LITE_ENSURE_OK(
       context,
       PrecomputeZeroPointTimesWeightWithBias(

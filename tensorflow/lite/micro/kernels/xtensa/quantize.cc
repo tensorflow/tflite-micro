@@ -134,6 +134,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
+  MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* output = AllocateTempOutputTensor(node, 0);
   const TfLiteTensor* input = AllocateTempInputTensor(node, 0);
@@ -149,6 +150,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                            static_cast<double>(output->params.scale);
   QuantizeMultiplier(effective_scale, &op_data->requantize_output_multiplier,
                      &op_data->requantize_output_shift);
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
 }

@@ -317,11 +317,11 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   // Note that quantized inference requires that all tensors have their
   // parameters set. This is usually done during quantized training.
   if (data_type != kTfLiteFloat32) {
-    const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
-    const TfLiteTensor* filter = AllocateTempInputTensor(node, kFilterTensor);
+    const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+    const TfLiteTensor* filter = GetInput(context, node, kFilterTensor);
     const TfLiteTensor* bias =
         GetOptionalInputTensor(context, node, kBiasTensor);
-    TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
+    TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
     int num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
 
     return tflite::PopulateConvolutionQuantizationParams(
@@ -349,9 +349,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<TfLiteDepthwiseConvParams*>(node->builtin_data);
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
-  const TfLiteTensor* filter = AllocateTempInputTensor(node, kFilterTensor);
+  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+  const TfLiteTensor* filter = GetInput(context, node, kFilterTensor);
 
   const TfLiteType data_type = input->type;
   int width = SizeOfDimension(input, 2);

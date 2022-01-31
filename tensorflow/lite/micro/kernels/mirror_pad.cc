@@ -167,12 +167,16 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  MicroContext* micro_context = GetMicroContext(context);
+
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataMirrorPad* data = static_cast<OpDataMirrorPad*>(node->user_data);
 
-  const TfLiteTensor* input_tensor = AllocateTempInputTensor(node, 0);
-  const TfLiteTensor* padding_matrix = AllocateTempInputTensor(node, 1);
-  TfLiteTensor* output_tensor = AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* input_tensor = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* padding_matrix =
+      micro_context->AllocateTempInputTensor(node, 1);
+  TfLiteTensor* output_tensor =
+      micro_context->AllocateTempOutputTensor(node, 0);
 
   TF_LITE_ENSURE_EQ(context, NumDimensions(padding_matrix), 2);
   TF_LITE_ENSURE_EQ(context, SizeOfDimension(padding_matrix, 0),
@@ -196,6 +200,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context, data->input_dims * sizeof(int),
       &data->input_dims_num_elements_buffer_index));
 
+  micro_context->DeallocateTempTfLiteTensor(input_tensor);
+  micro_context->DeallocateTempTfLiteTensor(padding_matrix);
+  micro_context->DeallocateTempTfLiteTensor(output_tensor);
   return kTfLiteOk;
 }
 

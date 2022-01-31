@@ -48,11 +48,14 @@ void* TanhInit(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
                                        OpData* data) {
+  MicroContext* micro_context = GetMicroContext(context);
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
@@ -123,6 +126,8 @@ TfLiteStatus CalculateArithmeticOpData(TfLiteContext* context, TfLiteNode* node,
                       -kOutputFractionalBits);
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
@@ -131,10 +136,15 @@ TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   data->input_zero_point = input->params.zero_point;
-  return CalculateArithmeticOpData(context, node, data);
+  TF_LITE_ENSURE_OK(context, CalculateArithmeticOpData(context, node, data));
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  return kTfLiteOk;
 }
 
 }  // namespace

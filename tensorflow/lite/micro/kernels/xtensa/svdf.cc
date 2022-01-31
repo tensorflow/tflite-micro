@@ -133,14 +133,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // [3] = Bias (optional), {1, num_units}
   // [4] = Activation State (variable),
   //         {2, batch_size, memory_size * num_filters}
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
-  const TfLiteTensor* weights_feature =
-      AllocateTempInputTensor(node, kWeightsFeatureTensor);
-  const TfLiteTensor* weights_time =
-      AllocateTempInputTensor(node, kWeightsTimeTensor);
-  const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
-  const TfLiteTensor* activation_state =
-      AllocateTempInputTensor(node, kInputActivationStateTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* weights_feature =
+      micro_context->AllocateTempInputTensor(node, kWeightsFeatureTensor);
+  TfLiteTensor* weights_time =
+      micro_context->AllocateTempInputTensor(node, kWeightsTimeTensor);
+  TfLiteTensor* bias = AllocateTempInputTensor(context, node, kBiasTensor);
+  TfLiteTensor* activation_state =
+      micro_context->AllocateTempInputTensor(node, kInputActivationStateTensor);
 
   // Define input constants based on input tensor definition above:
   const int rank = params->rank;
@@ -231,6 +233,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           context, batch_size * num_units * sizeof(int32_t),
           &(data->scratch_output_tensor_index));
   TF_LITE_ENSURE_OK(context, scratch_output_status);
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(weights_feature);
+  micro_context->DeallocateTempTfLiteTensor(weights_time);
+  micro_context->DeallocateTempTfLiteTensor(bias);
+  micro_context->DeallocateTempTfLiteTensor(activation_state);
 
   return kTfLiteOk;
 }

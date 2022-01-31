@@ -137,10 +137,15 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   // Note that quantized inference requires that all tensors have their
   // parameters set. This is usually done during quantized training.
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
-  const TfLiteTensor* filter = AllocateTempInputTensor(node, kFilterTensor);
-  const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kFilterTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(context, node, kBiasTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
 
   if (data_type != kTfLiteFloat32 && !data->is_mli_applicable) {
     int output_channels = filter->dims->data[kConvQuantizedDimension];
@@ -153,6 +158,11 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
         reinterpret_cast<int*>(data->per_channel_output_shift),
         output_channels));
   }
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  micro_context->DeallocateTempTfLiteTensor(bias);
+  micro_context->DeallocateTempTfLiteTensor(output);
 #endif
   return kTfLiteOk;
 }
@@ -168,10 +178,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* data = static_cast<OpData*>(node->user_data);
   const auto params = static_cast<const TfLiteConvParams*>(node->builtin_data);
 
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
-  const TfLiteTensor* filter = AllocateTempInputTensor(node, kFilterTensor);
-  const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kFilterTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(context, node, kBiasTensor);
 
   int input_width = input->dims->data[2];
   int input_height = input->dims->data[1];
@@ -330,6 +346,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           data->padding.height + data->padding.height_offset;
     }
   }
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }
 

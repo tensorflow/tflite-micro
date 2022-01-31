@@ -1220,7 +1220,7 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
 
   // Make sure that the input is in uint8_t with at least 1 data entry.
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
+  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
   if (input->type != kTfLiteInt8) return kTfLiteError;
   if (NumElements(input->dims) == 0) return kTfLiteError;
 
@@ -1242,7 +1242,7 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   *data->invoke_count += 1;
 
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, kInputTensor));
+  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
   const uint8_t* input_data = GetTensorData<uint8_t>(input);
   int size = NumElements(input->dims);
 
@@ -1263,11 +1263,11 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
 
   TfLiteTensor* median;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempOutputTensor(node, kMedianTensor));
+                    GetOutputSafe(context, node, kMedianTensor, &median));
   uint8_t* median_data = GetTensorData<uint8_t>(median);
   TfLiteTensor* invoke_count;
   TF_LITE_ENSURE_OK(context,
-                    AllocateTempOutputTensor(node, kInvokeCount));
+                    GetOutputSafe(context, node, kInvokeCount, &invoke_count));
   int32_t* invoke_count_data = GetTensorData<int32_t>(invoke_count);
 
   median_data[0] = sorting_buffer[size / 2];
@@ -1356,17 +1356,17 @@ TfLiteStatus MultipleInputs::Prepare(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, 0));
+  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
   const int32_t* input_data = input->data.i32;
   const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, 1));
+  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &input1));
   const int32_t* input_data1 = input1->data.i32;
   const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context, AllocateTempInputTensor(node, 2));
+  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 2, &input2));
   const int32_t* input_data2 = input2->data.i32;
 
   TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, AllocateTempOutputTensor(node, 0));
+  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
   int32_t* output_data = output->data.i32;
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
