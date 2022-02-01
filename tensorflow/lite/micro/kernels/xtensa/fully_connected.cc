@@ -65,14 +65,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   MicroContext* micro_context = GetMicroContext(context);
 
-  const TfLiteTensor* input =
-      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
-  const TfLiteTensor* filter =
-      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
-  const TfLiteTensor* bias =
-      AllocateTempInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output =
-      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedInputTensor);
+  TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
+      node, kFullyConnectedWeightsTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kFullyConnectedOutputTensor);
 
   if (input->type != kTfLiteInt8) {
     TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
@@ -92,6 +92,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(filter);
   micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }

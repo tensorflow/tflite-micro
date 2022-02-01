@@ -103,7 +103,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
         micro_context->AllocateTempInputTensor(node, kFilterTensor);
     TF_LITE_ENSURE(context, filter != nullptr);
     TfLiteTensor* bias =
-        micro_context->AllocateTempInputTensor(context, node, kBiasTensor);
+        micro_context->AllocateTempInputTensor(node, kBiasTensor);
     TfLiteTensor* output =
         micro_context->AllocateTempOutputTensor(node, kOutputTensor);
     TF_LITE_ENSURE(context, output != nullptr);
@@ -150,11 +150,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const auto params =
       static_cast<const TfLiteTransposeConvParams*>(node->builtin_data);
 
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  const TfLiteTensor* input = AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* filter = AllocateTempInputTensor(node, kFilterTensor);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kFilterTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
   // Get height and width of the output.
@@ -221,6 +226,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Stride
   data->params.stride_width = params->stride_width;
   data->params.stride_height = params->stride_height;
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
   return kTfLiteOk;
 }
 

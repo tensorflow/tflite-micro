@@ -140,7 +140,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempInputTensor(node, kWeightsFeatureTensor);
   TfLiteTensor* weights_time =
       micro_context->AllocateTempInputTensor(node, kWeightsTimeTensor);
-  TfLiteTensor* bias = AllocateTempInputTensor(context, node, kBiasTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kBiasTensor);
   TfLiteTensor* activation_state =
       micro_context->AllocateTempInputTensor(node, kInputActivationStateTensor);
 
@@ -167,7 +168,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Validate Tensor Output:
   // [0] = float/int8_t, {2, batch_size, num_units}
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
-  TfLiteTensor* output = AllocateTempOutputTensor(node, kOutputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), 2);
   TF_LITE_ENSURE_EQ(context, output->dims->data[0], batch_size);
   TF_LITE_ENSURE_EQ(context, output->dims->data[1], num_units);
@@ -239,6 +241,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(weights_time);
   micro_context->DeallocateTempTfLiteTensor(bias);
   micro_context->DeallocateTempTfLiteTensor(activation_state);
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
 }
