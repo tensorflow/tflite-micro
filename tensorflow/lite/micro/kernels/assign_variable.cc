@@ -52,10 +52,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                            input_resource_id_tensor->type == kTfLiteInt32));
   TF_LITE_ENSURE_EQ(context, NumElements(input_resource_id_tensor->dims), 1);
 
-  const TfLiteTensor* input_value = GetInput(context, node, kInputValue);
+  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
+  TfLiteTensor* input_value =
+      micro_context->AllocateTempInputTensor(node, kInputValue);
   TFLITE_DCHECK(input_value != nullptr);
 
-  tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
   MicroGraph& graph_info = micro_context->graph();
 
   MicroResourceVariables* resources = graph_info.GetResourceVariables();
@@ -63,6 +64,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                     resources->Allocate(input_resource_id_tensor->data.i32[0],
                                         context, input_value));
 
+  micro_context->DeallocateTempTfLiteTensor(input_value);
   return kTfLiteOk;
 }
 

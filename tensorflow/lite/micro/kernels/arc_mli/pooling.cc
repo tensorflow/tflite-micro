@@ -92,9 +92,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   data->is_mli_applicable = IsMliApplicable(context, input, params);
@@ -144,6 +148,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     data->p_mli_krn_avepool_hwc_sa8 = mli_krn_avepool(data->cfg);
     data->p_mli_krn_maxpool_hwc_sa8 = mli_krn_maxpool(data->cfg);
   }
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
