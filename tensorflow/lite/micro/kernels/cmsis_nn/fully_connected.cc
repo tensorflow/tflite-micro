@@ -61,8 +61,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
       node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  TfLiteTensor* bias = micro_context->AllocateTempInputTensor(
-      context, node, kFullyConnectedBiasTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);

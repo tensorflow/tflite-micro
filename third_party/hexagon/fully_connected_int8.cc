@@ -127,7 +127,7 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* no
       AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
    TfLiteTensor* bias = micro_context->
-      AllocateTempInputTensor(context, node, kFullyConnectedBiasTensor);
+      AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
   TfLiteTensor* output = micro_context->
       AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);

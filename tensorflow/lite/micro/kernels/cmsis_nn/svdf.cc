@@ -300,15 +300,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const TfLiteTensor* weights_feature =
+  TfLiteTensor* weights_feature =
       micro_context->AllocateTempInputTensor(node, kWeightsFeatureTensor);
   TF_LITE_ENSURE(context, weights_feature != nullptr);
-  const TfLiteTensor* weights_time =
+  TfLiteTensor* weights_time =
       micro_context->AllocateTempInputTensor(node, kWeightsTimeTensor);
   TF_LITE_ENSURE(context, weights_time != nullptr);
-  const TfLiteTensor* bias =
-      AllocateTempInputTensor(context, node, kBiasTensor);
-  const TfLiteTensor* activation_state =
+  TfLiteTensor* bias = AllocateTempInputTensor(node, kBiasTensor);
+  TfLiteTensor* activation_state =
       micro_context->AllocateTempInputTensor(node, kInputActivationStateTensor);
   TF_LITE_ENSURE(context, activation_state != nullptr);
 
