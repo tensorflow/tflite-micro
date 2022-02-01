@@ -31,7 +31,7 @@ RUN ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
 
 # Install yapf to check for Python formatting as part of the TFLM continuous
 # integration.
-RUN pip install yapf
+RUN pip install yapf==0.32.0
 
 # Pillow was added first for the C array generation as a result of the following
 # PRs:
