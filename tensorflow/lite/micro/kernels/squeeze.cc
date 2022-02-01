@@ -96,10 +96,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TF_LITE_ENSURE_EQ(context, tflite::micro::GetEvalDataSizeInBytes(input),
-                    tflite::micro::GetEvalDataSizeInBytes(output));
-  memcpy(output->data.raw, input->data.raw,
-         tflite::micro::GetEvalDataSizeInBytes(input));
+  size_t input_byte_size;
+  size_t output_byte_size;
+  TF_LITE_ENSURE_OK(context,
+                    TfLiteEvalTensorByteLength(input, &input_byte_size));
+  TF_LITE_ENSURE_OK(context,
+                    TfLiteEvalTensorByteLength(output, &output_byte_size));
+
+  TF_LITE_ENSURE_EQ(context, input_byte_size, output_byte_size);
+  memcpy(output->data.raw, input->data.raw, input_byte_size);
   return kTfLiteOk;
 }
 

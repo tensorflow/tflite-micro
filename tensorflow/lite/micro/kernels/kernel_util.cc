@@ -120,8 +120,5 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-size_t GetEvalDataSizeInBytes(const TfLiteEvalTensor* eval_tensor) {
-  return NumElements(eval_tensor->dims) * TfLiteTypeGetSize(eval_tensor->type);
-}
 }  // namespace micro
 }  // namespace tflite

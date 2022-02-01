@@ -40,9 +40,6 @@ const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
 TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
                                 const TfLiteNode* node, int index);
 
-// Returns the size in bytes of the data in a TfLiteEvalTensor.
-size_t GetEvalDataSizeInBytes(const TfLiteEvalTensor* eval_tensor);
-
 // Returns data for a TfLiteEvalTensor struct.
 template <typename T>
 T* GetTensorData(TfLiteEvalTensor* tensor) {

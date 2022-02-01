@@ -25,16 +25,17 @@ namespace {
 
 int input_dims_data_common[] = {3, 1, 24, 1};
 int output_dims_data_common[] = {1, 24};
-const int input_data_common[] = {1,  2,  3,  4,  5,  6,  7,  8,
+const int32_t input_data_common[] = {1,  2,  3,  4,  5,  6,  7,  8,
+                                     9,  10, 11, 12, 13, 14, 15, 16,
+                                     17, 18, 19, 20, 21, 22, 23, 24};
+const int32_t golden_common[] = {1,  2,  3,  4,  5,  6,  7,  8,
                                  9,  10, 11, 12, 13, 14, 15, 16,
                                  17, 18, 19, 20, 21, 22, 23, 24};
-const int golden_common[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
 const int expected_output_size_common = 24;
 
-void TestSqueezeOp(int* input_dims_data, const int* input_data,
-                   int* output_dims_data, int* output_data, const int* golden,
-                   int expected_output_size,
+void TestSqueezeOp(int* input_dims_data, const int32_t* input_data,
+                   int* output_dims_data, int32_t* output_data,
+                   const int32_t* golden, int expected_output_size,
                    TfLiteSqueezeParams* squeeze_params) {
   TfLiteIntArray* input_dims1 = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims1 = IntArrayFromInts(output_dims_data);
@@ -75,7 +76,7 @@ void TestSqueezeOp(int* input_dims_data, const int* input_data,
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(SqueezeAll) {
-  int output_data[24];
+  int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{}, 0};
 
   tflite::testing::TestSqueezeOp(tflite::testing::input_dims_data_common,
@@ -87,7 +88,7 @@ TF_LITE_MICRO_TEST(SqueezeAll) {
 }
 
 TF_LITE_MICRO_TEST(SqueezeSelectedAxis) {
-  int output_data[24];
+  int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{2}, 1};
   int output_dims_data_common[] = {2, 1, 24};
 
@@ -99,7 +100,7 @@ TF_LITE_MICRO_TEST(SqueezeSelectedAxis) {
 }
 
 TF_LITE_MICRO_TEST(SqueezeNegativeAxis) {
-  int output_data[24];
+  int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{-1, 0}, 2};
 
   tflite::testing::TestSqueezeOp(tflite::testing::input_dims_data_common,
@@ -113,11 +114,11 @@ TF_LITE_MICRO_TEST(SqueezeNegativeAxis) {
 TF_LITE_MICRO_TEST(SqueezeAllDims) {
   int input_dims_data[] = {7, 1, 1, 1, 1, 1, 1, 1};
   int output_dims_data[] = {1, 1};
-  const int input_data[] = {3};
-  const int golden[] = {3};
+  const int32_t input_data[] = {3};
+  const int32_t golden[] = {3};
   const int expected_output_size = 1;
 
-  int output_data[24];
+  int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{}, 0};
 
   tflite::testing::TestSqueezeOp(input_dims_data, input_data, output_dims_data,
