@@ -42,5 +42,5 @@ EMBARC_MLI_PRE_COMPILED_MD5 := "173990c2dde4efef6a2c95b92d1f0244"
 ZEPHYR_URL := "http://mirror.tensorflow.org/github.com/antmicro/zephyr/archive/55e36b9.zip"
 ZEPHYR_MD5 := "755622eb4812fde918a6382b65d50c3b"
 
-ETHOSU_URL := "https://git.mlplatform.org/ml/ethos-u/ethos-u-core-driver.git/snapshot/ethos-u-core-driver-547ca53bb26a705cfceb1348373dd628eada2422.tar.gz"
-ETHOSU_MD5 := "f24119b34a9a6448b608f8ccea335c8b"
+ETHOSU_URL := "https://git.mlplatform.org/ml/ethos-u/ethos-u-core-driver.git/snapshot/ethos-u-core-driver-b3cde3c0db2049a27941af520061742f3be92bbc.tar.gz"
+ETHOSU_MD5 := "af8f2973eea34653f9e3a84060eddfd2"
