@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
 namespace micro {
@@ -119,5 +120,8 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+size_t GetEvalDataSizeInBytes(const TfLiteEvalTensor* eval_tensor) {
+  return NumElements(eval_tensor->dims) * TfLiteTypeGetSize(eval_tensor->type);
+}
 }  // namespace micro
 }  // namespace tflite

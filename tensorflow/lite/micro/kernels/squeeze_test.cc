@@ -65,6 +65,8 @@ void TestSqueezeOp(int* input_dims_data, const int* input_data,
   for (int i = 0; i < expected_output_size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
   }
+
+  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 }
 }  // namespace
 }  // namespace testing

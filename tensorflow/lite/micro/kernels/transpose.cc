@@ -18,15 +18,20 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace {
 
+constexpr int kInputTensor = 0;
+constexpr int kPermTensor = 1;
+constexpr int kOutputTensor = 0;
+
 struct TransposeContext {
   TransposeContext(TfLiteContext* context, TfLiteNode* node) {
-    input = GetInput(context, node, 0);
-    perm = GetInput(context, node, 1);
-    output = GetOutput(context, node, 0);
+    input = GetInput(context, node, kInputTensor);
+    perm = GetInput(context, node, kPermTensor);
+    output = GetOutput(context, node, kOutputTensor);
   }
   const TfLiteTensor* input;
   const TfLiteTensor* perm;
@@ -60,10 +65,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  TransposeContext op_context(context, node);
-
-  const int32_t* perm_data = GetTensorData<int32_t>(op_context.perm);
-  const int size = op_context.perm->dims->data[0];
+  const TfLiteEvalTensor* perm_tensor =
+      tflite::micro::GetEvalInput(context, node, kPermTensor);
+  const int32_t* perm_data = perm_tensor->data.i32;
+  const int size = perm_tensor->dims->data[0];
   TransposeParams params;
   params.perm_count = size;
   for (int i = 0; i < size; ++i) {
@@ -73,24 +78,28 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // Transpose kernel only does rearranging values not numeric evaluations
   // on each cell. It's safe to implement per size of scalar type and this
   // trick keeps the total code size in a reasonable range.
-  switch (op_context.input->type) {
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+  switch (input->type) {
     case kTfLiteFloat32:
-      reference_ops::Transpose(params, GetTensorShape(op_context.input),
-                               GetTensorData<float>(op_context.input),
-                               GetTensorShape(op_context.output),
-                               GetTensorData<float>(op_context.output));
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<float>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<float>(output));
       break;
     case kTfLiteInt8:
-      reference_ops::Transpose(params, GetTensorShape(op_context.input),
-                               GetTensorData<int8_t>(op_context.input),
-                               GetTensorShape(op_context.output),
-                               GetTensorData<int8_t>(op_context.output));
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<int8_t>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<int8_t>(output));
       break;
     default:
       TF_LITE_KERNEL_LOG(context,
                          "Type %s is currently not supported by Transpose. "
                          "Only float32 and int8 is supported",
-                         TfLiteTypeGetName(op_context.input->type));
+                         TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 
