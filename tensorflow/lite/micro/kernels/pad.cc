@@ -131,7 +131,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(paddings);
-  micro_context->DeallocateTempTfLiteTensor(constant_values);
+  if (constant_values != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(constant_values);
+  }
   micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
