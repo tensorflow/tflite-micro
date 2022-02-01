@@ -87,6 +87,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // TODO(b/162522304): storing input bytes in OpData increases some models
   // significantly, possibly due to alignment issues.
   size_t input_bytes;
+
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(input->type, &input_bytes));
   input_bytes *= ElementCount(*input->dims);
   // Do nothing for in-place reshape.
