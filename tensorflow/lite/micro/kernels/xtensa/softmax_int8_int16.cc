@@ -33,9 +33,10 @@ namespace {
 TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
 
+  MicroContext* micro_context = GetMicroContext(context);
   // Calculate scratch memory requirements and request scratch buffer
-  const TfLiteTensor* input = GetInput(context, node, 0);
-  const TfLiteTensor* output = GetOutput(context, node, 0);
+  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
 
   const RuntimeShape& input_shape = GetTensorShape(input);
   const RuntimeShape& output_shape = GetTensorShape(output);
@@ -54,6 +55,8 @@ TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
                      context, required_scratch, &(data->scratch_tensor_index)));
   }
 
+  micro_context->DeallocateTempInputTensor(input);
+  micro_context->DeallocateTempInputTensor(output);
   return kTfLiteOk;
 }
 

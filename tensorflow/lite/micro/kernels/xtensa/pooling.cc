@@ -35,8 +35,9 @@ struct OpData {
 
 TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
-
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPoolingInputTensor);
 
   if (input->type == kTfLiteInt8) {
     const RuntimeShape& input_shape = GetTensorShape(input);
@@ -70,6 +71,7 @@ TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         context, required_scratch, &(data->scratch_tensor_index)));
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 
@@ -125,7 +127,10 @@ TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
 TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
 
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPoolingInputTensor);
 
   if (input->type == kTfLiteInt8) {
     auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
@@ -159,6 +164,7 @@ TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         context, required_scratch, &(data->scratch_tensor_index)));
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 
