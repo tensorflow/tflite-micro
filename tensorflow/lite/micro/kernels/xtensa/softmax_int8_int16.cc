@@ -55,8 +55,8 @@ TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
                      context, required_scratch, &(data->scratch_tensor_index)));
   }
 
-  micro_context->DeallocateTempInputTensor(input);
-  micro_context->DeallocateTempInputTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
