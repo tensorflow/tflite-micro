@@ -1219,8 +1219,9 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
 
   // Make sure that the input is in uint8_t with at least 1 data entry.
-  MicroContext * micro_context = GetMicroContext(context);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, kInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
 
   if (input->type != kTfLiteInt8) return kTfLiteError;
@@ -1244,9 +1245,10 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
   *data->invoke_count += 1;
 
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, kInputTensor);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  const uint8_t* input_data =  input->data.uint8;
+  const uint8_t* input_data = input->data.uint8;
   int size = NumElements(input->dims);
 
   uint8_t* sorting_buffer = reinterpret_cast<uint8_t*>(
@@ -1264,11 +1266,13 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
     }
   }
 
-  TfLiteEvalTensor* median = tflite::micro::GetEvalOutput(context, node, kMedianTensor);
+  TfLiteEvalTensor* median =
+      tflite::micro::GetEvalOutput(context, node, kMedianTensor);
   TF_LITE_ENSURE(context, median != nullptr);
   uint8_t* median_data = median->data.uint8;
-  TfLiteEvalTensor* invoke_count = tflite::micro::GetEvalOutput(context, node, kInvokeCount);
-  TF_LITE_ENSURE(context, invoke_count != nullptr );
+  TfLiteEvalTensor* invoke_count =
+      tflite::micro::GetEvalOutput(context, node, kInvokeCount);
+  TF_LITE_ENSURE(context, invoke_count != nullptr);
   int32_t* invoke_count_data = invoke_count->data.i32;
 
   median_data[0] = sorting_buffer[size / 2];
@@ -1359,10 +1363,12 @@ TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TF_LITE_ENSURE(context, input != nullptr);
   const int32_t* input_data = input->data.i32;
-  const TfLiteEvalTensor* input1 = tflite::micro::GetEvalInput(context, node, 1) ;
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, 1);
   TF_LITE_ENSURE(context, input1 != nullptr);
   const int32_t* input_data1 = input1->data.i32;
-  const TfLiteEvalTensor* input2 = tflite::micro::GetEvalInput(context, node, 2);
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, 2);
   TF_LITE_ENSURE(context, input2 != nullptr);
   const int32_t* input_data2 = input2->data.i32;
 

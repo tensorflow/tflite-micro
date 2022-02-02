@@ -29,12 +29,19 @@ constexpr int kOutputTensor = 0;
 
 struct TransposeContext {
   TransposeContext(TfLiteContext* context, TfLiteNode* node) {
-    input = GetInput(context, node, kInputTensor);
-    perm = GetInput(context, node, kPermTensor);
-    output = GetOutput(context, node, kOutputTensor);
+    micro_context = GetMicroContext(context);
+    input = micro_context->AllocateTempInputTensor(node, kInputTensor);
+    perm = micro_context->AllocateTempInputTensor(node, kPermTensor);
+    output = micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   }
-  const TfLiteTensor* input;
-  const TfLiteTensor* perm;
+  ~TransposeContext() {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    micro_context->DeallocateTempTfLiteTensor(perm);
+    micro_context->DeallocateTempTfLiteTensor(output);
+  }
+  MicroContext* micro_context;
+  TfLiteTensor* input;
+  TfLiteTensor* perm;
   TfLiteTensor* output;
 };
 

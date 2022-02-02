@@ -65,15 +65,14 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   if (registration_.init) {
     node_.user_data = registration_.init(&context_, init_data, length);
   }
-  // TODO(b/209453859): enforce all temp buffers are deallocated at the end of
-  // init TF_LITE_MICRO_EXPECT_TRUE(ValidateTempBufferDeallocated() );
+
+  TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
   }
 
-  // TODO(b/209453859): enforce all temp buffers are deallocated at the end of
-  // init TF_LITE_MICRO_EXPECT_TRUE(ValidateTempBufferDeallocated() );
+  TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   return kTfLiteOk;
 }
@@ -83,7 +82,12 @@ TfLiteStatus KernelRunner::Invoke() {
     MicroPrintf("TfLiteRegistration missing invoke function pointer!");
     return kTfLiteError;
   }
-  return registration_.invoke(&context_, &node_);
+
+  TF_LITE_ENSURE_STATUS(registration_.invoke(&context_, &node_));
+
+  TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
+
+  return kTfLiteOk;
 }
 
 }  // namespace micro
