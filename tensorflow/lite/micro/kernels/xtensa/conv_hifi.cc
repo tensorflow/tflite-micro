@@ -80,9 +80,9 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
       context, context->RequestScratchBufferInArena(
                    context, required_scratch, &data->scratch_tensor_index));
 
-  micro_context->DeallocateTempTensor(input);
-  micro_context->DeallocateTempTensor(filter);
-  micro_context->DeallocateTempTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
