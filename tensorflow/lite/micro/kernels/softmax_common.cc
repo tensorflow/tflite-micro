@@ -139,7 +139,8 @@ TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node) {
   }
 
   auto* params = static_cast<TfLiteSoftmaxParams*>(node->builtin_data);
-  auto ret_val = CalculateSoftmaxParams(context, input, output, params, op_data);
+  auto ret_val =
+      CalculateSoftmaxParams(context, input, output, params, op_data);
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
