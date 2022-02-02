@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstring>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -100,9 +102,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // Do nothing for in-place reshape.
   if (input->data.raw != output->data.raw) {
     // Otherwise perform reshape with copy.
-    for (size_t i = 0; i < input_bytes; ++i) {
-      output->data.raw[i] = input->data.raw[i];
-    }
+    memcpy(output->data.raw, input->data.raw, input_bytes);
   }
   return kTfLiteOk;
 }
