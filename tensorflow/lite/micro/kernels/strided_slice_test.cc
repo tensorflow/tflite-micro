@@ -54,6 +54,8 @@ void ValidateStridedSliceGoldens(TfLiteTensor* tensors, int tensors_size,
   for (int i = 0; i < output_len; ++i) {
     TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1e-5f);
   }
+
+  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 }
 
 void TestStridedSliceFloat(int* input_shape, int* begin_shape, int* end_shape,
