@@ -429,6 +429,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     micro_context->DeallocateTempTfLiteTensor(bias);
   }
   micro_context->DeallocateTempTfLiteTensor(activation_state);
+  micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
