@@ -137,8 +137,10 @@ TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
     auto* data = static_cast<OpData*>(node->user_data);
 
     const RuntimeShape& input_shape = GetTensorShape(input);
-    const RuntimeShape& output_shape =
-        GetTensorShape(GetOutput(context, node, kPoolingOutputTensor));
+    TfLiteTensor* output =
+        micro_context->AllocateTempOutputTensor(node, kPoolingOutputTensor);
+    const RuntimeShape& output_shape = GetTensorShape(output);
+    micro_context->DeallocateTempTfLiteTensor(output);
 
     const int depth = MatchingDim(input_shape, 3, output_shape, 3);
     const int input_height = input_shape.Dims(1);
