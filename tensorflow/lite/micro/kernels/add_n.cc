@@ -126,6 +126,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input_tensor_first);
   micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
