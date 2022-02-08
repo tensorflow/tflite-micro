@@ -195,8 +195,8 @@ INCLUDES += \
 
 # TODO(#47070): Examine why some tests fail here.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc \
-  tensorflow/lite/micro/micro_interpreter_test.cc
+  tensorflow/lite/micro/memory_arena_threshold_test.cc
+
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh
