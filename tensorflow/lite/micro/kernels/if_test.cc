@@ -17,8 +17,10 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"
+#include "tensorflow/lite/micro/test_helper_custom_ops.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -27,8 +29,8 @@ namespace testing {
 namespace {
 
 void TestIf(int* input1_dims_data, const bool* input1_data,
-            int* input2_dims_data, const float* input2_data,
-            int* output_dims_data, const float* expected_output_data,
+            int* input2_dims_data, float* input2_data, int* output_dims_data,
+            const float* expected_output_data,
             const int subgraph1_invoke_count_golden,
             const int subgraph2_invoke_count_golden, float* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
@@ -59,6 +61,9 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
                              outputs_array, &params);
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+
+  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
+
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 2);
@@ -70,6 +75,8 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
                           runner.GetMockGraph()->get_invoke_count(1));
   TF_LITE_MICRO_EXPECT_EQ(subgraph2_invoke_count_golden,
                           runner.GetMockGraph()->get_invoke_count(2));
+
+  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 }
 
 }  // namespace
@@ -82,7 +89,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionTrue) {
   int shape[] = {2, 1, 2};
   int condition_shape[] = {1, 1};
   const bool condition[] = {true};
-  const float input[] = {5.0, 2.0};
+  float input[] = {5.0, 2.0};
   const float golden[] = {5.0, 2.0};
   float output_data[2] = {0};
   tflite::testing::TestIf(condition_shape, condition, shape, input, shape,
@@ -93,7 +100,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionFalse) {
   int shape[] = {2, 1, 2};
   int condition_shape[] = {1, 1};
   const bool condition[] = {false};
-  const float input[] = {5.0, 2.0};
+  float input[] = {5.0, 2.0};
   const float golden[] = {5.0, 2.0};
   float output_data[2] = {0};
   tflite::testing::TestIf(condition_shape, condition, shape, input, shape,
@@ -158,6 +165,44 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
 
   TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 6.0f);
   TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 35.0f);
+}
+
+TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
+  constexpr int kArenaSize = 5000;
+  uint8_t arena[kArenaSize];
+
+  const tflite::Model* model =
+      tflite::testing::GetModelWithIfAndSubgraphInputTensorOverlap();
+
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  op_resolver.AddIf();
+  tflite::MicroErrorReporter reporter;
+  tflite::MicroInterpreter interpreter(model, op_resolver, arena, kArenaSize,
+                                       &reporter);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+
+  TfLiteTensor* condition = interpreter.input(0);
+  TfLiteTensor* input1 = interpreter.input(1);
+  TfLiteTensor* input2 = interpreter.input(2);
+  TfLiteTensor* output = interpreter.output(0);
+  constexpr int32_t block_size =
+      tflite::MicroArenaBufferAlignment() / sizeof(int32_t);
+  int32_t input1_data[2 * block_size] = {1, 1, 1, 1, 2, 2, 2, 2};
+  int32_t input2_data[4 * block_size] = {3, 3, 3, 3, 4, 4, 4, 4,
+                                         5, 5, 5, 5, 6, 6, 6, 6};
+  memcpy(input1->data.i32, input1_data, 2 * block_size * sizeof(int32_t));
+  memcpy(input2->data.i32, input2_data, 4 * block_size * sizeof(int32_t));
+  condition->data.b[0] = true;
+
+  interpreter.Invoke();
+  // Input1 and input2 are first concatenated, then cut to 3 blocks;
+  // the new tensor of size 3 is then concatenated with input2.
+  int32_t expect_output_data[8 * block_size] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3,
+                                                3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
+                                                5, 5, 6, 6, 6, 6, 0, 0, 0, 0};
+  for (int i = 0; i < 8 * block_size; i++) {
+    TF_LITE_MICRO_EXPECT_EQ(output->data.i32[i], expect_output_data[i]);
+  }
 }
 
 TF_LITE_MICRO_TESTS_END

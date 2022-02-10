@@ -51,6 +51,11 @@ class KernelRunner {
   // to stub out MicroGraph methods and track invocations on each subgraph.
   MockMicroGraph* GetMockGraph() { return &mock_micro_graph_; }
 
+  // Returns true if all temp buffer in tests are deallocated.
+  // TODO(b/209453859): move this function to private after deallocation checks
+  // are enabled for all kernel tests.
+  bool ValidateTempBufferDeallocated();
+
  private:
   static constexpr int kKernelRunnerBufferSize_ = 10000;
   static uint8_t kKernelRunnerBuffer_[kKernelRunnerBufferSize_];

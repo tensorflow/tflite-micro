@@ -740,6 +740,28 @@ TfLiteTensor* MicroAllocator::AllocatePersistentTfLiteTensor(
   return tensor;
 }
 
+void MicroAllocator::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
+  TFLITE_DCHECK(tensor != nullptr);
+
+  if (tensor->quantization.type == kTfLiteAffineQuantization) {
+    TFLITE_DCHECK(tensor->quantization.params != nullptr);
+    TfLiteAffineQuantization* quantization =
+        reinterpret_cast<TfLiteAffineQuantization*>(
+            tensor->quantization.params);
+
+    memory_allocator_->DeallocateTemp(
+        reinterpret_cast<uint8_t*>(quantization->zero_point));
+    memory_allocator_->DeallocateTemp(reinterpret_cast<uint8_t*>(quantization));
+  }
+
+  // Clear the data in case someone still access tensor arena by mistake
+  tensor->quantization.type = kTfLiteNoQuantization;
+  tensor->quantization.params = nullptr;
+  tensor->data.data = nullptr;
+  tensor->dims = nullptr;
+  memory_allocator_->DeallocateTemp(reinterpret_cast<uint8_t*>(tensor));
+}
+
 TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
     const Model* model, const SubgraphAllocations* subgraph_allocations,
     int tensor_index, int subgraph_index) {
@@ -782,6 +804,10 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
 
 void MicroAllocator::ResetTempAllocations() {
   memory_allocator_->ResetTempAllocations();
+}
+
+bool MicroAllocator::IsAllTempDeallocated() {
+  return memory_allocator_->IsAllTempDeallocated();
 }
 
 TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
@@ -923,6 +949,9 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
                                    allocation_info, allocation_info_count));
 
   // Reset all temp allocations used above:
+  memory_allocator_->DeallocateTemp(
+      reinterpret_cast<uint8_t*>(allocation_info));
+  memory_allocator_->DeallocateTemp(planner_arena);
   memory_allocator_->ResetTempAllocations();
 
   size_t actual_available_arena_size =

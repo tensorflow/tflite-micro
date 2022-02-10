@@ -110,7 +110,11 @@ ifneq ($(CO_PROCESSOR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(CO_PROCESSOR) | tr [a-z] [A-Z])
 endif
 
-CORE_OPTIMIZATION_LEVEL := -Os
+ifeq ($(TOOLCHAIN), armclang)
+  CORE_OPTIMIZATION_LEVEL := -Oz
+else
+  CORE_OPTIMIZATION_LEVEL := -Os
+endif
 KERNEL_OPTIMIZATION_LEVEL := -O2
 THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL := -O2
 
@@ -265,6 +269,7 @@ MICROLITE_BENCHMARK_SRCS := \
 $(wildcard tensorflow/lite/micro/benchmarks/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
+tensorflow/lite/micro/fake_micro_context_test.cc \
 tensorflow/lite/micro/flatbuffer_utils_test.cc \
 tensorflow/lite/micro/memory_arena_threshold_test.cc \
 tensorflow/lite/micro/memory_helpers_test.cc \
@@ -654,11 +659,11 @@ $(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 
 $(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 

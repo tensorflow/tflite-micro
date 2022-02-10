@@ -55,9 +55,27 @@ class MicroContext {
   // Virtual so that it can be faked for kernel tests.
   virtual void* GetScratchBuffer(int buffer_idx);
 
-  // Returns a TfLiteTensor struct for a given index.
+  // Returns a temporary TfLiteTensor struct for a given index.
   // Virtual so that it can be faked for kernel tests.
-  virtual TfLiteTensor* GetTensor(int tensor_idx);
+  virtual TfLiteTensor* AllocateTempTfLiteTensor(int tensor_idx);
+
+  // Returns a temporary TfLiteTensor struct for the specified input tensor of a
+  // given mode. This is the recommended API over the deprecated
+  // GetInput/GetInputSafe to get a temp input tensor. The returned tensor shall
+  // be freed via calling DeallocateTempTfLiteTensor.
+  virtual TfLiteTensor* AllocateTempInputTensor(const TfLiteNode* node,
+                                                int index);
+
+  // Returns a temporary TfLiteTensor struct for the specified output tensor of
+  // a given mode. This is the recommended API over the deprecated
+  // GetOutput/GetOutputSafe to get a temp output tensor. The returned tensor
+  // shall be freed via calling DeallocateTempTfLiteTensor.
+  virtual TfLiteTensor* AllocateTempOutputTensor(const TfLiteNode* node,
+                                                 int index);
+
+  // Deallocates a temp TfLiteTensor.
+  // Virtual so that it can be faked for kernel tests.
+  virtual void DeallocateTempTfLiteTensor(TfLiteTensor* tensor);
 
   // Returns a TfLiteEvalTensor struct for a given index.
   // Virtual so that it can be faked for kernel tests.
@@ -65,6 +83,7 @@ class MicroContext {
 
   // Does not take ownership of the pointer and the pointer must refer to valid
   // an object that outlive this class instance.
+  // This can only be called once to set one external context.
   TfLiteStatus set_external_context(void* external_context_payload);
 
   void* external_context() { return external_context_payload_; }
@@ -77,6 +96,10 @@ class MicroContext {
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
 
  private:
+  // Return the tensor index as tensor_indices[index]. tensor_indices is of
+  // max_size. Return -1 if index is not in the valid range of tensor_indices.
+  int GetTensorIndex(int index, int max_size, const int* tensor_indices);
+
   MicroAllocator& allocator_;
   MicroGraph& graph_;
   const Model* model_;
@@ -110,7 +133,7 @@ inline void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
 }
 inline TfLiteTensor* MicroContextGetTensor(const struct TfLiteContext* context,
                                            int tensor_idx) {
-  return GetMicroContext(context)->GetTensor(tensor_idx);
+  return GetMicroContext(context)->AllocateTempTfLiteTensor(tensor_idx);
 }
 inline TfLiteEvalTensor* MicroContextGetEvalTensor(
     const struct TfLiteContext* context, int tensor_idx) {

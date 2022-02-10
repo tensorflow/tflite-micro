@@ -65,6 +65,15 @@ class SimpleMemoryAllocator {
   // will fail with an error message.
   virtual uint8_t* AllocateTemp(size_t size, size_t alignment);
 
+  // Signals that a temporary buffer is no longer needed. This is currently for
+  // book-keeping purpose and the memory region are not immediately available
+  // for re-use. The deallocated memory region are only reclaimed after
+  // ResetTempAllocations is called as it is right now.
+  virtual void DeallocateTemp(uint8_t* buf);
+
+  // Returns true if all temporary buffers are already deallocated.
+  virtual bool IsAllTempDeallocated();
+
   // Resets a chain of temporary allocations back to the current head of the
   // arena (lowest address).
   virtual void ResetTempAllocations();
@@ -105,6 +114,17 @@ class SimpleMemoryAllocator {
   uint8_t* head_;
   uint8_t* tail_;
   uint8_t* temp_;
+
+  // The combination of the checksum of outstanding temporary buffer pointers
+  // AND the count of outstanding temporary buffer provide a low cost mechanism
+  // to audit temporary buffers' allocation and deallocation.
+  //
+  // XOR Check sum for outstanding temp buffers.
+  // If all temp buffers are deallocated OR no temp buffers are allocated,
+  // temp_buffer_ptr_check_sum_ == nullptr.
+  intptr_t temp_buffer_ptr_check_sum_ = 0;
+  // Count of outstanding temp buffers.
+  int temp_buffer_count_ = 0;
 };
 
 }  // namespace tflite
