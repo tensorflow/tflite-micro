@@ -1219,8 +1219,11 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
 
   // Make sure that the input is in uint8_t with at least 1 data entry.
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+
   if (input->type != kTfLiteInt8) return kTfLiteError;
   if (NumElements(input->dims) == 0) return kTfLiteError;
 
@@ -1233,6 +1236,7 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
       context->AllocatePersistentBuffer(context, sizeof(int)));
   *data->invoke_count = 0;
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 
@@ -1241,9 +1245,10 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
   *data->invoke_count += 1;
 
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
-  const uint8_t* input_data = GetTensorData<uint8_t>(input);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  const uint8_t* input_data = input->data.uint8;
   int size = NumElements(input->dims);
 
   uint8_t* sorting_buffer = reinterpret_cast<uint8_t*>(
@@ -1261,14 +1266,14 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
     }
   }
 
-  TfLiteTensor* median;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kMedianTensor, &median));
-  uint8_t* median_data = GetTensorData<uint8_t>(median);
-  TfLiteTensor* invoke_count;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kInvokeCount, &invoke_count));
-  int32_t* invoke_count_data = GetTensorData<int32_t>(invoke_count);
+  TfLiteEvalTensor* median =
+      tflite::micro::GetEvalOutput(context, node, kMedianTensor);
+  TF_LITE_ENSURE(context, median != nullptr);
+  uint8_t* median_data = median->data.uint8;
+  TfLiteEvalTensor* invoke_count =
+      tflite::micro::GetEvalOutput(context, node, kInvokeCount);
+  TF_LITE_ENSURE(context, invoke_count != nullptr);
+  int32_t* invoke_count_data = invoke_count->data.i32;
 
   median_data[0] = sorting_buffer[size / 2];
   invoke_count_data[0] = *data->invoke_count;
@@ -1355,18 +1360,20 @@ TfLiteStatus MultipleInputs::Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
   const int32_t* input_data = input->data.i32;
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &input1));
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, 1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
   const int32_t* input_data1 = input1->data.i32;
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 2, &input2));
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, 2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
   const int32_t* input_data2 = input2->data.i32;
 
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
   int32_t* output_data = output->data.i32;
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
