@@ -36,7 +36,7 @@ jobs:
           ec2_instance_type: t2.xlarge
           ec2_security_group_id: ${{ secrets.AWS_EC2_SECURITY_GROUP_ID }}
           iam_profile: ${{ secrets.AWS_IAM_PROFILE }}
-          ssh_key_name: tensorflow-pack
+          ssh_key_name: 'tensorflow-pack'
           subnet_id: ${{ secrets.AWS_SUBNET_ID }}
           terminate_ec2_instance: 'false'
           vht_ami_version: '1.1.0'
