@@ -71,6 +71,7 @@ typedef enum {
   kTfLiteActTanh,
   kTfLiteActSignBit,
   kTfLiteActSigmoid,
+  kTfLiteActRelu0To1,  // min(max(0, x), 1)
 } TfLiteFusedActivation;
 
 typedef struct {
