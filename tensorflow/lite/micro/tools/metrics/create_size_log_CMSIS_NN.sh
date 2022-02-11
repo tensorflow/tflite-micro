@@ -15,7 +15,7 @@
 # ==============================================================================
 #
 # Measures the size of specified binaries and append the report to a log.
-
+set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -eq 0 ]
@@ -25,7 +25,7 @@ else
   SAVE_TO_DIR=${1}
 fi
 
-ROOT_DIR=${SCRIPT_DIR}/../../
+ROOT_DIR=${SCRIPT_DIR}/../../../../..
 GIT_DIR=${ROOT_DIR}/../cmsis
 cd "${ROOT_DIR}"
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
@@ -45,7 +45,7 @@ do
     # Clean the own build and download third party
     readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean clean_downloads
     readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
-    python3 ci/metrics/create_size_log_CMSIS_NN.py \
+    python3 tensorflow/lite/micro/tools/metrics/create_size_log_CMSIS_NN.py \
         --make_flags=-j4 \
         --target=$TARGET \
         --target_arch=$TARGET_ARCH \
@@ -54,7 +54,6 @@ do
         --optimized_kernel_dir=$OKD \
         --cmsis_path=../cmsis \
         --binary_list=$BINARY_LIST \
-        --relative_root_dir=../../ \
         --save_top_path=$SAVE_TO_DIR \
         --git_dir=${GIT_DIR}
     LOG_GENERATION_STATUS=$?
