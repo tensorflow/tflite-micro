@@ -163,8 +163,6 @@ endif
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
-  -DETHOSU_ARCH=u55 \
-  -DETHOSU55 \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
   -funsigned-char \
