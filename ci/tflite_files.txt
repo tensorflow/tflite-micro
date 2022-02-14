@@ -60,6 +60,7 @@ tensorflow/lite/kernels/internal/reference/neg.h
 tensorflow/lite/kernels/internal/reference/pad.h
 tensorflow/lite/kernels/internal/reference/pooling.h
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc
+tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils_impl.h
 tensorflow/lite/kernels/internal/reference/prelu.h
 tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h
@@ -85,6 +86,7 @@ tensorflow/lite/kernels/internal/min.h
 tensorflow/lite/kernels/internal/portable_tensor.h
 tensorflow/lite/kernels/internal/strided_slice_logic.h
 tensorflow/lite/kernels/internal/tensor_ctypes.h
+tensorflow/lite/kernels/internal/tensor_utils_common.h
 tensorflow/lite/kernels/internal/types.h
 tensorflow/lite/kernels/kernel_util.h
 tensorflow/lite/kernels/padding.h
