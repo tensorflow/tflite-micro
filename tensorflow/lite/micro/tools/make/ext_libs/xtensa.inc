@@ -93,3 +93,15 @@ else ifeq ($(TARGET_ARCH), vision_p6)
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
 endif
+
+FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
+
+INCLUDES += -I$(FFT_PATH)/
+
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal))
+THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
+
+THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
+endif
