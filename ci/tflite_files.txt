@@ -1,3 +1,5 @@
+tensorflow/lite/builtin_op_data.h
+tensorflow/lite/builtin_ops.h
 tensorflow/lite/context_util.h
 tensorflow/lite/c/common.cc
 tensorflow/lite/core/api/error_reporter.cc
