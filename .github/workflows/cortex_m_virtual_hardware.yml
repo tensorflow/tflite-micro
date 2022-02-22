@@ -21,7 +21,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
+  
     name: Cortex-M Generic
     steps:
       - uses: actions/checkout@v2
@@ -31,8 +31,15 @@ jobs:
         uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_g
-          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_1 }}
+          ec2_instance_id: ''
           s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+          ec2_instance_type: t2.xlarge
+          ec2_security_group_id: ${{ secrets.AWS_EC2_SECURITY_GROUP_ID }}
+          iam_profile: ${{ secrets.AWS_IAM_PROFILE }}
+          ssh_key_name: 'tensorflow-pack'
+          subnet_id: ${{ secrets.AWS_SUBNET_ID }}
+          terminate_ec2_instance: 'true'
+          vht_ami_version: '1.1.0'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
@@ -40,8 +47,6 @@ jobs:
       - name: Fetch results from VHT
         run: |
           tar xvzf out.tar
-          cat ./home/ubuntu/vhtwork/out/cortex_m_generic.log
-
   cortex_m_corstone_300:
     runs-on: ubuntu-latest
 
@@ -57,9 +62,16 @@ jobs:
         uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_corstone300
-          ec2_instance_id: ${{ secrets.AWS_INSTANCE_ID_2 }}
-          s3_bucket_name: ${{ secrets.S3_BUCKET_2 }}
-        env: 
+          ec2_instance_id: ''
+          s3_bucket_name: ${{ secrets.S3_BUCKET_1 }}
+          ec2_instance_type: t2.xlarge
+          ec2_security_group_id: ${{ secrets.AWS_EC2_SECURITY_GROUP_ID }}
+          iam_profile: ${{ secrets.AWS_IAM_PROFILE }}
+          ssh_key_name: 'tensorflow-pack'
+          subnet_id: ${{ secrets.AWS_SUBNET_ID }}
+          terminate_ec2_instance: 'true'
+          vht_ami_version: '1.1.0'
+        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

@@ -8,7 +8,7 @@ suite:
 
   builds:
    - "cortex_m_generic":
-      shell: "tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./out/cortex_m_generic.log"
+      shell: "tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh"
       pre: ""
       post: ""
   tests:
