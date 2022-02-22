@@ -14,8 +14,8 @@ cc_binary(
         "tflite_flatbuffer_align.cc",
     ],
     deps = [
-      "@flatbuffers//:flatbuffers",
         "//tensorflow/lite/schema:schema_fbs",
+      "@flatbuffers",
     ],
 )
 
