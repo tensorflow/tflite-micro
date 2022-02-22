@@ -18,4 +18,3 @@ cc_binary(
         "@flatbuffers",
     ],
 )
-
