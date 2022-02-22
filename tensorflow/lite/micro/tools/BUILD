@@ -15,7 +15,7 @@ cc_binary(
     ],
     deps = [
         "//tensorflow/lite/schema:schema_fbs",
-      "@flatbuffers",
+        "@flatbuffers",
     ],
 )
 
