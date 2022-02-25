@@ -30,7 +30,7 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downl
 
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=xtensa \
-  TARGET_ARCH=visionp_6 \
+  TARGET_ARCH=vision_p6 \
   OPTIMIZED_KERNEL_DIR=xtensa \
   XTENSA_CORE=P6_200528 \
   build -j$(nproc)
