@@ -89,8 +89,8 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi4/include/
 
-else ifeq ($(TARGET_ARCH), visionp6)
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads visionp6)
+else ifeq ($(TARGET_ARCH), vision_p6)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads vision_p6)
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
   endif
