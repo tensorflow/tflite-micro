@@ -26,6 +26,6 @@ limitations under the License.
 #if defined(VISION_P6)
 #include "utils.h"
 #include "vision_api.h"
-#endif // VISION_P6
+#endif  // VISION_P6
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
