@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#if defined(VISIONP6)
+#if defined(VISION_P6)
 
 #include <cstdint>
 
@@ -151,4 +151,4 @@ TfLiteStatus ConvEvalVision(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 }  // namespace tflite
-#endif  // defined(VISIONP6)
+#endif  // defined(VISION_P6)
