@@ -19,9 +19,11 @@ limitations under the License.
 #include <cstdint>
 #include <new>
 
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
@@ -134,10 +136,16 @@ bool SimpleMemoryAllocator::IsAllTempDeallocated() {
   return true;
 }
 
-void SimpleMemoryAllocator::ResetTempAllocations() {
+TfLiteStatus SimpleMemoryAllocator::ResetTempAllocations() {
   // TODO(b/209453859): enable error check based on IsAllTempDeallocated after
   // all AllocateTemp have been paird with DeallocateTemp
+  if (!IsAllTempDeallocated()) {
+    MicroPrintf(
+        "All temp buffers must be freed before calling ResetTempAllocations()");
+    return kTfLiteError;
+  }
   temp_ = head_;
+  return kTfLiteOk;
 }
 
 uint8_t* SimpleMemoryAllocator::GetHeadBuffer() const { return buffer_head_; }

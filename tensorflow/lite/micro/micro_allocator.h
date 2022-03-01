@@ -190,7 +190,7 @@ class MicroAllocator {
   // Resets all temporary allocations. This method should be called after a
   // chain of temp allocations (e.g. chain of TfLiteTensor objects via
   // AllocateTfLiteTensor()).
-  virtual void ResetTempAllocations();
+  virtual TfLiteStatus ResetTempAllocations();
 
   // Returns true if all temporary buffers including temp TfLiteTensor are
   // already deallocated.
