@@ -54,6 +54,10 @@ elif [[ ${2} == "hifi5" ]]; then
   LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_06_30.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
   LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
+elif [[ ${2} == "vision_p6" ]]; then
+  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_annlib_vision_p6_22_02_24.zip"
+  LIBRARY_DIRNAME="xi_annlib_vision_p6"
+  LIBRARY_MD5="f24ab989b14a2a37648e79c7ad09272a"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1
@@ -81,9 +85,10 @@ else
 
   pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
   chmod -R +w ./
-  create_git_repo ./
-  apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+  if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
+    create_git_repo ./
+    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+  fi
 fi
-
 
 echo "SUCCESS"
