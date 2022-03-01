@@ -19,12 +19,15 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/core/api/op_resolver.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/schema/schema_utils.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
@@ -33,8 +36,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/simple_memory_allocator.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 
@@ -647,7 +648,7 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
 TfLiteStatus MicroAllocator::FinishPrepareNodeAllocations(int node_id) {
   // When a node has finished preparing, all temp allocations performed by the
   // kernel should be cleaned up:
-  ResetTempAllocations();
+  TF_LITE_ENSURE_STATUS(ResetTempAllocations());
 
   // Find and update any new scratch buffer requests for the current node:
   internal::ScratchBufferRequest* requests = GetScratchBufferRequests();
@@ -802,8 +803,8 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
   return tensor;
 }
 
-void MicroAllocator::ResetTempAllocations() {
-  memory_allocator_->ResetTempAllocations();
+TfLiteStatus MicroAllocator::ResetTempAllocations() {
+  return memory_allocator_->ResetTempAllocations();
 }
 
 bool MicroAllocator::IsAllTempDeallocated() {
@@ -952,7 +953,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   memory_allocator_->DeallocateTemp(
       reinterpret_cast<uint8_t*>(allocation_info));
   memory_allocator_->DeallocateTemp(planner_arena);
-  memory_allocator_->ResetTempAllocations();
+  TF_LITE_ENSURE_STATUS(memory_allocator_->ResetTempAllocations());
 
   size_t actual_available_arena_size =
       memory_allocator_->GetAvailableMemory(MicroArenaBufferAlignment());
