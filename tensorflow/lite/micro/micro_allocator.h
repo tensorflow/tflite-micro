@@ -61,6 +61,7 @@ typedef struct {
   // determine the lifetime of the buffer. In AllocationInfo, this buffer will
   // have `before` = node_idx and `after` = node_idx.
   int node_idx;
+  int subgraph_idx;
 } ScratchBufferRequest;
 
 }  // namespace internal
@@ -266,8 +267,8 @@ class MicroAllocator {
   // ScratchBufferHandle structs that will point to allocated buffers also in
   // the head section.
   virtual TfLiteStatus CommitStaticMemoryPlan(
-      const Model* model, TfLiteEvalTensor* eval_tensors,
-      ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx);
+      const Model* model, SubgraphAllocations* allocations,
+      ScratchBufferHandle* scratch_buffer_handles);
 
   // Allocates an array of ScratchBufferHandle structs in the tail section for a
   // given number of handles.
