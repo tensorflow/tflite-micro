@@ -34,16 +34,26 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context,
-                                           sizeof(XtensaDepthwiseConvOpData));
+  void* data = context->AllocatePersistentBuffer(
+      context, sizeof(XtensaDepthwiseConvOpData));
+#if defined(VISION_P6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif  // defined(VISION_P6)
+  return data;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
 
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-  TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
-#endif  // defined(FUISON_F1) || defined(HIFI5)
+  TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareXtensa(context, node));
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) 
+
+#if defined(VISION_P6)
+  TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareVision(context, node));
+#endif  // VISION_P6
   return kTfLiteOk;
 }
 
@@ -69,10 +79,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteInt8: {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      DepthwiseConvEvalHifi(context, node, params, op_data, input, filter, bias,
-                            output);
+      return DepthwiseConvEvalXtensa(context, node, params, op_data, input,
+                                     filter, bias, output);
+#elif defined(VISION_P6)
+      return DepthwiseConvEvalVision(context, node, params, op_data, input,
+        filter, bias, output);
 #else
-      reference_integer_ops::DepthwiseConvPerChannel(
+      return reference_integer_ops::DepthwiseConvPerChannel(
           DepthwiseConvParamsQuantized(params, op_data.reference_op_data),
           op_data.reference_op_data.per_channel_output_multiplier,
           op_data.reference_op_data.per_channel_output_shift,
