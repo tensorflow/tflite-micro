@@ -6,7 +6,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
-  tensorflow/lite/micro/kernels/xtensa/conv_vision.cc
+  tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
@@ -101,7 +102,8 @@ else ifeq ($(TARGET_ARCH), vision_p6)
 
   PLATFORM_FLAGS = \
     -DXI_ERROR_LEVEL=XI_ERROR_LEVEL_NO_ERROR \
-	-DCNNRT_PERF_LEVEL=CNNRT_PERF_LEVEL_NONE \
+	  -DCNNRT_PERF_LEVEL=CNNRT_PERF_LEVEL_NONE \
+	  -DINCLUDE_XI_CNN \
     -Wno-shadow
 
   CCFLAGS += $(PLATFORM_FLAGS)
