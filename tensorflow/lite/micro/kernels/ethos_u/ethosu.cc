@@ -54,9 +54,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context, num_base_addr * sizeof(size_t), &data->base_addr_size_idx));
 
   // Get command stream data size
-  TfLiteTensor* tensor = context->GetTensor(context, node->inputs->data[0]);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* tensor = micro_context->AllocateTempInputTensor(node, 0);
   data->cms_data_size = tensor->bytes;
-
+  micro_context->DeallocateTempTfLiteTensor(tensor);
   return kTfLiteOk;
 }
 
