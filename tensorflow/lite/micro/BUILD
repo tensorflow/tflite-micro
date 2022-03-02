@@ -125,10 +125,12 @@ cc_library(
 cc_library(
     name = "micro_allocator",
     srcs = [
+        "micro_allocation_info.cc",
         "micro_allocator.cc",
         "simple_memory_allocator.cc",
     ],
     hdrs = [
+        "micro_allocation_info.h",
         "micro_allocator.h",
         "simple_memory_allocator.h",
     ],
@@ -479,6 +481,18 @@ cc_test(
         "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "micro_allocation_info_test",
+    srcs = [
+        "micro_allocation_info_test.cc",
+    ],
+    deps = [
+        ":micro_allocator",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 

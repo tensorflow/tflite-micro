@@ -25,7 +25,11 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
+#if defined(XTENSA) && defined(VISION_P6)
+constexpr int tensor_arena_size = 352 * 1024;
+#else
 constexpr int tensor_arena_size = 136 * 1024;
+#endif  // defined(XTENSA) && defined(VISION_P6)
 uint8_t tensor_arena[tensor_arena_size];
 
 TF_LITE_MICRO_TESTS_BEGIN

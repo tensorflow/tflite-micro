@@ -61,6 +61,7 @@ typedef struct {
   // determine the lifetime of the buffer. In AllocationInfo, this buffer will
   // have `before` = node_idx and `after` = node_idx.
   int node_idx;
+  int subgraph_idx;
 } ScratchBufferRequest;
 
 }  // namespace internal
@@ -190,7 +191,7 @@ class MicroAllocator {
   // Resets all temporary allocations. This method should be called after a
   // chain of temp allocations (e.g. chain of TfLiteTensor objects via
   // AllocateTfLiteTensor()).
-  virtual void ResetTempAllocations();
+  virtual TfLiteStatus ResetTempAllocations();
 
   // Returns true if all temporary buffers including temp TfLiteTensor are
   // already deallocated.
@@ -266,8 +267,8 @@ class MicroAllocator {
   // ScratchBufferHandle structs that will point to allocated buffers also in
   // the head section.
   virtual TfLiteStatus CommitStaticMemoryPlan(
-      const Model* model, TfLiteEvalTensor* eval_tensors,
-      ScratchBufferHandle* scratch_buffer_handles, int subgraph_idx);
+      const Model* model, SubgraphAllocations* allocations,
+      ScratchBufferHandle* scratch_buffer_handles);
 
   // Allocates an array of ScratchBufferHandle structs in the tail section for a
   // given number of handles.

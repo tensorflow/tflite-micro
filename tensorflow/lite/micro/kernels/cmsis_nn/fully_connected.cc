@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,11 @@ namespace {
 
 struct OpData {
   OpDataFullyConnected reference_op_data;
+
+  // Conv 1x1 that may be invoked in some cases currently need per channel
+  // quantization.
+  int32_t* per_channel_output_multiplier;
+  int32_t* per_channel_output_shift;
 
   // Index to buffer for optimizations if applicable.
   int buffer_idx;
@@ -78,19 +83,43 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       &(data->reference_op_data)));
 
   if (input->type == kTfLiteInt8) {
-    RuntimeShape filter_shape = GetTensorShape(filter);
-    RuntimeShape output_shape = GetTensorShape(output);
-
-    TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 2);
+    const RuntimeShape input_shape = GetTensorShape(input);
+    const RuntimeShape filter_shape = GetTensorShape(filter);
+    const RuntimeShape output_shape = GetTensorShape(output);
     const int filter_dim_count = filter_shape.DimensionsCount();
-    cmsis_nn_dims filter_dims;
-    filter_dims.n = filter_shape.Dims(filter_dim_count - 1);
-    filter_dims.h = 1;
-    filter_dims.w = 1;
-    filter_dims.c = output_shape.Dims(1);
+    const int output_dim_count = output_shape.DimensionsCount();
+    const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
+    TFLITE_DCHECK_GE(output_dim_count, 2);
+    TFLITE_DCHECK_LE(output_dim_count, 4);
 
-    const int32_t buf_size =
-        arm_fully_connected_s8_get_buffer_size(&filter_dims);
+    int32_t buf_size = 0;
+    if (output_dim_count > 2 && accum_depth % 4 == 0) {
+      const int batches = FlatSizeSkipDim(output_shape, output_dim_count - 1);
+      const int output_depth = output_shape.Dims(output_dim_count - 1);
+
+      data->per_channel_output_multiplier =
+          static_cast<int32_t*>(context->AllocatePersistentBuffer(
+              context, output_depth * sizeof(int32_t)));
+      data->per_channel_output_shift =
+          static_cast<int32_t*>(context->AllocatePersistentBuffer(
+              context, output_depth * sizeof(int32_t)));
+
+      cmsis_nn_dims input_dims;
+      input_dims.n = batches;
+      input_dims.h = 1;
+      input_dims.w = 1;
+      input_dims.c = accum_depth;
+
+      buf_size = arm_convolve_1x1_s8_fast_get_buffer_size(&input_dims);
+    } else {
+      cmsis_nn_dims filter_dims;
+      filter_dims.n = filter_shape.Dims(filter_dim_count - 1);
+      filter_dims.h = 1;
+      filter_dims.w = 1;
+      filter_dims.c = output_shape.Dims(output_dim_count - 1);
+
+      buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
+    }
 
     if (buf_size > 0) {
       TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
@@ -117,20 +146,15 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output) {
   const RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
-  TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 2);
-  const int batches = output_shape.Dims(0);
-  const int output_depth = output_shape.Dims(1);
+  const RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
+  const int output_dim_count = output_shape.DimensionsCount();
+  TFLITE_DCHECK_GE(output_dim_count, 2);
+  TFLITE_DCHECK_LE(output_dim_count, 4);
+  const int output_depth = output_shape.Dims(output_dim_count - 1);
   const RuntimeShape filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();
   const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
-  const RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
-
-  cmsis_nn_fc_params fc_params;
-  fc_params.input_offset = -data.reference_op_data.input_zero_point;
-  fc_params.output_offset = data.reference_op_data.output_zero_point;
-  fc_params.filter_offset = -data.reference_op_data.filter_zero_point;
-  fc_params.activation.min = data.reference_op_data.output_activation_min;
-  fc_params.activation.max = data.reference_op_data.output_activation_max;
+  const int batches = FlatSizeSkipDim(output_shape, output_dim_count - 1);
 
   cmsis_nn_per_tensor_quant_params quant_params;
   quant_params.multiplier = data.reference_op_data.output_multiplier;
@@ -171,15 +195,55 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   const int32_t* bias_data =
       nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
 
-  TF_LITE_ENSURE_EQ(
-      context,
-      arm_fully_connected_s8(
-          &ctx, &fc_params, &quant_params, &input_dims,
-          tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
-          tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
-          &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
-      ARM_MATH_SUCCESS);
+  if (output_dim_count > 2 && accum_depth % 4 == 0) {
+    cmsis_nn_conv_params conv_params;
+    conv_params.dilation.h = 1;
+    conv_params.dilation.w = 1;
+    conv_params.input_offset = -data.reference_op_data.input_zero_point;
+    conv_params.output_offset = data.reference_op_data.output_zero_point;
+    conv_params.stride.h = 1;
+    conv_params.stride.w = 1;
+    conv_params.padding.h = 0;
+    conv_params.padding.w = 0;
+    conv_params.activation.min = data.reference_op_data.output_activation_min;
+    conv_params.activation.max = data.reference_op_data.output_activation_max;
 
+    cmsis_nn_per_channel_quant_params per_channel_quant_params;
+    per_channel_quant_params.multiplier =
+        const_cast<int32_t*>(data.per_channel_output_multiplier);
+    per_channel_quant_params.shift =
+        const_cast<int32_t*>(data.per_channel_output_shift);
+
+    for (int i = 0; i < output_depth; i++) {
+      per_channel_quant_params.multiplier[i] = quant_params.multiplier;
+      per_channel_quant_params.shift[i] = quant_params.shift;
+    }
+
+    TF_LITE_ENSURE_EQ(
+        context,
+        arm_convolve_1x1_s8_fast(
+            &ctx, &conv_params, &per_channel_quant_params, &input_dims,
+            tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
+            tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
+            &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
+        ARM_MATH_SUCCESS);
+  } else {
+    cmsis_nn_fc_params fc_params;
+    fc_params.input_offset = -data.reference_op_data.input_zero_point;
+    fc_params.output_offset = data.reference_op_data.output_zero_point;
+    fc_params.filter_offset = 0;
+    fc_params.activation.min = data.reference_op_data.output_activation_min;
+    fc_params.activation.max = data.reference_op_data.output_activation_max;
+
+    TF_LITE_ENSURE_EQ(
+        context,
+        arm_fully_connected_s8(
+            &ctx, &fc_params, &quant_params, &input_dims,
+            tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
+            tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
+            &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
+        ARM_MATH_SUCCESS);
+  }
   return kTfLiteOk;
 }
 

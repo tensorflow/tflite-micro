@@ -76,7 +76,7 @@ class SimpleMemoryAllocator {
 
   // Resets a chain of temporary allocations back to the current head of the
   // arena (lowest address).
-  virtual void ResetTempAllocations();
+  virtual TfLiteStatus ResetTempAllocations();
 
   // Returns a pointer to the buffer currently assigned to the head section.
   // This buffer is set by calling SetHeadSize().

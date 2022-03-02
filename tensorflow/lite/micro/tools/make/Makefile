@@ -274,6 +274,7 @@ tensorflow/lite/micro/flatbuffer_utils_test.cc \
 tensorflow/lite/micro/memory_arena_threshold_test.cc \
 tensorflow/lite/micro/memory_helpers_test.cc \
 tensorflow/lite/micro/micro_allocator_test.cc \
+tensorflow/lite/micro/micro_allocation_info_test.cc \
 tensorflow/lite/micro/micro_context_test.cc \
 tensorflow/lite/micro/micro_error_reporter_test.cc \
 tensorflow/lite/micro/micro_interpreter_test.cc \
@@ -668,10 +669,10 @@ $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 microlite: $(MICROLITE_LIB_PATH)
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
-$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
+$(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
 	@mkdir -p $(dir $@)
 	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
-	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS)
+	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
 
 $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	@mkdir -p $(dir $@)
