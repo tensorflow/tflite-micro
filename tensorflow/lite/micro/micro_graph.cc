@@ -209,6 +209,7 @@ TfLiteStatus MicroGraph::ResetVariableTensors() {
       }
     }
   }
+  resource_variables_->ResetAll();
 
   return kTfLiteOk;
 }
