@@ -209,7 +209,9 @@ TfLiteStatus MicroGraph::ResetVariableTensors() {
       }
     }
   }
-  resource_variables_->ResetAll();
+  if (resource_variables_ != nullptr) {
+    resource_variables_->ResetAll();
+  }
 
   return kTfLiteOk;
 }
