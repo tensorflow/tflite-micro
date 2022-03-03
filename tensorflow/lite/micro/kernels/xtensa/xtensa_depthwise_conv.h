@@ -69,7 +69,6 @@ TfLiteStatus DepthwiseConvEvalVision(TfLiteContext* context, TfLiteNode* node,
 
 #endif  // VISION_P6
 
-
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DEPTHWISE_CONV_H_
