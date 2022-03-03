@@ -117,7 +117,7 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   INCLUDES += \
     -I$(NNLIB_PATH)/ \
     -I$(NNLIB_PATH)/include/ 
-	
+
   LDFLAGS += -lidma-xtos
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
