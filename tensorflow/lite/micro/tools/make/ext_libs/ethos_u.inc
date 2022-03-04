@@ -55,10 +55,8 @@ THIRD_PARTY_CC_HDRS += $(CMSIS_PATH)/CMSIS/Core/Include/cmsis_compiler.h
 
 INCLUDES += -I$(ETHOSU_DRIVER_PATH)/include \
             -I$(CMSIS_PATH)/CMSIS/Core/Include
-GENERATED_PROJECT_INCLUDES += -I./$(ETHOSU_DRIVER_PATH)/include
 
-ETHOSU_LOG_SEVERITY := ETHOSU_LOG_WARN
-CCFLAGS += -DETHOSU_LOG_SEVERITY=$(ETHOSU_LOG_SEVERITY)
+ETHOSU_FLAGS := -DETHOSU_LOG_SEVERITY=ETHOSU_LOG_WARN
 
 # TODO(#47718): resolve warnings.
 CCFLAGS += \
@@ -66,15 +64,18 @@ CCFLAGS += \
   -Wno-format
 
 ifeq ($(ETHOSU_ARCH), u55)
-  CCFLAGS += \
+  ETHOSU_FLAGS += \
     -DETHOSU_ARCH=u55 \
     -DETHOSU55
-  CXXFLAGS += \
-    -DETHOSU_ARCH=u55 \
-    -DETHOSU55
+else ifeq ($(ETHOSU_ARCH), u65)
+  ETHOSU_FLAGS += \
+    -DETHOSU_ARCH=u65 \
+    -DETHOSU65
 else
   $(error "ETHOSU_ARCH=$(ETHOSU_ARCH) is not supported")
 endif
+CCFLAGS += ${ETHOSU_FLAGS}
+CXXFLAGS += ${ETHOSU_FLAGS}
 
 ifeq ($(TOOLCHAIN), gcc)
   CCFLAGS += \
