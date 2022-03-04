@@ -9,6 +9,7 @@ py_binary(
     srcs = [
         "generate_per_layer_tests.py",
     ],
+    visibility = ["//:__subpackages__"],
     data = [
         "templates/BUILD.mako",
         "templates/integration_tests_cc.mako",

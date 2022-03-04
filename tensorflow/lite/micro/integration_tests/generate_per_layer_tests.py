@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -238,30 +238,32 @@ class TestDataGenerator:
         interpreter.set_tensor(input_tensor_idx, generated_inputs[idx])
       interpreter.invoke()
 
-      for input_idx, input_tensor_data in enumerate(generated_inputs):
-        input_type = self.GetTypeStringFromTensor(input_tensor_data)
-        self.input_types[input_idx] = input_type
-        input_flat = input_tensor_data.flatten().tolist()
-        csv_input_filename = \
-            f"{model_path.split('.')[0]}_input{input_idx}_{input_type}.csv"
-        input_csvfile = open(csv_input_filename, 'w', newline='')
-        input_csvwriter = csv.writer(input_csvfile)
-        input_csvwriter.writerow(input_flat)
-        self.csv_filenames.append(csv_input_filename)
+      self.write_golden(generated_inputs, model_path, output_tensor)
 
-      output_flat = output_tensor().flatten().tolist()
+  def write_golden(self, generated_inputs, model_path, output_tensor):
+    for input_idx, input_tensor_data in enumerate(generated_inputs):
+      input_type = self.GetTypeStringFromTensor(input_tensor_data)
+      self.input_types[input_idx] = input_type
+      input_flat = input_tensor_data.flatten().tolist()
+      csv_input_filename = \
+          f"{model_path.split('.')[0]}_input{input_idx}_{input_type}.csv"
+      input_csvfile = open(csv_input_filename, 'w', newline='')
+      input_csvwriter = csv.writer(input_csvfile)
+      input_csvwriter.writerow(input_flat)
+      self.csv_filenames.append(csv_input_filename)
 
-      # Write inputs and goldens to CSV file.
-      output_type = self.GetTypeStringFromTensor(output_tensor())
-      self.output_type = output_type
-      csv_golden_filename = f"{model_path.split('.')[0]}_golden_{output_type}.csv"
-      golden_csvfile = open(csv_golden_filename, 'w', newline='')
-      golden_csvwriter = csv.writer(golden_csvfile)
-      np.set_printoptions(threshold=np.inf)
-      golden_csvwriter.writerow(output_flat)
-      self.csv_filenames.append(csv_golden_filename)
+    output_flat = output_tensor().flatten().tolist()
 
-  def generate_build_file(self):
+    # Write inputs and goldens to CSV file.
+    output_type = self.GetTypeStringFromTensor(output_tensor())
+    self.output_type = output_type
+    csv_golden_filename = f"{model_path.split('.')[0]}_golden_{output_type}.csv"
+    golden_csvfile = open(csv_golden_filename, 'w', newline='')
+    golden_csvwriter = csv.writer(golden_csvfile)
+    np.set_printoptions(threshold=np.inf)
+    golden_csvwriter.writerow(output_flat)
+    self.csv_filenames.append(csv_golden_filename)
+
     # Collect all target names into a list
     targets = []
     for model_path in self.model_paths:
@@ -302,11 +304,12 @@ class TestDataGenerator:
       }
       file_obj.write(build_template.render(**key_values_in_template))
 
-  def generate_makefile(self):
+  def generate_makefile(self, test_file='integration_tests.cc', src_prefix=None):
     makefile = open(self.output_dir + '/Makefile.inc', 'w')
     output_dir_list = self.output_dir.split('/')
-    src_prefix = output_dir_list[-3] + '_' + output_dir_list[
-        -2] + '_' + output_dir_list[-1]
+    if src_prefix is None:
+      src_prefix = output_dir_list[-3] + '_' + output_dir_list[
+          -2] + '_' + output_dir_list[-1]
     makefile.write(src_prefix + '_GENERATOR_INPUTS := \\\n')
     for model_path in self.model_paths:
       makefile.write(
@@ -316,9 +319,8 @@ class TestDataGenerator:
           csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
-    makefile.write(
-        self.output_dir.split('third_party/tflite_micro/')[-1] +
-        '/integration_tests.cc')
+    makefile.write(self.output_dir.split('third_party/tflite_micro/')[-1] +
+                   '/' + test_file)
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
     makefile.write('$(' + src_prefix + '_SRCS),,$(' + src_prefix +
