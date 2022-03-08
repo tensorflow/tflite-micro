@@ -24,10 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace builtin {
-namespace broadcastto {
-
+namespace {
 constexpr int kInputTensor = 0;
 constexpr int kShapeTensor = 1;
 constexpr int kOutputTensor = 0;
@@ -44,7 +41,7 @@ struct BroadcastToContext {
   TfLiteTensor* output;
 };
 
-TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
+TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
                                 BroadcastToContext* op_context) {
   // Ensures the shape is 1D tensor.
   TF_LITE_ENSURE_EQ(context, NumDimensions(op_context->shape), 1);
@@ -82,8 +79,7 @@ TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
     output_shape->data[idx] = get_shape_data(idx);
   }
 
-  return context->ResizeTensor(context, op_context->output,
-                               scoped_output_shape.release());
+  return kTfLiteOk;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -101,19 +97,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Not yet support string type due to the use of memcopy with fixed size.
   TF_LITE_ENSURE(context, op_context.input->type != kTfLiteString);
 
-  if (IsConstantTensor(op_context.shape)) {
-    return ResizeOutputTensor(context, &op_context);
-  }
-
-  SetTensorToDynamic(op_context.output);
-  return kTfLiteOk;
+  return ValidateOutputTensor(context, &op_context);
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   BroadcastToContext op_context(context, node);
-  if (IsDynamicTensor(op_context.output)) {
-    TF_LITE_ENSURE_OK(context, ResizeOutputTensor(context, &op_context));
-  }
 
   // BroadcastTo op support upto 8 dims, matching the support of Tensorflow.
   reference_ops::BroadcastTo<kMaxDims>(
@@ -123,14 +111,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace broadcastto
+}  // namespace
 
 TfLiteRegistration* Register_BROADCAST_TO() {
-  static TfLiteRegistration r = {nullptr, nullptr, broadcastto::Prepare,
-                                 broadcastto::Eval};
+  static TfLiteRegistration r = {nullptr, nullptr, Prepare,
+                                 Eval};
   return &r;
 }
 
-}  // namespace builtin
-}  // namespace ops
 }  // namespace tflite
