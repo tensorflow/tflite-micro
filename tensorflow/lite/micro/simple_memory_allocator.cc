@@ -63,13 +63,37 @@ SimpleMemoryAllocator* SimpleMemoryAllocator::Create(
 
 SimpleMemoryAllocator::~SimpleMemoryAllocator() {}
 
-TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
-                                                      size_t alignment) {
-  if (head_ != temp_) {
+uint8_t* SimpleMemoryAllocator::AllocateResizableBuffer(size_t size,
+                                                        size_t alignment) {
+  // Only supports one resizable buffer, which starts at the buffer head.
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  if (ResizeBuffer(expect_resizable_buf, size, alignment) == kTfLiteOk) {
+    return expect_resizable_buf;
+  }
+  return nullptr;
+}
+
+TfLiteStatus SimpleMemoryAllocator::DeallocateResizableBuffer(
+    uint8_t* resizable_buf) {
+  return ResizeBuffer(resizable_buf, 0, 1);
+}
+
+TfLiteStatus SimpleMemoryAllocator::ReserveNonPersistentOverlayMemory(
+    size_t size, size_t alignment) {
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  return ResizeBuffer(expect_resizable_buf, size, alignment);
+}
+
+TfLiteStatus SimpleMemoryAllocator::ResizeBuffer(uint8_t* resizable_buf,
+                                                 size_t size,
+                                                 size_t alignment) {
+  // Only supports one resizable buffer, which starts at the buffer head.
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  if (head_ != temp_ || resizable_buf != expect_resizable_buf) {
     TF_LITE_REPORT_ERROR(
         error_reporter_,
-        "Internal error: SetHeadBufferSize() needs to be called "
-        "after ResetTempAllocations().");
+        "Internal error: either buffer is not resizable or "
+        "ResetTempAllocations() is not called before ResizeBuffer().");
     return kTfLiteError;
   }
 
@@ -78,7 +102,7 @@ TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
   if (available_memory < size) {
     TF_LITE_REPORT_ERROR(
         error_reporter_,
-        "Failed to set head size. Requested: %u, available %u, missing: %u",
+        "Failed to resize buffer. Requested: %u, available %u, missing: %u",
         size, available_memory, size - available_memory);
     return kTfLiteError;
   }
