@@ -43,13 +43,26 @@ class SimpleMemoryAllocator {
                                        uint8_t* buffer_head,
                                        size_t buffer_size);
 
-  // Adjusts the head (lowest address and moving upwards) memory allocation to a
-  // given size. Calls to this method will also invalidate all temporary
-  // allocation values (it sets the location of temp space at the end of the
-  // head section). This call will fail if a chain of allocations through
-  // AllocateTemp() have not been cleaned up with a call to
-  // ResetTempAllocations().
-  virtual TfLiteStatus SetHeadBufferSize(size_t size, size_t alignment);
+  // Resizes a buffer that is previously returned by the
+  // AllocateResizableBuffer. In current implementation, it Adjusts the head
+  // (lowest address and moving upwards) memory allocation to a given size.
+  // Calls to this method will also invalidate all temporary allocation values
+  // (it sets the location of temp space at the end of the head section). This
+  // call will fail if a chain of allocations through AllocateTemp() have not
+  // been cleaned up with a call to ResetTempAllocations().
+  virtual TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
+                                    size_t alignment);
+
+  // Returns a buffer that is resizable viable ResizeBuffer(). Only one
+  // resizable buffer is currently supported.
+  virtual uint8_t* AllocateResizableBuffer(size_t size, size_t alignment);
+
+  // Frees up the memory occupied by the resizable buffer
+  virtual TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf);
+
+  // Reserves the non-persistent memory that is planned by the memory planner.
+  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
+                                                         size_t alignment);
 
   // Allocates memory starting at the tail of the arena (highest address and
   // moving downwards).
