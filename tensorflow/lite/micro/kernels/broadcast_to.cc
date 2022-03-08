@@ -14,45 +14,56 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/kernels/internal/reference/broadcast_to.h"
 
-#include <string.h>
-
-#include <cstdint>
-#include <memory>
+#include <stdint.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
+
 namespace {
 constexpr int kInputTensor = 0;
 constexpr int kShapeTensor = 1;
 constexpr int kOutputTensor = 0;
-constexpr int kMaxDims = 8;
+// A maximum of 5 dimensions.
+constexpr int kMaxDims = 5;
 
 struct BroadcastToContext {
   BroadcastToContext(TfLiteContext* context, TfLiteNode* node) {
-    input = GetInput(context, node, kInputTensor);
-    shape = GetInput(context, node, kShapeTensor);
-    output = GetOutput(context, node, kOutputTensor);
+    micro_context = GetMicroContext(context);
+    input = micro_context->AllocateTempInputTensor(node, kInputTensor);
+    shape = micro_context->AllocateTempInputTensor(node, kShapeTensor);
+    output = micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   }
-  const TfLiteTensor* input;
-  const TfLiteTensor* shape;
+  ~BroadcastToContext() {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    micro_context->DeallocateTempTfLiteTensor(shape);
+    micro_context->DeallocateTempTfLiteTensor(output);
+  }
+  MicroContext* micro_context;
+  TfLiteTensor* input;
+  TfLiteTensor* shape;
   TfLiteTensor* output;
 };
 
 TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
-                                BroadcastToContext* op_context) {
+                                  BroadcastToContext* op_context) {
   // Ensures the shape is 1D tensor.
   TF_LITE_ENSURE_EQ(context, NumDimensions(op_context->shape), 1);
 
   // Ensure output dims is not less than input dims.
   int input_num_dims = NumDimensions(op_context->input);
-  int output_num_dims = SizeOfDimension(op_context->shape, 0);
+  int output_num_dims = NumDimensions(op_context->output);
+  int shape_num_dims = SizeOfDimension(op_context->shape, 0);
+  TF_LITE_ENSURE_MSG(context, output_num_dims == shape_num_dims,
+                     "Output must match with the expected shape dimension.");
   TF_LITE_ENSURE_MSG(context, input_num_dims <= output_num_dims,
                      "Output shape must be broadcastable from input shape.");
   TF_LITE_ENSURE_MSG(context, output_num_dims <= kMaxDims,
-                     "BroadcastTo only supports 1-8D tensor.");
+                     "BroadcastTo only supports 1-5D tensor.");
 
   // Check if output shape is broadcastable from input shape.
   auto get_shape_data = [op_context](int i) -> int32_t {
@@ -71,25 +82,25 @@ TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
                             get_shape_data(extending_dims + idx)),
                        "Output shape must be broadcastable from input shape.");
   }
-  // Resizing the shape of the output tensor.
-  TfLiteIntArray* output_shape = TfLiteIntArrayCreate(output_num_dims);
-  std::unique_ptr<TfLiteIntArray, void (*)(TfLiteIntArray*)>
-      scoped_output_shape(output_shape, TfLiteIntArrayFree);
-  for (int idx = 0; idx < output_num_dims; ++idx) {
-    output_shape->data[idx] = get_shape_data(idx);
-  }
 
+  // Validating the shape of the output tensor.
+  tflite::RuntimeShape output_shape =
+      tflite::GetTensorShape(op_context->output);
+  for (int idx = 0; idx < output_num_dims; ++idx) {
+    TF_LITE_ENSURE(context, output_shape.Dims(idx) == get_shape_data(idx));
+  }
   return kTfLiteOk;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TF_LITE_ENSURE_MSG(context,
-                     (NumDimensions(GetInput(context, node, 0)) <= kMaxDims),
-                     "BroadcastTo only supports 1-8D tensor.");
 
   BroadcastToContext op_context(context, node);
+
+  TF_LITE_ENSURE_MSG(context, (NumDimensions(op_context.input) <= kMaxDims),
+                     "BroadcastTo only supports 1-5D tensor.");
+
   TF_LITE_ENSURE(context, op_context.shape->type == kTfLiteInt32 ||
                               op_context.shape->type == kTfLiteInt64);
   TF_LITE_ENSURE_EQ(context, op_context.input->type, op_context.output->type);
@@ -101,22 +112,27 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  BroadcastToContext op_context(context, node);
+  const TfLiteEvalTensor* input =
+      micro::GetEvalInput(context, node, kInputTensor);
+  TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
   // BroadcastTo op support upto 8 dims, matching the support of Tensorflow.
   reference_ops::BroadcastTo<kMaxDims>(
-      GetTensorShape(op_context.input), op_context.input->data.raw,
-      GetTensorShape(op_context.output), op_context.output->data.raw,
-      op_context.input->type);
+      micro::GetTensorShape(input), input->data.raw,
+      micro::GetTensorShape(output), output->data.raw, input->type);
   return kTfLiteOk;
 }
-
 }  // namespace
 
-TfLiteRegistration* Register_BROADCAST_TO() {
-  static TfLiteRegistration r = {nullptr, nullptr, Prepare,
-                                 Eval};
-  return &r;
+TfLiteRegistration Register_BROADCAST_TO() {
+  return {/*init=*/nullptr,
+          /*free=*/nullptr,
+          /*prepare=*/Prepare,
+          /*invoke=*/Eval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 }  // namespace tflite
