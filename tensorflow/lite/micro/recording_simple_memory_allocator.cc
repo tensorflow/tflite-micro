@@ -57,11 +57,11 @@ size_t RecordingSimpleMemoryAllocator::GetAllocatedCount() const {
   return alloc_count_;
 }
 
-TfLiteStatus RecordingSimpleMemoryAllocator::SetHeadBufferSize(
-    size_t size, size_t alignment) {
+TfLiteStatus RecordingSimpleMemoryAllocator::ResizeBuffer(
+    uint8_t* resizable_buf, size_t size, size_t alignment) {
   const uint8_t* previous_head = head();
   TfLiteStatus status =
-      SimpleMemoryAllocator::SetHeadBufferSize(size, alignment);
+      SimpleMemoryAllocator::ResizeBuffer(resizable_buf, size, alignment);
   if (status == kTfLiteOk) {
     used_bytes_ += head() - previous_head;
     requested_head_bytes_ = size;
