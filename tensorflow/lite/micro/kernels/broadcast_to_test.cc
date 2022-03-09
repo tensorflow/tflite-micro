@@ -82,7 +82,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(ShapeMustBe1D) {
   int dims_shape[] = {2, 2, 2};
-  int dims_data[] = {2, 3, 4, 4};
+  int32_t dims_data[] = {2, 3, 4, 4};
 
   int input_shape[] = {2, 2, 2};
   int input_data[] = {2, 3, 4, 4};
@@ -99,7 +99,7 @@ TF_LITE_MICRO_TEST(ShapeMustBe1D) {
 
 TF_LITE_MICRO_TEST(TooManyDimensionShouldFail) {
   int dims_shape[] = {1, 6};
-  int dims_data[] = {2, 2, 2, 2, 2, 2};
+  int32_t dims_data[] = {2, 2, 2, 2, 2, 2};
 
   int input_shape[] = {2, 2, 2};
   int input_data[] = {2, 3, 4, 4};
@@ -116,7 +116,7 @@ TF_LITE_MICRO_TEST(TooManyDimensionShouldFail) {
 
 TF_LITE_MICRO_TEST(MismatchDimensionShouldFail) {
   int dims_shape[] = {1, 4};
-  int dims_data[] = {2, 4, 1, 3};
+  int32_t dims_data[] = {2, 4, 1, 3};
 
   int input_shape[] = {2, 4, 1, 3};
   int input_data[24] = {2, 3, 4, 4};
@@ -135,14 +135,14 @@ TF_LITE_MICRO_TEST(Broadcast1DConstTest) {
   constexpr int kDimension = 4;
   constexpr int kSize = 4;
   int dims_shape[] = {1, 1};
-  int dims_data[] = {kDimension};
+  int32_t dims_data[] = {kDimension};
 
   int input_shape[] = {1, 1};
-  int input_data[] = {3};
+  int32_t input_data[] = {3};
 
   int output_shape[] = {1, kDimension};
-  int output_data[kSize];
-  int expected_output_data[kSize] = {3, 3, 3, 3};
+  int32_t output_data[kSize];
+  int32_t expected_output_data[kSize] = {3, 3, 3, 3};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
@@ -150,15 +150,15 @@ TF_LITE_MICRO_TEST(Broadcast1DConstTest) {
 
 TF_LITE_MICRO_TEST(Broadcast4DConstTest) {
   int dims_shape[] = {1, 4};
-  int dims_data[] = {2, 2, 2, 2};
+  int32_t dims_data[] = {2, 2, 2, 2};
 
   int input_shape[] = {2, 2, 2};
-  int input_data[4] = {2, 3, 4, 5};
+  int32_t input_data[4] = {2, 3, 4, 5};
 
   int output_shape[] = {4, 2, 2, 2, 2};
-  int output_data[16];
-  int expected_output_data[16] = {2, 3, 4, 5, 2, 3, 4, 5,
-                                  2, 3, 4, 5, 2, 3, 4, 5};
+  int32_t output_data[16];
+  int32_t expected_output_data[16] = {2, 3, 4, 5, 2, 3, 4, 5,
+                                      2, 3, 4, 5, 2, 3, 4, 5};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
@@ -166,16 +166,16 @@ TF_LITE_MICRO_TEST(Broadcast4DConstTest) {
 
 TF_LITE_MICRO_TEST(ComplexBroadcast4DConstTest) {
   int dims_shape[] = {1, 4};
-  int dims_data[] = {3, 3, 2, 2};
+  int32_t dims_data[] = {3, 3, 2, 2};
 
   int input_shape[] = {4, 1, 3, 1, 2};
-  int input_data[6] = {1, 2, 3, 4, 5, 6};
+  int32_t input_data[6] = {1, 2, 3, 4, 5, 6};
 
   int output_shape[] = {4, 3, 3, 2, 2};
-  int output_data[36];
-  int expected_output_data[36] = {1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
-                                  1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
-                                  1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6};
+  int32_t output_data[36];
+  int32_t expected_output_data[36] = {1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
+                                      1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
+                                      1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
@@ -183,14 +183,14 @@ TF_LITE_MICRO_TEST(ComplexBroadcast4DConstTest) {
 
 TF_LITE_MICRO_TEST(NoBroadcastingConstTest) {
   int dims_shape[] = {1, 3};
-  int dims_data[] = {3, 1, 2};
+  int32_t dims_data[] = {3, 1, 2};
 
   int input_shape[] = {3, 3, 1, 2};
-  int input_data[6] = {1, 2, 3, 4, 5, 6};
+  int32_t input_data[6] = {1, 2, 3, 4, 5, 6};
 
   int output_shape[] = {3, 3, 1, 2};
-  int output_data[6];
-  int expected_output_data[6] = {1, 2, 3, 4, 5, 6};
+  int32_t output_data[6];
+  int32_t expected_output_data[6] = {1, 2, 3, 4, 5, 6};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
@@ -201,11 +201,11 @@ TF_LITE_MICRO_TEST(BroadcastInt64ShpaeTest) {
   int64_t dims_data[] = {1, 1, 2, 2};
 
   int input_shape[] = {4, 1, 1, 1, 2};
-  int input_data[2] = {3, 4};
+  int32_t input_data[2] = {3, 4};
 
   int output_shape[] = {4, 1, 1, 2, 2};
-  int output_data[4];
-  int expected_output_data[4] = {3, 4, 3, 4};
+  int32_t output_data[4];
+  int32_t expected_output_data[4] = {3, 4, 3, 4};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
