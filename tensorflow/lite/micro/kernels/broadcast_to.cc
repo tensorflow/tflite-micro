@@ -28,26 +28,8 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kShapeTensor = 1;
 constexpr int kOutputTensor = 0;
-// A maximum of 5 dimensions.
+// Support a maximum of 5 dimensions in TFLM.
 constexpr int kMaxDims = 5;
-
-struct BroadcastToContext {
-  BroadcastToContext(TfLiteContext* context, TfLiteNode* node) {
-    micro_context = GetMicroContext(context);
-    input = micro_context->AllocateTempInputTensor(node, kInputTensor);
-    shape = micro_context->AllocateTempInputTensor(node, kShapeTensor);
-    output = micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  }
-  ~BroadcastToContext() {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(shape);
-    micro_context->DeallocateTempTfLiteTensor(output);
-  }
-  MicroContext* micro_context;
-  TfLiteTensor* input;
-  TfLiteTensor* shape;
-  TfLiteTensor* output;
-};
 
 TfLiteStatus ValidateOutputTensor(TfLiteContext* context, TfLiteTensor* input,
                                   TfLiteTensor* shape, TfLiteTensor* output) {
@@ -102,17 +84,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
 
-  BroadcastToContext op_context(context, node);
-
-  TF_LITE_ENSURE_MSG(context, (NumDimensions(op_context.input) <= kMaxDims),
+  TF_LITE_ENSURE_MSG(context, (NumDimensions(input) <= kMaxDims),
                      "BroadcastTo only supports 1-5D tensor.");
 
-  TF_LITE_ENSURE(context, op_context.shape->type == kTfLiteInt32 ||
-                              op_context.shape->type == kTfLiteInt64);
-  TF_LITE_ENSURE_EQ(context, op_context.input->type, op_context.output->type);
+  TF_LITE_ENSURE(context,
+                 shape->type == kTfLiteInt32 || shape->type == kTfLiteInt64);
+  TF_LITE_ENSURE_EQ(context, input->type, output->type);
 
-  // Not yet support String type due to the use of memcopy with fixed size.
-  TF_LITE_ENSURE(context, op_context.input->type != kTfLiteString);
+  // Does not support String type due to its variable size. This limitation is
+  // the same as TFLite.
+  TF_LITE_ENSURE(context, input->type != kTfLiteString);
 
   TF_LITE_ENSURE_STATUS(ValidateOutputTensor(context, input, shape, output));
   micro_context->DeallocateTempTfLiteTensor(input);
@@ -126,7 +107,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
-  // BroadcastTo op support upto 8 dims, matching the support of Tensorflow.
+  // BroadcastTo op support upto 5 dims, different from 8 dims in TFLite.
   reference_ops::BroadcastTo<kMaxDims>(
       micro::GetTensorShape(input), input->data.raw,
       micro::GetTensorShape(output), output->data.raw, input->type);
