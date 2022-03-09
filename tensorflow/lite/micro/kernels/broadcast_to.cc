@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                               op_context.shape->type == kTfLiteInt64);
   TF_LITE_ENSURE_EQ(context, op_context.input->type, op_context.output->type);
 
-  // Not yet support string type due to the use of memcopy with fixed size.
+  // Not yet support String type due to the use of memcopy with fixed size.
   TF_LITE_ENSURE(context, op_context.input->type != kTfLiteString);
 
   return ValidateOutputTensor(context, &op_context);
