@@ -114,6 +114,23 @@ TF_LITE_MICRO_TEST(TooManyDimensionShouldFail) {
   TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteError);
 }
 
+TF_LITE_MICRO_TEST(MismatchDimensionShouldFail) {
+  int dims_shape[] = {1, 4};
+  int dims_data[] = {2, 4, 1, 3};
+
+  int input_shape[] = {2, 4, 1, 3};
+  int input_data[24] = {2, 3, 4, 4};
+
+  int output_shape[] = {4, 2, 4, 1, 2};
+  int output_data[24];
+
+  tflite::micro::KernelRunner runner =
+      CreateBroadcastToTestRunner(dims_shape, dims_data, input_shape,
+                                  input_data, output_shape, output_data);
+
+  TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteError);
+}
+
 TF_LITE_MICRO_TEST(Broadcast1DConstTest) {
   constexpr int kDimension = 4;
   constexpr int kSize = 4;
@@ -159,6 +176,21 @@ TF_LITE_MICRO_TEST(ComplexBroadcast4DConstTest) {
   int expected_output_data[36] = {1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
                                   1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6,
                                   1, 2, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6};
+
+  TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
+                  output_data, expected_output_data);
+}
+
+TF_LITE_MICRO_TEST(NoBroadcastingConstTest) {
+  int dims_shape[] = {1, 3};
+  int dims_data[] = {3, 1, 2};
+
+  int input_shape[] = {3, 3, 1, 2};
+  int input_data[6] = {1, 2, 3, 4, 5, 6};
+
+  int output_shape[] = {3, 3, 1, 2};
+  int output_data[6];
+  int expected_output_data[6] = {1, 2, 3, 4, 5, 6};
 
   TestBroadcastTo(dims_shape, dims_data, input_shape, input_data, output_shape,
                   output_data, expected_output_data);
