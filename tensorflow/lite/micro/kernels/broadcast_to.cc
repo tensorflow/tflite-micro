@@ -49,15 +49,15 @@ struct BroadcastToContext {
   TfLiteTensor* output;
 };
 
-TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
-                                  BroadcastToContext* op_context) {
+TfLiteStatus ValidateOutputTensor(TfLiteContext* context, TfLiteTensor* input,
+                                  TfLiteTensor* shape, TfLiteTensor* output) {
   // Ensures the shape is 1D tensor.
-  TF_LITE_ENSURE_EQ(context, NumDimensions(op_context->shape), 1);
+  TF_LITE_ENSURE_EQ(context, NumDimensions(shape), 1);
 
   // Ensure output dims is not less than input dims.
-  int input_num_dims = NumDimensions(op_context->input);
-  int output_num_dims = NumDimensions(op_context->output);
-  int shape_num_dims = SizeOfDimension(op_context->shape, 0);
+  int input_num_dims = NumDimensions(input);
+  int output_num_dims = NumDimensions(output);
+  int shape_num_dims = SizeOfDimension(shape, 0);
   TF_LITE_ENSURE_MSG(context, output_num_dims == shape_num_dims,
                      "Output must match with the expected shape dimension.");
   TF_LITE_ENSURE_MSG(context, input_num_dims <= output_num_dims,
@@ -66,26 +66,25 @@ TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
                      "BroadcastTo only supports 1-5D tensor.");
 
   // Check if output shape is broadcastable from input shape.
-  auto get_shape_data = [op_context](int i) -> int32_t {
-    if (op_context->shape->type == kTfLiteInt32) {
-      return GetTensorData<int32_t>(op_context->shape)[i];
+  auto get_shape_data = [shape](int i) -> int32_t {
+    if (shape->type == kTfLiteInt32) {
+      return GetTensorData<int32_t>(shape)[i];
     } else {
-      return GetTensorData<int64_t>(op_context->shape)[i];
+      return GetTensorData<int64_t>(shape)[i];
     }
   };
 
   int extending_dims = output_num_dims - input_num_dims;
   for (int idx = 0; idx < input_num_dims; ++idx) {
-    TF_LITE_ENSURE_MSG(context,
-                       (SizeOfDimension(op_context->input, idx) == 1 ||
-                        SizeOfDimension(op_context->input, idx) ==
-                            get_shape_data(extending_dims + idx)),
-                       "Output shape must be broadcastable from input shape.");
+    TF_LITE_ENSURE_MSG(
+        context,
+        (SizeOfDimension(input, idx) == 1 ||
+         SizeOfDimension(input, idx) == get_shape_data(extending_dims + idx)),
+        "Output shape must be broadcastable from input shape.");
   }
 
   // Validating the shape of the output tensor.
-  tflite::RuntimeShape output_shape =
-      tflite::GetTensorShape(op_context->output);
+  tflite::RuntimeShape output_shape = tflite::GetTensorShape(output);
   for (int idx = 0; idx < output_num_dims; ++idx) {
     TF_LITE_ENSURE(context, output_shape.Dims(idx) == get_shape_data(idx));
   }
@@ -95,6 +94,13 @@ TfLiteStatus ValidateOutputTensor(TfLiteContext* context,
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TfLiteTensor* shape =
+      micro_context->AllocateTempInputTensor(node, kShapeTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
 
   BroadcastToContext op_context(context, node);
 
@@ -108,7 +114,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Not yet support String type due to the use of memcopy with fixed size.
   TF_LITE_ENSURE(context, op_context.input->type != kTfLiteString);
 
-  return ValidateOutputTensor(context, &op_context);
+  TF_LITE_ENSURE_STATUS(ValidateOutputTensor(context, input, shape, output));
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(shape);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  return kTfLiteOk;
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
