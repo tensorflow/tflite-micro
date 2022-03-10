@@ -73,7 +73,7 @@ TfLiteStatus ValidateOutputTensor(TfLiteContext* context, TfLiteTensor* input,
   return kTfLiteOk;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BroadcastToPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   MicroContext* micro_context = GetMicroContext(context);
@@ -102,7 +102,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BroadcastToEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
@@ -118,8 +118,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 TfLiteRegistration Register_BROADCAST_TO() {
   return {/*init=*/nullptr,
           /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
+          /*prepare=*/BroadcastToPrepare,
+          /*invoke=*/BroadcastToEval,
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
