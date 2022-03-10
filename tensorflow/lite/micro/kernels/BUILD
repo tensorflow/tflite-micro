@@ -140,6 +140,7 @@ tflm_kernel_cc_library(
         "assign_variable.cc",
         "batch_to_space_nd.cc",
         "broadcast_args.cc",
+        "broadcast_to.cc",
         "call_once.cc",
         "cast.cc",
         "ceil.cc",
@@ -376,6 +377,20 @@ cc_test(
     name = "broadcast_args_test",
     srcs = [
         "broadcast_args_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "broadcast_to_test",
+    srcs = [
+        "broadcast_to_test.cc",
     ],
     deps = [
         ":kernel_runner",

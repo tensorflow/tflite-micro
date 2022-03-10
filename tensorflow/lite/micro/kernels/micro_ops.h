@@ -37,6 +37,7 @@ TfLiteRegistration Register_ASSIGN_VARIABLE();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
 TfLiteRegistration Register_BATCH_TO_SPACE_ND();
 TfLiteRegistration Register_BROADCAST_ARGS();
+TfLiteRegistration Register_BROADCAST_TO();
 TfLiteRegistration Register_CALL_ONCE();
 TfLiteRegistration Register_CAST();
 // TODO(b/160234179): Change custom OPs to also return by value.
