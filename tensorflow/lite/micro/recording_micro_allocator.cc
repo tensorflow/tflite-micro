@@ -59,12 +59,13 @@ RecordingMicroAllocator* RecordingMicroAllocator::Create(
                                              arena_size);
   TFLITE_DCHECK(simple_memory_allocator != nullptr);
 
-  uint8_t* memory_planner_buffer = simple_memory_allocator->AllocateFromTail(
-      sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+  uint8_t* memory_planner_buffer =
+      simple_memory_allocator->AllocatePersistentBuffer(
+          sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
   GreedyMemoryPlanner* memory_planner =
       new (memory_planner_buffer) GreedyMemoryPlanner();
 
-  uint8_t* allocator_buffer = simple_memory_allocator->AllocateFromTail(
+  uint8_t* allocator_buffer = simple_memory_allocator->AllocatePersistentBuffer(
       sizeof(RecordingMicroAllocator), alignof(RecordingMicroAllocator));
   RecordingMicroAllocator* allocator =
       new (allocator_buffer) RecordingMicroAllocator(

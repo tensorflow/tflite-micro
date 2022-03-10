@@ -58,7 +58,7 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
       : memory_allocator_(memory_allocator) {}
 
   void* Allocate(size_t size, size_t alignment_hint) override {
-    return memory_allocator_->AllocateFromTail(size, alignment_hint);
+    return memory_allocator_->AllocatePersistentBuffer(size, alignment_hint);
   }
   void Deallocate(void* data) override {
     // Do not deallocate, builtin data needs to be available for the life time
@@ -220,9 +220,9 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
                   allocator->AllocateTemp(sizeof(TfLiteAffineQuantization),
                                           alignof(TfLiteAffineQuantization)))
             : reinterpret_cast<TfLiteAffineQuantization*>(
-                  allocator->AllocateFromTail(
-                      sizeof(TfLiteAffineQuantization),
-                      alignof(TfLiteAffineQuantization)));
+            allocator->AllocatePersistentBuffer(
+                sizeof(TfLiteAffineQuantization),
+                alignof(TfLiteAffineQuantization)));
     if (quantization == nullptr) {
       TF_LITE_REPORT_ERROR(error_reporter,
                            "Unable to allocate TfLiteAffineQuantization.\n");
@@ -237,9 +237,9 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
             ? reinterpret_cast<TfLiteIntArray*>(allocator->AllocateTemp(
                   TfLiteIntArrayGetSizeInBytes(channels),
                   alignof(TfLiteIntArray)))
-            : reinterpret_cast<TfLiteIntArray*>(allocator->AllocateFromTail(
-                  TfLiteIntArrayGetSizeInBytes(channels),
-                  alignof(TfLiteIntArray)));
+            : reinterpret_cast<TfLiteIntArray*>(allocator->AllocatePersistentBuffer(
+            TfLiteIntArrayGetSizeInBytes(channels),
+            alignof(TfLiteIntArray)));
     if (quantization->zero_point == nullptr) {
       TF_LITE_REPORT_ERROR(error_reporter,
                            "Unable to allocate quantization->zero_point.\n");
@@ -341,7 +341,7 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
 
   // By default create GreedyMemoryPlanner.
   // If a different MemoryPlanner is needed, use the other api.
-  uint8_t* memory_planner_buffer = memory_allocator->AllocateFromTail(
+  uint8_t* memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
       sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
   GreedyMemoryPlanner* memory_planner =
       new (memory_planner_buffer) GreedyMemoryPlanner();
@@ -356,7 +356,7 @@ MicroAllocator* MicroAllocator::Create(SimpleMemoryAllocator* memory_allocator,
   TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(memory_planner != nullptr);
 
-  uint8_t* allocator_buffer = memory_allocator->AllocateFromTail(
+  uint8_t* allocator_buffer = memory_allocator->AllocatePersistentBuffer(
       sizeof(MicroAllocator), alignof(MicroAllocator));
   MicroAllocator* allocator = new (allocator_buffer)
       MicroAllocator(memory_allocator, memory_planner, error_reporter);
@@ -375,7 +375,7 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
 
   model_is_allocating_ = true;
 
-  uint8_t* data_allocator_buffer = memory_allocator_->AllocateFromTail(
+  uint8_t* data_allocator_buffer = memory_allocator_->AllocatePersistentBuffer(
       sizeof(MicroBuiltinDataAllocator), alignof(MicroBuiltinDataAllocator));
   builtin_data_allocator_ =
       new (data_allocator_buffer) MicroBuiltinDataAllocator(memory_allocator_);
@@ -386,7 +386,7 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
 
   // Allocate struct to store eval tensors, nodes and registrations.
   SubgraphAllocations* output = reinterpret_cast<SubgraphAllocations*>(
-      memory_allocator_->AllocateFromTail(
+      memory_allocator_->AllocatePersistentBuffer(
           sizeof(SubgraphAllocations) * model->subgraphs()->size(),
           alignof(SubgraphAllocations)));
   if (output == nullptr) {
@@ -431,8 +431,8 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
 }
 
 void* MicroAllocator::AllocatePersistentBuffer(size_t bytes) {
-  return memory_allocator_->AllocateFromTail(bytes,
-                                             MicroArenaBufferAlignment());
+  return memory_allocator_->AllocatePersistentBuffer(bytes,
+                                                     MicroArenaBufferAlignment());
 }
 
 TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
@@ -525,7 +525,7 @@ TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(
 
     // Initialize NodeAndRegistrations for the subgraph.
     NodeAndRegistration* output = reinterpret_cast<NodeAndRegistration*>(
-        memory_allocator_->AllocateFromTail(
+        memory_allocator_->AllocatePersistentBuffer(
             sizeof(NodeAndRegistration) * operators_size,
             alignof(NodeAndRegistration)));
     if (output == nullptr) {
@@ -657,7 +657,7 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
 
     size_t alloc_count = subgraph->tensors()->size();
     TfLiteEvalTensor* tensors =
-        reinterpret_cast<TfLiteEvalTensor*>(memory_allocator_->AllocateFromTail(
+        reinterpret_cast<TfLiteEvalTensor*>(memory_allocator_->AllocatePersistentBuffer(
             sizeof(TfLiteEvalTensor) * alloc_count, alignof(TfLiteEvalTensor)));
     if (tensors == nullptr) {
       TF_LITE_REPORT_ERROR(
@@ -692,7 +692,7 @@ TfLiteStatus MicroAllocator::AllocateVariables(const SubGraph* subgraph,
       TF_LITE_ENSURE_STATUS(
           TfLiteEvalTensorByteLength(&eval_tensors[i], &buffer_size));
 
-      eval_tensors[i].data.data = memory_allocator_->AllocateFromTail(
+      eval_tensors[i].data.data = memory_allocator_->AllocatePersistentBuffer(
           buffer_size, MicroArenaBufferAlignment());
 
       if (eval_tensors[i].data.data == nullptr) {
@@ -707,7 +707,7 @@ TfLiteStatus MicroAllocator::AllocateVariables(const SubGraph* subgraph,
 }
 
 TfLiteTensor* MicroAllocator::AllocatePersistentTfLiteTensorInternal() {
-  return reinterpret_cast<TfLiteTensor*>(memory_allocator_->AllocateFromTail(
+  return reinterpret_cast<TfLiteTensor*>(memory_allocator_->AllocatePersistentBuffer(
       sizeof(TfLiteTensor), alignof(TfLiteTensor)));
 }
 
@@ -816,7 +816,7 @@ TfLiteStatus MicroAllocator::AllocateScratchBufferHandles(
   // Allocate a consecutive block of memory store the scratch buffer handles.
   // This alignment ensures quick lookup during inference time for the model:
   *scratch_buffer_handles = reinterpret_cast<ScratchBufferHandle*>(
-      memory_allocator_->AllocateFromTail(
+      memory_allocator_->AllocatePersistentBuffer(
           sizeof(ScratchBufferHandle) * handle_count,
           alignof(ScratchBufferHandle)));
 

@@ -132,8 +132,8 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
   constexpr size_t allocation_size = 100;
   allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
                          /*alignment=*/1);
-  allocator.AllocateFromTail(/*size=*/allocation_size,
-                             /*alignment=*/1);
+    allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
+        /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
                           arena_size - allocation_size * 2);
@@ -173,8 +173,8 @@ TF_LITE_MICRO_TEST(TestGetUsedBytes) {
   constexpr size_t allocation_size = 100;
   allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
                          /*alignment=*/1);
-  allocator.AllocateFromTail(/*size=*/allocation_size,
-                             /*alignment=*/1);
+    allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
+        /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), allocation_size * 2);
 }
@@ -205,7 +205,7 @@ TF_LITE_MICRO_TEST(TestJustFits) {
   tflite::SimpleMemoryAllocator allocator(tflite::GetMicroErrorReporter(),
                                           arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(arena_size, 1);
+  uint8_t* result = allocator.AllocatePersistentBuffer(arena_size, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
 }
 
@@ -215,10 +215,10 @@ TF_LITE_MICRO_TEST(TestAligned) {
   tflite::SimpleMemoryAllocator allocator(tflite::GetMicroErrorReporter(),
                                           arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(1, 1);
+  uint8_t* result = allocator.AllocatePersistentBuffer(1, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
 
-  result = allocator.AllocateFromTail(16, 4);
+  result = allocator.AllocatePersistentBuffer(16, 4);
   TF_LITE_MICRO_EXPECT(nullptr != result);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           reinterpret_cast<std::uintptr_t>(result) & 3);
@@ -230,10 +230,10 @@ TF_LITE_MICRO_TEST(TestMultipleTooLarge) {
   tflite::SimpleMemoryAllocator allocator(tflite::GetMicroErrorReporter(),
                                           arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(768, 1);
+  uint8_t* result = allocator.AllocatePersistentBuffer(768, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
 
-  result = allocator.AllocateFromTail(768, 1);
+  result = allocator.AllocatePersistentBuffer(768, 1);
   TF_LITE_MICRO_EXPECT(nullptr == result);
 }
 

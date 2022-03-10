@@ -49,7 +49,7 @@ class RecordingSimpleMemoryAllocator : public SimpleMemoryAllocator {
 
   TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
                             size_t alignment) override;
-  uint8_t* AllocateFromTail(size_t size, size_t alignment) override;
+  uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment) override;
 
  private:
   size_t requested_head_bytes_;

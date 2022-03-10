@@ -55,7 +55,7 @@ SimpleMemoryAllocator* SimpleMemoryAllocator::Create(
   // Allocate enough bytes from the buffer to create a SimpleMemoryAllocator.
   // The new instance will use the current adjusted tail buffer from the tmp
   // allocator instance.
-  uint8_t* allocator_buffer = tmp.AllocateFromTail(
+  uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
       sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator));
   // Use the default copy constructor to populate internal states.
   return new (allocator_buffer) SimpleMemoryAllocator(tmp);
@@ -112,8 +112,8 @@ TfLiteStatus SimpleMemoryAllocator::ResizeBuffer(uint8_t* resizable_buf,
   return kTfLiteOk;
 }
 
-uint8_t* SimpleMemoryAllocator::AllocateFromTail(size_t size,
-                                                 size_t alignment) {
+uint8_t* SimpleMemoryAllocator::AllocatePersistentBuffer(size_t size,
+                                                         size_t alignment) {
   uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
