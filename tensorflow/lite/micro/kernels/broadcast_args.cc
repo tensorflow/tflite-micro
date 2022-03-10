@@ -14,78 +14,84 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/kernels/internal/reference/broadcast_args.h"
 
-#include <cstdint>
-#include <memory>
+#include <stdint.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
 namespace {
-
 constexpr int kShape1Tensor = 0;
 constexpr int kShape2Tensor = 1;
 constexpr int kOutputTensor = 0;
 
-struct BroadcastArgsContext {
-  BroadcastArgsContext(TfLiteContext* context, TfLiteNode* node) {
-    shape1 = GetInput(context, node, kShape1Tensor);
-    shape2 = GetInput(context, node, kShape2Tensor);
-    output = GetOutput(context, node, kOutputTensor);
-  }
-  const TfLiteTensor* shape1;
-  const TfLiteTensor* shape2;
-  TfLiteTensor* output;
-};
-
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BroadcastArgsPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  BroadcastArgsContext op_context(context, node);
-  TF_LITE_ENSURE(context, op_context.shape1->type == kTfLiteInt32 ||
-                              op_context.shape1->type == kTfLiteInt64);
-  TF_LITE_ENSURE_EQ(context, op_context.shape1->type, op_context.shape2->type);
-  TF_LITE_ENSURE_EQ(context, op_context.shape1->type, op_context.output->type);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* shape1 =
+      micro_context->AllocateTempInputTensor(node, kShape1Tensor);
+  TfLiteTensor* shape2 =
+      micro_context->AllocateTempInputTensor(node, kShape2Tensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+
+  TF_LITE_ENSURE(context,
+                 shape1->type == kTfLiteInt32 || shape1->type == kTfLiteInt64);
+  TF_LITE_ENSURE_EQ(context, shape1->type, shape2->type);
+  TF_LITE_ENSURE_EQ(context, shape1->type, output->type);
 
   // Ensures the shapes are 1D tensor.
-  TF_LITE_ENSURE_EQ(context, NumDimensions(op_context.shape1), 1);
-  TF_LITE_ENSURE_EQ(context, NumDimensions(op_context.shape2), 1);
+  TF_LITE_ENSURE_EQ(context, NumDimensions(shape1), 1);
+  TF_LITE_ENSURE_EQ(context, NumDimensions(shape2), 1);
 
-  // Resizing the shape of the output tensor.
-  TfLiteIntArray* output_shape = TfLiteIntArrayCreate(1);
-  output_shape->data[0] = std::max(SizeOfDimension(op_context.shape1, 0),
-                                   SizeOfDimension(op_context.shape2, 0));
+  // Ensure the shape of the output tensor is compatible
+  TF_LITE_ENSURE_EQ(context, NumDimensions(output), 1);
+
+  micro_context->DeallocateTempTfLiteTensor(shape1);
+  micro_context->DeallocateTempTfLiteTensor(shape2);
+  micro_context->DeallocateTempTfLiteTensor(output);
+
+  return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  BroadcastArgsContext op_context(context, node);
+TfLiteStatus BroadcastArgsEval(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* shape1 =
+      micro::GetEvalInput(context, node, kShape1Tensor);
+  const TfLiteEvalTensor* shape2 =
+      micro::GetEvalInput(context, node, kShape2Tensor);
+  TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
-#define TF_LITE_BROADCAST_ARG(data_type)                                    \
-  reference_ops::BroadcastArgs(GetTensorShape(op_context.shape1),           \
-                               GetTensorData<data_type>(op_context.shape1), \
-                               GetTensorShape(op_context.shape2),           \
-                               GetTensorData<data_type>(op_context.shape2), \
-                               GetTensorShape(op_context.output),           \
-                               GetTensorData<data_type>(op_context.output))
-
-  if (op_context.output->type == kTfLiteInt32) {
-    TF_LITE_BROADCAST_ARG(int32_t);
+  if (output->type == kTfLiteInt32) {
+    reference_ops::BroadcastArgs(
+        micro::GetTensorShape(shape1), micro::GetTensorData<int32_t>(shape1),
+        micro::GetTensorShape(shape2), micro::GetTensorData<int32_t>(shape2),
+        micro::GetTensorShape(output), micro::GetTensorData<int32_t>(output));
   } else {
-    TF_LITE_BROADCAST_ARG(int64_t);
+    reference_ops::BroadcastArgs(
+        micro::GetTensorShape(shape1), micro::GetTensorData<int64_t>(shape1),
+        micro::GetTensorShape(shape2), micro::GetTensorData<int64_t>(shape2),
+        micro::GetTensorShape(output), micro::GetTensorData<int64_t>(output));
   }
-#undef TF_LITE_BROADCAST_ARG
 
   return kTfLiteOk;
 }
 
 }  // namespace
 
-TfLiteRegistration* Register_BROADCAST_ARGS() {
-  static TfLiteRegistration r = {nullptr, nullptr, broadcast_args::Prepare,
-                                 broadcast_args::Eval};
-  return &r;
+TfLiteRegistration Register_BROADCAST_ARGS() {
+  return {/*init=*/nullptr,
+          /*free=*/nullptr,
+          /*prepare=*/BroadcastArgsPrepare,
+          /*invoke=*/BroadcastArgsEval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 }  // namespace tflite
