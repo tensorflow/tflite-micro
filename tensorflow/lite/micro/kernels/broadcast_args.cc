@@ -22,9 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace builtin {
-namespace broadcast_args {
+namespace {
 
 constexpr int kShape1Tensor = 0;
 constexpr int kShape2Tensor = 1;
@@ -59,7 +57,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteIntArray* output_shape = TfLiteIntArrayCreate(1);
   output_shape->data[0] = std::max(SizeOfDimension(op_context.shape1, 0),
                                    SizeOfDimension(op_context.shape2, 0));
-  return context->ResizeTensor(context, op_context.output, output_shape);
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
@@ -83,7 +80,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace broadcast_args
+}  // namespace
 
 TfLiteRegistration* Register_BROADCAST_ARGS() {
   static TfLiteRegistration r = {nullptr, nullptr, broadcast_args::Prepare,
@@ -91,6 +88,4 @@ TfLiteRegistration* Register_BROADCAST_ARGS() {
   return &r;
 }
 
-}  // namespace builtin
-}  // namespace ops
 }  // namespace tflite
