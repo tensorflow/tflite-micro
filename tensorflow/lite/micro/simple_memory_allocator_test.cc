@@ -36,19 +36,19 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeSimpleAlignment) {
       kTfLiteOk,
       allocator.ResizeBuffer(resizable_buf, /*size=*/100, /*alignment=*/1));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(100),
-                          allocator.GetHeadUsedBytes());
+                          allocator.GetNonPersistentUsedBytes());
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       allocator.ResizeBuffer(resizable_buf, /*size=*/10, /*alignment=*/1));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(10),
-                          allocator.GetHeadUsedBytes());
+                          allocator.GetNonPersistentUsedBytes());
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       allocator.ResizeBuffer(resizable_buf, /*size=*/1000, /*alignment=*/1));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1000),
-                          allocator.GetHeadUsedBytes());
+                          allocator.GetNonPersistentUsedBytes());
 }
 
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignment) {
@@ -67,20 +67,20 @@ TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignment) {
 
   // Offset alignment of 12 can lead to allocation within 8 byte range of
   // requested bytes based to arena alignment at runtime:
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetHeadUsedBytes(), 100);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetHeadUsedBytes(), 100 + 11);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 100);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100 + 11);
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       allocator.ResizeBuffer(resizable_buf, /*size=*/10, /*alignment=*/12));
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetHeadUsedBytes(), 10);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetHeadUsedBytes(), 100 + 11);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 10);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100 + 11);
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       allocator.ResizeBuffer(resizable_buf, /*size=*/1000, /*alignment=*/12));
-  TF_LITE_MICRO_EXPECT_GE(allocator.GetHeadUsedBytes(), 1000);
-  TF_LITE_MICRO_EXPECT_LE(allocator.GetHeadUsedBytes(), 1000 + 11);
+  TF_LITE_MICRO_EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 1000);
+  TF_LITE_MICRO_EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 1000 + 11);
 }
 
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignedHandlesCorrectBytesAvailable) {
@@ -132,8 +132,8 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
   constexpr size_t allocation_size = 100;
   allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
                          /*alignment=*/1);
-    allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
-        /*alignment=*/1);
+  allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
+                                     /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
                           arena_size - allocation_size * 2);
@@ -173,8 +173,8 @@ TF_LITE_MICRO_TEST(TestGetUsedBytes) {
   constexpr size_t allocation_size = 100;
   allocator.ResizeBuffer(resizable_buf, /*size=*/allocation_size,
                          /*alignment=*/1);
-    allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
-        /*alignment=*/1);
+  allocator.AllocatePersistentBuffer(/*size=*/allocation_size,
+                                     /*alignment=*/1);
 
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), allocation_size * 2);
 }
@@ -297,7 +297,7 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
 
   // The most recent head allocation should be in the same location as the
   // original temp allocation pointer.
-  TF_LITE_MICRO_EXPECT(temp == allocator.GetHeadBuffer());
+  TF_LITE_MICRO_EXPECT(temp == allocator.GetNonPersistentBufferStartAddress());
 }
 
 TF_LITE_MICRO_TEST(TestIsAllTempDeallocated) {

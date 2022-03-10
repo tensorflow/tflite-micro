@@ -109,11 +109,11 @@ void RecordingMicroAllocator::PrintAllocations() const {
   TF_LITE_REPORT_ERROR(
       error_reporter(),
       "[RecordingMicroAllocator] Arena allocation head %d bytes",
-      recording_memory_allocator_->GetHeadUsedBytes());
+      recording_memory_allocator_->GetNonPersistentUsedBytes());
   TF_LITE_REPORT_ERROR(
       error_reporter(),
       "[RecordingMicroAllocator] Arena allocation tail %d bytes",
-      recording_memory_allocator_->GetTailUsedBytes());
+      recording_memory_allocator_->GetPersistentUsedBytes());
   PrintRecordedAllocation(RecordedAllocationType::kTfLiteEvalTensorData,
                           "TfLiteEvalTensor data", "allocations");
   PrintRecordedAllocation(RecordedAllocationType::kPersistentTfLiteTensorData,

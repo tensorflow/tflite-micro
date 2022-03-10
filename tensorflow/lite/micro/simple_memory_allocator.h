@@ -64,8 +64,8 @@ class SimpleMemoryAllocator {
   virtual TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
                                                          size_t alignment);
 
-  // Allocates persistent memory starting at the tail of the arena (highest address and
-  // moving downwards).
+  // Allocates persistent memory starting at the tail of the arena (highest
+  // address and moving downwards).
   virtual uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment);
 
   // Allocates a temporary buffer from the head of the arena (lowest address and
@@ -93,13 +93,13 @@ class SimpleMemoryAllocator {
 
   // Returns a pointer to the buffer currently assigned to the head section.
   // This buffer is set by calling SetHeadSize().
-  uint8_t* GetHeadBuffer() const;
+  uint8_t* GetNonPersistentBufferStartAddress() const;
 
   // Returns the size of the head section in bytes.
-  size_t GetHeadUsedBytes() const;
+  size_t GetNonPersistentUsedBytes() const;
 
   // Returns the size of all allocations in the tail section in bytes.
-  size_t GetTailUsedBytes() const;
+  size_t GetPersistentUsedBytes() const;
 
   // Returns the number of bytes available with a given alignment. This number
   // takes in account any temporary allocations.

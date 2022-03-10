@@ -172,13 +172,15 @@ TfLiteStatus SimpleMemoryAllocator::ResetTempAllocations() {
   return kTfLiteOk;
 }
 
-uint8_t* SimpleMemoryAllocator::GetHeadBuffer() const { return buffer_head_; }
+uint8_t* SimpleMemoryAllocator::GetNonPersistentBufferStartAddress() const {
+  return buffer_head_;
+}
 
-size_t SimpleMemoryAllocator::GetHeadUsedBytes() const {
+size_t SimpleMemoryAllocator::GetNonPersistentUsedBytes() const {
   return head_ - buffer_head_;
 }
 
-size_t SimpleMemoryAllocator::GetTailUsedBytes() const {
+size_t SimpleMemoryAllocator::GetPersistentUsedBytes() const {
   return buffer_tail_ - tail_;
 }
 

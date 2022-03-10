@@ -69,8 +69,8 @@ TfLiteStatus RecordingSimpleMemoryAllocator::ResizeBuffer(
   return status;
 }
 
-uint8_t* RecordingSimpleMemoryAllocator::AllocatePersistentBuffer(size_t size,
-                                                                  size_t alignment) {
+uint8_t* RecordingSimpleMemoryAllocator::AllocatePersistentBuffer(
+    size_t size, size_t alignment) {
   const uint8_t* previous_tail = tail();
   uint8_t* result =
       SimpleMemoryAllocator::AllocatePersistentBuffer(size, alignment);

@@ -126,7 +126,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
                                           tflite::GetMicroErrorReporter());
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter0.AllocateTensors());
     simple_model_head_usage =
-        allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes();
+        allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes();
 
     TfLiteTensor* input = interpreter0.input(0);
     TfLiteTensor* output = interpreter0.output(0);
@@ -149,7 +149,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   TfLiteTensor* input1 = interpreter1.input(0);
   TfLiteTensor* output1 = interpreter1.output(0);
   complex_model_head_usage =
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes();
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes();
 
   // Allocate simple model from the same `allocator`. Some head space will
   // be reused thanks to multi-tenant TFLM support. Also makes sure that
@@ -162,7 +162,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   TfLiteTensor* output2 = interpreter2.output(0);
   // Verify that 1 + 1 < 2.
   size_t multi_tenant_head_usage =
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes();
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes();
   TF_LITE_MICRO_EXPECT_LE(multi_tenant_head_usage,
                           complex_model_head_usage + simple_model_head_usage);
 
@@ -199,7 +199,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   // No increase on the head usage as we're reusing the space.
   TF_LITE_MICRO_EXPECT_EQ(
       multi_tenant_head_usage,
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes());
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes());
 }
 
 TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
@@ -337,7 +337,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
 
   // The head buffer use cannot exceed the upper bound from x86.
   TF_LITE_MICRO_EXPECT_LE(
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes(),
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
       max_scratch_buffer_request_size);
 
   // Ensure allocations are zero (ignore tail since some internal structs are
@@ -382,7 +382,7 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
   // initialized with this space):
   TF_LITE_MICRO_EXPECT_EQ(
       static_cast<size_t>(0),
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes());
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes());
   TF_LITE_MICRO_EXPECT_EQ(
       static_cast<size_t>(0),
       allocator
@@ -406,7 +406,7 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
   // Allocation sizes vary based on platform - check that allocations are now
   // non-zero:
   TF_LITE_MICRO_EXPECT_GT(
-      allocator->GetSimpleMemoryAllocator()->GetHeadUsedBytes(),
+      allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
       static_cast<size_t>(0));
   TF_LITE_MICRO_EXPECT_GT(
       allocator
