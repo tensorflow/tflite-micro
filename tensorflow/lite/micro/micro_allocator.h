@@ -300,6 +300,9 @@ class MicroAllocator {
   // section when a model is allocating.
   size_t scratch_buffer_request_count_ = 0;
 
+  // Holds ScratchBufferRequest when a model is allocating
+  uint8_t* scratch_buffer_head_ = nullptr;
+
   // Holds the byte length of the memory plan with the largest head usage. Used
   // to ensure that multi-tenant allocations can share the head for buffers.
   size_t max_head_buffer_usage_ = 0;

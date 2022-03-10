@@ -499,7 +499,8 @@ TfLiteStatus MicroAllocator::FinishPrepareNodeAllocations(int node_id) {
 
   // Ensure that the head is re-adjusted to allow for another at-most
   // kMaxScratchBuffersPerOp scratch buffer requests in the next operator:
-  TF_LITE_ENSURE_STATUS(memory_allocator_->SetHeadBufferSize(
+  TF_LITE_ENSURE_STATUS(memory_allocator_->ResizeBuffer(
+      scratch_buffer_head_,
       sizeof(internal::ScratchBufferRequest) *
           (scratch_buffer_request_count_ + kMaxScratchBuffersPerOp),
       alignof(internal::ScratchBufferRequest)));
@@ -778,6 +779,8 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   builder.FreeAllocationInfo();
   memory_allocator_->DeallocateTemp(planner_arena);
   TF_LITE_ENSURE_STATUS(memory_allocator_->ResetTempAllocations());
+  TF_LITE_ENSURE_STATUS(
+      memory_allocator_->DeallocateResizableBuffer(scratch_buffer_head_));
 
 #ifdef TF_LITE_SHOW_MEMORY_USE
   memory_planner_->PrintMemoryPlan();
@@ -796,7 +799,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   // The head is used for storing scratch buffer allocations before finalizing a
   // memory plan in this function. Ensure that the head is set to the largest
   // memory plan sent through the allocator:
-  TF_LITE_ENSURE_STATUS(memory_allocator_->SetHeadBufferSize(
+  TF_LITE_ENSURE_STATUS(memory_allocator_->ReserveNonPersistentOverlayMemory(
       max_head_buffer_usage_, MicroArenaBufferAlignment()));
   return kTfLiteOk;
 }
@@ -828,17 +831,19 @@ TfLiteStatus MicroAllocator::InitScratchBufferData() {
   // All requests will be stored in the head section. Each kernel is allowed at
   // most kMaxScratchBuffersPerOp requests. Adjust the head to reserve at most
   // that many requests to begin:
-  TF_LITE_ENSURE_STATUS(memory_allocator_->SetHeadBufferSize(
+  scratch_buffer_head_ = memory_allocator_->AllocateResizableBuffer(
       sizeof(internal::ScratchBufferRequest) * kMaxScratchBuffersPerOp,
-      alignof(internal::ScratchBufferRequest)));
+      alignof(internal::ScratchBufferRequest));
+  if (scratch_buffer_head_ == nullptr) {
+    return kTfLiteError;
+  }
 
   return kTfLiteOk;
 }
 
 internal::ScratchBufferRequest* MicroAllocator::GetScratchBufferRequests() {
-  return reinterpret_cast<internal::ScratchBufferRequest*>(
-      AlignPointerUp(memory_allocator_->GetHeadBuffer(),
-                     alignof(internal::ScratchBufferRequest)));
+  return reinterpret_cast<internal::ScratchBufferRequest*>(AlignPointerUp(
+      scratch_buffer_head_, alignof(internal::ScratchBufferRequest)));
 }
 
 BuiltinDataAllocator* MicroAllocator::GetBuiltinDataAllocator() {

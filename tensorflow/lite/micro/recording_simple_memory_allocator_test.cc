@@ -84,8 +84,12 @@ TF_LITE_MICRO_TEST(TestRecordsHeadSizeAdjustment) {
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
 
+  uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
+  TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
+
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, allocator.SetHeadBufferSize(/*size=*/5, /*alignment=*/1));
+      kTfLiteOk,
+      allocator.ResizeBuffer(resizable_buf, /*size=*/5, /*alignment=*/1));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(5));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
                           static_cast<size_t>(5));
@@ -107,9 +111,12 @@ TF_LITE_MICRO_TEST(TestRecordsMisalignedHeadSizeAdjustments) {
   uint8_t arena[arena_size];
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
+  uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 12);
+  TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, allocator.SetHeadBufferSize(/*size=*/10, /*alignment=*/12));
+      kTfLiteOk,
+      allocator.ResizeBuffer(resizable_buf, /*size=*/10, /*alignment=*/12));
   // Validate used bytes in 8 byte range that can included alignment of 12:
   TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), static_cast<size_t>(10));
   TF_LITE_MICRO_EXPECT_LE(allocator.GetUsedBytes(), static_cast<size_t>(20));
@@ -126,8 +133,12 @@ TF_LITE_MICRO_TEST(TestDoesNotRecordFailedTailAllocations) {
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, allocator.SetHeadBufferSize(
-                                            /*size=*/2048, /*alignment=*/1));
+  uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
+  TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteError, allocator.ResizeBuffer(resizable_buf,
+                                           /*size=*/2048, /*alignment=*/1));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(0));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
                           static_cast<size_t>(0));
