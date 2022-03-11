@@ -71,7 +71,8 @@ void* FakeMicroContext::AllocatePersistentBuffer(size_t bytes) {
   // apply the buffer alignment like MicroAllocator.
   // The buffer alignment is potentially wasteful but allows the
   // fake_micro_context to work correctly with optimized kernels.
-  return allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
+  return allocator_->AllocatePersistentBuffer(bytes,
+                                              MicroArenaBufferAlignment());
 }
 
 TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(size_t bytes,
@@ -88,7 +89,7 @@ TfLiteStatus FakeMicroContext::RequestScratchBufferInArena(size_t bytes,
   // for the lifetime of model. This means that the arena size in the tests will
   // be more than what we would have if the scratch buffers could share memory.
   scratch_buffers_[scratch_buffer_count_] =
-      allocator_->AllocateFromTail(bytes, MicroArenaBufferAlignment());
+      allocator_->AllocatePersistentBuffer(bytes, MicroArenaBufferAlignment());
   TFLITE_DCHECK(scratch_buffers_[scratch_buffer_count_] != nullptr);
 
   *buffer_index = scratch_buffer_count_++;
