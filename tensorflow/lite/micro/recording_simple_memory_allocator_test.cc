@@ -29,7 +29,8 @@ TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(/*size=*/10, /*alignment=*/1);
+  uint8_t* result =
+      allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/1);
   TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(10));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
@@ -37,7 +38,7 @@ TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAllocatedCount(),
                           static_cast<size_t>(1));
 
-  result = allocator.AllocateFromTail(/*size=*/20, /*alignment=*/1);
+  result = allocator.AllocatePersistentBuffer(/*size=*/20, /*alignment=*/1);
   TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(30));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
@@ -52,7 +53,8 @@ TF_LITE_MICRO_TEST(TestRecordsMisalignedTailAllocations) {
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(/*size=*/10, /*alignment=*/12);
+  uint8_t* result =
+      allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/12);
   TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   // Validate used bytes in 8 byte range that can included alignment of 12:
   TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), static_cast<size_t>(10));
@@ -69,7 +71,8 @@ TF_LITE_MICRO_TEST(TestDoesNotRecordFailedTailAllocations) {
   tflite::RecordingSimpleMemoryAllocator allocator(
       tflite::GetMicroErrorReporter(), arena, arena_size);
 
-  uint8_t* result = allocator.AllocateFromTail(/*size=*/2048, /*alignment=*/1);
+  uint8_t* result =
+      allocator.AllocatePersistentBuffer(/*size=*/2048, /*alignment=*/1);
   TF_LITE_MICRO_EXPECT(result == nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(0));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
@@ -97,7 +100,8 @@ TF_LITE_MICRO_TEST(TestRecordsHeadSizeAdjustment) {
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetAllocatedCount(),
                           static_cast<size_t>(0));
 
-  uint8_t* result = allocator.AllocateFromTail(/*size=*/15, /*alignment=*/1);
+  uint8_t* result =
+      allocator.AllocatePersistentBuffer(/*size=*/15, /*alignment=*/1);
   TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(20));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
