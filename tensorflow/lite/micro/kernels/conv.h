@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -77,12 +77,22 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 // (reference or optimized) must define this function.
 TfLiteRegistration Register_CONV_2D();
 
-#if defined(XTENSA)
+#if defined(XTENSA) || defined(CMSIS_NN)
 // Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 inputs and outputs.
 TfLiteRegistration Register_CONV_2D_INT8REF();
 #else
 inline TfLiteRegistration Register_CONV_2D_INT8REF() {
+  return Register_CONV_2D();
+}
+#endif
+
+#if defined(CMSIS_NN)
+// Returns a TfLiteRegistration struct for kernel variant that only supports
+// int16 inputs and outputs.
+TfLiteRegistration Register_CONV_2D_INT16X8REF();
+#else
+inline TfLiteRegistration Register_CONV_2D_INT16X8REF() {
   return Register_CONV_2D();
 }
 #endif

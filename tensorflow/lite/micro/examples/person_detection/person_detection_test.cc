@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // needed by this graph.
   tflite::MicroMutableOpResolver<5> micro_op_resolver;
   micro_op_resolver.AddAveragePool2D();
-  micro_op_resolver.AddConv2D();
+  micro_op_resolver.AddConv2D(tflite::Register_CONV_2D_INT8REF());
   micro_op_resolver.AddDepthwiseConv2D();
   micro_op_resolver.AddReshape();
   micro_op_resolver.AddSoftmax();
