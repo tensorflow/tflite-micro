@@ -139,8 +139,6 @@ tflm_kernel_cc_library(
         "arg_min_max.cc",
         "assign_variable.cc",
         "batch_to_space_nd.cc",
-        "broadcast_args.cc",
-        "broadcast_to.cc",
         "call_once.cc",
         "cast.cc",
         "ceil.cc",
@@ -220,6 +218,7 @@ tflm_kernel_cc_library(
         "transpose_conv.cc",
         "unpack.cc",
         "var_handle.cc",
+        "while.cc",
         "zeros_like.cc",
     ],
     hdrs = [
@@ -363,34 +362,6 @@ cc_test(
     name = "batch_to_space_nd_test",
     srcs = [
         "batch_to_space_nd_test.cc",
-    ],
-    deps = [
-        ":kernel_runner",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-cc_test(
-    name = "broadcast_args_test",
-    srcs = [
-        "broadcast_args_test.cc",
-    ],
-    deps = [
-        ":kernel_runner",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-cc_test(
-    name = "broadcast_to_test",
-    srcs = [
-        "broadcast_to_test.cc",
     ],
     deps = [
         ":kernel_runner",
@@ -1237,6 +1208,20 @@ cc_test(
     name = "unpack_test",
     srcs = [
         "unpack_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "while_test",
+    srcs = [
+        "while_test.cc",
     ],
     deps = [
         ":kernel_runner",
