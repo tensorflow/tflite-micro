@@ -300,6 +300,7 @@ tensorflow/lite/micro/kernels/add_n.cc \
 tensorflow/lite/micro/kernels/arg_min_max.cc \
 tensorflow/lite/micro/kernels/assign_variable.cc \
 tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
+tensorflow/lite/micro/kernels/broadcast_args.cc \
 tensorflow/lite/micro/kernels/broadcast_to.cc \
 tensorflow/lite/micro/kernels/call_once.cc \
 tensorflow/lite/micro/kernels/cast.cc \
