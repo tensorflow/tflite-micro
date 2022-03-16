@@ -29,6 +29,8 @@ AllOpsResolver::AllOpsResolver() {
   AddAssignVariable();
   AddAveragePool2D();
   AddBatchToSpaceNd();
+  AddBroadcastArgs();
+  AddBroadcastTo();
   AddCallOnce();
   AddCast();
   AddCeil();
