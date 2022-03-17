@@ -218,7 +218,6 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
       const int tensor_index = op->outputs()->Get(n);
       AllocationInfo* current = &subgraph_allocation_info[tensor_index];
       UpdateFirstCreated(current, allocation_scope_count_);
-      UpdateLastUsed(current, allocation_scope_count_);
     }
 
     // Keep track of scope count before any subgraphs, so that scratch buffers'
@@ -242,6 +241,12 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
         // tensor).
         UpdateLastUsed(current, allocation_scope_count_);
       }
+    }
+    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
+         ++n) {
+      const int tensor_index = op->outputs()->Get(n);
+      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+      UpdateLastUsed(current, allocation_scope_count_);
     }
 
     // Mark thse lifetime of scratch buffers belonging to the current node. This

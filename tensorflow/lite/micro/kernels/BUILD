@@ -220,6 +220,7 @@ tflm_kernel_cc_library(
         "transpose_conv.cc",
         "unpack.cc",
         "var_handle.cc",
+        "while.cc",
         "zeros_like.cc",
     ],
     hdrs = [
@@ -1237,6 +1238,20 @@ cc_test(
     name = "unpack_test",
     srcs = [
         "unpack_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "while_test",
+    srcs = [
+        "while_test.cc",
     ],
     deps = [
         ":kernel_runner",
