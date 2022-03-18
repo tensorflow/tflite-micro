@@ -57,12 +57,6 @@ INCLUDES += -I$(ETHOSU_DRIVER_PATH)/include \
             -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 ETHOSU_FLAGS := -DETHOSU_LOG_SEVERITY=ETHOSU_LOG_WARN
-
-# TODO(#47718): resolve warnings.
-CCFLAGS += \
-  -Wno-return-type \
-  -Wno-format
-
 ifeq ($(ETHOSU_ARCH), u55)
   ETHOSU_FLAGS += \
     -DETHOSU_ARCH=u55 \
@@ -76,11 +70,6 @@ else
 endif
 CCFLAGS += ${ETHOSU_FLAGS}
 CXXFLAGS += ${ETHOSU_FLAGS}
-
-ifeq ($(TOOLCHAIN), gcc)
-  CCFLAGS += \
-    -Wno-unused-but-set-variable
-endif
 
 # Convert downloaded person detect int8 model.
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc:
