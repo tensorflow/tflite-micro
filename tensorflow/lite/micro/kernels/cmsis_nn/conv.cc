@@ -39,8 +39,8 @@ struct OpData {
 };
 
 // TODO(b/169801227): This global struct is needed for the linker to drop unused
-// code (for example, by using Register_FULLY_CONNECTED_INT8 instead of
-// Register_FULLY_CONNECTED).
+// code (for example, by using Register_CONV_2D_INT8 instead of
+// Register_CONV_2D).
 TfLiteRegistration conv_registration;
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
@@ -145,11 +145,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalQuantizedPerChannel(
-    TfLiteContext* context, TfLiteNode* node, const TfLiteConvParams& params,
-    const OpData& data, const TfLiteEvalTensor* input,
-    const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias,
-    TfLiteEvalTensor* output, TfLiteEvalTensor* im2col) {
+TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
+                                     const TfLiteConvParams& params,
+                                     const OpData& data,
+                                     const TfLiteEvalTensor* input,
+                                     const TfLiteEvalTensor* filter,
+                                     const TfLiteEvalTensor* bias,
+                                     TfLiteEvalTensor* output) {
   cmsis_nn_conv_params conv_params;
   conv_params.dilation.h = params.dilation_height_factor;
   conv_params.dilation.w = params.dilation_width_factor;
@@ -247,7 +249,7 @@ TfLiteStatus EvalQuantizedPerChannel16x8(
     TfLiteContext* context, TfLiteNode* node, const TfLiteConvParams& params,
     const OpData& data, const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias,
-    TfLiteEvalTensor* output, TfLiteEvalTensor* im2col) {
+    TfLiteEvalTensor* output) {
   cmsis_nn_conv_params conv_params;
   conv_params.dilation.h = params.dilation_height_factor;
   conv_params.dilation.w = params.dilation_width_factor;
@@ -358,7 +360,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
   return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                 bias, output, nullptr);
+                                 bias, output);
 }
 
 TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
@@ -380,7 +382,7 @@ TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
   return EvalQuantizedPerChannel16x8(context, node, params, data, input, filter,
-                                     bias, output, nullptr);
+                                     bias, output);
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
@@ -425,7 +427,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8:
       return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                     bias, output, nullptr);
+                                     bias, output);
+      break;
+    case kTfLiteInt16:
+      return EvalQuantizedPerChannel16x8(context, node, params, data, input,
+                                         filter, bias, output);
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
@@ -449,7 +455,7 @@ TfLiteRegistration Register_CONV_2D() {
   return conv_registration;
 }
 
-TfLiteRegistration Register_CONV_2D_INT8REF() {
+TfLiteRegistration Register_CONV_2D_INT8() {
   conv_registration.init = Init;
   conv_registration.free = nullptr;
   conv_registration.prepare = Prepare;
@@ -461,7 +467,7 @@ TfLiteRegistration Register_CONV_2D_INT8REF() {
   return conv_registration;
 }
 
-TfLiteRegistration Register_CONV_2D_INT16X8REF() {
+TfLiteRegistration Register_CONV_2D_INT16() {
   conv_registration.init = Init;
   conv_registration.free = nullptr;
   conv_registration.prepare = Prepare;

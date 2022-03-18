@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -215,8 +215,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel) {
           tflite::testing::kBiasData, bias_quantized, scales, zero_points,
           tflite::testing::kOutputShape, tflite::testing::kGoldenData,
           golden_quantized, output_scale, output_zero_point,
-          &tflite::testing::common_conv_params,
-          tflite::Register_CONV_2D_INT16X8REF(), output_data));
+          &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
+          output_data));
 }
 
 TF_LITE_MICRO_TEST(SimpleTestDilatedQuantizedPerChannel) {
@@ -325,7 +325,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu6) {
           filter_quantized, tflite::testing::kBiasShape, bias_values,
           bias_quantized, scales, zero_points, tflite::testing::kOutputShape,
           golden_data, golden_quantized, output_scale, output_zero_point,
-          &conv_params, tflite::Register_CONV_2D_INT16X8REF(), output_data));
+          &conv_params, tflite::Register_CONV_2D(), output_data));
 }
 
 TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannel) {
@@ -474,14 +474,13 @@ TF_LITE_MICRO_TEST(Kernel1x1Quantized16x8PerChannelRelu6) {
   float scales[bias_elements + 1];
 
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestConvQuantizedPerChannel(
-          input_shape, input_data, input_quantized, input_scale,
-          input_zero_point, filter_shape, filter_data, filter_quantized,
-          bias_shape, bias_data, bias_quantized, scales, zero_points,
-          output_shape, golden_data, golden_quantized, output_scale,
-          output_zero_point, &conv_params,
-          tflite::Register_CONV_2D_INT16X8REF(), output_data));
+      kTfLiteOk, tflite::testing::TestConvQuantizedPerChannel(
+                     input_shape, input_data, input_quantized, input_scale,
+                     input_zero_point, filter_shape, filter_data,
+                     filter_quantized, bias_shape, bias_data, bias_quantized,
+                     scales, zero_points, output_shape, golden_data,
+                     golden_quantized, output_scale, output_zero_point,
+                     &conv_params, tflite::Register_CONV_2D(), output_data));
 }
 
 TF_LITE_MICRO_TEST(BroadcastPerLayerQuantizationToPerChannelShouldMatchGolden) {
