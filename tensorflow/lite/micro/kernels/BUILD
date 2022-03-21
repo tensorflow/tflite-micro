@@ -5,6 +5,7 @@ load(
     "xtensa_fusion_f1_config",
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
+    "xtensa_vision_p6_config",
 )
 
 package(
@@ -128,6 +129,11 @@ HIFI5_COPTS = [
     "-DHIFI5=1",
 ]
 
+VP6_COPTS = [
+    "-DXTENSA=1",
+    "-DVISION_P6=1",
+]
+
 tflm_kernel_cc_library(
     name = "micro_ops",
     srcs = [
@@ -248,17 +254,20 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.h"]),
+        xtensa_vision_p6_config(): glob(["xtensa/**/*.h"]),
         "//conditions:default": [],
     }),
     accelerated_srcs = {
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
+        xtensa_vision_p6_config(): VP6_COPTS,
         "//conditions:default": [],
     }),
     visibility = [
@@ -290,6 +299,7 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_5_config(): ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
+        xtensa_vision_p6_config(): ["//third_party/xtensa/xi_annlib_vision_p6:xi_annlib_vision_p6_lib"],
         "//conditions:default": [],
     }),
 )
@@ -1297,5 +1307,12 @@ config_setting(
     name = "xtensa_hifi_5_default",
     values = {
         "cpu": "AE_HiFi5_LE5_AO_FP_XC",
+    },
+)
+
+config_setting(
+    name = "xtensa_vision_p6_default",
+    values = {
+        "cpu": "P6_200528",
     },
 )
