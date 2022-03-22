@@ -68,9 +68,14 @@ void QuantizeMultiplier(double double_multiplier, int32_t* quantized_multiplier,
   // that only requires integer and bitwise operations. To enable this, you
   // need to set the define during the build process for your platform.
   int64_t q_fixed = IntegerFrExp(double_multiplier, shift);
-#else   // TFLITE_EMULATE_FLOAT
+#else  // TFLITE_EMULATE_FLOAT
   const double q = std::frexp(double_multiplier, shift);
+#if defined(DOUBLE_DEFINED_AS_FLOAT)
+  // TODO(b/212743196): Remove this when double is supported as 64 bits
+  auto q_fixed = static_cast<int32_t>(TfLiteRound(q * (1LL << 31)));
+#else
   auto q_fixed = static_cast<int64_t>(TfLiteRound(q * (1LL << 31)));
+#endif  // DOUBLE_DEFINED_AS_FLOAT
 #endif  // TFLITE_EMULATE_FLOAT
   TFLITE_CHECK(q_fixed <= (1LL << 31));
   if (q_fixed == (1LL << 31)) {
@@ -342,11 +347,22 @@ int CalculateInputRadius(int input_integer_bits, int input_left_shift,
   result <<= (total_signed_bits - input_integer_bits);
   result >>= input_left_shift;
   return result;
-#else   // TFLITE_EMULATE_FLOAT
+#else  // TFLITE_EMULATE_FLOAT
+#if defined(DOUBLE_DEFINED_AS_FLOAT)
+  // TODO(b/212743196): Remove this when double is supported as 64 bits
+  int input_left_sh1 = std::min(input_left_shift, 30);
+  int input_left_sh2 = input_left_shift - input_left_sh1;
+  const double max_input_rescaled =
+      (1.0 * ((1 << input_integer_bits) - 1) *
+       (1L << (total_signed_bits - input_integer_bits)) /
+       (1L << input_left_sh1)) /
+      (1L << input_left_sh2);
+#else
   const double max_input_rescaled =
       1.0 * ((1 << input_integer_bits) - 1) *
       (1LL << (total_signed_bits - input_integer_bits)) /
       (1LL << input_left_shift);
+#endif  // DOUBLE_DEFINED_AS_FLOAT
   // Tighten bound using floor.  Suppose that we could use the exact value.
   // After scaling the difference, the result would be at the maximum.  Thus we
   // must ensure that our value has lower magnitude.

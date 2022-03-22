@@ -554,15 +554,29 @@ int TfLiteTypeGetSize(TfLiteType type) {
     case kTfLiteUInt64:
       static_assert(sizeof(uint64_t) == 8, "");
       return 8;
+#if defined(DOUBLE_DEFINED_AS_FLOAT)
+    // TODO(b/212743196): Remove this when double is supported as 64 bits
+    case kTfLiteFloat64:
+      static_assert(sizeof(double) == 4, "");
+      return 4;
+#else
     case kTfLiteFloat64:
       static_assert(sizeof(double) == 8, "");
       return 8;
+#endif  // DOUBLE_DEFINED_AS_FLOAT
     case kTfLiteComplex64:
       static_assert(sizeof(std::complex<float>) == 8, "");
       return 8;
+#if defined(DOUBLE_DEFINED_AS_FLOAT)
+    // TODO(b/212743196): Remove this when double is supported as 64 bits
+    case kTfLiteComplex128:
+      static_assert(sizeof(std::complex<double>) == 8, "");
+      return 8;
+#else
     case kTfLiteComplex128:
       static_assert(sizeof(std::complex<double>) == 16, "");
       return 16;
+#endif  // DOUBLE_DEFINED_AS_FLOAT
     default:
       return 0;
   }
