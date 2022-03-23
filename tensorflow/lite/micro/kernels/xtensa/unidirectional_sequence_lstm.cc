@@ -670,6 +670,11 @@ TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
   TF_LITE_ENSURE_EQ(context, weight_shape.DimensionsCount(), 2);
   const int row = weight_shape.Dims(0);
   const int col = weight_shape.Dims(1);
+  /* Releases ownership of its stored pointer, by returning its value
+     and replacing it with a null pointer. */
+  int *temp = output->release();
+  (void)temp;
+
   output->reset(new int32_t[row]);
   if (bias_tensor == nullptr) {
     memset(output->get(), 0, row * sizeof(int32_t));
