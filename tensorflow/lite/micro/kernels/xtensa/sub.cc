@@ -142,9 +142,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
               op_params.input2_offset, op_params.input2_shift,
               op_params.input2_multiplier, op_params.left_shift,
               outerloop_count, innerloop_count);
-        } else
-#endif  // HIFI4_INTERNAL
-        {
+        } else {
           tflite::reference_ops::BroadcastQuantSubSlow(
               op_params, tflite::micro::GetTensorShape(input1),
               tflite::micro::GetTensorData<int16_t>(input1),
@@ -153,6 +151,15 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int16_t>(output));
         }
+#else
+        tflite::reference_ops::BroadcastQuantSubSlow(
+            op_params, tflite::micro::GetTensorShape(input1),
+            tflite::micro::GetTensorData<int16_t>(input1),
+            tflite::micro::GetTensorShape(input2),
+            tflite::micro::GetTensorData<int16_t>(input2),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int16_t>(output));
+#endif  // HIFI4_INTERNAL
       } else {
         tflite::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),
