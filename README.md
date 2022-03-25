@@ -96,6 +96,7 @@ The following resources may also be useful:
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
+ * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
 
 # RFCs
 
