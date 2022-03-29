@@ -43,17 +43,30 @@ class SimpleMemoryAllocator {
                                        uint8_t* buffer_head,
                                        size_t buffer_size);
 
-  // Adjusts the head (lowest address and moving upwards) memory allocation to a
-  // given size. Calls to this method will also invalidate all temporary
-  // allocation values (it sets the location of temp space at the end of the
-  // head section). This call will fail if a chain of allocations through
-  // AllocateTemp() have not been cleaned up with a call to
-  // ResetTempAllocations().
-  virtual TfLiteStatus SetHeadBufferSize(size_t size, size_t alignment);
+  // Resizes a buffer that is previously returned by the
+  // AllocateResizableBuffer. In current implementation, it Adjusts the head
+  // (lowest address and moving upwards) memory allocation to a given size.
+  // Calls to this method will also invalidate all temporary allocation values
+  // (it sets the location of temp space at the end of the head section). This
+  // call will fail if a chain of allocations through AllocateTemp() have not
+  // been cleaned up with a call to ResetTempAllocations().
+  virtual TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
+                                    size_t alignment);
 
-  // Allocates memory starting at the tail of the arena (highest address and
-  // moving downwards).
-  virtual uint8_t* AllocateFromTail(size_t size, size_t alignment);
+  // Returns a buffer that is resizable viable ResizeBuffer(). Only one
+  // resizable buffer is currently supported.
+  virtual uint8_t* AllocateResizableBuffer(size_t size, size_t alignment);
+
+  // Frees up the memory occupied by the resizable buffer
+  virtual TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf);
+
+  // Reserves the non-persistent memory that is planned by the memory planner.
+  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
+                                                         size_t alignment);
+
+  // Allocates persistent memory starting at the tail of the arena (highest
+  // address and moving downwards).
+  virtual uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment);
 
   // Allocates a temporary buffer from the head of the arena (lowest address and
   // moving upwards) but does not update the actual head allocation size or
@@ -80,13 +93,13 @@ class SimpleMemoryAllocator {
 
   // Returns a pointer to the buffer currently assigned to the head section.
   // This buffer is set by calling SetHeadSize().
-  uint8_t* GetHeadBuffer() const;
+  uint8_t* GetNonPersistentBufferStartAddress() const;
 
   // Returns the size of the head section in bytes.
-  size_t GetHeadUsedBytes() const;
+  size_t GetNonPersistentUsedBytes() const;
 
   // Returns the size of all allocations in the tail section in bytes.
-  size_t GetTailUsedBytes() const;
+  size_t GetPersistentUsedBytes() const;
 
   // Returns the number of bytes available with a given alignment. This number
   // takes in account any temporary allocations.

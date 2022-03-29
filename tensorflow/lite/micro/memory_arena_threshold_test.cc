@@ -159,10 +159,10 @@ void ValidateModelAllocationThresholds(
       "Total", allocator.GetSimpleMemoryAllocator()->GetUsedBytes(),
       thresholds.total_alloc_size);
   EnsureAllocatedSizeThreshold(
-      "Head", allocator.GetSimpleMemoryAllocator()->GetHeadUsedBytes(),
+      "Head", allocator.GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes(),
       thresholds.head_alloc_size);
   EnsureAllocatedSizeThreshold(
-      "Tail", allocator.GetSimpleMemoryAllocator()->GetTailUsedBytes(),
+      "Tail", allocator.GetSimpleMemoryAllocator()->GetPersistentUsedBytes(),
       thresholds.tail_alloc_size);
   EnsureAllocatedSizeThreshold(
       "TfLiteEvalTensor",

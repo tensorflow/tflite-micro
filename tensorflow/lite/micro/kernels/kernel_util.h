@@ -70,6 +70,34 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteTensor* tensor,
                                               TfLiteEvalTensor* eval_tensor);
 
+// Copy all op input tensors to op output tensors. Requires all op input tensor
+// shapes and types to be identical to op output tensor shapes and types.
+TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node);
+
+// Copy all op input tensors to subgraph input tensors. Requires all op input
+// tensor shapes and types to be identical to subgraph input tensor shapes and
+// types.
+TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
+                                          TfLiteNode* node,
+                                          MicroGraph* graph_info,
+                                          int subgraph_idx,
+                                          int first_tensor_idx);
+
+// Copy all op output tensors to subgraph input tensors. Requires all op output
+// tensor shapes and types to be identical to subgraph input tensor shapes and
+// types.
+TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
+                                           TfLiteNode* node,
+                                           MicroGraph* graph_info,
+                                           int subgraph_idx);
+
+// Copy all subgraph output tensors to op outputs. Requires all subgraph output
+// tensor shapes and types to be identical to op output tensor shapes and types.
+TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
+                                            TfLiteNode* node,
+                                            MicroGraph* graph_info,
+                                            int subgraph_idx);
+
 }  // namespace micro
 }  // namespace tflite
 
