@@ -1,6 +1,6 @@
 <!-- Define reference-style links used throughout the document -->
 [small PRs]: https://google.github.io/eng-practices/review/developer/small-cls.html
-[Micro Contributing Guidelines]: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/CONTRIBUTING.md
+[Micro Contributing Guidelines]: https://github.com/tensorflow/tflite-micro/blob/main/CONTRIBUTING.md
 [Providing Context]: https://testing.googleblog.com/2017/09/code-health-providing-context-with.html
 [`ParseOpDataTfLite()`]: https://github.com/tensorflow/tensorflow/blob/d8394a6d774f5e3c02d97f1fc18ff445199db598/tensorflow/lite/core/api/flatbuffer_conversions.cc#L135
 [PR #45307]: https://github.com/tensorflow/tensorflow/pull/45307
