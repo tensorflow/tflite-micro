@@ -15,27 +15,32 @@
 
 import os
 import shutil
-import numpy as np
-import tensorflow as tf
 
 from absl import app
+from absl import flags
 from mako import template
-from tflite_micro.tensorflow.lite.micro.integration_tests import \
-    generate_per_layer_tests as integration_tests
+from tflite_micro.tensorflow.lite.micro.tools import generate_test_for_model
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
-# FLAGS are reused from integration_tests. Note that final output will be in
-# FLAGS.output_dir/<base name of model>. Where <base name of model> will come
-# from FLAGS.input_tflite_file.
-integration_tests.flags.DEFINE_integer('arena_size', 1024 * 136,
-                                       'Size of arena')
-integration_tests.flags.DEFINE_boolean('verify_output', False,
-                                       'Verify output or just run model.')
+FLAGS = flags.FLAGS
+
+flags.DEFINE_string('input_tflite_file', None,
+                    'Full path name to the input TFLite file.')
+flags.DEFINE_string('output_dir', None, 'Directory to output generated files. \
+  Note that final output will be in FLAGS.output_dir/<base name of model>. \
+  Where <base name of model> will come from FLAGS.input_tflite_file.')
+flags.DEFINE_integer('arena_size', 1024 * 136,
+                     'Size of arena')
+flags.DEFINE_boolean('verify_output', False,
+                     'Verify output or just run model.')
+
+flags.mark_flag_as_required('input_tflite_file')
+flags.mark_flag_as_required('output_dir')
 
 
-class MicroMutableOpTestGenerator(integration_tests.TestDataGenerator):
+class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
   def __init__(self, output_dir, model_path, verify_output, arena_size):
     super().__init__(output_dir, [model_path], [0])  # Third argument not used.
     self.verify_output = verify_output
@@ -53,33 +58,7 @@ class MicroMutableOpTestGenerator(integration_tests.TestDataGenerator):
   def generate_golden(self):
     if not self.verify_output:
       return
-
-    model_path = self.model_paths[0]
-    interpreter = tf.lite.Interpreter(model_path=model_path)
-
-    interpreter.allocate_tensors()
-
-    input_details = interpreter.get_input_details()
-    if len(input_details) > 1:
-      raise RuntimeError(f'Only models with one input supported')
-    input_tensor = interpreter.tensor(
-        interpreter.get_input_details()[0]['index'])
-    output_tensor = interpreter.tensor(
-        interpreter.get_output_details()[0]['index'])
-
-    input_type = interpreter.get_input_details()[0]['dtype']
-    output_type = interpreter.get_output_details()[0]['dtype']
-    if input_type != np.int8 or output_type != np.int8:
-      raise RuntimeError(f'Only int8 models supported')
-
-    generated_inputs = self.generate_inputs_single(interpreter,
-                                                   input_tensor().dtype)
-    for i, _input_detail in enumerate(input_details):
-      interpreter.set_tensor(input_details[i]["index"], generated_inputs[i])
-
-    interpreter.invoke()
-
-    self.write_golden(generated_inputs, model_path, output_tensor)
+    super().generate_golden()
 
   def generate_test(self, template_dir,
                     template_file,
@@ -114,12 +93,12 @@ class MicroMutableOpTestGenerator(integration_tests.TestDataGenerator):
 
 
 def main(_):
-  model_path = integration_tests.FLAGS.input_tflite_file
+  model_path = FLAGS.input_tflite_file
   model_name = model_path.split('/')[-1]
   base_model_name = model_name.split('.')[0]
   name_of_make_target = 'generated_micro_mutable_op_resolver_' + base_model_name
 
-  out_dir = integration_tests.FLAGS.output_dir + '/' + base_model_name
+  out_dir = FLAGS.output_dir + '/' + base_model_name
   os.makedirs(out_dir, exist_ok=True)
 
   # Copy model to out dir to get the Mako generation right
@@ -127,8 +106,8 @@ def main(_):
   shutil.copyfile(model_path, new_model_path)
 
   data_generator = MicroMutableOpTestGenerator(out_dir, new_model_path,
-                                               integration_tests.FLAGS.verify_output,
-                                               integration_tests.FLAGS.arena_size)
+                                               FLAGS.verify_output,
+                                               FLAGS.arena_size)
   data_generator.generate_golden()
   data_generator.generate_build_file(TEMPLATE_DIR)
   data_generator.generate_makefile(test_file='micro_mutable_op_resolver_test.cc',

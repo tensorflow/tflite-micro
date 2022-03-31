@@ -24,7 +24,7 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 MODEL="person_detect"
 TEST_TFLITE_FILE="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/models/${MODEL}.tflite)"
-TEST_OUTPUT_DIR_RELATIVE=tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver/generated
+TEST_OUTPUT_DIR_RELATIVE=tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test
 TEST_OUTPUT_DIR=${ROOT_DIR}/${TEST_OUTPUT_DIR_RELATIVE}
 mkdir -p ${TEST_OUTPUT_DIR}
 TEST_OUTPUT_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})"

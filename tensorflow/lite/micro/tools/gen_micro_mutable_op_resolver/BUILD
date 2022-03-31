@@ -46,6 +46,6 @@ py_binary(
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
         "//tensorflow/lite/tools:flatbuffer_utils",
-        "//tensorflow/lite/micro/integration_tests:generate_per_layer_tests",
+        "//tensorflow/lite/micro/tools:generate_test_for_model",
     ],
 )
