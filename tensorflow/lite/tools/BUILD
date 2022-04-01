@@ -46,6 +46,21 @@ py_binary(
     ],
 )
 
+py_binary(
+    name = "float16_to_float32",
+    srcs = ["float16_to_float32.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":flatbuffer_utils",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        requirement("flatbuffers"),
+        requirement("tensorflow-cpu"),
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
 py_test(
     name = "flatbuffer_utils_test",
     srcs = ["flatbuffer_utils_test.py"],
