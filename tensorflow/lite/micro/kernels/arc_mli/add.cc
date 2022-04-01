@@ -161,7 +161,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
     CalculateActivationRange(params->activation,
                              &data->output_activation_min_f32,
                              &data->output_activation_max_f32);
-#endif  //#if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
+#endif  // !defined(TF_LITE_STRIP_REFERENCE_IMPL)
   }
 
   return kTfLiteOk;
