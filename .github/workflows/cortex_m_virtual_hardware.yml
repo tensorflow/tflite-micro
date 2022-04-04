@@ -1,0 +1,76 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+name: Cortex-M on Arm Virtual Hardware
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  schedule:
+    - cron: '0 4 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  cortex_m_generic:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Generic
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_generic/vht ./vht_cm_g
+      - name: Execute test suite on Virtual Hardware at AWS
+        uses: Arm-Software/VHT-AMI@v2
+        with:
+          vht_in: ./vht_cm_g
+          ec2_instance_id: ''
+          s3_bucket_name: ${{ secrets.ARM_AWS_S3_BUCKET_NAME }}
+          ec2_instance_type: t2.xlarge
+          ec2_security_group_id: ${{ secrets.ARM_AWS_EC2_SECURITY_GROUP_ID }}
+          iam_profile: ${{ secrets.ARM_AWS_IAM_PROFILE }}
+          ssh_key_name: 'tflite-micro-debug'
+          subnet_id: ${{ secrets.ARM_AWS_SUBNET_ID }}
+          terminate_ec2_instance: 'true'
+          vht_ami_version: '1.1.2'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ARM_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ARM_AWS_ACCESS_KEY_SECRET }}
+          AWS_DEFAULT_REGION: ${{ secrets.ARM_AWS_DEFAULT_REGION }}
+      - name: Fetch results from VHT
+        run: |
+          tar xvzf out.tar
+  
+  
+  cortex_m_corstone_300:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Corstone 300 (FVP)
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare Execution (workaround)
+        run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
+      - name: Execute test suite on Virtual Hardware at AWS
+        uses: Arm-Software/VHT-AMI@v2
+        with:
+          vht_in: ./vht_cm_corstone300
+          ec2_instance_id: ''
+          s3_bucket_name: ${{ secrets.ARM_AWS_S3_BUCKET_NAME }}
+          ec2_instance_type: t2.xlarge
+          ec2_security_group_id: ${{ secrets.ARM_AWS_EC2_SECURITY_GROUP_ID }}
+          iam_profile: ${{ secrets.ARM_AWS_IAM_PROFILE }}
+          ssh_key_name: 'tflite-micro-debug'
+          subnet_id: ${{ secrets.ARM_AWS_SUBNET_ID }}
+          terminate_ec2_instance: 'true'
+          vht_ami_version: '1.1.2'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ARM_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ARM_AWS_ACCESS_KEY_SECRET }}
+          AWS_DEFAULT_REGION: ${{ secrets.ARM_AWS_DEFAULT_REGION }}
