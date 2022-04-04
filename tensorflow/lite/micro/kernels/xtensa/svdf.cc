@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
@@ -146,8 +147,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const int memory_size = weights_time->dims->data[1];
 
   if (input->type != kTfLiteInt8) {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    Microprintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type);
     return kTfLiteError;
   }
 
@@ -293,15 +294,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           break;
         }
         default:
-          TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                             TfLiteTypeGetName(weights_time->type));
+          MicroPrintf("Type %s not currently supported.",
+                      TfLiteTypeGetName(weights_time->type));
           return kTfLiteError;
       }
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
