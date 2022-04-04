@@ -863,6 +863,8 @@ TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
 
+  allocator->DeallocateTempTfLiteTensor(tensor1);
+
   allocator->ResetTempAllocations();
 
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(

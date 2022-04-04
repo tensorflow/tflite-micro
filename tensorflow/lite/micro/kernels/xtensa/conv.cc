@@ -33,7 +33,15 @@ namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(XtensaConvOpData));
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(XtensaConvOpData));
+#if defined(VISION_P6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif  // defined(VISION_P6)
+
+  return data;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -42,6 +50,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
 #endif
+#if defined(VISION_P6)
+  TF_LITE_ENSURE_OK(context, ConvPrepareVision(context, node));
+#endif  // VISION_P6
   return kTfLiteOk;
 }
 
@@ -52,7 +63,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
+    defined(VISION_P6)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
@@ -71,6 +83,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
       ConvEvalHifi(context, node, params, op_data, input, filter, bias, output);
+#elif defined(VISION_P6)
+      return ConvEvalVision(context, node, params, op_data, input, filter, bias,
+                            output);
 #else
       return ConvReferenceEvalInt8(context, node);
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
