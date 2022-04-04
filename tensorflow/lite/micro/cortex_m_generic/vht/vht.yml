@@ -1,6 +1,6 @@
 suite:
   name: "tensorflow-kernel-tests-reference"
-  model: "VHT_Corstone_SSE-300_Ethos-U55"
+  model: "VHT-Corstone-300"
   configuration: ""
   working_dir: "/home/ubuntu/vhtwork/"
   pre: "git clone https://github.com/tensorflow/tflite-micro.git && mv ./tflite-micro/tensorflow/ ."
@@ -13,8 +13,15 @@ suite:
       post: ""
   tests:
    - "placeholder entry":
+      shell: "tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./out/cortex_m_generic.log"
+      pre: ""
+      post: ""
+     
+  tests:
+   - "dummy entry":
       executable: ""
       arguments: "--cyclelimit 1"
       pre: ""
       post: ""
       timeout: 20
+

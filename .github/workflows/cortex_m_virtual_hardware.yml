@@ -29,6 +29,7 @@ jobs:
         uses: Arm-Software/VHT-AMI@v2
         with:
           vht_in: ./vht_cm_g
+
           ec2_instance_id: ''
           s3_bucket_name: ${{ secrets.ARM_AWS_S3_BUCKET_NAME }}
           ec2_instance_type: t2.xlarge
@@ -57,6 +58,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Prepare Execution (workaround)
         run:  mv ./tensorflow/lite/micro/cortex_m_corstone_300/vht ./vht_cm_corstone300
+
       - name: Execute test suite on Virtual Hardware at AWS
         uses: Arm-Software/VHT-AMI@v2
         with:
@@ -74,3 +76,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARM_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARM_AWS_ACCESS_KEY_SECRET }}
           AWS_DEFAULT_REGION: ${{ secrets.ARM_AWS_DEFAULT_REGION }}
+
