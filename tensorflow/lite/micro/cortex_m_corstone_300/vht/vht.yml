@@ -11,3 +11,11 @@ suite:
       shell: "tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh"
       pre: ""
       post: ""
+  tests:
+   - "placeholder entry":
+      executable: ""
+      arguments: "--cyclelimit 1"
+      pre: ""
+      post: ""
+      timeout: 20
+
