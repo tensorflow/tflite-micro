@@ -905,6 +905,123 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   return model;
 }
 
+const Model* BuildSimpleModelWithSubgraphsAndWhile() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  constexpr size_t buffers_size = 1;
+  const Offset<Buffer> buffers[buffers_size] = {
+      CreateBuffer(*builder),
+  };
+  const int32_t data_tensor_shape[] = {1, 1};
+  constexpr size_t while_tensors_size = 4;
+  constexpr size_t op_tensors_size = 3;
+  const Offset<Tensor> subgraph0_tensors[while_tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor0"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor0"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor1"), 0, false),
+  };
+  const Offset<Tensor> subgraph1_tensors[op_tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor2"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_BOOL, 0,
+                   builder->CreateString("condition_tensor"), 0, false),
+  };
+  const Offset<Tensor> subgraph2_tensors[op_tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor0"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 1),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor0"), 0, false),
+  };
+
+  constexpr size_t inputs_size = 2;
+  const int32_t inputs[inputs_size] = {0, 1};
+  constexpr size_t while_outputs_size = 2;
+  const int32_t while_outputs[while_outputs_size] = {2, 3};
+  constexpr size_t cond_outputs_size = 1;
+  const int32_t cond_outputs[cond_outputs_size] = {2};
+  constexpr size_t add_outputs_size = 1;
+  const int32_t add_outputs[add_outputs_size] = {2};
+  constexpr size_t add_subgraph_outputs_size = 2;
+  const int32_t add_subgraph_outputs[add_subgraph_outputs_size] = {2, 1};
+  constexpr size_t operators_size = 1;
+  const Offset<Operator> subgraph0_operators[operators_size] = {
+      CreateOperator(*builder, 0, builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(while_outputs, while_outputs_size),
+                     BuiltinOptions_WhileOptions,
+                     CreateWhileOptions(*builder, 1, 2).Union()),
+  };
+  const Offset<Operator> subgraph1_operators[operators_size] = {
+      CreateOperator(*builder, 1, builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(cond_outputs, cond_outputs_size),
+                     BuiltinOptions_NONE),
+  };
+  const Offset<Operator> subgraph2_operators[operators_size] = {
+      CreateOperator(*builder, 2, builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(add_outputs, add_outputs_size),
+                     BuiltinOptions_NONE),
+  };
+  constexpr size_t subgraphs_size = 3;
+  const Offset<SubGraph> subgraphs[subgraphs_size] = {
+      CreateSubGraph(*builder, builder->CreateVector(subgraph0_tensors, 4),
+                     builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(while_outputs, while_outputs_size),
+                     builder->CreateVector(subgraph0_operators, operators_size),
+                     builder->CreateString("while_subgraph")),
+      CreateSubGraph(*builder, builder->CreateVector(subgraph1_tensors, 3),
+                     builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(cond_outputs, cond_outputs_size),
+                     builder->CreateVector(subgraph1_operators, operators_size),
+                     builder->CreateString("cond_subgraph")),
+      CreateSubGraph(*builder, builder->CreateVector(subgraph2_tensors, 3),
+                     builder->CreateVector(inputs, inputs_size),
+                     builder->CreateVector(add_subgraph_outputs,
+                                           add_subgraph_outputs_size),
+                     builder->CreateVector(subgraph2_operators, operators_size),
+                     builder->CreateString("body_subgraph")),
+  };
+  constexpr size_t operator_codes_size = 3;
+  const Offset<OperatorCode> operator_codes[operator_codes_size] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_WHILE),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_LESS),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_ADD),
+  };
+  const Offset<Model> model_offset = CreateModel(
+      *builder, 0, builder->CreateVector(operator_codes, operator_codes_size),
+      builder->CreateVector(subgraphs, subgraphs_size),
+      builder->CreateString("test_model"),
+      builder->CreateVector(buffers, buffers_size));
+  FinishModelBuffer(*builder, model_offset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 // Build a model with If and two subgraphs: two data tensors A1 of size 2, A2 of
 // size 4 are first concatenated, then cut to a new tensor A3 of size 3; the new
 // tensor A3 of size 3 is then concatenated with A2 tensor of size 4 to produce
@@ -1219,8 +1336,11 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
 
   // Make sure that the input is in uint8_t with at least 1 data entry.
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+
   if (input->type != kTfLiteInt8) return kTfLiteError;
   if (NumElements(input->dims) == 0) return kTfLiteError;
 
@@ -1233,6 +1353,7 @@ TfLiteStatus SimpleStatefulOp::Prepare(TfLiteContext* context,
       context->AllocatePersistentBuffer(context, sizeof(int)));
   *data->invoke_count = 0;
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 
@@ -1241,9 +1362,10 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
   *data->invoke_count += 1;
 
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, kInputTensor, &input));
-  const uint8_t* input_data = GetTensorData<uint8_t>(input);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  const uint8_t* input_data = input->data.uint8;
   int size = NumElements(input->dims);
 
   uint8_t* sorting_buffer = reinterpret_cast<uint8_t*>(
@@ -1261,14 +1383,14 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
     }
   }
 
-  TfLiteTensor* median;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kMedianTensor, &median));
-  uint8_t* median_data = GetTensorData<uint8_t>(median);
-  TfLiteTensor* invoke_count;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kInvokeCount, &invoke_count));
-  int32_t* invoke_count_data = GetTensorData<int32_t>(invoke_count);
+  TfLiteEvalTensor* median =
+      tflite::micro::GetEvalOutput(context, node, kMedianTensor);
+  TF_LITE_ENSURE(context, median != nullptr);
+  uint8_t* median_data = median->data.uint8;
+  TfLiteEvalTensor* invoke_count =
+      tflite::micro::GetEvalOutput(context, node, kInvokeCount);
+  TF_LITE_ENSURE(context, invoke_count != nullptr);
+  int32_t* invoke_count_data = invoke_count->data.i32;
 
   median_data[0] = sorting_buffer[size / 2];
   invoke_count_data[0] = *data->invoke_count;
@@ -1355,18 +1477,20 @@ TfLiteStatus MultipleInputs::Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
   const int32_t* input_data = input->data.i32;
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &input1));
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, 1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
   const int32_t* input_data1 = input1->data.i32;
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 2, &input2));
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, 2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
   const int32_t* input_data2 = input2->data.i32;
 
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
   int32_t* output_data = output->data.i32;
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
@@ -1463,6 +1587,14 @@ const Model* GetSimpleModelWithSubgraphsAndIf() {
   static Model* model = nullptr;
   if (!model) {
     model = const_cast<Model*>(BuildSimpleModelWithSubgraphsAndIf());
+  }
+  return model;
+}
+
+const Model* GetSimpleModelWithSubgraphsAndWhile() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildSimpleModelWithSubgraphsAndWhile());
   }
   return model;
 }

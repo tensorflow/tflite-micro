@@ -15,7 +15,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/pooling.h"
 
 #include "CMSIS/NN/Include/arm_nnfunctions.h"
-//#include "flatbuffers/base.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -153,8 +152,12 @@ TfLiteStatus MaxPrepare(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
 
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
-  TfLiteTensor* output = GetOutput(context, node, kPoolingOutputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPoolingInputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kPoolingOutputTensor);
 
   if (input->type == kTfLiteInt8) {
     RuntimeShape input_shape = GetTensorShape(input);
@@ -177,6 +180,9 @@ TfLiteStatus AveragePrepare(TfLiteContext* context, TfLiteNode* node) {
       data->buffer_idx = -1;
     }
   }
+
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 

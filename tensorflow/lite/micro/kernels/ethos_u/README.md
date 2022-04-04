@@ -7,7 +7,7 @@ embedded and IoT devices. This readme briefly describes how to integrate Ethos-U
 related hardware and software into TFLM. See also [Ethos-U ML Evaluation kit examples](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ml-embedded-evaluation-kit).
 
 To enable the Ethos-U software stack, add `CO_PROCESSOR=ethos_u` to the make
-command line. See example below.
+command line. Use ETHOSU_ARCH specify the architecture. See example below.
 
 ## Requirements:
 - Armclang 6.14 or later
@@ -57,6 +57,12 @@ The log level of the Ethos-U driver can be set in the build command. For example
 ## Example using network tester
 See tensorflow/lite/micro/examples/network_tester/README.md for more info.
 
+```
+make -f tensorflow/lite/micro/tools/make/Makefile network_tester_test CO_PROCESSOR=ethos_u ETHOSU_ARCH=u55 TARGET=cortex_m_generic \
+TARGET_ARCH=cortex-m55 microlite
+```
+
+For the Arm Corstone-300 target, ETHOSU_ARCH is defined in cortex_m_corstone_300_makefile.inc so it doesn't need to be defined on the command line.
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile network_tester_test CO_PROCESSOR=ethos_u TARGET=cortex_m_corstone_300 \
 TARGET_ARCH=cortex-m55 test_network_tester_test NETWORK_MODEL=path/to/network_model.h INPUT_DATA=path/to/input_data.h \

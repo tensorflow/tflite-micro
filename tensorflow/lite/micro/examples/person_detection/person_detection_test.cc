@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,11 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
+#if defined(XTENSA) && defined(VISION_P6)
+constexpr int tensor_arena_size = 352 * 1024;
+#else
 constexpr int tensor_arena_size = 136 * 1024;
+#endif  // defined(XTENSA) && defined(VISION_P6)
 uint8_t tensor_arena[tensor_arena_size];
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -51,7 +55,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // needed by this graph.
   tflite::MicroMutableOpResolver<5> micro_op_resolver;
   micro_op_resolver.AddAveragePool2D();
-  micro_op_resolver.AddConv2D();
+  micro_op_resolver.AddConv2D(tflite::Register_CONV_2D_INT8());
   micro_op_resolver.AddDepthwiseConv2D();
   micro_op_resolver.AddReshape();
   micro_op_resolver.AddSoftmax();
