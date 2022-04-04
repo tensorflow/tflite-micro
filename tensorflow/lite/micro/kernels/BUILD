@@ -261,7 +261,10 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_vision_p6_config(): glob(
+            ["xtensa/**/*.cc"],
+            exclude = ["xtensa/conv.cc"],
+        ),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
