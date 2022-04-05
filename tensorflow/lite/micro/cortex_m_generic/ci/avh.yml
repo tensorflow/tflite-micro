@@ -1,0 +1,13 @@
+name: "TensorFlow Lite Micro Cortex-M Generic ArmClang"
+workdir: ./
+backend:
+  aws:
+    ami-version: ~=1.1
+    instance-type: t2.micro
+steps:
+  - run: |
+      git clone https://github.com/tensorflow/tflite-micro.git 
+      mv ./tflite-micro/tensorflow/ .
+      tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./cortex_m_generic.log
+download:
+  - cortex_m_generic.log
