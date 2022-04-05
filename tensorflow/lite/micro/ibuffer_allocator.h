@@ -16,6 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
 
 namespace tflite {
+// Interface classes that the TFLM framework relies on to get buffers it needs.
 // There are two types of buffers that the TFLM framework requires: persistent
 // and non-persistent. Persistent buffers, once allocated, are never freed by
 // the TFLM framework. Non-persist buffers can be allocated and deallocated by
@@ -54,7 +55,7 @@ class INonPersistentBufferAllocator {
 
   // Signals that all temporary allocations can be reclaimed. TFLM calls this
   // API when it knows that all temporary buffers that it requested has been
-  // deallocated. This API is so that the implementation of
+  // deallocated. The goal of API is to facilitate implementations of
   // INonPersistentBufferAllocator can reuse buffer with some reasonable
   // complexity.
   virtual TfLiteStatus ResetTempAllocations() = 0;
@@ -70,13 +71,14 @@ class INonPersistentBufferAllocator {
   // Frees up the memory occupied by the resizable buffer.
   virtual TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf) = 0;
 
-  // Returns a pointer pointing to the start of the overlay memory, which are
+  // Returns a pointer pointing to the start of the overlay memory, which is
   // used for activation tensors and scratch buffers by kernels at Invoke stage.
   virtual uint8_t* GetOverlayMemoryAddress() const = 0;
 
-  // Reserves the size of the overlay memory. This is an overlay for the kernels
-  // at Invoke stage. The layout of the memory is planned by the memory planner
-  // separately.
+  // Reserves the size of the overlay memory. This overlay is reserved for the
+  // kernels at Invoke stage. This is referred to as the overlay because before
+  // Invoket state, the same memory can be used for temp buffers. The layout of
+  // the memory is planned by the memory planner separately at Invoke stage.
   virtual TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
                                                          size_t alignment) = 0;
 

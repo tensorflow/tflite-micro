@@ -55,11 +55,12 @@ const TfLiteIntArray kZeroLengthIntArray = {};
 class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
  public:
   explicit MicroBuiltinDataAllocator(
-      IPersistentBufferAllocator* memory_allocator)
-      : memory_allocator_(memory_allocator) {}
+      IPersistentBufferAllocator* persistent_allocator)
+      : persistent_allocator_(persistent_allocator) {}
 
   void* Allocate(size_t size, size_t alignment_hint) override {
-    return memory_allocator_->AllocatePersistentBuffer(size, alignment_hint);
+    return persistent_allocator_->AllocatePersistentBuffer(size,
+                                                           alignment_hint);
   }
   void Deallocate(void* data) override {
     // Do not deallocate, builtin data needs to be available for the life time
@@ -69,7 +70,7 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 
  private:
-  IPersistentBufferAllocator* memory_allocator_;
+  IPersistentBufferAllocator* persistent_allocator_;
 };
 
 TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
