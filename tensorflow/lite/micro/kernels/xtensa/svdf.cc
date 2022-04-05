@@ -133,8 +133,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempInputTensor(node, kSvdfWeightsTimeTensor);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kSvdfBiasTensor);
-  TfLiteTensor* activation_state =
-      micro_context->AllocateTempInputTensor(node, kSvdfInputActivationStateTensor);
+  TfLiteTensor* activation_state = micro_context->AllocateTempInputTensor(
+      node, kSvdfInputActivationStateTensor);
 
   // Define input constants based on input tensor definition above:
   const int rank = params->rank;
@@ -147,7 +147,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const int memory_size = weights_time->dims->data[1];
 
   if (input->type != kTfLiteInt8) {
-    Microprintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                 input->type);
     return kTfLiteError;
   }
