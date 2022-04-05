@@ -63,9 +63,12 @@ struct GraphAllocationInfo {
 // `Finish`.
 class AllocationInfoBuilder {
  public:
-  AllocationInfoBuilder(const Model* model, SimpleMemoryAllocator* allocator,
+  AllocationInfoBuilder(const Model* model,
+                        INonPersistentBufferAllocator* non_persistent_allocator,
                         ErrorReporter* reporter)
-      : model_(model), allocator_(allocator), reporter_(reporter) {}
+      : model_(model),
+        non_persistent_allocator_(non_persistent_allocator),
+        reporter_(reporter) {}
 
   // Check if model contains offline planned buffer offsets.
   //  - If there's no metadata available, offline_planner_offsets is not set
@@ -126,7 +129,7 @@ class AllocationInfoBuilder {
   void UpdateLastUsed(AllocationInfo* current, int allocation_scope_count);
 
   const tflite::Model* model_ = nullptr;
-  SimpleMemoryAllocator* allocator_ = nullptr;
+  INonPersistentBufferAllocator* non_persistent_allocator_ = nullptr;
   ErrorReporter* reporter_ = nullptr;
 
   GraphAllocationInfo info_;

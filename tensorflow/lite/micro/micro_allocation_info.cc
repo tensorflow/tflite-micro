@@ -98,8 +98,9 @@ TfLiteStatus AllocationInfoBuilder::MarkSubgraphLifetimesIfNecessary(
 TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
     int scratch_buffer_request_count) {
   size_t subgraph_offsets_length = model_->subgraphs()->size() * sizeof(size_t);
-  info_.subgraph_offsets = reinterpret_cast<size_t*>(
-      allocator_->AllocateTemp(subgraph_offsets_length, alignof(size_t)));
+  info_.subgraph_offsets =
+      reinterpret_cast<size_t*>(non_persistent_allocator_->AllocateTemp(
+          subgraph_offsets_length, alignof(size_t)));
   if (info_.subgraph_offsets == nullptr) {
     TF_LITE_REPORT_ERROR(
         reporter_,
@@ -128,7 +129,7 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
   // Allocate an array of AllocationInfo structs from the temp section. This
   // struct will be used by AllocationInfoBuilder to find buffer usage.
   info_.allocation_info = reinterpret_cast<AllocationInfo*>(
-      allocator_->AllocateTemp(bytes, alignof(AllocationInfo)));
+      non_persistent_allocator_->AllocateTemp(bytes, alignof(AllocationInfo)));
   if (info_.allocation_info == nullptr) {
     TF_LITE_REPORT_ERROR(
         reporter_,
@@ -140,8 +141,9 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
 }
 
 TfLiteStatus AllocationInfoBuilder::FreeAllocationInfo() {
-  allocator_->DeallocateTemp(reinterpret_cast<uint8_t*>(info_.allocation_info));
-  allocator_->DeallocateTemp(
+  non_persistent_allocator_->DeallocateTemp(
+      reinterpret_cast<uint8_t*>(info_.allocation_info));
+  non_persistent_allocator_->DeallocateTemp(
       reinterpret_cast<uint8_t*>(info_.subgraph_offsets));
   return kTfLiteOk;
 }
