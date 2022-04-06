@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -316,16 +316,16 @@ TfLiteStatus TestFullyConnectedFloat(
 }
 #endif
 
-template <typename T>
+template <typename T, typename biasT>
 TfLiteStatus TestFullyConnectedQuantized(
     int* input_dims_data, const float* input_data, T* input_quantized,
     const float input_scale, const int input_zero_point, int* weights_dims_data,
-    const float* weights_data, T* weights_quantized, const float weights_scale,
-    const int weights_zero_point, int* bias_dims_data, const float* bias_data,
-    int32_t* bias_quantized, const float* golden, T* golden_quantized,
-    int* output_dims_data, const float output_scale,
-    const int output_zero_point, TfLiteFusedActivation activation,
-    T* output_data) {
+    const float* weights_data, int8_t* weights_quantized,
+    const float weights_scale, const int weights_zero_point,
+    int* bias_dims_data, const float* bias_data, biasT* bias_quantized,
+    const float* golden, T* golden_quantized, int* output_dims_data,
+    const float output_scale, const int output_zero_point,
+    TfLiteFusedActivation activation, T* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* weights_dims = IntArrayFromInts(weights_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -434,6 +434,36 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
           kTfLiteActNone, output_data),
       kTfLiteOk);
 }
+
+#if defined(CMSIS_NN)
+TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
+  const float input_scale = 128.0 / 65536;
+  const int input_zero_point = 0;
+  const float weights_scale = 1.0f;
+  const int weights_zero_point = 0;
+  const float output_scale = 128.0 / 65536;
+  const int output_zero_point = 0;
+
+  const float simple_golden[] = {24, 25, 26, 58, 59, 60};
+  int16_t input_quantized[tflite::testing::simple_input_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int64_t bias_quantized[tflite::testing::simple_output_size];
+  int16_t golden_quantized[tflite::testing::simple_output_size];
+  int16_t output_data[tflite::testing::simple_output_size];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantized(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, weights_quantized,
+          weights_scale, weights_zero_point, tflite::testing::simple_bias_dims,
+          tflite::testing::simple_bias_data, bias_quantized, simple_golden,
+          golden_quantized, tflite::testing::simple_output_dims, output_scale,
+          output_zero_point, kTfLiteActNone, output_data),
+      kTfLiteOk);
+}
+#endif
 
 TF_LITE_MICRO_TEST(SimpleTest4DInputQuantizedInt8) {
   const float input_scale = 1.0f;
@@ -582,7 +612,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
           tflite::testing::simple_input_data, input_quantized, input_scale,
           input_zero_point, tflite::testing::simple_weights_dims,
           tflite::testing::simple_weights_data, weights_quantized,
-          weights_scale, weights_zero_point, nullptr, nullptr, nullptr,
+          weights_scale, weights_zero_point, nullptr, nullptr,
+          static_cast<int32_t*>(nullptr),
           tflite::testing::simple_golden_null_bias, golden_quantized,
           tflite::testing::simple_output_dims, output_scale, output_zero_point,
           kTfLiteActNone, output_data),
