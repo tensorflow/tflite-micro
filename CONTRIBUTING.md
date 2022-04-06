@@ -169,14 +169,14 @@ Below are some tips that might be useful and improve the development experience.
   or install it:
 
   ```
-  pip3 install cpplint
+  pip install cpplint
   ```
 
 * [yapf](https://github.com/google/yapf/) should be used for formatting Python
   code. For example:
 
   ```
-  pip3 install yapf
+  pip install yapf
   yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
   ```
 
