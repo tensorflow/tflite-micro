@@ -179,8 +179,8 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
-          simple_allocator, /*allocate_temp=*/false, *tensor, buffers,
-          tflite::GetMicroErrorReporter(), &allocated_tensor));
+          simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
+          buffers, tflite::GetMicroErrorReporter(), &allocated_tensor));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -207,9 +207,10 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
 
   TfLiteTensor allocated_temp_tensor;
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
-                     simple_allocator, /*allocate_temp=*/true, *tensor, buffers,
-                     tflite::GetMicroErrorReporter(), &allocated_temp_tensor));
+      kTfLiteOk,
+      tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
+          simple_allocator, simple_allocator, /*allocate_temp=*/true, *tensor,
+          buffers, tflite::GetMicroErrorReporter(), &allocated_temp_tensor));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_temp_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_temp_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_temp_tensor.dims->data[0]);
@@ -238,8 +239,8 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
-          simple_allocator, /*allocate_temp=*/false, *tensor, buffers,
-          tflite::GetMicroErrorReporter(), &allocated_tensor));
+          simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
+          buffers, tflite::GetMicroErrorReporter(), &allocated_tensor));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -266,8 +267,8 @@ TF_LITE_MICRO_TEST(TestMissingQuantization) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
-          simple_allocator, /*allocate_temp=*/false, *tensor, buffers,
-          tflite::GetMicroErrorReporter(), &allocated_tensor));
+          simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
+          buffers, tflite::GetMicroErrorReporter(), &allocated_tensor));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -312,7 +313,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 1024 + 16;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());

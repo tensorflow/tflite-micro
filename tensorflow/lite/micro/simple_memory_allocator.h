@@ -22,13 +22,15 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/ibuffer_allocator.h"
 
 namespace tflite {
 
 // TODO(petewarden): This allocator never frees up or reuses  any memory, even
 // though we have enough information about lifetimes of the tensors to do so.
 // This makes it pretty wasteful, so we should use a more intelligent method.
-class SimpleMemoryAllocator {
+class SimpleMemoryAllocator : public INonPersistentBufferAllocator,
+                              public IPersistentBufferAllocator {
  public:
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
@@ -51,22 +53,25 @@ class SimpleMemoryAllocator {
   // call will fail if a chain of allocations through AllocateTemp() have not
   // been cleaned up with a call to ResetTempAllocations().
   virtual TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
-                                    size_t alignment);
+                                    size_t alignment) override;
 
   // Returns a buffer that is resizable viable ResizeBuffer(). Only one
   // resizable buffer is currently supported.
-  virtual uint8_t* AllocateResizableBuffer(size_t size, size_t alignment);
+  virtual uint8_t* AllocateResizableBuffer(size_t size,
+                                           size_t alignment) override;
 
   // Frees up the memory occupied by the resizable buffer
-  virtual TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf);
+  virtual TfLiteStatus DeallocateResizableBuffer(
+      uint8_t* resizable_buf) override;
 
   // Reserves the non-persistent memory that is planned by the memory planner.
-  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
-                                                         size_t alignment);
+  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(
+      size_t size, size_t alignment) override;
 
   // Allocates persistent memory starting at the tail of the arena (highest
   // address and moving downwards).
-  virtual uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment);
+  virtual uint8_t* AllocatePersistentBuffer(size_t size,
+                                            size_t alignment) override;
 
   // Allocates a temporary buffer from the head of the arena (lowest address and
   // moving upwards) but does not update the actual head allocation size or
@@ -76,34 +81,34 @@ class SimpleMemoryAllocator {
   // calls to AllocateTemp() must end with a call to ResetTempAllocations(). If
   // AllocateFromHead() is called before a call to ResetTempAllocations(), it
   // will fail with an error message.
-  virtual uint8_t* AllocateTemp(size_t size, size_t alignment);
+  virtual uint8_t* AllocateTemp(size_t size, size_t alignment) override;
 
   // Signals that a temporary buffer is no longer needed. This is currently for
   // book-keeping purpose and the memory region are not immediately available
   // for re-use. The deallocated memory region are only reclaimed after
   // ResetTempAllocations is called as it is right now.
-  virtual void DeallocateTemp(uint8_t* buf);
+  virtual void DeallocateTemp(uint8_t* buf) override;
 
   // Returns true if all temporary buffers are already deallocated.
-  virtual bool IsAllTempDeallocated();
+  virtual bool IsAllTempDeallocated() override;
 
   // Resets a chain of temporary allocations back to the current head of the
   // arena (lowest address).
-  virtual TfLiteStatus ResetTempAllocations();
+  virtual TfLiteStatus ResetTempAllocations() override;
 
   // Returns a pointer to the buffer currently assigned to the head section.
   // This buffer is set by calling SetHeadSize().
-  uint8_t* GetNonPersistentBufferStartAddress() const;
+  uint8_t* GetOverlayMemoryAddress() const override;
 
   // Returns the size of the head section in bytes.
-  size_t GetNonPersistentUsedBytes() const;
+  size_t GetNonPersistentUsedBytes() const override;
 
   // Returns the size of all allocations in the tail section in bytes.
-  size_t GetPersistentUsedBytes() const;
+  size_t GetPersistentUsedBytes() const override;
 
   // Returns the number of bytes available with a given alignment. This number
   // takes in account any temporary allocations.
-  size_t GetAvailableMemory(size_t alignment) const;
+  size_t GetAvailableMemory(size_t alignment) const override;
 
   // Returns the number of used bytes in the allocator. This number takes in
   // account any temporary allocations.
