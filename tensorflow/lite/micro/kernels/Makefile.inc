@@ -46,6 +46,7 @@ tensorflow/lite/micro/kernels/add_test.cc \
 tensorflow/lite/micro/kernels/add_n_test.cc \
 tensorflow/lite/micro/kernels/arg_min_max_test.cc \
 tensorflow/lite/micro/kernels/batch_to_space_nd_test.cc \
+tensorflow/lite/micro/kernels/broadcast_args_test.cc \
 tensorflow/lite/micro/kernels/broadcast_to_test.cc \
 tensorflow/lite/micro/kernels/cast_test.cc \
 tensorflow/lite/micro/kernels/ceil_test.cc \
@@ -102,6 +103,7 @@ tensorflow/lite/micro/kernels/svdf_test.cc \
 tensorflow/lite/micro/kernels/tanh_test.cc \
 tensorflow/lite/micro/kernels/transpose_test.cc \
 tensorflow/lite/micro/kernels/unpack_test.cc \
+tensorflow/lite/micro/kernels/while_test.cc \
 tensorflow/lite/micro/kernels/zeros_like_test.cc
 
 # Generate simple kernel test targets in a common way
