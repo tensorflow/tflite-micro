@@ -1,4 +1,4 @@
-name: "TensorFlow Lite Micro Corstone-300 ArmClang"
+name: "TensorFlow Lite Micro Cortex-M Generic ArmClang"
 workdir: ./
 backend:
   aws:
@@ -8,6 +8,6 @@ steps:
   - run: |
       git clone https://github.com/tensorflow/tflite-micro.git 
       mv ./tflite-micro/tensorflow/ .
-      tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh > ./corstone300.log
+      tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./cortex_m_generic.log
 download:
-  - corstone300.log
+  - cortex_m_generic.log
