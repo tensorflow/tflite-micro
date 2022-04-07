@@ -45,7 +45,7 @@ jobs:
           avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
       - name: Fetch results from VHT
         run: |
-          cat ./tensorflow/lite/micro/cortex_m_generic/cortex_m_generic.log
+          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic.log
   
   
   cortex_m_corstone_300:
@@ -68,4 +68,4 @@ jobs:
           avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
       - name: Fetch results from VHT
         run: |
-          cat ./tensorflow/lite/micro/cortex_m_corstone_300/corstone300.log
+          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/corstone300.log
