@@ -42,7 +42,7 @@ jobs:
           pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
       - name: Execute test suite on Virtual Hardware at AWS
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/cortex_m_generic/avh.yml
+          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
       - name: Fetch results from VHT
         run: |
           cat ./tensorflow/lite/micro/cortex_m_generic/cortex_m_generic.log
@@ -65,7 +65,7 @@ jobs:
           pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
       - name: Execute test suite on Virtual Hardware at AWS
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/cortex_m_corstone_300/avh.yml
+          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
       - name: Fetch results from VHT
         run: |
           cat ./tensorflow/lite/micro/cortex_m_corstone_300/corstone300.log
