@@ -53,9 +53,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-
 #include "third_party/hexagon/hexagon_fully_connected.h"
-#include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
 namespace {
@@ -72,14 +70,11 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   op_params.output_offset = data.reference_op_data.output_zero_point;
   op_params.output_multiplier = data.reference_op_data.output_multiplier;
   // TODO(b/138810107): Figure out whether output shift should be inverted
-  op_params.output_shift = data.reference_op_data.output_shift;
+  op_params.output_shift = -data.reference_op_data.output_shift;
   op_params.quantized_activation_min =
       data.reference_op_data.output_activation_min;
   op_params.quantized_activation_max =
       data.reference_op_data.output_activation_max;
-
-  const int32_t* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
 
   reference_integer_ops::FullyConnected(
       op_params, tflite::micro::GetTensorShape(input),
@@ -87,7 +82,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(filter),
       tflite::micro::GetTensorData<int8_t>(filter),
       tflite::micro::GetTensorShape(bias),
-      bias_data,
+      tflite::micro::GetTensorData<int32_t>(bias),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 
@@ -137,19 +132,9 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* no
       AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
-                                 context, params->activation, input->type,
-                                 input, filter, bias, output, &data->reference_op_data));
-
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_MSG(context, input->type == filter->type,
-                     "Hybrid models are not supported on TFLite Micro.");
-
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
-  if (bias != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(bias);
-  }
+  micro_context->DeallocateTempTfLiteTensor(bias);
   micro_context->DeallocateTempTfLiteTensor(output);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
@@ -160,8 +145,10 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* no
 
   if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
     return tflite::hexagon_fully_connected::HexagonPrepare(context, node);
+  } else {
+    return CalculateOpDataFullyConnected(context, params->activation, input->type, input,
+                           filter, bias, output, &data->reference_op_data);
   }
-  return kTfLiteOk;
 }
 
 TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node) {
@@ -183,9 +170,7 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* n
   // This kernel only implements the int8 version of the fully_connected kernel.
   TFLITE_DCHECK(input->type == kTfLiteInt8);
   TFLITE_DCHECK(filter->type == kTfLiteInt8);
-  if (bias != nullptr) {
-    TFLITE_DCHECK(bias->type == kTfLiteInt32);
-  }
+  TFLITE_DCHECK(bias->type == kTfLiteInt32);
   TFLITE_DCHECK(output->type == kTfLiteInt8);
 
   if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {

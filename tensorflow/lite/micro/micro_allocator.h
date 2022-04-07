@@ -38,9 +38,8 @@ namespace internal {
 // TODO(b/162311891): Drop this method when the interpreter has an API for
 // returning buffers on TfLiteEvalTensor.
 TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
-    IPersistentBufferAllocator* persistent_buffer_allocator,
-    INonPersistentBufferAllocator* non_persistent_buffer_allocator,
-    bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
+    SimpleMemoryAllocator* allocator, bool allocate_temp,
+    const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
     ErrorReporter* error_reporter, TfLiteTensor* result);
 
@@ -286,8 +285,7 @@ class MicroAllocator {
   internal::ScratchBufferRequest* GetScratchBufferRequests();
 
   // A simple memory allocator that always allocate from the arena tail or head.
-  INonPersistentBufferAllocator* non_persistent_buffer_allocator_;
-  IPersistentBufferAllocator* persistent_buffer_allocator_;
+  SimpleMemoryAllocator* memory_allocator_;
 
   // Allocator used to allocate persistent builtin data.
   BuiltinDataAllocator* builtin_data_allocator_;

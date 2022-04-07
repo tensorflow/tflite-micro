@@ -123,18 +123,6 @@ cc_library(
 )
 
 cc_library(
-    name = "ibuffer_allocator",
-    hdrs = [
-        "ibuffer_allocator.h",
-    ],
-    copts = micro_copts(),
-    deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
-    ],
-)
-
-cc_library(
     name = "micro_allocator",
     srcs = [
         "micro_allocation_info.cc",
@@ -149,7 +137,6 @@ cc_library(
     copts = micro_copts(),
     deps = [
         ":flatbuffer_utils",
-        ":ibuffer_allocator",
         ":memory_helpers",
         ":micro_arena_constants",
         ":micro_compatibility",
@@ -212,7 +199,6 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":memory_helpers",
         ":micro_utils",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",

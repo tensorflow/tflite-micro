@@ -29,7 +29,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
@@ -43,9 +42,7 @@ namespace {
 
 class StackAllocator : public flatbuffers::Allocator {
  public:
-  StackAllocator(size_t alignment) : data_size_(0) {
-    data_ = AlignPointerUp(data_backing_, alignment);
-  }
+  StackAllocator() : data_(data_backing_), data_size_(0) {}
 
   uint8_t* allocate(size_t size) override {
     TFLITE_DCHECK((data_size_ + size) <= kStackAllocatorSize);
@@ -57,10 +54,10 @@ class StackAllocator : public flatbuffers::Allocator {
 
   void deallocate(uint8_t* p, size_t) override {}
 
-  static StackAllocator& instance(size_t alignment = 1) {
+  static StackAllocator& instance() {
     // Avoid using true dynamic memory allocation to be portable to bare metal.
     static char inst_memory[sizeof(StackAllocator)];
-    static StackAllocator* inst = new (inst_memory) StackAllocator(alignment);
+    static StackAllocator* inst = new (inst_memory) StackAllocator;
     return *inst;
   }
 
@@ -78,8 +75,7 @@ flatbuffers::FlatBufferBuilder* BuilderInstance() {
   static char inst_memory[sizeof(flatbuffers::FlatBufferBuilder)];
   static flatbuffers::FlatBufferBuilder* inst =
       new (inst_memory) flatbuffers::FlatBufferBuilder(
-          StackAllocator::kStackAllocatorSize,
-          &StackAllocator::instance(MicroArenaBufferAlignment()));
+          StackAllocator::kStackAllocatorSize, &StackAllocator::instance());
   return inst;
 }
 

@@ -166,17 +166,12 @@ Below are some tips that might be useful and improve the development experience.
   is the what we do for the TFLM continuous integration Docker container.
 
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
-  or install it:
-
-  ```
-  pip install cpplint
-  ```
 
 * [yapf](https://github.com/google/yapf/) should be used for formatting Python
   code. For example:
 
   ```
-  pip install yapf
+  pip3 install yapf
   yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
   ```
 
@@ -198,7 +193,7 @@ Below are some tips that might be useful and improve the development experience.
 1.  Make sure your code is lint-free.
 
     ```
-    cpplint `git ls-files -m`
+    cpplint.py `git ls-files -m`
     ```
 
 1.  Run all the tests for x86, and any other platform that you are modifying.

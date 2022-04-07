@@ -72,17 +72,13 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
   tflite::FullyConnectedParams op_params;
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
-
-  const float* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<float>(bias) : nullptr;
-
   tflite::reference_ops::FullyConnected(
       op_params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<float>(input),
       tflite::micro::GetTensorShape(filter),
       tflite::micro::GetTensorData<float>(filter),
       tflite::micro::GetTensorShape(bias),
-      bias_data,
+      tflite::micro::GetTensorData<float>(bias),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<float>(output));
   return kTfLiteOk;
