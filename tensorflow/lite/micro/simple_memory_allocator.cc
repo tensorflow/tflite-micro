@@ -172,12 +172,12 @@ TfLiteStatus SimpleMemoryAllocator::ResetTempAllocations() {
   return kTfLiteOk;
 }
 
-uint8_t* SimpleMemoryAllocator::GetNonPersistentBufferStartAddress() const {
+uint8_t* SimpleMemoryAllocator::GetOverlayMemoryAddress() const {
   return buffer_head_;
 }
 
 size_t SimpleMemoryAllocator::GetNonPersistentUsedBytes() const {
-  return head_ - buffer_head_;
+  return std::max(head_ - buffer_head_, temp_ - buffer_head_);
 }
 
 size_t SimpleMemoryAllocator::GetPersistentUsedBytes() const {
@@ -191,7 +191,7 @@ size_t SimpleMemoryAllocator::GetAvailableMemory(size_t alignment) const {
 }
 
 size_t SimpleMemoryAllocator::GetUsedBytes() const {
-  return GetBufferSize() - (tail_ - temp_);
+  return GetPersistentUsedBytes() + GetNonPersistentUsedBytes();
 }
 
 size_t SimpleMemoryAllocator::GetBufferSize() const {
