@@ -316,16 +316,16 @@ TfLiteStatus TestFullyConnectedFloat(
 }
 #endif
 
-template <typename T, typename biasT>
+template <typename dataT, typename weightT, typename biasT>
 TfLiteStatus TestFullyConnectedQuantized(
-    int* input_dims_data, const float* input_data, T* input_quantized,
+    int* input_dims_data, const float* input_data, dataT* input_quantized,
     const float input_scale, const int input_zero_point, int* weights_dims_data,
-    const float* weights_data, int8_t* weights_quantized,
+    const float* weights_data, weightT* weights_quantized,
     const float weights_scale, const int weights_zero_point,
     int* bias_dims_data, const float* bias_data, biasT* bias_quantized,
-    const float* golden, T* golden_quantized, int* output_dims_data,
+    const float* golden, dataT* golden_quantized, int* output_dims_data,
     const float output_scale, const int output_zero_point,
-    TfLiteFusedActivation activation, T* output_data) {
+    TfLiteFusedActivation activation, dataT* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* weights_dims = IntArrayFromInts(weights_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -435,7 +435,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
       kTfLiteOk);
 }
 
-#if defined(CMSIS_NN)
+#if !(defined(XTENSA) || defined(HEXAGON))
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
