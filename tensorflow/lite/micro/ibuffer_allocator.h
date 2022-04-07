@@ -15,6 +15,11 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
 #define TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
 
+#include <cstddef>
+#include <cstdint>
+
+#include "tensorflow/lite/c/c_api_types.h"
+
 namespace tflite {
 // Interface classes that the TFLM framework relies on to get buffers it needs.
 // There are two types of buffers that the TFLM framework requires: persistent

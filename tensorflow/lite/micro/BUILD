@@ -212,6 +212,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":memory_helpers",
         ":micro_utils",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
