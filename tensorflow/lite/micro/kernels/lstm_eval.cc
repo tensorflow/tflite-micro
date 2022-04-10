@@ -113,7 +113,6 @@ inline float GetTensorScale(const TfLiteTensor* tensor) {
   return tensor == nullptr ? 1.0f : tensor->params.scale;
 }
 
-// LINT.IfChange
 // Calculates a single LSTM gate.
 //
 // Implements the following formula: (* is matrix multiply)
@@ -289,8 +288,6 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
     std::copy_n(scratch, n_batch * n_output, output_state);
   }
 }
-// LINT.ThenChange(../tools/optimize/calibration/builtin_logging_ops/lstm.cc,\
-//                 ../experimental/kernels/fp16/lstm_eval.cc)
 
 // Calculates a single LSTM gate, hybrid version.
 // Implements the same functionality as CalculateLstmGateFloat.
@@ -803,7 +800,6 @@ void CalculateLstmOutputInteger8x8_8(
 // for bidirectional LSTMs with merge_outputs. In this case, the batched
 // operations cannot be used since they assume that the batched outputs are
 // contiguous, and we manually loop over the batched outputs.
-// LINT.IfChange
 inline void LstmStepFloat(
     const float* input_ptr, const float* input_to_input_weights_ptr,
     const float* input_to_forget_weights_ptr,
@@ -902,8 +898,6 @@ inline void LstmStepFloat(
                 output_ptr + b * output_batch_leading_dim);
   }
 }
-// LINT.ThenChange(../tools/optimize/calibration/builtin_logging_ops/lstm.cc,\
-//                 ../experimental/kernels/fp16/lstm_eval.cc)
 
 // Same as above but with quantized weight matrices. In detail:
 // Input of size 'n_batch * n_input':
@@ -1684,7 +1678,6 @@ inline void LstmStepInteger8x8_8(
 
 }  // namespace
 
-// LINT.IfChange
 TfLiteStatus EvalFloat(
     const TfLiteTensor* input, const TfLiteTensor* input_to_input_weights,
     const TfLiteTensor* input_to_forget_weights,
@@ -1864,7 +1857,6 @@ TfLiteStatus EvalFloat(
   }
   return kTfLiteOk;
 }
-// LINT.ThenChange(//tensorflow/lite/tools/optimize/calibration/builtin_logging_ops/lstm.cc)
 
 TfLiteStatus EvalHybrid(
     const TfLiteTensor* input, const TfLiteTensor* input_to_input_weights,
