@@ -322,7 +322,6 @@ void CalculateLstmGateHybrid(
     // Parameters for performance optimizations
     const bool is_input_all_zeros, const bool is_aux_input_all_zeros,
     const bool is_output_state_all_zeros, bool* compute_row_sums,
-    CpuBackendContext* context,
     // Scratch arrays
     float* scratch0,        // size: n_batch
     float* scratch1,        // size: n_cell, only used if peephole LSTM
@@ -355,7 +354,7 @@ void CalculateLstmGateHybrid(
           input_to_gate_weights, n_cell, n_input, input,
           input_to_gate_weights_scale, input_sf, n_batch, gate,
           /*per_channel_scale=*/nullptr, input_zp, accum_scratch,
-          input_to_gate_row_sums, compute_row_sums, scratch0, context);
+          input_to_gate_row_sums, compute_row_sums, scratch0, nullptr);
     }
   }
   // For each batch and cell: compute aux_input_weight * aux_input.
@@ -365,7 +364,7 @@ void CalculateLstmGateHybrid(
         aux_input_to_gate_weights, n_cell, n_aux_input, aux_input,
         aux_input_to_gate_weights_scale, aux_input_sf, n_batch, gate,
         /*per_channel_scale=*/nullptr, aux_input_zp, accum_scratch,
-        aux_input_to_gate_row_sums, compute_row_sums, scratch0, context);
+        aux_input_to_gate_row_sums, compute_row_sums, scratch0, nullptr);
   }
   // For each batch and cell: compute recurrent_weight * output_state.
   // Skip if output state is all zeros.
@@ -383,7 +382,7 @@ void CalculateLstmGateHybrid(
           recurrent_to_gate_weights, n_cell, n_output, output_state,
           recurrent_to_gate_weights_scale, output_state_sf, n_batch, gate,
           /*per_channel_scale=*/nullptr, output_state_zp, accum_scratch,
-          recurrent_to_gate_row_sums, compute_row_sums, scratch0, context);
+          recurrent_to_gate_row_sums, compute_row_sums, scratch0, nullptr);
     }
   }
   // For each batch and cell: compute cell_weight .* cell_state (peephole LSTM)
@@ -418,7 +417,7 @@ void CalculateLstmGateHybrid(
 //  - proj_clip: if > 0, clip the output of the projection.
 //  - output_state: output vector, size n_batch*n_output. Must be contigous.
 //  - asymmetric_quantize_inputs: parameter to control quantization.
-//  - projection_weights_row_sums, compute_row_sums, context: Data for optimized
+//  - projection_weights_row_sums, compute_row_sums: Data for optimized
 //      MatrixBatchVectorMultiplyAccumulate.
 //  - scratch0: scratch area of size n_batch*n_cell
 //  - scratch1: scratch area of size n_batch*n_cell
@@ -432,8 +431,8 @@ void CalculateLstmOutputHybrid(
     float projection_weights_scale, const float* projection_bias,
     const float proj_clip, float* output_state, bool asymmetric_quantize_inputs,
     int32_t* projection_weights_row_sums, bool* compute_row_sums,
-    CpuBackendContext* context, float* scratch0, int8_t* scratch1,
-    float* scratch2, int32_t* scratch3, int32_t* scratch4) {
+    float* scratch0, int8_t* scratch1, float* scratch2, int32_t* scratch3,
+    int32_t* scratch4) {
   tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
                                         activation, scratch0);
   tensor_utils::VectorVectorCwiseProduct(output_gate, scratch0,
@@ -467,7 +466,7 @@ void CalculateLstmOutputHybrid(
             projection_weights, n_output, n_cell, scratch1,
             projection_weights_scale, scratch2, n_batch, output_state,
             /*per_channel_scale=*/nullptr, scratch3, scratch4,
-            projection_weights_row_sums, compute_row_sums, scratch2, context);
+            projection_weights_row_sums, compute_row_sums, scratch2, nullptr);
       }
     }
     if (proj_clip > 0.0f) {
@@ -504,7 +503,6 @@ void CalculateLstmGateInteger8x8_16(
     // Output
     int16_t* gate,
     // Parameters for performance optimizations
-    CpuBackendContext* context,
     // Scratch arrays
     int32_t* scratch5) {
   const bool use_peephole = (cell_to_gate_weights != nullptr);
@@ -517,14 +515,14 @@ void CalculateLstmGateInteger8x8_16(
   tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       input, input_to_gate_bias, input_to_gate_weights, input_to_gate_scale_a,
       input_to_gate_scale_b, n_batch, n_input, n_cell, 0, scratch5, gate,
-      context);
+      nullptr);
   // Note: no aux_input.
 
   // For each batch and cell: compute recurrent_weight * output_state.
   tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       output_state, recurrent_to_gate_bias, recurrent_to_gate_weights,
       recurrent_to_gate_scale_a, recurrent_to_gate_scale_b, n_batch, n_output,
-      n_cell, 0, scratch5, gate, context);
+      n_cell, 0, scratch5, gate, nullptr);
   // For each batch and cell: compute cell_weight * cell_state (peephole LSTM)
   if (use_peephole) {
     tensor_utils::VectorBatchVectorCwiseProductAccumulate(
@@ -605,7 +603,6 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
 //  - output_state_zp: zero point of output_state. (Input, calibrated value.)
 //  - quantized_proj_clip: if > 0, clip the output of the projection.
 //  - output_state: output vector, size n_batch*n_output. Must be contigous.
-//  - context: data for optimized MatrixBatchVectorMultiplyAccumulate.
 //  - scratch0: scratch area of size n_batch*n_cell
 //  - scratch1: scratch area of size n_batch*n_cell
 //  - scratch2: scratch area used by MatrixBatchVectorMultiplyAccumulate
@@ -616,8 +613,7 @@ void CalculateLstmOutputInteger8x8_16(
     const int8_t* projection_weights, int32_t proj_scale_a,
     int32_t proj_scale_b, const int32_t* projection_bias,
     int32_t output_state_zp, int8_t quantized_proj_clip, int8_t* output_state,
-    CpuBackendContext* context, int16_t* scratch0, int8_t* scratch1,
-    int32_t* scratch2) {
+    int16_t* scratch0, int8_t* scratch1, int32_t* scratch2) {
   // Note: unlike float/hybrid, the activation is always Tanh.
   tensor_utils::ApplyTanh(15 + cell_state_scale, cell_state, n_batch, n_cell,
                           scratch0);
@@ -632,7 +628,7 @@ void CalculateLstmOutputInteger8x8_16(
     tensor_utils::MatrixBatchVectorMultiplyAccumulate(
         scratch1, projection_bias, projection_weights, proj_scale_a,
         proj_scale_b, n_batch, n_cell, n_output, output_state_zp, scratch2,
-        output_state, context);
+        output_state, nullptr);
     if (quantized_proj_clip > 0) {
       tensor_utils::CwiseClipping(output_state, n_batch * n_output,
                                   quantized_proj_clip);
@@ -1024,8 +1020,7 @@ inline void LstmStepHybrid(
     float* output_state_ptr, float* cell_state_ptr, int32_t* accum_scratch_ptr,
     float* output_ptr, int32_t* input_zp, int32_t* aux_input_zp,
     int32_t* output_state_zp, int32_t* row_sums, int row_sums_size,
-    bool* compute_row_sums, bool asymmetric_quantize_inputs,
-    CpuBackendContext* context) {
+    bool* compute_row_sums, bool asymmetric_quantize_inputs) {
   ruy::profiler::ScopeLabel label("LstmStepHybrid");
   // Since we have already checked that weights are all there or none, we
   // can check the existence of only one to the get the condition.
@@ -1142,8 +1137,8 @@ inline void LstmStepHybrid(
         input_layer_norm_coefficients_ptr, input_gate_bias_ptr, n_batch,
         n_input, n_aux_input, n_output, n_cell, kTfLiteActSigmoid,
         input_gate_scratch, is_input_all_zeros, is_aux_input_all_zeros,
-        is_output_state_all_zeros, compute_row_sums, context,
-        scaling_factors_scratch, recovered_cell_weights, accum_scratch_ptr);
+        is_output_state_all_zeros, compute_row_sums, scaling_factors_scratch,
+        recovered_cell_weights, accum_scratch_ptr);
   }
   // Calculate the forget gate.
   CalculateLstmGateHybrid(
@@ -1159,8 +1154,8 @@ inline void LstmStepHybrid(
       forget_layer_norm_coefficients_ptr, forget_gate_bias_ptr, n_batch,
       n_input, n_aux_input, n_output, n_cell, kTfLiteActSigmoid,
       forget_gate_scratch, is_input_all_zeros, is_aux_input_all_zeros,
-      is_output_state_all_zeros, compute_row_sums, context,
-      scaling_factors_scratch, recovered_cell_weights, accum_scratch_ptr);
+      is_output_state_all_zeros, compute_row_sums, scaling_factors_scratch,
+      recovered_cell_weights, accum_scratch_ptr);
   // Calculate the cell update gate.
   CalculateLstmGateHybrid(
       quantized_input_ptr, input_sf, input_zp, input_to_cell_weights_ptr,
@@ -1176,8 +1171,7 @@ inline void LstmStepHybrid(
       cell_gate_bias_ptr, n_batch, n_input, n_aux_input, n_output, n_cell,
       params->activation, cell_gate_scratch, is_input_all_zeros,
       is_aux_input_all_zeros, is_output_state_all_zeros, compute_row_sums,
-      context, scaling_factors_scratch, recovered_cell_weights,
-      accum_scratch_ptr);
+      scaling_factors_scratch, recovered_cell_weights, accum_scratch_ptr);
   // Update the cell state.
   UpdateLstmCellFloat(n_batch, n_cell, cell_state_ptr, input_gate_scratch,
                       forget_gate_scratch, cell_gate_scratch, use_cifg,
@@ -1196,16 +1190,16 @@ inline void LstmStepHybrid(
       output_layer_norm_coefficients_ptr, output_gate_bias_ptr, n_batch,
       n_input, n_aux_input, n_output, n_cell, kTfLiteActSigmoid,
       output_gate_scratch, is_input_all_zeros, is_aux_input_all_zeros,
-      is_output_state_all_zeros, compute_row_sums, context,
-      scaling_factors_scratch, recovered_cell_weights, accum_scratch_ptr);
+      is_output_state_all_zeros, compute_row_sums, scaling_factors_scratch,
+      recovered_cell_weights, accum_scratch_ptr);
   // Update the output state.
   CalculateLstmOutputHybrid(
       n_batch, n_cell, n_output, cell_state_ptr, output_gate_scratch,
       params->activation, projection_weights_ptr, projection_weights_ledger_ptr,
       projection_weights_scale, projection_bias_ptr, params->proj_clip,
       output_state_ptr, asymmetric_quantize_inputs, projection_weights_row_sums,
-      compute_row_sums, context, scratch2, quantized_output_scratch, input_sf,
-      input_zp, accum_scratch_ptr);
+      compute_row_sums, scratch2, quantized_output_scratch, input_sf, input_zp,
+      accum_scratch_ptr);
   // Copy output state to the output. Note that the output's rows may not be
   // contiguous (output_batch_leading_dim != n_output).
   for (int b = 0; b < n_batch; b++) {
@@ -1369,7 +1363,7 @@ inline void LstmStepInteger8x8_16(
     int n_input, int n_output, int8_t* output_state_ptr,
     int32_t output_state_zp, int16_t* cell_state_ptr, int8_t* output_ptr,
     int16_t* scratch0, int16_t* scratch1, int16_t* scratch2, int16_t* scratch3,
-    int8_t* scratch4, int32_t* scratch5, CpuBackendContext* context) {
+    int8_t* scratch4, int32_t* scratch5) {
   ruy::profiler::ScopeLabel label("LstmStepInteger8x8_16");
   // Make named scratch buffers for the different gates.
   int16_t* input_gate_scratch = scratch0;
@@ -1408,7 +1402,7 @@ inline void LstmStepInteger8x8_16(
         effective_cell_to_input_scale_b, layer_norm_input_weight_ptr,
         input_gate_bias_ptr, layer_norm_input_scale_a, layer_norm_input_scale_b,
         input_variance_guard, n_batch, n_input, n_output, n_cell,
-        kTfLiteActSigmoid, input_gate_scratch, context, scratch5);
+        kTfLiteActSigmoid, input_gate_scratch, scratch5);
   }
   // Calculate the forget gate.
   CalculateLstmGateInteger8x8_16(
@@ -1421,8 +1415,7 @@ inline void LstmStepInteger8x8_16(
       effective_cell_to_forget_scale_b, layer_norm_forget_weight_ptr,
       forget_gate_bias_ptr, layer_norm_forget_scale_a,
       layer_norm_forget_scale_b, forget_variance_guard, n_batch, n_input,
-      n_output, n_cell, kTfLiteActSigmoid, forget_gate_scratch, context,
-      scratch5);
+      n_output, n_cell, kTfLiteActSigmoid, forget_gate_scratch, scratch5);
   // Calculate the cell update gate.
   CalculateLstmGateInteger8x8_16(
       input_ptr, input_to_cell_weight_ptr, input_to_cell_effective_bias,
@@ -1434,7 +1427,7 @@ inline void LstmStepInteger8x8_16(
       /*cell_to_gate_scale_b=*/0, layer_norm_cell_weight_ptr,
       cell_gate_bias_ptr, layer_norm_cell_scale_a, layer_norm_cell_scale_b,
       cell_variance_guard, n_batch, n_input, n_output, n_cell, kTfLiteActTanh,
-      cell_gate_scratch, context, scratch5);
+      cell_gate_scratch, scratch5);
   // Update the cell state.
   UpdateLstmCellInteger(n_batch, n_cell, cell_state_ptr, cell_state_scale,
                         input_gate_scratch, forget_gate_scratch,
@@ -1450,16 +1443,14 @@ inline void LstmStepInteger8x8_16(
       effective_cell_to_output_scale_b, layer_norm_output_weight_ptr,
       output_gate_bias_ptr, layer_norm_output_scale_a,
       layer_norm_output_scale_b, output_variance_guard, n_batch, n_input,
-      n_output, n_cell, kTfLiteActSigmoid, output_gate_scratch, context,
-      scratch5);
+      n_output, n_cell, kTfLiteActSigmoid, output_gate_scratch, scratch5);
   // Update the output state.
   CalculateLstmOutputInteger8x8_16(
       n_batch, n_cell, n_output, cell_state_ptr, cell_state_scale,
       output_gate_scratch, effective_hidden_scale_a, effective_hidden_scale_b,
       hidden_zp, projection_weight_ptr, effective_proj_scale_a,
       effective_proj_scale_b, projection_effective_bias, output_state_zp,
-      quantized_proj_clip, output_state_ptr, context, scratch0, scratch4,
-      scratch5);
+      quantized_proj_clip, output_state_ptr, scratch0, scratch4, scratch5);
   // Copy output state to the output. Note that unlike float or hybrid, output
   // is always contiguous.
   std::copy_n(output_state_ptr, n_batch * n_output, output_ptr);
@@ -1902,7 +1893,7 @@ TfLiteStatus EvalHybrid(
     TfLiteTensor* output_scratch_buffer, TfLiteTensor* output,
     TfLiteTensor* input_zp, TfLiteTensor* aux_input_zp,
     TfLiteTensor* output_state_zp, TfLiteTensor* row_sums, int row_sums_size,
-    bool* compute_row_sums, CpuBackendContext* context) {
+    bool* compute_row_sums) {
   TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -2033,8 +2024,7 @@ TfLiteStatus EvalHybrid(
           GetTensorData<float>(output_state), GetTensorData<float>(cell_state),
           GetTensorData<int32_t>(output_scratch_buffer), output_ptr,
           input_zp_ptr, aux_input_zp_ptr, output_state_zp_ptr, row_sums_ptr,
-          row_sums_size, compute_row_sums, params->asymmetric_quantize_inputs,
-          context);
+          row_sums_size, compute_row_sums, params->asymmetric_quantize_inputs);
     }
   } else {
     for (int b = 0; b < n_batch; b++) {
@@ -2132,7 +2122,7 @@ TfLiteStatus EvalHybrid(
             cell_state_ptr, GetTensorData<int32_t>(output_scratch_buffer),
             output_ptr, input_zp_ptr, aux_input_zp_ptr, output_state_zp_ptr,
             row_sums_ptr, row_sums_size, compute_row_sums,
-            params->asymmetric_quantize_inputs, context);
+            params->asymmetric_quantize_inputs);
       }
     }
   }
@@ -2163,8 +2153,7 @@ TfLiteStatus EvalInteger8x8_16(
     const lstm_eval::IntegerLstmParameter* integer_lstm_param,
     TfLiteTensor* output_state, TfLiteTensor* cell_state, TfLiteTensor* output,
     TfLiteTensor* scratch0, TfLiteTensor* scratch1, TfLiteTensor* scratch2,
-    TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5,
-    CpuBackendContext* context) {
+    TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5) {
   TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -2271,8 +2260,7 @@ TfLiteStatus EvalInteger8x8_16(
           output_state_zp, GetTensorData<int16_t>(cell_state), output_ptr,
           GetTensorData<int16_t>(scratch0), GetTensorData<int16_t>(scratch1),
           GetTensorData<int16_t>(scratch2), GetTensorData<int16_t>(scratch3),
-          GetTensorData<int8_t>(scratch4), GetTensorData<int32_t>(scratch5),
-          context);
+          GetTensorData<int8_t>(scratch4), GetTensorData<int32_t>(scratch5));
     }
   } else {
     for (int b = 0; b < n_batch; b++) {
@@ -2370,7 +2358,7 @@ TfLiteStatus EvalInteger8x8_16(
             cell_state_ptr, output_ptr, GetTensorData<int16_t>(scratch0),
             GetTensorData<int16_t>(scratch1), GetTensorData<int16_t>(scratch2),
             GetTensorData<int16_t>(scratch3), GetTensorData<int8_t>(scratch4),
-            GetTensorData<int32_t>(scratch5), context);
+            GetTensorData<int32_t>(scratch5));
       }
     }
   }

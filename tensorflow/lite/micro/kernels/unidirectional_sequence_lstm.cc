@@ -1399,8 +1399,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             GetTemporary(context, node, kInputZeroPoints),
             /*aux_input_zp=*/nullptr,
             GetTemporary(context, node, kOutputStateZeroPoints), row_sums,
-            row_sums_size, &op_data->compute_row_sums,
-            CpuBackendContext::GetFromContext(context));
+            row_sums_size, &op_data->compute_row_sums);
       } else {
         TfLiteTensor* scratch0;
         TF_LITE_ENSURE_OK(context,
@@ -1432,8 +1431,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             cell_gate_bias, output_gate_bias, projection_weights,
             projection_bias, &lstm_params, /*forward_sequence=*/true,
             time_major, &op_data->integer_lstm_param, output_state, cell_state,
-            output, scratch0, scratch1, scratch2, scratch3, scratch4, scratch5,
-            CpuBackendContext::GetFromContext(context));
+            output, scratch0, scratch1, scratch2, scratch3, scratch4, scratch5);
       }
     }
     default:

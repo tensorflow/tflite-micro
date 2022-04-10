@@ -166,7 +166,7 @@ TfLiteStatus EvalHybrid(
     TfLiteTensor* output_scratch_buffer, TfLiteTensor* output,
     TfLiteTensor* input_zp, TfLiteTensor* aux_input_zp,
     TfLiteTensor* output_state_zp, TfLiteTensor* row_sums, int row_sums_size,
-    bool* compute_row_sums, CpuBackendContext* context);
+    bool* compute_row_sums);
 
 TfLiteStatus EvalInteger8x8_16(
     const TfLiteTensor* input, const TfLiteTensor* input_to_input_weights,
@@ -191,8 +191,7 @@ TfLiteStatus EvalInteger8x8_16(
     const lstm_eval::IntegerLstmParameter* integer_lstm_param,
     TfLiteTensor* output_state, TfLiteTensor* cell_state, TfLiteTensor* output,
     TfLiteTensor* scratch0, TfLiteTensor* scratch1, TfLiteTensor* scratch2,
-    TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5,
-    CpuBackendContext* context);
+    TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5);
 
 TfLiteStatus EvalInteger8x8_8(
     const TfLiteTensor* input, const TfLiteTensor* input_to_input_weights,
