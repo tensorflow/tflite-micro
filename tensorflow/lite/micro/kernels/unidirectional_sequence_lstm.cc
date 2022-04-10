@@ -26,8 +26,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/tensor_utils.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/lstm_eval.h"
-#include "tensorflow/lite/kernels/lstm_shared.h"
+#include "tensorflow/lite/micro/kernels/lstm_eval.h"
+#include "tensorflow/lite/micro/kernels/lstm_shared.h"
 
 namespace tflite {
 namespace ops {

@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_LSTM_EVAL_H_
-#define TENSORFLOW_LITE_KERNELS_LSTM_EVAL_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_
 
 #include <cstdint>
 #include <memory>
@@ -225,4 +225,4 @@ TfLiteStatus EvalInteger8x8_8(
 }  // namespace builtin
 }  // namespace ops
 }  // namespace tflite
-#endif  // TENSORFLOW_LITE_KERNELS_LSTM_EVAL_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_
