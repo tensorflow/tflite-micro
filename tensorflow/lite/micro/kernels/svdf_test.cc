@@ -504,6 +504,7 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
 
   TfLiteStatus init_and_prepare_status = runner.InitAndPrepare();
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, init_and_prepare_status);
+  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 
   // Abort early to make it clear init and prepare failed.
   if (init_and_prepare_status != kTfLiteOk) {
@@ -531,6 +532,7 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
       }
     }
   }
+  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 }
 
 #if !defined(XTENSA)  // Needed to avoid build errors from unused functions.

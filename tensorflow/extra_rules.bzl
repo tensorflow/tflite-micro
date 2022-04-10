@@ -15,3 +15,7 @@ def xtensa_hifi_3z_config():
 def xtensa_hifi_5_config():
     """Config setting for all HiFi 5 based cores."""
     return "//tensorflow/lite/micro/kernels:xtensa_hifi_5_default"
+
+def xtensa_vision_p6_config():
+    """Config setting for all Vision P6 based cores."""
+    return "//tensorflow/lite/micro/kernels:xtensa_vision_p6_default"

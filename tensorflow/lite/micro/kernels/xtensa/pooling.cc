@@ -35,13 +35,16 @@ struct OpData {
 
 TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
-
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPoolingInputTensor);
 
   if (input->type == kTfLiteInt8) {
     const RuntimeShape& input_shape = GetTensorShape(input);
-    const RuntimeShape& output_shape =
-        GetTensorShape(GetOutput(context, node, kPoolingOutputTensor));
+    TfLiteTensor* output =
+        micro_context->AllocateTempInputTensor(node, kPoolingOutputTensor);
+    const RuntimeShape& output_shape = GetTensorShape(output);
+    micro_context->DeallocateTempTfLiteTensor(output);
 
     const int depth = MatchingDim(input_shape, 3, output_shape, 3);
     const int input_height = input_shape.Dims(1);
@@ -70,6 +73,7 @@ TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         context, required_scratch, &(data->scratch_tensor_index)));
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 
@@ -125,15 +129,20 @@ TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
 TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
 
-  const TfLiteTensor* input = GetInput(context, node, kPoolingInputTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPoolingInputTensor);
 
   if (input->type == kTfLiteInt8) {
     auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
     auto* data = static_cast<OpData*>(node->user_data);
 
     const RuntimeShape& input_shape = GetTensorShape(input);
-    const RuntimeShape& output_shape =
-        GetTensorShape(GetOutput(context, node, kPoolingOutputTensor));
+    TfLiteTensor* output =
+        micro_context->AllocateTempOutputTensor(node, kPoolingOutputTensor);
+    const RuntimeShape& output_shape = GetTensorShape(output);
+    micro_context->DeallocateTempTfLiteTensor(output);
 
     const int depth = MatchingDim(input_shape, 3, output_shape, 3);
     const int input_height = input_shape.Dims(1);
@@ -159,6 +168,7 @@ TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         context, required_scratch, &(data->scratch_tensor_index)));
   }
 
+  micro_context->DeallocateTempTfLiteTensor(input);
   return kTfLiteOk;
 }
 

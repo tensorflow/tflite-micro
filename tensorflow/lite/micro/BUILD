@@ -123,18 +123,33 @@ cc_library(
 )
 
 cc_library(
+    name = "ibuffer_allocator",
+    hdrs = [
+        "ibuffer_allocator.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api",
+    ],
+)
+
+cc_library(
     name = "micro_allocator",
     srcs = [
+        "micro_allocation_info.cc",
         "micro_allocator.cc",
         "simple_memory_allocator.cc",
     ],
     hdrs = [
+        "micro_allocation_info.h",
         "micro_allocator.h",
         "simple_memory_allocator.h",
     ],
     copts = micro_copts(),
     deps = [
         ":flatbuffer_utils",
+        ":ibuffer_allocator",
         ":memory_helpers",
         ":micro_arena_constants",
         ":micro_compatibility",
@@ -197,6 +212,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":memory_helpers",
         ":micro_utils",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
@@ -479,6 +495,18 @@ cc_test(
         "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "micro_allocation_info_test",
+    srcs = [
+        "micro_allocation_info_test.cc",
+    ],
+    deps = [
+        ":micro_allocator",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 

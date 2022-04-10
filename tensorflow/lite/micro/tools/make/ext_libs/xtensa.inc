@@ -5,7 +5,9 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc
+  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
+  tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
@@ -89,7 +91,46 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
     -I$(NNLIB_PATH)/algo/ndsp/hifi4/include/
 
 else ifeq ($(TARGET_ARCH), vision_p6)
-  $(info We do not have XaNNlib for TARGET_ARCH=vision_p6)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads vision_p6)
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
+  endif
+
+  # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
+  # not have separate cflags (or the concept of modular build targets) with the
+  # Makefile, -Wno-shadow will be used for everything.
+
+  PLATFORM_FLAGS = \
+    -DXI_ERROR_LEVEL=XI_ERROR_LEVEL_NO_ERROR \
+    -DCNNRT_PERF_LEVEL=CNNRT_PERF_LEVEL_NONE \
+    -DINCLUDE_XI_CNN \
+    -Wno-shadow
+
+  CCFLAGS += $(PLATFORM_FLAGS)
+  CXXFLAGS += $(PLATFORM_FLAGS)
+
+  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xi_annlib_vision_p6
+
+  THIRD_PARTY_CC_SRCS += \
+    $(shell find $(NNLIB_PATH) -name "*.cc")
+
+  INCLUDES += \
+    -I$(NNLIB_PATH)/ \
+    -I$(NNLIB_PATH)/include/ 
+
+  LDFLAGS += -lidma-xtos
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
+endif
+
+FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
+
+INCLUDES += -I$(FFT_PATH)/
+
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal))
+THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
+
+THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
 endif

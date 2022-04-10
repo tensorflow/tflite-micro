@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,20 +55,21 @@ THIRD_PARTY_CC_HDRS += $(CMSIS_PATH)/CMSIS/Core/Include/cmsis_compiler.h
 
 INCLUDES += -I$(ETHOSU_DRIVER_PATH)/include \
             -I$(CMSIS_PATH)/CMSIS/Core/Include
-GENERATED_PROJECT_INCLUDES += -I./$(ETHOSU_DRIVER_PATH)/include
 
-ETHOSU_LOG_SEVERITY := ETHOSU_LOG_WARN
-CCFLAGS += -DETHOSU_LOG_SEVERITY=$(ETHOSU_LOG_SEVERITY)
-
-# TODO(#47718): resolve warnings.
-CCFLAGS += \
-  -Wno-return-type \
-  -Wno-format
-
-ifeq ($(TOOLCHAIN), gcc)
-  CCFLAGS += \
-    -Wno-unused-but-set-variable
+ETHOSU_FLAGS := -DETHOSU_LOG_SEVERITY=ETHOSU_LOG_WARN
+ifeq ($(ETHOSU_ARCH), u55)
+  ETHOSU_FLAGS += \
+    -DETHOSU_ARCH=u55 \
+    -DETHOSU55
+else ifeq ($(ETHOSU_ARCH), u65)
+  ETHOSU_FLAGS += \
+    -DETHOSU_ARCH=u65 \
+    -DETHOSU65
+else
+  $(error "ETHOSU_ARCH=$(ETHOSU_ARCH) is not supported")
 endif
+CCFLAGS += ${ETHOSU_FLAGS}
+CXXFLAGS += ${ETHOSU_FLAGS}
 
 # Convert downloaded person detect int8 model.
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc:

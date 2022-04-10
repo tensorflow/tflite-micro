@@ -153,6 +153,16 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       Register_BATCH_TO_SPACE_ND(), ParseBatchToSpaceNd);
   }
 
+  TfLiteStatus AddBroadcastArgs() {
+    return AddBuiltin(BuiltinOperator_BROADCAST_ARGS, Register_BROADCAST_ARGS(),
+                      ParseBroadcastArgs);
+  }
+
+  TfLiteStatus AddBroadcastTo() {
+    return AddBuiltin(BuiltinOperator_BROADCAST_TO, Register_BROADCAST_TO(),
+                      ParseBroadcastTo);
+  }
+
   TfLiteStatus AddCallOnce() {
     return AddBuiltin(BuiltinOperator_CALL_ONCE, Register_CALL_ONCE(),
                       ParseCallOnce);
@@ -553,6 +563,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddVarHandle() {
     return AddBuiltin(BuiltinOperator_VAR_HANDLE, Register_VAR_HANDLE(),
                       ParseVarHandle);
+  }
+
+  TfLiteStatus AddWhile() {
+    return AddBuiltin(BuiltinOperator_WHILE, Register_WHILE(), ParseWhile);
   }
 
   TfLiteStatus AddZerosLike() {

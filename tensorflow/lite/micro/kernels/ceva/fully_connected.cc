@@ -25,7 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-//#define MCPS_MEASUREMENT
+// #define MCPS_MEASUREMENT
 #ifdef MCPS_MEASUREMENT
 #include "tensorflow/lite/micro/kernels/ceva/mcps_macros.h"
 #endif
@@ -55,12 +55,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   const TfLiteTensor* input =
-      GetInput(context, node, kFullyConnectedInputTensor);
+      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   const TfLiteTensor* filter =
-      GetInput(context, node, kFullyConnectedWeightsTensor);
+      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
   const TfLiteTensor* bias =
-      GetOptionalInputTensor(context, node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output = GetOutput(context, node, kFullyConnectedOutputTensor);
+      AllocateTempInputTensor(context, node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output =
+      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   TF_LITE_ENSURE_MSG(context, input->type == filter->type,

@@ -19,9 +19,11 @@ limitations under the License.
 #include <cstdint>
 #include <new>
 
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
@@ -53,7 +55,7 @@ SimpleMemoryAllocator* SimpleMemoryAllocator::Create(
   // Allocate enough bytes from the buffer to create a SimpleMemoryAllocator.
   // The new instance will use the current adjusted tail buffer from the tmp
   // allocator instance.
-  uint8_t* allocator_buffer = tmp.AllocateFromTail(
+  uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
       sizeof(SimpleMemoryAllocator), alignof(SimpleMemoryAllocator));
   // Use the default copy constructor to populate internal states.
   return new (allocator_buffer) SimpleMemoryAllocator(tmp);
@@ -61,13 +63,37 @@ SimpleMemoryAllocator* SimpleMemoryAllocator::Create(
 
 SimpleMemoryAllocator::~SimpleMemoryAllocator() {}
 
-TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
-                                                      size_t alignment) {
-  if (head_ != temp_) {
+uint8_t* SimpleMemoryAllocator::AllocateResizableBuffer(size_t size,
+                                                        size_t alignment) {
+  // Only supports one resizable buffer, which starts at the buffer head.
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  if (ResizeBuffer(expect_resizable_buf, size, alignment) == kTfLiteOk) {
+    return expect_resizable_buf;
+  }
+  return nullptr;
+}
+
+TfLiteStatus SimpleMemoryAllocator::DeallocateResizableBuffer(
+    uint8_t* resizable_buf) {
+  return ResizeBuffer(resizable_buf, 0, 1);
+}
+
+TfLiteStatus SimpleMemoryAllocator::ReserveNonPersistentOverlayMemory(
+    size_t size, size_t alignment) {
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  return ResizeBuffer(expect_resizable_buf, size, alignment);
+}
+
+TfLiteStatus SimpleMemoryAllocator::ResizeBuffer(uint8_t* resizable_buf,
+                                                 size_t size,
+                                                 size_t alignment) {
+  // Only supports one resizable buffer, which starts at the buffer head.
+  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  if (head_ != temp_ || resizable_buf != expect_resizable_buf) {
     TF_LITE_REPORT_ERROR(
         error_reporter_,
-        "Internal error: SetHeadBufferSize() needs to be called "
-        "after ResetTempAllocations().");
+        "Internal error: either buffer is not resizable or "
+        "ResetTempAllocations() is not called before ResizeBuffer().");
     return kTfLiteError;
   }
 
@@ -76,7 +102,7 @@ TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
   if (available_memory < size) {
     TF_LITE_REPORT_ERROR(
         error_reporter_,
-        "Failed to set head size. Requested: %u, available %u, missing: %u",
+        "Failed to resize buffer. Requested: %u, available %u, missing: %u",
         size, available_memory, size - available_memory);
     return kTfLiteError;
   }
@@ -86,8 +112,8 @@ TfLiteStatus SimpleMemoryAllocator::SetHeadBufferSize(size_t size,
   return kTfLiteOk;
 }
 
-uint8_t* SimpleMemoryAllocator::AllocateFromTail(size_t size,
-                                                 size_t alignment) {
+uint8_t* SimpleMemoryAllocator::AllocatePersistentBuffer(size_t size,
+                                                         size_t alignment) {
   uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
@@ -134,19 +160,27 @@ bool SimpleMemoryAllocator::IsAllTempDeallocated() {
   return true;
 }
 
-void SimpleMemoryAllocator::ResetTempAllocations() {
+TfLiteStatus SimpleMemoryAllocator::ResetTempAllocations() {
   // TODO(b/209453859): enable error check based on IsAllTempDeallocated after
   // all AllocateTemp have been paird with DeallocateTemp
+  if (!IsAllTempDeallocated()) {
+    MicroPrintf(
+        "All temp buffers must be freed before calling ResetTempAllocations()");
+    return kTfLiteError;
+  }
   temp_ = head_;
+  return kTfLiteOk;
 }
 
-uint8_t* SimpleMemoryAllocator::GetHeadBuffer() const { return buffer_head_; }
-
-size_t SimpleMemoryAllocator::GetHeadUsedBytes() const {
-  return head_ - buffer_head_;
+uint8_t* SimpleMemoryAllocator::GetOverlayMemoryAddress() const {
+  return buffer_head_;
 }
 
-size_t SimpleMemoryAllocator::GetTailUsedBytes() const {
+size_t SimpleMemoryAllocator::GetNonPersistentUsedBytes() const {
+  return std::max(head_ - buffer_head_, temp_ - buffer_head_);
+}
+
+size_t SimpleMemoryAllocator::GetPersistentUsedBytes() const {
   return buffer_tail_ - tail_;
 }
 
@@ -157,7 +191,7 @@ size_t SimpleMemoryAllocator::GetAvailableMemory(size_t alignment) const {
 }
 
 size_t SimpleMemoryAllocator::GetUsedBytes() const {
-  return GetBufferSize() - (tail_ - temp_);
+  return GetPersistentUsedBytes() + GetNonPersistentUsedBytes();
 }
 
 size_t SimpleMemoryAllocator::GetBufferSize() const {

@@ -1,4 +1,7 @@
-tensorflow/lite/c/common.c
+tensorflow/lite/builtin_op_data.h
+tensorflow/lite/builtin_ops.h
+tensorflow/lite/context_util.h
+tensorflow/lite/c/common.cc
 tensorflow/lite/core/api/error_reporter.cc
 tensorflow/lite/core/api/flatbuffer_conversions.cc
 tensorflow/lite/core/api/op_resolver.cc
@@ -23,6 +26,8 @@ tensorflow/lite/kernels/internal/reference/arg_min_max.h
 tensorflow/lite/kernels/internal/reference/batch_to_space_nd.h
 tensorflow/lite/kernels/internal/reference/batch_matmul.h
 tensorflow/lite/kernels/internal/reference/binary_function.h
+tensorflow/lite/kernels/internal/reference/broadcast_args.h
+tensorflow/lite/kernels/internal/reference/broadcast_to.h
 tensorflow/lite/kernels/internal/reference/ceil.h
 tensorflow/lite/kernels/internal/reference/comparisons.h
 tensorflow/lite/kernels/internal/reference/concatenation.h
@@ -60,6 +65,7 @@ tensorflow/lite/kernels/internal/reference/neg.h
 tensorflow/lite/kernels/internal/reference/pad.h
 tensorflow/lite/kernels/internal/reference/pooling.h
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc
+tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h
 tensorflow/lite/kernels/internal/reference/portable_tensor_utils_impl.h
 tensorflow/lite/kernels/internal/reference/prelu.h
 tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h
@@ -74,6 +80,7 @@ tensorflow/lite/kernels/internal/reference/space_to_batch_nd.h
 tensorflow/lite/kernels/internal/reference/space_to_depth.h
 tensorflow/lite/kernels/internal/reference/sub.h
 tensorflow/lite/kernels/internal/reference/logistic.h
+tensorflow/lite/kernels/internal/reference/lstm_cell.h
 tensorflow/lite/kernels/internal/reference/slice.h
 tensorflow/lite/kernels/internal/reference/strided_slice.h
 tensorflow/lite/kernels/internal/reference/tanh.h
@@ -93,6 +100,7 @@ tensorflow/lite/python/schema_py_generated.py
 tensorflow/lite/python/schema_util.py
 tensorflow/lite/schema/schema_generated.h
 tensorflow/lite/schema/schema_utils.h
+tensorflow/lite/schema/schema.fbs
 tensorflow/lite/tools/flatbuffer_utils.py
 tensorflow/lite/tools/flatbuffer_utils_test.py
 tensorflow/lite/tools/randomize_weights.py

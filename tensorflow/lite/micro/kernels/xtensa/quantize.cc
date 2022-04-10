@@ -116,6 +116,14 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                               op_data->requantize_output_shift,
                               op_data->input_zero_point, zero_point,
                               tflite::micro::GetTensorData<int16_t>(output));
+  } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt8) {
+    int size = ElementCount(*input->dims);
+    int32_t zero_point = op_data->quantization_params.zero_point;
+    reference_ops::Requantize(tflite::micro::GetTensorData<int8_t>(input), size,
+                              op_data->requantize_output_multiplier,
+                              op_data->requantize_output_shift,
+                              op_data->input_zero_point, zero_point,
+                              tflite::micro::GetTensorData<int16_t>(output));
   } else {
     TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
                        TfLiteTypeGetName(input->type),
@@ -134,9 +142,10 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
+  MicroContext* micro_context = GetMicroContext(context);
 
-  TfLiteTensor* output = GetOutput(context, node, 0);
-  const TfLiteTensor* input = GetInput(context, node, 0);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
 
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
   op_data->quantization_params.zero_point = output->params.zero_point;
@@ -149,6 +158,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                            static_cast<double>(output->params.scale);
   QuantizeMultiplier(effective_scale, &op_data->requantize_output_multiplier,
                      &op_data->requantize_output_shift);
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
 }

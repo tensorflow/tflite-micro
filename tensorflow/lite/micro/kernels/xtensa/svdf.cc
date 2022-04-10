@@ -27,20 +27,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
-
-// Input tensors.
-constexpr int kInputTensor = 0;
-constexpr int kWeightsFeatureTensor = 1;
-constexpr int kWeightsTimeTensor = 2;
-constexpr int kBiasTensor = 3;
-// This is a variable tensor, and will be modified by this op.
-constexpr int kInputActivationStateTensor = 4;
-
-// Output tensor.
-constexpr int kOutputTensor = 0;
 
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 
@@ -123,6 +113,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
 
@@ -133,14 +124,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // [3] = Bias (optional), {1, num_units}
   // [4] = Activation State (variable),
   //         {2, batch_size, memory_size * num_filters}
-  const TfLiteTensor* input = GetInput(context, node, kInputTensor);
-  const TfLiteTensor* weights_feature =
-      GetInput(context, node, kWeightsFeatureTensor);
-  const TfLiteTensor* weights_time =
-      GetInput(context, node, kWeightsTimeTensor);
-  const TfLiteTensor* bias = GetOptionalInputTensor(context, node, kBiasTensor);
-  const TfLiteTensor* activation_state =
-      GetInput(context, node, kInputActivationStateTensor);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kSvdfInputTensor);
+  TfLiteTensor* weights_feature =
+      micro_context->AllocateTempInputTensor(node, kSvdfWeightsFeatureTensor);
+  TfLiteTensor* weights_time =
+      micro_context->AllocateTempInputTensor(node, kSvdfWeightsTimeTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kSvdfBiasTensor);
+  TfLiteTensor* activation_state = micro_context->AllocateTempInputTensor(
+      node, kSvdfInputActivationStateTensor);
 
   // Define input constants based on input tensor definition above:
   const int rank = params->rank;
@@ -153,8 +147,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const int memory_size = weights_time->dims->data[1];
 
   if (input->type != kTfLiteInt8) {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type);
     return kTfLiteError;
   }
 
@@ -165,7 +159,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Validate Tensor Output:
   // [0] = float/int8_t, {2, batch_size, num_units}
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
-  TfLiteTensor* output = GetOutput(context, node, kOutputTensor);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kSvdfOutputTensor);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), 2);
   TF_LITE_ENSURE_EQ(context, output->dims->data[0], batch_size);
   TF_LITE_ENSURE_EQ(context, output->dims->data[1], num_units);
@@ -232,26 +227,38 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           &(data->scratch_output_tensor_index));
   TF_LITE_ENSURE_OK(context, scratch_output_status);
 
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(weights_time);
+  micro_context->DeallocateTempTfLiteTensor(weights_feature);
+  if (bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(bias);
+  }
+  micro_context->DeallocateTempTfLiteTensor(activation_state);
+  micro_context->DeallocateTempTfLiteTensor(output);
+
   return kTfLiteOk;
+#else
+  return PrepareSvdf(context, node);
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = static_cast<TfLiteSVDFParams*>(node->builtin_data);
 
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
   const TfLiteEvalTensor* weights_feature =
-      tflite::micro::GetEvalInput(context, node, kWeightsFeatureTensor);
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
   const TfLiteEvalTensor* weights_time =
-      tflite::micro::GetEvalInput(context, node, kWeightsTimeTensor);
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
   const TfLiteEvalTensor* bias =
       (NumInputs(node) == 5)
-          ? tflite::micro::GetEvalInput(context, node, kBiasTensor)
+          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
           : nullptr;
   TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
-      context, node, kInputActivationStateTensor);
+      context, node, kSvdfInputActivationStateTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
@@ -261,8 +268,43 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                              weights_time, bias, params, activation_state,
                              output, data);
 #else
-  EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
-                         bias, params, activation_state, output, data);
+  switch (weights_feature->type) {
+    case kTfLiteFloat32: {
+      EvalFloatSvdfReference(
+          context, node, input, weights_feature, weights_time, bias, params,
+          data.scratch_tensor_index, activation_state, output);
+      return kTfLiteOk;
+      break;
+    }
+
+    case kTfLiteInt8: {
+      switch (weights_time->type) {
+        case kTfLiteInt16: {
+          EvalInt16SvdfReference(context, node, input, weights_feature,
+                                 weights_time, bias, params, activation_state,
+                                 output, data);
+          return kTfLiteOk;
+          break;
+        }
+        case kTfLiteInt8: {
+          EvalInt8SvdfReference(context, node, input, weights_feature,
+                                weights_time, bias, params, activation_state,
+                                output, data);
+          return kTfLiteOk;
+          break;
+        }
+        default:
+          MicroPrintf("Type %s not currently supported.",
+                      TfLiteTypeGetName(weights_time->type));
+          return kTfLiteError;
+      }
+    }
+
+    default:
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
+      return kTfLiteError;
+  }
   return kTfLiteOk;
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
