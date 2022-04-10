@@ -69,14 +69,14 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
                  output_tensor->quantization.type != kTfLiteNoQuantization);
   auto* proj_params = static_cast<TfLiteAffineQuantization*>(
       output_tensor->quantization.params);
-  if (cell_clip > 0.0) {
+  if (cell_clip > 0.0f) {
     integer_lstm_param->quantized_cell_clip = static_cast<int16_t>(std::min(
         std::max(cell_clip / cell_state_params->scale->data[0], -32768.0f),
         32767.0f));
   } else {
     integer_lstm_param->quantized_cell_clip = 0;
   }
-  if (proj_clip > 0.0) {
+  if (proj_clip > 0.0f) {
     integer_lstm_param->quantized_proj_clip = static_cast<int8_t>(std::min(
         std::max(proj_clip / proj_params->scale->data[0], -128.0f), 127.0f));
   } else {
@@ -290,23 +290,23 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
                                         intermediate_scale[3];
 
   effective_hidden_scale =
-      std::pow(2, -15) / intermediate_scale[4] * std::pow(2, -15);
+      std::pow(2.0f, -15.0f) / intermediate_scale[4] * std::pow(2.0f, -15.0f);
 
   effective_proj_scale =
       projection_weight_scale * intermediate_scale[4] / output_state_scale;
 
   if (use_peephole) {
     if (!use_cifg) {
-      effective_cell_to_input_scale = std::pow(2, cell_scale) *  // NOLINT
-                                      cell_to_input_weight_scale /
-                                      intermediate_scale[0];
+      effective_cell_to_input_scale =
+          std::pow(2.0f, static_cast<float>(cell_scale)) *
+          cell_to_input_weight_scale / intermediate_scale[0];
     }
-    effective_cell_to_forget_scale = std::pow(2, cell_scale) *  // NOLINT
-                                     cell_to_forget_weight_scale /
-                                     intermediate_scale[1];
-    effective_cell_to_output_scale = std::pow(2, cell_scale) *  // NOLINT
-                                     cell_to_output_weight_scale /
-                                     intermediate_scale[3];
+    effective_cell_to_forget_scale =
+        std::pow(2.0f, static_cast<float>(cell_scale)) *
+        cell_to_forget_weight_scale / intermediate_scale[1];
+    effective_cell_to_output_scale =
+        std::pow(2.0f, static_cast<float>(cell_scale)) *
+        cell_to_output_weight_scale / intermediate_scale[3];
   }
 
   // Decompose scales.
