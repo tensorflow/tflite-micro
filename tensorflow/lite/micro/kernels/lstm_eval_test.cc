@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/kernels/lstm_eval.h"
 
+#include <gtest/gtest.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -21,7 +22,6 @@ limitations under the License.
 #include <memory>
 #include <vector>
 
-#include <gtest/gtest.h>
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/cpu_backend_context.h"

@@ -14,10 +14,11 @@ limitations under the License.
 ==============================================================================*/
 // Unit test for TFLite Sequential LSTM op.
 
-#include <vector>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <vector>
+
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/kernels/test_util.h"
 #include "tensorflow/lite/schema/schema_generated.h"

@@ -14,9 +14,9 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/kernels/internal/tensor_utils.h"
 
+#include <gmock/gmock.h>
 #include <math.h>
 
-#include <gmock/gmock.h>
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/kernels/cpu_backend_context.h"
 #include "tensorflow/lite/kernels/internal/common.h"
