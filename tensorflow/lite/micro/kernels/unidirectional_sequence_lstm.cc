@@ -16,6 +16,7 @@ limitations under the License.
 #include <math.h>
 
 #include <cstddef>
+#include <vector>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
