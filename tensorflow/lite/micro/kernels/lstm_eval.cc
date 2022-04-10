@@ -1053,7 +1053,7 @@ inline void LstmStepHybrid(
     if (projection_weights_ptr != nullptr) {
       num_row_sums += ceil(static_cast<float>(n_output) / n_cell);
     }
-    TF_LITE_ASSERT(row_sums_size == num_row_sums);
+    TFLITE_DCHECK(row_sums_size == num_row_sums);
     input_to_input_row_sums = row_sums;
     input_to_forget_row_sums =
         use_cifg ? input_to_input_row_sums : input_to_input_row_sums + n_cell;
@@ -1696,7 +1696,7 @@ TfLiteStatus EvalFloat(
     const TfLiteLSTMParams* params, bool forward_sequence, bool time_major,
     int output_offset, TfLiteTensor* scratch_buffer, TfLiteTensor* output_state,
     TfLiteTensor* cell_state, TfLiteTensor* output) {
-  TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
+  TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   int max_time, n_batch;
   if (input->dims->size == 3) {
     max_time = (time_major) ? input->dims->data[0] : input->dims->data[1];
@@ -1894,7 +1894,7 @@ TfLiteStatus EvalHybrid(
     TfLiteTensor* input_zp, TfLiteTensor* aux_input_zp,
     TfLiteTensor* output_state_zp, TfLiteTensor* row_sums, int row_sums_size,
     bool* compute_row_sums) {
-  TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
+  TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
   if (input->dims->size == 2) {
@@ -2154,7 +2154,7 @@ TfLiteStatus EvalInteger8x8_16(
     TfLiteTensor* output_state, TfLiteTensor* cell_state, TfLiteTensor* output,
     TfLiteTensor* scratch0, TfLiteTensor* scratch1, TfLiteTensor* scratch2,
     TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5) {
-  TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
+  TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
   if (input->dims->size == 2) {
@@ -2391,7 +2391,7 @@ TfLiteStatus EvalInteger8x8_8(
     TfLiteTensor* scratch0, TfLiteTensor* scratch1, TfLiteTensor* scratch2,
     TfLiteTensor* scratch3, TfLiteTensor* scratch4, TfLiteTensor* scratch5,
     TfLiteTensor* scratch6, TfLiteTensor* scratch7) {
-  TF_LITE_ASSERT(input->dims->size >= 2 && input->dims->size <= 3);
+  TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
   if (input->dims->size == 2) {
