@@ -156,7 +156,7 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
 
   // Get intermediate scales and zero points.
   std::vector<float> intermediate_scale;
-  std::vector<int32> intermediate_zp;
+  std::vector<int32_t> intermediate_zp;
   for (int i = 0; i < 4; ++i) {
     if (use_layer_norm) {
       TfLiteTensor* intermediate;
