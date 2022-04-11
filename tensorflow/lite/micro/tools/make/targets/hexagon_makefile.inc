@@ -105,5 +105,12 @@ INCLUDES += \
   -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/posix \
   -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/qurt
 
+# Excludes memory_arena_threshold_test because of the size difference between
+# reference OP and optimized OP.
+EXCLUDED_TESTS := \
+  tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_hexagon_binary.sh
 SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_hexagon_binary.sh
