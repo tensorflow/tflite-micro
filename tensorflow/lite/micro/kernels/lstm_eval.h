@@ -75,17 +75,15 @@ struct IntegerLstmParameter {
   int32_t output_variance_guard;
 
   // Pre-calculate bias + zero_point * weight.
-  // Unabled to use temporary tensors since those are used in Prepare() and
-  // scratch buffer is only allocated after Preapre().
-  std::unique_ptr<int32_t[]> input_to_forget_effective_bias;
-  std::unique_ptr<int32_t[]> recurrent_to_forget_effective_bias;
-  std::unique_ptr<int32_t[]> input_to_cell_effective_bias;
-  std::unique_ptr<int32_t[]> recurrent_to_cell_effective_bias;
-  std::unique_ptr<int32_t[]> input_to_output_effective_bias;
-  std::unique_ptr<int32_t[]> recurrent_to_output_effective_bias;
-  std::unique_ptr<int32_t[]> input_to_input_effective_bias;
-  std::unique_ptr<int32_t[]> recurrent_to_input_effective_bias;
-  std::unique_ptr<int32_t[]> projection_effective_bias;
+  int32_t* input_to_forget_effective_bias;
+  int32_t* recurrent_to_forget_effective_bias;
+  int32_t* input_to_cell_effective_bias;
+  int32_t* recurrent_to_cell_effective_bias;
+  int32_t* input_to_output_effective_bias;
+  int32_t* recurrent_to_output_effective_bias;
+  int32_t* input_to_input_effective_bias;
+  int32_t* recurrent_to_input_effective_bias;
+  int32_t* projection_effective_bias;
 
   // Scale and zero point for intermediate tensors.
   // Used only in the 8x8_8 case.

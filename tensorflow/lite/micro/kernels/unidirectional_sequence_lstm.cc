@@ -682,7 +682,7 @@ TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
 TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
     TfLiteContext* context, int32_t zero_point,
     const TfLiteTensor* weight_tensor, const TfLiteTensor* bias_tensor,
-    std::unique_ptr<int32_t[]>* output) {
+    int32_t** output) {
   if (weight_tensor == nullptr) {
     return kTfLiteOk;
   }
@@ -691,17 +691,20 @@ TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
   TF_LITE_ENSURE_EQ(context, weight_shape.DimensionsCount(), 2);
   const int row = weight_shape.Dims(0);
   const int col = weight_shape.Dims(1);
-  output->reset(new int32_t[row]);
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  *output = static_cast<int32_t*>(
+      context->AllocatePersistentBuffer(context, row * sizeof(int32_t)));
+
   if (bias_tensor == nullptr) {
-    memset(output->get(), 0, row * sizeof(int32_t));
+    memset(*output, 0, row * sizeof(int32_t));
   } else {
     const int32_t* bias = GetTensorData<int32_t>(bias_tensor);
-    memcpy(output->get(), bias, row * sizeof(int32_t));
+    memcpy(*output, bias, row * sizeof(int32_t));
   }
   if (zero_point != 0) {
     const int8_t* weight = GetTensorData<int8_t>(weight_tensor);
     tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point, row, col,
-                                                 output->get());
+                                                 *output);
   }
   return kTfLiteOk;
 }
