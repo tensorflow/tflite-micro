@@ -14,11 +14,10 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 
-#include <math.h>
-#include <string.h>
-
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <vector>
 
