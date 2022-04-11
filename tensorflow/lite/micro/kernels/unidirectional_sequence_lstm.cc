@@ -1443,12 +1443,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace unidirectional_sequence_lstm
 
-TfLiteRegistration* Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  static TfLiteRegistration r = {unidirectional_sequence_lstm::Init,
-                                 unidirectional_sequence_lstm::Free,
-                                 unidirectional_sequence_lstm::Prepare,
-                                 unidirectional_sequence_lstm::Eval};
-  return &r;
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+  return {/*init=*/unidirectional_sequence_lstm::Init,
+          /*free=*/unidirectional_sequence_lstm::Free,
+          /*prepare=*/unidirectional_sequence_lstm::Prepare,
+          /*invoke=*/unidirectional_sequence_lstm::Eval,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0};
 }
 
 }  // namespace builtin
