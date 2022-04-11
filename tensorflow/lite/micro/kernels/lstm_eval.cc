@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -284,7 +283,7 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
       tensor_utils::CwiseClipping(output_state, n_batch * n_output, proj_clip);
     }
   } else {
-    std::copy_n(scratch, n_batch * n_output, output_state);
+    std::memcpy(output_state, scratch, n_batch * n_output * sizeof(float));
   }
 }
 
@@ -472,7 +471,7 @@ void CalculateLstmOutputHybrid(
       tensor_utils::CwiseClipping(output_state, n_batch * n_output, proj_clip);
     }
   } else {
-    std::copy_n(scratch0, n_batch * n_output, output_state);
+    std::memcpy(output_state, scratch0, n_batch * n_output * sizeof(float));
   }
 }
 
@@ -633,7 +632,7 @@ void CalculateLstmOutputInteger8x8_16(
                                   quantized_proj_clip);
     }
   } else {
-    std::copy_n(scratch1, n_batch * n_output, output_state);
+    std::memcpy(output_state, scratch1, n_batch * n_output * sizeof(int8_t));
   }
 }
 
@@ -889,8 +888,8 @@ inline void LstmStepFloat(
   // Copy output state to the output. Note that the output's rows may not be
   // contiguous (output_batch_leading_dim != n_output).
   for (int b = 0; b < n_batch; b++) {
-    std::copy_n(output_state_ptr + b * n_output, n_output,
-                output_ptr + b * output_batch_leading_dim);
+    std::memcpy(output_ptr + b * output_batch_leading_dim,
+                output_state_ptr + b * n_output, n_output * sizeof(float));
   }
 }
 
@@ -1202,8 +1201,8 @@ inline void LstmStepHybrid(
   // Copy output state to the output. Note that the output's rows may not be
   // contiguous (output_batch_leading_dim != n_output).
   for (int b = 0; b < n_batch; b++) {
-    std::copy_n(output_state_ptr + b * n_output, n_output,
-                output_ptr + b * output_batch_leading_dim);
+    std::memcpy(output_ptr + b * output_batch_leading_dim,
+                output_state_ptr + b * n_output, n_output * sizeof(float));
   }
 }
 
@@ -1452,7 +1451,8 @@ inline void LstmStepInteger8x8_16(
       quantized_proj_clip, output_state_ptr, scratch0, scratch4, scratch5);
   // Copy output state to the output. Note that unlike float or hybrid, output
   // is always contiguous.
-  std::copy_n(output_state_ptr, n_batch * n_output, output_ptr);
+  std::memcpy(output_ptr, output_state_ptr,
+              n_batch * n_output * sizeof(int8_t));
 }
 
 // Fully quantized lstm kernel for 8 bit gate matmul output.
@@ -1663,7 +1663,8 @@ inline void LstmStepInteger8x8_8(
       output_state_ptr, scratch2);
   // Copy output state to the output. Note that unlike float or hybrid, output
   // is always contigous.
-  std::copy_n(output_state_ptr, n_batch * n_output, output_ptr);
+  std::memcpy(output_ptr, output_state_ptr,
+              n_batch * n_output * sizeof(int8_t));
 }
 
 }  // namespace
