@@ -165,10 +165,10 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
                         GetIntermediatesSafe(context, node, i, &intermediate));
       TF_LITE_ENSURE(context,
                      intermediate->quantization.type != kTfLiteNoQuantization);
-      auto* params = static_cast<TfLiteAffineQuantization*>(
+      auto* params_intermediate = static_cast<TfLiteAffineQuantization*>(
           intermediate->quantization.params);
-      intermediate_scale.push_back(params->scale->data[0]);
-      intermediate_zp.push_back(params->zero_point->data[0]);
+      intermediate_scale.push_back(params_intermediate->scale->data[0]);
+      intermediate_zp.push_back(params_intermediate->zero_point->data[0]);
     } else {
       // Q3.12 for activation functions.
       intermediate_scale.push_back(std::pow(2, -12));
@@ -1193,12 +1193,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       const int scratch_dimension[2] = {n_batch, n_cell};
       if (!TfLiteIntArrayEqualsArray(scratch_tensor->dims, 2,
                                      scratch_dimension)) {
-        TfLiteIntArray* scratch_buffer_size = TfLiteIntArrayCreate(2);
-        scratch_buffer_size->data[0] = n_batch;
-        scratch_buffer_size->data[1] = n_cell;
+        TfLiteIntArray* scratch_buffer_size_local = TfLiteIntArrayCreate(2);
+        scratch_buffer_size_local->data[0] = n_batch;
+        scratch_buffer_size_local->data[1] = n_cell;
         TF_LITE_ENSURE_OK(context,
                           context->ResizeTensor(context, scratch_tensor,
-                                                scratch_buffer_size));
+                                                scratch_buffer_size_local));
       }
     }
 
@@ -1354,7 +1354,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             context,
             GetTemporarySafe(context, node, kScratchBuffer, &scratch_buffer));
 
-        OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
+        OpData* op_data_rw = reinterpret_cast<OpData*>(node->user_data);
         TfLiteTensor* row_sums;
         TF_LITE_ENSURE_OK(context,
                           GetTemporarySafe(context, node, kRowSums, &row_sums));
@@ -1400,7 +1400,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             GetTemporary(context, node, kInputZeroPoints),
             /*aux_input_zp=*/nullptr,
             GetTemporary(context, node, kOutputStateZeroPoints), row_sums,
-            row_sums_size, &op_data->compute_row_sums);
+            row_sums_size, &op_data_rw->compute_row_sums);
       } else {
         TfLiteTensor* scratch0;
         TF_LITE_ENSURE_OK(context,
