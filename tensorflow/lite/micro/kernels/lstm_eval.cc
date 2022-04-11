@@ -160,7 +160,7 @@ inline void CalculateLstmGateFloat(
   // Initialize scratch buffers with bias for regular lstm or initialize with
   // zero for layer norm lstm.
   if (use_layer_norm) {
-    std::fill_n(gate, n_cell * n_batch, 0.0f);
+    memset(gate, 0, n_cell * n_batch * sizeof(float));
   } else {
     tensor_utils::VectorBatchVectorAssign(gate_bias, n_cell, n_batch, gate);
   }
@@ -276,7 +276,7 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
       tensor_utils::VectorBatchVectorAssign(projection_bias, n_output, n_batch,
                                             output_state);
     } else {
-      std::fill_n(output_state, n_batch * n_output, 0.0f);
+      memset(output_state, 0, n_batch * n_output * sizeof(float));
     }
     tensor_utils::MatrixBatchVectorMultiplyAccumulate(
         projection_weights, n_output, n_cell, scratch, n_batch, output_state);
@@ -332,7 +332,7 @@ void CalculateLstmGateHybrid(
   // Initialize scratch buffers with bias for regular lstm or initialize with
   // zero for layer norm lstm.
   if (use_layer_norm) {
-    std::fill_n(gate, n_cell * n_batch, 0.0f);
+    memset(gate, 0, n_cell * n_batch * sizeof(float));
   } else {
     tensor_utils::VectorBatchVectorAssign(gate_bias, n_cell, n_batch, gate);
   }
@@ -445,7 +445,7 @@ void CalculateLstmOutputHybrid(
       tensor_utils::VectorBatchVectorAssign(projection_bias, n_output, n_batch,
                                             output_state);
     } else {
-      std::fill_n(output_state, n_batch * n_output, 0.0f);
+      memset(output_state, 0, n_batch * n_output * sizeof(float));
     }
     if (!tensor_utils::IsZeroVector(scratch0, n_batch * n_cell)) {
       // Save quantization and matmul computation for all zero output.
@@ -509,7 +509,7 @@ void CalculateLstmGateInteger8x8_16(
 
   // Initialize scratch buffers with zeros. Note that unlike float and hybrid
   // versions, bias is only used in layer normalization.
-  std::fill_n(gate, n_batch * n_cell, 0);
+  memset(gate, 0, n_batch * n_cell * sizeof(int16_t));
   // For each batch and cell: compute input_weight * input.
   tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       input, input_to_gate_bias, input_to_gate_weights, input_to_gate_scale_a,
@@ -623,7 +623,7 @@ void CalculateLstmOutputInteger8x8_16(
 
   if (use_projection) {
     // Note: no bias like in float/hybrid
-    std::fill_n(output_state, n_batch * n_output, 0);
+    memset(output_state, 0, n_batch * n_output * sizeof(int8_t));
     tensor_utils::MatrixBatchVectorMultiplyAccumulate(
         scratch1, projection_bias, projection_weights, proj_scale_a,
         proj_scale_b, n_batch, n_cell, n_output, output_state_zp, scratch2,
