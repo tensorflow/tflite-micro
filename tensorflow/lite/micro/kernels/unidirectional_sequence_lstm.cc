@@ -424,8 +424,8 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
 
 }  // namespace
 
-// Temporary tensors
-enum TemporaryTensor {
+// Temporary buffers used for hybrid mode
+enum HybridTempBuffer {
   kScratchBuffer = 0,
   kInputQuantized = 1,
   kOutputStateQuantized = 2,
@@ -437,13 +437,13 @@ enum TemporaryTensor {
   kAccumScratch = 8,
   kInputZeroPoints = 9,
   kOutputStateZeroPoints = 10,
-  kRowSums = 11,
-  kNumTemporaryTensors = 12,
+  kScales = 11,
+  kNumHybridTempBuffers = 12,
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   auto* op_data = new OpData();
-  context->AddTensors(context, kNumTemporaryTensors,
+  context->AddTensors(context, kNumHybridTempBuffers,
                       &op_data->scratch_tensor_index);
   return op_data;
 }
@@ -1192,7 +1192,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TfLiteIntArrayFree(node->temporaries);
   if (IsHybridOp(input, input_to_output_weights)) {
-    node->temporaries = TfLiteIntArrayCreate(kNumTemporaryTensors);
+    node->temporaries = TfLiteIntArrayCreate(kNumHybridTempBuffers);
   } else if (is_integer) {
     node->temporaries = TfLiteIntArrayCreate(6);
   } else {
