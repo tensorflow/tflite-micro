@@ -1592,8 +1592,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           forget_gate_bias, cell_gate_bias, output_gate_bias,
           projection_weights, projection_bias, &lstm_params,
           /*forward_sequence=*/true, time_major,
-          /*output_offset=*/0, scratch_buffer, output_state, cell_state,
-          output);
+          /*output_offset=*/0, GetTensorData<float>(scratch_buffer),
+          output_state, cell_state, output);
     } break;
     case kTfLiteUInt8:
     case kTfLiteInt8: {
@@ -1637,21 +1637,32 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             projection_weights, /*projection_weights_ledger*/ nullptr,
             projection_bias, &lstm_params,
             /*forward_sequence=*/true, time_major,
-            /*output_offset=*/0, scratch_buffer,
-            GetTemporary(context, node, kInputScalingFactors),
+            /*output_offset=*/0, GetTensorData<float>(scratch_buffer),
+            GetTensorData<float>(
+                GetTemporary(context, node, kInputScalingFactors)),
             /*aux_input_sf=*/nullptr,
-            GetTemporary(context, node, kOutputStateScalingFactors),
-            GetTemporary(context, node, kProductScalingFactors),
-            GetTemporary(context, node, kRecoveredCellWeights),
-            GetTemporary(context, node, kInputQuantized),
+            GetTensorData<float>(
+                GetTemporary(context, node, kOutputStateScalingFactors)),
+            GetTensorData<float>(
+                GetTemporary(context, node, kProductScalingFactors)),
+            GetTensorData<float>(
+                GetTemporary(context, node, kRecoveredCellWeights)),
+            GetTensorData<int8_t>(GetTemporary(context, node, kInputQuantized)),
             /*aux_input_quantized=*/nullptr,
-            GetTemporary(context, node, kOutputStateQuantized),
-            GetTemporary(context, node, kCellStateQuantized), output_state,
-            cell_state, GetTemporary(context, node, kAccumScratch), output,
-            GetTemporary(context, node, kInputZeroPoints),
+            GetTensorData<int8_t>(
+                GetTemporary(context, node, kOutputStateQuantized)),
+            GetTensorData<int8_t>(
+                GetTemporary(context, node, kCellStateQuantized)),
+            output_state, cell_state,
+            GetTensorData<int32_t>(GetTemporary(context, node, kAccumScratch)),
+            output,
+            GetTensorData<int32_t>(
+                GetTemporary(context, node, kInputZeroPoints)),
             /*aux_input_zp=*/nullptr,
-            GetTemporary(context, node, kOutputStateZeroPoints), row_sums,
-            row_sums_size, &op_data_rw->compute_row_sums);
+            GetTensorData<int32_t>(
+                GetTemporary(context, node, kOutputStateZeroPoints)),
+            GetTensorData<int32_t>(row_sums), row_sums_size,
+            &op_data_rw->compute_row_sums);
       } else {
         TfLiteTensor* scratch0;
         TF_LITE_ENSURE_OK(context,
@@ -1684,7 +1695,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             projection_bias, &lstm_params, /*forward_sequence=*/true,
             time_major, &op_data->integer_lstm_param,
             op_data->output_state_zero_point, output_state, cell_state, output,
-            scratch0, scratch1, scratch2, scratch3, scratch4, scratch5);
+            GetTensorData<int16_t>(scratch0), GetTensorData<int16_t>(scratch1),
+            GetTensorData<int16_t>(scratch2), GetTensorData<int16_t>(scratch3),
+            GetTensorData<int8_t>(scratch4), GetTensorData<int32_t>(scratch5));
       }
     } break;
     default:
