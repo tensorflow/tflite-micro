@@ -38,6 +38,9 @@ struct OpData {
   bool use_layer_norm;
   // The scratch tensor index.
   int scratch_tensor_index;
+
+  int32_t row_sums_size;
+  int32_t* row_sums;
   bool compute_row_sums = false;
 
   int32_t input_zero_point;
@@ -1385,26 +1388,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       TF_LITE_ENSURE_OK(context, context->ResizeTensor(context, output_state_zp,
                                                        output_state_zp_size));
     }
-    node->temporaries->data[kRowSums] = scratch_tensor_index + kRowSums;
-    TfLiteTensor* row_sums;
-    TF_LITE_ENSURE_OK(context,
-                      GetTemporarySafe(context, node, kRowSums, &row_sums));
-    row_sums->type = kTfLiteInt32;
-    row_sums->allocation_type = kTfLiteArenaRwPersistent;
+
     int row_sums_rows = use_cifg ? 6 : 8;
     TfLiteTensor* projection_weights = micro_context->AllocateTempInputTensor(
         node, lstm::full::kProjectionWeightsTensor);
     if (projection_weights != nullptr) {
       row_sums_rows += ceil(static_cast<float>(n_output) / n_cell);
     }
-    int row_sums_dims[2] = {row_sums_rows, n_cell};
-    if (!TfLiteIntArrayEqualsArray(row_sums->dims, 2, row_sums_dims)) {
-      TfLiteIntArray* row_sums_size = TfLiteIntArrayCreate(2);
-      row_sums_size->data[0] = row_sums_dims[0];
-      row_sums_size->data[1] = row_sums_dims[1];
-      TF_LITE_ENSURE_OK(
-          context, context->ResizeTensor(context, row_sums, row_sums_size));
-    }
+    op_data->row_sums_size = row_sums_rows;
+    TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+    op_data->row_sums = static_cast<int32_t*>(context->AllocatePersistentBuffer(
+        context, row_sums_rows * n_cell * sizeof(int32_t)));
     if (projection_weights != nullptr) {
       micro_context->DeallocateTempTfLiteTensor(projection_weights);
     }
@@ -1606,10 +1600,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             GetTemporarySafe(context, node, kScratchBuffer, &scratch_buffer));
 
         OpData* op_data_rw = reinterpret_cast<OpData*>(node->user_data);
-        TfLiteTensor* row_sums;
-        TF_LITE_ENSURE_OK(context,
-                          GetTemporarySafe(context, node, kRowSums, &row_sums));
-        const int row_sums_size = row_sums->dims->data[0];
         return lstm_eval::EvalHybrid(
             &(op_data->hybrid_lstm_scales), input, input_to_input_weights,
             /*input_to_input_weights_ledger*/ nullptr, input_to_forget_weights,
@@ -1661,7 +1651,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             /*aux_input_zp=*/nullptr,
             GetTensorData<int32_t>(
                 GetTemporary(context, node, kOutputStateZeroPoints)),
-            GetTensorData<int32_t>(row_sums), row_sums_size,
+            op_data_rw->row_sums, op_data_rw->row_sums_size,
             &op_data_rw->compute_row_sums);
       } else {
         TfLiteTensor* scratch0;
