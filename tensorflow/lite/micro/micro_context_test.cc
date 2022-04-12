@@ -137,4 +137,20 @@ TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
   TF_LITE_MICRO_EXPECT_TRUE(invalid_output == nullptr);
 }
 
+TF_LITE_MICRO_TEST(TestGetTempIntermediateTensor) {
+  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+
+  TfLiteNode node;
+  int intermediate_data[] = {1, 0};
+  node.intermediates = IntArrayFromInts(intermediate_data);
+
+  TfLiteTensor* output = micro_context.AllocateTempIntermediateTensor(&node, 0);
+  TF_LITE_MICRO_EXPECT_TRUE(output != nullptr);
+  micro_context.DeallocateTempTfLiteTensor(output);
+
+  TfLiteTensor* invalid_output =
+      micro_context.AllocateTempIntermediateTensor(&node, 1);
+  TF_LITE_MICRO_EXPECT_TRUE(invalid_output == nullptr);
+}
+
 TF_LITE_MICRO_TESTS_END
