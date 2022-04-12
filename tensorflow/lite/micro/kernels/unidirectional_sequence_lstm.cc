@@ -33,11 +33,13 @@ namespace builtin {
 namespace unidirectional_sequence_lstm {
 namespace {
 
+constexpr int scratch_index_size = 12;
+
 struct OpData {
   // If the lstm is layer norm.
   bool use_layer_norm;
-  // The scratch tensor index.
-  int scratch_tensor_index;
+  // The scratch index.
+  int scratch_index[scratch_index_size];
 
   int32_t row_sums_size;
   int32_t* row_sums;
