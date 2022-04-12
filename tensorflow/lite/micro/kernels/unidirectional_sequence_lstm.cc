@@ -40,6 +40,9 @@ struct OpData {
   int scratch_tensor_index;
   bool compute_row_sums = false;
 
+  int32_t input_zero_point;
+  int32_t output_state_zero_point;
+
   lstm_eval::IntegerLstmParameter integer_lstm_param;
   lstm_eval::HybridLstmScales hybrid_lstm_scales;
 };
@@ -1123,6 +1126,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // number of cells from the input tensors.
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, lstm::full::kInputTensor);
+  op_data->input_zero_point = input->params.zero_point;
   const bool is_integer = input->type == kTfLiteInt8;
   TF_LITE_ENSURE(context, input->dims->size > 1);
   const auto* params =
@@ -1160,6 +1164,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       node, lstm::full::kOutputStateTensor);
   TF_LITE_ENSURE(context, output_state != nullptr);
   TF_LITE_ENSURE(context, output_state->is_variable);
+  op_data->output_state_zero_point = output_state->params.zero_point;
   TfLiteTensor* cell_state = micro_context->AllocateTempInputTensor(
       node, lstm::full::kCellStateTensor);
   TF_LITE_ENSURE(context, cell_state != nullptr);
@@ -1467,100 +1472,96 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   const bool use_layer_norm = op_data->use_layer_norm;
   const bool time_major = params->time_major;
-  const TfLiteTensor* input;
-  TF_LITE_ENSURE_OK(
-      context, GetInputSafe(context, node, lstm::full::kInputTensor, &input));
 
-  const TfLiteTensor* input_to_input_weights = GetOptionalInputTensor(
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, lstm::full::kInputTensor);
+
+  const TfLiteEvalTensor* input_to_input_weights = tflite::micro::GetEvalInput(
       context, node, lstm::full::kInputToInputWeightsTensor);
-  const TfLiteTensor* input_to_forget_weights;
-  TF_LITE_ENSURE_OK(
-      context,
-      GetInputSafe(context, node, lstm::full::kInputToForgetWeightsTensor,
-                   &input_to_forget_weights));
-  const TfLiteTensor* input_to_cell_weights;
-  TF_LITE_ENSURE_OK(context, GetInputSafe(context, node,
-                                          lstm::full::kInputToCellWeightsTensor,
-                                          &input_to_cell_weights));
-  const TfLiteTensor* input_to_output_weights;
-  TF_LITE_ENSURE_OK(
-      context,
-      GetInputSafe(context, node, lstm::full::kInputToOutputWeightsTensor,
-                   &input_to_output_weights));
 
-  const TfLiteTensor* recurrent_to_input_weights = GetOptionalInputTensor(
-      context, node, lstm::full::kRecurrentToInputWeightsTensor);
-  const TfLiteTensor* recurrent_to_forget_weights;
-  TF_LITE_ENSURE_OK(
-      context,
-      GetInputSafe(context, node, lstm::full::kRecurrentToForgetWeightsTensor,
-                   &recurrent_to_forget_weights));
-  const TfLiteTensor* recurrent_to_cell_weights;
-  TF_LITE_ENSURE_OK(
-      context,
-      GetInputSafe(context, node, lstm::full::kRecurrentToCellWeightsTensor,
-                   &recurrent_to_cell_weights));
-  const TfLiteTensor* recurrent_to_output_weights;
-  TF_LITE_ENSURE_OK(
-      context,
-      GetInputSafe(context, node, lstm::full::kRecurrentToOutputWeightsTensor,
-                   &recurrent_to_output_weights));
+  const TfLiteEvalTensor* input_to_forget_weights = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kInputToForgetWeightsTensor);
 
-  const TfLiteTensor* cell_to_input_weights = GetOptionalInputTensor(
+  const TfLiteEvalTensor* input_to_cell_weights = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kInputToCellWeightsTensor);
+
+  const TfLiteEvalTensor* input_to_output_weights = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kInputToOutputWeightsTensor);
+
+  const TfLiteEvalTensor* recurrent_to_input_weights =
+      tflite::micro::GetEvalInput(context, node,
+                                  lstm::full::kRecurrentToInputWeightsTensor);
+
+  const TfLiteEvalTensor* recurrent_to_forget_weights =
+      tflite::micro::GetEvalInput(context, node,
+                                  lstm::full::kRecurrentToForgetWeightsTensor);
+
+  const TfLiteEvalTensor* recurrent_to_cell_weights =
+      tflite::micro::GetEvalInput(context, node,
+                                  lstm::full::kRecurrentToCellWeightsTensor);
+
+  const TfLiteEvalTensor* recurrent_to_output_weights =
+      tflite::micro::GetEvalInput(context, node,
+                                  lstm::full::kRecurrentToOutputWeightsTensor);
+
+  const TfLiteEvalTensor* cell_to_input_weights = tflite::micro::GetEvalInput(
       context, node, lstm::full::kCellToInputWeightsTensor);
-  const TfLiteTensor* cell_to_forget_weights = GetOptionalInputTensor(
+
+  const TfLiteEvalTensor* cell_to_forget_weights = tflite::micro::GetEvalInput(
       context, node, lstm::full::kCellToForgetWeightsTensor);
-  const TfLiteTensor* cell_to_output_weights = GetOptionalInputTensor(
+
+  const TfLiteEvalTensor* cell_to_output_weights = tflite::micro::GetEvalInput(
       context, node, lstm::full::kCellToOutputWeightsTensor);
 
-  const TfLiteTensor* input_gate_bias =
-      GetOptionalInputTensor(context, node, lstm::full::kInputGateBiasTensor);
-  const TfLiteTensor* forget_gate_bias;
-  TF_LITE_ENSURE_OK(
-      context, GetInputSafe(context, node, lstm::full::kForgetGateBiasTensor,
-                            &forget_gate_bias));
-  const TfLiteTensor* cell_gate_bias;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, lstm::full::kCellGateBiasTensor,
-                                 &cell_gate_bias));
-  const TfLiteTensor* output_gate_bias;
-  TF_LITE_ENSURE_OK(
-      context, GetInputSafe(context, node, lstm::full::kOutputGateBiasTensor,
-                            &output_gate_bias));
+  const TfLiteEvalTensor* input_gate_bias = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kInputGateBiasTensor);
 
-  const TfLiteTensor* projection_weights = GetOptionalInputTensor(
+  const TfLiteEvalTensor* forget_gate_bias = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kForgetGateBiasTensor);
+
+  const TfLiteEvalTensor* cell_gate_bias = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kCellGateBiasTensor);
+
+  const TfLiteEvalTensor* output_gate_bias = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kOutputGateBiasTensor);
+
+  const TfLiteEvalTensor* projection_weights = tflite::micro::GetEvalInput(
       context, node, lstm::full::kProjectionWeightsTensor);
-  const TfLiteTensor* projection_bias =
-      GetOptionalInputTensor(context, node, lstm::full::kProjectionBiasTensor);
 
-  TfLiteTensor* output_state =
-      GetVariableInput(context, node, lstm::full::kOutputStateTensor);
-  TFLITE_DCHECK(output_state != nullptr);
-  TfLiteTensor* cell_state =
-      GetVariableInput(context, node, lstm::full::kCellStateTensor);
+  const TfLiteEvalTensor* projection_bias = tflite::micro::GetEvalInput(
+      context, node, lstm::full::kProjectionBiasTensor);
+
+  TfLiteEvalTensor* output_state = tflite::micro::GetMutableEvalInput(
+      context, node, lstm::full::kOutputStateTensor);
+
+  TfLiteEvalTensor* cell_state = tflite::micro::GetMutableEvalInput(
+      context, node, lstm::full::kCellStateTensor);
+
   TFLITE_DCHECK(cell_state != nullptr);
 
-  const TfLiteTensor* input_layer_norm_coefficients =
+  const TfLiteEvalTensor* input_layer_norm_coefficients =
       use_layer_norm
-          ? GetOptionalInputTensor(
+          ? tflite::micro::GetEvalInput(
                 context, node, lstm::full::kInputLayerNormCoefficientsTensor)
           : nullptr;
-  const TfLiteTensor* forget_layer_norm_coefficients =
-      use_layer_norm ? GetInput(context, node,
-                                lstm::full::kForgetLayerNormCoefficientsTensor)
-                     : nullptr;
-  const TfLiteTensor* cell_layer_norm_coefficients =
-      use_layer_norm ? GetInput(context, node,
-                                lstm::full::kCellLayerNormCoefficientsTensor)
-                     : nullptr;
-  const TfLiteTensor* output_layer_norm_coefficients =
-      use_layer_norm ? GetInput(context, node,
-                                lstm::full::kOutputLayerNormCoefficientsTensor)
-                     : nullptr;
+  const TfLiteEvalTensor* forget_layer_norm_coefficients =
+      use_layer_norm
+          ? tflite::micro::GetEvalInput(
+                context, node, lstm::full::kForgetLayerNormCoefficientsTensor)
+          : nullptr;
+  const TfLiteEvalTensor* cell_layer_norm_coefficients =
+      use_layer_norm
+          ? tflite::micro::GetEvalInput(
+                context, node, lstm::full::kCellLayerNormCoefficientsTensor)
+          : nullptr;
+  const TfLiteEvalTensor* output_layer_norm_coefficients =
+      use_layer_norm
+          ? tflite::micro::GetEvalInput(
+                context, node, lstm::full::kOutputLayerNormCoefficientsTensor)
+          : nullptr;
 
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node,
-                                           lstm::full::kOutputTensor, &output));
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, lstm::full::kOutputTensor);
 
   // Copy out the LSTM specific params so they can be passed in the function.
   TfLiteLSTMParams lstm_params;
@@ -1681,8 +1682,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             output_layer_norm_coefficients, input_gate_bias, forget_gate_bias,
             cell_gate_bias, output_gate_bias, projection_weights,
             projection_bias, &lstm_params, /*forward_sequence=*/true,
-            time_major, &op_data->integer_lstm_param, output_state, cell_state,
-            output, scratch0, scratch1, scratch2, scratch3, scratch4, scratch5);
+            time_major, &op_data->integer_lstm_param,
+            op_data->output_state_zero_point, output_state, cell_state, output,
+            scratch0, scratch1, scratch2, scratch3, scratch4, scratch5);
       }
     } break;
     default:
