@@ -445,8 +445,6 @@ enum HybridTempBuffer {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   auto* op_data = new OpData();
-  context->AddTensors(context, kNumHybridTempBuffers,
-                      &op_data->scratch_tensor_index);
   return op_data;
 }
 
@@ -1097,7 +1095,6 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
 // tensors match each other.
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
-  const int scratch_tensor_index = op_data->scratch_tensor_index;
 
   MicroContext* micro_context = GetMicroContext(context);
 
@@ -1181,27 +1178,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumElements(output_state), n_batch * n_output);
   TF_LITE_ENSURE_EQ(context, NumElements(cell_state), n_batch * n_cell);
 
-  // Resize the output tensors.
-  TfLiteIntArray* output_size = TfLiteIntArrayCopy(input->dims);
-  output_size->data[input->dims->size - 1] = n_output;
-  TF_LITE_ENSURE_OK(context,
-                    context->ResizeTensor(context, output, output_size));
-
   if (is_integer) {
     const int num_intermediate_tensors = node->intermediates->size;
     TF_LITE_ENSURE(context, num_intermediate_tensors == 5);
   }
-
-  TfLiteIntArrayFree(node->temporaries);
-  if (IsHybridOp(input, input_to_output_weights)) {
-    node->temporaries = TfLiteIntArrayCreate(kNumHybridTempBuffers);
-  } else if (is_integer) {
-    node->temporaries = TfLiteIntArrayCreate(6);
-  } else {
-    node->temporaries = TfLiteIntArrayCreate(1);
-  }
-  node->temporaries->data[kScratchBuffer] =
-      scratch_tensor_index + kScratchBuffer;
 
   // Create a scratch buffer tensor.
   TfLiteTensor* scratch_buffer;
