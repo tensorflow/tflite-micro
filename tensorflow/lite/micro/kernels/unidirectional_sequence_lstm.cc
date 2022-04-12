@@ -153,15 +153,15 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   int32_t intermediate_zp[5];
   for (int i = 0; i < 4; ++i) {
     if (use_layer_norm) {
-      TfLiteTensor* intermediate;
-      TF_LITE_ENSURE_OK(context,
-                        GetIntermediatesSafe(context, node, i, &intermediate));
+      TfLiteTensor* intermediate =
+          micro_context->AllocateTempIntermediateTensor(node, i);
       TF_LITE_ENSURE(context,
                      intermediate->quantization.type != kTfLiteNoQuantization);
       auto* params_intermediate = static_cast<TfLiteAffineQuantization*>(
           intermediate->quantization.params);
       intermediate_scale[i] = params_intermediate->scale->data[0];
       intermediate_zp[i] = params_intermediate->zero_point->data[0];
+      micro_context->DeallocateTempTfLiteTensor(intermediate);
     } else {
       // Q3.12 for activation functions.
       intermediate_scale[i] = std::pow(2.0f, -12.0f);
@@ -170,13 +170,13 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   }
   // In the absence of projection, hidden becomes otuput and this intermediate
   // is ignored.
-  TfLiteTensor* hidden;
-  TF_LITE_ENSURE_OK(context, GetIntermediatesSafe(context, node, 4, &hidden));
+  TfLiteTensor* hidden = micro_context->AllocateTempIntermediateTensor(node, 4);
   TF_LITE_ENSURE(context, hidden->quantization.type != kTfLiteNoQuantization);
   auto* hidden_params =
       static_cast<TfLiteAffineQuantization*>(hidden->quantization.params);
   intermediate_scale[4] = hidden_params->scale->data[0];
   intermediate_zp[4] = hidden_params->zero_point->data[0];
+  micro_context->DeallocateTempTfLiteTensor(hidden);
 
   // Scales.
   const float default_scale = 1.0;
@@ -815,8 +815,8 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   lstm_eval::IntegerLstmParameter* integer_lstm_params =
       &op_data->integer_lstm_param;
 
-  const TfLiteTensor* intermediate =
-      &context->tensors[node->intermediates->data[4]];
+  TfLiteTensor* intermediate =
+      micro_context->AllocateTempIntermediateTensor(node, 4);
   TF_LITE_ENSURE(context,
                  intermediate->quantization.type != kTfLiteNoQuantization);
   const auto* params =
@@ -933,6 +933,8 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(TfLiteContext* context,
   if (input_gate_bias != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_gate_bias);
   }
+
+  micro_context->DeallocateTempTfLiteTensor(intermediate);
 
   return kTfLiteOk;
 }
