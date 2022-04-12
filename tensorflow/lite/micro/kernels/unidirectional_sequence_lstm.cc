@@ -41,6 +41,7 @@ struct OpData {
   bool compute_row_sums = false;
 
   lstm_eval::IntegerLstmParameter integer_lstm_param;
+  lstm_eval::HybridLstmScales hybrid_lstm_scales;
 };
 
 TfLiteStatus PopulateQuantizedLstmParams8x8_16(
@@ -443,6 +444,150 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 void Free(TfLiteContext* context, void* buffer) {
   delete reinterpret_cast<OpData*>(buffer);
+}
+
+// Check that input tensor dimensions matches with each other.
+TfLiteStatus SetHybridScales(TfLiteContext* context, TfLiteNode* node) {
+  OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input_to_input_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kInputToInputWeightsTensor);
+  op_data->hybrid_lstm_scales.input_to_input_weights_scale =
+      (input_to_input_weights != nullptr) ? input_to_input_weights->params.scale
+                                          : 1.0f;
+
+  TfLiteTensor* input_to_forget_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kInputToForgetWeightsTensor);
+  op_data->hybrid_lstm_scales.input_to_forget_weights_scale =
+      (input_to_forget_weights != nullptr)
+          ? input_to_forget_weights->params.scale
+          : 1.0f;
+
+  TfLiteTensor* input_to_cell_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kInputToCellWeightsTensor);
+  op_data->hybrid_lstm_scales.input_to_cell_weights_scale =
+      (input_to_cell_weights != nullptr) ? input_to_cell_weights->params.scale
+                                         : 1.0f;
+
+  TfLiteTensor* input_to_output_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kInputToOutputWeightsTensor);
+  op_data->hybrid_lstm_scales.input_to_output_weights_scale =
+      (input_to_output_weights != nullptr)
+          ? input_to_output_weights->params.scale
+          : 1.0f;
+
+  op_data->hybrid_lstm_scales.aux_input_to_input_weights_scale = 1.0f;
+  op_data->hybrid_lstm_scales.aux_input_to_forget_weights_scale = 1.0f;
+  op_data->hybrid_lstm_scales.aux_input_to_cell_weights_scale = 1.0f;
+  op_data->hybrid_lstm_scales.aux_input_to_output_weights_scale = 1.0f;
+
+  TfLiteTensor* recurrent_to_input_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kRecurrentToInputWeightsTensor);
+  op_data->hybrid_lstm_scales.recurrent_to_input_weights_scale =
+      (recurrent_to_input_weights != nullptr)
+          ? recurrent_to_input_weights->params.scale
+          : 1.0f;
+
+  TfLiteTensor* recurrent_to_forget_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kRecurrentToForgetWeightsTensor);
+  op_data->hybrid_lstm_scales.recurrent_to_forget_weights_scale =
+      (recurrent_to_forget_weights != nullptr)
+          ? recurrent_to_forget_weights->params.scale
+          : 1.0f;
+
+  TfLiteTensor* recurrent_to_cell_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kRecurrentToCellWeightsTensor);
+  op_data->hybrid_lstm_scales.recurrent_to_cell_weights_scale =
+      (recurrent_to_cell_weights != nullptr)
+          ? recurrent_to_cell_weights->params.scale
+          : 1.0f;
+
+  TfLiteTensor* recurrent_to_output_weights =
+      micro_context->AllocateTempInputTensor(
+          node, lstm::full::kRecurrentToOutputWeightsTensor);
+  op_data->hybrid_lstm_scales.recurrent_to_output_weights_scale =
+      (recurrent_to_output_weights != nullptr)
+          ? recurrent_to_output_weights->params.scale
+          : 1.0f;
+
+  TfLiteTensor* cell_to_input_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kCellToInputWeightsTensor);
+  op_data->hybrid_lstm_scales.cell_to_input_weights_scale =
+      (cell_to_input_weights != nullptr) ? cell_to_input_weights->params.scale
+                                         : 1.0f;
+
+  TfLiteTensor* cell_to_forget_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kCellToForgetWeightsTensor);
+  op_data->hybrid_lstm_scales.cell_to_forget_weights_scale =
+      (cell_to_forget_weights != nullptr) ? cell_to_forget_weights->params.scale
+                                          : 1.0f;
+
+  TfLiteTensor* cell_to_output_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kCellToOutputWeightsTensor);
+  op_data->hybrid_lstm_scales.cell_to_output_weights_scale =
+      (cell_to_output_weights != nullptr) ? cell_to_output_weights->params.scale
+                                          : 1.0f;
+
+  TfLiteTensor* projection_weights = micro_context->AllocateTempInputTensor(
+      node, lstm::full::kProjectionWeightsTensor);
+  op_data->hybrid_lstm_scales.projection_weights_scale =
+      (projection_weights != nullptr) ? projection_weights->params.scale : 1.0f;
+
+  if (input_to_input_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
+  }
+
+  if (input_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
+  }
+
+  if (input_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
+  }
+
+  if (input_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  }
+
+  if (recurrent_to_input_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_input_weights);
+  }
+
+  if (recurrent_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
+  }
+
+  if (recurrent_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
+  }
+
+  if (recurrent_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  }
+
+  if (cell_to_input_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_to_input_weights);
+  }
+
+  if (cell_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_to_forget_weights);
+  }
+
+  if (cell_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_to_output_weights);
+  }
+
+  if (projection_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(projection_weights);
+  }
+
+  return kTfLiteOk;
 }
 
 // Check that input tensor dimensions matches with each other.
@@ -1071,6 +1216,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                                    scratch_buffer_size));
 
   if (IsHybridOp(input, input_to_output_weights)) {
+    TF_LITE_ENSURE_OK(context, SetHybridScales(context, node));
+
     op_data->compute_row_sums = true;
     // Allocate temporary tensors to store quantized values of input,
     // output_state and cell_state tensors.
@@ -1463,7 +1610,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                           GetTemporarySafe(context, node, kRowSums, &row_sums));
         const int row_sums_size = row_sums->dims->data[0];
         return lstm_eval::EvalHybrid(
-            input, input_to_input_weights,
+            &(op_data->hybrid_lstm_scales), input, input_to_input_weights,
             /*input_to_input_weights_ledger*/ nullptr, input_to_forget_weights,
             /*input_to_forget_weights_ledger*/ nullptr, input_to_cell_weights,
             /*input_to_cell_weights_ledger*/ nullptr, input_to_output_weights,
