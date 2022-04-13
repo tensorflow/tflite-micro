@@ -187,7 +187,7 @@ TfLiteStatus EvalHybrid(
     float* output_state_sf, float* prod_scaling_factors,
     float* recovered_cell_weights, int8_t* input_quantized,
     int8_t* aux_input_quantized, int8_t* output_state_quantized,
-    int8_t* cell_state_quantized, TfLiteEvalTensor* output_state,
+    int8_t* cell_state_quantized, float* scales, TfLiteEvalTensor* output_state,
     TfLiteEvalTensor* cell_state, int32_t* output_scratch_buffer,
     TfLiteEvalTensor* output, int32_t* input_zp, int32_t* aux_input_zp,
     int32_t* output_state_zp, int32_t* row_sums, int row_sums_size,

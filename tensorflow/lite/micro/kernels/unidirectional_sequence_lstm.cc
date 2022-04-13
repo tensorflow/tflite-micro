@@ -1241,6 +1241,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                               TfLiteTypeGetSize(input_to_output_weights->type),
                           &(op_data->scratch_index[kCellStateQuantized])));
 
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
+                          &(op_data->scratch_index[kScales])));
+
     // Allocate temporary buffers to store scaling factors and product scaling
     // factors. The latter is a convenience storage which allows to quantize
     // a vector once (which produces the scaling factors) and multiply it with
@@ -1529,6 +1534,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                 context, op_data->scratch_index[kOutputStateQuantized])),
             reinterpret_cast<int8_t*>(context->GetScratchBuffer(
                 context, op_data->scratch_index[kCellStateQuantized])),
+            reinterpret_cast<float*>(context->GetScratchBuffer(
+                context, op_data->scratch_index[kScales])),
             output_state, cell_state,
             reinterpret_cast<int32_t*>(context->GetScratchBuffer(
                 context, op_data->scratch_index[kAccumScratch])),
