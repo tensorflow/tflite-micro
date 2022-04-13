@@ -29,9 +29,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 namespace tflite {
-namespace ops {
-namespace builtin {
-namespace lstm_eval {
 namespace {
 
 void ComputeRowSums(
@@ -1664,37 +1661,37 @@ inline void LstmStepInteger8x8_8(
 
 }  // namespace
 
-TfLiteStatus EvalFloat(const TfLiteEvalTensor* input,
-                       const TfLiteEvalTensor* input_to_input_weights,
-                       const TfLiteEvalTensor* input_to_forget_weights,
-                       const TfLiteEvalTensor* input_to_cell_weights,
-                       const TfLiteEvalTensor* input_to_output_weights,
-                       const TfLiteEvalTensor* recurrent_to_input_weights,
-                       const TfLiteEvalTensor* recurrent_to_forget_weights,
-                       const TfLiteEvalTensor* recurrent_to_cell_weights,
-                       const TfLiteEvalTensor* recurrent_to_output_weights,
-                       const TfLiteEvalTensor* cell_to_input_weights,
-                       const TfLiteEvalTensor* cell_to_forget_weights,
-                       const TfLiteEvalTensor* cell_to_output_weights,
-                       const TfLiteEvalTensor* input_layer_norm_coefficients,
-                       const TfLiteEvalTensor* forget_layer_norm_coefficients,
-                       const TfLiteEvalTensor* cell_layer_norm_coefficients,
-                       const TfLiteEvalTensor* output_layer_norm_coefficients,
-                       const TfLiteEvalTensor* aux_input,
-                       const TfLiteEvalTensor* aux_input_to_input_weights,
-                       const TfLiteEvalTensor* aux_input_to_forget_weights,
-                       const TfLiteEvalTensor* aux_input_to_cell_weights,
-                       const TfLiteEvalTensor* aux_input_to_output_weights,
-                       const TfLiteEvalTensor* input_gate_bias,
-                       const TfLiteEvalTensor* forget_gate_bias,
-                       const TfLiteEvalTensor* cell_gate_bias,
-                       const TfLiteEvalTensor* output_gate_bias,
-                       const TfLiteEvalTensor* projection_weights,
-                       const TfLiteEvalTensor* projection_bias,
-                       const TfLiteLSTMParams* params, bool forward_sequence,
-                       bool time_major, int output_offset,
-                       float* scratch_buffer, TfLiteEvalTensor* output_state,
-                       TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output) {
+TfLiteStatus EvalFloatLstm(
+    const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* input_to_input_weights,
+    const TfLiteEvalTensor* input_to_forget_weights,
+    const TfLiteEvalTensor* input_to_cell_weights,
+    const TfLiteEvalTensor* input_to_output_weights,
+    const TfLiteEvalTensor* recurrent_to_input_weights,
+    const TfLiteEvalTensor* recurrent_to_forget_weights,
+    const TfLiteEvalTensor* recurrent_to_cell_weights,
+    const TfLiteEvalTensor* recurrent_to_output_weights,
+    const TfLiteEvalTensor* cell_to_input_weights,
+    const TfLiteEvalTensor* cell_to_forget_weights,
+    const TfLiteEvalTensor* cell_to_output_weights,
+    const TfLiteEvalTensor* input_layer_norm_coefficients,
+    const TfLiteEvalTensor* forget_layer_norm_coefficients,
+    const TfLiteEvalTensor* cell_layer_norm_coefficients,
+    const TfLiteEvalTensor* output_layer_norm_coefficients,
+    const TfLiteEvalTensor* aux_input,
+    const TfLiteEvalTensor* aux_input_to_input_weights,
+    const TfLiteEvalTensor* aux_input_to_forget_weights,
+    const TfLiteEvalTensor* aux_input_to_cell_weights,
+    const TfLiteEvalTensor* aux_input_to_output_weights,
+    const TfLiteEvalTensor* input_gate_bias,
+    const TfLiteEvalTensor* forget_gate_bias,
+    const TfLiteEvalTensor* cell_gate_bias,
+    const TfLiteEvalTensor* output_gate_bias,
+    const TfLiteEvalTensor* projection_weights,
+    const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
+    bool forward_sequence, bool time_major, int output_offset,
+    float* scratch_buffer, TfLiteEvalTensor* output_state,
+    TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   int max_time, n_batch;
   if (input->dims->size == 3) {
@@ -1856,9 +1853,8 @@ TfLiteStatus EvalFloat(const TfLiteEvalTensor* input,
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalHybrid(
-    const lstm_eval::HybridLstmScales* hybrid_lstm_scales,
-    const TfLiteEvalTensor* input,
+TfLiteStatus EvalHybridLstm(
+    const HybridLstmScales* hybrid_lstm_scales, const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_input_weights_ledger,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -2145,7 +2141,7 @@ TfLiteStatus EvalHybrid(
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalInteger8x8_16(
+TfLiteStatus EvalInteger8x8_16Lstm(
     const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -2169,11 +2165,10 @@ TfLiteStatus EvalInteger8x8_16(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     bool forward_sequence, bool time_major,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param,
-    int32_t output_state_zp, TfLiteEvalTensor* output_state,
-    TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output, int16_t* scratch0,
-    int16_t* scratch1, int16_t* scratch2, int16_t* scratch3, int8_t* scratch4,
-    int32_t* scratch5) {
+    const IntegerLstmParameter* integer_lstm_param, int32_t output_state_zp,
+    TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
+    TfLiteEvalTensor* output, int16_t* scratch0, int16_t* scratch1,
+    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4, int32_t* scratch5) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -2387,7 +2382,7 @@ TfLiteStatus EvalInteger8x8_16(
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalInteger8x8_8(
+TfLiteStatus EvalInteger8x8_8Lstm(
     const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -2411,11 +2406,10 @@ TfLiteStatus EvalInteger8x8_8(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
-    TfLiteEvalTensor* output,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param, int32_t input_zp,
-    int32_t output_state_zp, int8_t* scratch0, int8_t* scratch1,
-    int16_t* scratch2, int16_t* scratch3, int16_t* scratch4, int16_t* scratch5,
-    int16_t* scratch6, int16_t* scratch7) {
+    TfLiteEvalTensor* output, const IntegerLstmParameter* integer_lstm_param,
+    int32_t input_zp, int32_t output_state_zp, int8_t* scratch0,
+    int8_t* scratch1, int16_t* scratch2, int16_t* scratch3, int16_t* scratch4,
+    int16_t* scratch5, int16_t* scratch6, int16_t* scratch7) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -2444,7 +2438,7 @@ TfLiteStatus EvalInteger8x8_8(
     // Input can be int8 asymmetric or int16 symmetric.
     const int8_t* input_ptr =
         tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
-    lstm_eval::LstmStepInteger8x8_8(
+    LstmStepInteger8x8_8(
         input_ptr, input_zp,
 
         tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
@@ -2531,7 +2525,4 @@ TfLiteStatus EvalInteger8x8_8(
   return kTfLiteOk;
 }
 
-}  // namespace lstm_eval
-}  // namespace builtin
-}  // namespace ops
 }  // namespace tflite
