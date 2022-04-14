@@ -181,8 +181,8 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
       &allocation_info[info_.scratch_offset];
   for (size_t i = 0; i < info_.scratch_buffer_count; i++) {
     AllocationInfo* current = &scratch_allocation_info[i];
-    current->first_created = -1;
-    current->last_used = -1;
+    current->first_created = kUninitializedLifetime;
+    current->last_used = kUninitializedLifetime;
     current->needs_allocating = true;
     current->offline_offset = kOnlinePlannedBuffer;
   }
