@@ -189,49 +189,6 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
   return kTfLiteOk;
 }
 
-  void AllocationInfoBuilder::UpdateFirstCreatedForOp(AllocationInfo* subgraph_allocation_info, const Operator* op, int allocation_scope_count) {
-    // In a subgraph, an OP's output is typically input to another OP in the same subgraph unless that op is the subgraph's final output node.
-    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
-         ++n) {
-      const int tensor_index = op->outputs()->Get(n);
-      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-      UpdateFirstCreated(current, allocation_scope_count);
-    }
-
-    for (size_t n = 0; op->intermediates() != nullptr && n < op->intermediates()->size(); ++n) {
-      const int tensor_index = op->intermediates()->Get(n);
-      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-      UpdateFirstCreated(current, allocation_scope_count);
-    }
-
-}
-  void AllocationInfoBuilder::UpdateLastUsedForOp(AllocationInfo* subgraph_allocation_info, const Operator* op, int allocation_scope_count) {
-        for (size_t n = 0; op->inputs() != nullptr && n < op->inputs()->size();
-         ++n) {
-      const int tensor_index = op->inputs()->Get(n);
-      // Optional bias tensors can have an index of -1 when they are omitted.
-      if (tensor_index >= 0) {
-        AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-        // No need to update creation since it is either marked by the subgraph
-        // or producer op, or it is not part of the memory plan (weight, bias
-        // tensor).
-        UpdateLastUsed(current, allocation_scope_count);
-      }
-    }
-    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
-         ++n) {
-      const int tensor_index = op->outputs()->Get(n);
-      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-      UpdateLastUsed(current, allocation_scope_count);
-    }
-
-    for (size_t n = 0; op->intermediates() != nullptr && n < op->intermediates()->size(); ++n) {
-      const int tensor_index = op->intermediates()->Get(n);
-      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-      UpdateLastUsed(current, allocation_scope_count);
-    }
-  }
-
 TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     int subgraph_idx, internal::ScratchBufferRequest* scratch_buffer_requests,
     ScratchBufferHandle* scratch_buffer_handles,
@@ -257,9 +214,13 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     // Each operator has a new allocation scope.
     allocation_scope_count_++;
     const auto* op = subgraph->operators()->Get(i);
-
     // Figure out when the first creation and use of each tensor is.
-    UpdateFirstCreatedForOp(subgraph_allocation_info, op, allocation_scope_count_);
+    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
+         ++n) {
+      const int tensor_index = op->outputs()->Get(n);
+      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+      UpdateFirstCreated(current, allocation_scope_count_);
+    }
 
     // Keep track of scope count before any subgraphs, so that scratch buffers'
     // lifetime within a control flow op properly overlaps with all subgraphs.
@@ -271,7 +232,24 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
                                      scratch_buffer_handles, allocations);
 
     // Figure out when the last use of each tensor is.
-    UpdateLastUsedForOp(subgraph_allocation_info, op, allocation_scope_count_);
+    for (size_t n = 0; op->inputs() != nullptr && n < op->inputs()->size();
+         ++n) {
+      const int tensor_index = op->inputs()->Get(n);
+      // Optional bias tensors can have an index of -1 when they are omitted.
+      if (tensor_index >= 0) {
+        AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+        // No need to update creation since it is either marked by the subgraph
+        // or producer op, or it is not part of the memory plan (weight, bias
+        // tensor).
+        UpdateLastUsed(current, allocation_scope_count_);
+      }
+    }
+    for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
+         ++n) {
+      const int tensor_index = op->outputs()->Get(n);
+      AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+      UpdateLastUsed(current, allocation_scope_count_);
+    }
 
     // Mark thse lifetime of scratch buffers belonging to the current node. This
     // operation is O(N * M) where N is the total number of visited nodes and M
