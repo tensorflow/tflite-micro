@@ -149,6 +149,7 @@ TfLiteStatus AllocationInfoBuilder::FreeAllocationInfo() {
       reinterpret_cast<uint8_t*>(info_.subgraph_offsets));
   return kTfLiteOk;
 }
+
 TfLiteStatus AllocationInfoBuilder::ValidateSubgraph(
     const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors) {
   uint32_t operators_size = NumSubgraphOperators(subgraph);
