@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -148,6 +149,29 @@ TfLiteStatus AllocationInfoBuilder::FreeAllocationInfo() {
       reinterpret_cast<uint8_t*>(info_.subgraph_offsets));
   return kTfLiteOk;
 }
+TfLiteStatus AllocationInfoBuilder::ValidateSubgraph(
+    const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors) {
+  uint32_t operators_size = NumSubgraphOperators(subgraph);
+
+  for (uint32_t i = 0; i < operators_size; i++) {
+    const auto op = subgraph->operators()->Get(i);
+    for (size_t n = 0;
+         op->intermediates() != nullptr && n < op->intermediates()->size();
+         n++) {
+      const int tensor_index = op->intermediates()->Get(n);
+      size_t tensor_size = -1;
+      TF_LITE_ENSURE_STATUS(TfLiteEvalTensorByteLength(
+          &eval_tensors[tensor_index], &tensor_size));
+      if (tensor_size != 0) {
+        MicroPrintf(
+            "Does not support intermediate tensor with non-zero size: %d",
+            tensor_size);
+        return kTfLiteError;
+      }
+    }
+  }
+  return kTfLiteOk;
+}
 
 TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
     const int32_t* offline_offsets, SubgraphAllocations* allocations) {
@@ -159,6 +183,10 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
     TfLiteEvalTensor* eval_tensors = allocations[subgraph_idx].tensors;
     AllocationInfo* subgraph_allocation_info =
         &allocation_info[info_.subgraph_offsets[subgraph_idx]];
+
+    // Ensure constraints are met.
+    TF_LITE_ENSURE_STATUS(ValidateSubgraph(subgraph, eval_tensors));
+
     for (size_t i = 0; i < subgraph->tensors()->size(); ++i) {
       AllocationInfo* current = &subgraph_allocation_info[i];
       current->output_ptr = &(eval_tensors[i].data.data);
