@@ -128,6 +128,9 @@ class AllocationInfoBuilder {
   // count monotonically increases through the lifetime marking process.
   void UpdateLastUsed(AllocationInfo* current, int allocation_scope_count);
 
+  void UpdateFirstCreatedForOp(AllocationInfo* subgraph_allocation_info, const Operator* op, int allocation_scope_count);
+  void UpdateLastUsedForOp(AllocationInfo* subgraph_allocation_info, const Operator* op, int allocation_scope_count);
+
   const tflite::Model* model_ = nullptr;
   INonPersistentBufferAllocator* non_persistent_allocator_ = nullptr;
   ErrorReporter* reporter_ = nullptr;
