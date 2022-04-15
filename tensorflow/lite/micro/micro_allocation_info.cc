@@ -16,9 +16,9 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
 
@@ -168,9 +168,10 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
 
       current->first_created = kUninitializedLifetime;
       current->last_used = kUninitializedLifetime;
-      current->needs_allocating = (eval_tensors[i].data.data == nullptr) &&
-                                  (!subgraph->tensors()->Get(i)->is_variable()) &&
-          ( current->bytes != 0 );
+      current->needs_allocating =
+          (eval_tensors[i].data.data == nullptr) &&
+          (!subgraph->tensors()->Get(i)->is_variable()) &&
+          (current->bytes != 0);
       if (offline_offsets) {
         current->offline_offset = offline_offsets[i];
       } else {

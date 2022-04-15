@@ -110,7 +110,9 @@ class ModelBuilder {
 
   // Adds a node to the model with given input and output Tensors.
   Node AddNode(Operator op, std::initializer_list<Tensor> inputs,
-               std::initializer_list<Tensor> outputs, std::initializer_list<Tensor> intermediates = std::initializer_list<Tensor>{});
+               std::initializer_list<Tensor> outputs,
+               std::initializer_list<Tensor> intermediates =
+                   std::initializer_list<Tensor>{});
 
   void AddMetadata(const char* description_string,
                    const int32_t* metadata_buffer_data, size_t num_elements);
@@ -172,11 +174,10 @@ ModelBuilder::Node ModelBuilder::AddNode(
       *builder_, op, builder_->CreateVector(inputs.begin(), inputs.size()),
       builder_->CreateVector(outputs.begin(), outputs.size()),
       BuiltinOptions_NONE,
-      /*builtin_options=*/ 0,
-    /*custom_options=*/ 0,
-    tflite::CustomOptionsFormat_FLEXBUFFERS,
-    /*mutating_variable_inputs =*/ 0,
-       builder_->CreateVector(intermediates.begin(), intermediates.size())) ;
+      /*builtin_options=*/0,
+      /*custom_options=*/0, tflite::CustomOptionsFormat_FLEXBUFFERS,
+      /*mutating_variable_inputs =*/0,
+      builder_->CreateVector(intermediates.begin(), intermediates.size()));
   next_operator_id_++;
   return next_operator_id_ - 1;
 }
@@ -280,10 +281,12 @@ const Model* BuildSimpleStatefulModel() {
   const int median_tensor = model_builder.AddTensor(TensorType_INT8, {3});
   const int invoke_count_tensor =
       model_builder.AddTensor(TensorType_INT32, {1});
-  const int intermediate_tensor = model_builder.AddTensor(TensorType_FLOAT32, {0});
+  const int intermediate_tensor =
+      model_builder.AddTensor(TensorType_FLOAT32, {0});
 
   model_builder.AddNode(op_id, {input_tensor},
-                        {median_tensor, invoke_count_tensor}, {intermediate_tensor});
+                        {median_tensor, invoke_count_tensor},
+                        {intermediate_tensor});
   return model_builder.BuildModel({input_tensor},
                                   {median_tensor, invoke_count_tensor});
 }

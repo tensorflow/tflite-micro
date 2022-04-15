@@ -74,11 +74,10 @@ TF_LITE_MICRO_TEST(TestSingleSubgraphWithIntermediates) {
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].needs_allocating, true);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 1);
-    TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].needs_allocating, true);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].needs_allocating, true);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, -1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, -1);
-    TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].needs_allocating, false);
-
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].needs_allocating, false);
 }
 
 TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
