@@ -565,6 +565,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseVarHandle);
   }
 
+  TfLiteStatus AddWhere() {
+    return AddBuiltin(BuiltinOperator_WHERE, Register_WHERE(), ParseWhere);
+  }
+
   TfLiteStatus AddWhile() {
     return AddBuiltin(BuiltinOperator_WHILE, Register_WHILE(), ParseWhile);
   }

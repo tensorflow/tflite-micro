@@ -226,6 +226,7 @@ tflm_kernel_cc_library(
         "transpose_conv.cc",
         "unpack.cc",
         "var_handle.cc",
+        "where.cc",
         "while.cc",
         "zeros_like.cc",
     ],

@@ -83,6 +83,7 @@ TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_WHILE();
+TfLiteRegistration Register_WHERE();
 TfLiteRegistration Register_ZEROS_LIKE();
 
 namespace ops {
