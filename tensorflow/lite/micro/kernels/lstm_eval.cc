@@ -1752,33 +1752,92 @@ TfLiteStatus EvalFloatLstm(
 
       LstmStepFloat(
           input_ptr,
-          tflite::micro::GetTensorData<float>(input_to_input_weights),
-          tflite::micro::GetTensorData<float>(input_to_forget_weights),
-          tflite::micro::GetTensorData<float>(input_to_cell_weights),
-          tflite::micro::GetTensorData<float>(input_to_output_weights),
+          input_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_to_input_weights),
+          input_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_to_forget_weights),
+          input_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_to_cell_weights),
+          input_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_to_output_weights),
           aux_input_ptr,
-          tflite::micro::GetTensorData<float>(aux_input_to_input_weights),
-          tflite::micro::GetTensorData<float>(aux_input_to_forget_weights),
-          tflite::micro::GetTensorData<float>(aux_input_to_cell_weights),
-          tflite::micro::GetTensorData<float>(aux_input_to_output_weights),
-          tflite::micro::GetTensorData<float>(recurrent_to_input_weights),
-          tflite::micro::GetTensorData<float>(recurrent_to_forget_weights),
-          tflite::micro::GetTensorData<float>(recurrent_to_cell_weights),
-          tflite::micro::GetTensorData<float>(recurrent_to_output_weights),
-          tflite::micro::GetTensorData<float>(cell_to_input_weights),
-          tflite::micro::GetTensorData<float>(cell_to_forget_weights),
-          tflite::micro::GetTensorData<float>(cell_to_output_weights),
-          tflite::micro::GetTensorData<float>(input_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(forget_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(cell_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(output_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(input_gate_bias),
-          tflite::micro::GetTensorData<float>(forget_gate_bias),
-          tflite::micro::GetTensorData<float>(cell_gate_bias),
-          tflite::micro::GetTensorData<float>(output_gate_bias),
-          tflite::micro::GetTensorData<float>(projection_weights),
-          tflite::micro::GetTensorData<float>(projection_bias), params, n_batch,
-          n_cell, n_input, aux_input_size, n_output, output_batch_leading_dim,
+          aux_input_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(aux_input_to_input_weights),
+          aux_input_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    aux_input_to_forget_weights),
+          aux_input_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(aux_input_to_cell_weights),
+          aux_input_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    aux_input_to_output_weights),
+          recurrent_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(recurrent_to_input_weights),
+          recurrent_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    recurrent_to_forget_weights),
+          recurrent_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(recurrent_to_cell_weights),
+          recurrent_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    recurrent_to_output_weights),
+          cell_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(cell_to_input_weights),
+          cell_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(cell_to_forget_weights),
+          cell_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(cell_to_output_weights),
+          input_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    input_layer_norm_coefficients),
+          forget_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    forget_layer_norm_coefficients),
+          cell_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    cell_layer_norm_coefficients),
+          output_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    output_layer_norm_coefficients),
+          input_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_gate_bias),
+          forget_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(forget_gate_bias),
+          cell_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(cell_gate_bias),
+          output_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(output_gate_bias),
+          projection_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(projection_weights),
+          projection_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(projection_bias),
+          params, n_batch, n_cell, n_input, aux_input_size, n_output,
+          output_batch_leading_dim,
           tflite::micro::GetTensorData<float>(output_state),
           tflite::micro::GetTensorData<float>(cell_state), input_gate_scratch,
           forget_gate_scratch, cell_gate_scratch, output_gate_scratch,
@@ -1818,32 +1877,95 @@ TfLiteStatus EvalFloatLstm(
 
         LstmStepFloat(
             input_ptr,
-            tflite::micro::GetTensorData<float>(input_to_input_weights),
-            tflite::micro::GetTensorData<float>(input_to_forget_weights),
-            tflite::micro::GetTensorData<float>(input_to_cell_weights),
-            tflite::micro::GetTensorData<float>(input_to_output_weights),
+            input_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_to_input_weights),
+            input_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_to_forget_weights),
+            input_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_to_cell_weights),
+            input_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_to_output_weights),
             aux_input_ptr,
-            tflite::micro::GetTensorData<float>(aux_input_to_input_weights),
-            tflite::micro::GetTensorData<float>(aux_input_to_forget_weights),
-            tflite::micro::GetTensorData<float>(aux_input_to_cell_weights),
-            tflite::micro::GetTensorData<float>(aux_input_to_output_weights),
-            tflite::micro::GetTensorData<float>(recurrent_to_input_weights),
-            tflite::micro::GetTensorData<float>(recurrent_to_forget_weights),
-            tflite::micro::GetTensorData<float>(recurrent_to_cell_weights),
-            tflite::micro::GetTensorData<float>(recurrent_to_output_weights),
-            tflite::micro::GetTensorData<float>(cell_to_input_weights),
-            tflite::micro::GetTensorData<float>(cell_to_forget_weights),
-            tflite::micro::GetTensorData<float>(cell_to_output_weights),
-            tflite::micro::GetTensorData<float>(input_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(forget_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(cell_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(output_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(input_gate_bias),
-            tflite::micro::GetTensorData<float>(forget_gate_bias),
-            tflite::micro::GetTensorData<float>(cell_gate_bias),
-            tflite::micro::GetTensorData<float>(output_gate_bias),
-            tflite::micro::GetTensorData<float>(projection_weights),
-            tflite::micro::GetTensorData<float>(projection_bias), params,
+            aux_input_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      aux_input_to_input_weights),
+            aux_input_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      aux_input_to_forget_weights),
+            aux_input_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      aux_input_to_cell_weights),
+            aux_input_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      aux_input_to_output_weights),
+            recurrent_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      recurrent_to_input_weights),
+            recurrent_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      recurrent_to_forget_weights),
+            recurrent_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      recurrent_to_cell_weights),
+            recurrent_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      recurrent_to_output_weights),
+            cell_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(cell_to_input_weights),
+            cell_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(cell_to_forget_weights),
+            cell_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(cell_to_output_weights),
+            input_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      input_layer_norm_coefficients),
+            forget_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      forget_layer_norm_coefficients),
+            cell_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      cell_layer_norm_coefficients),
+            output_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      output_layer_norm_coefficients),
+            input_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_gate_bias),
+            forget_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(forget_gate_bias),
+            cell_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(cell_gate_bias),
+            output_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(output_gate_bias),
+            projection_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(projection_weights),
+            projection_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(projection_bias),
+            params,
             /*n_batch=*/1, n_cell, n_input, aux_input_size, n_output,
             output_batch_leading_dim, output_state_ptr, cell_state_ptr,
             input_gate_scratch_ptr, forget_gate_scratch_ptr,
@@ -1969,65 +2091,149 @@ TfLiteStatus EvalHybridLstm(
                           t_rel * output_step + output_offset;
       LstmStepHybrid(
           input_ptr,
-          tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
-          tflite::micro::GetTensorData<uint8_t>(input_to_input_weights_ledger),
+          input_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+          input_to_input_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    input_to_input_weights_ledger),
           hybrid_lstm_scales->input_to_input_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
-          tflite::micro::GetTensorData<uint8_t>(input_to_forget_weights_ledger),
+          input_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
+          input_to_forget_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    input_to_forget_weights_ledger),
           hybrid_lstm_scales->input_to_forget_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
-          tflite::micro::GetTensorData<uint8_t>(input_to_cell_weights_ledger),
+          input_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
+          input_to_cell_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    input_to_cell_weights_ledger),
           hybrid_lstm_scales->input_to_cell_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
-          tflite::micro::GetTensorData<uint8_t>(input_to_output_weights_ledger),
+          input_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
+          input_to_output_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    input_to_output_weights_ledger),
           hybrid_lstm_scales->input_to_output_weights_scale, aux_input_ptr,
-          tflite::micro::GetTensorData<int8_t>(aux_input_to_input_weights),
+          aux_input_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    aux_input_to_input_weights),
           hybrid_lstm_scales->aux_input_to_input_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(aux_input_to_forget_weights),
+          aux_input_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    aux_input_to_forget_weights),
           hybrid_lstm_scales->aux_input_to_forget_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(aux_input_to_cell_weights),
+          aux_input_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(aux_input_to_cell_weights),
           hybrid_lstm_scales->aux_input_to_cell_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(aux_input_to_output_weights),
+          aux_input_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    aux_input_to_output_weights),
           hybrid_lstm_scales->aux_input_to_output_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
-          tflite::micro::GetTensorData<uint8_t>(
-              recurrent_to_input_weights_ledger),
+          recurrent_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_input_weights),
+          recurrent_to_input_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    recurrent_to_input_weights_ledger),
           hybrid_lstm_scales->recurrent_to_input_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
-          tflite::micro::GetTensorData<uint8_t>(
-              recurrent_to_forget_weights_ledger),
+          recurrent_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_forget_weights),
+          recurrent_to_forget_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    recurrent_to_forget_weights_ledger),
           hybrid_lstm_scales->recurrent_to_forget_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
-          tflite::micro::GetTensorData<uint8_t>(
-              recurrent_to_cell_weights_ledger),
+          recurrent_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
+          recurrent_to_cell_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    recurrent_to_cell_weights_ledger),
           hybrid_lstm_scales->recurrent_to_cell_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
-          tflite::micro::GetTensorData<uint8_t>(
-              recurrent_to_output_weights_ledger),
+          recurrent_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_output_weights),
+          recurrent_to_output_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    recurrent_to_output_weights_ledger),
           hybrid_lstm_scales->recurrent_to_output_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
+          cell_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
           hybrid_lstm_scales->cell_to_input_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
+          cell_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
           hybrid_lstm_scales->cell_to_forget_weights_scale,
-          tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
+          cell_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
           hybrid_lstm_scales->cell_to_output_weights_scale,
-          tflite::micro::GetTensorData<float>(input_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(forget_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(cell_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(output_layer_norm_coefficients),
-          tflite::micro::GetTensorData<float>(input_gate_bias),
-          tflite::micro::GetTensorData<float>(forget_gate_bias),
-          tflite::micro::GetTensorData<float>(cell_gate_bias),
-          tflite::micro::GetTensorData<float>(output_gate_bias),
-          tflite::micro::GetTensorData<int8_t>(projection_weights),
-          tflite::micro::GetTensorData<uint8_t>(projection_weights_ledger),
+          input_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    input_layer_norm_coefficients),
+          forget_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    forget_layer_norm_coefficients),
+          cell_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    cell_layer_norm_coefficients),
+          output_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(
+                    output_layer_norm_coefficients),
+          input_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(input_gate_bias),
+          forget_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(forget_gate_bias),
+          cell_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(cell_gate_bias),
+          output_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(output_gate_bias),
+          projection_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(projection_weights),
+          projection_weights_ledger == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<uint8_t>(
+                    projection_weights_ledger),
           hybrid_lstm_scales->projection_weights_scale,
-          tflite::micro::GetTensorData<float>(projection_bias), params, n_batch,
-          n_cell, n_input, aux_input_size, n_output, output_batch_leading_dim,
-          input_gate_scratch, forget_gate_scratch, cell_gate_scratch,
-          output_gate_scratch, scales, input_sf, aux_input_sf, output_state_sf,
-          prod_scaling_factors, recovered_cell_weights, input_quantized,
-          aux_input_quantized, output_state_quantized, cell_state_quantized,
+          projection_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<float>(projection_bias),
+          params, n_batch, n_cell, n_input, aux_input_size, n_output,
+          output_batch_leading_dim, input_gate_scratch, forget_gate_scratch,
+          cell_gate_scratch, output_gate_scratch, scales, input_sf,
+          aux_input_sf, output_state_sf, prod_scaling_factors,
+          recovered_cell_weights, input_quantized, aux_input_quantized,
+          output_state_quantized, cell_state_quantized,
           tflite::micro::GetTensorData<float>(output_state),
           tflite::micro::GetTensorData<float>(cell_state),
           output_scratch_buffer, output_ptr, input_zp_ptr, aux_input_zp_ptr,
@@ -2068,63 +2274,146 @@ TfLiteStatus EvalHybridLstm(
 
         LstmStepHybrid(
             input_ptr,
-            tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                input_to_input_weights_ledger),
+            input_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+            input_to_input_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      input_to_input_weights_ledger),
             hybrid_lstm_scales->input_to_input_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                input_to_forget_weights_ledger),
+            input_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
+            input_to_forget_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      input_to_forget_weights_ledger),
             hybrid_lstm_scales->input_to_forget_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
-            tflite::micro::GetTensorData<uint8_t>(input_to_cell_weights_ledger),
+            input_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
+            input_to_cell_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      input_to_cell_weights_ledger),
             hybrid_lstm_scales->input_to_cell_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                input_to_output_weights_ledger),
+            input_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
+            input_to_output_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      input_to_output_weights_ledger),
             hybrid_lstm_scales->input_to_output_weights_scale, aux_input_ptr,
-            tflite::micro::GetTensorData<int8_t>(aux_input_to_input_weights),
+            aux_input_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      aux_input_to_input_weights),
             hybrid_lstm_scales->aux_input_to_input_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(aux_input_to_forget_weights),
+            aux_input_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      aux_input_to_forget_weights),
             hybrid_lstm_scales->aux_input_to_forget_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(aux_input_to_cell_weights),
+            aux_input_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      aux_input_to_cell_weights),
             hybrid_lstm_scales->aux_input_to_cell_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(aux_input_to_output_weights),
+            aux_input_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      aux_input_to_output_weights),
             hybrid_lstm_scales->aux_input_to_output_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                recurrent_to_input_weights_ledger),
+            recurrent_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_input_weights),
+            recurrent_to_input_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      recurrent_to_input_weights_ledger),
             hybrid_lstm_scales->recurrent_to_input_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                recurrent_to_forget_weights_ledger),
+            recurrent_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_forget_weights),
+            recurrent_to_forget_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      recurrent_to_forget_weights_ledger),
             hybrid_lstm_scales->recurrent_to_forget_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                recurrent_to_cell_weights_ledger),
+            recurrent_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_cell_weights),
+            recurrent_to_cell_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      recurrent_to_cell_weights_ledger),
             hybrid_lstm_scales->recurrent_to_cell_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
-            tflite::micro::GetTensorData<uint8_t>(
-                recurrent_to_output_weights_ledger),
+            recurrent_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_output_weights),
+            recurrent_to_output_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      recurrent_to_output_weights_ledger),
             hybrid_lstm_scales->recurrent_to_output_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
+            cell_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
             hybrid_lstm_scales->cell_to_input_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
+            cell_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
             hybrid_lstm_scales->cell_to_forget_weights_scale,
-            tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
+            cell_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
             hybrid_lstm_scales->cell_to_output_weights_scale,
-            tflite::micro::GetTensorData<float>(input_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(forget_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(cell_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(output_layer_norm_coefficients),
-            tflite::micro::GetTensorData<float>(input_gate_bias),
-            tflite::micro::GetTensorData<float>(forget_gate_bias),
-            tflite::micro::GetTensorData<float>(cell_gate_bias),
-            tflite::micro::GetTensorData<float>(output_gate_bias),
-            tflite::micro::GetTensorData<int8_t>(projection_weights),
-            tflite::micro::GetTensorData<uint8_t>(projection_weights_ledger),
+            input_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      input_layer_norm_coefficients),
+            forget_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      forget_layer_norm_coefficients),
+            cell_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      cell_layer_norm_coefficients),
+            output_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(
+                      output_layer_norm_coefficients),
+            input_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(input_gate_bias),
+            forget_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(forget_gate_bias),
+            cell_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(cell_gate_bias),
+            output_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(output_gate_bias),
+            projection_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(projection_weights),
+            projection_weights_ledger == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<uint8_t>(
+                      projection_weights_ledger),
             hybrid_lstm_scales->projection_weights_scale,
-            tflite::micro::GetTensorData<float>(projection_bias), params,
+            projection_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<float>(projection_bias),
+            params,
             /*n_batch=*/1, n_cell, n_input, aux_input_size, n_output,
             output_batch_leading_dim, input_gate_scratch_ptr,
             forget_gate_scratch_ptr, cell_gate_scratch_ptr,
@@ -2200,61 +2489,108 @@ TfLiteStatus EvalInteger8x8_16Lstm(
           tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
       LstmStepInteger8x8_16(
           input_ptr,
-          tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+          input_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
           integer_lstm_param->effective_input_to_input_scale_a,
           integer_lstm_param->effective_input_to_input_scale_b,
-          tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
+          input_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
           integer_lstm_param->effective_input_to_forget_scale_a,
           integer_lstm_param->effective_input_to_forget_scale_b,
-          tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
+          input_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
           integer_lstm_param->effective_input_to_cell_scale_a,
           integer_lstm_param->effective_input_to_cell_scale_b,
-          tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
+          input_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
           integer_lstm_param->effective_input_to_output_scale_a,
           integer_lstm_param->effective_input_to_output_scale_b,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
+          recurrent_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_input_weights),
           integer_lstm_param->effective_recurrent_to_input_scale_a,
           integer_lstm_param->effective_recurrent_to_input_scale_b,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
+          recurrent_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_forget_weights),
           integer_lstm_param->effective_recurrent_to_forget_scale_a,
           integer_lstm_param->effective_recurrent_to_forget_scale_b,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
+          recurrent_to_cell_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
           integer_lstm_param->effective_recurrent_to_cell_scale_a,
           integer_lstm_param->effective_recurrent_to_cell_scale_b,
-          tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
+          recurrent_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(
+                    recurrent_to_output_weights),
           integer_lstm_param->effective_recurrent_to_output_scale_a,
           integer_lstm_param->effective_recurrent_to_output_scale_b,
-          tflite::micro::GetTensorData<int16_t>(cell_to_input_weights),
+          cell_to_input_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(cell_to_input_weights),
           integer_lstm_param->effective_cell_to_input_scale_a,
           integer_lstm_param->effective_cell_to_input_scale_b,
-          tflite::micro::GetTensorData<int16_t>(cell_to_forget_weights),
+          cell_to_forget_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(cell_to_forget_weights),
           integer_lstm_param->effective_cell_to_forget_scale_a,
           integer_lstm_param->effective_cell_to_forget_scale_b,
-          tflite::micro::GetTensorData<int16_t>(cell_to_output_weights),
+          cell_to_output_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(cell_to_output_weights),
           integer_lstm_param->effective_cell_to_output_scale_a,
           integer_lstm_param->effective_cell_to_output_scale_b,
-          tflite::micro::GetTensorData<int8_t>(projection_weights),
+          projection_weights == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int8_t>(projection_weights),
           integer_lstm_param->effective_proj_scale_a,
           integer_lstm_param->effective_proj_scale_b,
           integer_lstm_param->hidden_zp,
           integer_lstm_param->effective_hidden_scale_a,
           integer_lstm_param->effective_hidden_scale_b,
-          tflite::micro::GetTensorData<int16_t>(input_layer_norm_coefficients),
+          input_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(
+                    input_layer_norm_coefficients),
           integer_lstm_param->layer_norm_input_scale_a,
           integer_lstm_param->layer_norm_input_scale_b,
-          tflite::micro::GetTensorData<int16_t>(forget_layer_norm_coefficients),
+          forget_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(
+                    forget_layer_norm_coefficients),
           integer_lstm_param->layer_norm_forget_scale_a,
           integer_lstm_param->layer_norm_forget_scale_b,
-          tflite::micro::GetTensorData<int16_t>(cell_layer_norm_coefficients),
+          cell_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(
+                    cell_layer_norm_coefficients),
           integer_lstm_param->layer_norm_cell_scale_a,
           integer_lstm_param->layer_norm_cell_scale_b,
-          tflite::micro::GetTensorData<int16_t>(output_layer_norm_coefficients),
+          output_layer_norm_coefficients == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int16_t>(
+                    output_layer_norm_coefficients),
           integer_lstm_param->layer_norm_output_scale_a,
           integer_lstm_param->layer_norm_output_scale_b,
-          tflite::micro::GetTensorData<int32_t>(input_gate_bias),
-          tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
-          tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
-          tflite::micro::GetTensorData<int32_t>(output_gate_bias),
+          input_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int32_t>(input_gate_bias),
+          forget_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
+          cell_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
+          output_gate_bias == nullptr
+              ? nullptr
+              : tflite::micro::GetTensorData<int32_t>(output_gate_bias),
           integer_lstm_param->quantized_cell_clip,
           integer_lstm_param->quantized_proj_clip,
           integer_lstm_param->cell_scale,
@@ -2299,64 +2635,109 @@ TfLiteStatus EvalInteger8x8_16Lstm(
 
         LstmStepInteger8x8_16(
             input_ptr,
-            tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+            input_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
             integer_lstm_param->effective_input_to_input_scale_a,
             integer_lstm_param->effective_input_to_input_scale_b,
-            tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
+            input_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
             integer_lstm_param->effective_input_to_forget_scale_a,
             integer_lstm_param->effective_input_to_forget_scale_b,
-            tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
+            input_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
             integer_lstm_param->effective_input_to_cell_scale_a,
             integer_lstm_param->effective_input_to_cell_scale_b,
-            tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
+            input_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
             integer_lstm_param->effective_input_to_output_scale_a,
             integer_lstm_param->effective_input_to_output_scale_b,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
+            recurrent_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_input_weights),
             integer_lstm_param->effective_recurrent_to_input_scale_a,
             integer_lstm_param->effective_recurrent_to_input_scale_b,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
+            recurrent_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_forget_weights),
             integer_lstm_param->effective_recurrent_to_forget_scale_a,
             integer_lstm_param->effective_recurrent_to_forget_scale_b,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
+            recurrent_to_cell_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_cell_weights),
             integer_lstm_param->effective_recurrent_to_cell_scale_a,
             integer_lstm_param->effective_recurrent_to_cell_scale_b,
-            tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
+            recurrent_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(
+                      recurrent_to_output_weights),
             integer_lstm_param->effective_recurrent_to_output_scale_a,
             integer_lstm_param->effective_recurrent_to_output_scale_b,
-            tflite::micro::GetTensorData<int16_t>(cell_to_input_weights),
+            cell_to_input_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(cell_to_input_weights),
             integer_lstm_param->effective_cell_to_input_scale_a,
             integer_lstm_param->effective_cell_to_input_scale_b,
-            tflite::micro::GetTensorData<int16_t>(cell_to_forget_weights),
+            cell_to_forget_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(cell_to_forget_weights),
             integer_lstm_param->effective_cell_to_forget_scale_a,
             integer_lstm_param->effective_cell_to_forget_scale_b,
-            tflite::micro::GetTensorData<int16_t>(cell_to_output_weights),
+            cell_to_output_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(cell_to_output_weights),
             integer_lstm_param->effective_cell_to_output_scale_a,
             integer_lstm_param->effective_cell_to_output_scale_b,
-            tflite::micro::GetTensorData<int8_t>(projection_weights),
+            projection_weights == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int8_t>(projection_weights),
             integer_lstm_param->effective_proj_scale_a,
             integer_lstm_param->effective_proj_scale_b,
             integer_lstm_param->hidden_zp,
             integer_lstm_param->effective_hidden_scale_a,
             integer_lstm_param->effective_hidden_scale_b,
-            tflite::micro::GetTensorData<int16_t>(
-                input_layer_norm_coefficients),
+            input_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(
+                      input_layer_norm_coefficients),
             integer_lstm_param->layer_norm_input_scale_a,
             integer_lstm_param->layer_norm_input_scale_b,
-            tflite::micro::GetTensorData<int16_t>(
-                forget_layer_norm_coefficients),
+            forget_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(
+                      forget_layer_norm_coefficients),
             integer_lstm_param->layer_norm_forget_scale_a,
             integer_lstm_param->layer_norm_forget_scale_b,
-            tflite::micro::GetTensorData<int16_t>(cell_layer_norm_coefficients),
+            cell_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(
+                      cell_layer_norm_coefficients),
             integer_lstm_param->layer_norm_cell_scale_a,
             integer_lstm_param->layer_norm_cell_scale_b,
-            tflite::micro::GetTensorData<int16_t>(
-                output_layer_norm_coefficients),
+            output_layer_norm_coefficients == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int16_t>(
+                      output_layer_norm_coefficients),
             integer_lstm_param->layer_norm_output_scale_a,
             integer_lstm_param->layer_norm_output_scale_b,
-            tflite::micro::GetTensorData<int32_t>(input_gate_bias),
-            tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
-            tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
-            tflite::micro::GetTensorData<int32_t>(output_gate_bias),
+            input_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int32_t>(input_gate_bias),
+            forget_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
+            cell_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
+            output_gate_bias == nullptr
+                ? nullptr
+                : tflite::micro::GetTensorData<int32_t>(output_gate_bias),
             integer_lstm_param->quantized_cell_clip,
             integer_lstm_param->quantized_proj_clip,
             integer_lstm_param->cell_scale,
@@ -2442,75 +2823,121 @@ TfLiteStatus EvalInteger8x8_8Lstm(
     LstmStepInteger8x8_8(
         input_ptr, input_zp,
 
-        tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
+        input_to_input_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
         integer_lstm_param->effective_input_to_input_scale_a,
         integer_lstm_param->effective_input_to_input_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
+        input_to_forget_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(input_to_forget_weights),
         integer_lstm_param->effective_input_to_forget_scale_a,
         integer_lstm_param->effective_input_to_forget_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
+        input_to_cell_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(input_to_cell_weights),
         integer_lstm_param->effective_input_to_cell_scale_a,
         integer_lstm_param->effective_input_to_cell_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
+        input_to_output_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(input_to_output_weights),
         integer_lstm_param->effective_input_to_output_scale_a,
         integer_lstm_param->effective_input_to_output_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
+        recurrent_to_input_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(recurrent_to_input_weights),
         integer_lstm_param->effective_recurrent_to_input_scale_a,
         integer_lstm_param->effective_recurrent_to_input_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
+        recurrent_to_forget_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(recurrent_to_forget_weights),
         integer_lstm_param->effective_recurrent_to_forget_scale_a,
         integer_lstm_param->effective_recurrent_to_forget_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
+        recurrent_to_cell_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(recurrent_to_cell_weights),
         integer_lstm_param->effective_recurrent_to_cell_scale_a,
         integer_lstm_param->effective_recurrent_to_cell_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
+        recurrent_to_output_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(recurrent_to_output_weights),
         integer_lstm_param->effective_recurrent_to_output_scale_a,
         integer_lstm_param->effective_recurrent_to_output_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
+        cell_to_input_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(cell_to_input_weights),
         integer_lstm_param->effective_cell_to_input_scale_a,
         integer_lstm_param->effective_cell_to_input_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
+        cell_to_forget_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(cell_to_forget_weights),
         integer_lstm_param->effective_cell_to_forget_scale_a,
         integer_lstm_param->effective_cell_to_forget_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
+        cell_to_output_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(cell_to_output_weights),
         integer_lstm_param->effective_cell_to_output_scale_a,
         integer_lstm_param->effective_cell_to_output_scale_b,
 
-        tflite::micro::GetTensorData<int8_t>(projection_weights),
+        projection_weights == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int8_t>(projection_weights),
         integer_lstm_param->effective_proj_scale_a,
         integer_lstm_param->effective_proj_scale_b,
 
-        tflite::micro::GetTensorData<int16_t>(input_layer_norm_coefficients),
+        input_layer_norm_coefficients == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int16_t>(
+                  input_layer_norm_coefficients),
         integer_lstm_param->layer_norm_input_scale_a,
         integer_lstm_param->layer_norm_input_scale_b,
 
-        tflite::micro::GetTensorData<int16_t>(forget_layer_norm_coefficients),
+        forget_layer_norm_coefficients == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int16_t>(
+                  forget_layer_norm_coefficients),
         integer_lstm_param->layer_norm_forget_scale_a,
         integer_lstm_param->layer_norm_forget_scale_b,
 
-        tflite::micro::GetTensorData<int16_t>(cell_layer_norm_coefficients),
+        cell_layer_norm_coefficients == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int16_t>(
+                  cell_layer_norm_coefficients),
         integer_lstm_param->layer_norm_cell_scale_a,
         integer_lstm_param->layer_norm_cell_scale_b,
 
-        tflite::micro::GetTensorData<int16_t>(output_layer_norm_coefficients),
+        output_layer_norm_coefficients == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int16_t>(
+                  output_layer_norm_coefficients),
         integer_lstm_param->layer_norm_output_scale_a,
         integer_lstm_param->layer_norm_output_scale_b,
 
-        tflite::micro::GetTensorData<int32_t>(input_gate_bias),
-        tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
-        tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
-        tflite::micro::GetTensorData<int32_t>(output_gate_bias),
-        tflite::micro::GetTensorData<int32_t>(projection_bias),
+        input_gate_bias == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int32_t>(input_gate_bias),
+        forget_gate_bias == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int32_t>(forget_gate_bias),
+        cell_gate_bias == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int32_t>(cell_gate_bias),
+        output_gate_bias == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int32_t>(output_gate_bias),
+        projection_bias == nullptr
+            ? nullptr
+            : tflite::micro::GetTensorData<int32_t>(projection_bias),
 
         params, integer_lstm_param->intermediate_scale_a,
         integer_lstm_param->intermediate_scale_b,
