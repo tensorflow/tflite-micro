@@ -212,7 +212,7 @@ class BaseLstmParam {
 
   template <typename T>
   void AssignDimsToEvalTensor(TfLiteEvalTensor* tensor, T* data,
-                              int32_t dims[]) {
+                              int dims[]) {
     tensor->dims = IntArrayFromInts(dims);
   }
 
