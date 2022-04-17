@@ -211,8 +211,7 @@ class BaseLstmParam {
   static const int n_output_ = 6;
 
   template <typename T>
-  void AssignDimsToEvalTensor(TfLiteEvalTensor* tensor, T* data,
-                              int dims[]) {
+  void AssignDimsToEvalTensor(TfLiteEvalTensor* tensor, T* data, int dims[]) {
     tensor->dims = IntArrayFromInts(dims);
   }
 
