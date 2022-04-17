@@ -457,20 +457,20 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
 }
 
 // Temporary buffers used for hybrid mode
-enum LstmHybridTempBuffer {
-  kLstmPrimaryScratchBuffer = 0,
-  kLstmInputQuantized = 1,
-  kLstmOutputStateQuantized = 2,
-  kLstmCellStateQuantized = 3,
-  kLstmInputScalingFactors = 4,
-  kLstmOutputStateScalingFactors = 5,
-  kLstmProductScalingFactors = 6,
-  kLstmRecoveredCellWeights = 7,
-  kLstmAccumScratch = 8,
-  kLstmInputZeroPoints = 9,
-  kLstmOutputStateZeroPoints = 10,
-  kLstmScales = 11,
-  kLstmNumHybridTempBuffers = 12,
+enum HybridTempBuffer {
+  kPrimaryScratchBuffer = 0,
+  kInputQuantized = 1,
+  kOutputStateQuantized = 2,
+  kCellStateQuantized = 3,
+  kInputScalingFactors = 4,
+  kOutputStateScalingFactors = 5,
+  kProductScalingFactors = 6,
+  kRecoveredCellWeights = 7,
+  kAccumScratch = 8,
+  kInputZeroPoints = 9,
+  kOutputStateZeroPoints = 10,
+  kScales = 11,
+  kNumHybridTempBuffers = 12,
 };
 
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
@@ -691,10 +691,11 @@ TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
 
   // We make sure the input-gate's parameters are either both present (regular
   // LSTM) or not at all (CIFG-LSTM).
-  bool cifg_weights_all_or_none = ((input_to_input_weights != nullptr) &&
-                                   (recurrent_to_input_weights != nullptr)) ||
-                                  ((input_to_input_weights == nullptr) &&
-                                   (recurrent_to_input_weights == nullptr));
+  const bool cifg_weights_all_or_none =
+      ((input_to_input_weights != nullptr) &&
+       (recurrent_to_input_weights != nullptr)) ||
+      ((input_to_input_weights == nullptr) &&
+       (recurrent_to_input_weights == nullptr));
   TF_LITE_ENSURE(context, cifg_weights_all_or_none == true);
 
   TfLiteTensor* cell_to_input_weights = micro_context->AllocateTempInputTensor(
@@ -1232,16 +1233,16 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
       scratch_buffer_size[1] = n_cell * 4;
     }
 
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context,
-                     scratch_buffer_size[0] * scratch_buffer_size[1] *
-                         TfLiteTypeGetSize(input->type),
-                     &(op_data->scratch_index[kLstmPrimaryScratchBuffer])));
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context,
+                          scratch_buffer_size[0] * scratch_buffer_size[1] *
+                              TfLiteTypeGetSize(input->type),
+                          &(op_data->scratch_index[kPrimaryScratchBuffer])));
   }
 
   if (IsHybridOp(input, input_to_output_weights)) {
-    TF_LITE_ENSURE(context, kLstmNumHybridTempBuffers <= scratch_index_size);
+    TF_LITE_ENSURE(context, kNumHybridTempBuffers <= scratch_index_size);
 
     TF_LITE_ENSURE_OK(context, SetHybridScales(context, node));
 
@@ -1255,26 +1256,26 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                           context,
                           GetTensorShape(input).FlatSize() *
                               TfLiteTypeGetSize(input_to_output_weights->type),
-                          &(op_data->scratch_index[kLstmInputQuantized])));
+                          &(op_data->scratch_index[kInputQuantized])));
 
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context,
-                     GetTensorShape(output_state).FlatSize() *
-                         TfLiteTypeGetSize(input_to_output_weights->type),
-                     &(op_data->scratch_index[kLstmOutputStateQuantized])));
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context,
+                          GetTensorShape(output_state).FlatSize() *
+                              TfLiteTypeGetSize(input_to_output_weights->type),
+                          &(op_data->scratch_index[kOutputStateQuantized])));
 
     TF_LITE_ENSURE_OK(context,
                       context->RequestScratchBufferInArena(
                           context,
                           GetTensorShape(cell_state).FlatSize() *
                               TfLiteTypeGetSize(input_to_output_weights->type),
-                          &(op_data->scratch_index[kLstmCellStateQuantized])));
+                          &(op_data->scratch_index[kCellStateQuantized])));
 
     TF_LITE_ENSURE_OK(context,
                       context->RequestScratchBufferInArena(
                           context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kLstmScales])));
+                          &(op_data->scratch_index[kScales])));
 
     // Allocate temporary buffers to store scaling factors and product scaling
     // factors. The latter is a convenience storage which allows to quantize
@@ -1285,42 +1286,41 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
     TF_LITE_ENSURE_OK(context,
                       context->RequestScratchBufferInArena(
                           context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kLstmInputScalingFactors])));
-
-    TF_LITE_ENSURE_OK(
-        context,
-        context->RequestScratchBufferInArena(
-            context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-            &(op_data->scratch_index[kLstmOutputStateScalingFactors])));
+                          &(op_data->scratch_index[kInputScalingFactors])));
 
     TF_LITE_ENSURE_OK(
         context, context->RequestScratchBufferInArena(
                      context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                     &(op_data->scratch_index[kLstmProductScalingFactors])));
+                     &(op_data->scratch_index[kOutputStateScalingFactors])));
+
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
+                          &(op_data->scratch_index[kProductScalingFactors])));
 
     // Allocate a temporary buffer to store the recovered cell weights. Since
     // this is used for diagonal matrices, only need to store n_cell values.
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context, n_cell * TfLiteTypeGetSize(kTfLiteFloat32),
-                     &(op_data->scratch_index[kLstmRecoveredCellWeights])));
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context, n_cell * TfLiteTypeGetSize(kTfLiteFloat32),
+                          &(op_data->scratch_index[kRecoveredCellWeights])));
 
     // Allocate a temporary buffer to store the accumulated int32 values.
     TF_LITE_ENSURE_OK(
         context,
         context->RequestScratchBufferInArena(
             context, n_cell * n_batch * TfLiteTypeGetSize(kTfLiteInt32),
-            &(op_data->scratch_index[kLstmAccumScratch])));
+            &(op_data->scratch_index[kAccumScratch])));
 
     TF_LITE_ENSURE_OK(context,
                       context->RequestScratchBufferInArena(
                           context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kLstmInputZeroPoints])));
+                          &(op_data->scratch_index[kInputZeroPoints])));
 
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                     &(op_data->scratch_index[kLstmOutputStateZeroPoints])));
+    TF_LITE_ENSURE_OK(context,
+                      context->RequestScratchBufferInArena(
+                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
+                          &(op_data->scratch_index[kOutputStateZeroPoints])));
 
     int row_sums_rows = use_cifg ? 6 : 8;
     TfLiteTensor* projection_weights = micro_context->AllocateTempInputTensor(
@@ -1510,7 +1510,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
           /*forward_sequence=*/true, time_major,
           /*output_offset=*/0,
           reinterpret_cast<float*>(context->GetScratchBuffer(
-              context, op_data->scratch_index[kLstmPrimaryScratchBuffer])),
+              context, op_data->scratch_index[kPrimaryScratchBuffer])),
           output_state, cell_state, output);
     } break;
     case kTfLiteUInt8:
@@ -1550,35 +1550,34 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
             /*forward_sequence=*/true, time_major,
             /*output_offset=*/0,
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmPrimaryScratchBuffer])),
+                context, op_data->scratch_index[kPrimaryScratchBuffer])),
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmInputScalingFactors])),
+                context, op_data->scratch_index[kInputScalingFactors])),
             /*aux_input_sf=*/nullptr,
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context,
-                op_data->scratch_index[kLstmOutputStateScalingFactors])),
+                context, op_data->scratch_index[kOutputStateScalingFactors])),
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmProductScalingFactors])),
+                context, op_data->scratch_index[kProductScalingFactors])),
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmRecoveredCellWeights])),
+                context, op_data->scratch_index[kRecoveredCellWeights])),
             reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmInputQuantized])),
+                context, op_data->scratch_index[kInputQuantized])),
             /*aux_input_quantized=*/nullptr,
             reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmOutputStateQuantized])),
+                context, op_data->scratch_index[kOutputStateQuantized])),
             reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmCellStateQuantized])),
+                context, op_data->scratch_index[kCellStateQuantized])),
             reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmScales])),
+                context, op_data->scratch_index[kScales])),
             output_state, cell_state,
             reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmAccumScratch])),
+                context, op_data->scratch_index[kAccumScratch])),
             output,
             reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmInputZeroPoints])),
+                context, op_data->scratch_index[kInputZeroPoints])),
             /*aux_input_zp=*/nullptr,
             reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kLstmOutputStateZeroPoints])),
+                context, op_data->scratch_index[kOutputStateZeroPoints])),
             op_data_rw->row_sums, op_data_rw->row_sums_size,
             &op_data_rw->compute_row_sums);
       } else {
