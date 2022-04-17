@@ -74,6 +74,7 @@ tensorflow/lite/micro/kernels/leaky_relu_test.cc \
 tensorflow/lite/micro/kernels/logical_test.cc \
 tensorflow/lite/micro/kernels/logistic_test.cc \
 tensorflow/lite/micro/kernels/log_softmax_test.cc \
+tensorflow/lite/micro/kernels/lstm_eval_test.cc \
 tensorflow/lite/micro/kernels/maximum_minimum_test.cc \
 tensorflow/lite/micro/kernels/mirror_pad_test.cc \
 tensorflow/lite/micro/kernels/mul_test.cc \
