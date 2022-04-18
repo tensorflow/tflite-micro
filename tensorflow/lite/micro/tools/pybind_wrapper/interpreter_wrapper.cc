@@ -23,9 +23,10 @@ limitations under the License.
 namespace tflite {
 namespace interpreter_wrapper {
 
-tflite::ErrorReporter* error_reporter = nullptr;
-const tflite::Model* model = nullptr;
-tflite::MicroInterpreter* s_interpreter = nullptr;
+// tflite::ErrorReporter* error_reporter = nullptr;
+// const tflite::Model* model = nullptr;
+// tflite::MicroInterpreter* s_interpreter = nullptr;
+tflite::AllOpsResolver all_ops_resolver;
 
 constexpr int kTensorArenaSize = 20000;
 uint8_t tensor_arena[kTensorArenaSize];
@@ -40,13 +41,15 @@ uint8_t tensor_arena[kTensorArenaSize];
 //       interpreter_(std::move(interpreter)) {
 // }
 
-InterpreterWrapper::~InterpreterWrapper() {}
+InterpreterWrapper::~InterpreterWrapper() {
+  // TODO destruct
+  delete error_reporter_;
+  delete interpreter_;
+}
 
 InterpreterWrapper::InterpreterWrapper(PyObject* model_data) {
   char* buf = nullptr;
   Py_ssize_t length;
-
-  printf("-----------------------------\n");
 
   if (python_utils::ConvertFromPyString(model_data, &buf, &length) == -1) {
     // return nullptr;
@@ -55,16 +58,13 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data) {
 
   _import_array();  // TODO: Why not import_array()?
 
-  model = tflite::GetModel(buf);
+  const tflite::Model* model = tflite::GetModel(buf);
 
-  static tflite::AllOpsResolver resolver;
+  tflite::MicroErrorReporter *micro_error_reporter = new tflite::MicroErrorReporter();
+  ErrorReporter *error_reporter = micro_error_reporter;
 
-  static tflite::MicroErrorReporter micro_error_reporter;
-  error_reporter = &micro_error_reporter;
-
-  static tflite::MicroInterpreter static_interpreter(
-      model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
-  s_interpreter = &static_interpreter;
+  tflite::MicroInterpreter *interpreter = new tflite::MicroInterpreter(
+      model, all_ops_resolver, tensor_arena, kTensorArenaSize, error_reporter);
 
   // This doesn't work, why?
   // InterpreterWrapper* wrapper =
@@ -72,10 +72,8 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data) {
 
   model_ = model;
   error_reporter_ = error_reporter;
-  resolver_ = resolver;
-  interpreter_ = s_interpreter;
-
-  // return wrapper;
+  resolver_ = all_ops_resolver;
+  interpreter_ = interpreter;
 }
 
 void InterpreterWrapper::AllocateTensors() {
@@ -113,9 +111,7 @@ void InterpreterWrapper::SetInputTensor(PyObject* data) {
     return;
   }
   // TODO: error checking
-  printf("%p\n", array_safe.get());
   PyArrayObject* array = reinterpret_cast<PyArrayObject*>(array_safe.get());
-  printf("dims %d %zu", PyArray_NDIM(array), PyArray_NBYTES(array));
   memcpy(interpreter_->input(0)->data.data, PyArray_DATA(array),
          PyArray_NBYTES(array));
 }
