@@ -51,6 +51,8 @@ TfLiteRegistration Register_ELU();
 TfLiteRegistration Register_EXP();
 TfLiteRegistration Register_EXPAND_DIMS();
 TfLiteRegistration Register_FILL();
+// TODO(b/160234179): Change custom OPs to also return by value.
+TfLiteRegistration* Register_FLEX_ADD_V2();
 TfLiteRegistration Register_FLOOR_DIV();
 TfLiteRegistration Register_FLOOR_MOD();
 TfLiteRegistration Register_GATHER();

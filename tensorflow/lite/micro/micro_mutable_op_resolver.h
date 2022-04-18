@@ -248,6 +248,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseExpandDims);
   }
 
+  TfLiteStatus AddFlexAddV2() {
+    return AddCustom("FLEX_ADD_V2", tflite::Register_FLEX_ADD_V2());
+  }
+
   TfLiteStatus AddFill() {
     return AddBuiltin(BuiltinOperator_FILL, tflite::Register_FILL(), ParseFill);
   }
