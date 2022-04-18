@@ -16,6 +16,7 @@ limitations under the License.
 #pragma once
 
 #include <Python.h>
+#include <pybind11/numpy.h>
 
 #include "python_error_reporter.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
@@ -35,9 +36,9 @@ class InterpreterWrapper {
 
   void AllocateTensors();
   void Invoke();
-  void SetInputFloat(float x);
-  float GetOutputFloat();
-  void SetInputTensor(PyObject* data);
+  // void SetInputFloat(float x);
+  // float GetOutputFloat();
+  void SetInputTensor(PyObject* data, int index);
   PyObject* GetOutputTensor();
 
  private:
