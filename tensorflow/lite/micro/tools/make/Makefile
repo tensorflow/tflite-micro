@@ -324,6 +324,7 @@ tensorflow/lite/micro/kernels/ethosu.cc \
 tensorflow/lite/micro/kernels/exp.cc \
 tensorflow/lite/micro/kernels/expand_dims.cc \
 tensorflow/lite/micro/kernels/fill.cc \
+tensorflow/lite/micro/kernels/flex_add_v2.cc \
 tensorflow/lite/micro/kernels/floor.cc \
 tensorflow/lite/micro/kernels/floor_div.cc \
 tensorflow/lite/micro/kernels/floor_mod.cc \

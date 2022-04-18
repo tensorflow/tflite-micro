@@ -169,6 +169,7 @@ tflm_kernel_cc_library(
         "exp.cc",
         "expand_dims.cc",
         "fill.cc",
+        "flex_add_v2.cc",
         "floor.cc",
         "floor_div.cc",
         "floor_mod.cc",

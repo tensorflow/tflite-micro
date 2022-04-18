@@ -49,6 +49,7 @@ AllOpsResolver::AllOpsResolver() {
   AddExp();
   AddExpandDims();
   AddFill();
+  AddFlexAddV2();
   AddFloor();
   AddFloorDiv();
   AddFloorMod();
