@@ -169,6 +169,7 @@ tflm_kernel_cc_library(
         "exp.cc",
         "expand_dims.cc",
         "fill.cc",
+        "flex_add_v2.cc",
         "floor.cc",
         "floor_div.cc",
         "floor_mod.cc",
@@ -226,6 +227,7 @@ tflm_kernel_cc_library(
         "transpose_conv.cc",
         "unpack.cc",
         "var_handle.cc",
+        "where.cc",
         "while.cc",
         "zeros_like.cc",
     ],
@@ -261,7 +263,10 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_vision_p6_config(): glob(
+            ["xtensa/**/*.cc"],
+            exclude = ["xtensa/conv.cc"],
+        ),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
