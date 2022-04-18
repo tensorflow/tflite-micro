@@ -17,16 +17,27 @@ limitations under the License.
 
 #include "interpreter_wrapper.h"
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/ndarrayobject.h>
+
 namespace py = pybind11;
 using tflite::interpreter_wrapper::InterpreterWrapper;
+
+void* enable_numpy_support() {
+  Py_Initialize();
+  import_array();
+  return nullptr;
+}
 
 PYBIND11_MODULE(tflm_interpreter, m) {
   m.doc() = "pybind11 TFLM interpreter";
 
+  // enable_numpy_support();
+
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
       .def(py::init([](const py::bytes& data) {
         return std::unique_ptr<InterpreterWrapper>(
-            new InterpreterWrapper(data.ptr()));
+            new InterpreterWrapper(data.ptr()));  // TODO where is this deleted?
       }))
       .def("interpreter",
            [](InterpreterWrapper& self) {
@@ -34,16 +45,19 @@ PYBIND11_MODULE(tflm_interpreter, m) {
            })
       .def("AllocateTensors", &InterpreterWrapper::AllocateTensors)
       .def("Invoke", &InterpreterWrapper::Invoke)
-      .def(
-          "SetInputFloat",
-          [](InterpreterWrapper& self, float x) { self.SetInputFloat(x); },
-          py::arg("x"))
-      .def("GetOutputFloat", &InterpreterWrapper::GetOutputFloat)
+      // .def(
+      //     "SetInputFloat",
+      //     [](InterpreterWrapper& self, float x) { self.SetInputFloat(x); },
+      //     py::arg("x"))
+      // .def("GetOutputFloat", &InterpreterWrapper::GetOutputFloat)
       .def(
           "SetInputTensor",
-          [](InterpreterWrapper& self, py::handle& x) {
-            self.SetInputTensor(x.ptr());
+          [](InterpreterWrapper& self, py::handle& x, int index) {
+            self.SetInputTensor(x.ptr(), index);
           },
-          py::arg("x"))
-      .def("GetOutputTensor", &InterpreterWrapper::GetOutputTensor);
+          py::arg("x"), py::arg("index"))
+      .def("GetOutputTensor", [](InterpreterWrapper& self) {
+        return py::reinterpret_steal<py::object>(
+            self.GetOutputTensor());  // Pyo
+      });
 }

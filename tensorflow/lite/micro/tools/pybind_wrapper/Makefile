@@ -21,6 +21,7 @@ SRCS += \
 	tensorflow/lite/micro/tools/pybind_wrapper/interpreter_wrapper_pybind.cc \
 	tensorflow/lite/micro/tools/pybind_wrapper/python_error_reporter.cc \
 	tensorflow/lite/micro/tools/pybind_wrapper/python_utils.cc \
+	tensorflow/lite/micro/tools/pybind_wrapper/numpy.cc \
 
 # TODO: -I$(MAKEFILE_DIR)/downloads/flatbuffers/include
 INCLUDES += \
