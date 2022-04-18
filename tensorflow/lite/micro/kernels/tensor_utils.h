@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/portable_tensor_utils.h"
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict
