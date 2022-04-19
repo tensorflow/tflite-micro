@@ -808,7 +808,6 @@ TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
   // 1) If projection weight is not present, then projection bias should not be
   // present.
   // 2) If projection weight is present, then projection bias is optional.
-  // TODO(ghodrat): make sure this is correct.
   const bool projecton_tensors_consistent =
       ((projection_weights != nullptr) || (projection_bias == nullptr));
   TF_LITE_ENSURE(context, projecton_tensors_consistent == true);
