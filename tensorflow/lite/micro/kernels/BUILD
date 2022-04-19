@@ -188,6 +188,7 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
+        "lstm_eval.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",
@@ -242,14 +243,18 @@ tflm_kernel_cc_library(
         "leaky_relu.h",
         "logical.h",
         "logistic.h",
+        "lstm_eval.h",
+        "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
         "pooling.h",
+        "portable_tensor_utils.h",
         "prelu.h",
         "quantize.h",
         "softmax.h",
         "sub.h",
         "svdf.h",
+        "tensor_utils.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
@@ -288,6 +293,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:cppmath",
+        "//tensorflow/lite/kernels/internal:portable_tensor_utils",
         "//tensorflow/lite/kernels/internal:quantization_util",
         "//tensorflow/lite/kernels/internal:reference_base",
         "//tensorflow/lite/kernels/internal:tensor",
@@ -843,6 +849,20 @@ cc_test(
     ],
     deps = [
         ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "lstm_eval_test",
+    srcs = [
+        "lstm_eval_test.cc",
+    ],
+    deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:op_resolvers",
