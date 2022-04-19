@@ -69,6 +69,23 @@ cc_library(
 )
 
 cc_library(
+    name = "portable_tensor_utils",
+    srcs = [
+        "reference/portable_tensor_utils.cc",
+    ],
+    hdrs = [
+        "reference/portable_tensor_utils.h",
+        "reference/portable_tensor_utils_impl.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":common",
+        ":compatibility",
+        ":cppmath",
+    ],
+)
+
+cc_library(
     name = "reference_base",
     srcs = [],
     hdrs = glob([
