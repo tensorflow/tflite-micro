@@ -152,9 +152,21 @@ class BaseLstmParam {
             1, 2, 3, 4, 7, 3, 4, -5, 6,  3,  //
         },
         projection_size_{2, n_cell_, n_output_},
+        layer_norm_input_size_{1, n_cell_},
+        layer_norm_forget_size_{1, n_cell_},
+        layer_norm_cell_size_{1, n_cell_},
+        layer_norm_output_size_{1, n_cell_},
+        input_gate_bias_size_{1, n_cell_},
+        forget_gate_bias_size_{1, n_cell_},
+        cell_gate_bias_size_{1, n_cell_},
+        output_gate_bias_size_{1, n_cell_},
         projection_bias_{
             16, 4, 5, 6, 1, 1  //
-        } {}
+        },
+        projection_bias_size_{1, n_output_},
+        activation_size_{2, n_batch_, n_output_},
+        cell_size_{2, n_batch_, n_cell_},
+        output_size_{2, n_batch_, n_output_} {}
 
   TfLiteEvalTensor* Geti2i() {
     AssignDimsToEvalTensor(&i2i_tensor_, i2i_, i2i_size_);
@@ -263,43 +275,43 @@ class BaseLstmParam {
   int projection_size_[3];
   TfLiteEvalTensor projection_tensor_;
 
-  int layer_norm_input_size_[2] = {1, n_cell_};
+  int layer_norm_input_size_[2];
   TfLiteEvalTensor layer_norm_input_tensor_;
 
   TfLiteEvalTensor layer_norm_forget_tensor_;
-  int layer_norm_forget_size_[2] = {1, n_cell_};
+  int layer_norm_forget_size_[2];
 
-  int layer_norm_cell_size_[2] = {1, n_cell_};
+  int layer_norm_cell_size_[2];
   TfLiteEvalTensor layer_norm_cell_tensor_;
 
-  int layer_norm_output_size_[2] = {1, n_cell_};
+  int layer_norm_output_size_[2];
   TfLiteEvalTensor layer_norm_output_tensor_;
 
-  int input_gate_bias_size_[2] = {1, n_cell_};
+  int input_gate_bias_size_[2];
   TfLiteEvalTensor input_gate_bias_tensor_;
 
-  int forget_gate_bias_size_[2] = {1, n_cell_};
+  int forget_gate_bias_size_[2];
   TfLiteEvalTensor forget_gate_bias_tensor_;
 
-  int cell_gate_bias_size_[2] = {1, n_cell_};
+  int cell_gate_bias_size_[2];
   TfLiteEvalTensor cell_gate_bias_tensor_;
 
-  int output_gate_bias_size_[2] = {1, n_cell_};
+  int output_gate_bias_size_[2];
   TfLiteEvalTensor output_gate_bias_tensor_;
 
   // projection_bias.
   int32_t projection_bias_[n_output_];
 
-  int projection_bias_size_[2] = {1, n_output_};
+  int projection_bias_size_[2];
   TfLiteEvalTensor projection_bias_tensor_;
 
-  int activation_size_[3] = {2, n_batch_, n_output_};
+  int activation_size_[3];
   TfLiteEvalTensor activation_tensor_;
 
-  int cell_size_[3] = {2, n_batch_, n_cell_};
+  int cell_size_[3];
   TfLiteEvalTensor cell_tensor_;
 
-  int output_size_[3] = {2, n_batch_, n_output_};
+  int output_size_[3];
   TfLiteEvalTensor output_tensor_;
 };
 
@@ -572,6 +584,10 @@ class HybridLstmParam : public BaseLstmParam {
   HybridLstmParam() :
     cell_state_{
       16, 4, 5, 6, 1, 1, 3, 4, -5, 6, 1, 14, 5, 6, 1, 1, 3, 4, -5, 6,
+    },
+    activation_state_{
+      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  //
+      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  //
     },
     output_float_{
       1, 1, 3, 4, -5, 6,  //
