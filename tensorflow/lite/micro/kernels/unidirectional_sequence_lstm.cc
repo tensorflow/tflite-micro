@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/tensor_utils.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -1146,9 +1147,8 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
     // This is deprecated and is only kept here for backward compatibility.
     use_layer_norm = false;
   } else {
-    TF_LITE_KERNEL_LOG(
-        context, "The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
-        node->inputs->size);
+    MicroPrintf("The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
+                node->inputs->size);
     return kTfLiteError;
   }
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
@@ -1608,8 +1608,8 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
       }
     } break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s is not currently supported.",
-                         TfLiteTypeGetName(input_to_output_weights->type));
+      MicroPrintf("Type %s is not currently supported.",
+                  TfLiteTypeGetName(input_to_output_weights->type));
       return kTfLiteError;
   }
 }
