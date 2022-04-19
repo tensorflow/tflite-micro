@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstring>
 #include <memory>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -812,7 +811,6 @@ inline void LstmStepFloat(
     int n_aux_input, int n_output, int output_batch_leading_dim,
     float* output_state_ptr, float* cell_state_ptr, float* scratch0,
     float* scratch1, float* scratch2, float* scratch3, float* output_ptr) {
-  ruy::profiler::ScopeLabel label("LstmStepFloat");
   // Since we have already checked that weights are all there or none, we can
   // check the existence of only one to the get the condition.
   const bool use_cifg = (input_to_input_weights_ptr == nullptr);
@@ -1010,7 +1008,6 @@ inline void LstmStepHybrid(
     float* output_ptr, int32_t* input_zp, int32_t* aux_input_zp,
     int32_t* output_state_zp, int32_t* row_sums, int row_sums_size,
     bool* compute_row_sums, bool asymmetric_quantize_inputs) {
-  ruy::profiler::ScopeLabel label("LstmStepHybrid");
   // Since we have already checked that weights are all there or none, we
   // can check the existence of only one to the get the condition.
   const bool use_cifg = (input_to_input_weights_ptr == nullptr);
@@ -1354,7 +1351,6 @@ inline void LstmStepInteger8x8_16(
     int32_t output_state_zp, int16_t* cell_state_ptr, int8_t* output_ptr,
     int16_t* scratch0, int16_t* scratch1, int16_t* scratch2, int16_t* scratch3,
     int8_t* scratch4, int32_t* scratch5) {
-  ruy::profiler::ScopeLabel label("LstmStepInteger8x8_16");
   // Make named scratch buffers for the different gates.
   int16_t* input_gate_scratch = scratch0;
   int16_t* forget_gate_scratch = scratch1;
@@ -1600,7 +1596,6 @@ inline void LstmStepInteger8x8_8(
     int16_t* scratch7) {
   // TODO(b/159066113): scratch5 is unused, remove.
 
-  ruy::profiler::ScopeLabel label("LstmStepInteger8x8_8");
   // Make named scratch buffers for the different gates.
   int16_t* forget_gate_scratch = scratch2;
   int16_t* cell_gate_scratch = scratch3;
