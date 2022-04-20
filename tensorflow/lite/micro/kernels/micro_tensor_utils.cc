@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/cppmath.h"
+#include "tensorflow/lite/kernels/op_macros.h"
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict
@@ -600,7 +601,9 @@ void PortableApplyTanhImpl(const int16_t* input, int32_t n_batch,
 
 void PortableApplyTanh(int32_t integer_bits, const int16_t* input,
                        int32_t n_batch, int32_t n_input, int16_t* output) {
-  assert(integer_bits <= 6);
+  if (integer_bits > 6) {
+    TFLITE_ASSERT_FALSE;
+  }
 #define DISPATCH_TANH(i)                                       \
   case i:                                                      \
     PortableApplyTanhImpl<i>(input, n_batch, n_input, output); \
