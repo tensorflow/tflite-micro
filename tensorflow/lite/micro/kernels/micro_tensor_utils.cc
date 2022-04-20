@@ -482,7 +482,6 @@ void PortableApplyLayerNorm(const int16_t* input,
       int32_t shifted = 1024 * val - mean;
       int32_t rescaled = MultiplyByQuantizedMultiplier(
           shifted, stddev_inverse_a, stddev_inverse_b);
-      // TODO(jianlijianli): Saturate this.
       int64_t val3 = rescaled * layer_norm_weights[j] + bias[j];
       int32_t val4 =
           static_cast<int32_t>((val3 > 0 ? val3 + 512 : val3 - 512) / 1024);
