@@ -407,7 +407,7 @@ MICROLITE_CC_HDRS := \
 $(wildcard tensorflow/lite/micro/*.h) \
 $(wildcard tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard tensorflow/lite/micro/kernels/*.h) \
-$(wildcard tensorflow/lite/micr/arena_allocator/*.h) \
+$(wildcard tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
