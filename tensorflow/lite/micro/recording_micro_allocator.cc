@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
 
 namespace tflite {
 
