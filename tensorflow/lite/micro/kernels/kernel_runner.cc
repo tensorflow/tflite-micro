@@ -15,9 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 
+#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {

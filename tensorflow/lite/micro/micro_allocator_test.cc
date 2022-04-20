@@ -18,12 +18,12 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/micro/testing/test_conv_model.h"
