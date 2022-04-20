@@ -1,0 +1,71 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+
+name: Cortex-M on Arm Virtual Hardware
+
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+on:
+  schedule:
+    - cron: '0 4 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+
+env:
+    AWS_ACCESS_KEY_ID:     ${{ secrets.ARM_AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.ARM_AWS_ACCESS_KEY_SECRET }}
+    AWS_DEFAULT_REGION:    ${{ secrets.ARM_AWS_DEFAULT_REGION }}
+    AWS_S3_BUCKET_NAME:    ${{ secrets.ARM_AWS_S3_BUCKET_NAME }}
+    AWS_IAM_PROFILE:       ${{ secrets.ARM_AWS_IAM_PROFILE }}
+    AWS_SECURITY_GROUP_ID: ${{ secrets.ARM_AWS_EC2_SECURITY_GROUP_ID }}
+    AWS_SUBNET_ID:         ${{ secrets.ARM_AWS_SUBNET_ID }}
+
+jobs:
+  cortex_m_generic:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Generic
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install AVH Client for Python
+        run: |
+          pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
+      - name: Execute test suite on Arm Virtual Hardware at AWS
+        run: |
+          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
+      - name: Fetch results from Arm Virtual Hardware
+        run: |
+          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic.log
+  
+  
+  cortex_m_corstone_300:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    name: Cortex-M Corstone 300 (FVP)
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install AVH Client for Python
+        run: |
+          pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
+      - name: Execute test suite on Arm Virtual Hardware at AWS
+        run: |
+          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
+      - name: Fetch results from Arm Virtual Hardware
+        run: |
+          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/corstone300.log
