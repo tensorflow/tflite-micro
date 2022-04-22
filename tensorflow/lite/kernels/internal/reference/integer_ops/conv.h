@@ -205,8 +205,8 @@ inline void ConvPerChannel(
                                       in_channel + group * filter_input_depth)];
                 int32_t filter_val = filter_data[Offset(
                     filter_shape, out_channel, filter_y, filter_x, in_channel)];
-                // Accumulate with 64 bits accumulator.
-                // int64_t += int8_t * int16_t so the highest value we can
+                // Accumulate with AccumScalar bits accumulator.
+                // acc += int8_t * int16_t so the highest value we can
                 // get from each accumulation is [-127, 127] * ([-32768,
                 // 32767] -
                 // [-32768, 32767]), which is [-8322945, 8322945].
