@@ -27,29 +27,6 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// Validate result.
-template <typename T>
-bool ArrayEq(const T* result, const T* expected_result, int size) {
-  for (int i = 0; i < size; ++i) {
-    if (result[i] != expected_result[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template <typename T>
-bool ArrayFloatNear(const T* result, const T* expected_result, int size,
-                    double threshold) {
-  for (int i = 0; i < size; ++i) {
-    if (static_cast<double>(std::abs(result[i] - expected_result[i])) >
-        threshold) {
-      return false;
-    }
-  }
-  return true;
-}
-
 // Base class that holds input parameters for quantized and hybrid lstm.
 class BaseLstmParam {
  public:
@@ -804,12 +781,15 @@ TF_LITE_MICRO_TEST(TestOneFullyQuantizedLSTM) {
   const int8_t expected_activation[12] = {
       50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
   };
-  TF_LITE_MICRO_EXPECT(
-      tflite::testing::ArrayEq(cell->data.i16, expected_cell, 20));
-  TF_LITE_MICRO_EXPECT(
-      tflite::testing::ArrayEq(activation->data.int8, expected_activation, 12));
-  TF_LITE_MICRO_EXPECT(
-      tflite::testing::ArrayEq(output->data.int8, expected_activation, 12));
+  for (int i = 0; i < 20; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_cell[i], cell->data.i16[i]);
+  }
+  for (int i = 0; i < 12; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_activation[i], activation->data.int8[i]);
+  }
+  for (int i = 0; i < 12; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_activation[i], output->data.int8[i]);
+  }
 }
 
 TF_LITE_MICRO_TEST(TestOneHybridAsymmLSTM) {
@@ -871,12 +851,16 @@ TF_LITE_MICRO_TEST(TestOneHybridAsymmLSTM) {
       53.0403, 59.3623, 24.8493, 53.0403, 59.3623, 24.8493,  //
       36.7559, 57.5202, 29.7217, 36.7559, 57.5202, 29.7217,
   };
-  TF_LITE_MICRO_EXPECT(
-      tflite::testing::ArrayFloatNear(cell->data.f, expected_cell, 20, 1e-2));
-  TF_LITE_MICRO_EXPECT(tflite::testing::ArrayFloatNear(
-      activation->data.f, expected_activation, 12, 1e-4));
-  TF_LITE_MICRO_EXPECT(tflite::testing::ArrayFloatNear(
-      output->data.f, expected_activation, 12, 1e-4));
+  for (int i = 0; i < 20; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(expected_cell[i], cell->data.f[i], 1e-2f);
+  }
+  for (int i = 0; i < 12; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(expected_activation[i], activation->data.f[i],
+                              1e-4f);
+  }
+  for (int i = 0; i < 12; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(expected_activation[i], output->data.f[i], 1e-4f);
+  }
 }
 #endif  // !defined(XTENSA)
 
