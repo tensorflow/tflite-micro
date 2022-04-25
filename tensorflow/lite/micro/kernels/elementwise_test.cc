@@ -108,9 +108,11 @@ void TestElementwiseQuantized(const TfLiteRegistration& registration,
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(expected_invoke_status, runner.Invoke());
 
-  for (int i = 0; i < output_dims_count; ++i) {
-    float f = (output_data[i] - output_zero_point) * output_scale;
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], f, input_scale);
+  if (expected_invoke_status == kTfLiteOk) {
+    for (int i = 0; i < output_dims_count; ++i) {
+      float f = (output_data[i] - output_zero_point) * output_scale;
+      TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], f, input_scale);
+    }
   }
 }
 
