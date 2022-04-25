@@ -183,6 +183,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
       conv_params, registration, output_data, 1.0 /* tolerance */);
 }
 
+// Test conv with int8 input, int8 weight, int32 bias
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
@@ -201,6 +202,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
       conv_params, registration, output_data);
 }
 
+// Test conv with int16 input, int8 weight, int64 bias
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
@@ -220,6 +222,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
       conv_params, registration, output_data);
 }
 
+// Test conv with int16 input, int8 weight, int32 bias
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,

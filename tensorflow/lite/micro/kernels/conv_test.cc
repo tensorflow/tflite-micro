@@ -189,7 +189,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannel) {
           output_data));
 }
 
-TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel) {
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBias) {
   const int output_dims_count = 12;
   int16_t output_data[output_dims_count];
 
@@ -325,7 +325,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelRelu6) {
           output_data));
 }
 
-TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu6) {
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu664bBias) {
   const int output_dims_count = 12;
   int16_t output_data[output_dims_count];
 
