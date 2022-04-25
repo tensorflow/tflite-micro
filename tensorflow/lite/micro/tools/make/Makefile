@@ -284,8 +284,8 @@ tensorflow/lite/micro/micro_string_test.cc \
 tensorflow/lite/micro/micro_time_test.cc \
 tensorflow/lite/micro/micro_utils_test.cc \
 tensorflow/lite/micro/recording_micro_allocator_test.cc \
-tensorflow/lite/micro/recording_simple_memory_allocator_test.cc \
-tensorflow/lite/micro/simple_memory_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/simple_memory_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
 tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
@@ -402,6 +402,7 @@ $(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -p
 
 MICROLITE_CC_BASE_SRCS := \
 $(wildcard tensorflow/lite/micro/*.cc) \
+$(wildcard tensorflow/lite/micro/arena_allocator/*.cc) \
 $(wildcard tensorflow/lite/micro/memory_planner/*.cc) \
 $(TFL_CC_SRCS)
 
@@ -409,6 +410,7 @@ MICROLITE_CC_HDRS := \
 $(wildcard tensorflow/lite/micro/*.h) \
 $(wildcard tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard tensorflow/lite/micro/kernels/*.h) \
+$(wildcard tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
