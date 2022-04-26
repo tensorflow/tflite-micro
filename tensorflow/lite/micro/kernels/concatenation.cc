@@ -148,12 +148,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE(context, input != nullptr);
     int num_dimensions = NumDimensions(input);
 
-    if (num_dimensions > RuntimeShape::kMaxDimension) {
+    if (num_dimensions > RuntimeShape::kMaxSmallSize) {
       TF_LITE_KERNEL_LOG(
           context,
           "Op Concatenation does not currently support num dimensions > %d "
           "Tensor has %d dimensions.",
-          RuntimeShape::kMaxDimension, num_dimensions);
+          RuntimeShape::kMaxSmallSize, num_dimensions);
       return kTfLiteError;
     }
     micro_context->DeallocateTempTfLiteTensor(input);

@@ -28,7 +28,9 @@ class RuntimeShape {
   RuntimeShape& operator=(RuntimeShape const&) = delete;
 
   // RuntimeShape in TFLM supports up to 5 dimensions.
-  static constexpr int kMaxDimension = 5;
+  // The name kMaxSmallSize comes from the same file of the upstream
+  // tensorflow lite repo and need to be kept the same for max reuse.
+  static constexpr int kMaxSmallSize = 5;
 
   RuntimeShape() : size_(0) {}
 
@@ -109,7 +111,7 @@ class RuntimeShape {
 
   int32_t size_;
   union {
-    int32_t dims_[kMaxDimension];
+    int32_t dims_[kMaxSmallSize];
   };
 };
 
