@@ -199,8 +199,8 @@ class TestDataGenerator:
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
     makefile.write(
-      self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
-      test_file)
+        self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
+        test_file)
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
     makefile.write('$(' + src_prefix + '_SRCS),,$(' + src_prefix +
