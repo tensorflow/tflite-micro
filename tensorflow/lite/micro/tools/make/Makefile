@@ -130,7 +130,7 @@ CC_WARNINGS := \
   -Wdouble-promotion \
   -Wshadow \
   -Wunused-variable \
-  -Wmissing-field-initializers \
+  -Wno-missing-field-initializers \
   -Wunused-function \
   -Wswitch \
   -Wvla \
