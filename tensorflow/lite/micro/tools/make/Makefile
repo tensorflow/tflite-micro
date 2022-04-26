@@ -130,12 +130,12 @@ CC_WARNINGS := \
   -Wdouble-promotion \
   -Wshadow \
   -Wunused-variable \
-  -Wmissing-field-initializers \
   -Wunused-function \
   -Wswitch \
   -Wvla \
   -Wall \
   -Wextra \
+  -Wno-missing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
 
