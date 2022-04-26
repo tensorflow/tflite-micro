@@ -114,8 +114,8 @@ def main(_):
     parsed_operator_list.append(ParseString(op))
 
   os.makedirs(out_dir, exist_ok=True)
-  GenerateMicroMutableOpsResolverHeaderFile(parsed_operator_list,
-                                            model_name, out_dir)
+  GenerateMicroMutableOpsResolverHeaderFile(parsed_operator_list, model_name,
+                                            out_dir)
 
 
 if __name__ == '__main__':

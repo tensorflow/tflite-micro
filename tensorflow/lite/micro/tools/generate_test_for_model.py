@@ -181,7 +181,9 @@ class TestDataGenerator:
     golden_csvwriter.writerow(output_flat)
     self.csv_filenames.append(csv_golden_filename)
 
-  def generate_makefile(self, test_file='integration_tests.cc', src_prefix=None):
+  def generate_makefile(self,
+                        test_file='integration_tests.cc',
+                        src_prefix=None):
     makefile = open(self.output_dir + '/Makefile.inc', 'w')
     output_dir_list = self.output_dir.split('/')
     if src_prefix is None:
@@ -196,8 +198,9 @@ class TestDataGenerator:
           csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
-    makefile.write(self.output_dir.split('third_party/tflite_micro/')[-1] +
-                   '/' + test_file)
+    makefile.write(
+      self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
+      test_file)
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
     makefile.write('$(' + src_prefix + '_SRCS),,$(' + src_prefix +

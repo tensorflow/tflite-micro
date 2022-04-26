@@ -28,11 +28,11 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('input_tflite_file', None,
                     'Full path name to the input TFLite file.')
-flags.DEFINE_string('output_dir', None, 'Directory to output generated files. \
+flags.DEFINE_string(
+    'output_dir', None, 'Directory to output generated files. \
   Note that final output will be in FLAGS.output_dir/<base name of model>. \
   Where <base name of model> will come from FLAGS.input_tflite_file.')
-flags.DEFINE_integer('arena_size', 1024 * 136,
-                     'Size of arena')
+flags.DEFINE_integer('arena_size', 1024 * 136, 'Size of arena')
 flags.DEFINE_boolean('verify_output', False,
                      'Verify output or just run model.')
 
@@ -60,9 +60,7 @@ class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
       return
     super().generate_golden()
 
-  def generate_test(self, template_dir,
-                    template_file,
-                    out_file):
+  def generate_test(self, template_dir, template_file, out_file):
     template_file_path = os.path.join(template_dir, template_file)
     build_template = template.Template(filename=template_file_path)
     path_to_target = self.target_with_path.split('/' + self.target)[0] + \
@@ -110,11 +108,13 @@ def main(_):
                                                FLAGS.arena_size)
   data_generator.generate_golden()
   data_generator.generate_build_file(TEMPLATE_DIR)
-  data_generator.generate_makefile(test_file='micro_mutable_op_resolver_test.cc',
-                                   src_prefix=name_of_make_target)
-  data_generator.generate_test(TEMPLATE_DIR,
-                               template_file='micro_mutable_op_resolver_test.cc.mako',
-                               out_file='micro_mutable_op_resolver_test.cc')
+  data_generator.generate_makefile(
+      test_file='micro_mutable_op_resolver_test.cc',
+      src_prefix=name_of_make_target)
+  data_generator.generate_test(
+      TEMPLATE_DIR,
+      template_file='micro_mutable_op_resolver_test.cc.mako',
+      out_file='micro_mutable_op_resolver_test.cc')
 
 
 if __name__ == '__main__':

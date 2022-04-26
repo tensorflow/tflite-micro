@@ -219,7 +219,8 @@ def main(_):
   inputs, builtin_operator = op_info_from_name(FLAGS.output_dir.split('/')[-1])
   generator = TestModelGenerator(model, FLAGS.output_dir, inputs)
   model_names = generator.generate_models(0, builtin_operator)
-  data_generator = TestPerLayerDataGenerator(FLAGS.output_dir, model_names, inputs)
+  data_generator = TestPerLayerDataGenerator(FLAGS.output_dir, model_names,
+                                             inputs)
   data_generator.generate_goldens(builtin_operator)
   data_generator.generate_build_file()
   data_generator.generate_makefile()

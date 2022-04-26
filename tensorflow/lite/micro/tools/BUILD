@@ -6,7 +6,6 @@ py_library(
     deps = [
         "//tensorflow/lite/python:schema_py",
     ],
-
 )
 
 package(
