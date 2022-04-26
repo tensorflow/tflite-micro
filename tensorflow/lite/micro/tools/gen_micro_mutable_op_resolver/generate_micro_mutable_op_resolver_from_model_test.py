@@ -41,6 +41,7 @@ flags.mark_flag_as_required('output_dir')
 
 
 class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
+
   def __init__(self, output_dir, model_path, verify_output, arena_size):
     super().__init__(output_dir, [model_path], [0])  # Third argument not used.
     self.verify_output = verify_output

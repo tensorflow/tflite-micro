@@ -31,7 +31,6 @@ from tflite_micro.tensorflow.lite.python import schema_util
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import generate_test_for_model
 
-
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
