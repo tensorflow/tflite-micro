@@ -159,14 +159,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SOFTMAX() {
-  return {/*init=*/SoftmaxInit,
-          /*free=*/nullptr,
-          /*prepare=*/SoftmaxPrepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(SoftmaxInit, SoftmaxPrepare, Eval);
 }
 
 }  // namespace tflite

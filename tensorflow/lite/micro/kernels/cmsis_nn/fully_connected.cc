@@ -334,6 +334,7 @@ TfLiteRegistration Register_FULLY_CONNECTED() {
   fully_connected_registration.builtin_code = 0;
   fully_connected_registration.custom_name = nullptr;
   fully_connected_registration.version = 0;
+  fully_connected_registration.registration_external = nullptr;
   return fully_connected_registration;
 }
 
@@ -346,6 +347,7 @@ TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
   fully_connected_registration.builtin_code = 0;
   fully_connected_registration.custom_name = nullptr;
   fully_connected_registration.version = 0;
+  fully_connected_registration.registration_external = nullptr;
   return fully_connected_registration;
 }
 

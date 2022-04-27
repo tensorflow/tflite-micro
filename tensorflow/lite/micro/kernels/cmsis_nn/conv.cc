@@ -452,6 +452,7 @@ TfLiteRegistration Register_CONV_2D() {
   conv_registration.builtin_code = 0;
   conv_registration.custom_name = nullptr;
   conv_registration.version = 0;
+  conv_registration.registration_external = nullptr;
   return conv_registration;
 }
 
@@ -464,6 +465,7 @@ TfLiteRegistration Register_CONV_2D_INT8() {
   conv_registration.builtin_code = 0;
   conv_registration.custom_name = nullptr;
   conv_registration.version = 0;
+  conv_registration.registration_external = nullptr;
   return conv_registration;
 }
 
@@ -476,6 +478,7 @@ TfLiteRegistration Register_CONV_2D_INT16() {
   conv_registration.builtin_code = 0;
   conv_registration.custom_name = nullptr;
   conv_registration.version = 0;
+  conv_registration.registration_external = nullptr;
   return conv_registration;
 }
 

@@ -36,8 +36,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-void Free(TfLiteContext* context, void* buffer) {}
-
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(context != nullptr);
   TF_LITE_ENSURE(context, node->inputs->size > 0);
@@ -138,14 +136,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration* Register_ETHOSU() {
-  static TfLiteRegistration r = {Init,
-                                 Free,
-                                 Prepare,
-                                 Eval,
-                                 /*profiling_string=*/nullptr,
-                                 /*builtin_code=*/0,
-                                 /*custom_name=*/nullptr,
-                                 /*version=*/0};
+  static TfLiteRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
   return &r;
 }
 

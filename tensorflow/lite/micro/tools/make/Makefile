@@ -135,7 +135,7 @@ CC_WARNINGS := \
   -Wvla \
   -Wall \
   -Wextra \
-  -Wno-missing-field-initializers \
+  -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
 
