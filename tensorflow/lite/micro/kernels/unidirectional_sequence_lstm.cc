@@ -170,7 +170,9 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
           intermediate->quantization.params);
       intermediate_scale[i] = params_intermediate->scale->data[0];
       intermediate_zp[i] = params_intermediate->zero_point->data[0];
-      micro_context->DeallocateTempTfLiteTensor(intermediate);
+      if (intermediate != nullptr) {
+        micro_context->DeallocateTempTfLiteTensor(intermediate);
+      }
     } else {
       // Q3.12 for activation functions.
       intermediate_scale[i] = std::pow(2.0f, -12.0f);
@@ -185,7 +187,9 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
       static_cast<TfLiteAffineQuantization*>(hidden->quantization.params);
   intermediate_scale[4] = hidden_params->scale->data[0];
   intermediate_zp[4] = hidden_params->zero_point->data[0];
-  micro_context->DeallocateTempTfLiteTensor(hidden);
+  if (hidden != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(hidden);
+  }
 
   // Scales.
   const float default_scale = 1.0;
@@ -413,21 +417,39 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   integer_lstm_param->output_variance_guard =
       std::max(1, static_cast<int>(10000 * layer_norm_output_scale));
 
-  micro_context->DeallocateTempTfLiteTensor(cell_state);
-  micro_context->DeallocateTempTfLiteTensor(output_tensor);
-  micro_context->DeallocateTempTfLiteTensor(input);
+  if (cell_state != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_state);
+  }
+  if (output_tensor != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output_tensor);
+  }
+  if (input != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+  }
   if (input_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
-  micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
-  micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  if (input_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
+  }
+  if (input_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
+  }
+  if (input_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  }
   if (recurrent_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(recurrent_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  if (recurrent_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
+  }
+  if (recurrent_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
+  }
+  if (recurrent_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  }
   if (cell_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(cell_to_input_weights);
   }
@@ -452,7 +474,9 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   if (projection_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(projection_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(output_state);
+  if (output_state != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output_state);
+  }
 
   return kTfLiteOk;
 }
@@ -891,12 +915,18 @@ TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
   if (input_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
-  micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
+  if (input_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
+  }
+  if (input_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
+  }
   if (recurrent_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(recurrent_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
+  if (recurrent_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
+  }
   micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
   if (cell_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(cell_to_input_weights);
@@ -910,11 +940,21 @@ TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
   if (input_gate_bias != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_gate_bias);
   }
-  micro_context->DeallocateTempTfLiteTensor(forget_gate_bias);
-  micro_context->DeallocateTempTfLiteTensor(cell_gate_bias);
-  micro_context->DeallocateTempTfLiteTensor(output_gate_bias);
-  micro_context->DeallocateTempTfLiteTensor(projection_weights);
-  micro_context->DeallocateTempTfLiteTensor(projection_bias);
+  if (forget_gate_bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(forget_gate_bias);
+  }
+  if (cell_gate_bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_gate_bias);
+  }
+  if (output_gate_bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output_gate_bias);
+  }
+  if (projection_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(projection_weights);
+  }
+  if (projection_bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(projection_bias);
+  }
 
   return kTfLiteOk;
 }
@@ -1081,20 +1121,36 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(
                         context, hidden_zp, projection_weights, projection_bias,
                         &(integer_lstm_params->projection_effective_bias)));
 
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(output_state);
+  if (input != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+  }
+  if (output_state != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output_state);
+  }
   if (input_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
-  micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
-  micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  if (input_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
+  }
+  if (input_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
+  }
+  if (input_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  }
   if (recurrent_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(recurrent_to_input_weights);
   }
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  if (recurrent_to_forget_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
+  }
+  if (recurrent_to_cell_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
+  }
+  if (recurrent_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  }
   if (projection_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(projection_weights);
   }
@@ -1114,7 +1170,9 @@ TfLiteStatus PopulatePrecomputedZPTimesWeightsWithBias(
     micro_context->DeallocateTempTfLiteTensor(input_gate_bias);
   }
 
-  micro_context->DeallocateTempTfLiteTensor(intermediate);
+  if (intermediate != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(intermediate);
+  }
 
   return kTfLiteOk;
 }
@@ -1368,12 +1426,24 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                    context, op_data, node));
   }
 
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
-  micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
-  micro_context->DeallocateTempTfLiteTensor(output);
-  micro_context->DeallocateTempTfLiteTensor(output_state);
-  micro_context->DeallocateTempTfLiteTensor(cell_state);
+  if (input != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+  }
+  if (input_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
+  }
+  if (recurrent_to_output_weights != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
+  }
+  if (output != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output);
+  }
+  if (output_state != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(output_state);
+  }
+  if (cell_state != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(cell_state);
+  }
 
   if (input_to_input_weights != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
