@@ -29,7 +29,7 @@ void* enable_numpy_support() {
   return nullptr;
 }
 
-PYBIND11_MODULE(tflm_interpreter, m) {
+PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   m.doc() = "pybind11 TFLM interpreter";
 
   // enable_numpy_support();
@@ -45,11 +45,6 @@ PYBIND11_MODULE(tflm_interpreter, m) {
            })
       .def("AllocateTensors", &InterpreterWrapper::AllocateTensors)
       .def("Invoke", &InterpreterWrapper::Invoke)
-      // .def(
-      //     "SetInputFloat",
-      //     [](InterpreterWrapper& self, float x) { self.SetInputFloat(x); },
-      //     py::arg("x"))
-      // .def("GetOutputFloat", &InterpreterWrapper::GetOutputFloat)
       .def(
           "SetInputTensor",
           [](InterpreterWrapper& self, py::handle& x, int index) {

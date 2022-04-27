@@ -133,7 +133,6 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, int index) {
 // templates not knowing types before hand
 PyObject* InterpreterWrapper::GetOutputTensor() {
   // Sanity check accessor
-  printf("output size %d\n", interpreter_->outputs_size());
   TfLiteTensor* tensor = interpreter_->output(0);
   int type_num = python_utils::TfLiteTypeToPyArrayType(
       tensor->type);  // caused segfault otherwise
