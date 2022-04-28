@@ -347,7 +347,9 @@ tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
 tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
+tensorflow/lite/micro/kernels/lstm_eval.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
+tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 tensorflow/lite/micro/kernels/mirror_pad.cc \
 tensorflow/lite/micro/kernels/mul.cc \
 tensorflow/lite/micro/kernels/mul_common.cc \
@@ -383,6 +385,7 @@ tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
+tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
 tensorflow/lite/micro/kernels/var_handle.cc \
 tensorflow/lite/micro/kernels/while.cc \
