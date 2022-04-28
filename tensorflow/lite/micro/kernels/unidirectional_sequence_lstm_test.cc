@@ -471,8 +471,6 @@ const int8_t expected_output_integer_peephole[n_batch_integer_peephole *
     -128, 127, 127, 127, 127, 127, -128, 127, 127,
 };
 
-#endif  // !defined(XTENSA)
-
 template <typename T>
 QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   QuantizationParams qparam;
@@ -958,6 +956,8 @@ void TestUnidirectionalSequenceLstmInteger(
     TF_LITE_MICRO_EXPECT_EQ(expected_output[i], output[i]);
   }
 }
+
+#endif  // !defined(XTENSA)
 
 }  // namespace
 }  // namespace testing
