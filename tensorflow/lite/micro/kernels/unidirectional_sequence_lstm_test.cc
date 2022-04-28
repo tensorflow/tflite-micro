@@ -26,6 +26,10 @@ namespace tflite {
 namespace testing {
 namespace {
 
+// TODO(b/230666079) enable below tests for xtensa when the xtensa
+// kernel is reconciled with reference kernel
+#if !defined(XTENSA)
+
 constexpr int max_num_input_tensors = 24;
 constexpr int output_tensor_index = max_num_input_tensors;
 constexpr int intermediate_tensor_base = max_num_input_tensors + 1;
@@ -466,6 +470,8 @@ const int8_t expected_output_integer_peephole[n_batch_integer_peephole *
     127,  127, -16, -21, 127, 127, 23,   127, 127,
     -128, 127, 127, 127, 127, 127, -128, 127, 127,
 };
+
+#endif  // !defined(XTENSA)
 
 template <typename T>
 QuantizationParams SetQuantizationParams(float f_min, float f_max) {
