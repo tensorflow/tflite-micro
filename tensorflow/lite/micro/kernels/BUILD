@@ -226,6 +226,7 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
+        "unidirectional_sequence_lstm.cc",
         "unpack.cc",
         "var_handle.cc",
         "while.cc",
@@ -1259,6 +1260,22 @@ cc_test(
         ":conv_test_common",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "unidirectional_sequence_lstm_test",
+    srcs = [
+        "unidirectional_sequence_lstm_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",

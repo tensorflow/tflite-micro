@@ -103,6 +103,7 @@ tensorflow/lite/micro/kernels/sub_test.cc \
 tensorflow/lite/micro/kernels/svdf_test.cc \
 tensorflow/lite/micro/kernels/tanh_test.cc \
 tensorflow/lite/micro/kernels/transpose_test.cc \
+tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc \
 tensorflow/lite/micro/kernels/unpack_test.cc \
 tensorflow/lite/micro/kernels/while_test.cc \
 tensorflow/lite/micro/kernels/zeros_like_test.cc

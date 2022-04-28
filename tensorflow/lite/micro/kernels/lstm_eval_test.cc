@@ -750,7 +750,9 @@ class HybridLstmParam : public BaseLstmParam {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA)  // remove after xtensa kernel is consistent with reference
+// TODO(b/230666079) enable below tests for xtensa when the xtensa
+// kernel is reconciled with reference kernel
+#if !defined(XTENSA)
 
 // Ensures that a regular set and get pair works ok.
 TF_LITE_MICRO_TEST(TestOneFullyQuantizedLSTM) {
