@@ -484,7 +484,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
     // Special case where the min,max range is a point. Should be {0}.
     TFLITE_DCHECK_EQ(f_min, 0);
     TFLITE_DCHECK_EQ(f_max, 0);
-    qparam.scale = scale;
+    qparam.scale = static_cast<double>(scale);
     qparam.zero_point = zero_point;
     return qparam;
   }
@@ -538,7 +538,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
 
   zero_point = nudged_zero_point;
   // finally, return the values
-  qparam.scale = scale;
+  qparam.scale = static_cast<double>(scale);
   qparam.zero_point = zero_point;
   return qparam;
 }
@@ -551,52 +551,52 @@ void TestUnidirectionalSequenceLstmInteger(
     float intermediate_scale[5][2], int intermediate_zp[5][2],
     TfLiteAffineQuantization intermediate_qparam[5],
 
-    const float *input, int8_t *input_quantized,
+    const float* input, int8_t* input_quantized,
 
-    const float *input_to_input_weights,
-    int8_t *input_to_input_weights_quantized,
-    const float *input_to_forget_weights,
-    int8_t *input_to_forget_weights_quantized,
-    const float *input_to_cell_weights, int8_t *input_to_cell_weights_quantized,
-    const float *input_to_output_weights,
-    int8_t *input_to_output_weights_quantized,
+    const float* input_to_input_weights,
+    int8_t* input_to_input_weights_quantized,
+    const float* input_to_forget_weights,
+    int8_t* input_to_forget_weights_quantized,
+    const float* input_to_cell_weights, int8_t* input_to_cell_weights_quantized,
+    const float* input_to_output_weights,
+    int8_t* input_to_output_weights_quantized,
 
-    const float *recurrent_to_input_weights,
-    int8_t *recurrent_to_input_weights_quantized,
-    const float *recurrent_to_forget_weights,
-    int8_t *recurrent_to_forget_weights_quantized,
-    const float *recurrent_to_cell_weights,
-    int8_t *recurrent_to_cell_weights_quantized,
-    const float *recurrent_to_output_weights,
-    int8_t *recurrent_to_output_weights_quantized,
+    const float* recurrent_to_input_weights,
+    int8_t* recurrent_to_input_weights_quantized,
+    const float* recurrent_to_forget_weights,
+    int8_t* recurrent_to_forget_weights_quantized,
+    const float* recurrent_to_cell_weights,
+    int8_t* recurrent_to_cell_weights_quantized,
+    const float* recurrent_to_output_weights,
+    int8_t* recurrent_to_output_weights_quantized,
 
-    const float *cell_to_input_weights,
-    int16_t *cell_to_input_weights_quantized,
-    const float *cell_to_forget_weights,
-    int16_t *cell_to_forget_weights_quantized,
-    const float *cell_to_output_weights,
-    int16_t *cell_to_output_weights_quantized,
+    const float* cell_to_input_weights,
+    int16_t* cell_to_input_weights_quantized,
+    const float* cell_to_forget_weights,
+    int16_t* cell_to_forget_weights_quantized,
+    const float* cell_to_output_weights,
+    int16_t* cell_to_output_weights_quantized,
 
-    const float *input_gate_bias, int32_t *input_gate_bias_quantized,
-    const float *forget_gate_bias, int32_t *forget_gate_bias_quantized,
-    const float *cell_gate_bias, int32_t *cell_gate_bias_quantized,
-    const float *output_gate_bias, int32_t *output_gate_bias_quantized,
+    const float* input_gate_bias, int32_t* input_gate_bias_quantized,
+    const float* forget_gate_bias, int32_t* forget_gate_bias_quantized,
+    const float* cell_gate_bias, int32_t* cell_gate_bias_quantized,
+    const float* output_gate_bias, int32_t* output_gate_bias_quantized,
 
-    const float *projection_weights, int8_t *projection_weights_quantized,
-    const float *projection_bias, int32_t *projection_bias_quantized,
+    const float* projection_weights, int8_t* projection_weights_quantized,
+    const float* projection_bias, int32_t* projection_bias_quantized,
 
-    int16_t *output_state, int16_t *cell_state,
+    int16_t* output_state, int16_t* cell_state,
 
-    const float *input_layer_norm_coefficients,
-    int16_t *input_layer_norm_coefficients_quantized,
-    const float *forget_layer_norm_coefficients,
-    int16_t *forget_layer_norm_coefficients_quantized,
-    const float *cell_layer_norm_coefficients,
-    int16_t *cell_layer_norm_coefficients_quantized,
-    const float *output_layer_norm_coefficients,
-    int16_t *output_layer_norm_coefficients_quantized,
+    const float* input_layer_norm_coefficients,
+    int16_t* input_layer_norm_coefficients_quantized,
+    const float* forget_layer_norm_coefficients,
+    int16_t* forget_layer_norm_coefficients_quantized,
+    const float* cell_layer_norm_coefficients,
+    int16_t* cell_layer_norm_coefficients_quantized,
+    const float* output_layer_norm_coefficients,
+    int16_t* output_layer_norm_coefficients_quantized,
 
-    int8_t *output, const int8_t *expected_output,
+    int8_t* output, const int8_t* expected_output,
 
     bool asymmetric_quantize_inputs = false) {
   int inputs_array_data[25];
@@ -944,7 +944,7 @@ void TestUnidirectionalSequenceLstmInteger(
   micro::KernelRunner runner(
       registration, tensors, max_num_input_tensors + 1 + 5,
       IntArrayFromInts(inputs_array_data), IntArrayFromInts(outputs_array_data),
-      reinterpret_cast<void *>(&params),
+      reinterpret_cast<void*>(&params),
       IntArrayFromInts(intermediate_array_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
