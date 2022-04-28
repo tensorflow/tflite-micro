@@ -119,6 +119,21 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "micro_tensor_utils",
+    srcs = [
+        "micro_tensor_utils.cc",
+    ],
+    hdrs = ["micro_tensor_utils.h"],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/kernels/internal:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels/internal:cppmath",
+    ],
+)
+
 HIFI4_COPTS = [
     "-DXTENSA=1",
     "-DHIFI4_INTERNAL=1",
@@ -190,7 +205,6 @@ tflm_kernel_cc_library(
         "logistic_common.cc",
         "lstm_eval.cc",
         "maximum_minimum.cc",
-        "micro_tensor_utils.cc",
         "mirror_pad.cc",
         "mul.cc",
         "mul_common.cc",
@@ -248,7 +262,6 @@ tflm_kernel_cc_library(
         "lstm_eval.h",
         "lstm_shared.h",
         "micro_ops.h",
-        "micro_tensor_utils.h",
         "mul.h",
         "pooling.h",
         "prelu.h",
@@ -286,6 +299,7 @@ tflm_kernel_cc_library(
     deps = [
         ":activation_utils",
         ":kernel_util",
+        ":micro_tensor_utils",
         ":micro_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",

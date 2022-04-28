@@ -21,15 +21,11 @@ limitations under the License.
 #include <limits>
 #include <utility>
 
-#include "fixedpoint/fixedpoint.h"
+#include "fixedpoint/fixedpoint.h"  // from @gemmlowp
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/cppmath.h"
 #include "tensorflow/lite/kernels/op_macros.h"
-
-#if defined(_MSC_VER)
-#define __restrict__ __restrict
-#endif
 
 namespace tflite {
 namespace micro_tensor_utils {
@@ -148,6 +144,7 @@ void PortableMatrixBatchVectorMultiplyAccumulate(
     for (int row = 0; row < m_rows; ++row) {
       // Initialize the dot product sum for the row to 0.
       int32_t dotprod = 0;
+      // TODO(b/230666277): remove this
 #if defined(__GNUC__)
       // Prefetch the row to cache.
       __builtin_prefetch(row_ptr, 0 /* prefetch for read */,

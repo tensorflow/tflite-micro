@@ -13,6 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// This file and the associated .cc file is branched from
+// tensorflow/lite/kernels/internal/reference/portable_tensor_utils*
+// TFLM needs to create its own because the original files are coupled with
+// the tensor_utils module, which we cannot reuse due to its use of the
+// Eigen library.
+
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_MICRO_TENSOR_UTILS_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_MICRO_TENSOR_UTILS_H_
 
@@ -31,6 +37,7 @@ namespace tflite {
 
 // Not all backends support CpuBackendContext usage, so forward declare to avoid
 // pulling in its implementation.
+// TODO(b/230666277): consider removing this since micro does not utilize it
 class CpuBackendContext;
 
 namespace micro_tensor_utils {

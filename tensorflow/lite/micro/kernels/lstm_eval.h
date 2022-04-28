@@ -89,7 +89,7 @@ struct IntegerLstmParameter {
   int32_t intermediate_zp[12];
 };
 
-// Scales for hybrid op
+// Scales for hybrid op with integer inputs and float weights
 struct HybridLstmScales {
   float input_to_input_weights_scale;
   float input_to_forget_weights_scale;
