@@ -1115,15 +1115,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 //}  // namespace unidirectional_sequence_lstm
 
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return {/*init=*/Init,
-          /*free=*/Free,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0,
-          /*registration_external=*/nullptr};
+  return tflite::micro::RegisterOpWithFree(Init, Free, Prepare, Eval);
 }
 
 }  // namespace micro
