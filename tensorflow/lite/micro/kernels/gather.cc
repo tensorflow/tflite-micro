@@ -116,6 +116,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   switch (coords->type) {
     case kTfLiteInt32:
+    case kTfLiteInt64:
       break;
     default:
       TF_LITE_KERNEL_LOG(context,
@@ -132,6 +133,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   switch (input->type) {
     case kTfLiteFloat32:
     case kTfLiteInt8:
+    case kTfLiteInt64:
       break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type '%s' is not supported by gather.",
