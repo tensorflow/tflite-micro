@@ -23,6 +23,10 @@ $(RETINAFACE_TEST_SRCS),,$(RETINAFACE_GENERATOR_INPUTS)))
 RETINAFACE_SRCS += $(RETINAFACE_GENERATED_SRCS)
 RETINAFACE_HDRS += $(RETINAFACE_GENERATED_HDRS)
 
+# Compier flags for OpenCV libraries and header files. 
+INCLUDES += $(shell pkg-config --cflags opencv4)
+LDFLAGS += $(shell pkg-config --libs opencv4)
+
 list_$(EXAMPLE_NAME)_example_sources:
 	@echo $(RETINAFACE_SRCS)
 
