@@ -69,13 +69,18 @@ OPTIMIZED_KERNEL_DIR_PREFIX := tensorflow/lite/micro/kernels
 # be used.
 CO_PROCESSOR :=
 
+# Compier flags for OpenCV libraries and header files.
+OPENCV_INC=$(shell pkg-config --cflags opencv4)
+OPENCV_LIB=$(shell pkg-config --libs opencv4)
+
 # This is obviously horrible.  We need to generate these 3 versions of the
 # include directories from one source.
 INCLUDES := \
 -I. \
 -I$(MAKEFILE_DIR)/downloads/gemmlowp \
 -I$(MAKEFILE_DIR)/downloads/flatbuffers/include \
--I$(MAKEFILE_DIR)/downloads/ruy
+-I$(MAKEFILE_DIR)/downloads/ruy \
+$(OPENCV_INC) \
 
 # Same list of paths, but now relative to the generated project files.
 GENERATED_PROJECT_INCLUDES := \
@@ -176,7 +181,8 @@ ifeq ($(TOOLCHAIN), gcc)
     # that are unsupported with LLVM.
     LDFLAGS += \
       -Wl,--fatal-warnings \
-      -Wl,--gc-sections
+      -Wl,--gc-sections \
+      $(OPENCV_LIB)
   endif
 endif
 
