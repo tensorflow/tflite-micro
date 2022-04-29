@@ -407,10 +407,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return op_data;
 }
 
-void Free(TfLiteContext* context, void* buffer) {
-  delete reinterpret_cast<OpData*>(buffer);
-}
-
 // Check that input tensor dimensions matches with each other.
 TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
                                         TfLiteNode* node, int n_input,
@@ -1115,7 +1111,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 //}  // namespace unidirectional_sequence_lstm
 
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return tflite::micro::RegisterOpWithFree(Init, Free, Prepare, Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 }  // namespace micro

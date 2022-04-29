@@ -1687,14 +1687,9 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
 }  // namespace
 
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return {/*init=*/UnidirectionalSequenceLstmInit,
-          /*free=*/nullptr,
-          /*prepare=*/UnidirectionalSequenceLstmPrepare,
-          /*invoke=*/UnidirectionalSequenceLstmEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
+                                   UnidirectionalSequenceLstmPrepare,
+                                   UnidirectionalSequenceLstmEval);
 }
 
 }  // namespace tflite
