@@ -21,9 +21,9 @@ limitations under the License.
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -50,7 +50,21 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
                          model->version(), TFLITE_SCHEMA_VERSION);
   }
 
-  tflite::AllOpsResolver resolver;
+  tflite::MicroMutableOpResolver<13> resolver;
+  resolver.AddPad();
+  resolver.AddTranspose();
+  resolver.AddQuantize();
+  resolver.AddDequantize();
+  resolver.AddConv2D();
+  resolver.AddDepthwiseConv2D();
+  resolver.AddLeakyRelu();
+  resolver.AddRelu();
+  resolver.AddReshape();
+  resolver.AddConcatenation();
+  resolver.AddResizeNearestNeighbor();
+  resolver.AddAdd();
+  resolver.AddSoftmax();
+
   constexpr int kTensorArenaSize = 1.2 * 1024.0 * 1024.0; // MB
   uint8_t tensor_arena[kTensorArenaSize];
 
