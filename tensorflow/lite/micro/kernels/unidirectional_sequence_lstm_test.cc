@@ -2730,7 +2730,7 @@ void TestUnidirectionalSequenceLstmInteger(
     inputs_array_data[kLstmProjectionWeightsTensor + 1] =
         kLstmProjectionWeightsTensor;
 
-  int projection_bias_dim[2] = {1, n_output};
+    int projection_bias_dim[2] = {1, n_output};
     if (use_projection_bias) {
       quantization_params =
           SetQuantizationParams<int32_t>(ranges[kLstmProjectionBiasTensor][0],
