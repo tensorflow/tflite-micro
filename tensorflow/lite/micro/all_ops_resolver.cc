@@ -111,6 +111,7 @@ AllOpsResolver::AllOpsResolver() {
   AddTransposeConv();
   AddUnpack();
   AddVarHandle();
+  AddWhere();
   AddWhile();
   AddZerosLike();
 }
