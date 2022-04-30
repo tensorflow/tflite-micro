@@ -1267,12 +1267,10 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
   TF_LITE_ENSURE_EQ(context, NumElements(cell_state), n_batch * n_cell);
 
   // Check the shape of output tensor against that of input tensor
-  TF_LITE_ENSURE_EQ(context, input->dims->size, output->dims->size);
-  for (int i = 0; i < input->dims->size - 1; ++i) {
-    TF_LITE_ENSURE_EQ(context, input->dims->data[i], output->dims->data[i]);
-  }
-  TF_LITE_ENSURE_EQ(context, output->dims->data[output->dims->size - 1],
-                    n_output);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 3);
+  TF_LITE_ENSURE_EQ(context, input->dims->data[0], output->dims->data[0]);
+  TF_LITE_ENSURE_EQ(context, input->dims->data[1], output->dims->data[1]);
+  TF_LITE_ENSURE_EQ(context, output->dims->data[2], n_output);
 
   if (is_integer) {
     const int num_intermediate_tensors = node->intermediates->size;
