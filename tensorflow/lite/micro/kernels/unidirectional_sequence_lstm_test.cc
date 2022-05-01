@@ -3104,6 +3104,71 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpTest) {
       /*input_output_batch_major=*/false);
 }
 
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpBatchMajorTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmFloat(
+      tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_no_cifg_no_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/false,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::
+          input_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::
+          recurrent_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_output_weights=*/nullptr,
+
+      tflite::testing::input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          golden_output_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/1e-5,
+      /*input_output_batch_major=*/true);
+}
+
 TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatCifgPphlNoPrjNoClpTest) {
   tflite::testing::TestUnidirectionalSequenceLstmFloat(
       tflite::testing::n_batch_cifg_peephole_no_proj_no_clipping,
