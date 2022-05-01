@@ -2384,11 +2384,21 @@ void TestUnidirectionalSequenceLstmFloat(
   }
 
   int output_state_dim[3] = {2, n_batch, n_output};
+  for (int i = 0; i < n_batch; ++i) {
+    for (int j = 0; j < n_output; ++j) {
+      output_state[i * n_output + j] = 0.0f;
+    }
+  }
   tensors[kLstmOutputStateTensor] = CreateTensor<float>(
       output_state, IntArrayFromInts(output_state_dim), true);
   inputs_array_data[kLstmOutputStateTensor + 1] = kLstmOutputStateTensor;
 
   int cell_state_dim[3] = {2, n_batch, n_cell};
+  for (int i = 0; i < n_batch; ++i) {
+    for (int j = 0; j < n_cell; ++j) {
+      cell_state[i * n_cell + j] = 0.0f;
+    }
+  }
   tensors[kLstmCellStateTensor] =
       CreateTensor<float>(cell_state, IntArrayFromInts(cell_state_dim), true);
   inputs_array_data[kLstmCellStateTensor + 1] = kLstmCellStateTensor;
@@ -2435,6 +2445,13 @@ void TestUnidirectionalSequenceLstmFloat(
                             n_output);
 
   int output_dim[4] = {3, sequence_length, n_batch, n_output};
+  for (int i = 0; i < sequence_length; ++i) {
+    for (int j = 0; j < n_batch; ++j) {
+      for (int k = 0; k < n_output; ++k) {
+        output[i * n_batch * n_output + j * n_output + k] = 0.0f;
+      }
+    }
+  }
   tensors[output_tensor_index] =
       CreateTensor<float>(output, IntArrayFromInts(output_dim));
 
