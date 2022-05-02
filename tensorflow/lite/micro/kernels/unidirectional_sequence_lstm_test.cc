@@ -36,7 +36,6 @@ constexpr int output_tensor_index = max_num_input_tensors;
 constexpr int intermediate_tensor_base = max_num_input_tensors + 1;
 
 // data for no CIFG, no peephole, no projection, and no clipping
-
 constexpr int n_batch_no_cifg_no_peephole_no_proj_no_clipping = 1;
 constexpr int n_input_no_cifg_no_peephole_no_proj_no_clipping = 2;
 // n_cell and n_output have the same size when there is no projection.
@@ -371,7 +370,6 @@ float output_cifg_peephole_no_proj_no_clipping
      n_output_cifg_peephole_no_proj_no_clipping];
 
 // data for no CIFG, peephole, projection, and clipping
-
 constexpr int n_batch_no_cifg_peephole_proj_clipping = 2;
 constexpr int n_input_no_cifg_peephole_proj_clipping = 5;
 constexpr int n_cell_no_cifg_peephole_proj_clipping = 20;
@@ -1103,7 +1101,6 @@ float output_no_cifg_peephole_proj_clipping
      n_output_no_cifg_peephole_proj_clipping];
 
 // data for no CIFG, peephole, projection and bias, and clipping
-
 constexpr int n_batch_no_cifg_peephole_proj_bias_clipping = 2;
 constexpr int n_input_no_cifg_peephole_proj_bias_clipping = 5;
 constexpr int n_cell_no_cifg_peephole_proj_bias_clipping = 20;
@@ -1775,7 +1772,6 @@ float output_no_cifg_peephole_proj_bias_clipping
      n_output_no_cifg_peephole_proj_bias_clipping];
 
 // data for CIFG, peephole, no projection, no clipping, layer norm
-
 constexpr int n_batch_cifg_peephole_no_proj_no_clipping_lnorm = 1;
 constexpr int n_input_cifg_peephole_no_proj_no_clipping_lnorm = 2;
 // n_cell and n_output have the same size when there is no projection.
@@ -2091,7 +2087,6 @@ const int8_t
 };
 
 // data for integer peephole test
-
 constexpr int n_batch_integer_peephole = 2;
 constexpr int n_input_integer_peephole = 5;
 constexpr int n_cell_integer_peephole = 4;
@@ -2318,7 +2313,9 @@ TfLiteTensor CreateQuantizedWeightTensor(const float* weights,
                                          TfLiteIntArray* zero_point,
                                          TfLiteAffineQuantization* qparam) {
   TfLiteTensor tensor;
-  float min, max, scaling_factor;
+  float min;
+  float max;
+  float scaling_factor;
   micro_tensor_utils::SymmetricQuantizeFloats(
       weights, size, reinterpret_cast<int8_t*>(quantized_weights), &min, &max,
       &scaling_factor);
