@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -43,26 +44,62 @@ constexpr int n_cell_no_cifg_no_peephole_no_proj_no_clipping = 4;
 constexpr int n_output_no_cifg_no_peephole_no_proj_no_clipping = 4;
 constexpr int sequence_length_no_cifg_no_peephole_no_proj_no_clipping = 3;
 
-const float input_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping
+const float input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_input_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.45018822, -0.02338299, -0.0870589,  -0.34550029,
         0.04266912,  -0.15680569, -0.34856534, 0.43890524};
-const float input_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping
+int8_t input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_input_no_cifg_no_peephole_no_proj_no_clipping];
+float input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
+
+const float input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_input_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.50013041, 0.1370284,  0.11810488, 0.2013163,
         -0.20583314, 0.44344562, 0.22077113, -0.29909778};
-const float input_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping
+int8_t input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_input_no_cifg_no_peephole_no_proj_no_clipping];
+float input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                          0.0f};
+int input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
+
+const float input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_input_no_cifg_no_peephole_no_proj_no_clipping] = {
         0.09701663,  0.20334584, -0.50592935, -0.31343272,
         -0.40032279, 0.44781327, 0.01387155,  -0.35593212};
-const float input_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping
+int8_t input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_input_no_cifg_no_peephole_no_proj_no_clipping];
+float input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
+
+const float input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_input_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.25065863, -0.28290087, 0.04613829, 0.40525138,
         0.44272184,  0.03897077,  -0.1556896, 0.19487578};
+int8_t input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_input_no_cifg_no_peephole_no_proj_no_clipping];
+float input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
+
 const float input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping] = {0., 0., 0., 0.};
 const float cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping
@@ -72,37 +109,71 @@ const float forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping
 const float output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping] = {0., 0., 0., 0.};
 
-const float recurrent_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping
+const float recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_output_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.0063535,  -0.2042388,  0.31454784,  -0.35746509,
         0.28902304,  0.08183324,  -0.16555229, 0.02286911,
         -0.13566875, 0.03034258,  0.48091322,  -0.12528998,
         0.24077177,  -0.51332325, -0.33502164, 0.10629296};
+int8_t recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_output_no_cifg_no_peephole_no_proj_no_clipping];
+float recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
 
-const float recurrent_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping
+const float recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_output_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.3407414,  0.24443203,  -0.2078532,  0.26320225,
         0.05695659,  -0.00123841, -0.4744786,  -0.35869038,
         -0.06418842, -0.13502428, -0.501764,   0.22830659,
         -0.46367589, 0.26016325,  -0.03894562, -0.16368064};
+int8_t recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_output_no_cifg_no_peephole_no_proj_no_clipping];
+float recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
 
-const float recurrent_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping
+const float recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_output_no_cifg_no_peephole_no_proj_no_clipping] = {
         -0.48684245, -0.06655136, 0.42224967,  0.2112639,
         0.27654213,  0.20864892,  -0.07646349, 0.45877004,
         0.00141793,  -0.14609534, 0.36447752,  0.09196436,
         0.28053468,  0.01560611,  -0.20127171, -0.01140004};
+int8_t recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_output_no_cifg_no_peephole_no_proj_no_clipping];
+float recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1,
+                                                                           0};
+TfLiteAffineQuantization
+    recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
 
-const float recurrent_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping
+const float recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping
     [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
      n_output_no_cifg_no_peephole_no_proj_no_clipping] = {
         0.43385774,  -0.17194885, 0.2718237,  0.09215671,
         0.24107647,  -0.39835793, 0.18212086, 0.01301402,
         0.48572797,  -0.50656658, 0.20047462, -0.20607421,
         -0.51818722, -0.15390486, 0.0468148,  0.39922136};
+int8_t recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant
+    [n_cell_no_cifg_no_peephole_no_proj_no_clipping *
+     n_output_no_cifg_no_peephole_no_proj_no_clipping];
+float recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale[2] = {
+    1.0f, 0.0f};
+int recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp[2] = {1,
+                                                                           0};
+TfLiteAffineQuantization
+    recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam;
 
 const float input_no_cifg_no_peephole_no_proj_no_clipping_original
     [n_batch_no_cifg_no_peephole_no_proj_no_clipping *
@@ -147,23 +218,46 @@ constexpr int n_cell_cifg_peephole_no_proj_no_clipping = 4;
 constexpr int n_output_cifg_peephole_no_proj_no_clipping = 4;
 constexpr int sequence_length_cifg_peephole_no_proj_no_clipping = 3;
 
-const float input_to_cell_weights_cifg_peephole_no_proj_no_clipping
+const float input_to_cell_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_input_cifg_peephole_no_proj_no_clipping] = {
         -0.49770179, -0.27711356, -0.09624726, 0.05100781,
         0.04717243,  0.48944736,  -0.38535351, -0.17212132};
+int8_t input_to_cell_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_input_cifg_peephole_no_proj_no_clipping];
+float input_to_cell_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f, 0.0f};
+int input_to_cell_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam;
 
-const float input_to_forget_weights_cifg_peephole_no_proj_no_clipping
+const float input_to_forget_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_input_cifg_peephole_no_proj_no_clipping] = {
         -0.55291498, -0.42866567, 0.13056988, -0.3633365,
         -0.22755712, 0.28253698,  0.24407166, 0.33826375};
+int8_t input_to_forget_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_input_cifg_peephole_no_proj_no_clipping];
+float input_to_forget_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                      0.0f};
+int input_to_forget_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam;
 
-const float input_to_output_weights_cifg_peephole_no_proj_no_clipping
+const float input_to_output_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_input_cifg_peephole_no_proj_no_clipping] = {
         0.10725588,  -0.02335852, -0.55932593, -0.09426838,
         -0.44257352, 0.54939759,  0.01533556,  0.42751634};
+int8_t input_to_output_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_input_cifg_peephole_no_proj_no_clipping];
+float input_to_output_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                      0.0f};
+int input_to_output_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_output_w_cifg_peephole_no_proj_no_clipping_qparam;
 
 const float cell_gate_bias_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping] = {0., 0., 0., 0.};
@@ -172,36 +266,75 @@ const float forget_gate_bias_cifg_peephole_no_proj_no_clipping
 const float output_gate_bias_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping] = {0., 0., 0., 0.};
 
-const float recurrent_to_cell_weights_cifg_peephole_no_proj_no_clipping
+const float recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_output_cifg_peephole_no_proj_no_clipping] = {
         0.54066205,  -0.32668582, -0.43562764, -0.56094903,
         0.42957711,  0.01841056,  -0.32764608, -0.33027974,
         -0.10826075, 0.20675004,  0.19069612,  -0.03026325,
         -0.54532051, 0.33003211,  0.44901288,  0.21193194};
+int8_t recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_output_cifg_peephole_no_proj_no_clipping];
+float recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                        0.0f};
+int recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam;
 
-const float recurrent_to_forget_weights_cifg_peephole_no_proj_no_clipping
+const float recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_output_cifg_peephole_no_proj_no_clipping] = {
         -0.13832897, -0.0515101,  -0.2359007, -0.16661474,
         -0.14340827, 0.36986142,  0.23414481, 0.55899,
         0.10798943,  -0.41174671, 0.17751795, -0.34484994,
         -0.35874045, -0.11352962, 0.27268326, 0.54058349};
+int8_t recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_output_cifg_peephole_no_proj_no_clipping];
+float recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                          0.0f};
+int recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam;
 
-const float recurrent_to_output_weights_cifg_peephole_no_proj_no_clipping
+const float recurrent_to_output_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping *
      n_output_cifg_peephole_no_proj_no_clipping] = {
         0.41613156, 0.42610586,  -0.16495961, -0.5663873,
         0.30579174, -0.05115908, -0.33941799, 0.23364776,
         0.11178309, 0.09481031,  -0.26424935, 0.46261835,
         0.50248802, 0.26114327,  -0.43736315, 0.33149987};
+int8_t recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping *
+     n_output_cifg_peephole_no_proj_no_clipping];
+float recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                          0.0f};
+int recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_qparam;
 
-const float cell_to_forget_weights_cifg_peephole_no_proj_no_clipping
+const float cell_to_forget_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping] = {0.47485286, -0.51955009,
                                                   -0.24458408, 0.31544167};
-const float cell_to_output_weights_cifg_peephole_no_proj_no_clipping
+int8_t cell_to_forget_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping];
+float cell_to_forget_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                     0.0f};
+int cell_to_forget_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    cell_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam;
+
+const float cell_to_output_w_cifg_peephole_no_proj_no_clipping
     [n_cell_cifg_peephole_no_proj_no_clipping] = {-0.17135078, 0.82760304,
                                                   0.85573703, -0.77109635};
+int8_t cell_to_output_w_cifg_peephole_no_proj_no_clipping_quant
+    [n_cell_cifg_peephole_no_proj_no_clipping];
+float cell_to_output_w_cifg_peephole_no_proj_no_clipping_scale[2] = {1.0f,
+                                                                     0.0f};
+int cell_to_output_w_cifg_peephole_no_proj_no_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    cell_to_output_w_cifg_peephole_no_proj_no_clipping_qparam;
 
 const float input_cifg_peephole_no_proj_no_clipping_original
     [n_batch_cifg_peephole_no_proj_no_clipping *
@@ -245,7 +378,7 @@ constexpr int n_cell_no_cifg_peephole_proj_clipping = 20;
 constexpr int n_output_no_cifg_peephole_proj_clipping = 16;
 constexpr int sequence_length_no_cifg_peephole_proj_clipping = 4;
 
-const float input_to_input_weights_no_cifg_peephole_proj_clipping
+const float input_to_input_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_input_no_cifg_peephole_proj_clipping] = {
         0.021393683,  0.06124551,    0.046905167,  -0.014657677,  -0.03149463,
@@ -268,8 +401,14 @@ const float input_to_input_weights_no_cifg_peephole_proj_clipping
         -0.009284026, 0.018042054,   0.0036860977, -0.07427302,   -0.11434604,
         -0.018995456, 0.031487543,   0.012834908,  0.019977754,   0.044256654,
         -0.39292613,  -0.18519334,   -0.11651281,  -0.06809892,   0.011373677};
+int8_t input_to_input_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_input_no_cifg_peephole_proj_clipping];
+float input_to_input_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int input_to_input_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization input_to_input_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float input_to_forget_weights_no_cifg_peephole_proj_clipping
+const float input_to_forget_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_input_no_cifg_peephole_proj_clipping] = {
         -0.0018401089, -0.004852237, 0.03698424,    0.014181704,
@@ -297,8 +436,15 @@ const float input_to_forget_weights_no_cifg_peephole_proj_clipping
         -0.0011980024, -0.034641717, -0.026125094,  -0.17582615,
         -0.15923657,   -0.27486774,  -0.0006143371, 0.0001771948,
         -8.470171e-05, 0.02651807,   0.045790765,   0.06956496};
+int8_t input_to_forget_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_input_no_cifg_peephole_proj_clipping];
+float input_to_forget_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int input_to_forget_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_forget_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float input_to_cell_weights_no_cifg_peephole_proj_clipping
+const float input_to_cell_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_input_no_cifg_peephole_proj_clipping] = {
         -0.04580283,   -0.09549462,   -0.032418985,  -0.06454633,
@@ -326,8 +472,14 @@ const float input_to_cell_weights_no_cifg_peephole_proj_clipping
         0.07463894,    0.0075130584,  0.012850982,   0.04555431,
         0.056955688,   0.06555285,    0.050801456,   -0.009862683,
         0.00826772,    -0.026555609,  -0.0073611983, -0.0014897042};
+int8_t input_to_cell_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_input_no_cifg_peephole_proj_clipping];
+float input_to_cell_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int input_to_cell_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization input_to_cell_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float input_to_output_weights_no_cifg_peephole_proj_clipping
+const float input_to_output_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_input_no_cifg_peephole_proj_clipping] = {
         -0.0998932,   -0.07201956,  -0.052803773,  -0.15629593,  -0.15001918,
@@ -350,6 +502,13 @@ const float input_to_output_weights_no_cifg_peephole_proj_clipping
         0.08949725,   0.07505268,   -0.0020780868, 0.04908258,   0.06476295,
         -0.022907063, 0.027562456,  0.040185735,   0.019567577,  -0.015598739,
         -0.049097303, -0.017121866, -0.083368234,  -0.02332002,  -0.0840956};
+int8_t input_to_output_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_input_no_cifg_peephole_proj_clipping];
+float input_to_output_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int input_to_output_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    input_to_output_w_no_cifg_peephole_proj_clipping_qparam;
 
 const float input_gate_bias_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping] = {
@@ -379,7 +538,7 @@ const float output_gate_bias_no_cifg_peephole_proj_clipping
         0.04216877,   0.0022856654,  0.040952638,  0.3147856,  0.08225149,
         -0.057416286, -0.14995944,   -0.008040261, 0.13208859, 0.029760877};
 
-const float recurrent_to_input_weights_no_cifg_peephole_proj_clipping
+const float recurrent_to_input_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_output_no_cifg_peephole_proj_clipping] = {
         -0.001374326,   -0.078856036,   0.10672688,    0.029162422,
@@ -462,8 +621,16 @@ const float recurrent_to_input_weights_no_cifg_peephole_proj_clipping
         0.026351685,    0.012641483,    0.07466548,    0.044301085,
         -0.045414884,   -0.051112458,   0.03444247,    -0.08502782,
         -0.04106223,    -0.028126027,   0.028473156,   0.10467447};
+int8_t recurrent_to_input_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_output_no_cifg_peephole_proj_clipping];
+float recurrent_to_input_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f,
+                                                                      0.0f};
+int recurrent_to_input_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_input_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float recurrent_to_cell_weights_no_cifg_peephole_proj_clipping
+const float recurrent_to_cell_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_output_no_cifg_peephole_proj_clipping] = {
         -0.037322544,   0.018592842,   0.0056175636,  -0.06253426,
@@ -546,8 +713,16 @@ const float recurrent_to_cell_weights_no_cifg_peephole_proj_clipping
         -0.05325106,    -0.03421577,   0.028793324,   -0.034633752,
         -0.009881397,   -0.043551125,  -0.018609839,  0.0019097115,
         -0.008799762,   0.056595087,   0.0022273948,  0.055752404};
+int8_t recurrent_to_cell_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_output_no_cifg_peephole_proj_clipping];
+float recurrent_to_cell_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f,
+                                                                     0.0f};
+int recurrent_to_cell_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_cell_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float recurrent_to_forget_weights_no_cifg_peephole_proj_clipping
+const float recurrent_to_forget_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_output_no_cifg_peephole_proj_clipping] = {
         -0.057784554,  -0.026057621,  -0.068447545,   -0.022581743,
@@ -630,8 +805,16 @@ const float recurrent_to_forget_weights_no_cifg_peephole_proj_clipping
         -0.051313367,  0.054532815,   -0.014298593,   0.10657464,
         0.007076659,   0.10964551,    0.0409152,      0.008275321,
         -0.07283536,   0.07937492,    0.04192024,     -0.1075027};
+int8_t recurrent_to_forget_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_output_no_cifg_peephole_proj_clipping];
+float recurrent_to_forget_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f,
+                                                                       0.0f};
+int recurrent_to_forget_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_forget_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float recurrent_to_output_weights_no_cifg_peephole_proj_clipping
+const float recurrent_to_output_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping *
      n_output_no_cifg_peephole_proj_clipping] = {
         0.025825322,   -0.05813119,   0.09495884,     -0.045984812,
@@ -715,29 +898,52 @@ const float recurrent_to_output_weights_no_cifg_peephole_proj_clipping
         -0.057309967,  -0.012775832,  -0.0032452994,  0.01977615,
         -0.041040014,  -0.024264973,  0.063464895,    0.05431621,
 };
+int8_t recurrent_to_output_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping *
+     n_output_no_cifg_peephole_proj_clipping];
+float recurrent_to_output_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f,
+                                                                       0.0f};
+int recurrent_to_output_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization
+    recurrent_to_output_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float cell_to_input_weights_no_cifg_peephole_proj_clipping
+const float cell_to_input_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping] = {
         0.040369894, 0.030746894,  0.24704495,  0.018586371,  -0.037586458,
         -0.15312155, -0.11812848,  -0.11465643, 0.20259799,   0.11418174,
         -0.10116027, -0.011334949, 0.12411352,  -0.076769054, -0.052169047,
         0.21198851,  -0.38871562,  -0.09061183, -0.09683246,  -0.21929175};
+int8_t cell_to_input_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping];
+float cell_to_input_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int cell_to_input_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization cell_to_input_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float cell_to_forget_weights_no_cifg_peephole_proj_clipping
+const float cell_to_forget_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping] = {
         -0.01998659,  -0.15568835,  -0.24248174,   -0.012770197, 0.041331276,
         -0.072311886, -0.052123554, -0.0066330447, -0.043891653, 0.036225766,
         -0.047248036, 0.021479502,  0.033189066,   0.11952997,   -0.020432774,
         0.64658105,   -0.06650122,  -0.03467612,   0.095340036,  0.23647355};
+int8_t cell_to_forget_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping];
+float cell_to_forget_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int cell_to_forget_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization cell_to_forget_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float cell_to_output_weights_no_cifg_peephole_proj_clipping
+const float cell_to_output_w_no_cifg_peephole_proj_clipping
     [n_cell_no_cifg_peephole_proj_clipping] = {
         0.08286371,  -0.08261836, -0.51210177, 0.002913762, 0.17764764,
         -0.5495371,  -0.08460716, -0.24552552, 0.030037103, 0.04123544,
         -0.11940523, 0.007358328, 0.1890978,   0.4833202,   -0.34441817,
         0.36312827,  -0.26375428, 0.1457655,   -0.19724406, 0.15548733};
+int8_t cell_to_output_w_no_cifg_peephole_proj_clipping_quant
+    [n_cell_no_cifg_peephole_proj_clipping];
+float cell_to_output_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int cell_to_output_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization cell_to_output_w_no_cifg_peephole_proj_clipping_qparam;
 
-const float projection_weights_no_cifg_peephole_proj_clipping
+const float projection_w_no_cifg_peephole_proj_clipping
     [n_output_no_cifg_peephole_proj_clipping *
      n_cell_no_cifg_peephole_proj_clipping] = {
         -0.009802181, 0.09401916,   0.0717386,     -0.13895074,
@@ -820,6 +1026,12 @@ const float projection_weights_no_cifg_peephole_proj_clipping
         0.027526086,  0.13519906,   0.01891392,    -0.046839405,
         -0.040167913, 0.017953383,  -0.09700955,   0.0061885654,
         -0.07000971,  0.026893595,  -0.038844477,  0.14543656};
+int8_t projection_w_no_cifg_peephole_proj_clipping_quant
+    [n_output_no_cifg_peephole_proj_clipping *
+     n_cell_no_cifg_peephole_proj_clipping];
+float projection_w_no_cifg_peephole_proj_clipping_scale[2] = {1.0f, 0.0f};
+int projection_w_no_cifg_peephole_proj_clipping_zp[2] = {1, 0};
+TfLiteAffineQuantization projection_w_no_cifg_peephole_proj_clipping_qparam;
 
 const float input_no_cifg_peephole_proj_clipping_original
     [n_batch_no_cifg_peephole_proj_clipping *
@@ -898,7 +1110,7 @@ constexpr int n_cell_no_cifg_peephole_proj_bias_clipping = 20;
 constexpr int n_output_no_cifg_peephole_proj_bias_clipping = 16;
 constexpr int sequence_length_no_cifg_peephole_proj_bias_clipping = 4;
 
-const float input_to_input_weights_no_cifg_peephole_proj_bias_clipping
+const float input_to_input_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_input_no_cifg_peephole_proj_bias_clipping] = {
         0.021393683,  0.06124551,    0.046905167,  -0.014657677,  -0.03149463,
@@ -922,7 +1134,7 @@ const float input_to_input_weights_no_cifg_peephole_proj_bias_clipping
         -0.018995456, 0.031487543,   0.012834908,  0.019977754,   0.044256654,
         -0.39292613,  -0.18519334,   -0.11651281,  -0.06809892,   0.011373677};
 
-const float input_to_forget_weights_no_cifg_peephole_proj_bias_clipping
+const float input_to_forget_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_input_no_cifg_peephole_proj_bias_clipping] = {
         -0.0018401089, -0.004852237, 0.03698424,    0.014181704,
@@ -951,7 +1163,7 @@ const float input_to_forget_weights_no_cifg_peephole_proj_bias_clipping
         -0.15923657,   -0.27486774,  -0.0006143371, 0.0001771948,
         -8.470171e-05, 0.02651807,   0.045790765,   0.06956496};
 
-const float input_to_cell_weights_no_cifg_peephole_proj_bias_clipping
+const float input_to_cell_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_input_no_cifg_peephole_proj_bias_clipping] = {
         -0.04580283,   -0.09549462,   -0.032418985,  -0.06454633,
@@ -980,7 +1192,7 @@ const float input_to_cell_weights_no_cifg_peephole_proj_bias_clipping
         0.056955688,   0.06555285,    0.050801456,   -0.009862683,
         0.00826772,    -0.026555609,  -0.0073611983, -0.0014897042};
 
-const float input_to_output_weights_no_cifg_peephole_proj_bias_clipping
+const float input_to_output_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_input_no_cifg_peephole_proj_bias_clipping] = {
         -0.0998932,   -0.07201956,  -0.052803773,  -0.15629593,  -0.15001918,
@@ -1032,7 +1244,7 @@ const float output_gate_bias_no_cifg_peephole_proj_bias_clipping
         0.04216877,   0.0022856654,  0.040952638,  0.3147856,  0.08225149,
         -0.057416286, -0.14995944,   -0.008040261, 0.13208859, 0.029760877};
 
-const float recurrent_to_input_weights_no_cifg_peephole_proj_bias_clipping
+const float recurrent_to_input_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_output_no_cifg_peephole_proj_bias_clipping] = {
         -0.001374326,   -0.078856036,   0.10672688,    0.029162422,
@@ -1116,7 +1328,7 @@ const float recurrent_to_input_weights_no_cifg_peephole_proj_bias_clipping
         -0.045414884,   -0.051112458,   0.03444247,    -0.08502782,
         -0.04106223,    -0.028126027,   0.028473156,   0.10467447};
 
-const float recurrent_to_cell_weights_no_cifg_peephole_proj_bias_clipping
+const float recurrent_to_cell_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_output_no_cifg_peephole_proj_bias_clipping] = {
         -0.037322544,   0.018592842,   0.0056175636,  -0.06253426,
@@ -1200,7 +1412,7 @@ const float recurrent_to_cell_weights_no_cifg_peephole_proj_bias_clipping
         -0.009881397,   -0.043551125,  -0.018609839,  0.0019097115,
         -0.008799762,   0.056595087,   0.0022273948,  0.055752404};
 
-const float recurrent_to_forget_weights_no_cifg_peephole_proj_bias_clipping
+const float recurrent_to_forget_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_output_no_cifg_peephole_proj_bias_clipping] = {
         -0.057784554,  -0.026057621,  -0.068447545,   -0.022581743,
@@ -1284,7 +1496,7 @@ const float recurrent_to_forget_weights_no_cifg_peephole_proj_bias_clipping
         0.007076659,   0.10964551,    0.0409152,      0.008275321,
         -0.07283536,   0.07937492,    0.04192024,     -0.1075027};
 
-const float recurrent_to_output_weights_no_cifg_peephole_proj_bias_clipping
+const float recurrent_to_output_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping *
      n_output_no_cifg_peephole_proj_bias_clipping] = {
         0.025825322,   -0.05813119,   0.09495884,     -0.045984812,
@@ -1369,28 +1581,28 @@ const float recurrent_to_output_weights_no_cifg_peephole_proj_bias_clipping
         -0.041040014,  -0.024264973,  0.063464895,    0.05431621,
 };
 
-const float cell_to_input_weights_no_cifg_peephole_proj_bias_clipping
+const float cell_to_input_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping] = {
         0.040369894, 0.030746894,  0.24704495,  0.018586371,  -0.037586458,
         -0.15312155, -0.11812848,  -0.11465643, 0.20259799,   0.11418174,
         -0.10116027, -0.011334949, 0.12411352,  -0.076769054, -0.052169047,
         0.21198851,  -0.38871562,  -0.09061183, -0.09683246,  -0.21929175};
 
-const float cell_to_forget_weights_no_cifg_peephole_proj_bias_clipping
+const float cell_to_forget_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping] = {
         -0.01998659,  -0.15568835,  -0.24248174,   -0.012770197, 0.041331276,
         -0.072311886, -0.052123554, -0.0066330447, -0.043891653, 0.036225766,
         -0.047248036, 0.021479502,  0.033189066,   0.11952997,   -0.020432774,
         0.64658105,   -0.06650122,  -0.03467612,   0.095340036,  0.23647355};
 
-const float cell_to_output_weights_no_cifg_peephole_proj_bias_clipping
+const float cell_to_output_w_no_cifg_peephole_proj_bias_clipping
     [n_cell_no_cifg_peephole_proj_bias_clipping] = {
         0.08286371,  -0.08261836, -0.51210177, 0.002913762, 0.17764764,
         -0.5495371,  -0.08460716, -0.24552552, 0.030037103, 0.04123544,
         -0.11940523, 0.007358328, 0.1890978,   0.4833202,   -0.34441817,
         0.36312827,  -0.26375428, 0.1457655,   -0.19724406, 0.15548733};
 
-const float projection_weights_no_cifg_peephole_proj_bias_clipping
+const float projection_w_no_cifg_peephole_proj_bias_clipping
     [n_output_no_cifg_peephole_proj_bias_clipping *
      n_cell_no_cifg_peephole_proj_bias_clipping] = {
         -0.009802181, 0.09401916,   0.0717386,     -0.13895074,
@@ -1571,19 +1783,19 @@ constexpr int n_cell_cifg_peephole_no_proj_no_clipping_lnorm = 4;
 constexpr int n_output_cifg_peephole_no_proj_no_clipping_lnorm = 4;
 constexpr int sequence_length_cifg_peephole_no_proj_no_clipping_lnorm = 3;
 
-const float input_to_cell_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float input_to_cell_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_input_cifg_peephole_no_proj_no_clipping_lnorm] = {
         -0.49770179, -0.27711356, -0.09624726, 0.05100781,
         0.04717243,  0.48944736,  -0.38535351, -0.17212132};
 
-const float input_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float input_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_input_cifg_peephole_no_proj_no_clipping_lnorm] = {
         -0.55291498, -0.42866567, 0.13056988, -0.3633365,
         -0.22755712, 0.28253698,  0.24407166, 0.33826375};
 
-const float input_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float input_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_input_cifg_peephole_no_proj_no_clipping_lnorm] = {
         0.10725588,  -0.02335852, -0.55932593, -0.09426838,
@@ -1595,7 +1807,7 @@ const float forget_gate_bias_cifg_peephole_no_proj_no_clipping_lnorm
 const float output_gate_bias_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm] = {0., 0., 0., 0.};
 
-const float recurrent_to_cell_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_output_cifg_peephole_no_proj_no_clipping_lnorm] = {
         0.54066205,  -0.32668582, -0.43562764, -0.56094903,
@@ -1603,7 +1815,7 @@ const float recurrent_to_cell_weights_cifg_peephole_no_proj_no_clipping_lnorm
         -0.10826075, 0.20675004,  0.19069612,  -0.03026325,
         -0.54532051, 0.33003211,  0.44901288,  0.21193194};
 
-const float recurrent_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_output_cifg_peephole_no_proj_no_clipping_lnorm] = {
         -0.13832897, -0.0515101,  -0.2359007, -0.16661474,
@@ -1611,7 +1823,7 @@ const float recurrent_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm
         0.10798943,  -0.41174671, 0.17751795, -0.34484994,
         -0.35874045, -0.11352962, 0.27268326, 0.54058349};
 
-const float recurrent_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm *
      n_output_cifg_peephole_no_proj_no_clipping_lnorm] = {
         0.41613156, 0.42610586,  -0.16495961, -0.5663873,
@@ -1619,10 +1831,10 @@ const float recurrent_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm
         0.11178309, 0.09481031,  -0.26424935, 0.46261835,
         0.50248802, 0.26114327,  -0.43736315, 0.33149987};
 
-const float cell_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float cell_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm] = {
         0.47485286, -0.51955009, -0.24458408, 0.31544167};
-const float cell_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm
+const float cell_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm
     [n_cell_cifg_peephole_no_proj_no_clipping_lnorm] = {
         -0.17135078, 0.82760304, 0.85573703, -0.77109635};
 
@@ -1689,105 +1901,102 @@ const float lstm_input_integer_no_peephole[sequence_length_integer_no_peephole *
     0.3, 0.2, 0.9, 0.8, 0.1,  //
 };
 
-int8_t lstm_input_integer_no_peephole_quantized
-    [sequence_length_integer_no_peephole * n_batch_integer_no_peephole *
-     n_input_integer_no_peephole];
+int8_t
+    lstm_input_integer_no_peephole_quant[sequence_length_integer_no_peephole *
+                                         n_batch_integer_no_peephole *
+                                         n_input_integer_no_peephole];
 
-const float
-    input_to_input_weights_integer_no_peephole[n_cell_integer_no_peephole *
-                                               n_input_integer_no_peephole] = {
-        0.5,  0.6, 0.7,  -0.8, -0.9, 0.1,  0.2,  0.3,  -0.4, 0.5,
-        -0.8, 0.7, -0.6, 0.5,  -0.4, -0.5, -0.4, -0.3, -0.2, -0.1};
+const float input_to_input_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                                 n_input_integer_no_peephole] =
+    {0.5,  0.6, 0.7,  -0.8, -0.9, 0.1,  0.2,  0.3,  -0.4, 0.5,
+     -0.8, 0.7, -0.6, 0.5,  -0.4, -0.5, -0.4, -0.3, -0.2, -0.1};
 
-int8_t input_to_input_weights_integer_no_peephole_quantized
-    [n_cell_integer_no_peephole * n_input_integer_no_peephole];
+int8_t input_to_input_w_integer_no_peephole_quant[n_cell_integer_no_peephole *
+                                                  n_input_integer_no_peephole];
 
-const float
-    input_to_forget_weights_integer_no_peephole[n_cell_integer_no_peephole *
+const float input_to_forget_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                                  n_input_integer_no_peephole] =
+    {-0.6, -0.1, 0.3,  0.2,  0.9,  -0.5, -0.2, -0.4, 0.3,  -0.8,
+     -0.4, 0.3,  -0.5, -0.4, -0.6, 0.3,  -0.4, -0.6, -0.5, -0.5};
+
+int8_t input_to_forget_w_integer_no_peephole_quant[n_cell_integer_no_peephole *
+                                                   n_input_integer_no_peephole];
+
+const float input_to_cell_w_integer_no_peephole[n_cell_integer_no_peephole *
                                                 n_input_integer_no_peephole] = {
-        -0.6, -0.1, 0.3,  0.2,  0.9,  -0.5, -0.2, -0.4, 0.3,  -0.8,
-        -0.4, 0.3,  -0.5, -0.4, -0.6, 0.3,  -0.4, -0.6, -0.5, -0.5};
+    -0.4, -0.3, -0.2, -0.1, -0.5, 0.5, -0.2, -0.3, -0.2, -0.6,
+    0.6,  -0.1, -0.4, -0.3, -0.7, 0.7, -0.9, -0.5, 0.8,  0.6};
 
-int8_t input_to_forget_weights_integer_no_peephole_quantized
-    [n_cell_integer_no_peephole * n_input_integer_no_peephole];
+int8_t input_to_cell_w_integer_no_peephole_quant[n_cell_integer_no_peephole *
+                                                 n_input_integer_no_peephole];
+
+const float input_to_output_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                                  n_input_integer_no_peephole] =
+    {-0.8, -0.4, -0.2, -0.9, -0.1, -0.7, 0.3, -0.3, -0.8, -0.2,
+     0.6,  -0.2, 0.4,  -0.7, -0.3, -0.5, 0.1, 0.5,  -0.6, -0.4};
+
+int8_t input_to_output_w_integer_no_peephole_quant[n_cell_integer_no_peephole *
+                                                   n_input_integer_no_peephole];
 
 const float
-    input_to_cell_weights_integer_no_peephole[n_cell_integer_no_peephole *
-                                              n_input_integer_no_peephole] = {
-        -0.4, -0.3, -0.2, -0.1, -0.5, 0.5, -0.2, -0.3, -0.2, -0.6,
-        0.6,  -0.1, -0.4, -0.3, -0.7, 0.7, -0.9, -0.5, 0.8,  0.6};
-
-int8_t input_to_cell_weights_integer_no_peephole_quantized
-    [n_cell_integer_no_peephole * n_input_integer_no_peephole];
-
-const float
-    input_to_output_weights_integer_no_peephole[n_cell_integer_no_peephole *
-                                                n_input_integer_no_peephole] = {
-        -0.8, -0.4, -0.2, -0.9, -0.1, -0.7, 0.3, -0.3, -0.8, -0.2,
-        0.6,  -0.2, 0.4,  -0.7, -0.3, -0.5, 0.1, 0.5,  -0.6, -0.4};
-
-int8_t input_to_output_weights_integer_no_peephole_quantized
-    [n_cell_integer_no_peephole * n_input_integer_no_peephole];
-
-const float recurrent_to_input_weights_integer_no_peephole
-    [n_cell_integer_no_peephole * n_output_integer_no_peephole] = {
+    recurrent_to_input_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                             n_output_integer_no_peephole] = {
         -0.2, -0.3, 0.4, 0.1, -0.5, 0.9, -0.2, -0.3, -0.7, 0.05, -0.2, -0.6};
 
-int8_t recurrent_to_input_weights_integer_no_peephole_quantized
+int8_t recurrent_to_input_w_integer_no_peephole_quant
     [n_cell_integer_no_peephole * n_output_integer_no_peephole];
 
-const float recurrent_to_forget_weights_integer_no_peephole
-    [n_cell_integer_no_peephole * n_output_integer_no_peephole] = {
+const float
+    recurrent_to_forget_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                              n_output_integer_no_peephole] = {
         -0.5, -0.3, -0.5, -0.2, 0.6, 0.4, 0.9, 0.3, -0.1, 0.2, 0.5, 0.2};
 
-int8_t recurrent_to_forget_weights_integer_no_peephole_quantized
+int8_t recurrent_to_forget_w_integer_no_peephole_quant
     [n_cell_integer_no_peephole * n_output_integer_no_peephole];
 
-const float recurrent_to_cell_weights_integer_no_peephole
-    [n_cell_integer_no_peephole * n_output_integer_no_peephole] = {
+const float
+    recurrent_to_cell_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                            n_output_integer_no_peephole] = {
         -0.3, 0.2, 0.1, -0.3, 0.8, -0.08, -0.2, 0.3, 0.8, -0.6, -0.1, 0.2};
 
-int8_t recurrent_to_cell_weights_integer_no_peephole_quantized
-    [n_cell_integer_no_peephole * n_output_integer_no_peephole];
+int8_t
+    recurrent_to_cell_w_integer_no_peephole_quant[n_cell_integer_no_peephole *
+                                                  n_output_integer_no_peephole];
 
-const float recurrent_to_output_weights_integer_no_peephole
-    [n_cell_integer_no_peephole * n_output_integer_no_peephole] = {
+const float
+    recurrent_to_output_w_integer_no_peephole[n_cell_integer_no_peephole *
+                                              n_output_integer_no_peephole] = {
         0.3, -0.1, 0.1, -0.2, -0.5, -0.7, -0.2, -0.6, -0.1, -0.4, -0.7, -0.2};
 
-int8_t recurrent_to_output_weights_integer_no_peephole_quantized
+int8_t recurrent_to_output_w_integer_no_peephole_quant
     [n_cell_integer_no_peephole * n_output_integer_no_peephole];
 
 const float input_gate_bias_integer_no_peephole[n_cell_integer_no_peephole] = {
     0.03, 0.15, 0.22, 0.38};
 
-int32_t
-    input_gate_bias_integer_no_peephole_quantized[n_cell_integer_no_peephole];
+int32_t input_gate_bias_integer_no_peephole_quant[n_cell_integer_no_peephole];
 
 const float forget_gate_bias_integer_no_peephole[n_cell_integer_no_peephole] = {
     0.1, -0.3, -0.2, 0.1};
 
-int32_t
-    forget_gate_bias_integer_no_peephole_quantized[n_cell_integer_no_peephole];
+int32_t forget_gate_bias_integer_no_peephole_quant[n_cell_integer_no_peephole];
 
 const float cell_gate_bias_integer_no_peephole[n_cell_integer_no_peephole] = {
     -0.05, 0.72, 0.25, 0.08};
 
-int32_t
-    cell_gate_bias_integer_no_peephole_quantized[n_cell_integer_no_peephole];
+int32_t cell_gate_bias_integer_no_peephole_quant[n_cell_integer_no_peephole];
 
 const float output_gate_bias_integer_no_peephole[n_cell_integer_no_peephole] = {
     0.05, -0.01, 0.2, 0.1};
 
-const float
-    projection_weights_integer_no_peephole[n_output_integer_no_peephole *
-                                           n_cell_integer_no_peephole] = {
-        -0.1, 0.2, 0.01, -0.2, 0.1, 0.5, 0.3, 0.08, 0.07, 0.2, -0.4, 0.2};
+const float projection_w_integer_no_peephole[n_output_integer_no_peephole *
+                                             n_cell_integer_no_peephole] = {
+    -0.1, 0.2, 0.01, -0.2, 0.1, 0.5, 0.3, 0.08, 0.07, 0.2, -0.4, 0.2};
 
-int8_t projection_weights_integer_no_peephole_quantized
-    [n_output_integer_no_peephole * n_cell_integer_no_peephole];
+int8_t projection_w_integer_no_peephole_quant[n_output_integer_no_peephole *
+                                              n_cell_integer_no_peephole];
 
-int32_t
-    output_gate_bias_integer_no_peephole_quantized[n_cell_integer_no_peephole];
+int32_t output_gate_bias_integer_no_peephole_quant[n_cell_integer_no_peephole];
 
 int16_t output_state_no_peephole[n_batch_integer_no_peephole *
                                  n_cell_integer_no_peephole];
@@ -1798,25 +2007,25 @@ int16_t cell_state_no_peephole[n_batch_integer_no_peephole *
 const float input_layer_norm_coefficients_integer_no_peephole
     [n_cell_integer_no_peephole] = {0.1, 0.2, 0.3, 0.5};
 
-int16_t input_layer_norm_coefficients_integer_no_peephole_quantized
+int16_t input_layer_norm_coefficients_integer_no_peephole_quant
     [n_cell_integer_no_peephole];
 
 const float forget_layer_norm_coefficients_integer_no_peephole
     [n_cell_integer_no_peephole] = {0.2, 0.2, 0.4, 0.3};
 
-int16_t forget_layer_norm_coefficients_integer_no_peephole_quantized
+int16_t forget_layer_norm_coefficients_integer_no_peephole_quant
     [n_cell_integer_no_peephole];
 
 const float cell_layer_norm_coefficients_integer_no_peephole
     [n_cell_integer_no_peephole] = {0.7, 0.2, 0.3, 0.8};
 
-int16_t cell_layer_norm_coefficients_integer_no_peephole_quantized
+int16_t cell_layer_norm_coefficients_integer_no_peephole_quant
     [n_cell_integer_no_peephole];
 
 const float output_layer_norm_coefficients_integer_no_peephole
     [n_cell_integer_no_peephole] = {0.6, 0.2, 0.2, 0.5};
 
-int16_t output_layer_norm_coefficients_integer_no_peephole_quantized
+int16_t output_layer_norm_coefficients_integer_no_peephole_quant
     [n_cell_integer_no_peephole];
 
 // The scale and zero point of intermediate tensors.
@@ -1901,121 +2110,112 @@ const float lstm_input_integer_peephole[sequence_length_integer_peephole *
     0.3, 0.2, 0.9, 0.8, 0.1,  //
 };
 
-int8_t lstm_input_integer_peephole_quantized[sequence_length_integer_peephole *
-                                             n_batch_integer_peephole *
-                                             n_input_integer_peephole];
+int8_t lstm_input_integer_peephole_quant[sequence_length_integer_peephole *
+                                         n_batch_integer_peephole *
+                                         n_input_integer_peephole];
 
 // Model related weights.
-const float input_to_input_weights_integer_peephole[n_cell_integer_peephole *
-                                                    n_input_integer_peephole] =
-    {0.5,  0.6, 0.7,  -0.8, -0.9, 0.1,  0.2,  0.3,  -0.4, 0.5,
-     -0.8, 0.7, -0.6, 0.5,  -0.4, -0.5, -0.4, -0.3, -0.2, -0.1};
+const float input_to_input_w_integer_peephole[n_cell_integer_peephole *
+                                              n_input_integer_peephole] = {
+    0.5,  0.6, 0.7,  -0.8, -0.9, 0.1,  0.2,  0.3,  -0.4, 0.5,
+    -0.8, 0.7, -0.6, 0.5,  -0.4, -0.5, -0.4, -0.3, -0.2, -0.1};
 
-int8_t
-    input_to_input_weights_integer_peephole_quantized[n_cell_integer_peephole *
-                                                      n_input_integer_peephole];
+int8_t input_to_input_w_integer_peephole_quant[n_cell_integer_peephole *
+                                               n_input_integer_peephole];
 
-const float input_to_forget_weights_integer_peephole[n_cell_integer_peephole *
-                                                     n_input_integer_peephole] =
-    {-0.6, -0.1, 0.3,  0.2,  0.9,  -0.5, -0.2, -0.4, 0.3,  -0.8,
-     -0.4, 0.3,  -0.5, -0.4, -0.6, 0.3,  -0.4, -0.6, -0.5, -0.5};
+const float input_to_forget_w_integer_peephole[n_cell_integer_peephole *
+                                               n_input_integer_peephole] = {
+    -0.6, -0.1, 0.3,  0.2,  0.9,  -0.5, -0.2, -0.4, 0.3,  -0.8,
+    -0.4, 0.3,  -0.5, -0.4, -0.6, 0.3,  -0.4, -0.6, -0.5, -0.5};
 
-int8_t input_to_forget_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_input_integer_peephole];
+int8_t input_to_forget_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                n_input_integer_peephole];
 
-const float input_to_cell_weights_integer_peephole[n_cell_integer_peephole *
-                                                   n_input_integer_peephole] = {
+const float input_to_cell_w_integer_peephole[n_cell_integer_peephole *
+                                             n_input_integer_peephole] = {
     -0.4, -0.3, -0.2, -0.1, -0.5, 0.5, -0.2, -0.3, -0.2, -0.6,
     0.6,  -0.1, -0.4, -0.3, -0.7, 0.7, -0.9, -0.5, 0.8,  0.6};
 
-int8_t
-    input_to_cell_weights_integer_peephole_quantized[n_cell_integer_peephole *
-                                                     n_input_integer_peephole];
+int8_t input_to_cell_w_integer_peephole_quant[n_cell_integer_peephole *
+                                              n_input_integer_peephole];
 
-const float input_to_output_weights_integer_peephole[n_cell_integer_peephole *
-                                                     n_input_integer_peephole] =
-    {-0.8, -0.4, -0.2, -0.9, -0.1, -0.7, 0.3, -0.3, -0.8, -0.2,
-     0.6,  -0.2, 0.4,  -0.7, -0.3, -0.5, 0.1, 0.5,  -0.6, -0.4};
+const float input_to_output_w_integer_peephole[n_cell_integer_peephole *
+                                               n_input_integer_peephole] = {
+    -0.8, -0.4, -0.2, -0.9, -0.1, -0.7, 0.3, -0.3, -0.8, -0.2,
+    0.6,  -0.2, 0.4,  -0.7, -0.3, -0.5, 0.1, 0.5,  -0.6, -0.4};
 
-int8_t input_to_output_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_input_integer_peephole];
+int8_t input_to_output_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                n_input_integer_peephole];
 
-const float
-    recurrent_to_input_weights_integer_peephole[n_cell_integer_peephole *
-                                                n_output_integer_peephole] = {
-        -0.2, -0.3, 0.4, 0.1, -0.5, 0.9, -0.2, -0.3, -0.7, 0.05, -0.2, -0.6};
+const float recurrent_to_input_w_integer_peephole[n_cell_integer_peephole *
+                                                  n_output_integer_peephole] = {
+    -0.2, -0.3, 0.4, 0.1, -0.5, 0.9, -0.2, -0.3, -0.7, 0.05, -0.2, -0.6};
 
-int8_t recurrent_to_input_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_output_integer_peephole];
+int8_t recurrent_to_input_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                   n_output_integer_peephole];
 
-const float
-    recurrent_to_forget_weights_integer_peephole[n_cell_integer_peephole *
+const float recurrent_to_forget_w_integer_peephole[n_cell_integer_peephole *
+                                                   n_output_integer_peephole] =
+    {-0.5, -0.3, -0.5, -0.2, 0.6, 0.4, 0.9, 0.3, -0.1, 0.2, 0.5, 0.2};
+
+int8_t recurrent_to_forget_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                    n_output_integer_peephole];
+
+const float recurrent_to_cell_w_integer_peephole[n_cell_integer_peephole *
                                                  n_output_integer_peephole] = {
-        -0.5, -0.3, -0.5, -0.2, 0.6, 0.4, 0.9, 0.3, -0.1, 0.2, 0.5, 0.2};
+    -0.3, 0.2, 0.1, -0.3, 0.8, -0.08, -0.2, 0.3, 0.8, -0.6, -0.1, 0.2};
 
-int8_t recurrent_to_forget_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_output_integer_peephole];
+int8_t recurrent_to_cell_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                  n_output_integer_peephole];
 
-const float
-    recurrent_to_cell_weights_integer_peephole[n_cell_integer_peephole *
-                                               n_output_integer_peephole] = {
-        -0.3, 0.2, 0.1, -0.3, 0.8, -0.08, -0.2, 0.3, 0.8, -0.6, -0.1, 0.2};
+const float recurrent_to_output_w_integer_peephole[n_cell_integer_peephole *
+                                                   n_output_integer_peephole] =
+    {0.3, -0.1, 0.1, -0.2, -0.5, -0.7, -0.2, -0.6, -0.1, -0.4, -0.7, -0.2};
 
-int8_t recurrent_to_cell_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_output_integer_peephole];
+int8_t recurrent_to_output_w_integer_peephole_quant[n_cell_integer_peephole *
+                                                    n_output_integer_peephole];
 
-const float
-    recurrent_to_output_weights_integer_peephole[n_cell_integer_peephole *
-                                                 n_output_integer_peephole] = {
-        0.3, -0.1, 0.1, -0.2, -0.5, -0.7, -0.2, -0.6, -0.1, -0.4, -0.7, -0.2};
-
-int8_t recurrent_to_output_weights_integer_peephole_quantized
-    [n_cell_integer_peephole * n_output_integer_peephole];
-
-const float cell_to_input_weights_integer_peephole[n_cell_integer_peephole] = {
+const float cell_to_input_w_integer_peephole[n_cell_integer_peephole] = {
     0.3, -0.1, 0.1, -0.2};
 
-int16_t
-    cell_to_input_weights_integer_peephole_quantized[n_cell_integer_peephole];
+int16_t cell_to_input_w_integer_peephole_quant[n_cell_integer_peephole];
 
-const float cell_to_forget_weights_integer_peephole[n_cell_integer_peephole] = {
+const float cell_to_forget_w_integer_peephole[n_cell_integer_peephole] = {
     0.2, -0.1, 0.1, -0.2};
 
-int16_t
-    cell_to_forget_weights_integer_peephole_quantized[n_cell_integer_peephole];
+int16_t cell_to_forget_w_integer_peephole_quant[n_cell_integer_peephole];
 
-const float cell_to_output_weights_integer_peephole[n_cell_integer_peephole] = {
+const float cell_to_output_w_integer_peephole[n_cell_integer_peephole] = {
     0.3, -0.1, 0.1, -0.3};
 
-int16_t
-    cell_to_output_weights_integer_peephole_quantized[n_cell_integer_peephole];
+int16_t cell_to_output_w_integer_peephole_quant[n_cell_integer_peephole];
 
 const float input_gate_bias_integer_peephole[n_cell_integer_peephole] = {
     0.03, 0.15, 0.22, 0.38};
 
-int32_t input_gate_bias_integer_peephole_quantized[n_cell_integer_peephole];
+int32_t input_gate_bias_integer_peephole_quant[n_cell_integer_peephole];
 
 const float forget_gate_bias_integer_peephole[n_cell_integer_peephole] = {
     0.1, -0.3, -0.2, 0.1};
 
-int32_t forget_gate_bias_integer_peephole_quantized[n_cell_integer_peephole];
+int32_t forget_gate_bias_integer_peephole_quant[n_cell_integer_peephole];
 
 const float cell_gate_bias_integer_peephole[n_cell_integer_peephole] = {
     -0.05, 0.72, 0.25, 0.08};
 
-int32_t cell_gate_bias_integer_peephole_quantized[n_cell_integer_peephole];
+int32_t cell_gate_bias_integer_peephole_quant[n_cell_integer_peephole];
 
 const float output_gate_bias_integer_peephole[n_cell_integer_peephole] = {
     0.05, -0.01, 0.2, 0.1};
 
-int32_t output_gate_bias_integer_peephole_quantized[n_cell_integer_peephole];
+int32_t output_gate_bias_integer_peephole_quant[n_cell_integer_peephole];
 
-const float projection_weights_integer_peephole[n_output_integer_peephole *
-                                                n_cell_integer_peephole] = {
+const float projection_w_integer_peephole[n_output_integer_peephole *
+                                          n_cell_integer_peephole] = {
     -0.1, 0.2, 0.01, -0.2, 0.1, 0.5, 0.3, 0.08, 0.07, 0.2, -0.4, 0.2};
 
-int8_t projection_weights_integer_peephole_quantized[n_output_integer_peephole *
-                                                     n_cell_integer_peephole];
+int8_t projection_w_integer_peephole_quant[n_output_integer_peephole *
+                                           n_cell_integer_peephole];
 
 int16_t
     output_state_peephole[n_batch_integer_peephole * n_cell_integer_peephole];
@@ -2026,27 +2226,27 @@ const float
     input_layer_norm_coefficients_integer_peephole[n_cell_integer_peephole] = {
         0.1, 0.2, 0.3, 0.5};
 
-int16_t input_layer_norm_coefficients_integer_peephole_quantized
+int16_t input_layer_norm_coefficients_integer_peephole_quant
     [n_cell_integer_peephole];
 
 const float
     forget_layer_norm_coefficients_integer_peephole[n_cell_integer_peephole] = {
         0.2, 0.2, 0.4, 0.3};
 
-int16_t forget_layer_norm_coefficients_integer_peephole_quantized
+int16_t forget_layer_norm_coefficients_integer_peephole_quant
     [n_cell_integer_peephole];
 
 const float
     cell_layer_norm_coefficients_integer_peephole[n_cell_integer_peephole] = {
         0.7, 0.2, 0.3, 0.8};
 
-int16_t cell_layer_norm_coefficients_integer_peephole_quantized
+int16_t cell_layer_norm_coefficients_integer_peephole_quant
     [n_cell_integer_peephole];
 
 const float
     output_layer_norm_coefficients_integer_peephole[n_cell_integer_peephole] = {
         0.6, 0.2, 0.2, 0.5};
-int16_t output_layer_norm_coefficients_integer_peephole_quantized
+int16_t output_layer_norm_coefficients_integer_peephole_quant
     [n_cell_integer_peephole];
 
 int8_t output_peephole[n_batch_integer_peephole *
@@ -2109,6 +2309,37 @@ const int8_t expected_output_integer_peephole[n_batch_integer_peephole *
     127,  127, -16, -21, 127, 127, 23,   127, 127,
     -128, 127, 127, 127, 127, 127, -128, 127, 127,
 };
+
+template <typename T>
+TfLiteTensor CreateQuantizedWeightTensor(const float* weights,
+                                         T* quantized_weights,
+                                         TfLiteIntArray* dims, int size,
+                                         TfLiteFloatArray* scale,
+                                         TfLiteIntArray* zero_point,
+                                         TfLiteAffineQuantization* qparam) {
+  TfLiteTensor tensor;
+  float min, max, scaling_factor;
+  micro_tensor_utils::SymmetricQuantizeFloats(
+      weights, size, reinterpret_cast<int8_t*>(quantized_weights), &min, &max,
+      &scaling_factor);
+  tensor.dims = dims;
+  tensor.is_variable = false;
+  tensor.type = typeToTfLiteType<T>();
+  tensor.data.data = const_cast<T*>(quantized_weights);
+  tensor.bytes = ElementCount(*dims) * sizeof(T);
+  tensor.quantization.type = kTfLiteAffineQuantization;
+  tensor.params.scale = scaling_factor;
+  tensor.params.zero_point = 0;
+  scale->size = 1;
+  scale->data[0] = scaling_factor;
+  zero_point->size = 1;
+  zero_point->data[0] = 0;
+  qparam->quantized_dimension = 0;
+  qparam->scale = scale;
+  qparam->zero_point = zero_point;
+  tensor.quantization.params = qparam;
+  return tensor;
+}
 
 template <typename T>
 QuantizationParams SetQuantizationParams(float f_min, float f_max) {
@@ -2204,6 +2435,553 @@ void CopyInputOrExpectedOutput(const float* input, float* dest,
   }
 }
 
+void TestUnidirectionalSequenceLstmHybrid(
+    int n_batch, int n_input, int n_cell, int n_output, int sequence_length,
+    bool time_major, bool use_cifg, bool use_peephole,
+    bool use_projection_weights, bool use_projection_bias, bool use_layer_norm,
+    float cell_clip, float proj_clip,
+
+    const float* input_original, float* input,
+
+    const float* input_to_input_weights, int8_t* input_to_input_w_quant,
+    float* input_to_input_w_scale, int* input_to_input_w_zp,
+    TfLiteAffineQuantization* input_to_input_w_qparam,
+
+    const float* input_to_forget_weights, int8_t* input_to_forget_w_quant,
+    float* input_to_forget_w_scale, int* input_to_forget_w_zp,
+    TfLiteAffineQuantization* input_to_forget_w_qparam,
+
+    const float* input_to_cell_weights, int8_t* input_to_cell_w_quant,
+    float* input_to_cell_w_scale, int* input_to_cell_w_zp,
+    TfLiteAffineQuantization* input_to_cell_w_qparam,
+
+    const float* input_to_output_weights, int8_t* input_to_output_w_quant,
+    float* input_to_output_w_scale, int* input_to_output_w_zp,
+    TfLiteAffineQuantization* input_to_output_w_qparam,
+
+    const float* recurrent_to_input_weights, int8_t* recurrent_to_input_w_quant,
+    float* recurrent_to_input_w_scale, int* recurrent_to_input_w_zp,
+    TfLiteAffineQuantization* recurrent_to_input_w_qparam,
+
+    const float* recurrent_to_forget_weights,
+    int8_t* recurrent_to_forget_w_quant, float* recurrent_to_forget_w_scale,
+    int* recurrent_to_forget_w_zp,
+    TfLiteAffineQuantization* recurrent_to_forget_w_qparam,
+
+    const float* recurrent_to_cell_weights, int8_t* recurrent_to_cell_w_quant,
+    float* recurrent_to_cell_w_scale, int* recurrent_to_cell_w_zp,
+    TfLiteAffineQuantization* recurrent_to_cell_w_qparam,
+
+    const float* recurrent_to_output_weights,
+    int8_t* recurrent_to_output_w_quant, float* recurrent_to_output_w_scale,
+    int* recurrent_to_output_w_zp,
+    TfLiteAffineQuantization* recurrent_to_output_w_qparam,
+
+    const float* cell_to_input_weights, int8_t* cell_to_input_w_quant,
+    float* cell_to_input_w_scale, int* cell_to_input_w_zp,
+    TfLiteAffineQuantization* cell_to_input_w_qparam,
+
+    const float* cell_to_forget_weights, int8_t* cell_to_forget_w_quant,
+    float* cell_to_forget_w_scale, int* cell_to_forget_w_zp,
+    TfLiteAffineQuantization* cell_to_forget_w_qparam,
+
+    const float* cell_to_output_weights, int8_t* cell_to_output_w_quant,
+    float* cell_to_output_w_scale, int* cell_to_output_w_zp,
+    TfLiteAffineQuantization* cell_to_output_w_qparam,
+
+    const float* input_gate_bias, const float* forget_gate_bias,
+    const float* cell_gate_bias, const float* output_gate_bias,
+
+    const float* projection_weights, int8_t* projection_w_quant,
+    float* projection_w_scale, int* projection_w_zp,
+    TfLiteAffineQuantization* projection_w_qparam,
+
+    const float* projection_bias,
+
+    float* output_state, float* cell_state,
+
+    const float* input_layer_norm_coefficients,
+    const float* forget_layer_norm_coefficients,
+    const float* cell_layer_norm_coefficients,
+    const float* output_layer_norm_coefficients,
+
+    float* output, const float* expected_output_original,
+    float* expected_output, float tolerance, bool input_output_batch_major,
+
+    TfLiteType weight_type,
+
+    bool asymmetric_quantize_inputs = false) {
+  int inputs_array_data[25];
+  int outputs_array_data[2] = {1, output_tensor_index};
+
+  if (use_layer_norm) {
+    inputs_array_data[0] = 24;
+  } else {
+    inputs_array_data[0] = 20;
+  }
+
+  TfLiteTensor tensors[max_num_input_tensors + 1];
+
+  CopyInputOrExpectedOutput(input_original, input, input_output_batch_major,
+                            sequence_length, n_batch, n_input);
+
+  int input_dim[4] = {3, sequence_length, n_batch, n_input};
+  tensors[kLstmInputTensor] =
+      CreateTensor<float>(input, IntArrayFromInts(input_dim));
+  inputs_array_data[kLstmInputTensor + 1] = kLstmInputTensor;
+
+  int input_w_dim[3] = {2, n_cell, n_input};
+
+  if (use_cifg) {
+    inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  } else {
+    if (weight_type == kTfLiteUInt8) {
+      tensors[kLstmInputToInputWeightsTensor] =
+          CreateQuantizedWeightTensor<uint8_t>(
+              input_to_input_weights,
+              reinterpret_cast<uint8_t*>(input_to_input_w_quant),
+              IntArrayFromInts(input_w_dim), n_cell * n_input,
+              FloatArrayFromFloats(input_to_input_w_scale),
+              IntArrayFromInts(input_to_input_w_zp), input_to_input_w_qparam);
+      inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
+          kLstmInputToInputWeightsTensor;
+    } else if (weight_type == kTfLiteInt8) {
+      tensors[kLstmInputToInputWeightsTensor] =
+          CreateQuantizedWeightTensor<int8_t>(
+              input_to_input_weights, input_to_input_w_quant,
+              IntArrayFromInts(input_w_dim), n_cell * n_input,
+              FloatArrayFromFloats(input_to_input_w_scale),
+              IntArrayFromInts(input_to_input_w_zp), input_to_input_w_qparam);
+      inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
+          kLstmInputToInputWeightsTensor;
+    } else {
+      inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    }
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmInputToForgetWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            input_to_forget_weights,
+            reinterpret_cast<uint8_t*>(input_to_forget_w_quant),
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_forget_w_scale),
+            IntArrayFromInts(input_to_forget_w_zp), input_to_forget_w_qparam);
+    inputs_array_data[kLstmInputToForgetWeightsTensor + 1] =
+        kLstmInputToForgetWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmInputToForgetWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            input_to_forget_weights, input_to_forget_w_quant,
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_forget_w_scale),
+            IntArrayFromInts(input_to_forget_w_zp), input_to_forget_w_qparam);
+    inputs_array_data[kLstmInputToForgetWeightsTensor + 1] =
+        kLstmInputToForgetWeightsTensor;
+  } else {
+    inputs_array_data[kLstmInputToForgetWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmInputToCellWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            input_to_cell_weights,
+            reinterpret_cast<uint8_t*>(input_to_cell_w_quant),
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_cell_w_scale),
+            IntArrayFromInts(input_to_cell_w_zp), input_to_cell_w_qparam);
+    inputs_array_data[kLstmInputToCellWeightsTensor + 1] =
+        kLstmInputToCellWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmInputToCellWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            input_to_cell_weights, input_to_cell_w_quant,
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_cell_w_scale),
+            IntArrayFromInts(input_to_cell_w_zp), input_to_cell_w_qparam);
+    inputs_array_data[kLstmInputToCellWeightsTensor + 1] =
+        kLstmInputToCellWeightsTensor;
+  } else {
+    inputs_array_data[kLstmInputToCellWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmInputToOutputWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            input_to_output_weights,
+            reinterpret_cast<uint8_t*>(input_to_output_w_quant),
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_output_w_scale),
+            IntArrayFromInts(input_to_output_w_zp), input_to_output_w_qparam);
+    inputs_array_data[kLstmInputToOutputWeightsTensor + 1] =
+        kLstmInputToOutputWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmInputToOutputWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            input_to_output_weights, input_to_output_w_quant,
+            IntArrayFromInts(input_w_dim), n_cell * n_input,
+            FloatArrayFromFloats(input_to_output_w_scale),
+            IntArrayFromInts(input_to_output_w_zp), input_to_output_w_qparam);
+    inputs_array_data[kLstmInputToOutputWeightsTensor + 1] =
+        kLstmInputToOutputWeightsTensor;
+  } else {
+    inputs_array_data[kLstmInputToOutputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  int recurrent_w_dim[3] = {2, n_cell, n_output};
+  if (use_cifg) {
+    inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  } else {
+    if (weight_type == kTfLiteUInt8) {
+      tensors[kLstmRecurrentToInputWeightsTensor] =
+          CreateQuantizedWeightTensor<uint8_t>(
+              recurrent_to_input_weights,
+              reinterpret_cast<uint8_t*>(recurrent_to_input_w_quant),
+              IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+              FloatArrayFromFloats(recurrent_to_input_w_scale),
+              IntArrayFromInts(recurrent_to_input_w_zp),
+              recurrent_to_input_w_qparam);
+      inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
+          kLstmRecurrentToInputWeightsTensor;
+    } else if (weight_type == kTfLiteInt8) {
+      tensors[kLstmRecurrentToInputWeightsTensor] =
+          CreateQuantizedWeightTensor<int8_t>(
+              recurrent_to_input_weights, recurrent_to_input_w_quant,
+              IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+              FloatArrayFromFloats(recurrent_to_input_w_scale),
+              IntArrayFromInts(recurrent_to_input_w_zp),
+              recurrent_to_input_w_qparam);
+      inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
+          kLstmRecurrentToInputWeightsTensor;
+    } else {
+      inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    }
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmRecurrentToForgetWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            recurrent_to_forget_weights,
+            reinterpret_cast<uint8_t*>(recurrent_to_forget_w_quant),
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_forget_w_scale),
+            IntArrayFromInts(recurrent_to_forget_w_zp),
+            recurrent_to_forget_w_qparam);
+    inputs_array_data[kLstmRecurrentToForgetWeightsTensor + 1] =
+        kLstmRecurrentToForgetWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmRecurrentToForgetWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            recurrent_to_forget_weights, recurrent_to_forget_w_quant,
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_forget_w_scale),
+            IntArrayFromInts(recurrent_to_forget_w_zp),
+            recurrent_to_forget_w_qparam);
+    inputs_array_data[kLstmRecurrentToForgetWeightsTensor + 1] =
+        kLstmRecurrentToForgetWeightsTensor;
+  } else {
+    inputs_array_data[kLstmRecurrentToForgetWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmRecurrentToCellWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            recurrent_to_cell_weights,
+            reinterpret_cast<uint8_t*>(recurrent_to_cell_w_quant),
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_cell_w_scale),
+            IntArrayFromInts(recurrent_to_cell_w_zp),
+            recurrent_to_cell_w_qparam);
+    inputs_array_data[kLstmRecurrentToCellWeightsTensor + 1] =
+        kLstmRecurrentToCellWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmRecurrentToCellWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            recurrent_to_cell_weights, recurrent_to_cell_w_quant,
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_cell_w_scale),
+            IntArrayFromInts(recurrent_to_cell_w_zp),
+            recurrent_to_cell_w_qparam);
+    inputs_array_data[kLstmRecurrentToCellWeightsTensor + 1] =
+        kLstmRecurrentToCellWeightsTensor;
+  } else {
+    inputs_array_data[kLstmRecurrentToCellWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  if (weight_type == kTfLiteUInt8) {
+    tensors[kLstmRecurrentToOutputWeightsTensor] =
+        CreateQuantizedWeightTensor<uint8_t>(
+            recurrent_to_output_weights,
+            reinterpret_cast<uint8_t*>(recurrent_to_output_w_quant),
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_output_w_scale),
+            IntArrayFromInts(recurrent_to_output_w_zp),
+            recurrent_to_output_w_qparam);
+    inputs_array_data[kLstmRecurrentToOutputWeightsTensor + 1] =
+        kLstmRecurrentToOutputWeightsTensor;
+  } else if (weight_type == kTfLiteInt8) {
+    tensors[kLstmRecurrentToOutputWeightsTensor] =
+        CreateQuantizedWeightTensor<int8_t>(
+            recurrent_to_output_weights, recurrent_to_output_w_quant,
+            IntArrayFromInts(recurrent_w_dim), n_cell * n_output,
+            FloatArrayFromFloats(recurrent_to_output_w_scale),
+            IntArrayFromInts(recurrent_to_output_w_zp),
+            recurrent_to_output_w_qparam);
+    inputs_array_data[kLstmRecurrentToOutputWeightsTensor + 1] =
+        kLstmRecurrentToOutputWeightsTensor;
+  } else {
+    inputs_array_data[kLstmRecurrentToOutputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  int cell_w_dim[2] = {1, n_cell};
+  if (use_peephole) {
+    if (use_cifg) {
+      inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    } else {
+      if (weight_type == kTfLiteUInt8) {
+        tensors[kLstmCellToInputWeightsTensor] =
+            CreateQuantizedWeightTensor<uint8_t>(
+                cell_to_input_weights,
+                reinterpret_cast<uint8_t*>(cell_to_input_w_quant),
+                IntArrayFromInts(cell_w_dim), n_cell,
+                FloatArrayFromFloats(cell_to_input_w_scale),
+                IntArrayFromInts(cell_to_input_w_zp), cell_to_input_w_qparam);
+        inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
+            kLstmCellToInputWeightsTensor;
+      } else if (weight_type == kTfLiteInt8) {
+        tensors[kLstmCellToInputWeightsTensor] =
+            CreateQuantizedWeightTensor<int8_t>(
+                cell_to_input_weights, cell_to_input_w_quant,
+                IntArrayFromInts(cell_w_dim), n_cell,
+                FloatArrayFromFloats(cell_to_input_w_scale),
+                IntArrayFromInts(cell_to_input_w_zp), cell_to_input_w_qparam);
+        inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
+            kLstmCellToInputWeightsTensor;
+      } else {
+        inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
+            kTfLiteOptionalTensor;
+      }
+    }
+    if (weight_type == kTfLiteUInt8) {
+      tensors[kLstmCellToForgetWeightsTensor] =
+          CreateQuantizedWeightTensor<uint8_t>(
+              cell_to_forget_weights,
+              reinterpret_cast<uint8_t*>(cell_to_forget_w_quant),
+              IntArrayFromInts(cell_w_dim), n_cell,
+              FloatArrayFromFloats(cell_to_forget_w_scale),
+              IntArrayFromInts(cell_to_forget_w_zp), cell_to_forget_w_qparam);
+      inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
+          kLstmCellToForgetWeightsTensor;
+    } else if (weight_type == kTfLiteInt8) {
+      tensors[kLstmCellToForgetWeightsTensor] =
+          CreateQuantizedWeightTensor<int8_t>(
+              cell_to_forget_weights, cell_to_forget_w_quant,
+              IntArrayFromInts(cell_w_dim), n_cell,
+              FloatArrayFromFloats(cell_to_forget_w_scale),
+              IntArrayFromInts(cell_to_forget_w_zp), cell_to_forget_w_qparam);
+      inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
+          kLstmCellToForgetWeightsTensor;
+    } else {
+      inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    }
+
+    if (weight_type == kTfLiteUInt8) {
+      tensors[kLstmCellToOutputWeightsTensor] =
+          CreateQuantizedWeightTensor<uint8_t>(
+              cell_to_output_weights,
+              reinterpret_cast<uint8_t*>(cell_to_output_w_quant),
+              IntArrayFromInts(cell_w_dim), n_cell,
+              FloatArrayFromFloats(cell_to_output_w_scale),
+              IntArrayFromInts(cell_to_output_w_zp), cell_to_output_w_qparam);
+      inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
+          kLstmCellToOutputWeightsTensor;
+    } else if (weight_type == kTfLiteInt8) {
+      tensors[kLstmCellToOutputWeightsTensor] =
+          CreateQuantizedWeightTensor<int8_t>(
+              cell_to_output_weights, cell_to_output_w_quant,
+              IntArrayFromInts(cell_w_dim), n_cell,
+              FloatArrayFromFloats(cell_to_output_w_scale),
+              IntArrayFromInts(cell_to_output_w_zp), cell_to_output_w_qparam);
+      inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
+          kLstmCellToOutputWeightsTensor;
+    } else {
+      inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    }
+  } else {
+    inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+    inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+    inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  int gate_bias_dim[2] = {1, n_cell};
+  if (use_cifg) {
+    inputs_array_data[kLstmInputGateBiasTensor + 1] = kTfLiteOptionalTensor;
+  } else {
+    tensors[kLstmInputGateBiasTensor] =
+        CreateTensor<float>(input_gate_bias, IntArrayFromInts(gate_bias_dim));
+    inputs_array_data[kLstmInputGateBiasTensor + 1] = kLstmInputGateBiasTensor;
+  }
+
+  tensors[kLstmForgetGateBiasTensor] =
+      CreateTensor<float>(forget_gate_bias, IntArrayFromInts(gate_bias_dim));
+  inputs_array_data[kLstmForgetGateBiasTensor + 1] = kLstmForgetGateBiasTensor;
+
+  tensors[kLstmCellGateBiasTensor] =
+      CreateTensor<float>(cell_gate_bias, IntArrayFromInts(gate_bias_dim));
+  inputs_array_data[kLstmCellGateBiasTensor + 1] = kLstmCellGateBiasTensor;
+
+  tensors[kLstmOutputGateBiasTensor] =
+      CreateTensor<float>(output_gate_bias, IntArrayFromInts(gate_bias_dim));
+  inputs_array_data[kLstmOutputGateBiasTensor + 1] = kLstmOutputGateBiasTensor;
+
+  int projection_w_dim[3] = {2, n_output, n_cell};
+  int projection_bias_dim[2] = {1, n_output};
+  if (use_projection_weights) {
+    if (weight_type == kTfLiteUInt8) {
+      tensors[kLstmProjectionWeightsTensor] =
+          CreateQuantizedWeightTensor<uint8_t>(
+              projection_weights,
+              reinterpret_cast<uint8_t*>(projection_w_quant),
+              IntArrayFromInts(projection_w_dim), n_output * n_cell,
+              FloatArrayFromFloats(projection_w_scale),
+              IntArrayFromInts(projection_w_zp), projection_w_qparam);
+      inputs_array_data[kLstmProjectionWeightsTensor + 1] =
+          kLstmProjectionWeightsTensor;
+    } else if (weight_type == kTfLiteInt8) {
+      tensors[kLstmProjectionWeightsTensor] =
+          CreateQuantizedWeightTensor<int8_t>(
+              projection_weights, projection_w_quant,
+              IntArrayFromInts(projection_w_dim), n_output * n_cell,
+              FloatArrayFromFloats(projection_w_scale),
+              IntArrayFromInts(projection_w_zp), projection_w_qparam);
+      inputs_array_data[kLstmProjectionWeightsTensor + 1] =
+          kLstmProjectionWeightsTensor;
+    } else {
+      inputs_array_data[kLstmProjectionWeightsTensor + 1] =
+          kTfLiteOptionalTensor;
+    }
+
+    if (use_projection_bias) {
+      tensors[kLstmProjectionBiasTensor] = CreateTensor<float>(
+          projection_bias, IntArrayFromInts(projection_bias_dim));
+      inputs_array_data[kLstmProjectionBiasTensor + 1] =
+          kLstmProjectionBiasTensor;
+    } else {
+      inputs_array_data[kLstmProjectionBiasTensor + 1] = kTfLiteOptionalTensor;
+    }
+  } else {
+    inputs_array_data[kLstmProjectionWeightsTensor + 1] = kTfLiteOptionalTensor;
+    inputs_array_data[kLstmProjectionBiasTensor + 1] = kTfLiteOptionalTensor;
+  }
+
+  int output_state_dim[3] = {2, n_batch, n_output};
+  for (int i = 0; i < n_batch; ++i) {
+    for (int j = 0; j < n_output; ++j) {
+      output_state[i * n_output + j] = 0.0f;
+    }
+  }
+  tensors[kLstmOutputStateTensor] = CreateTensor<float>(
+      output_state, IntArrayFromInts(output_state_dim), true);
+  inputs_array_data[kLstmOutputStateTensor + 1] = kLstmOutputStateTensor;
+
+  int cell_state_dim[3] = {2, n_batch, n_cell};
+  for (int i = 0; i < n_batch; ++i) {
+    for (int j = 0; j < n_cell; ++j) {
+      cell_state[i * n_cell + j] = 0.0f;
+    }
+  }
+  tensors[kLstmCellStateTensor] =
+      CreateTensor<float>(cell_state, IntArrayFromInts(cell_state_dim), true);
+  inputs_array_data[kLstmCellStateTensor + 1] = kLstmCellStateTensor;
+
+  int layer_norm_dim[2] = {1, n_cell};
+  if (use_layer_norm) {
+    if (use_cifg) {
+      inputs_array_data[kLstmInputLayerNormCoefficientsTensor + 1] =
+          kTfLiteOptionalTensor;
+    } else {
+      tensors[kLstmInputLayerNormCoefficientsTensor] = CreateTensor<float>(
+          input_layer_norm_coefficients, IntArrayFromInts(layer_norm_dim));
+      inputs_array_data[kLstmInputLayerNormCoefficientsTensor + 1] =
+          kLstmInputLayerNormCoefficientsTensor;
+    }
+
+    tensors[kLstmForgetLayerNormCoefficientsTensor] = CreateTensor<float>(
+        forget_layer_norm_coefficients, IntArrayFromInts(layer_norm_dim));
+    inputs_array_data[kLstmForgetLayerNormCoefficientsTensor + 1] =
+        kLstmForgetLayerNormCoefficientsTensor;
+
+    tensors[kLstmCellLayerNormCoefficientsTensor] = CreateTensor<float>(
+        cell_layer_norm_coefficients, IntArrayFromInts(layer_norm_dim));
+    inputs_array_data[kLstmCellLayerNormCoefficientsTensor + 1] =
+        kLstmCellLayerNormCoefficientsTensor;
+
+    tensors[kLstmOutputLayerNormCoefficientsTensor] = CreateTensor<float>(
+        output_layer_norm_coefficients, IntArrayFromInts(layer_norm_dim));
+    inputs_array_data[kLstmOutputLayerNormCoefficientsTensor + 1] =
+        kLstmOutputLayerNormCoefficientsTensor;
+  } else {
+    inputs_array_data[kLstmInputLayerNormCoefficientsTensor + 1] =
+        kTfLiteOptionalTensor;
+    inputs_array_data[kLstmForgetLayerNormCoefficientsTensor + 1] =
+        kTfLiteOptionalTensor;
+    inputs_array_data[kLstmCellLayerNormCoefficientsTensor + 1] =
+        kTfLiteOptionalTensor;
+    inputs_array_data[kLstmOutputLayerNormCoefficientsTensor + 1] =
+        kTfLiteOptionalTensor;
+  }
+
+  CopyInputOrExpectedOutput(expected_output_original, expected_output,
+                            input_output_batch_major, sequence_length, n_batch,
+                            n_output);
+
+  int output_dim[4] = {3, sequence_length, n_batch, n_output};
+  for (int i = 0; i < sequence_length; ++i) {
+    for (int j = 0; j < n_batch; ++j) {
+      for (int k = 0; k < n_output; ++k) {
+        output[i * n_batch * n_output + j * n_output + k] = 0.0f;
+      }
+    }
+  }
+  tensors[output_tensor_index] =
+      CreateTensor<float>(output, IntArrayFromInts(output_dim));
+
+  TfLiteUnidirectionalSequenceLSTMParams params;
+  params.activation = kTfLiteActTanh;
+  params.cell_clip = cell_clip;
+  params.proj_clip = proj_clip;
+  params.time_major = time_major;
+  params.asymmetric_quantize_inputs = asymmetric_quantize_inputs;
+
+  const TfLiteRegistration registration =
+      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  micro::KernelRunner runner(registration, tensors, max_num_input_tensors + 1,
+                             IntArrayFromInts(inputs_array_data),
+                             IntArrayFromInts(outputs_array_data),
+                             reinterpret_cast<void*>(&params));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  for (int i = 0; i < sequence_length * n_batch * n_output; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output[i], output[i], tolerance);
+  }
+}
+
 void TestUnidirectionalSequenceLstmFloat(
     int n_batch, int n_input, int n_cell, int n_output, int sequence_length,
     bool time_major, bool use_cifg, bool use_peephole,
@@ -2258,78 +3036,78 @@ void TestUnidirectionalSequenceLstmFloat(
       CreateTensor<float>(input, IntArrayFromInts(input_dim));
   inputs_array_data[kLstmInputTensor + 1] = kLstmInputTensor;
 
-  int input_weights_dim[3] = {2, n_cell, n_input};
+  int input_w_dim[3] = {2, n_cell, n_input};
 
   if (use_cifg) {
     inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
         kTfLiteOptionalTensor;
   } else {
     tensors[kLstmInputToInputWeightsTensor] = CreateTensor<float>(
-        input_to_input_weights, IntArrayFromInts(input_weights_dim));
+        input_to_input_weights, IntArrayFromInts(input_w_dim));
     inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
         kLstmInputToInputWeightsTensor;
   }
 
   tensors[kLstmInputToForgetWeightsTensor] = CreateTensor<float>(
-      input_to_forget_weights, IntArrayFromInts(input_weights_dim));
+      input_to_forget_weights, IntArrayFromInts(input_w_dim));
   inputs_array_data[kLstmInputToForgetWeightsTensor + 1] =
       kLstmInputToForgetWeightsTensor;
 
-  tensors[kLstmInputToCellWeightsTensor] = CreateTensor<float>(
-      input_to_cell_weights, IntArrayFromInts(input_weights_dim));
+  tensors[kLstmInputToCellWeightsTensor] =
+      CreateTensor<float>(input_to_cell_weights, IntArrayFromInts(input_w_dim));
   inputs_array_data[kLstmInputToCellWeightsTensor + 1] =
       kLstmInputToCellWeightsTensor;
 
   tensors[kLstmInputToOutputWeightsTensor] = CreateTensor<float>(
-      input_to_output_weights, IntArrayFromInts(input_weights_dim));
+      input_to_output_weights, IntArrayFromInts(input_w_dim));
   inputs_array_data[kLstmInputToOutputWeightsTensor + 1] =
       kLstmInputToOutputWeightsTensor;
 
-  int recurrent_weights_dim[3] = {2, n_cell, n_output};
+  int recurrent_w_dim[3] = {2, n_cell, n_output};
   if (use_cifg) {
     inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
         kTfLiteOptionalTensor;
   } else {
     tensors[kLstmRecurrentToInputWeightsTensor] = CreateTensor<float>(
-        recurrent_to_input_weights, IntArrayFromInts(recurrent_weights_dim));
+        recurrent_to_input_weights, IntArrayFromInts(recurrent_w_dim));
     inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
         kLstmRecurrentToInputWeightsTensor;
   }
 
   tensors[kLstmRecurrentToForgetWeightsTensor] = CreateTensor<float>(
-      recurrent_to_forget_weights, IntArrayFromInts(recurrent_weights_dim));
+      recurrent_to_forget_weights, IntArrayFromInts(recurrent_w_dim));
   inputs_array_data[kLstmRecurrentToForgetWeightsTensor + 1] =
       kLstmRecurrentToForgetWeightsTensor;
 
   tensors[kLstmRecurrentToCellWeightsTensor] = CreateTensor<float>(
-      recurrent_to_cell_weights, IntArrayFromInts(recurrent_weights_dim));
+      recurrent_to_cell_weights, IntArrayFromInts(recurrent_w_dim));
   inputs_array_data[kLstmRecurrentToCellWeightsTensor + 1] =
       kLstmRecurrentToCellWeightsTensor;
 
   tensors[kLstmRecurrentToOutputWeightsTensor] = CreateTensor<float>(
-      recurrent_to_output_weights, IntArrayFromInts(recurrent_weights_dim));
+      recurrent_to_output_weights, IntArrayFromInts(recurrent_w_dim));
   inputs_array_data[kLstmRecurrentToOutputWeightsTensor + 1] =
       kLstmRecurrentToOutputWeightsTensor;
 
-  int cell_weights_dim[2] = {1, n_cell};
+  int cell_w_dim[2] = {1, n_cell};
   if (use_peephole) {
     if (use_cifg) {
       inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
           kTfLiteOptionalTensor;
     } else {
       tensors[kLstmCellToInputWeightsTensor] = CreateTensor<float>(
-          cell_to_input_weights, IntArrayFromInts(cell_weights_dim));
+          cell_to_input_weights, IntArrayFromInts(cell_w_dim));
       inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
           kLstmCellToInputWeightsTensor;
     }
 
     tensors[kLstmCellToForgetWeightsTensor] = CreateTensor<float>(
-        cell_to_forget_weights, IntArrayFromInts(cell_weights_dim));
+        cell_to_forget_weights, IntArrayFromInts(cell_w_dim));
     inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
         kLstmCellToForgetWeightsTensor;
 
     tensors[kLstmCellToOutputWeightsTensor] = CreateTensor<float>(
-        cell_to_output_weights, IntArrayFromInts(cell_weights_dim));
+        cell_to_output_weights, IntArrayFromInts(cell_w_dim));
     inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
         kLstmCellToOutputWeightsTensor;
   } else {
@@ -2362,11 +3140,11 @@ void TestUnidirectionalSequenceLstmFloat(
       CreateTensor<float>(output_gate_bias, IntArrayFromInts(gate_bias_dim));
   inputs_array_data[kLstmOutputGateBiasTensor + 1] = kLstmOutputGateBiasTensor;
 
-  int projection_weights_dim[3] = {2, n_output, n_cell};
+  int projection_w_dim[3] = {2, n_output, n_cell};
   int projection_bias_dim[2] = {1, n_output};
   if (use_projection_weights) {
     tensors[kLstmProjectionWeightsTensor] = CreateTensor<float>(
-        projection_weights, IntArrayFromInts(projection_weights_dim));
+        projection_weights, IntArrayFromInts(projection_w_dim));
     inputs_array_data[kLstmProjectionWeightsTensor + 1] =
         kLstmProjectionWeightsTensor;
 
@@ -2483,50 +3261,41 @@ void TestUnidirectionalSequenceLstmInteger(
     float intermediate_scale[5][2], int intermediate_zp[5][2],
     TfLiteAffineQuantization intermediate_qparam[5],
 
-    const float* input, int8_t* input_quantized,
+    const float* input, int8_t* input_quant,
 
-    const float* input_to_input_weights,
-    int8_t* input_to_input_weights_quantized,
-    const float* input_to_forget_weights,
-    int8_t* input_to_forget_weights_quantized,
-    const float* input_to_cell_weights, int8_t* input_to_cell_weights_quantized,
-    const float* input_to_output_weights,
-    int8_t* input_to_output_weights_quantized,
+    const float* input_to_input_weights, int8_t* input_to_input_w_quant,
+    const float* input_to_forget_weights, int8_t* input_to_forget_w_quant,
+    const float* input_to_cell_weights, int8_t* input_to_cell_w_quant,
+    const float* input_to_output_weights, int8_t* input_to_output_w_quant,
 
-    const float* recurrent_to_input_weights,
-    int8_t* recurrent_to_input_weights_quantized,
+    const float* recurrent_to_input_weights, int8_t* recurrent_to_input_w_quant,
     const float* recurrent_to_forget_weights,
-    int8_t* recurrent_to_forget_weights_quantized,
-    const float* recurrent_to_cell_weights,
-    int8_t* recurrent_to_cell_weights_quantized,
-    const float* recurrent_to_output_weights,
-    int8_t* recurrent_to_output_weights_quantized,
+    int8_t* recurrent_to_forget_w_quant, const float* recurrent_to_cell_weights,
+    int8_t* recurrent_to_cell_w_quant, const float* recurrent_to_output_weights,
+    int8_t* recurrent_to_output_w_quant,
 
-    const float* cell_to_input_weights,
-    int16_t* cell_to_input_weights_quantized,
-    const float* cell_to_forget_weights,
-    int16_t* cell_to_forget_weights_quantized,
-    const float* cell_to_output_weights,
-    int16_t* cell_to_output_weights_quantized,
+    const float* cell_to_input_weights, int16_t* cell_to_input_w_quant,
+    const float* cell_to_forget_weights, int16_t* cell_to_forget_w_quant,
+    const float* cell_to_output_weights, int16_t* cell_to_output_w_quant,
 
-    const float* input_gate_bias, int32_t* input_gate_bias_quantized,
-    const float* forget_gate_bias, int32_t* forget_gate_bias_quantized,
-    const float* cell_gate_bias, int32_t* cell_gate_bias_quantized,
-    const float* output_gate_bias, int32_t* output_gate_bias_quantized,
+    const float* input_gate_bias, int32_t* input_gate_bias_quant,
+    const float* forget_gate_bias, int32_t* forget_gate_bias_quant,
+    const float* cell_gate_bias, int32_t* cell_gate_bias_quant,
+    const float* output_gate_bias, int32_t* output_gate_bias_quant,
 
-    const float* projection_weights, int8_t* projection_weights_quantized,
-    const float* projection_bias, int32_t* projection_bias_quantized,
+    const float* projection_weights, int8_t* projection_w_quant,
+    const float* projection_bias, int32_t* projection_bias_quant,
 
     int16_t* output_state, int16_t* cell_state,
 
     const float* input_layer_norm_coefficients,
-    int16_t* input_layer_norm_coefficients_quantized,
+    int16_t* input_layer_norm_coefficients_quant,
     const float* forget_layer_norm_coefficients,
-    int16_t* forget_layer_norm_coefficients_quantized,
+    int16_t* forget_layer_norm_coefficients_quant,
     const float* cell_layer_norm_coefficients,
-    int16_t* cell_layer_norm_coefficients_quantized,
+    int16_t* cell_layer_norm_coefficients_quant,
     const float* output_layer_norm_coefficients,
-    int16_t* output_layer_norm_coefficients_quantized,
+    int16_t* output_layer_norm_coefficients_quant,
 
     int8_t* output, const int8_t* expected_output,
 
@@ -2554,11 +3323,11 @@ void TestUnidirectionalSequenceLstmInteger(
       ranges[kLstmInputTensor][0], ranges[kLstmInputTensor][1]);
   int input_dim[4] = {3, sequence_length, n_batch, n_input};
   tensors[kLstmInputTensor] = CreateQuantizedTensor<int8_t>(
-      input, input_quantized, IntArrayFromInts(input_dim),
+      input, input_quant, IntArrayFromInts(input_dim),
       quantization_params.scale, quantization_params.zero_point);
   inputs_array_data[kLstmInputTensor + 1] = kLstmInputTensor;
 
-  int input_weights_dim[3] = {2, n_cell, n_input};
+  int input_w_dim[3] = {2, n_cell, n_input};
 
   if (use_cifg) {
     inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
@@ -2568,8 +3337,8 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmInputToInputWeightsTensor][0],
         ranges[kLstmInputToInputWeightsTensor][1]);
     tensors[kLstmInputToInputWeightsTensor] = CreateQuantizedTensor<int8_t>(
-        input_to_input_weights, input_to_input_weights_quantized,
-        IntArrayFromInts(input_weights_dim), quantization_params.scale,
+        input_to_input_weights, input_to_input_w_quant,
+        IntArrayFromInts(input_w_dim), quantization_params.scale,
         quantization_params.zero_point);
     inputs_array_data[kLstmInputToInputWeightsTensor + 1] =
         kLstmInputToInputWeightsTensor;
@@ -2579,8 +3348,8 @@ void TestUnidirectionalSequenceLstmInteger(
       SetQuantizationParams<int8_t>(ranges[kLstmInputToForgetWeightsTensor][0],
                                     ranges[kLstmInputToForgetWeightsTensor][1]);
   tensors[kLstmInputToForgetWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      input_to_forget_weights, input_to_forget_weights_quantized,
-      IntArrayFromInts(input_weights_dim), quantization_params.scale,
+      input_to_forget_weights, input_to_forget_w_quant,
+      IntArrayFromInts(input_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmInputToForgetWeightsTensor + 1] =
       kLstmInputToForgetWeightsTensor;
@@ -2589,8 +3358,8 @@ void TestUnidirectionalSequenceLstmInteger(
       SetQuantizationParams<int8_t>(ranges[kLstmInputToCellWeightsTensor][0],
                                     ranges[kLstmInputToCellWeightsTensor][1]);
   tensors[kLstmInputToCellWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      input_to_cell_weights, input_to_cell_weights_quantized,
-      IntArrayFromInts(input_weights_dim), quantization_params.scale,
+      input_to_cell_weights, input_to_cell_w_quant,
+      IntArrayFromInts(input_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmInputToCellWeightsTensor + 1] =
       kLstmInputToCellWeightsTensor;
@@ -2599,13 +3368,13 @@ void TestUnidirectionalSequenceLstmInteger(
       SetQuantizationParams<int8_t>(ranges[kLstmInputToOutputWeightsTensor][0],
                                     ranges[kLstmInputToOutputWeightsTensor][1]);
   tensors[kLstmInputToOutputWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      input_to_output_weights, input_to_output_weights_quantized,
-      IntArrayFromInts(input_weights_dim), quantization_params.scale,
+      input_to_output_weights, input_to_output_w_quant,
+      IntArrayFromInts(input_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmInputToOutputWeightsTensor + 1] =
       kLstmInputToOutputWeightsTensor;
 
-  int recurrent_weights_dim[3] = {2, n_cell, n_output};
+  int recurrent_w_dim[3] = {2, n_cell, n_output};
   if (use_cifg) {
     inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
         kTfLiteOptionalTensor;
@@ -2614,8 +3383,8 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmRecurrentToInputWeightsTensor][0],
         ranges[kLstmRecurrentToInputWeightsTensor][1]);
     tensors[kLstmRecurrentToInputWeightsTensor] = CreateQuantizedTensor<int8_t>(
-        recurrent_to_input_weights, recurrent_to_input_weights_quantized,
-        IntArrayFromInts(recurrent_weights_dim), quantization_params.scale,
+        recurrent_to_input_weights, recurrent_to_input_w_quant,
+        IntArrayFromInts(recurrent_w_dim), quantization_params.scale,
         quantization_params.zero_point);
     inputs_array_data[kLstmRecurrentToInputWeightsTensor + 1] =
         kLstmRecurrentToInputWeightsTensor;
@@ -2625,8 +3394,8 @@ void TestUnidirectionalSequenceLstmInteger(
       ranges[kLstmRecurrentToForgetWeightsTensor][0],
       ranges[kLstmRecurrentToForgetWeightsTensor][1]);
   tensors[kLstmRecurrentToForgetWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      recurrent_to_forget_weights, recurrent_to_forget_weights_quantized,
-      IntArrayFromInts(recurrent_weights_dim), quantization_params.scale,
+      recurrent_to_forget_weights, recurrent_to_forget_w_quant,
+      IntArrayFromInts(recurrent_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmRecurrentToForgetWeightsTensor + 1] =
       kLstmRecurrentToForgetWeightsTensor;
@@ -2635,8 +3404,8 @@ void TestUnidirectionalSequenceLstmInteger(
       ranges[kLstmRecurrentToCellWeightsTensor][0],
       ranges[kLstmRecurrentToCellWeightsTensor][1]);
   tensors[kLstmRecurrentToCellWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      recurrent_to_cell_weights, recurrent_to_cell_weights_quantized,
-      IntArrayFromInts(recurrent_weights_dim), quantization_params.scale,
+      recurrent_to_cell_weights, recurrent_to_cell_w_quant,
+      IntArrayFromInts(recurrent_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmRecurrentToCellWeightsTensor + 1] =
       kLstmRecurrentToCellWeightsTensor;
@@ -2645,13 +3414,13 @@ void TestUnidirectionalSequenceLstmInteger(
       ranges[kLstmRecurrentToOutputWeightsTensor][0],
       ranges[kLstmRecurrentToOutputWeightsTensor][1]);
   tensors[kLstmRecurrentToOutputWeightsTensor] = CreateQuantizedTensor<int8_t>(
-      recurrent_to_output_weights, recurrent_to_output_weights_quantized,
-      IntArrayFromInts(recurrent_weights_dim), quantization_params.scale,
+      recurrent_to_output_weights, recurrent_to_output_w_quant,
+      IntArrayFromInts(recurrent_w_dim), quantization_params.scale,
       quantization_params.zero_point);
   inputs_array_data[kLstmRecurrentToOutputWeightsTensor + 1] =
       kLstmRecurrentToOutputWeightsTensor;
 
-  int cell_weights_dim[2] = {1, n_cell};
+  int cell_w_dim[2] = {1, n_cell};
   if (use_peephole) {
     if (use_cifg) {
       inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
@@ -2661,8 +3430,8 @@ void TestUnidirectionalSequenceLstmInteger(
           ranges[kLstmCellToInputWeightsTensor][0],
           ranges[kLstmCellToInputWeightsTensor][1]);
       tensors[kLstmCellToInputWeightsTensor] = CreateQuantizedTensor<int16_t>(
-          cell_to_input_weights, cell_to_input_weights_quantized,
-          IntArrayFromInts(cell_weights_dim), quantization_params.scale,
+          cell_to_input_weights, cell_to_input_w_quant,
+          IntArrayFromInts(cell_w_dim), quantization_params.scale,
           quantization_params.zero_point);
       inputs_array_data[kLstmCellToInputWeightsTensor + 1] =
           kLstmCellToInputWeightsTensor;
@@ -2672,8 +3441,8 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmCellToForgetWeightsTensor][0],
         ranges[kLstmCellToForgetWeightsTensor][1]);
     tensors[kLstmCellToForgetWeightsTensor] = CreateQuantizedTensor<int16_t>(
-        cell_to_forget_weights, cell_to_forget_weights_quantized,
-        IntArrayFromInts(cell_weights_dim), quantization_params.scale,
+        cell_to_forget_weights, cell_to_forget_w_quant,
+        IntArrayFromInts(cell_w_dim), quantization_params.scale,
         quantization_params.zero_point);
     inputs_array_data[kLstmCellToForgetWeightsTensor + 1] =
         kLstmCellToForgetWeightsTensor;
@@ -2682,8 +3451,8 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmCellToOutputWeightsTensor][0],
         ranges[kLstmCellToOutputWeightsTensor][1]);
     tensors[kLstmCellToOutputWeightsTensor] = CreateQuantizedTensor<int16_t>(
-        cell_to_output_weights, cell_to_output_weights_quantized,
-        IntArrayFromInts(cell_weights_dim), quantization_params.scale,
+        cell_to_output_weights, cell_to_output_w_quant,
+        IntArrayFromInts(cell_w_dim), quantization_params.scale,
         quantization_params.zero_point);
     inputs_array_data[kLstmCellToOutputWeightsTensor + 1] =
         kLstmCellToOutputWeightsTensor;
@@ -2704,9 +3473,8 @@ void TestUnidirectionalSequenceLstmInteger(
         SetQuantizationParams<int32_t>(ranges[kLstmInputGateBiasTensor][0],
                                        ranges[kLstmInputGateBiasTensor][1]);
     tensors[kLstmInputGateBiasTensor] = CreateQuantizedTensor<int32_t>(
-        input_gate_bias, input_gate_bias_quantized,
-        IntArrayFromInts(gate_bias_dim), quantization_params.scale,
-        quantization_params.zero_point);
+        input_gate_bias, input_gate_bias_quant, IntArrayFromInts(gate_bias_dim),
+        quantization_params.scale, quantization_params.zero_point);
     inputs_array_data[kLstmInputGateBiasTensor + 1] = kLstmInputGateBiasTensor;
   }
 
@@ -2714,15 +3482,14 @@ void TestUnidirectionalSequenceLstmInteger(
       SetQuantizationParams<int32_t>(ranges[kLstmForgetGateBiasTensor][0],
                                      ranges[kLstmForgetGateBiasTensor][1]);
   tensors[kLstmForgetGateBiasTensor] = CreateQuantizedTensor<int32_t>(
-      forget_gate_bias, forget_gate_bias_quantized,
-      IntArrayFromInts(gate_bias_dim), quantization_params.scale,
-      quantization_params.zero_point);
+      forget_gate_bias, forget_gate_bias_quant, IntArrayFromInts(gate_bias_dim),
+      quantization_params.scale, quantization_params.zero_point);
   inputs_array_data[kLstmForgetGateBiasTensor + 1] = kLstmForgetGateBiasTensor;
 
   quantization_params = SetQuantizationParams<int32_t>(
       ranges[kLstmCellGateBiasTensor][0], ranges[kLstmCellGateBiasTensor][1]);
   tensors[kLstmCellGateBiasTensor] = CreateQuantizedTensor<int32_t>(
-      cell_gate_bias, cell_gate_bias_quantized, IntArrayFromInts(gate_bias_dim),
+      cell_gate_bias, cell_gate_bias_quant, IntArrayFromInts(gate_bias_dim),
       quantization_params.scale, quantization_params.zero_point);
   inputs_array_data[kLstmCellGateBiasTensor + 1] = kLstmCellGateBiasTensor;
 
@@ -2730,19 +3497,18 @@ void TestUnidirectionalSequenceLstmInteger(
       SetQuantizationParams<int32_t>(ranges[kLstmOutputGateBiasTensor][0],
                                      ranges[kLstmOutputGateBiasTensor][1]);
   tensors[kLstmOutputGateBiasTensor] = CreateQuantizedTensor<int32_t>(
-      output_gate_bias, output_gate_bias_quantized,
-      IntArrayFromInts(gate_bias_dim), quantization_params.scale,
-      quantization_params.zero_point);
+      output_gate_bias, output_gate_bias_quant, IntArrayFromInts(gate_bias_dim),
+      quantization_params.scale, quantization_params.zero_point);
   inputs_array_data[kLstmOutputGateBiasTensor + 1] = kLstmOutputGateBiasTensor;
 
-  int projection_weights_dim[3] = {2, n_output, n_cell};
+  int projection_w_dim[3] = {2, n_output, n_cell};
   if (use_projection_weights) {
     quantization_params =
         SetQuantizationParams<int8_t>(ranges[kLstmProjectionWeightsTensor][0],
                                       ranges[kLstmProjectionWeightsTensor][1]);
     tensors[kLstmProjectionWeightsTensor] = CreateQuantizedTensor<int8_t>(
-        projection_weights, projection_weights_quantized,
-        IntArrayFromInts(projection_weights_dim), quantization_params.scale,
+        projection_weights, projection_w_quant,
+        IntArrayFromInts(projection_w_dim), quantization_params.scale,
         quantization_params.zero_point);
     inputs_array_data[kLstmProjectionWeightsTensor + 1] =
         kLstmProjectionWeightsTensor;
@@ -2753,7 +3519,7 @@ void TestUnidirectionalSequenceLstmInteger(
           SetQuantizationParams<int32_t>(ranges[kLstmProjectionBiasTensor][0],
                                          ranges[kLstmProjectionBiasTensor][1]);
       tensors[kLstmProjectionBiasTensor] = CreateQuantizedTensor<int32_t>(
-          projection_bias, projection_bias_quantized,
+          projection_bias, projection_bias_quant,
           IntArrayFromInts(projection_bias_dim), quantization_params.scale,
           quantization_params.zero_point);
       inputs_array_data[kLstmProjectionBiasTensor + 1] =
@@ -2792,11 +3558,11 @@ void TestUnidirectionalSequenceLstmInteger(
           ranges[kLstmInputLayerNormCoefficientsTensor][0],
           ranges[kLstmInputLayerNormCoefficientsTensor][1]);
       tensors[kLstmInputLayerNormCoefficientsTensor] =
-          CreateQuantizedTensor<int16_t>(
-              input_layer_norm_coefficients,
-              input_layer_norm_coefficients_quantized,
-              IntArrayFromInts(layer_norm_dim), quantization_params.scale,
-              quantization_params.zero_point);
+          CreateQuantizedTensor<int16_t>(input_layer_norm_coefficients,
+                                         input_layer_norm_coefficients_quant,
+                                         IntArrayFromInts(layer_norm_dim),
+                                         quantization_params.scale,
+                                         quantization_params.zero_point);
       inputs_array_data[kLstmInputLayerNormCoefficientsTensor + 1] =
           kLstmInputLayerNormCoefficientsTensor;
     }
@@ -2806,7 +3572,7 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmForgetLayerNormCoefficientsTensor][1]);
     tensors[kLstmForgetLayerNormCoefficientsTensor] =
         CreateQuantizedTensor<int16_t>(forget_layer_norm_coefficients,
-                                       forget_layer_norm_coefficients_quantized,
+                                       forget_layer_norm_coefficients_quant,
                                        IntArrayFromInts(layer_norm_dim),
                                        quantization_params.scale,
                                        quantization_params.zero_point);
@@ -2817,11 +3583,10 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmCellLayerNormCoefficientsTensor][0],
         ranges[kLstmCellLayerNormCoefficientsTensor][1]);
     tensors[kLstmCellLayerNormCoefficientsTensor] =
-        CreateQuantizedTensor<int16_t>(cell_layer_norm_coefficients,
-                                       cell_layer_norm_coefficients_quantized,
-                                       IntArrayFromInts(layer_norm_dim),
-                                       quantization_params.scale,
-                                       quantization_params.zero_point);
+        CreateQuantizedTensor<int16_t>(
+            cell_layer_norm_coefficients, cell_layer_norm_coefficients_quant,
+            IntArrayFromInts(layer_norm_dim), quantization_params.scale,
+            quantization_params.zero_point);
     inputs_array_data[kLstmCellLayerNormCoefficientsTensor + 1] =
         kLstmCellLayerNormCoefficientsTensor;
 
@@ -2830,7 +3595,7 @@ void TestUnidirectionalSequenceLstmInteger(
         ranges[kLstmOutputLayerNormCoefficientsTensor][1]);
     tensors[kLstmOutputLayerNormCoefficientsTensor] =
         CreateQuantizedTensor<int16_t>(output_layer_norm_coefficients,
-                                       output_layer_norm_coefficients_quantized,
+                                       output_layer_norm_coefficients_quant,
                                        IntArrayFromInts(layer_norm_dim),
                                        quantization_params.scale,
                                        quantization_params.zero_point);
@@ -2915,57 +3680,51 @@ TF_LITE_MICRO_TEST(UnidirectionalSequenceLstmIntegerNoPeepholeTest) {
       tflite::testing::intermediate_zp_integer_no_peephole,
       tflite::testing::intermediate_qparam_integer_no_peephole,
       tflite::testing::lstm_input_integer_no_peephole,
-      tflite::testing::lstm_input_integer_no_peephole_quantized,
-      tflite::testing::input_to_input_weights_integer_no_peephole,
-      tflite::testing::input_to_input_weights_integer_no_peephole_quantized,
-      tflite::testing::input_to_forget_weights_integer_no_peephole,
-      tflite::testing::input_to_forget_weights_integer_no_peephole_quantized,
-      tflite::testing::input_to_cell_weights_integer_no_peephole,
-      tflite::testing::input_to_cell_weights_integer_no_peephole_quantized,
-      tflite::testing::input_to_output_weights_integer_no_peephole,
-      tflite::testing::input_to_output_weights_integer_no_peephole_quantized,
-      tflite::testing::recurrent_to_input_weights_integer_no_peephole,
-      tflite::testing::recurrent_to_input_weights_integer_no_peephole_quantized,
-      tflite::testing::recurrent_to_forget_weights_integer_no_peephole,
-      tflite::testing::
-          recurrent_to_forget_weights_integer_no_peephole_quantized,
-      tflite::testing::recurrent_to_cell_weights_integer_no_peephole,
-      tflite::testing::recurrent_to_cell_weights_integer_no_peephole_quantized,
-      tflite::testing::recurrent_to_output_weights_integer_no_peephole,
-      tflite::testing::
-          recurrent_to_output_weights_integer_no_peephole_quantized,
+      tflite::testing::lstm_input_integer_no_peephole_quant,
+      tflite::testing::input_to_input_w_integer_no_peephole,
+      tflite::testing::input_to_input_w_integer_no_peephole_quant,
+      tflite::testing::input_to_forget_w_integer_no_peephole,
+      tflite::testing::input_to_forget_w_integer_no_peephole_quant,
+      tflite::testing::input_to_cell_w_integer_no_peephole,
+      tflite::testing::input_to_cell_w_integer_no_peephole_quant,
+      tflite::testing::input_to_output_w_integer_no_peephole,
+      tflite::testing::input_to_output_w_integer_no_peephole_quant,
+      tflite::testing::recurrent_to_input_w_integer_no_peephole,
+      tflite::testing::recurrent_to_input_w_integer_no_peephole_quant,
+      tflite::testing::recurrent_to_forget_w_integer_no_peephole,
+      tflite::testing::recurrent_to_forget_w_integer_no_peephole_quant,
+      tflite::testing::recurrent_to_cell_w_integer_no_peephole,
+      tflite::testing::recurrent_to_cell_w_integer_no_peephole_quant,
+      tflite::testing::recurrent_to_output_w_integer_no_peephole,
+      tflite::testing::recurrent_to_output_w_integer_no_peephole_quant,
       /*cell_to_input_weights=*/nullptr,
-      /*cell_to_input_weights_quantized=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
-      /*cell_to_forget_weights_quantized=*/nullptr,
+      /*cell_to_forget_w_quant=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
-      /*cell_to_output_weights_quantized=*/nullptr,
+      /*cell_to_output_w_quant=*/nullptr,
       tflite::testing::input_gate_bias_integer_no_peephole,
-      tflite::testing::input_gate_bias_integer_no_peephole_quantized,
+      tflite::testing::input_gate_bias_integer_no_peephole_quant,
       tflite::testing::forget_gate_bias_integer_no_peephole,
-      tflite::testing::forget_gate_bias_integer_no_peephole_quantized,
+      tflite::testing::forget_gate_bias_integer_no_peephole_quant,
       tflite::testing::cell_gate_bias_integer_no_peephole,
-      tflite::testing::cell_gate_bias_integer_no_peephole_quantized,
+      tflite::testing::cell_gate_bias_integer_no_peephole_quant,
       tflite::testing::output_gate_bias_integer_no_peephole,
-      tflite::testing::output_gate_bias_integer_no_peephole_quantized,
-      tflite::testing::projection_weights_integer_no_peephole,
-      tflite::testing::projection_weights_integer_no_peephole_quantized,
+      tflite::testing::output_gate_bias_integer_no_peephole_quant,
+      tflite::testing::projection_w_integer_no_peephole,
+      tflite::testing::projection_w_integer_no_peephole_quant,
       /*projection_bias=*/nullptr,
-      /*projection_bias_quantized=*/nullptr,
+      /*projection_bias_quant=*/nullptr,
       tflite::testing::output_state_no_peephole,
       tflite::testing::cell_state_no_peephole,
       tflite::testing::input_layer_norm_coefficients_integer_no_peephole,
-      tflite::testing::
-          input_layer_norm_coefficients_integer_no_peephole_quantized,
+      tflite::testing::input_layer_norm_coefficients_integer_no_peephole_quant,
       tflite::testing::forget_layer_norm_coefficients_integer_no_peephole,
-      tflite::testing::
-          forget_layer_norm_coefficients_integer_no_peephole_quantized,
+      tflite::testing::forget_layer_norm_coefficients_integer_no_peephole_quant,
       tflite::testing::cell_layer_norm_coefficients_integer_no_peephole,
-      tflite::testing::
-          cell_layer_norm_coefficients_integer_no_peephole_quantized,
+      tflite::testing::cell_layer_norm_coefficients_integer_no_peephole_quant,
       tflite::testing::output_layer_norm_coefficients_integer_no_peephole,
-      tflite::testing::
-          output_layer_norm_coefficients_integer_no_peephole_quantized,
+      tflite::testing::output_layer_norm_coefficients_integer_no_peephole_quant,
       tflite::testing::output_no_peephole,
       tflite::testing::expected_output_integer_no_peephole);
 }
@@ -2988,53 +3747,50 @@ TF_LITE_MICRO_TEST(UnidirectionalSequenceLstmIntegerPeepholeTest) {
       tflite::testing::intermediate_zp_integer_peephole,
       tflite::testing::intermediate_qparam_integer_peephole,
       tflite::testing::lstm_input_integer_peephole,
-      tflite::testing::lstm_input_integer_peephole_quantized,
-      tflite::testing::input_to_input_weights_integer_peephole,
-      tflite::testing::input_to_input_weights_integer_peephole_quantized,
-      tflite::testing::input_to_forget_weights_integer_peephole,
-      tflite::testing::input_to_forget_weights_integer_peephole_quantized,
-      tflite::testing::input_to_cell_weights_integer_peephole,
-      tflite::testing::input_to_cell_weights_integer_peephole_quantized,
-      tflite::testing::input_to_output_weights_integer_peephole,
-      tflite::testing::input_to_output_weights_integer_peephole_quantized,
-      tflite::testing::recurrent_to_input_weights_integer_peephole,
-      tflite::testing::recurrent_to_input_weights_integer_peephole_quantized,
-      tflite::testing::recurrent_to_forget_weights_integer_peephole,
-      tflite::testing::recurrent_to_forget_weights_integer_peephole_quantized,
-      tflite::testing::recurrent_to_cell_weights_integer_peephole,
-      tflite::testing::recurrent_to_cell_weights_integer_peephole_quantized,
-      tflite::testing::recurrent_to_output_weights_integer_peephole,
-      tflite::testing::recurrent_to_output_weights_integer_peephole_quantized,
-      tflite::testing::cell_to_input_weights_integer_peephole,
-      tflite::testing::cell_to_input_weights_integer_peephole_quantized,
-      tflite::testing::cell_to_forget_weights_integer_peephole,
-      tflite::testing::cell_to_forget_weights_integer_peephole_quantized,
-      tflite::testing::cell_to_output_weights_integer_peephole,
-      tflite::testing::cell_to_output_weights_integer_peephole_quantized,
+      tflite::testing::lstm_input_integer_peephole_quant,
+      tflite::testing::input_to_input_w_integer_peephole,
+      tflite::testing::input_to_input_w_integer_peephole_quant,
+      tflite::testing::input_to_forget_w_integer_peephole,
+      tflite::testing::input_to_forget_w_integer_peephole_quant,
+      tflite::testing::input_to_cell_w_integer_peephole,
+      tflite::testing::input_to_cell_w_integer_peephole_quant,
+      tflite::testing::input_to_output_w_integer_peephole,
+      tflite::testing::input_to_output_w_integer_peephole_quant,
+      tflite::testing::recurrent_to_input_w_integer_peephole,
+      tflite::testing::recurrent_to_input_w_integer_peephole_quant,
+      tflite::testing::recurrent_to_forget_w_integer_peephole,
+      tflite::testing::recurrent_to_forget_w_integer_peephole_quant,
+      tflite::testing::recurrent_to_cell_w_integer_peephole,
+      tflite::testing::recurrent_to_cell_w_integer_peephole_quant,
+      tflite::testing::recurrent_to_output_w_integer_peephole,
+      tflite::testing::recurrent_to_output_w_integer_peephole_quant,
+      tflite::testing::cell_to_input_w_integer_peephole,
+      tflite::testing::cell_to_input_w_integer_peephole_quant,
+      tflite::testing::cell_to_forget_w_integer_peephole,
+      tflite::testing::cell_to_forget_w_integer_peephole_quant,
+      tflite::testing::cell_to_output_w_integer_peephole,
+      tflite::testing::cell_to_output_w_integer_peephole_quant,
       tflite::testing::input_gate_bias_integer_peephole,
-      tflite::testing::input_gate_bias_integer_peephole_quantized,
+      tflite::testing::input_gate_bias_integer_peephole_quant,
       tflite::testing::forget_gate_bias_integer_peephole,
-      tflite::testing::forget_gate_bias_integer_peephole_quantized,
+      tflite::testing::forget_gate_bias_integer_peephole_quant,
       tflite::testing::cell_gate_bias_integer_peephole,
-      tflite::testing::cell_gate_bias_integer_peephole_quantized,
+      tflite::testing::cell_gate_bias_integer_peephole_quant,
       tflite::testing::output_gate_bias_integer_peephole,
-      tflite::testing::output_gate_bias_integer_peephole_quantized,
-      tflite::testing::projection_weights_integer_peephole,
-      tflite::testing::projection_weights_integer_peephole_quantized,
+      tflite::testing::output_gate_bias_integer_peephole_quant,
+      tflite::testing::projection_w_integer_peephole,
+      tflite::testing::projection_w_integer_peephole_quant,
       /*projection_bias=*/nullptr,
-      /*projection_bias_quantized=*/nullptr,
-      tflite::testing::output_state_peephole,
+      /*projection_bias_quant=*/nullptr, tflite::testing::output_state_peephole,
       tflite::testing::cell_state_peephole,
       tflite::testing::input_layer_norm_coefficients_integer_peephole,
-      tflite::testing::input_layer_norm_coefficients_integer_peephole_quantized,
+      tflite::testing::input_layer_norm_coefficients_integer_peephole_quant,
       tflite::testing::forget_layer_norm_coefficients_integer_peephole,
-      tflite::testing::
-          forget_layer_norm_coefficients_integer_peephole_quantized,
+      tflite::testing::forget_layer_norm_coefficients_integer_peephole_quant,
       tflite::testing::cell_layer_norm_coefficients_integer_peephole,
-      tflite::testing::cell_layer_norm_coefficients_integer_peephole_quantized,
+      tflite::testing::cell_layer_norm_coefficients_integer_peephole_quant,
       tflite::testing::output_layer_norm_coefficients_integer_peephole,
-      tflite::testing::
-          output_layer_norm_coefficients_integer_peephole_quantized,
+      tflite::testing::output_layer_norm_coefficients_integer_peephole_quant,
       tflite::testing::output_peephole,
       tflite::testing::expected_output_integer_peephole);
 }
@@ -3057,23 +3813,21 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpTest) {
       tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
       tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
 
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          input_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          input_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
-      tflite::testing::
-          input_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
-      tflite::testing::
-          input_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
 
       tflite::testing::
-          recurrent_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
 
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
@@ -3104,6 +3858,620 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpTest) {
       /*input_output_batch_major=*/false);
 }
 
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridInt8NoCifgNoPphlNoPrjNoClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_no_cifg_no_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/false,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_forget_w_quant=*/nullptr,
+      /*cell_to_forget_w_scale=*/nullptr,
+      /*cell_to_forget_w_zp=*/nullptr,
+      /*cell_to_forget_w_qparam=*/nullptr,
+
+      /*cell_to_output_weights=*/nullptr,
+      /*cell_to_output_w_quant=*/nullptr,
+      /*cell_to_output_w_scale=*/nullptr,
+      /*cell_to_output_w_zp=*/nullptr,
+      /*cell_to_output_w_qparam=*/nullptr,
+
+      tflite::testing::input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          golden_output_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.0157651,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteInt8);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridInt8NoCifgNoPphlNoPrjNoClpAsymTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_no_cifg_no_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/false,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_forget_w_quant=*/nullptr,
+      /*cell_to_forget_w_scale=*/nullptr,
+      /*cell_to_forget_w_zp=*/nullptr,
+      /*cell_to_forget_w_qparam=*/nullptr,
+
+      /*cell_to_output_weights=*/nullptr,
+      /*cell_to_output_w_quant=*/nullptr,
+      /*cell_to_output_w_scale=*/nullptr,
+      /*cell_to_output_w_zp=*/nullptr,
+      /*cell_to_output_w_qparam=*/nullptr,
+
+      tflite::testing::input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          golden_output_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.0157651,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteInt8,
+      /*asymmetric_quantize_inputs=*/true);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridUInt8NoCifgNoPphlNoPrjNoClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_no_cifg_no_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/false,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_forget_w_quant=*/nullptr,
+      /*cell_to_forget_w_scale=*/nullptr,
+      /*cell_to_forget_w_zp=*/nullptr,
+      /*cell_to_forget_w_qparam=*/nullptr,
+
+      /*cell_to_output_weights=*/nullptr,
+      /*cell_to_output_w_quant=*/nullptr,
+      /*cell_to_output_w_scale=*/nullptr,
+      /*cell_to_output_w_zp=*/nullptr,
+      /*cell_to_output_w_qparam=*/nullptr,
+
+      tflite::testing::input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          golden_output_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.0157651,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteUInt8);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridUInt8NoCifgNoPphlNoPrjNoClpAsymTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_no_cifg_no_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/false,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_forget_w_quant=*/nullptr,
+      /*cell_to_forget_w_scale=*/nullptr,
+      /*cell_to_forget_w_zp=*/nullptr,
+      /*cell_to_forget_w_qparam=*/nullptr,
+
+      /*cell_to_output_weights=*/nullptr,
+      /*cell_to_output_w_quant=*/nullptr,
+      /*cell_to_output_w_scale=*/nullptr,
+      /*cell_to_output_w_zp=*/nullptr,
+      /*cell_to_output_w_qparam=*/nullptr,
+
+      tflite::testing::input_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::
+          golden_output_no_cifg_no_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_no_cifg_no_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.0157651,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteUInt8,
+      /*asymmetric_quantize_inputs=*/true);
+}
+
 TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpBatchMajorTest) {
   tflite::testing::TestUnidirectionalSequenceLstmFloat(
       tflite::testing::n_batch_no_cifg_no_peephole_no_proj_no_clipping,
@@ -3122,23 +4490,21 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgNoPphlNoPrjNoClpBatchMajorTest) {
       tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping_original,
       tflite::testing::input_no_cifg_no_peephole_no_proj_no_clipping,
 
+      tflite::testing::input_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          input_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          input_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          input_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
-      tflite::testing::
-          input_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
-      tflite::testing::
-          input_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          input_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
 
       tflite::testing::
-          recurrent_to_input_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_input_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_forget_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_forget_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_cell_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_cell_w_no_cifg_no_peephole_no_proj_no_clipping,
       tflite::testing::
-          recurrent_to_output_weights_no_cifg_no_peephole_no_proj_no_clipping,
+          recurrent_to_output_w_no_cifg_no_peephole_no_proj_no_clipping,
 
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
@@ -3188,23 +4554,18 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatCifgPphlNoPrjNoClpTest) {
       tflite::testing::input_cifg_peephole_no_proj_no_clipping,
 
       /*input_to_input_weights=*/nullptr,
-      tflite::testing::
-          input_to_forget_weights_cifg_peephole_no_proj_no_clipping,
-      tflite::testing::input_to_cell_weights_cifg_peephole_no_proj_no_clipping,
-      tflite::testing::
-          input_to_output_weights_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping,
 
       /*recurrent_to_input_weights=*/nullptr,
-      tflite::testing::
-          recurrent_to_forget_weights_cifg_peephole_no_proj_no_clipping,
-      tflite::testing::
-          recurrent_to_cell_weights_cifg_peephole_no_proj_no_clipping,
-      tflite::testing::
-          recurrent_to_output_weights_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::recurrent_to_output_w_cifg_peephole_no_proj_no_clipping,
 
       /*cell_to_input_weights=*/nullptr,
-      tflite::testing::cell_to_forget_weights_cifg_peephole_no_proj_no_clipping,
-      tflite::testing::cell_to_output_weights_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping,
 
       /*input_gate_bias=*/nullptr,
       tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping,
@@ -3230,6 +4591,544 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatCifgPphlNoPrjNoClpTest) {
       /*input_output_batch_major=*/false);
 }
 
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridInt8CifgPphlNoPrjNoClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_cifg_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/true,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping,
+
+      /*input_to_input_weights=*/nullptr,
+      /*input_to_input_w_quant=*/nullptr,
+      /*input_to_input_w_scale=*/nullptr,
+      /*input_to_input_w_zp=*/nullptr,
+      /*input_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*recurrent_to_input_weights=*/nullptr,
+      /*recurrent_to_input_w_quant=*/nullptr,
+      /*recurrent_to_input_w_scale=*/nullptr,
+      /*recurrent_to_input_w_zp=*/nullptr,
+      /*recurrent_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*input_gate_bias=*/nullptr,
+      tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_cifg_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_cifg_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.03573,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteInt8);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridInt8CifgPphlNoPrjNoClpAsymTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_cifg_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/true,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping,
+
+      /*input_to_input_weights=*/nullptr,
+      /*input_to_input_w_quant=*/nullptr,
+      /*input_to_input_w_scale=*/nullptr,
+      /*input_to_input_w_zp=*/nullptr,
+      /*input_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*recurrent_to_input_weights=*/nullptr,
+      /*recurrent_to_input_w_quant=*/nullptr,
+      /*recurrent_to_input_w_scale=*/nullptr,
+      /*recurrent_to_input_w_zp=*/nullptr,
+      /*recurrent_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*input_gate_bias=*/nullptr,
+      tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_cifg_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_cifg_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.03573,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteInt8,
+      /*asymmetric_quantize_inputs=*/true);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridUInt8CifgPphlNoPrjNoClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_cifg_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/true,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping,
+
+      /*input_to_input_weights=*/nullptr,
+      /*input_to_input_w_quant=*/nullptr,
+      /*input_to_input_w_scale=*/nullptr,
+      /*input_to_input_w_zp=*/nullptr,
+      /*input_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*recurrent_to_input_weights=*/nullptr,
+      /*recurrent_to_input_w_quant=*/nullptr,
+      /*recurrent_to_input_w_scale=*/nullptr,
+      /*recurrent_to_input_w_zp=*/nullptr,
+      /*recurrent_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*input_gate_bias=*/nullptr,
+      tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_cifg_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_cifg_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.03573,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteUInt8);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridUInt8CifgPphlNoPrjNoClpAsymTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_input_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_cell_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::n_output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::sequence_length_cifg_peephole_no_proj_no_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/true,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/false,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::input_cifg_peephole_no_proj_no_clipping,
+
+      /*input_to_input_weights=*/nullptr,
+      /*input_to_input_w_quant=*/nullptr,
+      /*input_to_input_w_scale=*/nullptr,
+      /*input_to_input_w_zp=*/nullptr,
+      /*input_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::input_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*recurrent_to_input_weights=*/nullptr,
+      /*recurrent_to_input_w_quant=*/nullptr,
+      /*recurrent_to_input_w_scale=*/nullptr,
+      /*recurrent_to_input_w_zp=*/nullptr,
+      /*recurrent_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_input_w_quant=*/nullptr,
+      /*cell_to_input_w_scale=*/nullptr,
+      /*cell_to_input_w_zp=*/nullptr,
+      /*cell_to_input_w_qparam=*/nullptr,
+
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_forget_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_quant,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_scale,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_zp,
+      &tflite::testing::
+          cell_to_output_w_cifg_peephole_no_proj_no_clipping_qparam,
+
+      /*input_gate_bias=*/nullptr,
+      tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_gate_bias_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::output_gate_bias_cifg_peephole_no_proj_no_clipping,
+
+      /*projection_weights=*/nullptr,
+      /*projection_w_quant=*/nullptr,
+      /*projection_w_scale=*/nullptr,
+      /*projection_w_zp=*/nullptr,
+      /*projection_w_qparam=*/nullptr,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::cell_state_cifg_peephole_no_proj_no_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_cifg_peephole_no_proj_no_clipping,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping_original,
+      tflite::testing::golden_output_cifg_peephole_no_proj_no_clipping,
+
+      /*tolerance=*/0.03573,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteUInt8,
+      /*asymmetric_quantize_inputs=*/true);
+}
+
 TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgPphlPrjClpTest) {
   tflite::testing::TestUnidirectionalSequenceLstmFloat(
       tflite::testing::n_batch_no_cifg_peephole_proj_clipping,
@@ -3248,29 +5147,26 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgPphlPrjClpTest) {
       tflite::testing::input_no_cifg_peephole_proj_clipping_original,
       tflite::testing::input_no_cifg_peephole_proj_clipping,
 
-      tflite::testing::input_to_input_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::input_to_forget_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::input_to_cell_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::input_to_output_weights_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping,
 
-      tflite::testing::
-          recurrent_to_input_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::
-          recurrent_to_forget_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::recurrent_to_cell_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::
-          recurrent_to_output_weights_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_output_w_no_cifg_peephole_proj_clipping,
 
-      tflite::testing::cell_to_input_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::cell_to_forget_weights_no_cifg_peephole_proj_clipping,
-      tflite::testing::cell_to_output_weights_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping,
 
       tflite::testing::input_gate_bias_no_cifg_peephole_proj_clipping,
       tflite::testing::forget_gate_bias_no_cifg_peephole_proj_clipping,
       tflite::testing::cell_gate_bias_no_cifg_peephole_proj_clipping,
       tflite::testing::output_gate_bias_no_cifg_peephole_proj_clipping,
 
-      tflite::testing::projection_weights_no_cifg_peephole_proj_clipping,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping,
       /*projection_bias=*/nullptr,
 
       tflite::testing::output_state_no_cifg_peephole_proj_clipping,
@@ -3287,6 +5183,254 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgPphlPrjClpTest) {
 
       /*tolerance=*/1e-5,
       /*input_output_batch_major=*/false);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridInt8NoCifgPphlPrjClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_input_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_cell_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_output_no_cifg_peephole_proj_clipping,
+      tflite::testing::sequence_length_no_cifg_peephole_proj_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/true,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_peephole_proj_clipping_original,
+      tflite::testing::input_no_cifg_peephole_proj_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::output_gate_bias_no_cifg_peephole_proj_clipping,
+
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::projection_w_no_cifg_peephole_proj_clipping_qparam,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_state_no_cifg_peephole_proj_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_peephole_proj_clipping,
+      tflite::testing::golden_output_no_cifg_peephole_proj_clipping_original,
+      tflite::testing::golden_output_no_cifg_peephole_proj_clipping,
+
+      /*tolerance=*/0.00467,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteInt8);
+}
+
+TF_LITE_MICRO_TEST(UndrctnlSqncLstmHybridUInt8NoCifgPphlPrjClpTest) {
+  tflite::testing::TestUnidirectionalSequenceLstmHybrid(
+      tflite::testing::n_batch_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_input_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_cell_no_cifg_peephole_proj_clipping,
+      tflite::testing::n_output_no_cifg_peephole_proj_clipping,
+      tflite::testing::sequence_length_no_cifg_peephole_proj_clipping,
+      /*time_major=*/true,
+      /*use_cifg=*/false,
+      /*use_peephole=*/true,
+      /*use_projection_weights=*/true,
+      /*use_projection_bias=*/false,
+      /*use_layer_norm=*/false,
+      /*cell_clip=*/0.0f,
+      /*proj_clip=*/0.0f,
+      tflite::testing::input_no_cifg_peephole_proj_clipping_original,
+      tflite::testing::input_no_cifg_peephole_proj_clipping,
+
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_cell_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::input_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_cell_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::recurrent_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::recurrent_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::
+          recurrent_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_input_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::cell_to_output_w_no_cifg_peephole_proj_clipping_qparam,
+
+      tflite::testing::input_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::forget_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_gate_bias_no_cifg_peephole_proj_clipping,
+      tflite::testing::output_gate_bias_no_cifg_peephole_proj_clipping,
+
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_quant,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_scale,
+      tflite::testing::projection_w_no_cifg_peephole_proj_clipping_zp,
+      &tflite::testing::projection_w_no_cifg_peephole_proj_clipping_qparam,
+
+      /*projection_bias=*/nullptr,
+
+      tflite::testing::output_state_no_cifg_peephole_proj_clipping,
+      tflite::testing::cell_state_no_cifg_peephole_proj_clipping,
+
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+
+      tflite::testing::output_no_cifg_peephole_proj_clipping,
+      tflite::testing::golden_output_no_cifg_peephole_proj_clipping_original,
+      tflite::testing::golden_output_no_cifg_peephole_proj_clipping,
+
+      /*tolerance=*/0.00467,
+      /*input_output_batch_major=*/false,
+      /*weight_type=*/kTfLiteUInt8);
 }
 
 TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgPphlPrjBiasClpTest) {
@@ -3307,37 +5451,28 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatNoCifgPphlPrjBiasClpTest) {
       tflite::testing::input_no_cifg_peephole_proj_bias_clipping_original,
       tflite::testing::input_no_cifg_peephole_proj_bias_clipping,
 
-      tflite::testing::
-          input_to_input_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          input_to_forget_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          input_to_cell_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          input_to_output_weights_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::input_to_input_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::input_to_forget_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::input_to_cell_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::input_to_output_w_no_cifg_peephole_proj_bias_clipping,
 
+      tflite::testing::recurrent_to_input_w_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::
-          recurrent_to_input_weights_no_cifg_peephole_proj_bias_clipping,
+          recurrent_to_forget_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::recurrent_to_cell_w_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::
-          recurrent_to_forget_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          recurrent_to_cell_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          recurrent_to_output_weights_no_cifg_peephole_proj_bias_clipping,
+          recurrent_to_output_w_no_cifg_peephole_proj_bias_clipping,
 
-      tflite::testing::
-          cell_to_input_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          cell_to_forget_weights_no_cifg_peephole_proj_bias_clipping,
-      tflite::testing::
-          cell_to_output_weights_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::cell_to_input_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::cell_to_forget_w_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::cell_to_output_w_no_cifg_peephole_proj_bias_clipping,
 
       tflite::testing::input_gate_bias_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::forget_gate_bias_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::cell_gate_bias_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::output_gate_bias_no_cifg_peephole_proj_bias_clipping,
 
-      tflite::testing::projection_weights_no_cifg_peephole_proj_bias_clipping,
+      tflite::testing::projection_w_no_cifg_peephole_proj_bias_clipping,
       tflite::testing::projection_bias_no_cifg_peephole_proj_bias_clipping,
 
       tflite::testing::output_state_no_cifg_peephole_proj_bias_clipping,
@@ -3377,25 +5512,22 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatCifgPphlNoPrjNoClpLayerNormTest) {
 
       /*input_to_input_weights=*/nullptr,
       tflite::testing::
-          input_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+          input_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm,
+      tflite::testing::input_to_cell_w_cifg_peephole_no_proj_no_clipping_lnorm,
       tflite::testing::
-          input_to_cell_weights_cifg_peephole_no_proj_no_clipping_lnorm,
-      tflite::testing::
-          input_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+          input_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm,
 
       /*recurrent_to_input_weights=*/nullptr,
       tflite::testing::
-          recurrent_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+          recurrent_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm,
       tflite::testing::
-          recurrent_to_cell_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+          recurrent_to_cell_w_cifg_peephole_no_proj_no_clipping_lnorm,
       tflite::testing::
-          recurrent_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+          recurrent_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm,
 
       /*cell_to_input_weights=*/nullptr,
-      tflite::testing::
-          cell_to_forget_weights_cifg_peephole_no_proj_no_clipping_lnorm,
-      tflite::testing::
-          cell_to_output_weights_cifg_peephole_no_proj_no_clipping_lnorm,
+      tflite::testing::cell_to_forget_w_cifg_peephole_no_proj_no_clipping_lnorm,
+      tflite::testing::cell_to_output_w_cifg_peephole_no_proj_no_clipping_lnorm,
 
       /*input_gate_bias=*/nullptr,
       tflite::testing::forget_gate_bias_cifg_peephole_no_proj_no_clipping_lnorm,
