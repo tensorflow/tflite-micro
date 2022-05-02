@@ -199,5 +199,20 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+TfLiteRegistration RegisterOp(
+    void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
+    TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node)) {
+  return {/*init=*/init,
+          /*free=*/nullptr,
+          /*prepare=*/prepare,
+          /*invoke=*/invoke,
+          /*profiling_string=*/nullptr,
+          /*builtin_code=*/0,
+          /*custom_name=*/nullptr,
+          /*version=*/0,
+          /*registration_external=*/nullptr};
+}
+
 }  // namespace micro
 }  // namespace tflite
