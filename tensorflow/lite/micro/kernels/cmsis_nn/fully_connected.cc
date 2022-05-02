@@ -144,11 +144,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void PopulateCommonParams(TfLiteContext* context,
-                           cmsis_nn_per_tensor_quant_params& quant_params,
-                           cmsis_nn_dims& input_dims,
-                           cmsis_nn_dims& filter_dims, cmsis_nn_dims& bias_dims,
-                           cmsis_nn_dims& output_dims, cmsis_nn_context& ctx,
-                           const OpData& data) {
+                          cmsis_nn_per_tensor_quant_params& quant_params,
+                          cmsis_nn_dims& input_dims, cmsis_nn_dims& filter_dims,
+                          cmsis_nn_dims& bias_dims, cmsis_nn_dims& output_dims,
+                          cmsis_nn_context& ctx, const OpData& data) {
   quant_params.multiplier = data.reference_op_data.output_multiplier;
   quant_params.shift = data.reference_op_data.output_shift;
 
