@@ -143,6 +143,42 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+void PopulateCommonParams(TfLiteContext* context,
+                           cmsis_nn_per_tensor_quant_params& quant_params,
+                           cmsis_nn_dims& input_dims,
+                           cmsis_nn_dims& filter_dims, cmsis_nn_dims& bias_dims,
+                           cmsis_nn_dims& output_dims, cmsis_nn_context& ctx,
+                           const OpData& data) {
+  quant_params.multiplier = data.reference_op_data.output_multiplier;
+  quant_params.shift = data.reference_op_data.output_shift;
+
+  input_dims.n = data.batches;
+  input_dims.h = 1;
+  input_dims.w = 1;
+  input_dims.c = data.accum_depth;
+
+  filter_dims.n = data.accum_depth;
+  filter_dims.h = 1;
+  filter_dims.w = 1;
+  filter_dims.c = data.output_depth;
+
+  bias_dims.n = 1;
+  bias_dims.h = 1;
+  bias_dims.w = 1;
+  bias_dims.c = data.output_depth;
+
+  output_dims.n = data.batches;
+  output_dims.h = 1;
+  output_dims.w = 1;
+  output_dims.c = data.output_depth;
+
+  ctx.buf = nullptr;
+  ctx.size = 0;
+  if (data.buffer_idx > -1) {
+    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
+  }
+}
+
 TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const OpData& data,
                                const TfLiteEvalTensor* input,
@@ -155,40 +191,14 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   TFLITE_DCHECK_LE(output_dim_count, 4);
 
   cmsis_nn_per_tensor_quant_params quant_params;
-  quant_params.multiplier = data.reference_op_data.output_multiplier;
-  quant_params.shift = data.reference_op_data.output_shift;
-
   cmsis_nn_dims input_dims;
-  input_dims.n = data.batches;
-  input_dims.h = 1;
-  input_dims.w = 1;
-  input_dims.c = data.accum_depth;
-
   cmsis_nn_dims filter_dims;
-  filter_dims.n = data.accum_depth;
-  filter_dims.h = 1;
-  filter_dims.w = 1;
-  filter_dims.c = data.output_depth;
-
   cmsis_nn_dims bias_dims;
-  bias_dims.n = 1;
-  bias_dims.h = 1;
-  bias_dims.w = 1;
-  bias_dims.c = data.output_depth;
-
   cmsis_nn_dims output_dims;
-  output_dims.n = data.batches;
-  output_dims.h = 1;
-  output_dims.w = 1;
-  output_dims.c = data.output_depth;
-
   cmsis_nn_context ctx;
-  ctx.buf = nullptr;
-  ctx.size = 0;
 
-  if (data.buffer_idx > -1) {
-    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
-  }
+  PopulateCommonParams(context, quant_params, input_dims, filter_dims,
+                       bias_dims, output_dims, ctx, data);
 
   const int32_t* bias_data =
       nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
@@ -252,40 +262,14 @@ TfLiteStatus EvalQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
                                 const TfLiteEvalTensor* bias,
                                 TfLiteEvalTensor* output) {
   cmsis_nn_per_tensor_quant_params quant_params;
-  quant_params.multiplier = data.reference_op_data.output_multiplier;
-  quant_params.shift = data.reference_op_data.output_shift;
-
   cmsis_nn_dims input_dims;
-  input_dims.n = data.batches;
-  input_dims.h = 1;
-  input_dims.w = 1;
-  input_dims.c = data.accum_depth;
-
   cmsis_nn_dims filter_dims;
-  filter_dims.n = data.accum_depth;
-  filter_dims.h = 1;
-  filter_dims.w = 1;
-  filter_dims.c = data.output_depth;
-
   cmsis_nn_dims bias_dims;
-  bias_dims.n = 1;
-  bias_dims.h = 1;
-  bias_dims.w = 1;
-  bias_dims.c = data.output_depth;
-
   cmsis_nn_dims output_dims;
-  output_dims.n = data.batches;
-  output_dims.h = 1;
-  output_dims.w = 1;
-  output_dims.c = data.output_depth;
-
   cmsis_nn_context ctx;
-  ctx.buf = nullptr;
-  ctx.size = 0;
 
-  if (data.buffer_idx > -1) {
-    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
-  }
+  PopulateCommonParams(context, quant_params, input_dims, filter_dims,
+                       bias_dims, output_dims, ctx, data);
 
   const int64_t* bias_data =
       nullptr != bias ? tflite::micro::GetTensorData<int64_t>(bias) : nullptr;
