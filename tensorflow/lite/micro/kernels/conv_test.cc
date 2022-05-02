@@ -189,7 +189,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannel) {
           output_data));
 }
 
-TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel) {
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBias) {
   const int output_dims_count = 12;
   int16_t output_data[output_dims_count];
 
@@ -218,6 +218,38 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel) {
           &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
           output_data));
 }
+
+#if !defined(CMSIS_NN)
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel32bBias) {
+  const int output_dims_count = 12;
+  int16_t output_data[output_dims_count];
+
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int16_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int32_t bias_quantized[tflite::testing::kBiasElements];
+  int16_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestConvQuantizedPerChannel(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kFilterShape, tflite::testing::kFilterData,
+          filter_quantized, tflite::testing::kBiasShape,
+          tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+          golden_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
+          output_data));
+}
+#endif
 
 TF_LITE_MICRO_TEST(SimpleTestDilatedQuantizedPerChannel) {
   const int output_dims_count = 24;
@@ -295,7 +327,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelRelu6) {
           output_data));
 }
 
-TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu6) {
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu664bBias) {
   const int output_dims_count = 12;
   int16_t output_data[output_dims_count];
 
@@ -327,6 +359,41 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu6) {
           golden_data, golden_quantized, output_scale, output_zero_point,
           &conv_params, tflite::Register_CONV_2D(), output_data));
 }
+
+#if !defined(CMSIS_NN)
+TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu632bBias) {
+  const int output_dims_count = 12;
+  int16_t output_data[output_dims_count];
+
+  const float bias_values[] = {1, 2, -3};
+  const float golden_data[] = {6, 2, 0, 6, 2, 0, 6, 4, 0, 6, 4, 0};
+
+  const float input_scale = 0.023529f;
+  const float output_scale = 0.023529f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int16_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int32_t bias_quantized[tflite::testing::kBiasElements];
+  int16_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  TfLiteConvParams conv_params{tflite::testing::common_conv_params};
+  conv_params.activation = kTfLiteActRelu6;
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestConvQuantizedPerChannel(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kFilterShape, tflite::testing::kFilterData,
+          filter_quantized, tflite::testing::kBiasShape, bias_values,
+          bias_quantized, scales, zero_points, tflite::testing::kOutputShape,
+          golden_data, golden_quantized, output_scale, output_zero_point,
+          &conv_params, tflite::Register_CONV_2D(), output_data));
+}
+#endif
 
 TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannel) {
   // conv params:
