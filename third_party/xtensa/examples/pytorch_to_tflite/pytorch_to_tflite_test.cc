@@ -34,7 +34,7 @@ limitations under the License.
  * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
-
+#if !defined(HIFI4) && !defined(HIFI4_INTERNAL) 
 #include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -138,3 +138,4 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 }
 
 TF_LITE_MICRO_TESTS_END
+#endif
