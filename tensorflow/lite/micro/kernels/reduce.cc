@@ -327,25 +327,13 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace reduce
 
 TfLiteRegistration Register_MEAN() {
-  return {/*init=*/reduce::InitReduce,
-          /*free=*/nullptr,
-          /*prepare=*/reduce::PrepareMeanOrSum,
-          /*invoke=*/reduce::EvalMean,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(reduce::InitReduce, reduce::PrepareMeanOrSum,
+                                   reduce::EvalMean);
 }
 
 TfLiteRegistration Register_REDUCE_MAX() {
-  return {/*init=*/reduce::InitReduce,
-          /*free=*/nullptr,
-          /*prepare=*/reduce::PrepareMax,
-          /*invoke=*/reduce::EvalMax,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(reduce::InitReduce, reduce::PrepareMax,
+                                   reduce::EvalMax);
 }
 
 }  // namespace micro

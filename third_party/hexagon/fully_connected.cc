@@ -124,14 +124,7 @@ TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context, TfLiteNode* node)
 }
 
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  return {/*init=*/HexagonFullyConnectedInit,
-          /*free=*/nullptr,
-          /*prepare=*/HexagonFullyConnectedPrepare,
-          /*invoke=*/HexagonFullyConnectedEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare, HexagonFullyConnectedEval);
 }
 
 }  // namespace tflite
