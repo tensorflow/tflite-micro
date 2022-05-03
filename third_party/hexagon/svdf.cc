@@ -103,14 +103,7 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_SVDF() {
-  return {/*init=*/HexagonSvdfInit,
-          /*free=*/nullptr,
-          /*prepare=*/HexagonSvdfPrepare,
-          /*invoke=*/SvdfEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare, SvdfEval);
 }
 
 }  // namespace tflite
