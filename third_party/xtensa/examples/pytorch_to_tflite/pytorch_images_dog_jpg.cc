@@ -34,7 +34,7 @@ limitations under the License.
  * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
- 
+ #if !defined(HIFI4) && !defined(HIFI4_INTERNAL) 
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
 
 unsigned char g_pytorch_images_dog_jpg_data[] = {
@@ -12584,3 +12584,4 @@ unsigned char g_pytorch_images_dog_jpg_data[] = {
   0xd9, 0xd8, 0xc6, 0xb8, 0xb8, 0xc8, 0xc2, 0xb8, 0xc4, 0xd4, 0xc1, 0xb9
 };
 unsigned int g_pytorch_images_dog_jpg_len = 150528;
+#endif //#if !defined(HIFI4) && !defined(HIFI4_INTERNAL) 
