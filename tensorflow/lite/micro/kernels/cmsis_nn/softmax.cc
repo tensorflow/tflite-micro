@@ -34,11 +34,6 @@ struct CMSISNNSoftmaxParams {
   int32_t row_size;
 };
 
-// TODO(b/169801227): This global struct is needed for the linker to drop unused
-// code (for example, by using Register_SOFTMAX_INT8 instead of
-// Register_SOFTMAX).
-TfLiteRegistration softmax_registration;
-
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
@@ -195,51 +190,19 @@ TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SOFTMAX() {
-  softmax_registration.init = Init;
-  softmax_registration.free = nullptr;
-  softmax_registration.prepare = Prepare;
-  softmax_registration.invoke = SoftmaxEval;
-  softmax_registration.profiling_string = nullptr;
-  softmax_registration.builtin_code = 0;
-  softmax_registration.custom_name = nullptr;
-  softmax_registration.version = 0;
-  return softmax_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEval);
 }
 
 TfLiteRegistration Register_SOFTMAX_INT8() {
-  softmax_registration.init = Init;
-  softmax_registration.free = nullptr;
-  softmax_registration.prepare = Prepare;
-  softmax_registration.invoke = SoftmaxEvalInt8;
-  softmax_registration.profiling_string = nullptr;
-  softmax_registration.builtin_code = 0;
-  softmax_registration.custom_name = nullptr;
-  softmax_registration.version = 0;
-  return softmax_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8);
 }
 
 TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
-  softmax_registration.init = Init;
-  softmax_registration.free = nullptr;
-  softmax_registration.prepare = Prepare;
-  softmax_registration.invoke = SoftmaxEvalInt8_Int16;
-  softmax_registration.profiling_string = nullptr;
-  softmax_registration.builtin_code = 0;
-  softmax_registration.custom_name = nullptr;
-  softmax_registration.version = 0;
-  return softmax_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8_Int16);
 }
 
 TfLiteRegistration Register_SOFTMAX_INT16() {
-  softmax_registration.init = Init;
-  softmax_registration.free = nullptr;
-  softmax_registration.prepare = Prepare;
-  softmax_registration.invoke = SoftmaxEvalInt16;
-  softmax_registration.profiling_string = nullptr;
-  softmax_registration.builtin_code = 0;
-  softmax_registration.custom_name = nullptr;
-  softmax_registration.version = 0;
-  return softmax_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt16);
 }
 
 }  // namespace tflite
