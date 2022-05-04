@@ -27,6 +27,11 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+TfLiteRegistration RegisterOp(
+    void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
+    TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node));
+
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
 TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
