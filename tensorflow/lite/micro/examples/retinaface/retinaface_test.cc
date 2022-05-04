@@ -92,12 +92,11 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
 
   // img is in HWC format -> need to convert to NCHW
   // also unroll image 
-  float means[3] = {104.0f, 117.0f, 123.0f};
   for (int ch = 0; ch < 3; ch++) {
     for (int vH = 0; vH < IMG_H; vH++) {
       for (int vW = 0; vW < IMG_W; vW++) {
         int vv = img.at<uchar>(vH*3*IMG_W + vW*3 + ch);
-        float v = vv - means[ch];
+        float v = static_cast<float>(vv);
         input->data.f[vW + vH*IMG_W + ch*IMG_W*IMG_H] = v;
       }
     }
@@ -133,6 +132,9 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   TF_LITE_MICRO_EXPECT_EQ(N_ANCHORS, output2->dims->data[1]);
 
   // POST processing
+  constexpr float threshold = 0.85f;
+  constexpr float nms_threshold = 0.4f;
+  constexpr std::array<float, 2> variances = {0.1f, 0.2f};
   
   BoxList loc;
   LandmList landm;
@@ -149,7 +151,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
                       {8, 16, 32},
                       false, IMG_H, IMG_W);
   BoxList priors = priorbox.forward();
-  BoxList boxes = decode(loc, priors, {0.1f, 0.2f});
+  BoxList boxes = decode(loc, priors, variances);
   std::array<int, 4> scale = {IMG_W, IMG_H, IMG_W, IMG_H};
   for (int i = 0; i < N_ANCHORS; i++) {
     for (int j = 0; j < 4; j++) {
@@ -157,7 +159,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
     }
   }
 
-  LandmList landms = decode_landm(landm, priors, {0.1f, 0.2f});
+  LandmList landms = decode_landm(landm, priors, variances);
   std::array<int, 10> scale1 = {IMG_W, IMG_H,
                                IMG_W, IMG_H,
                                IMG_W, IMG_H,
@@ -170,7 +172,6 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   }
 
   // Threshold filtering
-  constexpr float threshold = 0.7;
   DetList dets;
   filterAndGetDetections(conf,
                          boxes,
@@ -180,8 +181,22 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
                          N_ANCHORS);
 
   // Non-max suppression 
-  constexpr float nms_threshold = 0.4;
   nonMaxSuppression(&dets, nms_threshold);
+
+  for (Det det: dets) {
+    std::array<int, 15> b;
+    for (int i = 0; i < 15; i++)
+      b[i] = (int)det[i];
+
+    cv::rectangle(img,
+                   {b[0], b[1]},
+                   {b[2], b[3]},
+                   {0, 0, 255},
+                   1);
+  }
+
+  cv::imshow("detections", img);
+  cv::waitKey(0);
 
   // Should detect 11 facts with `threshold`
   TF_LITE_MICRO_EXPECT_EQ(11, (int)dets.size());
