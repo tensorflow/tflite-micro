@@ -85,11 +85,6 @@ struct OpData {
   int buffer_idx;
 };
 
-// TODO(b/169801227): This global struct is needed for the linker to drop unused
-// code (for example, by using Register_DEPTHWISE_CONV_2D_INT8 instead of
-// Register_DEPTHWISE_CONV_2D).
-TfLiteRegistration depthwise_conv_registration;
-
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -381,39 +376,15 @@ TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_DEPTHWISE_CONV_2D() {
-  depthwise_conv_registration.init = Init;
-  depthwise_conv_registration.free = nullptr;
-  depthwise_conv_registration.prepare = Prepare;
-  depthwise_conv_registration.invoke = Eval;
-  depthwise_conv_registration.profiling_string = nullptr;
-  depthwise_conv_registration.builtin_code = 0;
-  depthwise_conv_registration.custom_name = nullptr;
-  depthwise_conv_registration.version = 0;
-  return depthwise_conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 TfLiteRegistration Register_DEPTHWISE_CONV_2D_INT8() {
-  depthwise_conv_registration.init = Init;
-  depthwise_conv_registration.free = nullptr;
-  depthwise_conv_registration.prepare = Prepare;
-  depthwise_conv_registration.invoke = EvalInt8;
-  depthwise_conv_registration.profiling_string = nullptr;
-  depthwise_conv_registration.builtin_code = 0;
-  depthwise_conv_registration.custom_name = nullptr;
-  depthwise_conv_registration.version = 0;
-  return depthwise_conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
 TfLiteRegistration Register_DEPTHWISE_CONV_2D_INT16() {
-  depthwise_conv_registration.init = Init;
-  depthwise_conv_registration.free = nullptr;
-  depthwise_conv_registration.prepare = Prepare;
-  depthwise_conv_registration.invoke = EvalInt16x8;
-  depthwise_conv_registration.profiling_string = nullptr;
-  depthwise_conv_registration.builtin_code = 0;
-  depthwise_conv_registration.custom_name = nullptr;
-  depthwise_conv_registration.version = 0;
-  return depthwise_conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, EvalInt16x8);
 }
 
 }  // namespace tflite

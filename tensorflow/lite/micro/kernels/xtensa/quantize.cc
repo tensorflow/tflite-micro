@@ -116,6 +116,14 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                               op_data->requantize_output_shift,
                               op_data->input_zero_point, zero_point,
                               tflite::micro::GetTensorData<int16_t>(output));
+  } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt8) {
+    int size = ElementCount(*input->dims);
+    int32_t zero_point = op_data->quantization_params.zero_point;
+    reference_ops::Requantize(tflite::micro::GetTensorData<int8_t>(input), size,
+                              op_data->requantize_output_multiplier,
+                              op_data->requantize_output_shift,
+                              op_data->input_zero_point, zero_point,
+                              tflite::micro::GetTensorData<int16_t>(output));
   } else {
     TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
                        TfLiteTypeGetName(input->type),
@@ -168,14 +176,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_QUANTIZE() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 }  // namespace tflite

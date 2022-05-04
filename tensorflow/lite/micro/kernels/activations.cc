@@ -109,25 +109,11 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_RELU() {
-  return {/*init=*/ReluInit,
-          /*free=*/nullptr,
-          /*prepare=*/ReluPrepare,
-          /*invoke=*/ReluEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(ReluInit, ReluPrepare, ReluEval);
 }
 
 TfLiteRegistration Register_RELU6() {
-  return {/*init=*/Relu6Init,
-          /*free=*/nullptr,
-          /*prepare=*/Relu6Prepare,
-          /*invoke=*/Relu6Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Relu6Init, Relu6Prepare, Relu6Eval);
 }
 
 }  // namespace tflite

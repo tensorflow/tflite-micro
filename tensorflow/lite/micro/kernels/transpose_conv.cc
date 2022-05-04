@@ -133,7 +133,9 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     micro_context->DeallocateTempTfLiteTensor(input);
     micro_context->DeallocateTempTfLiteTensor(filter);
     micro_context->DeallocateTempTfLiteTensor(output);
-    micro_context->DeallocateTempTfLiteTensor(bias);
+    if (bias != nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(bias);
+    }
   }
   return kTfLiteOk;
 }
@@ -335,14 +337,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_TRANSPOSE_CONV() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 }  // namespace tflite

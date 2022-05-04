@@ -16,8 +16,10 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 
@@ -98,8 +100,9 @@ TfLiteStatus AllocationInfoBuilder::MarkSubgraphLifetimesIfNecessary(
 TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
     int scratch_buffer_request_count) {
   size_t subgraph_offsets_length = model_->subgraphs()->size() * sizeof(size_t);
-  info_.subgraph_offsets = reinterpret_cast<size_t*>(
-      allocator_->AllocateTemp(subgraph_offsets_length, alignof(size_t)));
+  info_.subgraph_offsets =
+      reinterpret_cast<size_t*>(non_persistent_allocator_->AllocateTemp(
+          subgraph_offsets_length, alignof(size_t)));
   if (info_.subgraph_offsets == nullptr) {
     TF_LITE_REPORT_ERROR(
         reporter_,
@@ -128,7 +131,7 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
   // Allocate an array of AllocationInfo structs from the temp section. This
   // struct will be used by AllocationInfoBuilder to find buffer usage.
   info_.allocation_info = reinterpret_cast<AllocationInfo*>(
-      allocator_->AllocateTemp(bytes, alignof(AllocationInfo)));
+      non_persistent_allocator_->AllocateTemp(bytes, alignof(AllocationInfo)));
   if (info_.allocation_info == nullptr) {
     TF_LITE_REPORT_ERROR(
         reporter_,
@@ -140,9 +143,34 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
 }
 
 TfLiteStatus AllocationInfoBuilder::FreeAllocationInfo() {
-  allocator_->DeallocateTemp(reinterpret_cast<uint8_t*>(info_.allocation_info));
-  allocator_->DeallocateTemp(
+  non_persistent_allocator_->DeallocateTemp(
+      reinterpret_cast<uint8_t*>(info_.allocation_info));
+  non_persistent_allocator_->DeallocateTemp(
       reinterpret_cast<uint8_t*>(info_.subgraph_offsets));
+  return kTfLiteOk;
+}
+
+TfLiteStatus AllocationInfoBuilder::ValidateSubgraph(
+    const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors) {
+  uint32_t operators_size = NumSubgraphOperators(subgraph);
+
+  for (uint32_t i = 0; i < operators_size; i++) {
+    const auto op = subgraph->operators()->Get(i);
+    for (size_t n = 0;
+         op->intermediates() != nullptr && n < op->intermediates()->size();
+         n++) {
+      const int tensor_index = op->intermediates()->Get(n);
+      size_t tensor_size = -1;
+      TF_LITE_ENSURE_STATUS(TfLiteEvalTensorByteLength(
+          &eval_tensors[tensor_index], &tensor_size));
+      if (tensor_size != 0) {
+        MicroPrintf(
+            "Does not support intermediate tensor with non-zero size: %d",
+            tensor_size);
+        return kTfLiteError;
+      }
+    }
+  }
   return kTfLiteOk;
 }
 
@@ -156,6 +184,10 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
     TfLiteEvalTensor* eval_tensors = allocations[subgraph_idx].tensors;
     AllocationInfo* subgraph_allocation_info =
         &allocation_info[info_.subgraph_offsets[subgraph_idx]];
+
+    // Ensure constraints are met.
+    TF_LITE_ENSURE_STATUS(ValidateSubgraph(subgraph, eval_tensors));
+
     for (size_t i = 0; i < subgraph->tensors()->size(); ++i) {
       AllocationInfo* current = &subgraph_allocation_info[i];
       current->output_ptr = &(eval_tensors[i].data.data);
@@ -165,8 +197,10 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
 
       current->first_created = kUninitializedLifetime;
       current->last_used = kUninitializedLifetime;
-      current->needs_allocating = (eval_tensors[i].data.data == nullptr) &&
-                                  (!subgraph->tensors()->Get(i)->is_variable());
+      current->needs_allocating =
+          (eval_tensors[i].data.data == nullptr) &&
+          (!subgraph->tensors()->Get(i)->is_variable()) &&
+          (current->bytes != 0);
       if (offline_offsets) {
         current->offline_offset = offline_offsets[i];
       } else {
@@ -179,8 +213,8 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
       &allocation_info[info_.scratch_offset];
   for (size_t i = 0; i < info_.scratch_buffer_count; i++) {
     AllocationInfo* current = &scratch_allocation_info[i];
-    current->first_created = -1;
-    current->last_used = -1;
+    current->first_created = kUninitializedLifetime;
+    current->last_used = kUninitializedLifetime;
     current->needs_allocating = true;
     current->offline_offset = kOnlinePlannedBuffer;
   }

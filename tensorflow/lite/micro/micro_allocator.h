@@ -21,10 +21,10 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
+#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
-#include "tensorflow/lite/micro/simple_memory_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -38,8 +38,9 @@ namespace internal {
 // TODO(b/162311891): Drop this method when the interpreter has an API for
 // returning buffers on TfLiteEvalTensor.
 TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
-    SimpleMemoryAllocator* allocator, bool allocate_temp,
-    const tflite::Tensor& flatbuffer_tensor,
+    IPersistentBufferAllocator* persistent_buffer_allocator,
+    INonPersistentBufferAllocator* non_persistent_buffer_allocator,
+    bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
     ErrorReporter* error_reporter, TfLiteTensor* result);
 
@@ -285,7 +286,8 @@ class MicroAllocator {
   internal::ScratchBufferRequest* GetScratchBufferRequests();
 
   // A simple memory allocator that always allocate from the arena tail or head.
-  SimpleMemoryAllocator* memory_allocator_;
+  INonPersistentBufferAllocator* non_persistent_buffer_allocator_;
+  IPersistentBufferAllocator* persistent_buffer_allocator_;
 
   // Allocator used to allocate persistent builtin data.
   BuiltinDataAllocator* builtin_data_allocator_;

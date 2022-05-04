@@ -119,6 +119,21 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "micro_tensor_utils",
+    srcs = [
+        "micro_tensor_utils.cc",
+    ],
+    hdrs = ["micro_tensor_utils.h"],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/kernels/internal:common",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels/internal:cppmath",
+    ],
+)
+
 HIFI4_COPTS = [
     "-DXTENSA=1",
     "-DHIFI4_INTERNAL=1",
@@ -188,6 +203,7 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
+        "lstm_eval.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",
@@ -224,6 +240,7 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
+        "unidirectional_sequence_lstm.cc",
         "unpack.cc",
         "var_handle.cc",
         "while.cc",
@@ -242,6 +259,8 @@ tflm_kernel_cc_library(
         "leaky_relu.h",
         "logical.h",
         "logistic.h",
+        "lstm_eval.h",
+        "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
         "pooling.h",
@@ -261,7 +280,10 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_vision_p6_config(): glob(
+            ["xtensa/**/*.cc"],
+            exclude = ["xtensa/conv.cc"],
+        ),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
@@ -277,6 +299,7 @@ tflm_kernel_cc_library(
     deps = [
         ":activation_utils",
         ":kernel_util",
+        ":micro_tensor_utils",
         ":micro_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
@@ -849,6 +872,20 @@ cc_test(
 )
 
 cc_test(
+    name = "lstm_eval_test",
+    srcs = [
+        "lstm_eval_test.cc",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "maximum_minimum_test",
     srcs = [
         "maximum_minimum_test.cc",
@@ -1237,6 +1274,22 @@ cc_test(
         ":conv_test_common",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "unidirectional_sequence_lstm_test",
+    srcs = [
+        "unidirectional_sequence_lstm_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",

@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
@@ -42,7 +43,9 @@ namespace {
 
 class StackAllocator : public flatbuffers::Allocator {
  public:
-  StackAllocator() : data_(data_backing_), data_size_(0) {}
+  StackAllocator(size_t alignment) : data_size_(0) {
+    data_ = AlignPointerUp(data_backing_, alignment);
+  }
 
   uint8_t* allocate(size_t size) override {
     TFLITE_DCHECK((data_size_ + size) <= kStackAllocatorSize);
@@ -54,10 +57,10 @@ class StackAllocator : public flatbuffers::Allocator {
 
   void deallocate(uint8_t* p, size_t) override {}
 
-  static StackAllocator& instance() {
+  static StackAllocator& instance(size_t alignment = 1) {
     // Avoid using true dynamic memory allocation to be portable to bare metal.
     static char inst_memory[sizeof(StackAllocator)];
-    static StackAllocator* inst = new (inst_memory) StackAllocator;
+    static StackAllocator* inst = new (inst_memory) StackAllocator(alignment);
     return *inst;
   }
 
@@ -75,7 +78,8 @@ flatbuffers::FlatBufferBuilder* BuilderInstance() {
   static char inst_memory[sizeof(flatbuffers::FlatBufferBuilder)];
   static flatbuffers::FlatBufferBuilder* inst =
       new (inst_memory) flatbuffers::FlatBufferBuilder(
-          StackAllocator::kStackAllocatorSize, &StackAllocator::instance());
+          StackAllocator::kStackAllocatorSize,
+          &StackAllocator::instance(MicroArenaBufferAlignment()));
   return inst;
 }
 
@@ -106,7 +110,9 @@ class ModelBuilder {
 
   // Adds a node to the model with given input and output Tensors.
   Node AddNode(Operator op, std::initializer_list<Tensor> inputs,
-               std::initializer_list<Tensor> outputs);
+               std::initializer_list<Tensor> outputs,
+               std::initializer_list<Tensor> intermediates =
+                   std::initializer_list<Tensor>{});
 
   void AddMetadata(const char* description_string,
                    const int32_t* metadata_buffer_data, size_t num_elements);
@@ -161,12 +167,17 @@ ModelBuilder::Operator ModelBuilder::RegisterOp(BuiltinOperator op,
 ModelBuilder::Node ModelBuilder::AddNode(
     ModelBuilder::Operator op,
     std::initializer_list<ModelBuilder::Tensor> inputs,
-    std::initializer_list<ModelBuilder::Tensor> outputs) {
+    std::initializer_list<ModelBuilder::Tensor> outputs,
+    std::initializer_list<ModelBuilder::Tensor> intermediates) {
   TFLITE_DCHECK(next_operator_id_ <= kMaxOperators);
   operators_[next_operator_id_] = tflite::CreateOperator(
       *builder_, op, builder_->CreateVector(inputs.begin(), inputs.size()),
       builder_->CreateVector(outputs.begin(), outputs.size()),
-      BuiltinOptions_NONE);
+      BuiltinOptions_NONE,
+      /*builtin_options=*/0,
+      /*custom_options=*/0, tflite::CustomOptionsFormat_FLEXBUFFERS,
+      /*mutating_variable_inputs =*/0,
+      builder_->CreateVector(intermediates.begin(), intermediates.size()));
   next_operator_id_++;
   return next_operator_id_ - 1;
 }
@@ -270,9 +281,12 @@ const Model* BuildSimpleStatefulModel() {
   const int median_tensor = model_builder.AddTensor(TensorType_INT8, {3});
   const int invoke_count_tensor =
       model_builder.AddTensor(TensorType_INT32, {1});
+  const int intermediate_tensor =
+      model_builder.AddTensor(TensorType_FLOAT32, {0});
 
   model_builder.AddNode(op_id, {input_tensor},
-                        {median_tensor, invoke_count_tensor});
+                        {median_tensor, invoke_count_tensor},
+                        {intermediate_tensor});
   return model_builder.BuildModel({input_tensor},
                                   {median_tensor, invoke_count_tensor});
 }

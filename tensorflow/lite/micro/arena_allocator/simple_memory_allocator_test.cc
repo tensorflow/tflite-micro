@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
 
 #include <cstdint>
 
@@ -297,7 +297,7 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
 
   // The most recent head allocation should be in the same location as the
   // original temp allocation pointer.
-  TF_LITE_MICRO_EXPECT(temp == allocator.GetNonPersistentBufferStartAddress());
+  TF_LITE_MICRO_EXPECT(temp == allocator.GetOverlayMemoryAddress());
 }
 
 TF_LITE_MICRO_TEST(TestIsAllTempDeallocated) {
