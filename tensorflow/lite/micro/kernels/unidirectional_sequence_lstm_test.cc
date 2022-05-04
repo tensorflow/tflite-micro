@@ -532,7 +532,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   } else if (zero_point_double > qmax_double) {
     nudged_zero_point = qmax;
   } else {
-    nudged_zero_point = static_cast<T>(std::round(zero_point_double));
+    nudged_zero_point = static_cast<T>(round(zero_point_double));
   }
 
   // The zero point should always be in the range of quantized value,
