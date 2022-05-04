@@ -119,99 +119,51 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace elementwise
 
 TfLiteRegistration Register_ABS() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::AbsEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::AbsEval);
 }
 
 TfLiteRegistration Register_SIN() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::SinEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::SinEval);
 }
 
 TfLiteRegistration Register_COS() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::CosEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::CosEval);
 }
 
 TfLiteRegistration Register_LOG() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::LogEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::LogEval);
 }
 
 TfLiteRegistration Register_SQRT() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::SqrtEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::SqrtEval);
 }
 
 TfLiteRegistration Register_RSQRT() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::RsqrtEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::RsqrtEval);
 }
 
 TfLiteRegistration Register_SQUARE() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-          /*invoke=*/elementwise::SquareEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
+      elementwise::SquareEval);
 }
 
 TfLiteRegistration Register_LOGICAL_NOT() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/
-          elementwise::GenericPrepare<elementwise::IsLogicalSupportedType>,
-          /*invoke=*/elementwise::LogicalNotEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      nullptr, elementwise::GenericPrepare<elementwise::IsLogicalSupportedType>,
+      elementwise::LogicalNotEval);
 }
 
 }  // namespace micro
