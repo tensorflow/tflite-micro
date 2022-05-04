@@ -43,12 +43,11 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
   HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
   build -j$(nproc)
 
-# TODO(b/197888845): renable the test after hexagon unit test is passing
-# readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-#  TARGET=hexagon \
-#  OPTIMIZED_KERNEL_DIR=hexagon \
-#  OPTIMIZED_KERNEL_DIR_PREFIX=third_party \
-#  HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
-#  test -j$(nproc)
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=hexagon \
+  OPTIMIZED_KERNEL_DIR=hexagon \
+  OPTIMIZED_KERNEL_DIR_PREFIX=third_party \
+  HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
+  test -j$(nproc)
 
 

@@ -476,4 +476,29 @@ const int8_t kConvGoldenOutput1x16x16x8[1 * 16 * 16 * 8] = {
     12,   -118, -6,   33,  -128, -43,  -95,  49,  7,    -117, -4,   32,
     -128, -37,  -95,  53,  -7,   -117, -1,   30};
 
+// Conv Test Case: Int8Filter1x3x3x1ShouldMatchGolden
+const int8_t kConvFilter1x3x3x1[1 * 3 * 3 * 1]{
+    22, -98, 78, -127, 101, 47, 87, 12, -15,
+};
+
+const int32_t kConvZeroBias[1] = {0};
+
+// Kernel Conv Test Case: Int8Filter1x3x3x1ShouldMatchGoldenEvenInput
+const int8_t kConvInput1x4x4x1[1 * 4 * 4 * 1]{
+    -127, -111, -95, -79, -63, -47, -31, -15, 1, 17, 33, 49, 65, 81, 97, 113,
+};
+
+// Conv Test Case: Int8Filter1x3x3x1ShouldMatchGoldenOddInput
+const int8_t kConvInput1x5x5x1[1 * 5 * 5 * 1]{
+    -128, -111, -95, -79, -63, -47, -31, -15, 1,  17, 33,  49, 65,
+    81,   97,   113, 127, 100, 80,  60,  40,  20, 0,  -20, -40};
+
+// Conv Test Case: Int8Filter1x3x3x1ShouldMatchGoldenEvenInputPaddingSame
+const int8_t kConvGoldenOutput4x4InputPaddingSame2x2[1 * 2 * 2 * 1] = {38, 24,
+                                                                       16, -58};
+
+// Conv Test Case: Int8Filter1x3x3x1ShouldMatchGoldenOddInputPaddingSame
+const int8_t kConvGoldenOutput5x5InputPaddingSame3x3[1 * 3 * 3 * 1] = {
+    -6, 25, 30, 58, 76, 7, 50, -11, -59};
+
 }  // namespace tflite

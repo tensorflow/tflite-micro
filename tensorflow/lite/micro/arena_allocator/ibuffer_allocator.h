@@ -12,8 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
-#define TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
+#ifndef TENSORFLOW_LITE_MICRO_ARENA_ALLOCATOR_IBUFFER_ALLOCATOR_H_
+#define TENSORFLOW_LITE_MICRO_ARENA_ALLOCATOR_IBUFFER_ALLOCATOR_H_
+
+#include <cstddef>
+#include <cstdint>
+
+#include "tensorflow/lite/c/c_api_types.h"
 
 namespace tflite {
 // Interface classes that the TFLM framework relies on to get buffers it needs.
@@ -92,4 +97,4 @@ class INonPersistentBufferAllocator {
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_IBUFFER_ALLOCATOR_H_
+#endif  // TENSORFLOW_LITE_MICRO_ARENA_ALLOCATOR_IBUFFER_ALLOCATOR_H_

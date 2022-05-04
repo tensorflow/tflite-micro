@@ -114,14 +114,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SOFTMAX() {
-  return {/*init=*/XtensaInitSoftmax,
-          /*free=*/nullptr,
-          /*prepare=*/XtensaPrepareSoftmax,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(XtensaInitSoftmax, XtensaPrepareSoftmax,
+                                   Eval);
 }
 
 }  // namespace tflite
