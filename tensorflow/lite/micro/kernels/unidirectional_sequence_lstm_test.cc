@@ -532,7 +532,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   } else if (zero_point_double > qmax_double) {
     nudged_zero_point = qmax;
   } else {
-    nudged_zero_point = static_cast<T>(std::round(zero_point_double));
+    nudged_zero_point = static_cast<T>(round(zero_point_double));
   }
 
   // The zero point should always be in the range of quantized value,
@@ -819,8 +819,8 @@ void TestUnidirectionalSequenceLstmInteger(
     inputs_array_data[kLstmProjectionWeightsTensor + 1] =
         kLstmProjectionWeightsTensor;
 
+    int projection_bias_dim[2] = {1, n_output};
     if (use_projection_bias) {
-      int projection_bias_dim[2] = {1, n_output};
       quantization_params =
           SetQuantizationParams<int32_t>(ranges[kLstmProjectionBiasTensor][0],
                                          ranges[kLstmProjectionBiasTensor][1]);
@@ -918,7 +918,7 @@ void TestUnidirectionalSequenceLstmInteger(
     inputs_array_data[kLstmOutputLayerNormCoefficientsTensor + 1] =
         kTfLiteOptionalTensor;
   }
-  int output_dim[3] = {2, n_batch, n_output};
+  int output_dim[4] = {3, sequence_length, n_batch, n_output};
   quantization_params = SetQuantizationParams<int8_t>(
       ranges[output_tensor_index][0], ranges[output_tensor_index][1]);
   tensors[output_tensor_index] = CreateQuantizedTensor<int8_t>(
@@ -952,7 +952,7 @@ void TestUnidirectionalSequenceLstmInteger(
       IntArrayFromInts(intermediate_array_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
-  for (int i = 0; i < n_batch * n_output; ++i) {
+  for (int i = 0; i < sequence_length * n_batch * n_output; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(expected_output[i], output[i]);
   }
 }
