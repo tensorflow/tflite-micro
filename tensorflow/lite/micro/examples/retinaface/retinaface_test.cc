@@ -31,9 +31,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/retinaface/retinaface_model_data.h"
 #include "tensorflow/lite/micro/examples/retinaface/retinaface_utils.h"
 
-constexpr int IMG_H = 240;
-constexpr int IMG_W = 320;
-constexpr int N_ANCHORS = 3160;
+constexpr int IMG_H = 120;
+constexpr int IMG_W = 160;
+constexpr int N_ANCHORS = 800;
 
 TF_LITE_MICRO_TESTS_BEGIN
 
@@ -65,7 +65,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   resolver.AddAdd();
   resolver.AddSoftmax();
 
-  constexpr int kTensorArenaSize = 1.2 * 1024.0 * 1024.0; // MB
+  constexpr int kTensorArenaSize = 0.4 * 1024.0 * 1024.0; // MB
   uint8_t tensor_arena[kTensorArenaSize];
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
@@ -85,13 +85,13 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   std::string src_path = __FILE__;
   std::string src_dir = src_path.substr(0, src_path.rfind("/")); 
   std::string img_path = cv::samples::findFile(
-      src_dir + "/images/Argentina.jpeg");
+      src_dir + "/images/test-img.jpeg");
   cv::Mat raw_img = cv::imread(img_path, cv::IMREAD_COLOR);
   cv::Mat img;
   cv::resize(raw_img, img, cv::Size(IMG_W, IMG_H), 0.0, 0.0, cv::INTER_LINEAR);
 
   // img is in HWC format -> need to convert to NCHW
-  // also unroll image 
+  // also unroll image
   for (int ch = 0; ch < 3; ch++) {
     for (int vH = 0; vH < IMG_H; vH++) {
       for (int vW = 0; vW < IMG_W; vW++) {
@@ -135,7 +135,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   constexpr float threshold = 0.85f;
   constexpr float nms_threshold = 0.4f;
   constexpr std::array<float, 2> variances = {0.1f, 0.2f};
-  
+
   BoxList loc;
   LandmList landm;
   std::vector<FloatPair> conf;
@@ -151,6 +151,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
                       {8, 16, 32},
                       false, IMG_H, IMG_W);
   BoxList priors = priorbox.forward();
+
   BoxList boxes = decode(loc, priors, variances);
   std::array<int, 4> scale = {IMG_W, IMG_H, IMG_W, IMG_H};
   for (int i = 0; i < N_ANCHORS; i++) {
@@ -180,8 +181,12 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
                          threshold,
                          N_ANCHORS);
 
-  // Non-max suppression 
+  std::cout << "number of anchors passing thres = " << dets.size() << std::endl;
+
+  // Non-max suppression
   nonMaxSuppression(&dets, nms_threshold);
+
+  std::cout << "number of detections = " << dets.size() << std::endl;
 
   for (Det det: dets) {
     std::array<int, 15> b;
@@ -199,7 +204,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   cv::waitKey(0);
 
   // Should detect 11 facts with `threshold`
-  TF_LITE_MICRO_EXPECT_EQ(11, (int)dets.size());
+  TF_LITE_MICRO_EXPECT_EQ(3, (int)dets.size());
 }
 
 TF_LITE_MICRO_TESTS_END
