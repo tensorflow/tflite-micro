@@ -854,12 +854,6 @@ int8_t recurrent_to_cell_w_no_cifg_no_peephole_no_proj_quant
     [kNumCellNoCifgNoPeepholeNoProj * kNumOutputNoCifgNoPeepholeNoProj];
 TfLiteAffineQuantization recurrent_to_cell_w_no_cifg_no_peephole_no_proj_qparam;
 
-const float recurrent_to_forget_w_no_cifg_no_peephole_no_proj
-    [kNumCellNoCifgNoPeepholeNoProj * kNumOutputNoCifgNoPeepholeNoProj] = {
-        -0.48684245, -0.06655136, 0.42224967,  0.2112639,
-        0.27654213,  0.20864892,  -0.07646349, 0.45877004,
-        0.00141793,  -0.14609534, 0.36447752,  0.09196436,
-        0.28053468,  0.01560611,  -0.20127171, -0.01140004};
 int8_t recurrent_to_forget_w_no_cifg_no_peephole_no_proj_quant
     [kNumCellNoCifgNoPeepholeNoProj * kNumOutputNoCifgNoPeepholeNoProj];
 TfLiteAffineQuantization
