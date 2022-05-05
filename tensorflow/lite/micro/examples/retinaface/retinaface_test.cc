@@ -65,7 +65,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   resolver.AddAdd();
   resolver.AddSoftmax();
 
-  constexpr int kTensorArenaSize = 0.4 * 1024.0 * 1024.0; // MB
+  constexpr int kTensorArenaSize = 0.3333 * 1024.0 * 1024.0; // MB
   uint8_t tensor_arena[kTensorArenaSize];
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
