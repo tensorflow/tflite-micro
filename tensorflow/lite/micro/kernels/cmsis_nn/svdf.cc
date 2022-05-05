@@ -146,7 +146,7 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EvalSvdf(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
@@ -179,7 +179,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       return EvalIntegerSVDF(context, node, input, weights_feature,
                              weights_time, bias, params, activation_state,
                              output, data);
-      return kTfLiteOk;
     }
 
     default:
@@ -193,7 +192,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SVDF() {
-  return tflite::micro::RegisterOp(Init, PrepareSvdf, Eval);
+  return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdf);
 }
 
 }  // namespace tflite
