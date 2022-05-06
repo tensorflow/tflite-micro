@@ -25,7 +25,7 @@ limitations under the License.
 
 namespace tflite {
 
-// Implement IPersistentBufferAllocator on an arena that is dedicated for
+// Implement INonPersistentBufferAllocator on an arena that is dedicated for
 // non-persistent buffers.
 class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
  public:
@@ -33,49 +33,47 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   virtual ~NonPersistentArenaBufferAllocator();
 
   // Allocates a temporary buffer. This buffer is not resizable.
-  virtual uint8_t* AllocateTemp(size_t size, size_t alignment) override;
+  uint8_t* AllocateTemp(size_t size, size_t alignment) override;
 
   // Signals that a temporary buffer is no longer needed.
-  virtual void DeallocateTemp(uint8_t* buf) override;
+  void DeallocateTemp(uint8_t* buf) override;
 
   // Returns true if all temporary buffers are already deallocated.
-  virtual bool IsAllTempDeallocated() override;
+  bool IsAllTempDeallocated() override;
 
   // Signals that all temporary allocations can be reclaimed. TFLM calls this
   // API when it knows that all temporary buffers that it requested has been
   // deallocated.
-  virtual TfLiteStatus ResetTempAllocations() override;
+  TfLiteStatus ResetTempAllocations() override;
 
   // Returns a buffer that is resizable viable ResizeBuffer().
-  virtual uint8_t* AllocateResizableBuffer(size_t size,
-                                           size_t alignment) override;
+  uint8_t* AllocateResizableBuffer(size_t size, size_t alignment) override;
 
   // Resizes a buffer that is previously returned by the
   // AllocateResizableBuffer.
-  virtual TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
-                                    size_t alignment) override;
+  TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
+                            size_t alignment) override;
 
   // Frees up the memory occupied by the resizable buffer.
-  virtual TfLiteStatus DeallocateResizableBuffer(
-      uint8_t* resizable_buf) override;
+  TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf) override;
 
   // Returns a pointer pointing to the start of the overlay memory, which is
   // used for activation tensors and scratch buffers by kernels at Invoke stage.
-  virtual uint8_t* GetOverlayMemoryAddress() const override;
+  uint8_t* GetOverlayMemoryAddress() const override;
 
   // Reserves the size of the overlay memory. This overlay is reserved for the
   // kernels at Invoke stage. This is referred to as the overlay because before
   // Invoket state, the same memory can be used for temp buffers. The layout of
   // the memory is planned by the memory planner separately at Invoke stage.
-  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(
-      size_t size, size_t alignment) override;
+  TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
+                                                 size_t alignment) override;
 
   // Returns the size of non-persistent buffer in use.
-  virtual size_t GetNonPersistentUsedBytes() const override;
+  size_t GetNonPersistentUsedBytes() const override;
 
   // Returns the number of bytes available with a given alignment. This number
   // takes in account any temporary allocations.
-  virtual size_t GetAvailableMemory(size_t alignment) const override;
+  size_t GetAvailableMemory(size_t alignment) const override;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 
@@ -90,7 +88,7 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   uint8_t* head_temp_;
 
   // next_temp_ points to the next available temp buffer allocation address and
-  // its range is between resizable_buffer_tail_ and buffer_tail_
+  // its range is between head_temp_ and buffer_tail_
   uint8_t* next_temp_;
 
   // XOR Check sum for outstanding temp buffers.

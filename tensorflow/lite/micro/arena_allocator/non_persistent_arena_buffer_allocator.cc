@@ -41,14 +41,14 @@ uint8_t* NonPersistentArenaBufferAllocator::AllocateTemp(size_t size,
     return nullptr;
   }
   next_temp_ = aligned_result + size;
-  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(aligned_result));
+  temp_buffer_ptr_check_sum_ ^= reinterpret_cast<intptr_t>(aligned_result);
   temp_buffer_count_++;
   return aligned_result;
 }
 
 // Signals that a temporary buffer is no longer needed.
 void NonPersistentArenaBufferAllocator::DeallocateTemp(uint8_t* temp_buf) {
-  temp_buffer_ptr_check_sum_ ^= (reinterpret_cast<intptr_t>(temp_buf));
+  temp_buffer_ptr_check_sum_ ^= reinterpret_cast<intptr_t>(temp_buf);
   temp_buffer_count_--;
 }
 
@@ -82,30 +82,33 @@ TfLiteStatus NonPersistentArenaBufferAllocator::ResetTempAllocations() {
 uint8_t* NonPersistentArenaBufferAllocator::AllocateResizableBuffer(
     size_t size, size_t alignment) {
   // Only supports one resizable buffer, which starts at the buffer head.
-  uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
+  uint8_t* expected_resizable_buf = AlignPointerUp(buffer_head_, alignment);
 
-  if (head_temp_ != expect_resizable_buf) {
+  if (head_temp_ != expected_resizable_buf) {
     MicroPrintf(
         "Cannot allocate a new resizable buffer when one is already allocated");
     return nullptr;
   }
 
-  if (ResizeBuffer(expect_resizable_buf, size, alignment) == kTfLiteOk) {
-    return expect_resizable_buf;
+  if (ResizeBuffer(expected_resizable_buf, size, alignment) == kTfLiteOk) {
+    return expected_resizable_buf;
   }
   return nullptr;
 }
 
-// Resizes a buffer that is previously returned by the
-// AllocateResizableBuffer.
+// Resizes a buffer that is previously returned by the AllocateResizableBuffer.
+// Note that ResizeBuffer(old_resizable_buf, 0, 1) effectively deallocates
+// a previous allocated resizable buffer.
 TfLiteStatus NonPersistentArenaBufferAllocator::ResizeBuffer(
     uint8_t* resizable_buf, size_t size, size_t alignment) {
   // Only supports one resizable buffer, which starts at the buffer head.
   uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
-  if (head_temp_ != next_temp_ || resizable_buf != expect_resizable_buf) {
-    MicroPrintf(
-        "Internal error: either buffer is not resizable or "
-        "ResetTempAllocations() is not called before ResizeBuffer().");
+  if (resizable_buf != expect_resizable_buf) {
+    MicroPrintf("Internal error: buffer is not resizable");
+    return kTfLiteError;
+  }
+  if (head_temp_ != next_temp_) {
+    MicroPrintf("ResetTempAllocations() is not called before ResizeBuffer().");
     return kTfLiteError;
   }
 
