@@ -136,9 +136,9 @@ TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int16_t>(output));
         break;
       default:
-        MicroPrint("Input %s, output %s not supported.",
-                   TfLiteTypeGetName(input->type),
-                   TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteInt16) {
@@ -166,9 +166,9 @@ TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int32_t>(output));
         return kTfLiteOk;
       default:
-        MicroPrint("Input %s, output %s not supported.",
-                   TfLiteTypeGetName(input->type),
-                   TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteInt8) {
@@ -205,9 +205,9 @@ TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int32_t>(output));
         break;
       default:
-        MicroPrint("Input %s, output %s not supported.",
-                   TfLiteTypeGetName(input->type),
-                   TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteUInt8) {
@@ -221,14 +221,15 @@ TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int8_t>(output));
         break;
       default:
-        MicroPrint("Input %s, output %s not supported.",
-                   TfLiteTypeGetName(input->type),
-                   TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else {
-    MicroPrint("Input %s, output %s not supported.",
-               TfLiteTypeGetName(input->type), TfLiteTypeGetName(output->type));
+    MicroPrintf("Input %s, output %s not supported.",
+                TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
 
