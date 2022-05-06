@@ -371,7 +371,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
   const float input_scale = 1.0f;
   const int input_zero_point = 0;
-  const float output_scale = 1.0f;
+  const float output_scale = 0.5f;
   const int output_zero_point = 128;
   uint8_t output_quantized[length];
   uint8_t values_quantized[length];
@@ -387,9 +387,9 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Normal) {
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
   const float input_scale = 1.0f;
-  const int input_zero_point = 0;
+  const int input_zero_point = 50;
   const float output_scale = 1.0f;
-  const int output_zero_point = 50;
+  const int output_zero_point = 110;
   uint8_t output_quantized[length];
   uint8_t values_quantized[length];
   int8_t input_quantized[length];
@@ -404,9 +404,9 @@ TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Fast) {
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
   const float input_scale = 0.4f;
-  const int input_zero_point = 128;
+  const int input_zero_point = 0;
   const float output_scale = 1.0f;
-  const int output_zero_point = 0;
+  const int output_zero_point = -128;
   int8_t output_quantized[length];
   int8_t values_quantized[length];
   uint8_t input_quantized[length];
@@ -422,7 +422,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Normal) {
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
   const float input_scale = 1.0f;
   const int input_zero_point = 50;
-  const float output_scale = 1.0f;
+  const float output_scale = 0.3f;
   const int output_zero_point = 0;
   int8_t output_quantized[length];
   int8_t values_quantized[length];

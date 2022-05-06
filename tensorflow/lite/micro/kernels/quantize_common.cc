@@ -211,9 +211,6 @@ TfLiteStatus EvalQuantizeReference(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteUInt8) {
-    // UInt8 to Int8 requantization, required if the input and output
-    // tensors have different scales and/or zero points.
-    // Input being UInt8 is quite possible. (e.g., image data)
     size_t size = ElementCount(*input->dims);
     switch (output->type) {
       case kTfLiteInt8:
