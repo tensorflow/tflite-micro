@@ -346,25 +346,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
-  constexpr int length = 10;
-  int dims[] = {2, 2, 5};
-  const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
-  // TODO(b/155682734): Input scale must be smaller than output scale for
-  // xtensa.
-  const float input_scale = 0.4f;
-  const int input_zero_point = 0;
-  const float output_scale = 1.0f;
-  const int output_zero_point = 0;
-  int8_t output_quantized[length];
-  int8_t values_quantized[length];
-  int16_t input_quantized[length];
-  tflite::testing::TestRequantize(dims, values, input_quantized, input_scale,
-                                  input_zero_point, dims, values,
-                                  values_quantized, output_scale,
-                                  output_zero_point, output_quantized);
-}
-
+// Test the fast algorithm from int8 to uint8 when zero point diff = -128
 TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
   constexpr int length = 10;
   int dims[] = {2, 2, 5};
@@ -382,6 +364,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
                                   output_zero_point, output_quantized);
 }
 
+// Test the normal requant algorithm from int8 to uint8
 TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Normal) {
   constexpr int length = 10;
   int dims[] = {2, 2, 5};
@@ -399,6 +382,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Normal) {
                                   output_zero_point, output_quantized);
 }
 
+// Test the fast algorithm from uint8 to int8 when zero point diff = 128
 TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Fast) {
   constexpr int length = 10;
   int dims[] = {2, 2, 5};
@@ -416,6 +400,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Fast) {
                                   output_zero_point, output_quantized);
 }
 
+// Test the normal requant algorithm from uint8 to int8
 TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Normal) {
   constexpr int length = 10;
   int dims[] = {2, 2, 5};
