@@ -135,7 +135,7 @@ CC_WARNINGS := \
   -Wvla \
   -Wall \
   -Wextra \
-  -Wno-missing-field-initializers \
+  -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
 
@@ -257,7 +257,9 @@ PRJDIR := $(GENDIR)prj/
 # to bypass this check and allow for deeper directory structures.
 MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
 # Internal examples are copied outside the TFLM repo in ../google.
+ifneq ($(wildcard ../google),)
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
+endif
 
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
@@ -346,7 +348,9 @@ tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
 tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
+tensorflow/lite/micro/kernels/lstm_eval.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
+tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 tensorflow/lite/micro/kernels/mirror_pad.cc \
 tensorflow/lite/micro/kernels/mul.cc \
 tensorflow/lite/micro/kernels/mul_common.cc \
@@ -382,6 +386,7 @@ tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
+tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
 tensorflow/lite/micro/kernels/var_handle.cc \
 tensorflow/lite/micro/kernels/while.cc \
