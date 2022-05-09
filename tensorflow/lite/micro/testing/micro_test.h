@@ -124,8 +124,8 @@ inline void InitializeTest() { InitializeTarget(); }
 // the printf specifier is %d.
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
   do {                                                                     \
-    checkIntX = is_same<decltype(x) , decltype(0)>::value             \
-    checkIntY = is_same<decltype(y) , decltype(0)>::value             \
+    bool checkIntX = is_same<decltype(x) , decltype(0)>::value             \
+    bool checkIntY = is_same<decltype(y) , decltype(0)>::value             \
     if (checkIntX && checkIntY) {                                          \
       if ((x) != (y)) {                                                    \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
