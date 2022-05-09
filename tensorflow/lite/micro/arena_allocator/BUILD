@@ -23,6 +23,31 @@ cc_library(
 )
 
 cc_library(
+    name = "non_persistent_arena_buffer_allocator",
+    srcs = ["non_persistent_arena_buffer_allocator.cc"],
+    hdrs = ["non_persistent_arena_buffer_allocator.h"],
+    copts = micro_copts(),
+    deps = [
+        ":ibuffer_allocator",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:memory_helpers",
+        "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_error_reporter",
+    ],
+)
+
+cc_test(
+    name = "non_persistent_arena_buffer_allocator_test",
+    srcs = ["non_persistent_arena_buffer_allocator_test.cc"],
+    deps = [
+        ":non_persistent_arena_buffer_allocator",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
     name = "simple_memory_allocator",
     srcs = [
         "simple_memory_allocator.cc",
