@@ -122,23 +122,39 @@ inline void InitializeTest() { InitializeTarget(); }
 
 // TODO(b/139142772): this macro is used with types other than ints even though
 // the printf specifier is %d.
-#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                    \
-  do {                                                                   \
-    auto vx = x;                                                         \
-    auto vy = y;                                                         \
-    if ((vx) != (vy)) {                                                  \
-      MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
-                  __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
-      micro_test::did_test_fail = true;                                  \
-    }                                                                    \
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
+  do {                                                                     \
+    checkIntX = std::is_same<decltype(x),decltype(0)>::value               \
+    checkIntY = std::is_same<decltype(y),decltype(0)>::value               \
+    if(checkIntX && checkIntY){                                            \
+      if ((x) != (y)) {                                                    \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
+                    __LINE__, x, y);                                       \
+        micro_test::did_test_fail = true;                                  \
+      }                                                                    \
+    }                                                                      \
+    else {                                                                 \
+      MicroPrintf("Ints should be used as arugments for TF_LITE_MICRO_EXPECT_EQ macro used at %s:%d",\
+       __FILE__, __LINE__);                                                \
+        micro_test::did_test_fail = true;                                  \
+    }                                                                      \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                   \
-  do {                                                                  \
-    if ((x) == (y)) {                                                   \
-      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                 \
-    }                                                                   \
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
+  do {                                                                     \
+    checkIntX = std::is_same<decltype(x),decltype(0)>::value               \
+    checkIntY = std::is_same<decltype(y),decltype(0)>::value               \
+    if(checkIntX && checkIntY){                                            \
+      if ((x) == (y)) {                                                    \
+        MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
+        micro_test::did_test_fail = true;                                  \
+      }                                                                    \
+    }                                                                      \
+    else {                                                                 \
+      MicroPrintf("Ints should be used as arugments for TF_LITE_MICRO_EXPECT_NE macro used at %s:%d",\
+       __FILE__, __LINE__);                                                \
+        micro_test::did_test_fail = true;                                  \
+    }
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
