@@ -97,6 +97,7 @@ tensorflow/lite/micro/kernels/space_to_batch_nd_test.cc \
 tensorflow/lite/micro/kernels/space_to_depth_test.cc \
 tensorflow/lite/micro/kernels/split_test.cc \
 tensorflow/lite/micro/kernels/split_v_test.cc \
+tensorflow/lite/micro/kernels/squared_difference_test.cc \
 tensorflow/lite/micro/kernels/squeeze_test.cc \
 tensorflow/lite/micro/kernels/strided_slice_test.cc \
 tensorflow/lite/micro/kernels/sub_test.cc \

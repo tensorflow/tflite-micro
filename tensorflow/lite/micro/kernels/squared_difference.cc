@@ -12,19 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include <stddef.h>
-#include <stdint.h>
-
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/optimized/optimized_ops.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/binary_function.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/add.h"
-#include "tensorflow/lite/kernels/internal/reference/reference_ops.h"
-#include "tensorflow/lite/kernels/internal/tensor.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
@@ -44,30 +39,29 @@ T SquaredDifference(T input1, T input2) {
 }
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  auto* data = new OpData;
-  data->requires_broadcast = false;
-  return data;
-}
-
-void Free(TfLiteContext* context, void* buffer) {
-  delete reinterpret_cast<OpData*>(buffer);
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
+  data->requires_broadcast = false;
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor1, &input1));
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor2, &input2));
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input1 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
+  TfLiteTensor* input2 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
   output->type = input2->type;
@@ -101,23 +95,25 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // shift to make integer for scales.
     data->arithmetic_params.left_shift = 7;
     const double twice_max_input_scale =
-        2 * std::max(input1_quantization_params.scale,
-                     input2_quantization_params.scale);
+        2.0 * static_cast<double>(std::max(input1_quantization_params.scale,
+                                           input2_quantization_params.scale));
     const double real_input1_multiplier =
-        input1_quantization_params.scale / twice_max_input_scale;
+        static_cast<double>(input1_quantization_params.scale) /
+        twice_max_input_scale;
     double real_input2_multiplier =
-        input2_quantization_params.scale / twice_max_input_scale;
+        static_cast<double>(input2_quantization_params.scale) /
+        twice_max_input_scale;
     const double real_output_multiplier =
         (twice_max_input_scale * twice_max_input_scale) /
-        ((1 << data->arithmetic_params.left_shift * 2) *
-         output_quantization_params.scale);
-    tflite::QuantizeMultiplierSmallerThanOneExp(
+        static_cast<double>((1 << data->arithmetic_params.left_shift * 2) *
+                            output_quantization_params.scale);
+    QuantizeMultiplierSmallerThanOneExp(
         real_input1_multiplier, &data->arithmetic_params.input1_multiplier,
         &data->arithmetic_params.input1_shift);
-    tflite::QuantizeMultiplierSmallerThanOneExp(
+    QuantizeMultiplierSmallerThanOneExp(
         real_input2_multiplier, &data->arithmetic_params.input2_multiplier,
         &data->arithmetic_params.input2_shift);
-    tflite::QuantizeMultiplierSmallerThanOneExp(
+    QuantizeMultiplierSmallerThanOneExp(
         real_output_multiplier, &data->arithmetic_params.output_multiplier,
         &data->arithmetic_params.output_shift);
     data->arithmetic_params.quantized_activation_min =
@@ -128,15 +124,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   data->requires_broadcast = !HaveSameShapes(input1, input2);
 
-  TfLiteIntArray* output_size = nullptr;
-  if (data->requires_broadcast) {
-    TF_LITE_ENSURE_OK(context, CalculateShapeForBroadcast(
-                                   context, input1, input2, &output_size));
-  } else {
-    output_size = TfLiteIntArrayCopy(input1->dims);
-  }
-
-  return context->ResizeTensor(context, output, output_size);
+  micro_context->DeallocateTempTfLiteTensor(input1);
+  micro_context->DeallocateTempTfLiteTensor(input2);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  return kTfLiteOk;
 }
 
 inline int8_t SquaredDifference(int8_t x, int8_t y,
@@ -168,56 +159,63 @@ inline int8_t SquaredDifference(int8_t x, int8_t y,
 template <typename T>
 void EvalQuantizedSquaredDifference(TfLiteContext* context, TfLiteNode* node,
                                     const OpData* data,
-                                    const TfLiteTensor* input1,
-                                    const TfLiteTensor* input2,
-                                    TfLiteTensor* output) {
+                                    const TfLiteEvalTensor* input1,
+                                    const TfLiteEvalTensor* input2,
+                                    TfLiteEvalTensor* output) {
   const auto* op_data = static_cast<const OpData*>(node->user_data);
   if (data->requires_broadcast) {
     reference_integer_ops::BroadcastBinaryFunction4DSlow(
-        op_data->arithmetic_params, GetTensorShape(input1),
-        GetTensorData<T>(input1), GetTensorShape(input2),
-        GetTensorData<T>(input2), GetTensorShape(output),
-        GetTensorData<T>(output), reference_integer_ops::CheckArithmeticParams,
-        SquaredDifference);
+        op_data->arithmetic_params, tflite::micro::GetTensorShape(input1),
+        tflite::micro::GetTensorData<T>(input1),
+        tflite::micro::GetTensorShape(input2),
+        tflite::micro::GetTensorData<T>(input2),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<T>(output),
+        reference_integer_ops::CheckArithmeticParams, SquaredDifference);
   } else {
-    const int flat_size = GetTensorShape(input1).FlatSize();
+    const int flat_size = tflite::micro::GetTensorShape(input1).FlatSize();
     reference_integer_ops::ElementWise(
-        flat_size, op_data->arithmetic_params, GetTensorData<int8_t>(input1),
-        GetTensorData<int8_t>(input2), GetTensorData<int8_t>(output),
+        flat_size, op_data->arithmetic_params,
+        tflite::micro::GetTensorData<int8_t>(input1),
+        tflite::micro::GetTensorData<int8_t>(input2),
+        tflite::micro::GetTensorData<int8_t>(output),
         reference_integer_ops::CheckArithmeticParams, SquaredDifference);
   }
 }
 
 template <typename T>
 void EvalSquaredDifference(TfLiteContext* context, TfLiteNode* node,
-                           const OpData* data, const TfLiteTensor* input1,
-                           const TfLiteTensor* input2, TfLiteTensor* output) {
+                           const OpData* data, const TfLiteEvalTensor* input1,
+                           const TfLiteEvalTensor* input2,
+                           TfLiteEvalTensor* output) {
   if (data->requires_broadcast) {
     reference_ops::BroadcastBinaryFunction4DSlow<T, T, T>(
-        GetTensorShape(input1), GetTensorData<T>(input1),
-        GetTensorShape(input2), GetTensorData<T>(input2),
-        GetTensorShape(output), GetTensorData<T>(output), SquaredDifference<T>);
+        tflite::micro::GetTensorShape(input1),
+        tflite::micro::GetTensorData<T>(input1),
+        tflite::micro::GetTensorShape(input2),
+        tflite::micro::GetTensorData<T>(input2),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<T>(output), SquaredDifference<T>);
   } else {
     reference_ops::BinaryFunction<T, T, T>(
-        GetTensorShape(input1), GetTensorData<T>(input1),
-        GetTensorShape(input2), GetTensorData<T>(input2),
-        GetTensorShape(output), GetTensorData<T>(output), SquaredDifference<T>);
+        tflite::micro::GetTensorShape(input1),
+        tflite::micro::GetTensorData<T>(input1),
+        tflite::micro::GetTensorShape(input2),
+        tflite::micro::GetTensorData<T>(input2),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<T>(output), SquaredDifference<T>);
   }
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
-  ruy::profiler::ScopeLabel label("SquaredDifference");
 
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor1, &input1));
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor2, &input2));
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
   if (output->type == kTfLiteFloat32) {
     EvalSquaredDifference<float>(context, node, data, input1, input2, output);
@@ -227,8 +225,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     EvalQuantizedSquaredDifference<int8_t>(context, node, data, input1, input2,
                                            output);
   } else {
-    TF_LITE_KERNEL_LOG(
-        context,
+    MicroPrintf(
         "SquaredDifference only supports FLOAT32 and INT32 now, got %d.",
         output->type);
     return kTfLiteError;
@@ -236,14 +233,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
-
 }  // namespace
 
-TfLiteRegistration* Register_SQUARED_DIFFERENCE() {
-  static TfLiteRegistration r = {
-      squared_difference::Init, squared_difference::Free,
-      squared_difference::Prepare, squared_difference::Eval};
-  return &r;
+TfLiteRegistration Register_SQUARED_DIFFERENCE() {
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 }  // namespace tflite

@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,204 +12,275 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/test_helpers.h"
+#include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
+namespace testing {
 namespace {
 
-using ::testing::ElementsAreArray;
+constexpr int kNumTestShapes = 4;
+constexpr int kMaxTestShapeSize = 5;
 
-class BaseSquaredDifferenceOpModel : public SingleOpModel {
- public:
-  BaseSquaredDifferenceOpModel(const TensorData& input1,
-                               const TensorData& input2,
-                               const TensorData& output) {
-    input1_ = AddInput(input1);
-    input2_ = AddInput(input2);
-    output_ = AddOutput(output);
-    SetBuiltinOp(BuiltinOperator_SQUARED_DIFFERENCE,
-                 BuiltinOptions_SquaredDifferenceOptions,
-                 CreateSquaredDifferenceOptions(builder_).Union());
-    BuildInterpreter({GetShape(input1_), GetShape(input2_)});
-  }
-
-  int input1() { return input1_; }
-  int input2() { return input2_; }
-
- protected:
-  int input1_;
-  int input2_;
-  int output_;
+int test_shape[kNumTestShapes][kMaxTestShapeSize] = {
+    {1, 6},
+    {2, 2, 3},
+    {3, 2, 1, 3},
+    {4, 1, 3, 1, 2},
 };
 
-class FloatSquaredDifferenceOpModel : public BaseSquaredDifferenceOpModel {
- public:
-  using BaseSquaredDifferenceOpModel::BaseSquaredDifferenceOpModel;
+template <typename T>
+void ValidateSquaredDifferenceGoldens(TfLiteTensor* tensors, int tensors_size,
+                                      const T* golden, T* output,
+                                      int output_size, float tolerance = 1e-5) {
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  std::vector<float> GetOutput() { return ExtractVector<float>(output_); }
-};
+  const TfLiteRegistration registration = tflite::Register_SQUARED_DIFFERENCE();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, /*builtin_data=*/nullptr);
 
-class IntegerSquaredDifferenceOpModel : public BaseSquaredDifferenceOpModel {
- public:
-  using BaseSquaredDifferenceOpModel::BaseSquaredDifferenceOpModel;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  std::vector<int32_t> GetOutput() { return ExtractVector<int32_t>(output_); }
-};
-
-float GetTolerance(int min, int max) {
-  float kQuantizedStep = (max - min) / 255.0;
-  // Allow at most off-by-2.
-  return kQuantizedStep * 2;
-}
-
-class QuantizedSquaredDifferenceOpModel : public BaseSquaredDifferenceOpModel {
- public:
-  using BaseSquaredDifferenceOpModel::BaseSquaredDifferenceOpModel;
-
-  template <typename integer_dtype>
-  std::vector<float> GetDequantizedOutput() {
-    return Dequantize<int8_t>(ExtractVector<int8_t>(output_), GetScale(output_),
-                              GetZeroPoint(output_));
-  }
-};
-
-TEST(FloatSquaredDifferenceOpTest, FloatType_SameShape) {
-  FloatSquaredDifferenceOpModel m({TensorType_FLOAT32, {1, 2, 2, 1}},
-                                  {TensorType_FLOAT32, {1, 2, 2, 1}},
-                                  {TensorType_FLOAT32, {}});
-  m.PopulateTensor<float>(m.input1(), {-0.2, 0.2, -1.2, 0.8});
-  m.PopulateTensor<float>(m.input2(), {0.5, 0.2, -1.5, 0.5});
-  ASSERT_EQ(m.Invoke(), kTfLiteOk);
-  EXPECT_THAT(m.GetOutput(),
-              ElementsAreArray(ArrayFloatNear({0.49, 0.0, 0.09, 0.09})));
-}
-
-TEST(FloatSquaredDifferenceOpTest, FloatType_VariousInputShapes) {
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    FloatSquaredDifferenceOpModel m({TensorType_FLOAT32, test_shapes[i]},
-                                    {TensorType_FLOAT32, test_shapes[i]},
-                                    {TensorType_FLOAT32, {}});
-    m.PopulateTensor<float>(m.input1(), {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0});
-    m.PopulateTensor<float>(m.input2(), {1.0, 0.2, 0.6, 0.4, -1.0, -0.0});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(
-        m.GetOutput(),
-        ElementsAreArray(ArrayFloatNear({9.0, 0.0, 0.09, 0.16, 4.41, 4.0})))
-        << "With shape number " << i;
+  for (int i = 0; i < output_size; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], tolerance);
   }
 }
 
-TEST(FloatSquaredDifferenceOpTest, FloatType_WithBroadcast) {
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    FloatSquaredDifferenceOpModel m(
-        {TensorType_FLOAT32, test_shapes[i]},
-        {TensorType_FLOAT32, {}},  // always a scalar
-        {TensorType_FLOAT32, {}});
-    m.PopulateTensor<float>(m.input1(), {-0.2, 0.2, 0.5, 0.8, 0.11, 1.1});
-    m.PopulateTensor<float>(m.input2(), {0.1});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(
-        m.GetOutput(),
-        ElementsAreArray(ArrayFloatNear({0.09, 0.01, 0.16, 0.49, 0.0001, 1.0})))
-        << "With shape number " << i;
-  }
+template <typename T>
+void TestSquaredDifference(int* input1_dims_data, const T* input1_data,
+                           int* input2_dims_data, const T* input2_data,
+                           int* output_dims_data, const T* expected_output,
+                           T* output_data) {
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input1_data, input1_dims),
+      CreateTensor(input2_data, input2_dims),
+      CreateTensor(output_data, output_dims),
+  };
+
+  ValidateSquaredDifferenceGoldens(tensors, tensors_size, expected_output,
+                                   output_data, ElementCount(*output_dims));
 }
 
-TEST(IntegerSquaredDifferenceOpTest, IntegerType_SameShape) {
-  IntegerSquaredDifferenceOpModel m({TensorType_INT32, {1, 2, 2, 1}},
-                                    {TensorType_INT32, {1, 2, 2, 1}},
-                                    {TensorType_INT32, {}});
-  m.PopulateTensor<int32_t>(m.input1(), {-2, 2, -15, 8});
-  m.PopulateTensor<int32_t>(m.input2(), {5, -2, -3, 5});
-  ASSERT_EQ(m.Invoke(), kTfLiteOk);
-  EXPECT_THAT(m.GetOutput(), ElementsAreArray({49, 16, 144, 9}));
-}
+template <typename T>
+void TestSquaredDifferenceQuantized(
+    int* input1_dims_data, const float* input1_data, T* input1_quantized,
+    float input1_min, float input1_max,
 
-TEST(IntegerSquaredDifferenceOpTest, IntegerType_VariousInputShapes) {
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    IntegerSquaredDifferenceOpModel m({TensorType_INT32, test_shapes[i]},
-                                      {TensorType_INT32, test_shapes[i]},
-                                      {TensorType_INT32, {}});
-    m.PopulateTensor<int32_t>(m.input1(), {-20, 2, 3, 8, 11, -20});
-    m.PopulateTensor<int32_t>(m.input2(), {1, 2, 6, 5, -5, -20});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(m.GetOutput(), ElementsAreArray({441, 0, 9, 9, 256, 0}))
-        << "With shape number " << i;
-  }
-}
+    int* input2_dims_data, const float* input2_data, T* input2_quantized,
+    float input2_min, float input2_max,
 
-TEST(IntegerSquaredDifferenceOpTest, IntegerType_WithBroadcast) {
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    IntegerSquaredDifferenceOpModel m(
-        {TensorType_INT32, test_shapes[i]},
-        {TensorType_INT32, {}},  // always a scalar
-        {TensorType_INT32, {}});
-    m.PopulateTensor<int32_t>(m.input1(), {-20, 10, 7, 3, 1, 13});
-    m.PopulateTensor<int32_t>(m.input2(), {3});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(m.GetOutput(), ElementsAreArray({529, 49, 16, 0, 4, 100}))
-        << "With shape number " << i;
-  }
-}
+    int* output_dims_data, T* output_data, float output_min, float output_max,
+    float* dequantized_output, const float* golden,
 
-TEST(QuantizedSquaredDifferenceOpTest, Quantized_SameShape) {
-  float kQuantizedTolerance = GetTolerance(0, 1);
-  QuantizedSquaredDifferenceOpModel m(
-      {TensorType_INT8, {1, 2, 2, 1}, -1.2, 0.8},
-      {TensorType_INT8, {1, 2, 2, 1}, -1.5, 0.5},
-      {TensorType_INT8, {}, 0.0, 0.5});
-  m.QuantizeAndPopulate<int8_t>(m.input1(), {-0.2, 0.2, -1.2, 0.8});
-  m.QuantizeAndPopulate<int8_t>(m.input2(), {0.5, 0.2, -1.5, 0.5});
-  ASSERT_EQ(m.Invoke(), kTfLiteOk);
-  EXPECT_THAT(m.GetDequantizedOutput<int8_t>(),
-              ElementsAreArray(ArrayFloatNear({0.49, 0.0, 0.09, 0.09},
-                                              kQuantizedTolerance)));
-}
+    float tolerance) {
+  QuantizationParams input1_qparams;
+  QuantizationParams input2_qparams;
+  QuantizationParams output_qparams;
 
-TEST(QuantizedSquaredDifferenceOpTest, Quantized_VariousInputShapes) {
-  float kQuantizedTolerance = GetTolerance(0, 9);
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    QuantizedSquaredDifferenceOpModel m(
-        {TensorType_INT8, test_shapes[i], -2.0, 1.7},
-        {TensorType_INT8, test_shapes[i], -1.0, 1.0},
-        {TensorType_INT8, {}, 0.0, 9.0});
-    m.QuantizeAndPopulate<int8_t>(m.input1(), {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0});
-    m.QuantizeAndPopulate<int8_t>(m.input2(), {1.0, 0.2, 0.6, 0.4, -1.0, -0.0});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(m.GetDequantizedOutput<int8_t>(),
-                ElementsAreArray(ArrayFloatNear(
-                    {9.0, 0.0, 0.09, 0.16, 4.41, 4.0}, kQuantizedTolerance)))
-        << "With shape number " << i;
-  }
-}
+  input1_qparams = ChooseQuantizationParams<T>(static_cast<double>(input1_min),
+                                               static_cast<double>(input1_max));
+  input2_qparams = ChooseQuantizationParams<T>(static_cast<double>(input2_min),
+                                               static_cast<double>(input2_max));
+  output_qparams = ChooseQuantizationParams<T>(static_cast<double>(output_min),
+                                               static_cast<double>(output_max));
 
-TEST(QuantizedSquaredDifferenceOpTest, Quantized_WithBroadcast) {
-  std::vector<std::vector<int>> test_shapes = {
-      {6}, {2, 3}, {2, 1, 3}, {1, 3, 1, 2}};
-  float kQuantizedTolerance = GetTolerance(0, 1);
-  for (int i = 0; i < test_shapes.size(); ++i) {
-    QuantizedSquaredDifferenceOpModel m(
-        {TensorType_INT8, test_shapes[i], -0.2, 1.1},
-        {TensorType_INT8, {}, 0.0, 0.1}, {TensorType_INT8, {}, 0.0, 1.0});
-    m.QuantizeAndPopulate<int8_t>(m.input1(), {-0.2, 0.2, 0.5, 0.8, 0.11, 1.1});
-    m.QuantizeAndPopulate<int8_t>(m.input2(), {0.1});
-    ASSERT_EQ(m.Invoke(), kTfLiteOk);
-    EXPECT_THAT(
-        m.GetDequantizedOutput<int8_t>(),
-        ElementsAreArray(ArrayFloatNear({0.09, 0.01, 0.16, 0.49, 0.0001, 1.0},
-                                        kQuantizedTolerance)))
-        << "With shape number " << i;
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  int output_size = ElementCount(*output_dims);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor<T>(input1_data, input1_quantized, input1_dims,
+                               input1_qparams.scale, input1_qparams.zero_point),
+      CreateQuantizedTensor<T>(input2_data, input2_quantized, input2_dims,
+                               input2_qparams.scale, input2_qparams.zero_point),
+      CreateQuantizedTensor<T>(output_data, output_dims, output_qparams.scale,
+                               output_qparams.zero_point),
+  };
+
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TfLiteRegistration registration = tflite::Register_SQUARED_DIFFERENCE();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, /*builtin_data=*/nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  Dequantize(output_data, output_size, output_qparams.scale,
+             output_qparams.zero_point, dequantized_output);
+
+  for (int i = 0; i < output_size; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(golden[i], dequantized_output[i], tolerance);
   }
 }
 
 }  // namespace
+}  // namespace testing
 }  // namespace tflite
+
+TF_LITE_MICRO_TESTS_BEGIN
+
+TF_LITE_MICRO_TEST(FloatSquaredDifferenceSameShape) {
+  constexpr int data_size = 4;
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const float input1_values[] = {-0.2, 0.2, -1.2, 0.8};
+  const float input2_values[] = {0.5, 0.2, -1.5, 0.5};
+  const float golden_values[] = {0.49, 0.0, 0.09, 0.09};
+  float output_data[data_size];
+  tflite::testing::TestSquaredDifference(
+      inout_shape, input1_values, inout_shape, input2_values, inout_shape,
+      golden_values, output_data);
+}
+
+TF_LITE_MICRO_TEST(FloatSquaredDifferenceVariousShapes) {
+  constexpr int data_size = 6;
+  const float input1_values[] = {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0};
+  const float input2_values[] = {1.0, 0.2, 0.6, 0.4, -1.0, -0.0};
+  const float golden_values[] = {9.0, 0.0, 0.09, 0.16, 4.41, 4.0};
+  float output_data[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifference(
+        tflite::testing::test_shape[i], input1_values,
+        tflite::testing::test_shape[i], input2_values,
+        tflite::testing::test_shape[i], golden_values, output_data);
+  }
+}
+
+TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
+  constexpr int data_size = 6;
+
+  // input 2 is scalar
+  int input2_shape[] = {1, 1};
+  const float input1_values[] = {-0.2, 0.2, 0.5, 0.8, 0.11, 1.1};
+  const float input2_values[] = {0.1};
+  const float golden_values[] = {0.09, 0.01, 0.16, 0.49, 0.0001, 1.0};
+  float output_data[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifference(
+        tflite::testing::test_shape[i], input1_values, input2_shape,
+        input2_values, tflite::testing::test_shape[i], golden_values,
+        output_data);
+  }
+}
+
+TF_LITE_MICRO_TEST(IntegerSquaredDifferenceSameShape) {
+  constexpr int data_size = 4;
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const int32_t input1_values[] = {-2, 2, -15, 8};
+  const int32_t input2_values[] = {5, -2, -3, 5};
+  const int32_t golden_values[] = {49, 16, 144, 9};
+  int32_t output_data[data_size];
+  tflite::testing::TestSquaredDifference(
+      inout_shape, input1_values, inout_shape, input2_values, inout_shape,
+      golden_values, output_data);
+}
+
+TF_LITE_MICRO_TEST(IntegerSquaredDifferenceVariousShapes) {
+  constexpr int data_size = 6;
+  const int32_t input1_values[] = {-20, 2, 3, 8, 11, -20};
+  const int32_t input2_values[] = {1, 2, 6, 5, -5, -20};
+  const int32_t golden_values[] = {441, 0, 9, 9, 256, 0};
+  int32_t output_data[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifference(
+        tflite::testing::test_shape[i], input1_values,
+        tflite::testing::test_shape[i], input2_values,
+        tflite::testing::test_shape[i], golden_values, output_data);
+  }
+}
+
+TF_LITE_MICRO_TEST(IntegerSquaredDifferenceWithBroadcast) {
+  constexpr int data_size = 6;
+
+  // input 2 is a scalar
+  int input2_shape[] = {1, 1};
+  const int32_t input1_values[] = {-20, 10, 7, 3, 1, 13};
+  const int32_t input2_values[] = {3};
+  const int32_t golden_values[] = {529, 49, 16, 0, 4, 100};
+  int32_t output_data[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifference(
+        tflite::testing::test_shape[i], input1_values, input2_shape,
+        input2_values, tflite::testing::test_shape[i], golden_values,
+        output_data);
+  }
+}
+
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShape) {
+  constexpr int data_size = 4;
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const float input1_values[] = {-0.2, 0.2, -1.2, 0.8};
+  const float input2_values[] = {0.5, 0.2, -1.5, 0.5};
+  const float golden_values[] = {0.49, 0.0, 0.09, 0.09};
+  int8_t input1_quantized[data_size];
+  int8_t input2_quantized[data_size];
+  int8_t output[data_size];
+  float output_dequantized[data_size];
+  tflite::testing::TestSquaredDifferenceQuantized(
+      inout_shape, input1_values, input1_quantized, -1.2f, 0.8f, inout_shape,
+      input2_values, input2_quantized, -1.5f, 0.5f, inout_shape, output, 0.0f,
+      0.5f, output_dequantized, golden_values, 2.0f / 255.0f);
+}
+
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
+  constexpr int data_size = 6;
+  const float input1_values[] = {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0};
+  const float input2_values[] = {1.0, 0.2, 0.6, 0.4, -1.0, -0.0};
+  const float golden_values[] = {9.0, 0.0, 0.09, 0.16, 4.41, 4.0};
+  int8_t input1_quantized[data_size];
+  int8_t input2_quantized[data_size];
+  int8_t output[data_size];
+  float output_dequantized[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifferenceQuantized(
+        tflite::testing::test_shape[i], input1_values, input1_quantized, -2.0f,
+        1.7f, tflite::testing::test_shape[i], input2_values, input2_quantized,
+        -1.0f, 1.0f, tflite::testing::test_shape[i], output, 0.0f, 9.0f,
+        output_dequantized, golden_values, 18.0f / 255.0f);
+  }
+}
+
+TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
+  constexpr int data_size = 6;
+
+  // input 2 is a scalar
+  int input2_shape[] = {1, 1};
+  const float input1_values[] = {-0.2, 0.2, 0.5, 0.8, 0.11, 1.1};
+  const float input2_values[] = {0.1};
+  const float golden_values[] = {0.09, 0.01, 0.16, 0.49, 0.0001, 1.0};
+  int8_t input1_quantized[data_size];
+  int8_t input2_quantized[1];
+  int8_t output[data_size];
+  float output_dequantized[data_size];
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifferenceQuantized(
+        tflite::testing::test_shape[i], input1_values, input1_quantized, -0.2f,
+        1.1f, input2_shape, input2_values, input2_quantized, 0.0f, 1.0f,
+        tflite::testing::test_shape[i], output, 0.0f, 1.0f, output_dequantized,
+        golden_values, 2.0f / 255.0f);
+  }
+}
+
+TF_LITE_MICRO_TESTS_END
