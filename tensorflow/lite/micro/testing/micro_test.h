@@ -124,8 +124,8 @@ inline void InitializeTest() { InitializeTarget(); }
 // the printf specifier is %d.
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
   do {                                                                     \
-    bool checkIntX = std::is_same_v<decltype(x) , decltype(0)>::value             \
-    bool checkIntY = std::is_same_v<decltype(y) , decltype(0)>::value             \
+    bool checkIntX = (typeid(x) == typeid(0))                              \
+    bool checkIntY = (typeid(y) == typeid(0))                              \
     if (checkIntX && checkIntY) {                                          \
       if ((x) != (y)) {                                                    \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
@@ -141,8 +141,8 @@ inline void InitializeTest() { InitializeTarget(); }
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
   do {                                                                     \
-    bool checkIntX = std::is_same_v<decltype(x) , decltype(0)>::value             \
-    bool checkIntY = std::is_same_v<decltype(y) , decltype(0)>::value             \
+    bool checkIntX = (typeid(x) == typeid(0))                              \
+    bool checkIntY = (typeid(y) == typeid(0))                              \
     if (checkIntX && checkIntY) {                                          \
       if ((x) == (y)) {                                                    \
         MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
