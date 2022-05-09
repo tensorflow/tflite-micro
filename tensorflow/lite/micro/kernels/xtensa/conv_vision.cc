@@ -93,7 +93,7 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
       data->reference_op_data.output_multiplier,
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
-      data->reference_op_data.output_activation_max, 
+      data->reference_op_data.output_activation_max,
       (uint8_t*)GetTensorData<uint8_t>(filter),
       data->reference_op_data.padding.width,
       data->reference_op_data.padding.height);
