@@ -124,8 +124,8 @@ inline void InitializeTest() { InitializeTarget(); }
 // the printf specifier is %d.
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
   do {                                                                     \
-    checkIntX = std::is_same<decltype(x) , decltype(0)>::value             \
-    checkIntY = std::is_same<decltype(y) , decltype(0)>::value             \
+    checkIntX = is_same<decltype(x) , decltype(0)>::value             \
+    checkIntY = is_same<decltype(y) , decltype(0)>::value             \
     if (checkIntX && checkIntY) {                                          \
       if ((x) != (y)) {                                                    \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
@@ -141,15 +141,14 @@ inline void InitializeTest() { InitializeTarget(); }
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
   do {                                                                     \
-    checkIntX = std::is_same<decltype(x) , decltype(0)>::value             \
-    checkIntY = std::is_same<decltype(y) , decltype(0)>::value             \
+    bool checkIntX = is_same<decltype(x) , decltype(0)>::value             \
+    bool checkIntY = is_same<decltype(y) , decltype(0)>::value             \
     if (checkIntX && checkIntY) {                                          \
       if ((x) == (y)) {                                                    \
         MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
-    }                                                                      \
-    else {                                                                 \
+    } else {                                                               \
       MicroPrintf("Ints should be used as arugments for"                   \
       "TF_LITE_MICRO_EXPECT_NE macro used at %s:%d", __FILE__, __LINE__);  \                                           
         micro_test::did_test_fail = true;                                  \
