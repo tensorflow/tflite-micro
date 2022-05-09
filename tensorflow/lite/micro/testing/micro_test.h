@@ -125,8 +125,8 @@ inline void InitializeTest() { InitializeTarget(); }
 // the printf specifier is %d.
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
   do {                                                                     \
-    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;        \
-    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;        \
+    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;       \
+    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;       \
     if (checkIntX && checkIntY) {                                          \
       if ((x) != (y)) {                                                    \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
@@ -141,8 +141,8 @@ inline void InitializeTest() { InitializeTarget(); }
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
   do {                                                                     \
-    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;        \
-    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;        \
+    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;       \
+    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;       \
     if (checkIntX && checkIntY) {                                          \
       if ((x) == (y)) {                                                    \
         MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
@@ -151,7 +151,7 @@ inline void InitializeTest() { InitializeTarget(); }
     } else {                                                               \
       MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                    \
-    }     
+    }                                                                      \
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
