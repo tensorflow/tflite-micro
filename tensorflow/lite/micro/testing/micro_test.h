@@ -134,8 +134,7 @@ inline void InitializeTest() { InitializeTarget(); }
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
     } else {                                                               \
-           MicroPrintf("Ints should be used as arugments for"              \
-      "TF_LITE_MICRO_EXPECT_EQ macro used at %s:%d", __FILE__, __LINE__);  \  
+      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                    \
     }                                                                      \
   } while (false)
@@ -149,12 +148,10 @@ inline void InitializeTest() { InitializeTarget(); }
         MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
-    }                                                                      \
-    else {                                                                 \
-      MicroPrintf("Ints should be used as arugments for"                   \
-      "TF_LITE_MICRO_EXPECT_NE macro used at %s:%d", __FILE__, __LINE__);  \                                           
+    } else {                                                               \
+      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                    \
-    }
+    }     
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
