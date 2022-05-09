@@ -22,32 +22,32 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 
 namespace tflite {
-  struct XtensaFullyConnectedOpData {
-    OpDataFullyConnected reference_op_data;
+struct XtensaFullyConnectedOpData {
+  OpDataFullyConnected reference_op_data;
 
 #if defined(VISION_P6)
-    int8_t* reorder_coefficient_bias;  // buffers used to keep reordered coeff and
-                                       // biases.
-    uint32_t reorder_coefficient_bias_size;
-    uint8_t* p_context;  // persistent lib context for this instance saved here
-    uint32_t context_size;
+  int8_t* reorder_coefficient_bias;  // buffers used to keep reordered coeff and
+                                     // biases.
+  uint32_t reorder_coefficient_bias_size;
+  uint8_t* p_context;  // persistent lib context for this instance saved here
+  uint32_t context_size;
 #endif  // VISION_P6
-  };
+};
 
 #if defined(VISION_P6)
 
-TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
+                                         TfLiteNode* node);
 
 TfLiteStatus FullyConnectedEvalVision(TfLiteContext* context, TfLiteNode* node,
-                            const TfLiteConvParams& params,
-                            const XtensaFullyConnectedOpData& data,
-                            const TfLiteEvalTensor* input,
-                            const TfLiteEvalTensor* filter,
-                            const TfLiteEvalTensor* bias,
-                            TfLiteEvalTensor* output);
+                                      const TfLiteConvParams& params,
+                                      const XtensaFullyConnectedOpData& data,
+                                      const TfLiteEvalTensor* input,
+                                      const TfLiteEvalTensor* filter,
+                                      const TfLiteEvalTensor* bias,
+                                      TfLiteEvalTensor* output);
 
 #endif  // VISION_P6
-
 
 }  // namespace tflite
 

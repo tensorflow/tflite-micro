@@ -25,8 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
-#include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 
 namespace tflite {
 namespace {
@@ -55,10 +55,10 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if !defined(VISION_P6)
   return context->AllocatePersistentBuffer(context,
-    sizeof(OpDataFullyConnected));
+                                           sizeof(OpDataFullyConnected));
 #else
-  void* data =
-    context->AllocatePersistentBuffer(context, sizeof(XtensaFullyConnectedOpData));
+  void* data = context->AllocatePersistentBuffer(
+      context, sizeof(XtensaFullyConnectedOpData));
   if (InitXtensaContext()) {
     return nullptr;
   }
@@ -165,10 +165,11 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 #elif defined(VISION_P6)
   const auto& params =
-    *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
-  const auto& op_data = *(reinterpret_cast<XtensaFullyConnectedOpData*>(node->user_data));
+      *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+  const auto& op_data =
+      *(reinterpret_cast<XtensaFullyConnectedOpData*>(node->user_data));
   FullyConnectedEvalVision(context, node, params, op_data, input, filter, bias,
-    output);
+                           output);
 #else
   reference_integer_ops::FullyConnected(
       FullyConnectedParamsQuantized(data), tflite::micro::GetTensorShape(input),

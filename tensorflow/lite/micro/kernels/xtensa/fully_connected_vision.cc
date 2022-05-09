@@ -30,48 +30,48 @@ limitations under the License.
 
 namespace tflite {
 
-  void NormalizeFCDims(uint32_t* dims, int rank)
-  {
-    if (rank < 4)
-    {
-      dims[3] = dims[rank - 1];
-      dims[rank - 1] = 1;
-    }
-    dims[0] *= dims[1] * dims[2];
-    dims[1] = 1;
-    dims[2] = 1;
-    return;
+void NormalizeFCDims(uint32_t* dims, int rank) {
+  if (rank < 4) {
+    dims[3] = dims[rank - 1];
+    dims[rank - 1] = 1;
   }
+  dims[0] *= dims[1] * dims[2];
+  dims[1] = 1;
+  dims[2] = 1;
+  return;
+}
 
-  inline void OperandDims4D(uint32_t* dims, TfLiteTensor* opnd) {
-    for (int i = NumDimensions(opnd) - 1, j = 0; i >= 0; i--, j++) {
-      dims[j] = SizeOfDimension(opnd,i);
-    }
-    return;
+inline void OperandDims4D(uint32_t* dims, TfLiteTensor* opnd) {
+  for (int i = NumDimensions(opnd) - 1, j = 0; i >= 0; i--, j++) {
+    dims[j] = SizeOfDimension(opnd, i);
   }
-TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* node) {
+  return;
+}
+TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
+                                         TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
-  XtensaFullyConnectedOpData* data = reinterpret_cast<XtensaFullyConnectedOpData*>(node->user_data);
-  const auto& params =
-      *(reinterpret_cast<const TfLiteFullyConnectedParams*>(node->builtin_data));
+  XtensaFullyConnectedOpData* data =
+      reinterpret_cast<XtensaFullyConnectedOpData*>(node->user_data);
+  const auto& params = *(
+      reinterpret_cast<const TfLiteFullyConnectedParams*>(node->builtin_data));
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* filter =
-      micro_context->AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
+  TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
+      node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
 
-  uint32_t inputDims[4] = { 1 ,1 ,1 ,1 };
-  uint32_t outputDims[4] = { 1 ,1 ,1 ,1 };
-  uint32_t filterDims[4] = { 1 ,1 ,1 ,1 };
+  uint32_t inputDims[4] = {1, 1, 1, 1};
+  uint32_t outputDims[4] = {1, 1, 1, 1};
+  uint32_t filterDims[4] = {1, 1, 1, 1};
 
   OperandDims4D(inputDims, input);
   OperandDims4D(outputDims, output);
@@ -94,13 +94,13 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* nod
   }
 
   status = xiFullyConnectedSetContext(
-    data->p_context, data->context_size, inputDims, outputDims, filterDims, 1, input->params.zero_point,
-    filter->params.zero_point, output->params.zero_point,
-    data->reference_op_data.output_multiplier,
-    data->reference_op_data.output_shift,
-    data->reference_op_data.output_activation_min,
-    data->reference_op_data.output_activation_max,
-    (uint8_t*)GetTensorData<uint8_t>(filter));
+      data->p_context, data->context_size, inputDims, outputDims, filterDims, 1,
+      input->params.zero_point, filter->params.zero_point,
+      output->params.zero_point, data->reference_op_data.output_multiplier,
+      data->reference_op_data.output_shift,
+      data->reference_op_data.output_activation_min,
+      data->reference_op_data.output_activation_max,
+      (uint8_t*)GetTensorData<uint8_t>(filter));
 
   if (status) {
     return kTfLiteError;
@@ -108,13 +108,13 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* nod
 
   uint32_t coefficient_size = 0;
   status = xiFullyConnectedGetMemReqd_Coeff(data->p_context, data->context_size,
-    &coefficient_size);
+                                            &coefficient_size);
   if (status || coefficient_size == 0) {
     return kTfLiteError;
   }
 
   void* coefficient_data =
-    context->AllocatePersistentBuffer(context, coefficient_size);
+      context->AllocatePersistentBuffer(context, coefficient_size);
   if (coefficient_data == nullptr) {
     return kTfLiteError;
   }
@@ -122,11 +122,11 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* nod
   data->reorder_coefficient_bias_size = coefficient_size;
 
   status = xiFullyConnectedDoCoeffReorder(
-    data->p_context, data->context_size,
-    reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
-    data->reorder_coefficient_bias_size,
-    const_cast<uint8_t*>(GetTensorData<uint8_t>(filter)),
-    const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
+      data->p_context, data->context_size,
+      reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
+      data->reorder_coefficient_bias_size,
+      const_cast<uint8_t*>(GetTensorData<uint8_t>(filter)),
+      const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
   if (status) {
     return kTfLiteError;
   }
@@ -141,22 +141,22 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context, TfLiteNode* nod
 }
 
 TfLiteStatus FullyConnectedEvalVision(TfLiteContext* context, TfLiteNode* node,
-                            const TfLiteConvParams& params,
-                            const XtensaFullyConnectedOpData& data,
-                            const TfLiteEvalTensor* input,
-                            const TfLiteEvalTensor* filter,
-                            const TfLiteEvalTensor* bias,
-                            TfLiteEvalTensor* output) {
+                                      const TfLiteConvParams& params,
+                                      const XtensaFullyConnectedOpData& data,
+                                      const TfLiteEvalTensor* input,
+                                      const TfLiteEvalTensor* filter,
+                                      const TfLiteEvalTensor* bias,
+                                      TfLiteEvalTensor* output) {
   const uint32_t input_size = NumElements(input->dims);
   const uint32_t output_size = NumElements(output->dims);
   const int num_channels = filter->dims->data[kConvQuantizedDimension];
 
-  xiFullyConnected(data.p_context, data.context_size,
-         const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input)),
-         input_size, tflite::micro::GetTensorData<int8_t>(output), output_size,
-         data.reorder_coefficient_bias, data.reorder_coefficient_bias_size,
-         NULL,
-         NULL, num_channels);
+  xiFullyConnected(
+      data.p_context, data.context_size,
+      const_cast<int8_t*>(tflite::micro::GetTensorData<int8_t>(input)),
+      input_size, tflite::micro::GetTensorData<int8_t>(output), output_size,
+      data.reorder_coefficient_bias, data.reorder_coefficient_bias_size, NULL,
+      NULL, num_channels);
   return kTfLiteOk;
 }
 }  // namespace tflite
