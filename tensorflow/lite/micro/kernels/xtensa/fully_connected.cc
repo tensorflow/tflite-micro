@@ -164,6 +164,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                     0);
   return kTfLiteOk;
 #elif defined(VISION_P6)
+  (void)bias_data;
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data =
