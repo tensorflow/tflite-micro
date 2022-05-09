@@ -483,6 +483,11 @@ TEST_PASS_STRING:='~~~ALL TESTS PASSED~~~'
 # implementation for `make test`. See bluepill_makefile as an example.
 TARGET_SPECIFIC_MAKE_TEST:=0
 
+# The download scripts require that the downloads directory already exist for
+# improved error checking. To accomodate that, we first create a downloads
+# directory.
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+
 ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
   include $(MAKEFILE_DIR)/targets/$(TARGET)_makefile.inc
 endif
@@ -592,7 +597,6 @@ include $(MAKEFILE_DIR)/additional_tests.inc
 # code will already cause the makefile to error out.
 .PHONY: script_downloads
 script_downloads:
-	@mkdir -p ${MAKEFILE_DIR}/downloads
 	@$(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads > /dev/null
 	@$(MAKEFILE_DIR)/kissfft_download.sh ${MAKEFILE_DIR}/downloads > /dev/null
 	@$(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads > /dev/null

@@ -2,8 +2,6 @@ export PATH := $(MAKEFILE_DIR)/downloads/gcc_embedded/bin/:$(PATH)
 TARGET_ARCH := cortex-m3
 TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
-
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
