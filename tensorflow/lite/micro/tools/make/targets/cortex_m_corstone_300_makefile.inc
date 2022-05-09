@@ -19,6 +19,8 @@
 # TODO(#193): Remove this.
 CORE_OPTIMIZATION_LEVEL := -O2
 
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+
 export PATH := $(MAKEFILE_DIR)/downloads/corstone300/models/Linux64_GCC-6.4:$(PATH)
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/corstone_300_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)

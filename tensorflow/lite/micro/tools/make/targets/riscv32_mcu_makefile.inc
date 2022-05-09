@@ -6,6 +6,8 @@ export PATH := $(MAKEFILE_DIR)/downloads/riscv_toolchain/bin/:$(PATH)
 
 $(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
 
+$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/sifive_sdk_download.sh ${MAKEFILE_DIR}/downloads)
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the SiFive Freedom E SDK download: $(DOWNLOAD_RESULT))
