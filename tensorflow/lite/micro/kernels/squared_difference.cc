@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,10 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace builtin {
-namespace squared_difference {
-
+namespace {
 constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
 constexpr int kOutputTensor = 0;
@@ -240,7 +237,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace squared_difference
+}  // namespace
 
 TfLiteRegistration* Register_SQUARED_DIFFERENCE() {
   static TfLiteRegistration r = {
@@ -249,6 +246,4 @@ TfLiteRegistration* Register_SQUARED_DIFFERENCE() {
   return &r;
 }
 
-}  // namespace builtin
-}  // namespace ops
 }  // namespace tflite
