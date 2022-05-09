@@ -57,6 +57,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/system_setup.h"
+#include <iostream>
 
 namespace micro_test {
 extern int tests_passed;
