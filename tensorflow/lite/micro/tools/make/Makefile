@@ -464,29 +464,6 @@ include $(MAKEFILE_DIR)/additional_kernels.inc
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
 
-
-
-# The download scripts require that the downloads directory already exist for
-# improved error checking. To accomodate that, we first create a downloads
-# directory.
-$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
-
-# Directly download the flatbuffers library.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
-endif
-
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${MAKEFILE_DIR}/downloads)
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
-endif
-
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
-endif
-
 include $(MAKEFILE_DIR)/third_party_downloads.inc
 THIRD_PARTY_DOWNLOADS :=
 $(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
@@ -611,9 +588,20 @@ include $(MICRO_LITE_BENCHMARKS)
 # Load custom kernel tests.
 include $(MAKEFILE_DIR)/additional_tests.inc
 
+# The final "SUCCESS" echoes are piped to /dev/null because any non-zero exit
+# code will already cause the makefile to error out.
+.PHONY: script_downloads
+script_downloads:
+	@mkdir -p ${MAKEFILE_DIR}/downloads
+	@$(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads > /dev/null
+	@$(MAKEFILE_DIR)/kissfft_download.sh ${MAKEFILE_DIR}/downloads > /dev/null
+	@$(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads > /dev/null
+
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
+THIRD_PARTY_TARGETS += script_downloads
+
 third_party_downloads: $(THIRD_PARTY_TARGETS)
 
 MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
