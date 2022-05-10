@@ -53,8 +53,6 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
   TFLITE_DCHECK(node->builtin_data != nullptr);
   XtensaFullyConnectedOpData* data =
       reinterpret_cast<XtensaFullyConnectedOpData*>(node->user_data);
-  const auto& params = *(
-      reinterpret_cast<const TfLiteFullyConnectedParams*>(node->builtin_data));
 
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
