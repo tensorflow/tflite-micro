@@ -38,7 +38,7 @@ limitations under the License.
 #ifndef THIRD_PARTY_XTENSA_EXAMPLES_PYTORCH_TO_TFLITE_PYTORCH_IMAGES_DOG_JPG_H_
 #define THIRD_PARTY_XTENSA_EXAMPLES_PYTORCH_TO_TFLITE_PYTORCH_IMAGES_DOG_JPG_H_
 
-extern unsigned int g_pytorch_images_dog_jpg_len ;
+extern unsigned int g_pytorch_images_dog_jpg_len;
 extern unsigned char g_pytorch_images_dog_jpg_data[];
 
 #endif  // THIRD_PARTY_XTENSA_EXAMPLES_PYTORCH_TO_TFLITE_PYTORCH_IMAGES_DOG_JPG_H_
