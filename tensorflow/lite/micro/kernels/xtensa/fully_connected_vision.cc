@@ -40,7 +40,7 @@ void NormalizeFCDims(uint32_t* dims, int rank) {
   return;
 }
 
-inline void OperandDims4D(uint32_t* dims, TfLiteTensor* opnd) {
+inline void OperandDims4D(uint32_t* dims, const TfLiteTensor* opnd) {
   for (int i = NumDimensions(opnd) - 1, j = 0; i >= 0; i--, j++) {
     dims[j] = SizeOfDimension(opnd, i);
   }
