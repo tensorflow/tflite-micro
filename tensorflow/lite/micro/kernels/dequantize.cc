@@ -57,6 +57,13 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorShape(output),
                                   tflite::micro::GetTensorData<float>(output));
         break;
+      case kTfLiteUInt8:
+        reference_ops::Dequantize(data->quantization_params,
+                                  tflite::micro::GetTensorShape(input),
+                                  tflite::micro::GetTensorData<uint8_t>(input),
+                                  tflite::micro::GetTensorShape(output),
+                                  tflite::micro::GetTensorData<float>(output));
+        break;
       default:
         MicroPrintf("Input %s, output %s not supported.",
                     TfLiteTypeGetName(input->type),
