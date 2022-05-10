@@ -34,18 +34,19 @@ limitations under the License.
  * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
-#if !defined(HIFI4) && !defined(HIFI4_INTERNAL) 
-#include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
-#include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
+#include <tensorflow/lite/micro/all_ops_resolver.h>
+
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-
-#include <tensorflow/lite/micro/all_ops_resolver.h>
+#include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
+#include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
 
 TF_LITE_MICRO_TESTS_BEGIN
+
+#if !defined(HIFI4) && !defined(HIFI4_INTERNAL)
 
 TF_LITE_MICRO_TEST(TestInvoke) {
   // Set up logging.
@@ -53,7 +54,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
-  const tflite::Model* model = ::tflite::GetModel(g_mobilenet_v2_quantized_1x3x224x224_model_data);
+  const tflite::Model* model =
+      ::tflite::GetModel(g_mobilenet_v2_quantized_1x3x224x224_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     TF_LITE_REPORT_ERROR(&micro_error_reporter,
                          "Model provided is schema version %d not equal "
@@ -74,12 +76,11 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   uint8_t tensor_arena[tensor_arena_size];
 
   // Build an interpreter to run the model with.
-  tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
-                                       tensor_arena_size,
-                                       &micro_error_reporter);
+  tflite::MicroInterpreter interpreter(
+      model, resolver, tensor_arena, tensor_arena_size, &micro_error_reporter);
   interpreter.AllocateTensors();
 
- // Get information about the memory area to use for the model's input.
+  // Get information about the memory area to use for the model's input.
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect.
@@ -91,17 +92,22 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TF_LITE_MICRO_EXPECT_EQ(224, input->dims->data[3]);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
   // Make sure the input has the properties we expect.
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->dims->size:%d",input->dims->size);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->dims->data[0]:%d",input->dims->data[0]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->dims->data[1]:%d",input->dims->data[1]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->dims->data[2]:%d",input->dims->data[2]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->dims->data[3]:%d",input->dims->data[3]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->type:%d",input->type);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"input->bytes:%d",input->bytes);
-
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->dims->size:%d",
+                       input->dims->size);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->dims->data[0]:%d",
+                       input->dims->data[0]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->dims->data[1]:%d",
+                       input->dims->data[1]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->dims->data[2]:%d",
+                       input->dims->data[2]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->dims->data[3]:%d",
+                       input->dims->data[3]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->type:%d", input->type);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "input->bytes:%d", input->bytes);
 
   // Copy an image with a person into the memory area used for the input.
-  TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_pytorch_images_dog_jpg_len));
+  TFLITE_DCHECK_EQ(input->bytes,
+                   static_cast<size_t>(g_pytorch_images_dog_jpg_len));
   memcpy(input->data.int8, g_pytorch_images_dog_jpg_data, input->bytes);
 
   // Run the model on this input and make sure it succeeds.
@@ -118,24 +124,28 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(1000, output->dims->data[1]);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"output->dims->size:%d",output->dims->size);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"output->dims->data[0]:%d",output->dims->data[0]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"output->dims->data[1]:%d",output->dims->data[1]);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"output->type:%d",output->type);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "output->dims->size:%d",
+                       output->dims->size);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "output->dims->data[0]:%d",
+                       output->dims->data[0]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "output->dims->data[1]:%d",
+                       output->dims->data[1]);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "output->type:%d", output->type);
 
   int label_index = 0;
   int label_confidence = -257;
-  for(int i=0; i< (output->dims->data[0]* output->dims->data[1]); i++) {
-    if (label_confidence <  output->data.int8[i] ) {
+  for (int i = 0; i < (output->dims->data[0] * output->dims->data[1]); i++) {
+    if (label_confidence < output->data.int8[i]) {
       label_index = i;
-      label_confidence =  output->data.int8[i];;
+      label_confidence = output->data.int8[i];
     }
   }
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"Label index:%d\t", label_index);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter,"Confidence:%d", label_confidence );
-   
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "Label index:%d\t", label_index);
+  TF_LITE_REPORT_ERROR(&micro_error_reporter, "Confidence:%d",
+                       label_confidence);
+
   TF_LITE_REPORT_ERROR(&micro_error_reporter, "Ran successfully\n");
 }
+#endif  // !defined(HIFI4) && !defined(HIFI4_INTERNAL)
 
 TF_LITE_MICRO_TESTS_END
-#endif
