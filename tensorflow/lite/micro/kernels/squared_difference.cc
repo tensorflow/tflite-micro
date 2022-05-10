@@ -38,12 +38,14 @@ T SquaredDifference(T input1, T input2) {
   return difference * difference;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
+                            size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
+                                      TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
   data->requires_broadcast = false;
@@ -93,6 +95,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         output_quantization_params.zero_point;
 
     // shift to make integer for scales.
+    // 7 is selected so that maximum shifted result 255^2 * (1 << (7 * 2 ))
+    // does not overflow signed 32-bit integer
     data->arithmetic_params.left_shift = 7;
     const double twice_max_input_scale =
         2.0 * static_cast<double>(std::max(input1_quantization_params.scale,
@@ -207,7 +211,7 @@ void EvalSquaredDifference(TfLiteContext* context, TfLiteNode* node,
   }
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SquaredDifferenceEval(TfLiteContext* context, TfLiteNode* node) {
   OpData* data = reinterpret_cast<OpData*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
@@ -226,7 +230,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                            output);
   } else {
     MicroPrintf(
-        "SquaredDifference only supports FLOAT32 and INT32 now, got %d.",
+        "SquaredDifference only supports FLOAT32, INT32 and INT8 now, got %d.",
         output->type);
     return kTfLiteError;
   }
@@ -236,7 +240,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SQUARED_DIFFERENCE() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(
+      SquaredDifferenceInit, SquaredDifferencePrepare, SquaredDifferenceEval);
 }
 
 }  // namespace tflite
