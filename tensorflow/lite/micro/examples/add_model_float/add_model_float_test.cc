@@ -1,18 +1,24 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/*--------------------------------------------------------------------
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+  main_functions.cc 
 
-    http://www.apache.org/licenses/LICENSE-2.0
+  Description: main functions for add_model_float example
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
+  Skyworks Solution
+  Copyright (c) 2022, All Rights Reserved
 
+--------------------------------------------------------------------*/
+// Number of tests to run with randomly generated input
+#define NUM_TESTS 100
+
+// Hardware has no std out, must use custom handler
+//#define NO_COUT
+
+#ifndef NO_COUT
+#include <iostream>
+#endif
+
+#include "tensorflow/lite/micro/examples/add_model_float/main_functions.h"
 #include <math.h>
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
@@ -23,15 +29,22 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+#include "constants.h"
+
+// creates a random float in range of min and max
+float random_float(float min, float max){
+  float scale = rand() / (float) RAND_MAX;
+  return min + scale * (max - min);
+}
+
 tflite::ErrorReporter* error_reporter = nullptr;
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   // Define the input and the expected output
-  float x = 0.0f;
-  //int8_t x = 0;
-  //y_true = sin(x);
+  //float x = 0.0f;
+  float x = random_float(-kXrange, kXrange);
   float y_true = x + x;
 
   // Set up logging
@@ -74,19 +87,9 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   // other).
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[1]);
-  // The input is an 8 bit integer value
-  //TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
   // The input is an 32 bit float value
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteFloat32, input->type);
 
-  // Get the input quantization parameters
-  //float input_scale = input->params.scale;
-  //int input_zero_point = input->params.zero_point;
-
-  // Quantize the input from floating-point to integer
-  //int8_t x_quantized = x / input_scale + input_zero_point;
-  //int8_t x_quantized = x;
-  // Place the quantized input in the model's input tensor
   input->data.f[0] = x;
 
   // Run the model and check that it succeeds
@@ -101,55 +104,24 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[1]);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteFloat32, output->type);
 
-  // Get the output quantization parameters
-  //float output_scale = output->params.scale;
-  //int output_zero_point = output->params.zero_point;
-
-  // Obtain the quantized output from model's output tensor
-  //int8_t y_pred_quantized = output->data.int8[0];
-  //int8_t y_pred = output->data.int8[0];
   float y_pred = output->data.f[0];
-  // Dequantize the output from integer to floating-point
-  //float y_pred = (y_pred_quantized - output_zero_point) * output_scale;
 
   // Check if the output is within a small range of the expected output
   float epsilon = 0.00f;
-  //HandleOutput(error_reporter, (float)x, (float)y_pred);
   TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
 
-  // Run inference on several more values and confirm the expected outputs
-  x = 1.5;
-  //y_true = sin(x);
-  y_true = x + x;
-  //input->data.int8[0] = x / input_scale + input_zero_point;
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  //y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  y_pred = output->data.f[0];
-  //HandleOutput(error_reporter, (float)x, (float)y_pred);
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
-
-  x = 3.25;
-  y_true = x+x;
-  //y_true = sin(x);
-  //input->data.int8[0] = x / input_scale + input_zero_point;
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  //y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  y_pred = output->data.f[0];
-  //HandleOutput(error_reporter, (float)x, (float)y_pred);
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
-
-  x = -5.33;
-  y_true = x+x;
-  //y_true = sin(x);
-  //input->data.int8[0] = x / input_scale + input_zero_point;
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  //y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  y_pred = output->data.f[0];
-  //HandleOutput(error_reporter, (float)x, (float)y_pred);
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  // run tests on randomly generated floats
+  for(int test_num = 0; test_num < NUM_TESTS; ++test_num){
+    x = random_float(-kXrange, kXrange);
+    y_true = x + x;
+    input->data.f[0] = x;
+    interpreter.Invoke();
+    y_pred = output->data.f[0];
+    #ifndef NO_COUT
+    std::cout << test_num << ": " << y_pred << " ?= " << y_true << std::endl;
+    #endif
+    TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  }
 }
 
 TF_LITE_MICRO_TESTS_END
