@@ -38,11 +38,6 @@ struct OpData {
   int buffer_idx;
 };
 
-// TODO(b/169801227): This global struct is needed for the linker to drop unused
-// code (for example, by using Register_CONV_2D_INT8 instead of
-// Register_CONV_2D).
-TfLiteRegistration conv_registration;
-
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -240,7 +235,7 @@ TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
           tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
           tflite::micro::GetTensorData<int32_t>(bias), &output_dims,
           tflite::micro::GetTensorData<int8_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 
   return kTfLiteOk;
 }
@@ -336,7 +331,7 @@ TfLiteStatus EvalQuantizedPerChannel16x8(
           tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
           tflite::micro::GetTensorData<int64_t>(bias), &output_dims,
           tflite::micro::GetTensorData<int16_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 
   return kTfLiteOk;
 }
@@ -444,39 +439,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_CONV_2D() {
-  conv_registration.init = Init;
-  conv_registration.free = nullptr;
-  conv_registration.prepare = Prepare;
-  conv_registration.invoke = Eval;
-  conv_registration.profiling_string = nullptr;
-  conv_registration.builtin_code = 0;
-  conv_registration.custom_name = nullptr;
-  conv_registration.version = 0;
-  return conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 TfLiteRegistration Register_CONV_2D_INT8() {
-  conv_registration.init = Init;
-  conv_registration.free = nullptr;
-  conv_registration.prepare = Prepare;
-  conv_registration.invoke = EvalInt8;
-  conv_registration.profiling_string = nullptr;
-  conv_registration.builtin_code = 0;
-  conv_registration.custom_name = nullptr;
-  conv_registration.version = 0;
-  return conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
 TfLiteRegistration Register_CONV_2D_INT16() {
-  conv_registration.init = Init;
-  conv_registration.free = nullptr;
-  conv_registration.prepare = Prepare;
-  conv_registration.invoke = EvalInt16x8;
-  conv_registration.profiling_string = nullptr;
-  conv_registration.builtin_code = 0;
-  conv_registration.custom_name = nullptr;
-  conv_registration.version = 0;
-  return conv_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, EvalInt16x8);
 }
 
 }  // namespace tflite

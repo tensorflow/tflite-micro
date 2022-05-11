@@ -18,11 +18,11 @@ See debug_log_callback.h
 Required parameters:
 
   - TARGET: cortex_m_generic
-  - TARGET_ARCH: cortex-mXX (For all options see: tensorflow/lite/micro/tools/make/targets/cortex_m_generic_makefile.inc)
+  - TARGET_ARCH: cortex-mXX For all options see: [link](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/tools/make/targets/cortex_m_generic_makefile.inc)
 
 Optional parameters:
 
-  - TOOLCHAIN: gcc (default) or armmclang
+  - TOOLCHAIN: gcc (default) or armclang
   - For Cortex-M55, ARM Compiler 6.14 or later is required.
 
 Some examples:

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ void AverageEvalQuantized(TfLiteContext* context, const TfLiteNode* node,
       arm_avgpool_s8(&ctx, &pool_params, &input_dims,
                      micro::GetTensorData<int8_t>(input), &filter_dims,
                      &output_dims, micro::GetTensorData<int8_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 }
 
 TfLiteStatus MaxEvalInt8(TfLiteContext* context, const TfLiteNode* node,
@@ -132,7 +132,7 @@ TfLiteStatus MaxEvalInt8(TfLiteContext* context, const TfLiteNode* node,
       arm_max_pool_s8(&ctx, &pool_params, &input_dims,
                       micro::GetTensorData<int8_t>(input), &filter_dims,
                       &output_dims, micro::GetTensorData<int8_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 
   return kTfLiteOk;
 }
@@ -246,25 +246,11 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/AveragePrepare,
-          /*invoke=*/AverageEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEval);
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/MaxPrepare,
-          /*invoke=*/MaxEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, MaxPrepare, MaxEval);
 }
 
 }  // namespace tflite

@@ -41,11 +41,6 @@ struct OpData {
   int buffer_idx;
 };
 
-// TODO(b/169801227): This global struct is needed for the linker to drop unused
-// code (for example, by using Register_FULLY_CONNECTED_INT8 instead of
-// Register_FULLY_CONNECTED).
-TfLiteRegistration fully_connected_registration;
-
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -226,7 +221,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
             tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
             &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
-        ARM_MATH_SUCCESS);
+        ARM_CMSIS_NN_SUCCESS);
   } else {
     cmsis_nn_fc_params fc_params;
     fc_params.input_offset = -data.reference_op_data.input_zero_point;
@@ -242,7 +237,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
             tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
             &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
-        ARM_MATH_SUCCESS);
+        ARM_CMSIS_NN_SUCCESS);
   }
   return kTfLiteOk;
 }
@@ -326,27 +321,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  fully_connected_registration.init = Init;
-  fully_connected_registration.free = nullptr;
-  fully_connected_registration.prepare = Prepare;
-  fully_connected_registration.invoke = Eval;
-  fully_connected_registration.profiling_string = nullptr;
-  fully_connected_registration.builtin_code = 0;
-  fully_connected_registration.custom_name = nullptr;
-  fully_connected_registration.version = 0;
-  return fully_connected_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
-  fully_connected_registration.init = Init;
-  fully_connected_registration.free = nullptr;
-  fully_connected_registration.prepare = Prepare;
-  fully_connected_registration.invoke = EvalInt8;
-  fully_connected_registration.profiling_string = nullptr;
-  fully_connected_registration.builtin_code = 0;
-  fully_connected_registration.custom_name = nullptr;
-  fully_connected_registration.version = 0;
-  return fully_connected_registration;
+  return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
 }  // namespace tflite
