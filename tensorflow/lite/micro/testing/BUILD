@@ -22,7 +22,7 @@ package_group(
 
 package_group(
     name = "kernel_test_friends",
-    package = tflm_kernel_friends(),
+    packages = tflm_kernel_friends(),
 )
 
 cc_library(
