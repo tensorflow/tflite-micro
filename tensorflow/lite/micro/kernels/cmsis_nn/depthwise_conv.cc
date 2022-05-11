@@ -268,7 +268,7 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
           tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
           tflite::micro::GetTensorData<int32_t>(bias), &output_dims,
           tflite::micro::GetTensorData<int8_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 }
 
 void EvalQuantizedPerChannel16x8(TfLiteContext* context, TfLiteNode* node,
