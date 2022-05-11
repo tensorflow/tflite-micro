@@ -332,6 +332,13 @@ cc_library(
     hdrs = ["micro_utils.h"],
 )
 
+cc_library(
+    name = "unidirectional_sequence_lstm_test_config",
+    srcs = ["unidirectional_sequence_lstm_test_config.cc"],
+    hdrs = ["unidirectional_sequence_lstm_test_config.h"],
+    deps = ["//tensorflow/lite/c:common"],
+)
+
 ####################################
 # C++ tests
 ####################################
@@ -1293,6 +1300,7 @@ cc_test(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_test_config",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
