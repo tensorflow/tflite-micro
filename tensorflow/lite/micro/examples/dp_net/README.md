@@ -13,7 +13,7 @@ The model can be updated by replacing the file with a new version of the same na
 ```bash
 make -f tensorflow/lite/micro/tools/make/Makefile dp_net 
 ```
-* Note: first compilation downloads dependencies and builds TFLM library, subsequent runs will only compiled changed files.
+* Note: first compilation downloads dependencies and builds TFLM library, subsequent runs will only compile changed files.
 
 ## Run dp_net example
 ```bash
