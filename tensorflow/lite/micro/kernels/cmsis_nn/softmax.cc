@@ -120,7 +120,7 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
               op_data.row_size, op_data.softmax_params.input_multiplier,
               op_data.softmax_params.input_left_shift, &softmax_params,
               tflite::micro::GetTensorData<int16_t>(output)),
-          ARM_MATH_SUCCESS);
+          ARM_CMSIS_NN_SUCCESS);
       return kTfLiteOk;
     }
     default:
@@ -182,7 +182,7 @@ TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
                       op_data.softmax_params.input_multiplier,
                       op_data.softmax_params.input_left_shift, &softmax_params,
                       tflite::micro::GetTensorData<int16_t>(output)),
-      ARM_MATH_SUCCESS);
+      ARM_CMSIS_NN_SUCCESS);
 
   return kTfLiteOk;
 }

@@ -221,7 +221,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
             tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
             &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
-        ARM_MATH_SUCCESS);
+        ARM_CMSIS_NN_SUCCESS);
   } else {
     cmsis_nn_fc_params fc_params;
     fc_params.input_offset = -data.reference_op_data.input_zero_point;
@@ -237,7 +237,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
             tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,
             &output_dims, tflite::micro::GetTensorData<int8_t>(output)),
-        ARM_MATH_SUCCESS);
+        ARM_CMSIS_NN_SUCCESS);
   }
   return kTfLiteOk;
 }
