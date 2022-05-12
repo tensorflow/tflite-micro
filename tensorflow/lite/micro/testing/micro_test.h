@@ -135,7 +135,6 @@ inline void InitializeTest() { InitializeTarget(); }
       }                                                                    \
     } else {                                                               \
       MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                    \
     }                                                                      \
   } while (false)
 
