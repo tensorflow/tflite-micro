@@ -28,13 +28,9 @@ namespace {
 // Softmax parameter data that persists in user_data
 const int kInt16LUTArraySize = 513;
 
-}  // namespace
-
-TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
-                                    const TfLiteTensor* input,
-                                    TfLiteTensor* output,
-                                    const TfLiteSoftmaxParams* params,
-                                    SoftmaxParams* op_data) {
+__attribute__((always_inline)) inline TfLiteStatus InitializeLutForInt16(
+    TfLiteContext* context, const TfLiteTensor* input, TfLiteTensor* output,
+    SoftmaxParams* op_data) {
   // Only allocate LUTs for KTfLiteInt16 data type
   if (input->type == kTfLiteInt16) {
     void* raw_exp_lut = context->AllocatePersistentBuffer(
@@ -68,6 +64,20 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
         1.0f, op_data->one_over_one_plus_x_lut);
     op_data->zero_point = output->params.zero_point;
     op_data->scale = output->params.scale;
+  }
+
+  return kTfLiteOk;
+}
+
+}  // namespace
+
+TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
+                                    const TfLiteTensor* input,
+                                    TfLiteTensor* output,
+                                    const TfLiteSoftmaxParams* params,
+                                    SoftmaxParams* op_data) {
+  if (InitializeLutForInt16(context, input, output, op_data) != kTfLiteOk) {
+    return kTfLiteError;
   }
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
