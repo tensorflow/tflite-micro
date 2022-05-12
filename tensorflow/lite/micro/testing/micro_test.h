@@ -125,10 +125,12 @@ inline void InitializeTest() { InitializeTarget(); }
 // the printf specifier is %d.
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
   do {                                                                     \
-    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;       \
-    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;       \
+    auto vx = x;                                                           \
+    auto vy = y;                                                           \
+    bool checkIntX = std::is_same<decltype(vx) , decltype(0)>::value;      \
+    bool checkIntY = std::is_same<decltype(vy) , decltype(0)>::value;      \
     if (checkIntX && checkIntY) {                                          \
-      if ((x) != (y)) {                                                    \
+      if ((vx) != (vy)) {                                                  \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
                     __LINE__, x, y);                                       \
         micro_test::did_test_fail = true;                                  \
