@@ -286,6 +286,7 @@ tensorflow/lite/micro/micro_string_test.cc \
 tensorflow/lite/micro/micro_time_test.cc \
 tensorflow/lite/micro/micro_utils_test.cc \
 tensorflow/lite/micro/recording_micro_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/simple_memory_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
@@ -376,6 +377,7 @@ tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
 tensorflow/lite/micro/kernels/space_to_depth.cc \
 tensorflow/lite/micro/kernels/split.cc \
 tensorflow/lite/micro/kernels/split_v.cc \
+tensorflow/lite/micro/kernels/squared_difference.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
 tensorflow/lite/micro/kernels/strided_slice.cc \
 tensorflow/lite/micro/kernels/sub.cc \

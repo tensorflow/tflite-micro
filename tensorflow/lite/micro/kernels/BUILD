@@ -231,6 +231,7 @@ tflm_kernel_cc_library(
         "space_to_depth.cc",
         "split.cc",
         "split_v.cc",
+        "squared_difference.cc",
         "squeeze.cc",
         "strided_slice.cc",
         "sub.cc",
@@ -322,7 +323,7 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_5_config(): ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
-        xtensa_vision_p6_config(): ["//third_party/xtensa/xi_annlib_vision_p6:xi_annlib_vision_p6_lib"],
+        xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
         "//conditions:default": [],
     }),
 )
@@ -330,6 +331,13 @@ tflm_kernel_cc_library(
 cc_library(
     name = "micro_utils",
     hdrs = ["micro_utils.h"],
+)
+
+cc_library(
+    name = "unidirectional_sequence_lstm_test_config",
+    srcs = ["unidirectional_sequence_lstm_test_config.cc"],
+    hdrs = ["unidirectional_sequence_lstm_test_config.h"],
+    deps = ["//tensorflow/lite/c:common"],
 )
 
 ####################################
@@ -1192,6 +1200,19 @@ cc_test(
 )
 
 cc_test(
+    name = "squared_difference_test",
+    srcs = [
+        "squared_difference_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "squeeze_test",
     srcs = ["squeeze_test.cc"],
     deps = [
@@ -1293,6 +1314,7 @@ cc_test(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_test_config",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
