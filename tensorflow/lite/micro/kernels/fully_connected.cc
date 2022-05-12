@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,10 +55,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_MSG(context, input->type == filter->type,
-                     "Hybrid models are not supported on TFLite Micro.");
 
   TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
                                  context, params->activation, input->type,
@@ -123,6 +120,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(bias), bias_data,
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output));
+      break;
+    }
+
+    case kTfLiteInt16: {
+      const int64_t* bias_data =
+          nullptr != bias ? tflite::micro::GetTensorData<int64_t>(bias)
+                          : nullptr;
+
+      tflite::reference_integer_ops::FullyConnected(
+          FullyConnectedParamsQuantized(data),
+          tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int16_t>(input),
+          tflite::micro::GetTensorShape(filter),
+          tflite::micro::GetTensorData<int8_t>(filter),
+          tflite::micro::GetTensorShape(bias), bias_data,
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(output));
       break;
     }
 
