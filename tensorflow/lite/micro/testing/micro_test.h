@@ -136,7 +136,7 @@ inline void InitializeTest() { InitializeTarget(); }
       MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                 \
     }                                                                   \
-  } while (false)                                                  
+  } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
 #define TF_LITE_MICRO_ARRAY_ELEMENT_EXPECT_NEAR(arr1, idx1, arr2, idx2,       \
