@@ -135,6 +135,7 @@ inline void InitializeTest() { InitializeTarget(); }
       }                                                                    \
     } else {                                                               \
       MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
+      #error can't compile due to wrong typing for macro                   \
     }                                                                      \
   } while (false)
 
