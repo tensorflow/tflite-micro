@@ -24,7 +24,7 @@ namespace tflite {
 constexpr int kMaxNumberOfAxis = 4;
 constexpr int kMaxNumberOfReducedAxis = 2;
 
-struct OpData {
+struct OpDataReduce {
   int32_t multiplier;
   int shift;
   int temp_buffer_idx;
@@ -37,7 +37,7 @@ struct OpData {
 };
 
 struct XtensaReduceOpData {
-  OpData reference_op_data;
+  OpDataReduce reference_op_data;
 
 #if defined(VISION_P6)
   uint8_t* p_context;  // persistent lib context for this instance saved here

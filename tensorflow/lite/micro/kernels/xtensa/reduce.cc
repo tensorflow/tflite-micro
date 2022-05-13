@@ -70,7 +70,7 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
     XtensaReduceOpData* op_dataXtensa =
         static_cast<XtensaReduceOpData*>(node->user_data);
-    OpData* data = &op_dataXtensa->reference_op_data;
+    OpDataReduce* data = &op_dataXtensa->reference_op_data;
 #else
     OpData* data = static_cast<OpData*>(node->user_data);
 #endif
@@ -92,7 +92,7 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
   XtensaReduceOpData* op_dataXtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpData* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
   OpData* op_data = static_cast<OpData*>(node->user_data);
 #endif
@@ -125,7 +125,7 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
   XtensaReduceOpData* op_dataXtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpData* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 #endif
@@ -174,7 +174,7 @@ TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
   XtensaReduceOpData* op_dataXtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpData* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 #endif
@@ -303,7 +303,7 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
   XtensaReduceOpData* op_dataXtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpData* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
   OpData* op_data = static_cast<OpData*>(node->user_data);
 #endif
