@@ -76,6 +76,7 @@ TfLiteRegistration Register_SHAPE();
 TfLiteRegistration Register_SLICE();
 TfLiteRegistration Register_SPACE_TO_BATCH_ND();
 TfLiteRegistration Register_SPACE_TO_DEPTH();
+TfLiteRegistration Register_SQUARED_DIFFERENCE();
 TfLiteRegistration Register_SQUEEZE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SVDF();
