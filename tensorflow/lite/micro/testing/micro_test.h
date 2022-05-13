@@ -57,6 +57,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/system_setup.h"
+#include <iostream>
 
 namespace micro_test {
 extern int tests_passed;
@@ -120,22 +121,39 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                         \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                   \
-  do {                                                                  \
-    auto vx = x;                                                        \
-    auto vy = y;                                                        \
-    if ((vx) != (vy)) {                                                 \
-      MicroPrintf(#x " == " #y " failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                 \
-    }                                                                   \
+// TODO(b/139142772): this macro is used with types other than ints even though
+// the printf specifier is %d.
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
+  do {                                                                     \
+    auto vx = x;                                                           \
+    auto vy = y;                                                           \
+    bool checkIntX = std::is_same<decltype(vx) , decltype(0)>::value;      \
+    bool checkIntY = std::is_same<decltype(vy) , decltype(0)>::value;      \
+    if (checkIntX && checkIntY) {                                          \
+      if ((vx) != (vy)) {                                                  \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
+                    __LINE__, x, y);                                       \
+        micro_test::did_test_fail = true;                                  \
+      }                                                                    \
+    } else {                                                               \
+      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
+      micro_test::did_test_fail = true;                                    \
+    }                                                                      \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                   \
-  do {                                                                  \
-    if ((x) == (y)) {                                                   \
-      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                 \
-    }                                                                   \
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
+  do {                                                                     \
+    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;       \
+    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;       \
+    if (checkIntX && checkIntY) {                                          \
+      if ((x) == (y)) {                                                    \
+        MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
+        micro_test::did_test_fail = true;                                  \
+      }                                                                    \
+    } else {                                                               \
+      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
+      micro_test::did_test_fail = true;                                    \
+    }                                                                      \
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
