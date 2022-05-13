@@ -35,7 +35,7 @@ namespace reduce {
 void* InitReduce(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if !defined(VISION_P6)
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
 #else
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(XtensaReduceOpData));
@@ -72,7 +72,7 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node) {
         static_cast<XtensaReduceOpData*>(node->user_data);
     OpDataReduce* data = &op_dataXtensa->reference_op_data;
 #else
-    OpData* data = static_cast<OpData*>(node->user_data);
+    OpDataReduce* data = static_cast<OpDataReduce*>(node->user_data);
 #endif
     TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
     const double real_multiplier = static_cast<double>(input->params.scale) /
@@ -94,7 +94,7 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
       static_cast<XtensaReduceOpData*>(node->user_data);
   OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
-  OpData* op_data = static_cast<OpData*>(node->user_data);
+  OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
 #endif
   TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
@@ -127,7 +127,7 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
       static_cast<XtensaReduceOpData*>(node->user_data);
   OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
-  OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
+  OpDataReduce* op_data = reinterpret_cast<OpDataReduce*>(node->user_data);
 #endif
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
@@ -176,7 +176,7 @@ TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
       static_cast<XtensaReduceOpData*>(node->user_data);
   OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
-  OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
+  OpDataReduce* op_data = reinterpret_cast<OpDataReduce*>(node->user_data);
 #endif
 
   int num_axis = static_cast<int>(ElementCount(*axis->dims));
@@ -305,7 +305,7 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
       static_cast<XtensaReduceOpData*>(node->user_data);
   OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
 #else
-  OpData* op_data = static_cast<OpData*>(node->user_data);
+  OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
 #endif
   // Interpret an axis tensor with null dimensions as a scalar
   int num_axis = static_cast<int>(ElementCount(*axis->dims));
