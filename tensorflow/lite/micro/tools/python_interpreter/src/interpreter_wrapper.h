@@ -18,7 +18,7 @@ limitations under the License.
 #include <Python.h>
 #include <pybind11/numpy.h>
 
-#include "python_error_reporter.h"
+// #include "python_error_reporter.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -29,27 +29,18 @@ namespace interpreter_wrapper {
 
 class InterpreterWrapper {
  public:
-  InterpreterWrapper(PyObject* model_data);
+  InterpreterWrapper(PyObject* model_data, int arena_size);
   ~InterpreterWrapper();
 
-  tflite::MicroInterpreter* interpreter() { return interpreter_; }
-
-  void AllocateTensors();
   void Invoke();
-  // void SetInputFloat(float x);
-  // float GetOutputFloat();
   void SetInputTensor(PyObject* data, int index);
   PyObject* GetOutputTensor();
 
  private:
-  InterpreterWrapper(const tflite::Model* model,
-                     tflite::ErrorReporter* error_reporter,
-                     tflite::AllOpsResolver resolver,
-                     tflite::MicroInterpreter* interpreter);
-  const tflite::Model* model_;
+  const PyObject* model_;
   tflite::ErrorReporter* error_reporter_;
-  tflite::AllOpsResolver resolver_;
-  tflite::MicroInterpreter* interpreter_;
+  std::unique_ptr<tflite::MicroInterpreter> interpreter_;
+  uint8_t *memory_arena_;
 };
 
 }  // namespace interpreter_wrapper

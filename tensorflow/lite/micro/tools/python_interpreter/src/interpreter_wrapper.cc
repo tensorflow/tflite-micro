@@ -13,61 +13,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "interpreter_wrapper.h"
+#include "tensorflow/lite/micro/tools/python_interpreter/src/interpreter_wrapper.h"
 
-#include "python_utils.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-
+#include <pybind11/embed.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <pybind11/pybind11.h>
-namespace py = pybind11;
 
 #include "numpy.h"
+#include "python_utils.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
+
+namespace py = pybind11;
 
 namespace tflite {
 namespace interpreter_wrapper {
 
-// tflite::ErrorReporter* error_reporter = nullptr;
-// const tflite::Model* model = nullptr;
-// tflite::MicroInterpreter* s_interpreter = nullptr;
-tflite::AllOpsResolver all_ops_resolver;
-
-constexpr int kTensorArenaSize = 60000;
-uint8_t tensor_arena[kTensorArenaSize];
-
-// InterpreterWrapper::InterpreterWrapper(const tflite::Model* model,
-//                                        tflite::ErrorReporter* error_reporter,
-//                                        tflite::AllOpsResolver resolver,
-//                                        tflite::MicroInterpreter* interpreter)
-//     : model_(model),
-//       error_reporter_(std::move(error_reporter)),
-//       resolver_(std::move(resolver)),
-//       interpreter_(std::move(interpreter)) {
-// }
-
-InterpreterWrapper::~InterpreterWrapper() {
-  // TODO destruct
-  delete error_reporter_;
-  delete interpreter_;
-}
-
 void* enable_numpy_support() {
-  Py_Initialize();
+  // import_array() is actually a macro that returns NULL (in Python3), hence
+  // this wrapper function with a return type of void*.
   import_array();
   return nullptr;
 }
 
-InterpreterWrapper::InterpreterWrapper(PyObject* model_data) {
+InterpreterWrapper::~InterpreterWrapper() {
+  delete error_reporter_;
+  delete memory_arena_;
+  Py_DECREF(model_);
+  Py_Finalize();
+}
+
+InterpreterWrapper::InterpreterWrapper(PyObject* model_data, int arena_size) {
+  // Using model_data as a raw pointer beyond the scope of this constructor, so
+  // we need to increment the reference count so that Python doesn't destroy it.
+  Py_INCREF(model_data);
+
   char* buf = nullptr;
   Py_ssize_t length;
-
-  if (python_utils::ConvertFromPyString(model_data, &buf, &length) == -1) {
-    // return nullptr;
-    return;
+  if (python_utils::ConvertFromPyString(model_data, &buf, &length) == -1 ||
+      buf == nullptr) {
+    throw std::runtime_error(
+        "TFLM cannot convert model data from Python object to char *");
   }
-
-  enable_numpy_support();  // TODO: Why not import_array()?
 
   const tflite::Model* model = tflite::GetModel(buf);
 
@@ -75,56 +63,52 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data) {
       new tflite::MicroErrorReporter();
   ErrorReporter* error_reporter = micro_error_reporter;
 
-  tflite::MicroInterpreter* interpreter = new tflite::MicroInterpreter(
-      model, all_ops_resolver, tensor_arena, kTensorArenaSize, error_reporter);
+  uint8_t* tensor_arena = new uint8_t[arena_size];
+  if (tensor_arena == nullptr) {
+    throw std::runtime_error(
+        std::string("TFLM cannot malloc memory arena of ") +
+        std::to_string(arena_size) + " bytes");
+  }
 
-  // This doesn't work, why?
-  // InterpreterWrapper* wrapper =
-  // InterpreterWrapper(model, error_reporter, resolver, s_interpreter);
+  // Safe to declare here as AllocateTensors() is called here
+  tflite::AllOpsResolver all_ops_resolver;
 
-  model_ = model;
+  std::unique_ptr<tflite::MicroInterpreter> interpreter(
+      new tflite::MicroInterpreter(model, all_ops_resolver, tensor_arena,
+                                   arena_size, error_reporter));
+
+  model_ = model_data;
   error_reporter_ = error_reporter;
-  resolver_ = all_ops_resolver;
-  interpreter_ = interpreter;
-}
+  interpreter_ = std::move(interpreter);
+  memory_arena_ = tensor_arena;
 
-void InterpreterWrapper::AllocateTensors() {
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
-    printf("AllocateTensors() failed");
+    throw std::runtime_error("TFLM failed to allocate tensors");
   }
+
+  Py_Initialize();
+  enable_numpy_support();
 }
 
 void InterpreterWrapper::Invoke() {
-  int test = 1;
-  std::max(1, test);
   TfLiteStatus status = interpreter_->Invoke();
   if (status != kTfLiteOk) {
-    printf("Invoke() failed");
+    MicroPrintf("Invoke() failed");
   }
 }
-
-// TODO: Really should be Set/GetTensor
-// void InterpreterWrapper::SetInputFloat(float x) {
-//   TfLiteTensor* input = interpreter_->input(0);
-//   int8_t x_quantized = x / input->params.scale + input->params.zero_point;
-//   input->data.int8[0] = x_quantized;
-// }
-
-// float InterpreterWrapper::GetOutputFloat() {
-//   TfLiteTensor* output = interpreter_->output(0);
-//   int8_t y_quantized = output->data.int8[0];
-//   return (y_quantized - output->params.zero_point) * output->params.scale;
-// }
 
 void InterpreterWrapper::SetInputTensor(PyObject* data, int index) {
   std::unique_ptr<PyObject, tflite::python_utils::PyDecrefDeleter> array_safe(
       PyArray_FromAny(data, nullptr, 0, 0, NPY_ARRAY_CARRAY, nullptr));
   if (!array_safe) {
+    MicroPrintf("Array not safe");
     return;
   }
+
   // TODO: error checking
   PyArrayObject* array = reinterpret_cast<PyArrayObject*>(array_safe.get());
+
   memcpy(interpreter_->input(index)->data.data, PyArray_DATA(array),
          PyArray_NBYTES(array));
 }
@@ -151,7 +135,7 @@ PyObject* InterpreterWrapper::GetOutputTensor() {
     void* data = malloc(tensor->bytes);
     if (!data) {
       // PyErr_SetString(PyExc_ValueError, "Malloc to copy tensor failed.");
-      printf("malloc fails\n");
+      MicroPrintf("malloc fails\n");
       return nullptr;
     }
     memcpy(data, tensor->data.raw, tensor->bytes);
@@ -175,7 +159,7 @@ PyObject* InterpreterWrapper::GetOutputTensor() {
                         NPY_ARRAY_OWNDATA);
     return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
   } else {
-    printf("unsupported\n");
+    MicroPrintf("unsupported\n");
     // // Create a C-order array so the data is contiguous in memory.
     // const int32_t kCOrder = 0;
     // PyObject* py_object =

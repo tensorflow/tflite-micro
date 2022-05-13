@@ -7,7 +7,7 @@ package(
 )
 
 pybind_library(
-    name = "pybind_wrapper",
+    name = "python_interpreter",
     srcs = [
         "interpreter_wrapper.cc",
         "numpy.cc",
@@ -20,7 +20,6 @@ pybind_library(
         "python_error_reporter.h",
         "python_utils.h",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
@@ -34,6 +33,15 @@ pybind_extension(
         "interpreter_wrapper_pybind.cc",
     ],
     deps = [
-        ":pybind_wrapper",
+        ":python_interpreter",
     ],
+)
+
+py_library(
+    name = "tflm_runtime",
+    srcs = ["tflm_runtime.py"],
+    data = [
+        ":interpreter_wrapper_pybind.so",
+    ],
+    srcs_version = "PY3",
 )

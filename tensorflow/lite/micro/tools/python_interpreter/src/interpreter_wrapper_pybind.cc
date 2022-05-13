@@ -13,9 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 
-#include "interpreter_wrapper.h"
+#include "tensorflow/lite/micro/tools/python_interpreter/src/interpreter_wrapper.h"
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
@@ -23,27 +24,14 @@ limitations under the License.
 namespace py = pybind11;
 using tflite::interpreter_wrapper::InterpreterWrapper;
 
-void* enable_numpy_support() {
-  Py_Initialize();
-  import_array();
-  return nullptr;
-}
-
 PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   m.doc() = "pybind11 TFLM interpreter";
 
-  // enable_numpy_support();
-
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
-      .def(py::init([](const py::bytes& data) {
-        return std::unique_ptr<InterpreterWrapper>(
-            new InterpreterWrapper(data.ptr()));  // TODO where is this deleted?
+      .def(py::init([](const py::bytes& data, int arena_size) {
+        return std::unique_ptr<InterpreterWrapper>(new InterpreterWrapper(
+            data.ptr(), arena_size));
       }))
-      .def("interpreter",
-           [](InterpreterWrapper& self) {
-             return reinterpret_cast<intptr_t>(self.interpreter());
-           })
-      .def("AllocateTensors", &InterpreterWrapper::AllocateTensors)
       .def("Invoke", &InterpreterWrapper::Invoke)
       .def(
           "SetInputTensor",

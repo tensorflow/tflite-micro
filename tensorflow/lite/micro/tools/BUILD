@@ -25,17 +25,3 @@ cc_binary(
         "@flatbuffers",
     ],
 )
-
-py_test(
-    name = "interpreter_test",
-    srcs = ["interpreter_test.py"],
-    data = [
-        "//tensorflow/lite/micro/tools/pybind_wrapper:interpreter_wrapper_pybind.so",
-    ],
-    python_version = "PY3",
-    deps = [
-        "@absl_py//absl:app",
-        requirement("numpy"),
-        requirement("tensorflow-cpu"),
-    ],
-)

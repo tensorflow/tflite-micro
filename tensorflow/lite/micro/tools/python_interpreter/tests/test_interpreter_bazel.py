@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,26 +13,26 @@
 # limitations under the License.
 # ==============================================================================
 
-import tensorflow as tf
+# import ptvsd
+# ptvsd.enable_attach(address=('localhost', 5724), redirect_output=True)
+# print('Now is a good time to attach your debugger: Run: Python: Attach')
+# ptvsd.wait_for_attach()
+
 from absl import app
+from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import tflm_runtime
+# import tflm_runtime
 import numpy as np
 import sys
+import tensorflow as tf
 
 np.set_printoptions(threshold=sys.maxsize)
-
-from tflite_micro.tensorflow.lite.micro.tools.pybind_wrapper import interpreter_wrapper_pybind
-
+# from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import interpreter_wrapper_pybind
 
 def main(_):
-  # help(interpreter_wrapper_pybind)
-
   filepath = '/home/psho/tflite-micro/tensorflow/lite/micro/examples/hello_world/hello_world.tflite'
-  with open(filepath, "rb") as f:
-    data = f.read()
 
   # TFLM interpreter
-  interpreter_wrapper = interpreter_wrapper_pybind.InterpreterWrapper(data)
-  interpreter_wrapper.AllocateTensors()
+  tflm_interpreter = tflm_runtime.Interpreter(filepath)
 
   # TFLite interpreter
   tflite_interpreter = tf.lite.Interpreter(model_path=filepath)
@@ -46,9 +46,9 @@ def main(_):
   diff = np.empty(num_steps)
   for i in range(0, num_steps):
     input_data = np.full((1, 1), i, dtype=np.int8)
-    interpreter_wrapper.SetInputTensor(input_data, 0)
-    interpreter_wrapper.Invoke()
-    output = interpreter_wrapper.GetOutputTensor()
+    tflm_interpreter.set_input(input_data, 0)
+    tflm_interpreter.invoke()
+    output = tflm_interpreter.get_output()
     output_data[i] = output
 
     tflite_interpreter.set_tensor(tflite_input_details['index'], input_data)
@@ -61,7 +61,7 @@ def main(_):
 
   # print(output_data)
   # print(tflite_output_data)
-  print(diff)
+  # print(diff)
 
 
 if __name__ == '__main__':
