@@ -28,9 +28,10 @@ namespace {
 // Softmax parameter data that persists in user_data
 const int kInt16LUTArraySize = 513;
 
-__attribute__((always_inline)) inline TfLiteStatus InitializeLutForInt16(
-    TfLiteContext* context, const TfLiteTensor* input, TfLiteTensor* output,
-    SoftmaxParams* op_data) {
+TfLiteStatus InitializeLutForInt16(TfLiteContext* context,
+                                   const TfLiteTensor* input,
+                                   TfLiteTensor* output,
+                                   SoftmaxParams* op_data) {
   // Only allocate LUTs for KTfLiteInt16 data type
   if (input->type == kTfLiteInt16) {
     void* raw_exp_lut = context->AllocatePersistentBuffer(
