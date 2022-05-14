@@ -68,9 +68,9 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node) {
 
   if (input->type == kTfLiteInt8) {
 #if defined(VISION_P6)
-    XtensaReduceOpData* op_dataXtensa =
+    XtensaReduceOpData* op_data_xtensa =
         static_cast<XtensaReduceOpData*>(node->user_data);
-    OpDataReduce* data = &op_dataXtensa->reference_op_data;
+    OpDataReduce* data = &op_data_xtensa->reference_op_data;
 #else
     OpDataReduce* data = static_cast<OpDataReduce*>(node->user_data);
 #endif
@@ -90,9 +90,9 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
 
   MicroContext* micro_context = GetMicroContext(context);
 #if defined(VISION_P6)
-  XtensaReduceOpData* op_dataXtensa =
+  XtensaReduceOpData* op_data_xtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_data_xtensa->reference_op_data;
 #else
   OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
 #endif
@@ -123,9 +123,9 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
 #if defined(VISION_P6)
-  XtensaReduceOpData* op_dataXtensa =
+  XtensaReduceOpData* op_data_xtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_data_xtensa->reference_op_data;
 #else
   OpDataReduce* op_data = reinterpret_cast<OpDataReduce*>(node->user_data);
 #endif
@@ -172,9 +172,9 @@ TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
   TfLiteReducerParams* params =
       reinterpret_cast<TfLiteReducerParams*>(node->builtin_data);
 #if defined(VISION_P6)
-  XtensaReduceOpData* op_dataXtensa =
+  XtensaReduceOpData* op_data_xtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_data_xtensa->reference_op_data;
 #else
   OpDataReduce* op_data = reinterpret_cast<OpDataReduce*>(node->user_data);
 #endif
@@ -301,9 +301,9 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
   TfLiteReducerParams* params =
       static_cast<TfLiteReducerParams*>(node->builtin_data);
 #if defined(VISION_P6)
-  XtensaReduceOpData* op_dataXtensa =
+  XtensaReduceOpData* op_data_xtensa =
       static_cast<XtensaReduceOpData*>(node->user_data);
-  OpDataReduce* op_data = &op_dataXtensa->reference_op_data;
+  OpDataReduce* op_data = &op_data_xtensa->reference_op_data;
 #else
   OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
 #endif
@@ -333,7 +333,7 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
                         static_cast<double>(op_data->output_scale));
       TF_LITE_ENSURE_EQ(context, op_data->input_zp, op_data->output_zp);
 #if defined(VISION_P6)
-      ReduceEvalVision(*op_dataXtensa, input, output);
+      ReduceEvalVision(*op_data_xtensa, input, output);
 #else
       TF_LITE_ENSURE(
           context,
