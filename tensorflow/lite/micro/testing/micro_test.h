@@ -123,37 +123,35 @@ inline void InitializeTest() { InitializeTarget(); }
 
 // TODO(b/139142772): this macro is used with types other than ints even though
 // the printf specifier is %d.
-#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
-  do {                                                                     \
-    auto vx = x;                                                           \
-    auto vy = y;                                                           \
-    bool checkIntX = std::is_same<decltype(vx) , decltype(0)>::value;      \
-    bool checkIntY = std::is_same<decltype(vy) , decltype(0)>::value;      \
-    if (checkIntX && checkIntY) {                                          \
-      if ((vx) != (vy)) {                                                  \
-        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
-                    __LINE__, x, y);                                       \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } else {                                                               \
-      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                    \
-    }                                                                      \
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                    \
+  do {                                                                   \
+    auto vx = x;                                                         \
+    auto vy = y;                                                         \
+    bool checkInvalidX = (std::is_same<decltype(vx) , double>::value) || \
+                         (std::is_same<decltype(vx) , int>::value);      \
+    bool checkInvalidY = (std::is_same<decltype(vy) , double>::value) || \
+                         (std::is_same<decltype(vy) , int>::value);      \
+     if (checkInvalidX && checkInvalidY) {                               \
+      if ((x) == (y)) {                                                  \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
+                  __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
+        micro_test::did_test_fail = true;                                \
+      } else {                                                           \
+      MicroPrintf("Invalid input for EXPECT_EQ test macro at %s:%d",     \
+       __FILE__, __LINE__);                                              \
+      MicroPrintf("For floats and doubles equality testing please use",  \
+       "TF_LITE_MICRO_EXPECT_NE  Macro")                                 \
+      micro_test::did_test_fail = true;                                  \
+     }                                                                   \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
-  do {                                                                     \
-    bool checkIntX = std::is_same<decltype(x) , decltype(0)>::value;       \
-    bool checkIntY = std::is_same<decltype(y) , decltype(0)>::value;       \
-    if (checkIntX && checkIntY) {                                          \
-      if ((x) == (y)) {                                                    \
-        MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);  \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } else {                                                               \
-      MicroPrintf("Invalid input for macro at %s:%d", __FILE__, __LINE__); \
-      micro_test::did_test_fail = true;                                    \
-    }                                                                      \
+
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                   \
+  do {                                                                  \
+    if ((x) == (y)) {                                                   \
+      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__); \
+      micro_test::did_test_fail = true;                                 \
+    }                                                                   \
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
