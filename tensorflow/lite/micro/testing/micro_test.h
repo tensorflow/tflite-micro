@@ -136,14 +136,14 @@ inline void InitializeTest() { InitializeTarget(); }
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
                   __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
         micro_test::did_test_fail = true;                                \
-      } else {                                                           \
+      }                                                                  \
+    } else {                                                             \
       MicroPrintf("Invalid input for EXPECT_EQ test macro at %s:%d",     \
        __FILE__, __LINE__);                                              \
       MicroPrintf("For floats and doubles equality testing please use",  \
        "TF_LITE_MICRO_EXPECT_NE  Macro");                                \
       micro_test::did_test_fail = true;                                  \
      }                                                                   \
-    }                                                                    \
   } while (false)
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                   \
