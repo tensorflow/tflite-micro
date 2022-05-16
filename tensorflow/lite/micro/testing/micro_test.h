@@ -132,7 +132,7 @@ inline void InitializeTest() { InitializeTarget(); }
     bool checkInvalidY = (std::is_same<decltype(vy) , double>::value) || \
                          (std::is_same<decltype(vy) , int>::value);      \
      if (checkInvalidX && checkInvalidY) {                               \
-      if ((x) == (y)) {                                                  \
+      if ((x) != (y)) {                                                  \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
                   __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
         micro_test::did_test_fail = true;                                \
