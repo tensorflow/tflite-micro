@@ -122,7 +122,6 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                         \
   } while (false)
 
-
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                          \
   do {                                                                         \
     auto vx = x;                                                               \
