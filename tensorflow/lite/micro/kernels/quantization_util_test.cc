@@ -275,7 +275,7 @@ TF_LITE_MICRO_TEST(QuantizationUtilTest_IntegerFrExpVersusDouble) {
 
   int double_shift;
   double double_result = std::frexp(0.0, &double_shift);
-  TF_LITE_MICRO_EXPECT_NEAR(double_result, 0, 0.0000000001);
+  TF_LITE_MICRO_EXPECT_NEAR(double_result, 0, 1e-5);
   TF_LITE_MICRO_EXPECT_EQ(double_shift, 0);
 
   result = tflite::IntegerFrExp(1.0, &shift);
@@ -309,7 +309,7 @@ TF_LITE_MICRO_TEST(QuantizationUtilTest_IntegerFrExpVersusDouble) {
 
 TF_LITE_MICRO_TEST(QuantizationUtilTest_DoubleFromFractionAndShift) {
   double result = tflite::DoubleFromFractionAndShift(0, 0);
-  TF_LITE_MICRO_EXPECT_NEAR(0, result, 0.0000000001);
+  TF_LITE_MICRO_EXPECT_NEAR(0, result, 1e-5);
 
   result = tflite::DoubleFromFractionAndShift(0x40000000, 1);
   TF_LITE_MICRO_EXPECT_NEAR(1.0, result, 1e-5);

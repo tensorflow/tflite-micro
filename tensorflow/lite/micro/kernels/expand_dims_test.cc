@@ -87,8 +87,7 @@ void TestExpandDims(int* input_dims, const T* input_data, int* axis_dims,
   const int output_size = ElementCount(*actual_out_dims);
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              0.0000000001f);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 

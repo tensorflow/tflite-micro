@@ -49,8 +49,8 @@ TF_LITE_MICRO_TEST(WhileShouldNeverInvokeConditionFalse) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_NEAR(output0->data.f[0], 3.0f, 0.0000000001f);
-  TF_LITE_MICRO_EXPECT_NEAR(output1->data.f[0], 2.0f, 0.0000000001f);
+  TF_LITE_MICRO_EXPECT_NEAR(output0->data.f[0], 3.0f, 1e-5f);
+  TF_LITE_MICRO_EXPECT_NEAR(output1->data.f[0], 2.0f, 1e-5f);
 }
 
 TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
@@ -76,8 +76,8 @@ TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_NEAR(output0->data.f[0], 5.0f, 0.0000000001f);
-  TF_LITE_MICRO_EXPECT_NEAR(output1->data.f[0], 3.0f, 0.0000000001f);
+  TF_LITE_MICRO_EXPECT_NEAR(output0->data.f[0], 5.0f, 1e-5f);
+  TF_LITE_MICRO_EXPECT_NEAR(output1->data.f[0], 3.0f, 1e-5f);
 }
 
 TF_LITE_MICRO_TESTS_END

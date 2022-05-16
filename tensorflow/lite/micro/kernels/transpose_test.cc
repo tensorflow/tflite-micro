@@ -93,8 +93,7 @@ TfLiteStatus ValidateTranspose(TfLiteTensor* tensors, int tensors_size,
   }
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              0.0000000001f);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
   return kTfLiteOk;
 }

@@ -60,8 +60,7 @@ void TestGather(int* input_dims, const InType* input_data, int* positions_dims,
   const int actual_output_dims_size = actual_output_dims->size;
   const int output_size = ElementCount(*actual_output_dims);
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              0.0000000001f);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 
   // Compare output tensor's shape if expected_output_dims[] is provided.

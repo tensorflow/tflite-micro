@@ -68,8 +68,7 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
 
   TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 2);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              0.0000000001f);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 
   TF_LITE_MICRO_EXPECT_EQ(subgraph1_invoke_count_golden,
