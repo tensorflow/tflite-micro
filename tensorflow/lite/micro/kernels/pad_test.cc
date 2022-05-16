@@ -51,8 +51,7 @@ TfLiteStatus ValidatePadGoldens(TfLiteTensor* tensors, int tensors_size,
   }
 
   for (int i = 0; i < output_length; ++i) {
-TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i],
-                          0.0000000001f);
+TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], 0.0000000001f);
   }
   return kTfLiteOk;
 }
