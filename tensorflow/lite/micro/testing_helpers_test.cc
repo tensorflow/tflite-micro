@@ -34,7 +34,7 @@ TF_LITE_MICRO_TEST(CreateQuantizedBiasTensor) {
 
   TF_LITE_MICRO_EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
   TF_LITE_MICRO_EXPECT(result.dims == dims);
-  TF_LITE_MICRO_EXPECT_EQ(result.params.scale, input_scale * weight_scale);
+  TF_LITE_MICRO_EXPECT_NEAR(result.params.scale, input_scale * weight_scale, 0.0000000001f);
   for (int i = 0; i < tensor_size; i++) {
     TF_LITE_MICRO_EXPECT_EQ(expected_quantized_values[i], result.data.i32[i]);
   }
@@ -62,7 +62,7 @@ TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
   // Values in scales array start at index 1 since index 0 is dedicated to
   // tracking the tensor size.
   for (int i = 0; i < channels; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(scales[i + 1], input_scale * weight_scales[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(scales[i + 1], input_scale * weight_scales[i], 0.0000000001f);
   }
 
   TF_LITE_MICRO_EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
@@ -96,7 +96,7 @@ TF_LITE_MICRO_TEST(CreateSymmetricPerChannelQuantizedTensor) {
   TfLiteFloatArray* result_scales =
       static_cast<TfLiteAffineQuantization*>(result.quantization.params)->scale;
   for (int i = 0; i < channels; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(result_scales->data[i], expected_scales[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(result_scales->data[i], expected_scales[i], 0.0000000001f);
   }
   for (int i = 0; i < tensor_size; i++) {
     TF_LITE_MICRO_EXPECT_EQ(expected_quantized_values[i], result.data.int8[i]);

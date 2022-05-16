@@ -52,7 +52,7 @@ void TestCast(int* input_dims_data, const inputT* input_data,
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],0.0000000001f);
   }
 }
 

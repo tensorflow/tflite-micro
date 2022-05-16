@@ -58,7 +58,7 @@ void TestFloorDiv(int* input1_dims_data, const T* input1_data,
   ExecuteFloorDivTest(tensors, tensors_count);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],0.0000000001f);
   }
 }
 

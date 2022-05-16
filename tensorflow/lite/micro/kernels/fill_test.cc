@@ -88,7 +88,7 @@ void TestFill(int* dims_shape, DimsType* dims_data, int* value_shape,
   // The output elements contain the fill value.
   const auto elements = tflite::ElementCount(*IntArrayFromInts(output_shape));
   for (int i = 0; i < elements; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(output_data[i], value_data[0]);
+    TF_LITE_MICRO_EXPECT_NEAR(output_data[i], value_data[0], 0.0000000001f);
   }
 }
 

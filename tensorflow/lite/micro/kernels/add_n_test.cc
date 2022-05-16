@@ -65,7 +65,7 @@ void TestAddN(int* input_dims_data, const T* const* input_data,
   ExecuteAddN(tensors, input_data_count + 1);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],0.0000000001f);
   }
 }
 

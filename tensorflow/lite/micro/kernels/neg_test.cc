@@ -51,9 +51,9 @@ void TestNegFloat(int* input_dims_data, const float* input_data,
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  TF_LITE_MICRO_EXPECT_EQ(expected_output_data[0], output_data[0]);
+  TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[0], output_data[0], 0.0000000001f);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],0.0000000001f);
   }
 }
 
