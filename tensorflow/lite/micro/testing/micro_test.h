@@ -140,7 +140,7 @@ inline void InitializeTest() { InitializeTarget(); }
       MicroPrintf("Invalid input for EXPECT_EQ test macro at %s:%d",     \
        __FILE__, __LINE__);                                              \
       MicroPrintf("For floats and doubles equality testing please use",  \
-       "TF_LITE_MICRO_EXPECT_NE  Macro")                                 \
+       "TF_LITE_MICRO_EXPECT_NE  Macro");                                \
       micro_test::did_test_fail = true;                                  \
      }                                                                   \
     }                                                                    \
