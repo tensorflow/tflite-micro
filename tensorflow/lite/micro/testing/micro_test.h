@@ -54,7 +54,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 #define TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 
-#include <iostream>
+#include <type_traits>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
