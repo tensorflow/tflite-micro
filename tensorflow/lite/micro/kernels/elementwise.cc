@@ -368,7 +368,7 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteRegistration Register_ABS() {
   return tflite::micro::RegisterOp(
-      elementwise::ElementWiseAbsRsqrtInit, 
+      elementwise::ElementWiseAbsRsqrtInit,
       elementwise::PrepareAbsRsqrt<elementwise::IsAbsSupportedType,
                                    elementwise::kAbsNameId>,
       elementwise::AbsEval);
@@ -400,9 +400,9 @@ TfLiteRegistration Register_SQRT() {
 
 TfLiteRegistration Register_RSQRT() {
   return tflite::micro::RegisterOp(
-      elementwise::ElementWiseAbsRsqrtInit, 
+      elementwise::ElementWiseAbsRsqrtInit,
       elementwise::PrepareAbsRsqrt<elementwise::IsRsqrtSupportedType,
-                                       elementwise::kRsrqtNameId>,
+                                   elementwise::kRsrqtNameId>,
       elementwise::RsqrtEval);
 }
 
