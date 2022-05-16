@@ -25,7 +25,7 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
-  TF_LITE_MICRO_EXPECT_EQ(2,2);
+  TF_LITE_MICRO_EXPECT_EQ(1.0,1.0);
 }
 
 TF_LITE_MICRO_TESTS_END

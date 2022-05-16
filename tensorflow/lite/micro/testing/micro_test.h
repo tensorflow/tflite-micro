@@ -128,11 +128,11 @@ inline void InitializeTest() { InitializeTarget(); }
     auto vx = x;                                                         \
     auto vy = y;                                                         \
     bool checkInvalidX = (std::is_same<decltype(vx) , double>::value) || \
-                         (std::is_same<decltype(vx) , int>::value);      \
+                         (std::is_same<decltype(vx) , float>::value);    \
     bool checkInvalidY = (std::is_same<decltype(vy) , double>::value) || \
-                         (std::is_same<decltype(vy) , int>::value);      \
-     if (checkInvalidX && checkInvalidY) {                               \
-      if ((x) != (y)) {                                                  \
+                         (std::is_same<decltype(vy) , float>::value);    \
+     if (!(checkInvalidX || checkInvalidY)) {                            \
+      if ((vx) != (vy)) {                                                \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
                   __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
         micro_test::did_test_fail = true;                                \
