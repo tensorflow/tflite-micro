@@ -46,7 +46,7 @@ limitations under the License.
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(HIFI4) && !defined(HIFI4_INTERNAL)
+#if defined(HIFI5)
 
 TF_LITE_MICRO_TEST(TestInvoke) {
   // Set up logging.
@@ -146,6 +146,6 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   TF_LITE_REPORT_ERROR(&micro_error_reporter, "Ran successfully\n");
 }
-#endif  // !defined(HIFI4) && !defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI5)
 
 TF_LITE_MICRO_TESTS_END
