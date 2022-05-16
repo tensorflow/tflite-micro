@@ -44,6 +44,7 @@ Platform      |    Status     |
 -----------     | --------------|
 Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
 ESP32           | [![ESP32](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/build.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/build.yml) |
+Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabs/tflite-micro-efr32-examples)
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
 
@@ -93,6 +94,8 @@ The following resources may also be useful:
  * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
+ * Platform/IP support
+   * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)

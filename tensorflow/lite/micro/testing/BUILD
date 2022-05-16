@@ -1,4 +1,8 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load(
+    "//tensorflow:extra_rules.bzl",
+    "tflm_kernel_friends",
+)
 
 package(
     # Disabling layering_check because of http://b/177257332
@@ -16,12 +20,18 @@ package_group(
     packages = ["//tensorflow/lite/experimental/microfrontend/..."],
 )
 
+package_group(
+    name = "kernel_test_friends",
+    packages = tflm_kernel_friends(),
+)
+
 cc_library(
     name = "micro_test",
     hdrs = [
         "micro_test.h",
     ],
     visibility = [
+        ":kernel_test_friends",
         ":microfrontend",
         ":tflite_micro",
     ],

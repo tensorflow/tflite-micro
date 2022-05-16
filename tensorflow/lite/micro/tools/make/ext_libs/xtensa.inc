@@ -7,7 +7,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
-  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc 
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
@@ -109,16 +110,17 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   CCFLAGS += $(PLATFORM_FLAGS)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
-  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xi_annlib_vision_p6
+  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xi_tflmlib_vision_p6
 
   THIRD_PARTY_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.cc")
 
   INCLUDES += \
-    -I$(NNLIB_PATH)/ \
-    -I$(NNLIB_PATH)/include/ 
+    -I$(NNLIB_PATH)/flk/include \
+    -I$(NNLIB_PATH)/kernels/include/ \
+    -I$(NNLIB_PATH)/runtime/include/ 
 
-  LDFLAGS += -lidma-xtos
+  LDFLAGS += -lidma
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
 endif

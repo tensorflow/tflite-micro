@@ -38,6 +38,11 @@ $(eval $(call microlite_test,kernel_transpose_conv_test,\
   tensorflow/lite/micro/kernels/conv_test_common.cc,\
   tensorflow/lite/micro/kernels/conv_test.h))
 
+$(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
+  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc \
+  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.cc,\
+  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h))
+
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),
 # use simple for loop to generate their make targets in a common way.
 MICROLITE_KERNEL_SIMPLE_TEST_SRCS := \
@@ -74,6 +79,7 @@ tensorflow/lite/micro/kernels/leaky_relu_test.cc \
 tensorflow/lite/micro/kernels/logical_test.cc \
 tensorflow/lite/micro/kernels/logistic_test.cc \
 tensorflow/lite/micro/kernels/log_softmax_test.cc \
+tensorflow/lite/micro/kernels/lstm_eval_test.cc \
 tensorflow/lite/micro/kernels/maximum_minimum_test.cc \
 tensorflow/lite/micro/kernels/mirror_pad_test.cc \
 tensorflow/lite/micro/kernels/mul_test.cc \
@@ -96,6 +102,7 @@ tensorflow/lite/micro/kernels/space_to_batch_nd_test.cc \
 tensorflow/lite/micro/kernels/space_to_depth_test.cc \
 tensorflow/lite/micro/kernels/split_test.cc \
 tensorflow/lite/micro/kernels/split_v_test.cc \
+tensorflow/lite/micro/kernels/squared_difference_test.cc \
 tensorflow/lite/micro/kernels/squeeze_test.cc \
 tensorflow/lite/micro/kernels/strided_slice_test.cc \
 tensorflow/lite/micro/kernels/sub_test.cc \
