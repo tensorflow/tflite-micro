@@ -79,15 +79,21 @@ else
     exit 1
   fi
 
-  unzip -qo "$TEMPFILE" -d ${DOWNLOADS_DIR} >&2
+  # Check if another make process has already extracted the downloaded files.
+  # If so, skip extracting and patching.
+  if [ -d ${LIBRARY_INSTALL_PATH} ]; then
+    echo >&2 "${LIBRARY_INSTALL_PATH} already exists, skipping the extraction."
+  else
+    unzip -qo "$TEMPFILE" -d ${DOWNLOADS_DIR} >&2
 
-  rm -rf "${TEMPDIR}"
+    rm -rf "${TEMPDIR}"
 
-  pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
-  chmod -R +w ./
-  if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
-    create_git_repo ./
-    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+    pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
+    chmod -R +w ./
+    if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
+      create_git_repo ./
+      apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+    fi
   fi
 fi
 
