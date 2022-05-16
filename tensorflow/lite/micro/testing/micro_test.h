@@ -54,10 +54,10 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 #define TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 
+#include <iostream>
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include <iostream>
 
 namespace micro_test {
 extern int tests_passed;
@@ -144,7 +144,6 @@ inline void InitializeTest() { InitializeTarget(); }
       micro_test::did_test_fail = true;                                  \
      }                                                                   \
   } while (false)
-
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                   \
   do {                                                                  \
@@ -251,3 +250,26 @@ inline void InitializeTest() { InitializeTarget(); }
   } while (false)
 
 #endif  // TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
+
+
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                    \
+  do {                                                                   \
+    auto vx = x;                                                         \
+    auto vy = y;                                                         \
+    bool checkInvalidX = (std::is_same<decltype(vx) , double>::value) || \
+                         (std::is_same<decltype(vx) , int>::value);      \
+    bool checkInvalidY = (std::is_same<decltype(vy) , double>::value) || \
+                         (std::is_same<decltype(vy) , int>::value);      \
+     if (checkInvalidX && checkInvalidY) {                               \
+      if ((x) == (y)) {                                                  \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
+                  __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
+        micro_test::did_test_fail = true;                                \
+      } else {                                                           \
+      MicroPrintf("Invalid input for EXPECT_EQ test macro at %s:%d",     \
+       __FILE__, __LINE__);                                              \
+      MicroPrintf("For floats and doubles equality testing please use",  \
+       "TF_LITE_MICRO_EXPECT_NE  Macro")                                 \
+      micro_test::did_test_fail = true;                                  \
+     }                                                                   \
+  } while (false)
