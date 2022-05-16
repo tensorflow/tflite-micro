@@ -79,7 +79,7 @@ void setup() {
   micro_op_resolver.AddDepthwiseConv2D(
       tflite::Register_DEPTHWISE_CONV_2D_INT8());
   micro_op_resolver.AddReshape();
-  micro_op_resolver.AddSoftmax();
+  micro_op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());
 
   // Build an interpreter to run the model with.
   // NOLINTNEXTLINE(runtime-global-variables)
