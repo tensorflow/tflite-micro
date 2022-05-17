@@ -131,20 +131,20 @@ inline void InitializeTest() { InitializeTarget(); }
                          (std::is_same<decltype(vx), float>::value);       \
     bool notIntY = (std::is_same<decltype(vy), double>::value) ||          \
                          (std::is_same<decltype(vy), float>::value);       \
-    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));            \
-    if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {         \
-      if(notIntX && notIntY){                                              \
-        MicroPrintf(#x " (%f) == " #y " (%f) failed at %s:%d",           \
+    if (notIntX && notIntY) {                                              \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));          \
+      if(delta > std::numeric_limits<decltype(delta)>::epsilon()){         \
+        MicroPrintf(#x " (%f) == " #y " (%f) failed at %s:%d",             \
         static_cast<double>(vx), static_cast<double>(vy), __FILE__,        \
          __LINE__);                                                        \
         micro_test::did_test_fail = true;                                  \
-      } else {                                                             \
+      }                                                                    \
+    } else if ((vx) != (vy)) {                                             \
         MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
                     __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
-    }                                                                      \
-  } while (false)
+    } while (false)
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
   do {                                                                     \
@@ -154,20 +154,17 @@ inline void InitializeTest() { InitializeTarget(); }
                          (std::is_same<decltype(vx), float>::value);       \
     bool notIntY = (std::is_same<decltype(vy), double>::value) ||          \
                          (std::is_same<decltype(vy), float>::value);       \
-    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));            \
-    if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {        \
-      if(notIntX && notIntY){                                              \
-        MicroPrintf(#x " (%f) != " #y " (%f) failed at %s:%d",             \
-        static_cast<double>(vx), static_cast<double>(vy), __FILE__,        \
-         __LINE__);                                                        \
-        micro_test::did_test_fail = true;                                  \
-      } else {                                                             \
-        MicroPrintf(#x " != " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
-                    __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
+    if (notIntX && notIntY) {                                              \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));          \
+      if(delta <= std::numeric_limits<decltype(delta)>::epsilon()){        \
+        MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
-    }                                                                      \
-  } while (false)
+    } else if ((vx) == (vy)) {                                             \
+        MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
+        micro_test::did_test_fail = true;                                  \
+      }                                                                    \
+    } while (false)     
 
 // TODO(wangtz): Making it more generic once needed.
 #define TF_LITE_MICRO_ARRAY_ELEMENT_EXPECT_NEAR(arr1, idx1, arr2, idx2,       \
