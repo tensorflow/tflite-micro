@@ -157,7 +157,7 @@ inline void InitializeTest() { InitializeTarget(); }
     MicroPrintf(#x " is %d ", notIntX);                                    \
     MicroPrintf(#y " is %d ", notIntY);                                    \
     if (notIntX && notIntY) {                                              \
-      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));          \
+      auto delta = 0;                                                      \
       if(delta <= std::numeric_limits<decltype(delta)>::epsilon()){        \
         MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
         micro_test::did_test_fail = true;                                  \
