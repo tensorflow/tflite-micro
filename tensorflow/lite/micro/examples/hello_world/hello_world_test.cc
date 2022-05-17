@@ -25,7 +25,8 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
-  int*d = 10;
+  int a = 10;
+  int*d = &a;
    TF_LITE_MICRO_EXPECT_NE(nullptr, d);
 }
 
