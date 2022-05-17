@@ -162,7 +162,7 @@ inline void InitializeTest() { InitializeTarget(); }
         MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
-    } else if ((vx) == (vy)) {                                             \
+    } else if ((x) == (y)) {                                             \
         MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
         micro_test::did_test_fail = true;                                  \
       }                                                                    \
