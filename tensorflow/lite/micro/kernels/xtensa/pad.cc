@@ -24,37 +24,30 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
-#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pad.h"
 
 namespace tflite {
 namespace ops {
 namespace micro {
 namespace pad {
+namespace {
+
+struct OpData {
+  PadParams params;
+  int32_t output_zero_point;
+};
+
+}  // namespace
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-#if !defined(VISION_P6)
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataPad));
-#else
-  void* data =
-      context->AllocatePersistentBuffer(context, sizeof(XtensaPadData));
-  if (InitXtensaContext()) {
-    return nullptr;
-  }
-  return data;
-#endif  // defined(VISION_P6)
+  return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(VISION_P6)
-  XtensaPadData* op_data_xtensa = static_cast<XtensaPadData*>(node->user_data);
-  OpDataPad* data = &op_data_xtensa->reference_op_data;
-#else
-  OpDataPad* data = static_cast<OpDataPad*>(node->user_data);
-#endif
+  OpData* data = static_cast<OpData*>(node->user_data);
 
   TF_LITE_ENSURE(context, NumInputs(node) == 2 || NumInputs(node) == 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
@@ -101,7 +94,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_EQ(context, output_dim, expected_dim);
   }
 
-  // Calculate OpDataPad:
+  // Calculate OpData:
   data->params.resizing_category = ResizingCategory::kGenericResize;
   const int paddings_total = GetTensorShape(paddings).FlatSize();
   if (paddings_total == 8 && (paddings_data[0] == 0 && paddings_data[1] == 0) &&
@@ -143,21 +136,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     micro_context->DeallocateTempTfLiteTensor(constant_values);
   }
   micro_context->DeallocateTempTfLiteTensor(output);
-#if defined(VISION_P6)
-  TF_LITE_ENSURE_OK(context, PadPrepareVision(context, node));
-#endif  // VISION_P6
 
   return kTfLiteOk;
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(VISION_P6)
-  XtensaPadData* op_data_xtensa = static_cast<XtensaPadData*>(node->user_data);
-  OpDataPad* data = &op_data_xtensa->reference_op_data;
-#else
-  OpDataPad* data = static_cast<OpDataPad*>(node->user_data);
-#endif
+  const OpData* data = static_cast<const OpData*>(node->user_data);
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, /*index=*/0);
@@ -188,9 +173,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       }
     } break;
     case kTfLiteInt8: {
-#if defined(VISION_P6)
-      PadEvalVision(*op_data_xtensa, input, output);
-#else
       int8_t pad_value;
       if (constant_values == nullptr) {
         pad_value = static_cast<uint8_t>(data->output_zero_point);
@@ -209,7 +191,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                            &pad_value, tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif
     } break;
     case kTfLiteInt16: {
       int16_t pad_value =
