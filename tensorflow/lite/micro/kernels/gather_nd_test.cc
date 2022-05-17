@@ -56,7 +56,7 @@ void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
   TfLiteIntArray* actual_output_dims = actual_output_tensor->dims;
   const int output_size = ElementCount(*actual_output_dims);
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 

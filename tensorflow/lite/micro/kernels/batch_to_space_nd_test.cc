@@ -55,7 +55,7 @@ TfLiteStatus ValidateBatchToSpaceNdGoldens(TfLiteTensor* tensors,
 
   for (int i = 0; i < output_size; ++i) {
     // TODO(b/158102673): workaround for not having fatal test assertions.
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1e-5f);
+    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
     if (golden[i] != output[i]) {
       return kTfLiteError;
     }

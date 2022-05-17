@@ -68,7 +68,7 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
 
   TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 2);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 
   TF_LITE_MICRO_EXPECT_EQ(subgraph1_invoke_count_golden,
@@ -133,8 +133,8 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionTrue) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_NEAR(output->data.f[0], 5.0f, 0.0000000001f);
-  TF_LITE_MICRO_EXPECT_NEAR(output->data.f[1], 12.0f, 0.0000000001f);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 5.0f);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 12.0f);
 }
 
 TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
@@ -163,8 +163,8 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_NEAR(output->data.f[0], 6.0f, 0.0000000001f);
-  TF_LITE_MICRO_EXPECT_NEAR(output->data.f[1], 35.0f, 0.0000000001f);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 6.0f);
+  TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 35.0f);
 }
 
 TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {

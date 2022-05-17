@@ -74,7 +74,7 @@ void TestLeakyRelu(const TestLeakyReluParams<T>& params, int* input_dims_data,
   ExecuteLeakyReluTest(params.alpha, tensors_count, tensors);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 1e-5f);
+    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
   }
 }
 

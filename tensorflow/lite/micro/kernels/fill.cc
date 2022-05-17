@@ -30,8 +30,7 @@ template <typename T>
 TfLiteStatus EnsureEqImpl(TfLiteContext* context, const TfLiteIntArray* array,
                           const TfLiteTensor* tensor) {
   for (int i = 0; i < array->size; ++i) {
-    TF_LITE_ENSURE_NEAR(context, array->data[i], GetTensorData<T>(tensor)[i],
-                        1e-5f);
+    TF_LITE_ENSURE_EQ(context, array->data[i], GetTensorData<T>(tensor)[i]);
   }
   return kTfLiteOk;
 }
