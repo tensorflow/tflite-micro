@@ -154,6 +154,7 @@ inline void InitializeTest() { InitializeTarget(); }
                          (std::is_same<decltype(vx), float>::value);       \
     bool notIntY = (std::is_same<decltype(vy), double>::value) ||          \
                          (std::is_same<decltype(vy), float>::value);       \
+    MicroPrintf("%d vs %d ", notIntX,notIntY);        \
     if (notIntX && notIntY) {                                              \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));          \
       if(delta <= std::numeric_limits<decltype(delta)>::epsilon()){        \
