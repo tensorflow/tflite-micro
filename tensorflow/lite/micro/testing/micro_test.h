@@ -146,27 +146,27 @@ inline void InitializeTest() { InitializeTarget(); }
       }                                                                    \
     } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                      \
-  do {                                                                     \
-    auto vx = x;                                                           \
-    auto vy = y;                                                           \
-    bool notIntX = (std::is_same<decltype(vx), double>::value) ||          \
-                         (std::is_same<decltype(vx), float>::value);       \
-    bool notIntY = (std::is_same<decltype(vy), double>::value) ||          \
-                         (std::is_same<decltype(vy), float>::value);       \
-    MicroPrintf(#x " is %d ", notIntX);                                    \
-    MicroPrintf(#y " is %d ", notIntY);                                    \
-    if (notIntX && notIntY) {                                              \
-      auto delta = 0;;          \
-      if(delta <= std::numeric_limits<decltype(delta)>::epsilon()){        \
-        MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } else if ((x) == (y)) {                                             \
-        MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__,__LINE__);  \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } while (false)     
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                          \
+  do {                                                                         \
+    auto vx = x;                                                               \
+    auto vy = y;                                                               \
+    bool checkInvalidX = (std::is_same<decltype(vx), double>::value) ||        \
+                         (std::is_same<decltype(vx), float>::value);           \
+    bool checkInvalidY = (std::is_same<decltype(vy), double>::value) ||        \
+                         (std::is_same<decltype(vy), float>::value);           \
+    if (!(checkInvalidX || checkInvalidY)) {                                   \
+      if ((vx) == (vy)) {                                                      \
+        MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);      \
+        micro_test::did_test_fail = true;                                      \
+      }                                                                        \
+    } else {                                                                   \
+      MicroPrintf("Invalid input for EXPECT_NE test macro at %s:%d", __FILE__, \
+                  __LINE__);                                                   \
+      MicroPrintf("For floats and doubles equality testing please use",        \
+                  "TF_LITE_MICRO_EXPECT_NEAR  Macro");                         \
+      micro_test::did_test_fail = true;                                        \
+    }                                                                          \
+  } while (false)  
 
 // TODO(wangtz): Making it more generic once needed.
 #define TF_LITE_MICRO_ARRAY_ELEMENT_EXPECT_NEAR(arr1, idx1, arr2, idx2,       \
