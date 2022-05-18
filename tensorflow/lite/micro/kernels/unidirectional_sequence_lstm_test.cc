@@ -112,7 +112,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   const float zero_point_from_max_error =
       std::abs(qmax_float) + std::abs(f_max / scale);
 
-  const float zero_point_double =
+  const float zero_point_float =
       zero_point_from_min_error < zero_point_from_max_error
           ? zero_point_from_min
           : zero_point_from_max;
@@ -124,12 +124,12 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   //  padding).
 
   T nudged_zero_point = 0;
-  if (zero_point_double < qmin_float) {
+  if (zero_point_float < qmin_float) {
     nudged_zero_point = qmin;
-  } else if (zero_point_double > qmax_float) {
+  } else if (zero_point_float > qmax_float) {
     nudged_zero_point = qmax;
   } else {
-    nudged_zero_point = static_cast<T>(round(zero_point_double));
+    nudged_zero_point = static_cast<T>(round(zero_point_float));
   }
 
   // The zero point should always be in the range of quantized value,
