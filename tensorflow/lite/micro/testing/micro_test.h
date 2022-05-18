@@ -123,28 +123,28 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                         \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                      \
-  do {                                                                     \
-    auto vx = x;                                                           \
-    auto vy = y;                                                           \
-    bool notIntX = (std::is_same<decltype(vx), double>::value) ||          \
-                         (std::is_same<decltype(vx), float>::value);       \
-    bool notIntY = (std::is_same<decltype(vy), double>::value) ||          \
-                         (std::is_same<decltype(vy), float>::value);       \
-    if (notIntX && notIntY) {                                              \
-      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));          \
-      if(delta > std::numeric_limits<decltype(delta)>::epsilon()){         \
-        MicroPrintf(#x " (%f) == " #y " (%f) failed at %s:%d",             \
-        static_cast<double>(vx), static_cast<double>(vy), __FILE__,        \
-         __LINE__);                                                        \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } else if ((vx) != (vy)) {                                             \
-        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
-                    __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
-        micro_test::did_test_fail = true;                                  \
-      }                                                                    \
-    } while (false)
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                    \
+  do {                                                                   \
+    auto vx = x;                                                         \
+    auto vy = y;                                                         \
+    bool notIntX = (std::is_same<decltype(vx), double>::value) ||        \
+                   (std::is_same<decltype(vx), float>::value);           \
+    bool notIntY = (std::is_same<decltype(vy), double>::value) ||        \
+                   (std::is_same<decltype(vy), float>::value);           \
+    if (notIntX && notIntY) {                                            \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
+      if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {     \
+        MicroPrintf(#x " (%f) == " #y " (%f) failed at %s:%d",           \
+                    static_cast<double>(vx), static_cast<double>(vy),    \
+                    __FILE__, __LINE__);                                 \
+        micro_test::did_test_fail = true;                                \
+      }                                                                  \
+    } else if ((vx) != (vy)) {                                           \
+      MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,  \
+                  __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
+      micro_test::did_test_fail = true;                                  \
+    }                                                                    \
+  } while (false)
 
 #define TF_LITE_MICRO_EXPECT_NE(x, y)                                          \
   do {                                                                         \
