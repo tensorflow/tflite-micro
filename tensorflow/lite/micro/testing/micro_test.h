@@ -166,7 +166,7 @@ inline void InitializeTest() { InitializeTarget(); }
                   "TF_LITE_MICRO_EXPECT_NEAR  Macro");                         \
       micro_test::did_test_fail = true;                                        \
     }                                                                          \
-  } while (false)  
+  } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
 #define TF_LITE_MICRO_ARRAY_ELEMENT_EXPECT_NEAR(arr1, idx1, arr2, idx2,       \
