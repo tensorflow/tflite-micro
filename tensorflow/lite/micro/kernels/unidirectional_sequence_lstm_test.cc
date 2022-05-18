@@ -75,8 +75,8 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   float scale = 0;
   const T qmin = std::numeric_limits<T>::min();
   const T qmax = std::numeric_limits<T>::max();
-  const float qmin_double = qmin;
-  const float qmax_double = qmax;
+  const float qmin_float = static_cast<float>(qmin);
+  const float qmax_float = static_cast<float>(qmax);
   // 0 should always be a representable value. Let's assume that the initial
   // min,max range contains 0.
   TFLITE_DCHECK_LE(f_min, 0);
@@ -93,7 +93,7 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   // General case.
   //
   // First determine the scale.
-  scale = (f_max - f_min) / (qmax_double - qmin_double);
+  scale = (f_max - f_min) / (qmax_float - qmin_float);
 
   // Zero-point computation.
   // First the initial floating-point computation. The zero-point can be
@@ -103,14 +103,14 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   // The arithmetic error on the zero point computed from either pair
   // will be roughly machine_epsilon * (sum of absolute values of terms)
   // so we want to use the variant that adds the smaller terms.
-  const float zero_point_from_min = qmin_double - f_min / scale;
-  const float zero_point_from_max = qmax_double - f_max / scale;
+  const float zero_point_from_min = qmin_float - f_min / scale;
+  const float zero_point_from_max = qmax_float - f_max / scale;
 
   const float zero_point_from_min_error =
-      std::abs(qmin_double) + std::abs(f_min / scale);
+      std::abs(qmin_float) + std::abs(f_min / scale);
 
   const float zero_point_from_max_error =
-      std::abs(qmax_double) + std::abs(f_max / scale);
+      std::abs(qmax_float) + std::abs(f_max / scale);
 
   const float zero_point_double =
       zero_point_from_min_error < zero_point_from_max_error
@@ -124,9 +124,9 @@ QuantizationParams SetQuantizationParams(float f_min, float f_max) {
   //  padding).
 
   T nudged_zero_point = 0;
-  if (zero_point_double < qmin_double) {
+  if (zero_point_double < qmin_float) {
     nudged_zero_point = qmin;
-  } else if (zero_point_double > qmax_double) {
+  } else if (zero_point_double > qmax_float) {
     nudged_zero_point = qmax;
   } else {
     nudged_zero_point = static_cast<T>(round(zero_point_double));
