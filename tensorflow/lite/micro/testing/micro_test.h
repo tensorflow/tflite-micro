@@ -128,7 +128,7 @@ inline void InitializeTest() { InitializeTarget(); }
     auto vy = y;                                                         \
     bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
     bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
-    if (notIntX && notIntY) {                                            \
+    if (isFloatingX && isFloatingY) {                                    \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
       if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {     \
         MicroPrintf(#x " (%f) == " #y " (%f) failed at %s:%d",           \
