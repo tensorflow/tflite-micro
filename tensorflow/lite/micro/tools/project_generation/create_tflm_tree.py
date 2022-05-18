@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,11 +73,16 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   # directory removed. The path manipulation logic that follows removes the
   # downloads directory prefix, and adds the third_party prefix to create a
   # list of destination directories for each of the third party files.
+  # The only exception are third party files outside the downloads folder
+  # with absolute paths.
   tflm_download_path = "tensorflow/lite/micro/tools/make/downloads"
-  dest_files = [
-      os.path.join(prefix_dir, "third_party",
-                   os.path.relpath(f, tflm_download_path)) for f in src_files
-  ]
+  dest_files = []
+  third_party_path = os.path.join(prefix_dir, "third_party")
+  for f in src_files:
+    if os.path.isabs(f):
+      dest_files.append(os.path.normpath(third_party_path + f))
+    else:
+      dest_files.append(os.path.join(third_party_path, os.path.relpath(f, tflm_download_path)))
 
   return src_files, dest_files
 
