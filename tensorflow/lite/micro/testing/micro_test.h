@@ -126,10 +126,8 @@ inline void InitializeTest() { InitializeTarget(); }
   do {                                                                   \
     auto vx = x;                                                         \
     auto vy = y;                                                         \
-    bool notIntX = (std::is_same<decltype(vx), double>::value) ||        \
-                   (std::is_same<decltype(vx), float>::value);           \
-    bool notIntY = (std::is_same<decltype(vy), double>::value) ||        \
-                   (std::is_same<decltype(vy), float>::value);           \
+    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
+    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
     if (notIntX && notIntY) {                                            \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
       if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {     \
