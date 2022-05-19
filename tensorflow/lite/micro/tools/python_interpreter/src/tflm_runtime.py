@@ -17,9 +17,12 @@ import os
 
 from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import interpreter_wrapper_pybind
 
+
 class Interpreter(object):
+
   def __init__(self, model_data, arena_size):
-    self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(model_data, arena_size)
+    self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
+        model_data, arena_size)
 
   @classmethod
   def from_file(self, model_path, arena_size=100000):

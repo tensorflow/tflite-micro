@@ -22,7 +22,6 @@
 # 2. gdb python
 # 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/tools/python_interpreter/tests/interpreter_test
 
-
 import numpy as np
 import tensorflow as tf
 
@@ -31,12 +30,13 @@ from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
 from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import tflm_runtime
 
+
 class TFLiteComparisonTest(test_util.TensorFlowTestCase):
 
   def testCompareWithTFLite(self):
     model = generate_test_models.generate_conv_model(False)
-    input_shape = (1,16,16,1)
-    output_shape = (1,10)
+    input_shape = (1, 16, 16, 1)
+    output_shape = (1, 10)
 
     # TFLM interpreter
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model)
@@ -69,6 +69,6 @@ class TFLiteComparisonTest(test_util.TensorFlowTestCase):
       # Check that result differences are less than tolerance
       self.assertAllLessEqual((tflite_output - tflm_output), 1)
 
+
 if __name__ == '__main__':
   test.main()
-

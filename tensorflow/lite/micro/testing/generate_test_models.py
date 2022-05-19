@@ -75,6 +75,7 @@ def generate_conv_model(writeToFile=True):
 
   return tflite_model
 
+
 def main(argv):
   del argv  # Unused for now
   generate_conv_model()

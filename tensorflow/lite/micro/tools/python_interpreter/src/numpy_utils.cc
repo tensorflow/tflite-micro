@@ -109,7 +109,7 @@ TfLiteType TfLiteTypeFromPyType(int py_type) {
       return kTfLiteComplex64;
     case NPY_COMPLEX128:
       return kTfLiteComplex128;
-    // Avoid default so compiler errors created when new types are made.
+      // Avoid default so compiler errors created when new types are made.
   }
   return kTfLiteNoType;
 }
