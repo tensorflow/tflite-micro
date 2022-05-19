@@ -149,7 +149,7 @@ inline void InitializeTest() { InitializeTarget(); }
     auto vy = y;                                                               \
     bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);          \
     bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);          \
-    if (isFloatingX && isFloatingY) {                                          \
+    if (!(isFloatingX && isFloatingY)) {                                       \
       if ((vx) == (vy)) {                                                      \
         MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);      \
         micro_test::did_test_fail = true;                                      \
