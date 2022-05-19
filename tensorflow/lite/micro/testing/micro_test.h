@@ -55,7 +55,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
 #include <limits>
 #include <type_traits>
-#include <cstddef>
+
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -151,14 +151,14 @@ inline void InitializeTest() { InitializeTarget(); }
     bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
     bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
     if (isFloatingX && isFloatingY) {                                    \
-      if(decltype(vx) != std::nullptr_t || decltype(vy) != std::nullptr_t ) { \
+      if(vx != nullptr || vy != nullptr) {                               \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
       if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {    \
       MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                  \
       }}                                                                 \
     } else if ((vx) == (vy)) {                                           \
-      MicroPrintf(#x " !ç= " #y " failed at %s:%d ", __FILE__, __LINE__); \
+      MicroPrintf(#x " !ç= " #y " failed at %s:%d ", __FILE__, __LINE__);\
       micro_test::did_test_fail = true;                                  \
     }                                                                    \
   } while (false)
