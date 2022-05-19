@@ -637,8 +637,8 @@ TF_LITE_MICRO_TEST(BroadcastPerLayerQuantizationToPerChannelShouldMatchGolden) {
                      tflite::Register_CONV_2D(), output_data));
 }
 
-// This test does not pass when run as part of the Xtensa conv test suite.
-// Move test below '#endif //  !defined(XTENSA)' guard below to reproduce.
+#endif  // !defined(XTENSA)
+
 TF_LITE_MICRO_TEST(Int8Filter1x3x3x1ShouldMatchGoldenEvenInputPaddingSame) {
   using tflite::ElementCount;
   using tflite::kConvFilter1x3x3x1;
@@ -738,10 +738,6 @@ TF_LITE_MICRO_TEST(Int8Filter1x3x3x1ShouldMatchGoldenEvenInputPaddingSame) {
                                      1.0 /* tolerance */));
 }
 
-#endif  // !defined(XTENSA)
-
-// Same as Int8Filter1x3x3x1ShouldMatchGoldenEvenInputPaddingSame, except with
-// an odd-size input of 5x5 instead of of 4x4.
 TF_LITE_MICRO_TEST(Int8Filter1x3x3x1ShouldMatchGoldenOddInputPaddingSame) {
   using tflite::ElementCount;
   using tflite::kConvFilter1x3x3x1;
