@@ -151,7 +151,7 @@ inline void InitializeTest() { InitializeTarget(); }
     bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
     bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
     if (isFloatingX && isFloatingY) {                                    \
-      if(decltype(vx) == std::nullptr_t || decltype(vy) == std::nullptr_t ) { \
+      if(decltype(vx) != std::nullptr_t || decltype(vy) != std::nullptr_t ) { \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
       if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {    \
       MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__, __LINE__); \
