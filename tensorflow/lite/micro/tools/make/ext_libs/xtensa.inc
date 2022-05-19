@@ -8,7 +8,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
-  tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc 
+  tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc 
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)

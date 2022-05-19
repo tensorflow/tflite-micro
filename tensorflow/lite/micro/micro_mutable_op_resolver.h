@@ -120,8 +120,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseAbs);
   }
 
-  TfLiteStatus AddAdd() {
-    return AddBuiltin(BuiltinOperator_ADD, tflite::Register_ADD(), ParseAdd);
+  TfLiteStatus AddAdd(const TfLiteRegistration& registration = Register_ADD()) {
+    return AddBuiltin(BuiltinOperator_ADD, registration, ParseAdd);
   }
 
   TfLiteStatus AddAddN() {
