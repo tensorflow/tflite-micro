@@ -157,7 +157,7 @@ inline void InitializeTest() { InitializeTarget(); }
     } else {                                                                   \
       MicroPrintf("Invalid input for EXPECT_NE test macro at %s:%d", __FILE__, \
                   __LINE__);                                                   \
-      MicroPrintf("For floats and doubles equality testing please use",        \
+      MicroPrintf("For floats and doubles Not Equal testing please use",       \
                   "TF_LITE_MICRO_EXPECT_NEAR  Macro");                         \
       micro_test::did_test_fail = true;                                        \
     }                                                                          \
