@@ -82,7 +82,9 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options):
     if os.path.isabs(f):
       dest_files.append(os.path.normpath(third_party_path + f))
     else:
-      dest_files.append(os.path.join(third_party_path, os.path.relpath(f, tflm_download_path)))
+      dest_files.append(
+          os.path.join(third_party_path,
+                       os.path.relpath(f, tflm_download_path)))
 
   return src_files, dest_files
 
