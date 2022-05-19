@@ -143,20 +143,21 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                                    \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                          \
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                    \
   do {                                                                   \
     auto vx = x;                                                         \
     auto vy = y;                                                         \
     bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
     bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
-    if (isFloatingX && isFloatingY && (vx != nullptr || vy != nullptr)){ \
+    if (isFloatingX && isFloatingY) {                                    \
+      if(decltype(vx) != nullptr_t || decltype(yx) != nullptr_t) {       \
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
       if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {    \
       MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                  \
-      }                                                                  \
+      }}                                                                 \
     } else if ((vx) == (vy)) {                                           \
-      MicroPrintf(#x " != " #y " failed at %s:%d ", __FILE__, __LINE__); \
+      MicroPrintf(#x " !ç= " #y " failed at %s:%d ", __FILE__, __LINE__); \
       micro_test::did_test_fail = true;                                  \
     }                                                                    \
   } while (false)
