@@ -13,13 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 
 #include "tensorflow/lite/micro/tools/python_interpreter/src/interpreter_wrapper.h"
-
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/ndarrayobject.h>
 
 namespace py = pybind11;
 using tflite::interpreter_wrapper::InterpreterWrapper;
@@ -28,19 +24,22 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   m.doc() = "pybind11 TFLM interpreter";
 
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
-      .def(py::init([](const py::bytes& data, int arena_size) {
-        return std::unique_ptr<InterpreterWrapper>(new InterpreterWrapper(
-            data.ptr(), arena_size));
+      .def(py::init([](const py::bytes& data, size_t arena_size) {
+        return std::unique_ptr<InterpreterWrapper>(
+            new InterpreterWrapper(data.ptr(), arena_size));
       }))
       .def("Invoke", &InterpreterWrapper::Invoke)
       .def(
           "SetInputTensor",
-          [](InterpreterWrapper& self, py::handle& x, int index) {
+          [](InterpreterWrapper& self, py::handle& x, size_t index) {
             self.SetInputTensor(x.ptr(), index);
           },
           py::arg("x"), py::arg("index"))
-      .def("GetOutputTensor", [](InterpreterWrapper& self) {
-        return py::reinterpret_steal<py::object>(
-            self.GetOutputTensor());  // Pyo
-      });
+      .def(
+          "GetOutputTensor",
+          [](InterpreterWrapper& self, size_t index) {
+            return py::reinterpret_steal<py::object>(
+                self.GetOutputTensor(index));  // Pyo
+          },
+          py::arg("index"));
 }

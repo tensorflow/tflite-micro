@@ -12,36 +12,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_NUMPY_UTILS_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_NUMPY_UTILS_H_
 
-#pragma once
+// Disallow Numpy 1.7 deprecated symbols.
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/ndarraytypes.h>
 
-#include <Python.h>
-
-#include <sstream>
-#include <string>
-
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/c/c_api_types.h"
 
 namespace tflite {
-namespace interpreter_wrapper {
+namespace numpy_utils {
 
-class PythonErrorReporter : public tflite::MicroErrorReporter {
- public:
-  PythonErrorReporter() {}
+void* ImportNumpy();
+int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type);
+TfLiteType TfLiteTypeFromPyType(int py_type);
+TfLiteType TfLiteTypeFromPyArray(const PyArrayObject* array);
 
-  // Report an error message
-  int Report(const char* format, va_list args) override;
-
-  //   // Sets a Python runtime exception with the last error and
-  //   // clears the error message buffer.
-  //   PyObject* exception();
-
-  //   // Gets the last error message and clears the buffer.
-  //   std::string message() override;
-
- private:
-  std::stringstream buffer_;
-};
-
-}  // namespace interpreter_wrapper
+}  // namespace numpy_utils
 }  // namespace tflite
+
+#endif

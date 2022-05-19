@@ -13,14 +13,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "numpy.h"
+#include "tensorflow/lite/micro/tools/python_interpreter/src/numpy_utils.h"
 
+// Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include "numpy/arrayobject.h"
+// Since we are calling `import_array()` here, define PY_ARRAY_UNIQUE_SYMBOL
+// here and NO_IMPORT_ARRAY everywhere else arrayobject.h is included
+// See https://numpy.org/doc/1.16/reference/c-api.array.html#importing-the-api
+#define PY_ARRAY_UNIQUE_SYMBOL tflite_micro_python_interpreter_array_api
+#include <numpy/arrayobject.h>
+
+#include "tensorflow/lite/c/c_api_types.h"
 
 namespace tflite {
+namespace numpy_utils {
 
-namespace python_utils {
+void* ImportNumpy() {
+  // import_array() is actually a macro that returns NULL (in Python3), hence
+  // this wrapper function with a return type of void*.
+  import_array();
+  return nullptr;
+}
 
 int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type) {
   switch (tf_lite_type) {
@@ -64,5 +77,47 @@ int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type) {
   return NPY_NOTYPE;
 }
 
-}  // namespace python_utils
+TfLiteType TfLiteTypeFromPyType(int py_type) {
+  switch (py_type) {
+    case NPY_FLOAT32:
+      return kTfLiteFloat32;
+    case NPY_FLOAT16:
+      return kTfLiteFloat16;
+    case NPY_FLOAT64:
+      return kTfLiteFloat64;
+    case NPY_INT32:
+      return kTfLiteInt32;
+    case NPY_UINT32:
+      return kTfLiteUInt32;
+    case NPY_INT16:
+      return kTfLiteInt16;
+    case NPY_UINT8:
+      return kTfLiteUInt8;
+    case NPY_INT8:
+      return kTfLiteInt8;
+    case NPY_INT64:
+      return kTfLiteInt64;
+    case NPY_UINT64:
+      return kTfLiteUInt64;
+    case NPY_BOOL:
+      return kTfLiteBool;
+    case NPY_OBJECT:
+    case NPY_STRING:
+    case NPY_UNICODE:
+      return kTfLiteString;
+    case NPY_COMPLEX64:
+      return kTfLiteComplex64;
+    case NPY_COMPLEX128:
+      return kTfLiteComplex128;
+    // Avoid default so compiler errors created when new types are made.
+  }
+  return kTfLiteNoType;
+}
+
+TfLiteType TfLiteTypeFromPyArray(const PyArrayObject* array) {
+  int pyarray_type = PyArray_TYPE(array);
+  return TfLiteTypeFromPyType(pyarray_type);
+}
+
+}  // namespace numpy_utils
 }  // namespace tflite

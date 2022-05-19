@@ -12,36 +12,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
-#pragma once
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_WRAPPER_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_WRAPPER_H_
 
 #include <Python.h>
-#include <pybind11/numpy.h>
 
-// #include "python_error_reporter.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 namespace interpreter_wrapper {
 
 class InterpreterWrapper {
  public:
-  InterpreterWrapper(PyObject* model_data, int arena_size);
+  InterpreterWrapper(PyObject* model_data, size_t arena_size);
   ~InterpreterWrapper();
 
   void Invoke();
-  void SetInputTensor(PyObject* data, int index);
-  PyObject* GetOutputTensor();
+  void SetInputTensor(PyObject* data, size_t index);
+  PyObject* GetOutputTensor(size_t index);
 
  private:
   const PyObject* model_;
-  tflite::ErrorReporter* error_reporter_;
+  std::unique_ptr<tflite::ErrorReporter> error_reporter_;
   std::unique_ptr<tflite::MicroInterpreter> interpreter_;
-  uint8_t *memory_arena_;
+  std::unique_ptr<uint8_t[]> memory_arena_;
+  const tflite::AllOpsResolver all_ops_resolver_;
 };
 
 }  // namespace interpreter_wrapper
 }  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_WRAPPER_H_

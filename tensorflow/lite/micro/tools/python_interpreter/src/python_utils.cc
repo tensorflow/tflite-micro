@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "python_utils.h"
+#include "tensorflow/lite/micro/tools/python_interpreter/src/python_utils.h"
 
-#include <memory>
+#include <Python.h>
 
 namespace tflite {
 namespace python_utils {

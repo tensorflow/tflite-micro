@@ -73,4 +73,7 @@ py_binary(
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],
+    visibility = [
+        ":tflite_micro",
+    ],
 )

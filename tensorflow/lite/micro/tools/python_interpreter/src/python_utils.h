@@ -12,13 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
-#pragma once
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_PYTHON_UTILS_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_PYTHON_UTILS_H_
 
 #include <Python.h>
-
-// #include "third_party/tensorflow/lite/context.h"
-// #include "third_party/tensorflow/lite/string_util.h"
 
 namespace tflite {
 namespace python_utils {
@@ -32,3 +29,5 @@ PyObject* ConvertToPyString(const char* data, size_t length);
 
 }  // namespace python_utils
 }  // namespace tflite
+
+#endif

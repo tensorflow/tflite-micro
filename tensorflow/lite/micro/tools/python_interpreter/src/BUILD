@@ -10,14 +10,12 @@ pybind_library(
     name = "python_interpreter",
     srcs = [
         "interpreter_wrapper.cc",
-        "numpy.cc",
-        "python_error_reporter.cc",
+        "numpy_utils.cc",
         "python_utils.cc",
     ],
     hdrs = [
         "interpreter_wrapper.h",
-        "numpy.h",
-        "python_error_reporter.h",
+        "numpy_utils.h",
         "python_utils.h",
     ],
     deps = [

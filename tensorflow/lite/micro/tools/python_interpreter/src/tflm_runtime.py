@@ -13,28 +13,43 @@
 # limitations under the License.
 # ==============================================================================
 
-try:
-  # Try to import from bazel build first
-  from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import interpreter_wrapper_pybind
-except ImportError:
-  # Resort to pip package
-  import interpreter_wrapper_pybind
+import os
 
-import sys
+from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import interpreter_wrapper_pybind
 
 class Interpreter(object):
-  def __init__(self, model_path, arena_size=10000):
+  def __init__(self, model_data, arena_size):
+    self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(model_data, arena_size)
+
+  @classmethod
+  def from_file(self, model_path, arena_size=100000):
+    if model_path is None or not os.path.isfile(model_path):
+      raise ValueError("Invalid model file path")
+
     with open(model_path, "rb") as f:
       model_data = f.read()
-    self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(model_data, arena_size)
-    print(self._interpreter)
-    sys.stdout.flush()
+
+    return Interpreter(model_data, arena_size)
+
+  @classmethod
+  def from_bytes(self, model_data, arena_size=100000):
+    if model_data is None:
+      raise ValueError("Model must not be None")
+    return Interpreter(model_data, arena_size)
 
   def invoke(self):
     self._interpreter.Invoke()
 
   def set_input(self, input_data, index):
+    if input_data is None:
+      raise ValueError("Input data must not be None")
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
     self._interpreter.SetInputTensor(input_data, index)
 
-  def get_output(self):
-    return self._interpreter.GetOutputTensor()
+  def get_output(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetOutputTensor(index)
