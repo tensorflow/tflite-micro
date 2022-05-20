@@ -19,22 +19,9 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/reduce.h"
+
 namespace tflite {
-
-constexpr int kMaxNumberOfAxis = 4;
-constexpr int kMaxNumberOfReducedAxis = 2;
-
-struct OpDataReduce {
-  int32_t multiplier;
-  int shift;
-  int temp_buffer_idx;
-  int resolved_axis_idx;
-  int input_zp;
-  float input_scale;
-  int output_zp;
-  float output_scale;
-  int num_output_elements;
-};
 
 struct XtensaReduceOpData {
   OpDataReduce reference_op_data;
