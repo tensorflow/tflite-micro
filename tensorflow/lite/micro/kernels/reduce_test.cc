@@ -227,6 +227,61 @@ void TestMeanOpQuantized(int* input_dims_data, const float* input_data,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
+TF_LITE_MICRO_TEST(MeanFloatFlatten2ReduceDims) {
+  int input_shape[] = {3, 4, 3, 2};
+  int output_shape[] = {1, 4};
+  int axis_shape[] = {1, 2};
+  int32_t axis_data[] = {2, 1};
+  float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                        9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                        17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  float output_data[] = {3.5, 9.5, 15.5, 21.5};
+  float actual_output_data[4];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestMeanFloatInput4D(input_shape, input_data, axis_shape,
+                                        axis_data, output_shape, output_data,
+                                        actual_output_data, &params);
+}
+
+TF_LITE_MICRO_TEST(MeanFloatFlatten2NonReduceDims) {
+  int input_shape[] = {3, 4, 3, 2};
+  int output_shape[] = {1, 4};
+  int axis_shape[] = {1, 1};
+  int32_t axis_data[] = {2};
+  float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                        9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                        17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  float output_data[] = {1.5,  3.5,  5.5,  7.5,  9.5,  11.5,
+                         13.5, 15.5, 17.5, 19.5, 21.5, 23.5};
+  float actual_output_data[12];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestMeanFloatInput4D(input_shape, input_data, axis_shape,
+                                        axis_data, output_shape, output_data,
+                                        actual_output_data, &params);
+}
+
+TF_LITE_MICRO_TEST(MeanFloatFlatten2MiddleDims) {
+  int input_shape[] = {4, 2, 2, 3, 2};
+  int output_shape[] = {2, 2, 2};
+  int axis_shape[] = {1, 2};
+  int32_t axis_data[] = {1, 2};
+  float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                        9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                        17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  float output_data[] = {6, 7, 18, 19};
+  float actual_output_data[4];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestMeanFloatInput4D(input_shape, input_data, axis_shape,
+                                        axis_data, output_shape, output_data,
+                                        actual_output_data, &params);
+}
+
 TF_LITE_MICRO_TEST(MeanFloat2DKeepDims) {
   float output_data[tflite::testing::kOutputElements2D];
 
