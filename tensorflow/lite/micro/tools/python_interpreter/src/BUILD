@@ -2,12 +2,12 @@ load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 package(
-    default_visibility = ["//visibility:public"],
+    default_visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],
     licenses = ["notice"],
 )
 
 pybind_library(
-    name = "python_interpreter",
+    name = "interpreter_wrapper",
     srcs = [
         "interpreter_wrapper.cc",
         "numpy_utils.cc",
@@ -25,13 +25,15 @@ pybind_library(
     ],
 )
 
+# pybind_extension() appends ".so" to "name" so the actual target name contains
+# the ".so" suffix
 pybind_extension(
     name = "interpreter_wrapper_pybind",
     srcs = [
         "interpreter_wrapper_pybind.cc",
     ],
     deps = [
-        ":python_interpreter",
+        ":interpreter_wrapper",
     ],
 )
 

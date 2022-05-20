@@ -39,7 +39,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
           "GetOutputTensor",
           [](InterpreterWrapper& self, size_t index) {
             return py::reinterpret_steal<py::object>(
-                self.GetOutputTensor(index));  // Pyo
+                self.GetOutputTensor(index));
           },
           py::arg("index"));
 }
