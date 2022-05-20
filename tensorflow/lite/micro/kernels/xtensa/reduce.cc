@@ -315,18 +315,14 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
       context->GetScratchBuffer(context, op_data->resolved_axis_idx));
   switch (input->type) {
     case kTfLiteFloat32:
-      TF_LITE_ENSURE(
-          context,
-          reference_ops::ReduceGeneric<float>(
-              tflite::micro::GetTensorData<float>(input), input->dims->data,
-              input->dims->size, tflite::micro::GetTensorData<float>(output),
-              output->dims->data, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis,
-              params->keep_dims, temp_buffer, resolved_axis,
-              std::numeric_limits<float>::lowest(),
-              [](const float current, const float in) -> float {
-                return (in > current) ? in : current;
-              }));
+      TF_LITE_ENSURE(context, reference_ops::ReduceGeneric<float>(
+                                  tflite::micro::GetTensorData<float>(input),
+                                  input->dims->data, input->dims->size,
+                                  tflite::micro::GetTensorData<float>(output),
+                                  output->dims->data, output->dims->size,
+                                  tflite::micro::GetTensorData<int>(axis),
+                                  num_axis, params->keep_dims, temp_buffer,
+                                  resolved_axis, normalized_dims, kMax));
       break;
     case kTfLiteInt8:
       TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data->input_scale),
@@ -335,18 +331,14 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(VISION_P6)
       ReduceEvalVision(*op_data_xtensa, input, output);
 #else
-      TF_LITE_ENSURE(
-          context,
-          reference_ops::ReduceGeneric<int8_t>(
-              tflite::micro::GetTensorData<int8_t>(input), input->dims->data,
-              input->dims->size, tflite::micro::GetTensorData<int8_t>(output),
-              output->dims->data, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis,
-              params->keep_dims, temp_buffer, resolved_axis,
-              std::numeric_limits<int8_t>::lowest(),
-              [](const int8_t current, const int8_t in) -> int8_t {
-                return (in > current) ? in : current;
-              }));
+      TF_LITE_ENSURE(context, reference_ops::ReduceGeneric<int8_t>(
+                                  tflite::micro::GetTensorData<int8_t>(input),
+                                  input->dims->data, input->dims->size,
+                                  tflite::micro::GetTensorData<int8_t>(output),
+                                  output->dims->data, output->dims->size,
+                                  tflite::micro::GetTensorData<int>(axis),
+                                  num_axis, params->keep_dims, temp_buffer,
+                                  resolved_axis, normalized_dims, kMax));
 #endif
       break;
     default:
