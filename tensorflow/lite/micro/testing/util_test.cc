@@ -17,7 +17,6 @@ limitations under the License.
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-
 TF_LITE_MICRO_TEST(ArgumentsExecutedOnlyOnce) {
   float count = 0.;
   // Make sure either argument is executed once after macro expansion.
