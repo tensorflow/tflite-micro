@@ -66,7 +66,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   if (registration_.init) {
     node_.user_data = registration_.init(&context_, init_data, length);
     context_.RequestScratchBufferInArena =
-      MicroContextRequestScratchBufferInArena;
+        MicroContextRequestScratchBufferInArena;
     context_.GetExternalContext = MicroContextGetExternalContext;
   }
 
