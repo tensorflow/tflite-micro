@@ -35,9 +35,8 @@ limitations under the License.
 namespace py = pybind11;
 
 namespace tflite {
+namespace micro {
 namespace interpreter_wrapper {
-
-// tflite::AllOpsResolver all_ops_resolver;
 
 InterpreterWrapper::~InterpreterWrapper() {
   // Undo any references incremented
@@ -84,7 +83,7 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
 
   // This must be called before using any PyArray_* APIs. It essentially sets
   // up the lookup table that maps PyArray_* macros to the correct APIs.
-  numpy_utils::ImportNumpy();
+  tflite::micro::numpy_utils::ImportNumpy();
 }
 
 void InterpreterWrapper::Invoke() {
@@ -98,8 +97,9 @@ void InterpreterWrapper::Invoke() {
 // 2. Verify that input array metadata matches tensor metadata
 // 3. Copy input buffer into target input tensor
 void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
-  std::unique_ptr<PyObject, tflite::python_utils::PyDecrefDeleter> array_safe(
-      PyArray_FromAny(data, nullptr, 0, 0, NPY_ARRAY_CARRAY, nullptr));
+  std::unique_ptr<PyObject, tflite::micro::python_utils::PyDecrefDeleter>
+      array_safe(
+          PyArray_FromAny(data, nullptr, 0, 0, NPY_ARRAY_CARRAY, nullptr));
   if (!array_safe) {
     PyErr_SetString(PyExc_ValueError, "TFLM cannot convert input to PyArray");
     return;
@@ -220,4 +220,5 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
 }
 
 }  // namespace interpreter_wrapper
+}  // namespace micro
 }  // namespace tflite

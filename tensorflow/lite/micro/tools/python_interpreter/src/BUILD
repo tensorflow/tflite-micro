@@ -3,11 +3,14 @@ load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 package(
     default_visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],
+    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
+# Append _lib at the end to avoid naming collision with the extension below
+# because internal tool appends a _pybind suffix.
 pybind_library(
-    name = "interpreter_wrapper",
+    name = "interpreter_wrapper_lib",
     srcs = [
         "interpreter_wrapper.cc",
         "numpy_utils.cc",
@@ -33,7 +36,7 @@ pybind_extension(
         "interpreter_wrapper_pybind.cc",
     ],
     deps = [
-        ":interpreter_wrapper",
+        ":interpreter_wrapper_lib",
     ],
 )
 

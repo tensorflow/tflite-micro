@@ -69,6 +69,18 @@ cc_library(
     ],
 )
 
+py_library(
+    name = "generate_test_models_lib",
+    srcs = ["generate_test_models.py"],
+    visibility = [
+        ":tflite_micro",
+    ],
+    deps = [
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
 py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],

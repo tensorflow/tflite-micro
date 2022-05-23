@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 
 namespace tflite {
+namespace micro {
 namespace interpreter_wrapper {
 
 class InterpreterWrapper {
@@ -42,6 +43,7 @@ class InterpreterWrapper {
 };
 
 }  // namespace interpreter_wrapper
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_WRAPPER_H_

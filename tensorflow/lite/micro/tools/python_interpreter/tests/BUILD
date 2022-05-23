@@ -1,5 +1,7 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
+licenses(["notice"])
+
 py_test(
     name = "interpreter_test",
     srcs = ["interpreter_test.py"],
@@ -12,7 +14,7 @@ py_test(
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/testing:generate_test_models",
+        "//tensorflow/lite/micro/testing:generate_test_models_lib",
         "//tensorflow/lite/micro/tools/python_interpreter/src:tflm_runtime",
     ],
 )
