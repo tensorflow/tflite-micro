@@ -37,7 +37,7 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
                                                kKernelRunnerBufferSize_)),
       mock_micro_graph_(allocator_),
       fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
- // Prepare TfLiteContext:
+  // Prepare TfLiteContext:
   context_.impl_ = static_cast<void*>(&fake_micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.recommended_num_threads = 1;
