@@ -141,7 +141,7 @@ inline void InitializeTest() { InitializeTarget(); }
                   __LINE__, static_cast<int>(vx), static_cast<int>(vy));  \
       if (isFloatingX || isFloatingY) {                                   \
         MicroPrintf("-----------WARNING-----------");                     \
-        MicroPrintf("Only of the values is floating point value.");       \
+        MicroPrintf("Only one of the values is floating point value.");   \
       }                                                                   \
       micro_test::did_test_fail = true;                                   \
     }                                                                     \
