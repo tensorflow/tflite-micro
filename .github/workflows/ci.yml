@@ -40,7 +40,7 @@ jobs:
           pip3 install Pillow
           pip3 install Wave
           export PYTHON_BIN_PATH=$(which python)
-          apt install -y python-numpy
+          sudo apt install -y python-numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
