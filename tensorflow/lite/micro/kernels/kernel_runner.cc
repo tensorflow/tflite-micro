@@ -63,7 +63,6 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
-  
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
   context_.GetExternalContext = nullptr;
