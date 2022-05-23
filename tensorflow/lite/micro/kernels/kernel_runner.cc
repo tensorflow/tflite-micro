@@ -44,9 +44,9 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-  context_.RequestScratchBufferInArena =
-      MicroContextRequestScratchBufferInArena;
-  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
+  context_.RequestScratchBufferInArena = nullptr;
+  context_.GetScratchBuffer = nullptr;
+  context_.GetExternalContext = nullptr;
 
   context_.recommended_num_threads = 0;
 
@@ -65,12 +65,18 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
     node_.user_data = registration_.init(&context_, init_data, length);
+    context_.RequestScratchBufferInArena =
+      MicroContextRequestScratchBufferInArena;
+    context_.GetExternalContext = MicroContextGetExternalContext;
   }
 
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
+    context_.AllocatePersistentBuffer = nullptr;
+    context_.RequestScratchBufferInArena = nullptr;
+    context_.GetScratchBuffer = MicroContextGetScratchBuffer;
   }
 
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
