@@ -36,7 +36,7 @@ TF_LITE_MICRO_TEST(TestExpectEQ) {
   TF_LITE_MICRO_EXPECT_EQ(2.100000000005f, b);
   TF_LITE_MICRO_EXPECT_EQ(2.1, a);
 }
- 
+
 TF_LITE_MICRO_TEST(TestExpectNE) {
   // test TF_LITE_EXPECT_NE for expected behavior
   float b = 2.1f;
