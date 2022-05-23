@@ -122,45 +122,46 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                         \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                    \
-  do {                                                                   \
-    auto vx = x;                                                         \
-    auto vy = y;                                                         \
-    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);    \
-    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);    \
-    if (isFloatingX && isFloatingY) {                                    \
-      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));        \
-      if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {     \
-       MicroPrintf(#x " == " #y " failed at %s:%d (%f vs %f)", __FILE__, \
-            __LINE__, static_cast<double>(vx), static_cast<double>(vy)); \
-        micro_test::did_test_fail = true;                                \
-      }                                                                  \
-    } else if ((vx) != (vy)) {                                           \
-        MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,\
-                  __LINE__, static_cast<int>(vx), static_cast<int>(vy)); \
-       if (isFloatingX || isFloatingY) {                                 \
-       MicroPrintf("-----------WARNING-----------");                     \
-       MicroPrintf("Only of the values is floating point value.");       \
-       }                                                                 \
-      micro_test::did_test_fail = true;                                  \
-    }                                                                    \
+#define TF_LITE_MICRO_EXPECT_EQ(x, y)                                     \
+  do {                                                                    \
+    auto vx = x;                                                          \
+    auto vy = y;                                                          \
+    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);     \
+    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);     \
+    if (isFloatingX && isFloatingY) {                                     \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));         \
+      if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {      \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%f vs %f)", __FILE__, \
+                    __LINE__, static_cast<double>(vx),                    \
+                    static_cast<double>(vy));                             \
+        micro_test::did_test_fail = true;                                 \
+      }                                                                   \
+    } else if ((vx) != (vy)) {                                            \
+      MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,   \
+                  __LINE__, static_cast<int>(vx), static_cast<int>(vy));  \
+      if (isFloatingX || isFloatingY) {                                   \
+        MicroPrintf("-----------WARNING-----------");                     \
+        MicroPrintf("Only of the values is floating point value.");       \
+      }                                                                   \
+      micro_test::did_test_fail = true;                                   \
+    }                                                                     \
   } while (false)
 
-#define TF_LITE_MICRO_EXPECT_NE(x, y)                                          \
-  do {                                                                         \
-    auto vx = x;                                                               \
-    auto vy = y;                                                               \
-    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);          \
-    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);          \
-    if ((vx) == (vy)) {                                                        \
-      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);        \
-      micro_test::did_test_fail = true;                                        \
-    } else if (isFloatingX || isFloatingY) {                                   \
-      MicroPrintf("-----------WARNING-----------");                            \
-      MicroPrintf("It is suggested to use EXPECT_NEAR for better equality");   \
-      MicroPrintf("testing since floating point values are being used at");    \
-      MicroPrintf(" %s:%d", __FILE__, __LINE__);                               \
-    }                                                                          \
+#define TF_LITE_MICRO_EXPECT_NE(x, y)                                        \
+  do {                                                                       \
+    auto vx = x;                                                             \
+    auto vy = y;                                                             \
+    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);        \
+    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);        \
+    if ((vx) == (vy)) {                                                      \
+      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);      \
+      micro_test::did_test_fail = true;                                      \
+    } else if (isFloatingX || isFloatingY) {                                 \
+      MicroPrintf("-----------WARNING-----------");                          \
+      MicroPrintf("It is suggested to use EXPECT_NEAR for better equality"); \
+      MicroPrintf("testing since floating point values are being used at");  \
+      MicroPrintf(" %s:%d", __FILE__, __LINE__);                             \
+    }                                                                        \
   } while (false)
 
 // TODO(wangtz): Making it more generic once needed.
