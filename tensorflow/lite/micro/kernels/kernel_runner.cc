@@ -44,9 +44,9 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-  context_.RequestScratchBufferInArena =
-      MicroContextRequestScratchBufferInArena;
-  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
+  context_.RequestScratchBufferInArena = nullptr;
+  context_.GetScratchBuffer = nullptr;
+  context_.GetExternalContext = nullptr;
 
   context_.recommended_num_threads = 0;
 
@@ -63,10 +63,6 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
-  context_.RequestScratchBufferInArena = nullptr;
-  context_.GetScratchBuffer = nullptr;
-  context_.GetExternalContext = nullptr;
-
   if (registration_.init) {
     node_.user_data = registration_.init(&context_, init_data, length);
     context_.RequestScratchBufferInArena =
