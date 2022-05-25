@@ -31,18 +31,18 @@ from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
 from tflite_micro.tensorflow.lite.micro.tools.python_interpreter.src import tflm_runtime
 
 
-class TFLiteComparisonTest(test_util.TensorFlowTestCase):
+class ConvModelTests(test_util.TensorFlowTestCase):
+  filename = "/tmp/interpreter_test_conv_model.tflite"
+  model_data = generate_test_models.generate_conv_model(True, filename)
+  input_shape = (1, 16, 16, 1)
+  output_shape = (1, 10)
 
   def testCompareWithTFLite(self):
-    model = generate_test_models.generate_conv_model(False)
-    input_shape = (1, 16, 16, 1)
-    output_shape = (1, 10)
-
     # TFLM interpreter
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(self.model_data)
 
     # TFLite interpreter
-    tflite_interpreter = tf.lite.Interpreter(model_content=model)
+    tflite_interpreter = tf.lite.Interpreter(model_content=self.model_data)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
@@ -50,7 +50,7 @@ class TFLiteComparisonTest(test_util.TensorFlowTestCase):
     num_steps = 1000
     for i in range(0, num_steps):
       # Create random input
-      data_x = np.random.randint(-127, 127, input_shape, dtype=np.int8)
+      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
       # Run inference on TFLite
       tflite_interpreter.set_tensor(tflite_input_details['index'], data_x)
@@ -65,9 +65,53 @@ class TFLiteComparisonTest(test_util.TensorFlowTestCase):
 
       # Check that TFLM output has correct metadata
       self.assertDTypeEqual(tflm_output, np.int8)
-      self.assertEqual(tflm_output.shape, output_shape)
+      self.assertEqual(tflm_output.shape, self.output_shape)
       # Check that result differences are less than tolerance
       self.assertAllLessEqual((tflite_output - tflm_output), 1)
+
+  def testModelFromFileAndBufferEqual(self):
+    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
+    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(self.model_data)
+
+    num_steps = 1000
+    for i in range(0, num_steps):
+      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+
+      file_interpreter.set_input(data_x, 0)
+      file_interpreter.invoke()
+      file_output = file_interpreter.get_output(0)
+
+      bytes_interpreter.set_input(data_x, 0)
+      bytes_interpreter.invoke()
+      bytes_output = bytes_interpreter.get_output(0)
+
+      self.assertDTypeEqual(file_output, np.int8)
+      self.assertEqual(file_output.shape, self.output_shape)
+      self.assertDTypeEqual(bytes_output, np.int8)
+      self.assertEqual(bytes_output.shape, self.output_shape)
+      # Same interpreter and model, should expect all equal
+      self.assertAllEqual(file_output, bytes_output)
+
+  def testMultipleInterpreters(self):
+    interpreters = [
+        tflm_runtime.Interpreter.from_bytes(self.model_data) for i in range(10)
+    ]
+
+    num_steps = 1000
+    for i in range(0, num_steps):
+      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+
+      prev_output = None
+      for interpreter in interpreters:
+        interpreter.set_input(data_x, 0)
+        interpreter.invoke()
+        output = interpreter.get_output(0)
+        if prev_output is None:
+          prev_output = output
+
+        self.assertDTypeEqual(output, np.int8)
+        self.assertEqual(output.shape, self.output_shape)
+        self.assertAllEqual(output, prev_output)
 
 
 if __name__ == '__main__':
