@@ -1,4 +1,8 @@
-name: Update Binary Size Log
+name: Binary Size Log 
+
+# Creates a binary size log in $LOG_BRANCH. log_binary_size_pr.yml occasionally
+# submits these logs back to the main branch.
+# Relies on the provided token being able to push to $LOG_BRANCH
 
 on:
   workflow_dispatch: {}
@@ -14,7 +18,9 @@ on:
 #    branches:
 #      - main
 
-
+env:
+  LOG_BRANCH: profiling-logs
+  
 jobs:
   binary-size-log:
     runs-on: ubuntu-latest
@@ -23,7 +29,15 @@ jobs:
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
       github.event_name == 'schedule'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+    - name: prepare files for logging
+      run: |
+        git checkout --track origin/$LOG_BRANCH
+        git checkout main
+        git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
     - name: update logs x86
       uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
       with:
@@ -32,18 +46,10 @@ jobs:
       run: |
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
-        git commit -am "Automated size log update"
-    - name: Create Logs PR Request
-      id: create-pr
-      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
-      with:
-         branch: nightly_binary_size_profiling
-         delete-branch: true
-         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
-         title: Automated binary size log update
-         commit-message: Automated binary size log update
-         committer: TFLM-bot <tflm-github-bot@google.com>
-         author: TFLM-bot <tflm-github-bot@google.com>
-         body: "BUG=automated binary size log update"
-         labels: ci:run
-         reviewers: advaitjain
+        git commit -a -m "Automated binary size log update"
+        git checkout $LOG_BRANCH
+        git checkout main -- data/continuous_builds/size_profiling/
+        git add .
+        git status
+        git commit -a -m "Automated binary size log update"
+        git push
