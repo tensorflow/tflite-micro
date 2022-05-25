@@ -31,10 +31,6 @@ namespace tflite {
 const int kMaxNumberOfAxis = 4;
 const int kMaxNumberOfReducedAxis = 2;
 
-void* InitReduce(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
-}
-
 TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
                            int32_t* multiplier, int* shift) {
   MicroContext* micro_context = GetMicroContext(context);

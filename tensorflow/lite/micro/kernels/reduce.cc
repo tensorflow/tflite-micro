@@ -28,11 +28,8 @@ limitations under the License.
 
 namespace tflite {
 
-const int kMaxNumberOfAxis = 4;
-const int kMaxNumberOfReducedAxis = 2;
-
 void* InitReduce(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
 }
 
 TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
@@ -42,15 +39,16 @@ TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   return PrepareMeanOrSumHelper(context, node,
-                                static_cast<OpData*>(node->user_data));
+                                static_cast<OpDataReduce*>(node->user_data));
 }
 
 TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
-  return EvalMeanHelper(context, node, static_cast<OpData*>(node->user_data));
+  return EvalMeanHelper(context, node,
+                        static_cast<OpDataReduce*>(node->user_data));
 }
 
 TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
-  OpData* op_data = static_cast<OpData*>(node->user_data);
+  OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
   return EvalMaxHelper(context, node, op_data);
 }
 
