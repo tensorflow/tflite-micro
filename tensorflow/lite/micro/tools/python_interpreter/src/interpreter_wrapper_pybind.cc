@@ -38,8 +38,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
       .def(
           "GetOutputTensor",
           [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.GetOutputTensor(index));
+            return py::cast<py::object>(self.GetOutputTensor(index));
           },
           py::arg("index"));
 }

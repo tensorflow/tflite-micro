@@ -73,7 +73,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
     bytes_interpreter = tflm_runtime.Interpreter.from_bytes(self.model_data)
 
-    num_steps = 1000
+    num_steps = 100
     for i in range(0, num_steps):
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
@@ -97,7 +97,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         tflm_runtime.Interpreter.from_bytes(self.model_data) for i in range(10)
     ]
 
-    num_steps = 1000
+    num_steps = 100
     for i in range(0, num_steps):
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
