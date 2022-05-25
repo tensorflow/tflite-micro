@@ -1,5 +1,3 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
-
 package(
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],

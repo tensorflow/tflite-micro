@@ -90,9 +90,6 @@ py_binary(
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
-    visibility = [
-        ":tflite_micro",
-    ],
     deps = [
         "@absl_py//absl:app",
         requirement("numpy"),
