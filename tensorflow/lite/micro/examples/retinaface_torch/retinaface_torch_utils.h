@@ -181,7 +181,7 @@ void filterAndGetDetections(std::vector<FloatPair>& conf,
 void nonMaxSuppression(DetList* dets,
                        float nms_threshold) {
   DetList dets2;
-  int finds = dets->size();
+  const int finds = 10; // TODO: detection limit of 10 people? dets->size();
   sort(dets->begin(), dets->end(),
             [](Det& a, Det& b) { return a[4] > b[4]; });
   int curr_proposal = 0;

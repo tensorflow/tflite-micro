@@ -28,8 +28,8 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Include the specific model to run
-#include "tensorflow/lite/micro/examples/retinaface/retinaface_model_data.h"
-#include "tensorflow/lite/micro/examples/retinaface/retinaface_utils.h"
+#include "tensorflow/lite/micro/examples/retinaface_torch/retinaface_torch_model_data.h"
+#include "tensorflow/lite/micro/examples/retinaface_torch/retinaface_torch_utils.h"
 
 constexpr int IMG_H = 120;
 constexpr int IMG_W = 160;
@@ -41,7 +41,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
 
   tflite::MicroErrorReporter micro_error_reporter;
 
-  const tflite::Model* model = ::tflite::GetModel(g_retinaface_model_data);
+  const tflite::Model* model = ::tflite::GetModel(g_retinaface_torch_model_data);
 
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     TF_LITE_REPORT_ERROR(&micro_error_reporter,
