@@ -121,7 +121,7 @@ inline void InitializeTest() { InitializeTarget(); }
       micro_test::did_test_fail = true;                       \
     }                                                         \
   } while (false)
- 
+
 #define TF_LITE_MICRO_EXPECT_EQ(x, y)                                     \
   do {                                                                    \
     auto vx = x;                                                          \
@@ -132,7 +132,7 @@ inline void InitializeTest() { InitializeTarget(); }
       auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));         \
       if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {      \
         MicroPrintf(#x " == " #y " failed at %s:%d (%f vs %f)", __FILE__, \
-                    __LINE__, static_cast<double>(vx), static_cast<double>(vy)); \
+             __LINE__, static_cast<double>(vx), static_cast<double>(vy)); \
         micro_test::did_test_fail = true;                                 \
       }                                                                   \
     } else if ((vx) != (vy)) {                                            \

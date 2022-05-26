@@ -129,8 +129,8 @@ void VerifyRegistrationAndNodeAllocation(
   for (int subgraph_idx = 0; subgraph_idx < num_subgraphs; subgraph_idx++) {
     for (size_t i = 0; i < count; i++) {
       TF_LITE_MICRO_EXPECT(nullptr != &subgraph_allocations[subgraph_idx]
-                                            .node_and_registrations[i]
-                                            .registration);
+                                           .node_and_registrations[i]
+                                           .registration);
     }
   }
 }
@@ -776,7 +776,7 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor2->quantization.params !=  nullptr);
+  TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
   TF_LITE_MICRO_EXPECT_FALSE(tensor2->is_variable);
 
   // The address of tensor1 should be higher than the address of tensor2 since
@@ -809,7 +809,7 @@ TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 !=  nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
 
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
