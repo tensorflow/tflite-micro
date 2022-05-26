@@ -47,7 +47,7 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
                                               tflite::GetMicroErrorReporter());
   // TODO(b/158102673): ugly workaround for not having fatal assertions. Same
   // throughout this file.
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   tflite::SubgraphAllocations* subgraph_allocations =
@@ -86,7 +86,7 @@ TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   tflite::SubgraphAllocations* subgraph_allocations =
@@ -124,7 +124,7 @@ TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize * 2,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   // First allocation with the model in the arena:
@@ -169,12 +169,12 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentTfLiteTensorData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   TfLiteTensor* tensor = micro_allocator->AllocatePersistentTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, 0, 0);
-  TF_LITE_MICRO_EXPECT_NE(tensor, nullptr);
+  TF_LITE_MICRO_EXPECT(tensor != nullptr);
   if (tensor == nullptr) return 1;
 
   tflite::RecordedAllocation recorded_allocation =
@@ -195,12 +195,12 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentTfLiteTensorQuantizationData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator !=  nullptr);
   if (micro_allocator == nullptr) return 1;
 
   TfLiteTensor* tensor = micro_allocator->AllocatePersistentTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, 0, 0);
-  TF_LITE_MICRO_EXPECT_NE(tensor, nullptr);
+  TF_LITE_MICRO_EXPECT(tensor != nullptr);
   if (tensor == nullptr) return 1;
 
   // Walk the model subgraph to find all tensors with quantization params and
@@ -241,11 +241,11 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentBufferData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(micro_allocator, nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   void* buffer = micro_allocator->AllocatePersistentBuffer(/*bytes=*/100);
-  TF_LITE_MICRO_EXPECT_NE(buffer, nullptr);
+  TF_LITE_MICRO_EXPECT(buffer != nullptr);
   if (buffer == nullptr) return 1;
 
   tflite::RecordedAllocation recorded_allocation =
@@ -259,7 +259,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentBufferData) {
                           static_cast<size_t>(100));
 
   buffer = micro_allocator->AllocatePersistentBuffer(/*bytes=*/50);
-  TF_LITE_MICRO_EXPECT_NE(buffer, nullptr);
+  TF_LITE_MICRO_EXPECT(buffer != nullptr);
   if (buffer == nullptr) return 1;
 
   recorded_allocation = micro_allocator->GetRecordedAllocation(
