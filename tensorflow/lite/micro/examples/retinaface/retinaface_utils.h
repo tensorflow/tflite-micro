@@ -43,7 +43,7 @@ public:
       float a = (float)_image_size[0] / (step);
       float b = (float)_image_size[1] / (step);
       _feature_maps.push_back({a, b});
-    } 
+    }
   }
 
   BoxList forward() {
@@ -185,8 +185,15 @@ void nonMaxSuppression(DetList* dets,
   sort(dets->begin(), dets->end(),
             [](Det& a, Det& b) { return a[4] > b[4]; });
   int curr_proposal = 0;
-  std::unordered_set<int> skip_indices = {curr_proposal};
-  while ((int)skip_indices.size() < finds) {
+
+  bool skip_indices[finds];
+  for (int i = 0; i < finds; i++) {
+    skip_indices[i] = false;
+  }
+  skip_indices[curr_proposal] = true;
+  int nProcessedIndices = 1;
+
+  while (nProcessedIndices < finds) {
     dets2.push_back((*dets)[curr_proposal]);
 
     float x1 = (*dets)[curr_proposal][0];
@@ -198,7 +205,7 @@ void nonMaxSuppression(DetList* dets,
     bool found_next_proposal = false;
     // Go over all other possibilities that have not yet been added or skipped
     for (int i = 0; i < finds; i++) {
-      if (skip_indices.count(i) > 0) {
+      if (skip_indices[i]) {
         continue;
       }
       float area2 = ((*dets)[i][2] - (*dets)[i][0] + 1) *
@@ -209,19 +216,23 @@ void nonMaxSuppression(DetList* dets,
       float int_x2 = min(x2, (*dets)[i][2]);
       float int_y2 = min(y2, (*dets)[i][3]);
 
-      float inter_area = max(0.0f, int_x2 - int_x1 + 1) * 
+      float inter_area = max(0.0f, int_x2 - int_x1 + 1) *
                          max(0.0f, int_y2 - int_y1 + 1);
       float union_area = area + area2 - inter_area;
 
       if ((inter_area / union_area) > nms_threshold) {
-        skip_indices.insert(i);
+        skip_indices[i] = true;
+        nProcessedIndices += 1;
+
       } else if (!found_next_proposal) {
         found_next_proposal = true;
         curr_proposal = i;
-        skip_indices.insert(i);
+
+        skip_indices[i] = true;
+        nProcessedIndices += 1;
       }
     }
   }
   // replace the old detection list with the new list
-  *dets = dets2; 
+  *dets = dets2;
 }
