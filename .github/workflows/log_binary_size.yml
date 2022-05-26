@@ -1,8 +1,27 @@
 name: Binary Size Log 
 
-# Creates a binary size log in $LOG_BRANCH. log_binary_size_pr.yml occasionally
-# submits these logs back to the main branch.
-# Relies on the provided token being able to push to $LOG_BRANCH
+# Run some tests against the code in main and then store the logs, which are cumulative.
+# This is complicated by our branch protections, which do not allow us to check code into
+# main directly, so instead we have to store our logs in $LOG_BRANCH.
+#
+# High level:
+# 1. checkout main to get the latest codebase
+# 2. pull our latest logs from $LOG_BRANCH into main
+# 3. perform tests and emit log files
+# 4. checkout $LOG_BRANCH
+# 5. pull newly updated logs from main into $LOG_BRANCH
+# 6. push $LOG_BRANCH to repo
+#
+# Points that can be confusing: 
+# * git checkout --track <remote>/<branch> creates a local tracking branch from a remote
+#   branch reference and changes to that branch.
+# * git checkout <branch> -- <path> checks out files from <branch> into the current branch.
+#   It does not switch branches.
+# * In order to check out changed files from a branch you are not currently on, the files
+#   must have been committed. Changed files that aren't committed can't be moved between
+#   branches.
+#
+# The provided token must be able to push to $LOG_BRANCH
 
 on:
   workflow_dispatch: {}
