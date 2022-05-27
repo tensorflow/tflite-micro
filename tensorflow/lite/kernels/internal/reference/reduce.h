@@ -662,7 +662,8 @@ inline bool QuantizedReduceProd(
   int num_resolved_axis = 0;
   int normalized_num_dims = 0;
   if (!ResolveAxis(input_shape.DimensionsCount(), axis, num_axis_dimensions,
-                   resolved_axis, &num_resolved_axis, input_shape.DimsData(),
+                   resolved_axis, &num_resolved_axis,
+                   reinterpret_cast<const int*>(input_shape.DimsData()),
                    normalized_dims, &normalized_num_dims)) {
     return false;
   }
