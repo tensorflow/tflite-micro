@@ -1,6 +1,15 @@
 name: Binary Size Log PR
 
-# Submits a PR with all the size profiling logs from LOG_BRANCH
+# Submits a PR with all the size profiling logs from $LOG_BRANCH
+# This is intended to be used with the logs stored by log_binary_size.yml
+#
+# Points that can be confusing: 
+# * git checkout --track <remote>/<branch> creates a local tracking branch from a remote
+#   branch reference and changes to that branch.
+# * git checkout <branch> -- <path> checks out files from <branch> into the current branch.
+#   It does not switch branches.
+#
+# The provided token must be able to submit a PR
 
 on:
   workflow_dispatch: {}
