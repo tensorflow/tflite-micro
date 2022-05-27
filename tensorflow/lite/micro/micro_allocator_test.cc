@@ -45,7 +45,7 @@ void VerifyMockTfLiteTensor(TfLiteTensor* tensor, bool is_variable = false) {
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(is_variable, tensor->is_variable);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), tensor->bytes);
-  TF_LITE_MICRO_EXPECT(nullptr != tensor->data.raw);
+  TF_LITE_MICRO_EXPECT(tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
                            MicroArenaBufferAlignment()));
@@ -57,7 +57,7 @@ void VerifyMockWeightTfLiteTensor(TfLiteTensor* tensor) {
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, tensor->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), tensor->bytes);
-  TF_LITE_MICRO_EXPECT(nullptr != tensor->data.raw);
+  TF_LITE_MICRO_EXPECT(tensor->data.raw);
 }
 
 void VerifyMockTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
@@ -68,7 +68,7 @@ void VerifyMockTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::TfLiteEvalTensorByteLength(tensor, &buffer_size));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), buffer_size);
-  TF_LITE_MICRO_EXPECT(nullptr != tensor->data.raw);
+  TF_LITE_MICRO_EXPECT(tensor->data.raw);
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
                           (reinterpret_cast<std::uintptr_t>(tensor->data.raw) %
                            MicroArenaBufferAlignment()));
@@ -82,7 +82,7 @@ void VerifyMockWeightTfLiteEvalTensor(TfLiteEvalTensor* tensor) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::TfLiteEvalTensorByteLength(tensor, &buffer_size));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), buffer_size);
-  TF_LITE_MICRO_EXPECT(nullptr != tensor->data.raw);
+  TF_LITE_MICRO_EXPECT(tensor->data.raw);
 }
 
 // TODO(b/203664378): rename to reflect the function does more than just verify.
@@ -128,7 +128,7 @@ void VerifyRegistrationAndNodeAllocation(
     int num_subgraphs) {
   for (int subgraph_idx = 0; subgraph_idx < num_subgraphs; subgraph_idx++) {
     for (size_t i = 0; i < count; i++) {
-      TF_LITE_MICRO_EXPECT(nullptr != &subgraph_allocations[subgraph_idx]
+      TF_LITE_MICRO_EXPECT(&subgraph_allocations[subgraph_idx]
                                            .node_and_registrations[i]
                                            .registration);
     }
@@ -283,8 +283,8 @@ TF_LITE_MICRO_TEST(TestFailsWhenModelStartsTwice) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
-  TF_LITE_MICRO_EXPECT(nullptr != allocator->StartModelAllocation(model));
+  TF_LITE_MICRO_EXPECT(allocator);
+  TF_LITE_MICRO_EXPECT(allocator->StartModelAllocation(model));
   TF_LITE_MICRO_EXPECT(nullptr == allocator->StartModelAllocation(model));
 }
 
@@ -297,7 +297,7 @@ TF_LITE_MICRO_TEST(TestFailsWithWrongSequence) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   // We can't finish allocation before it ever got started.
   TF_LITE_MICRO_EXPECT_EQ(
@@ -305,7 +305,7 @@ TF_LITE_MICRO_TEST(TestFailsWithWrongSequence) {
                         model, subgraph_allocations, &scratch_buffer_handles));
 
   // Start twice is not allowed.
-  TF_LITE_MICRO_EXPECT(nullptr != allocator->StartModelAllocation(model));
+  TF_LITE_MICRO_EXPECT(allocator->StartModelAllocation(model));
   TF_LITE_MICRO_EXPECT(nullptr == allocator->StartModelAllocation(model));
 }
 
@@ -317,10 +317,10 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -364,10 +364,10 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   tflite::GreedyMemoryPlanner memory_planner;
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, &memory_planner, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -412,7 +412,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
 
@@ -421,7 +421,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   const tflite::Model* model1 = tflite::testing::GetComplexMockModel();
   tflite::SubgraphAllocations* subgraph_allocations1 =
       allocator->StartModelAllocation(model1);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations1);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations1);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model1, subgraph_allocations1,
                                                   &scratch_buffer_handles));
@@ -431,7 +431,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   const tflite::Model* model2 = tflite::testing::GetComplexMockModel();
   tflite::SubgraphAllocations* subgraph_allocations2 =
       allocator->StartModelAllocation(model2);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations2);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations2);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model2, subgraph_allocations2,
                                                   &scratch_buffer_handles));
@@ -449,10 +449,10 @@ TF_LITE_MICRO_TEST(TestAllocationForModelsWithBranches) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -493,10 +493,10 @@ TF_LITE_MICRO_TEST(TestAllocationForComplexModelAllocation) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  TF_LITE_MICRO_EXPECT(allocator);
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -585,7 +585,7 @@ TF_LITE_MICRO_TEST(OfflinePlannerBranchesAllOnline) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -639,7 +639,7 @@ TF_LITE_MICRO_TEST(OfflinePlannerBasic) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -686,7 +686,7 @@ TF_LITE_MICRO_TEST(OfflinePlannerOverlappingAllocation) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -739,7 +739,7 @@ TF_LITE_MICRO_TEST(OfflinePlannerOfflineOnline) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -763,20 +763,20 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   TfLiteTensor* tensor1 = allocator->AllocatePersistentTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor1->quantization.params != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1);
+  TF_LITE_MICRO_EXPECT(tensor1->quantization.params);
   TF_LITE_MICRO_EXPECT_FALSE(tensor1->is_variable);
 
   TfLiteTensor* tensor2 = allocator->AllocatePersistentTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor2);
+  TF_LITE_MICRO_EXPECT(tensor2->quantization.params);
   TF_LITE_MICRO_EXPECT_FALSE(tensor2->is_variable);
 
   // The address of tensor1 should be higher than the address of tensor2 since
@@ -790,12 +790,12 @@ TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensor) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1);
 }
 
 TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
@@ -804,17 +804,17 @@ TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1);
 
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor2);
 
   // The address of tensor2 should be higher than the address of tensor1
   // (chained allocations):
@@ -827,17 +827,17 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1);
 
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor2);
 
   // The address of tensor2 should be higher than the address of tensor1
   // (chained allocations):
@@ -858,12 +858,12 @@ TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
 
   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor1);
 
   allocator->DeallocateTempTfLiteTensor(tensor1);
 
@@ -872,7 +872,7 @@ TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
+  TF_LITE_MICRO_EXPECT(tensor2);
 
   // The address of tensor2 should be equal than the address of tensor1 since
   // allocations were not chained:
@@ -916,7 +916,7 @@ TF_LITE_MICRO_TEST(TestOperatorInputsNotInSubgraphInputs) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -974,7 +974,7 @@ TF_LITE_MICRO_TEST(TestTypicalFirstOpAndSecondOpWithScratchTensors) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -1007,7 +1007,7 @@ TF_LITE_MICRO_TEST(TestModelWithUnusedTensors) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -1039,7 +1039,7 @@ TF_LITE_MICRO_TEST(TestModelWithUnusedOperatorOutputs) {
 
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
@@ -1091,10 +1091,10 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, &planner, tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator);
   tflite::SubgraphAllocations* subgraph_allocations =
       allocator->StartModelAllocation(model);
-  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT(subgraph_allocations);
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
                                                   &scratch_buffer_handles));
