@@ -1,5 +1,4 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
 
 package(
     default_visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],

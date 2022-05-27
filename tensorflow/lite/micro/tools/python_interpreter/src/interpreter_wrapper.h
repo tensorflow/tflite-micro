@@ -22,15 +22,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 
 namespace tflite {
-namespace micro {
-namespace interpreter_wrapper {
 
 class InterpreterWrapper {
  public:
   InterpreterWrapper(PyObject* model_data, size_t arena_size);
   ~InterpreterWrapper();
 
-  void Invoke();
+  int Invoke();
   void SetInputTensor(PyObject* data, size_t index);
   PyObject* GetOutputTensor(size_t index);
 
@@ -42,8 +40,6 @@ class InterpreterWrapper {
   const tflite::AllOpsResolver all_ops_resolver_;
 };
 
-}  // namespace interpreter_wrapper
-}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_WRAPPER_H_

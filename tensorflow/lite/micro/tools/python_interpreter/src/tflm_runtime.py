@@ -42,7 +42,7 @@ class Interpreter(object):
     return Interpreter(model_data, arena_size)
 
   def invoke(self):
-    self._interpreter.Invoke()
+    return self._interpreter.Invoke()
 
   def set_input(self, input_data, index):
     if input_data is None:

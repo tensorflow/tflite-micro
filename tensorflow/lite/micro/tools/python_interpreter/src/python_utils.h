@@ -18,8 +18,6 @@ limitations under the License.
 #include <Python.h>
 
 namespace tflite {
-namespace micro {
-namespace python_utils {
 
 struct PyDecrefDeleter {
   void operator()(PyObject* p) const { Py_DECREF(p); }
@@ -28,8 +26,6 @@ struct PyDecrefDeleter {
 int ConvertFromPyString(PyObject* obj, char** data, Py_ssize_t* length);
 PyObject* ConvertToPyString(const char* data, size_t length);
 
-}  // namespace python_utils
-}  // namespace micro
 }  // namespace tflite
 
 #endif

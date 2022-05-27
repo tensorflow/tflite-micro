@@ -47,7 +47,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
 
-    num_steps = 1000
+    num_steps = 100
     for i in range(0, num_steps):
       # Create random input
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)

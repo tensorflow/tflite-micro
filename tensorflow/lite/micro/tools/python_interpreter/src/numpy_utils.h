@@ -22,16 +22,12 @@ limitations under the License.
 #include "tensorflow/lite/c/c_api_types.h"
 
 namespace tflite {
-namespace micro {
-namespace numpy_utils {
 
 void* ImportNumpy();
 int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type);
 TfLiteType TfLiteTypeFromPyType(int py_type);
 TfLiteType TfLiteTypeFromPyArray(const PyArrayObject* array);
 
-}  // namespace numpy_utils
-}  // namespace micro
 }  // namespace tflite
 
 #endif

@@ -35,8 +35,6 @@ limitations under the License.
 namespace py = pybind11;
 
 namespace tflite {
-namespace micro {
-namespace interpreter_wrapper {
 
 InterpreterWrapper::~InterpreterWrapper() {
   // Undo any references incremented
@@ -53,21 +51,19 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
   // Get the input array contained in `model_data` as a byte array
   char* buf = nullptr;
   Py_ssize_t length;
-  if (python_utils::ConvertFromPyString(model_data, &buf, &length) == -1 ||
-      buf == nullptr) {
+  if (ConvertFromPyString(model_data, &buf, &length) == -1 || buf == nullptr) {
     PyErr_SetString(
         PyExc_ValueError,
         "TFLM cannot convert model data from Python object to char *");
     return;
   }
 
-  const tflite::Model* model = tflite::GetModel(buf);
-  std::unique_ptr<tflite::ErrorReporter> error_reporter(
-      new tflite::MicroErrorReporter());
+  const Model* model = GetModel(buf);
+  std::unique_ptr<ErrorReporter> error_reporter(new MicroErrorReporter());
   std::unique_ptr<uint8_t[]> tensor_arena(new uint8_t[arena_size]);
-  std::unique_ptr<tflite::MicroInterpreter> interpreter(
-      new tflite::MicroInterpreter(model, all_ops_resolver_, tensor_arena.get(),
-                                   arena_size, error_reporter.get()));
+  std::unique_ptr<MicroInterpreter> interpreter(
+      new MicroInterpreter(model, all_ops_resolver_, tensor_arena.get(),
+                           arena_size, error_reporter.get()));
 
   // Save variables that need to be used or destroyed later
   model_ = model_data;
@@ -83,23 +79,31 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
 
   // This must be called before using any PyArray_* APIs. It essentially sets
   // up the lookup table that maps PyArray_* macros to the correct APIs.
-  tflite::micro::numpy_utils::ImportNumpy();
+  ImportNumpy();
 }
 
-void InterpreterWrapper::Invoke() {
+int InterpreterWrapper::Invoke() {
   TfLiteStatus status = interpreter_->Invoke();
   if (status != kTfLiteOk) {
-    PyErr_SetString(PyExc_RuntimeError, "TFLM failed to invoke");
+    PyErr_Format(PyExc_RuntimeError, "TFLM failed to invoke. Error: %d",
+                 status);
+    return status;
   }
+
+  return 0;
 }
 
 // 1. Check that tensor and input array are safe to access
 // 2. Verify that input array metadata matches tensor metadata
 // 3. Copy input buffer into target input tensor
 void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
-  std::unique_ptr<PyObject, tflite::micro::python_utils::PyDecrefDeleter>
-      array_safe(
-          PyArray_FromAny(data, nullptr, 0, 0, NPY_ARRAY_CARRAY, nullptr));
+  std::unique_ptr<PyObject, PyDecrefDeleter> array_safe(PyArray_FromAny(
+      /*op=*/data,
+      /*dtype=*/nullptr,
+      /*min_depth=*/0,
+      /*max_depth=*/0,
+      /*requirements=*/NPY_ARRAY_CARRAY,
+      /*context=*/nullptr));
   if (!array_safe) {
     PyErr_SetString(PyExc_ValueError, "TFLM cannot convert input to PyArray");
     return;
@@ -109,7 +113,8 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
 
   TfLiteTensor* tensor = interpreter_->input(index);
   if (tensor == nullptr) {
-    PyErr_SetString(PyExc_IndexError, "Tensor is out of bound.");
+    PyErr_SetString(PyExc_IndexError,
+                    "Tensor is out of bound, please check tensor index.");
     return;
   }
 
@@ -118,11 +123,11 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
     return;
   }
 
-  if (numpy_utils::TfLiteTypeFromPyArray(array) != tensor->type) {
+  if (TfLiteTypeFromPyArray(array) != tensor->type) {
     PyErr_Format(PyExc_ValueError,
                  "Cannot set tensor: Got value of type %s but expected type %s "
                  "for input %zu, name: %s ",
-                 TfLiteTypeGetName(numpy_utils::TfLiteTypeFromPyArray(array)),
+                 TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
                  TfLiteTypeGetName(tensor->type), index, tensor->name);
     return;
   }
@@ -185,7 +190,7 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
     return nullptr;
   }
 
-  int py_type_num = numpy_utils::TfLiteTypeToPyArrayType(tensor->type);
+  int py_type_num = TfLiteTypeToPyArrayType(tensor->type);
   if (py_type_num == NPY_NOTYPE) {
     PyErr_SetString(PyExc_ValueError, "Unknown tensor type.");
     return nullptr;
@@ -219,6 +224,4 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-}  // namespace interpreter_wrapper
-}  // namespace micro
 }  // namespace tflite
