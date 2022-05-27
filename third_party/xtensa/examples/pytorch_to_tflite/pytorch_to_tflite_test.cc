@@ -84,7 +84,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect.
-  TF_LITE_MICRO_EXPECT_NE(nullptr, input);
+  TF_LITE_MICRO_EXPECT(input);
   TF_LITE_MICRO_EXPECT_EQ(4, input->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(3, input->dims->data[1]);
