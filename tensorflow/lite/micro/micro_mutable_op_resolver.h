@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -374,8 +375,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMean() {
-    return AddBuiltin(BuiltinOperator_MEAN, tflite::ops::micro::Register_MEAN(),
-                      ParseReducer);
+    return AddBuiltin(BuiltinOperator_MEAN, Register_MEAN(), ParseReducer);
   }
 
   TfLiteStatus AddMinimum() {
@@ -428,8 +428,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddReduceMax() {
-    return AddBuiltin(BuiltinOperator_REDUCE_MAX,
-                      tflite::ops::micro::Register_REDUCE_MAX(), ParseReducer);
+    return AddBuiltin(BuiltinOperator_REDUCE_MAX, Register_REDUCE_MAX(),
+                      ParseReducer);
   }
 
   TfLiteStatus AddRelu() {
