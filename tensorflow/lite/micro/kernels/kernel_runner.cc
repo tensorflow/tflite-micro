@@ -28,35 +28,6 @@ constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
 enum ContextAPI { setup, init, prepare, invoke };
 
-KernelRunner::KernelRunner(const TfLiteRegistration& registration,
-                           TfLiteTensor* tensors, int tensors_size,
-                           TfLiteIntArray* inputs, TfLiteIntArray* outputs,
-                           void* builtin_data, TfLiteIntArray* intermediates)
-    : registration_(registration),
-      allocator_(SimpleMemoryAllocator::Create(GetMicroErrorReporter(),
-                                               kKernelRunnerBuffer_,
-                                               kKernelRunnerBufferSize_)),
-      mock_micro_graph_(allocator_),
-      fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
-  // Prepare TfLiteContext:
-  context_.impl_ = static_cast<void*>(&fake_micro_context_);
-  context_.ReportError = MicroContextReportOpError;
-  context_.recommended_num_threads = 1;
-  setBufferAPI(setup);
-
-  context_.recommended_num_threads = 0;
-
-  // Prepare TfLiteNode:
-  node_.inputs = inputs;
-  node_.outputs = outputs;
-  node_.builtin_data = builtin_data;
-  node_.intermediates = intermediates;
-}
-
-bool KernelRunner::ValidateTempBufferDeallocated() {
-  return fake_micro_context_.IsAllTempTfLiteTensorDeallocated();
-}
-
 void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
   switch (currentStage) {
     case setup:
@@ -80,6 +51,35 @@ void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
       context_->GetScratchBuffer = MicroContextGetScratchBuffer;
       break;
   }
+}
+
+KernelRunner::KernelRunner(const TfLiteRegistration& registration,
+                           TfLiteTensor* tensors, int tensors_size,
+                           TfLiteIntArray* inputs, TfLiteIntArray* outputs,
+                           void* builtin_data, TfLiteIntArray* intermediates)
+    : registration_(registration),
+      allocator_(SimpleMemoryAllocator::Create(GetMicroErrorReporter(),
+                                               kKernelRunnerBuffer_,
+                                               kKernelRunnerBufferSize_)),
+      mock_micro_graph_(allocator_),
+      fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
+  // Prepare TfLiteContext:
+  context_.impl_ = static_cast<void*>(&fake_micro_context_);
+  context_.ReportError = MicroContextReportOpError;
+  context_.recommended_num_threads = 1;
+  setBufferAPI(&context_, setup);
+
+  context_.recommended_num_threads = 0;
+
+  // Prepare TfLiteNode:
+  node_.inputs = inputs;
+  node_.outputs = outputs;
+  node_.builtin_data = builtin_data;
+  node_.intermediates = intermediates;
+}
+
+bool KernelRunner::ValidateTempBufferDeallocated() {
+  return fake_micro_context_.IsAllTempTfLiteTensorDeallocated();
 }
 
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
