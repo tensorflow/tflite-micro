@@ -61,20 +61,20 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 
 void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
   switch (currentStage) {
-     case init:
-
+    
+    case init:
       context_->RequestScratchBufferInArena = nullptr;
       context_->GetScratchBuffer = nullptr;
       context_->GetExternalContext = nullptr;
-       break;
+      break;
  
-     case prepare:
+    case prepare:
       context_->RequestScratchBufferInArena =
           MicroContextRequestScratchBufferInArena;
       context_->GetExternalContext = MicroContextGetExternalContext;
-       break;
+      break;
  
-     case invoke:
+    case invoke:
       context_->AllocatePersistentBuffer = nullptr;
       context_->RequestScratchBufferInArena = nullptr;
       context_->GetScratchBuffer = MicroContextGetScratchBuffer;
