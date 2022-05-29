@@ -26,7 +26,7 @@ namespace micro {
 // TODO(b/161841696): Consider moving away from global arena buffers:
 constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
-enum ContextAPI {init,prepare,invoke};
+enum ContextAPI { init, prepare, invoke };
 
 KernelRunner::KernelRunner(const TfLiteRegistration& registration,
                            TfLiteTensor* tensors, int tensors_size,
@@ -61,19 +61,17 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 
 void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
   switch (currentStage) {
-    
+
     case init:
       context_->RequestScratchBufferInArena = nullptr;
       context_->GetScratchBuffer = nullptr;
       context_->GetExternalContext = nullptr;
       break;
- 
     case prepare:
       context_->RequestScratchBufferInArena =
           MicroContextRequestScratchBufferInArena;
       context_->GetExternalContext = MicroContextGetExternalContext;
       break;
- 
     case invoke:
       context_->AllocatePersistentBuffer = nullptr;
       context_->RequestScratchBufferInArena = nullptr;
