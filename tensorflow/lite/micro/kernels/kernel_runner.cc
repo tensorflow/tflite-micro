@@ -42,7 +42,8 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.impl_ = static_cast<void*>(&fake_micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.recommended_num_threads = 1;
-
+  context_.GetTensor = MicroContextGetTensor;
+  context_.GetEvalTensor = MicroContextGetEvalTensor;
 
   context_.recommended_num_threads = 0;
 
@@ -64,8 +65,6 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
     context_.GetScratchBuffer = nullptr;
     context_.GetExternalContext = nullptr;
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-    context_.GetTensor = MicroContextGetTensor;
-    context_.GetEvalTensor = MicroContextGetEvalTensor;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
 
