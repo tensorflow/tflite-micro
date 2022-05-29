@@ -59,24 +59,25 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
   return fake_micro_context_.IsAllTempTfLiteTensorDeallocated();
 }
 
-void setBufferAPI(TfLiteContext* context_,ContextAPI currentStage){
-  switch(currentStage){
-    case init:
-      context_ -> RequestScratchBufferInArena = nullptr;
-      context_ -> GetScratchBuffer = nullptr;
-      context_ -> GetExternalContext = nullptr;
-      break;
+void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
+  switch (currentStage) {
+     case init:
 
-    case prepare:
-      context_ -> RequestScratchBufferInArena =
-        MicroContextRequestScratchBufferInArena;
-      context_ -> GetExternalContext = MicroContextGetExternalContext;
-      break;
-
-    case invoke:
-      context_ -> AllocatePersistentBuffer = nullptr;
-      context_ -> RequestScratchBufferInArena = nullptr;
-      context_ -> GetScratchBuffer = MicroContextGetScratchBuffer;
+      context_->RequestScratchBufferInArena = nullptr;
+      context_->GetScratchBuffer = nullptr;
+      context_->GetExternalContext = nullptr;
+       break;
+ 
+     case prepare:
+      context_->RequestScratchBufferInArena =
+          MicroContextRequestScratchBufferInArena;
+      context_->GetExternalContext = MicroContextGetExternalContext;
+       break;
+ 
+     case invoke:
+      context_->AllocatePersistentBuffer = nullptr;
+      context_->RequestScratchBufferInArena = nullptr;
+      context_->GetScratchBuffer = MicroContextGetScratchBuffer;
       break;
   }
 }
