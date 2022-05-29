@@ -84,14 +84,14 @@ void setBufferAPI(TfLiteContext* context_,ContextAPI currentStage){
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    setBufferAPI(&context_,init);
+    setBufferAPI(&context_, init);
     node_.user_data = registration_.init(&context_, init_data, length);
   }
 
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    setBufferAPI(&context_,prepare);
+    setBufferAPI(&context_, prepare);
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
   }
 
@@ -101,7 +101,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 }
 
 TfLiteStatus KernelRunner::Invoke() {
-  setBufferAPI(&context_,invoke);
+  setBufferAPI(&context_, invoke);
 
   if (registration_.invoke == nullptr) {
     MicroPrintf("TfLiteRegistration missing invoke function pointer!");
