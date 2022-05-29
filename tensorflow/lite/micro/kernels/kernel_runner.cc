@@ -60,9 +60,9 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
   switch (currentStage) {
     case setup:
-      context_.GetTensor = MicroContextGetTensor;
-      context_.GetEvalTensor = MicroContextGetEvalTensor;
-      context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
+      context_->GetTensor = MicroContextGetTensor;
+      context_->GetEvalTensor = MicroContextGetEvalTensor;
+      context_->AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
       break;
     case init:
       context_->RequestScratchBufferInArena = nullptr;
