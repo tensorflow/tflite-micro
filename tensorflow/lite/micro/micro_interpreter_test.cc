@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ limitations under the License.
 
 namespace tflite {
 namespace {
-
+constexpr size_t kBigBufferArenaSize = 256 * 1024;
+uint8_t big_arena_buffer[kBigBufferArenaSize];
 class MockProfiler : public MicroProfiler {
  public:
   MockProfiler() : event_starts_(0), event_ends_(0) {}
@@ -523,14 +524,9 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-
-  constexpr size_t arena_buffer_size = 256 * 1024;
-  uint8_t arena_buffer[arena_buffer_size];
-
-  tflite::MicroInterpreter interpreter(model, op_resolver, arena_buffer,
-                                       arena_buffer_size,
-                                       tflite::GetMicroErrorReporter());
-
+  tflite::MicroInterpreter interpreter(
+      model, op_resolver, tflite::big_arena_buffer, tflite::kBigBufferArenaSize,
+      tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
   // Store the required arena size before Invoke() because this is what this
@@ -544,11 +540,9 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   // given the arena after the alignment.
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
-
-  tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
-                                        required_arena_size,
-                                        tflite::GetMicroErrorReporter());
-
+  tflite::MicroInterpreter interpreter2(
+      model, op_resolver, tflite::big_arena_buffer, required_arena_size,
+      tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
