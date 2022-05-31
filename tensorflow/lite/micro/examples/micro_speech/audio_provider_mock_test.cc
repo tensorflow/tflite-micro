@@ -35,7 +35,7 @@ TF_LITE_MICRO_TEST(TestAudioProviderMock) {
                       &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
-  TF_LITE_MICRO_EXPECT(audio_samples != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(audio_samples, nullptr);
   for (int i = 0; i < audio_samples_size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(g_yes_1000ms_audio_data[i], audio_samples[i]);
   }
@@ -45,7 +45,7 @@ TF_LITE_MICRO_TEST(TestAudioProviderMock) {
                       &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
-  TF_LITE_MICRO_EXPECT(audio_samples != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(audio_samples, nullptr);
   for (int i = 0; i < audio_samples_size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(g_yes_1000ms_audio_data[i + 8000],
                             audio_samples[i]);
@@ -56,7 +56,7 @@ TF_LITE_MICRO_TEST(TestAudioProviderMock) {
                       &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
-  TF_LITE_MICRO_EXPECT(audio_samples != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(audio_samples, nullptr);
   for (int i = 0; i < audio_samples_size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(0, audio_samples[i]);
   }
@@ -66,7 +66,7 @@ TF_LITE_MICRO_TEST(TestAudioProviderMock) {
                       &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
-  TF_LITE_MICRO_EXPECT(audio_samples != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(audio_samples, nullptr);
   for (int i = 0; i < audio_samples_size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(g_no_1000ms_audio_data[i + 4000], audio_samples[i]);
   }

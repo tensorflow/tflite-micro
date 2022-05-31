@@ -31,7 +31,7 @@ TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/1);
-  TF_LITE_MICRO_EXPECT(result != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(10));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
                           static_cast<size_t>(10));
@@ -39,7 +39,7 @@ TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
                           static_cast<size_t>(1));
 
   result = allocator.AllocatePersistentBuffer(/*size=*/20, /*alignment=*/1);
-  TF_LITE_MICRO_EXPECT(result != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(30));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
                           static_cast<size_t>(30));
@@ -55,7 +55,7 @@ TF_LITE_MICRO_TEST(TestRecordsMisalignedTailAllocations) {
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/12);
-  TF_LITE_MICRO_EXPECT(result != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   // Validate used bytes in 8 byte range that can included alignment of 12:
   TF_LITE_MICRO_EXPECT_GE(allocator.GetUsedBytes(), static_cast<size_t>(10));
   TF_LITE_MICRO_EXPECT_LE(allocator.GetUsedBytes(), static_cast<size_t>(20));
@@ -102,7 +102,7 @@ TF_LITE_MICRO_TEST(TestRecordsHeadSizeAdjustment) {
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/15, /*alignment=*/1);
-  TF_LITE_MICRO_EXPECT(result != nullptr);
+  TF_LITE_MICRO_EXPECT_NE(result, nullptr);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(20));
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetRequestedBytes(),
                           static_cast<size_t>(20));
