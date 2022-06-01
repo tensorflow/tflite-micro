@@ -241,7 +241,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentBufferData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(recording_micro_allocator);
+  TF_LITE_MICRO_EXPECT(micro_allocator);
   if (micro_allocator == nullptr) return 1;
 
   void* buffer = micro_allocator->AllocatePersistentBuffer(/*bytes=*/100);
