@@ -34,7 +34,7 @@ TF_LITE_MICRO_TEST(TestAudioProvider) {
                       &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
-  TF_LITE_MICRO_EXPECT(audio_samples != nullptr);
+  TF_LITE_MICRO_EXPECT(audio_samples);
 
   // Make sure we can read all of the returned memory locations.
   int total = 0;
