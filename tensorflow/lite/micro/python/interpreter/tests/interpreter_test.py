@@ -124,7 +124,6 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     int_ref = weakref.finalize(interpreter, self._helperNoop)
     some_output = interpreter.get_output(0)
     output_ref = weakref.finalize(some_output, self._helperNoop)
-    print(some_output.ctypes.data)
     return (int_ref, output_ref)
 
   def testOutputTensorMemoryLeak(self):
