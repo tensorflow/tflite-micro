@@ -492,7 +492,10 @@ void CalculateLstmGateInteger8x8_16(
     const int n_batch, const int n_input, const int n_output, const int n_cell,
     const TfLiteFusedActivation activation,
     // Output
-    int16_t* gate) {
+    int16_t* gate,
+    // Parameters for performance optimizations
+    // Scratch arrays
+    int32_t* scratch5) {
   const bool use_peephole = (cell_to_gate_weights != nullptr);
   const bool use_layer_norm = (layer_norm_coefficients != nullptr);
 
@@ -502,7 +505,7 @@ void CalculateLstmGateInteger8x8_16(
   // For each batch and cell: compute input_weight * input.
   micro_tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       input, input_to_gate_bias, input_to_gate_weights, input_to_gate_scale_a,
-      input_to_gate_scale_b, n_batch, n_input, n_cell, 0, nullptr, gate,
+      input_to_gate_scale_b, n_batch, n_input, n_cell, 0, scratch5, gate,
       nullptr);
   // Note: no aux_input.
 
@@ -510,7 +513,7 @@ void CalculateLstmGateInteger8x8_16(
   micro_tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       output_state, recurrent_to_gate_bias, recurrent_to_gate_weights,
       recurrent_to_gate_scale_a, recurrent_to_gate_scale_b, n_batch, n_output,
-      n_cell, 0, nullptr, gate, nullptr);
+      n_cell, 0, scratch5, gate, nullptr);
   // For each batch and cell: compute cell_weight * cell_state (peephole LSTM)
   if (use_peephole) {
     micro_tensor_utils::VectorBatchVectorCwiseProductAccumulate(
@@ -594,6 +597,7 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
 //  - output_state: output vector, size n_batch*n_output. Must be contigous.
 //  - scratch0: scratch area of size n_batch*n_cell
 //  - scratch1: scratch area of size n_batch*n_cell
+//  - scratch2: scratch area used by MatrixBatchVectorMultiplyAccumulate
 void CalculateLstmOutputInteger8x8_16(
     int n_batch, int n_cell, int n_output, const int16_t* cell_state,
     int32_t cell_state_scale, const int16_t* output_gate,
@@ -601,7 +605,7 @@ void CalculateLstmOutputInteger8x8_16(
     const int8_t* projection_weights, int32_t proj_scale_a,
     int32_t proj_scale_b, const int32_t* projection_bias,
     int32_t output_state_zp, int8_t quantized_proj_clip, int8_t* output_state,
-    int16_t* scratch0, int8_t* scratch1) {
+    int16_t* scratch0, int8_t* scratch1, int32_t* scratch2) {
   // Note: unlike float/hybrid, the activation is always Tanh.
   micro_tensor_utils::ApplyTanh(15 + cell_state_scale, cell_state, n_batch,
                                 n_cell, scratch0);
@@ -616,7 +620,7 @@ void CalculateLstmOutputInteger8x8_16(
     memset(output_state, 0, n_batch * n_output * sizeof(int8_t));
     micro_tensor_utils::MatrixBatchVectorMultiplyAccumulate(
         scratch1, projection_bias, projection_weights, proj_scale_a,
-        proj_scale_b, n_batch, n_cell, n_output, output_state_zp, nullptr,
+        proj_scale_b, n_batch, n_cell, n_output, output_state_zp, scratch2,
         output_state, nullptr);
     if (quantized_proj_clip > 0) {
       micro_tensor_utils::CwiseClipping(output_state, n_batch * n_output,
@@ -1280,6 +1284,8 @@ inline void LstmStepHybrid(
 //   scratch2
 //   scratch3
 //   scratch4
+//   scratch5: this scratch buffer is created purely for optimizing the
+//              MatrixBatchVectorMultiplyAccumulate.
 //
 // Outputs:
 //   output_state_ptr - size 'n_batch * n_output'
@@ -1349,7 +1355,7 @@ inline void LstmStepInteger8x8_16(
     int n_input, int n_output, int8_t* output_state_ptr,
     int32_t output_state_zp, int16_t* cell_state_ptr, int8_t* output_ptr,
     int16_t* scratch0, int16_t* scratch1, int16_t* scratch2, int16_t* scratch3,
-    int8_t* scratch4) {
+    int8_t* scratch4, int32_t* scratch5) {
   // Make named scratch buffers for the different gates.
   int16_t* input_gate_scratch = scratch0;
   int16_t* forget_gate_scratch = scratch1;
@@ -1387,7 +1393,7 @@ inline void LstmStepInteger8x8_16(
         effective_cell_to_input_scale_b, layer_norm_input_weight_ptr,
         input_gate_bias_ptr, layer_norm_input_scale_a, layer_norm_input_scale_b,
         input_variance_guard, n_batch, n_input, n_output, n_cell,
-        kTfLiteActSigmoid, input_gate_scratch);
+        kTfLiteActSigmoid, input_gate_scratch, scratch5);
   }
   // Calculate the forget gate.
   CalculateLstmGateInteger8x8_16(
@@ -1400,7 +1406,7 @@ inline void LstmStepInteger8x8_16(
       effective_cell_to_forget_scale_b, layer_norm_forget_weight_ptr,
       forget_gate_bias_ptr, layer_norm_forget_scale_a,
       layer_norm_forget_scale_b, forget_variance_guard, n_batch, n_input,
-      n_output, n_cell, kTfLiteActSigmoid, forget_gate_scratch);
+      n_output, n_cell, kTfLiteActSigmoid, forget_gate_scratch, scratch5);
   // Calculate the cell update gate.
   CalculateLstmGateInteger8x8_16(
       input_ptr, input_to_cell_weight_ptr, input_to_cell_effective_bias,
@@ -1412,7 +1418,7 @@ inline void LstmStepInteger8x8_16(
       /*cell_to_gate_scale_b=*/0, layer_norm_cell_weight_ptr,
       cell_gate_bias_ptr, layer_norm_cell_scale_a, layer_norm_cell_scale_b,
       cell_variance_guard, n_batch, n_input, n_output, n_cell, kTfLiteActTanh,
-      cell_gate_scratch);
+      cell_gate_scratch, scratch5);
   // Update the cell state.
   UpdateLstmCellInteger(n_batch, n_cell, cell_state_ptr, cell_state_scale,
                         input_gate_scratch, forget_gate_scratch,
@@ -1428,14 +1434,14 @@ inline void LstmStepInteger8x8_16(
       effective_cell_to_output_scale_b, layer_norm_output_weight_ptr,
       output_gate_bias_ptr, layer_norm_output_scale_a,
       layer_norm_output_scale_b, output_variance_guard, n_batch, n_input,
-      n_output, n_cell, kTfLiteActSigmoid, output_gate_scratch);
+      n_output, n_cell, kTfLiteActSigmoid, output_gate_scratch, scratch5);
   // Update the output state.
   CalculateLstmOutputInteger8x8_16(
       n_batch, n_cell, n_output, cell_state_ptr, cell_state_scale,
       output_gate_scratch, effective_hidden_scale_a, effective_hidden_scale_b,
       hidden_zp, projection_weight_ptr, effective_proj_scale_a,
       effective_proj_scale_b, projection_effective_bias, output_state_zp,
-      quantized_proj_clip, output_state_ptr, scratch0, scratch4);
+      quantized_proj_clip, output_state_ptr, scratch0, scratch4, scratch5);
   // Copy output state to the output. Note that unlike float or hybrid, output
   // is always contiguous.
   std::memcpy(output_ptr, output_state_ptr,
@@ -2451,7 +2457,7 @@ TfLiteStatus EvalInteger8x8_16Lstm(
     const IntegerLstmParameter* integer_lstm_param, int32_t output_state_zp,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
     TfLiteEvalTensor* output, int16_t* scratch0, int16_t* scratch1,
-    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4) {
+    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4, int32_t* scratch5) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -2602,7 +2608,8 @@ TfLiteStatus EvalInteger8x8_16Lstm(
           integer_lstm_param->projection_effective_bias, n_batch, n_cell,
           n_input, n_output, tflite::micro::GetTensorData<int8_t>(output_state),
           output_state_zp, tflite::micro::GetTensorData<int16_t>(cell_state),
-          output_ptr, scratch0, scratch1, scratch2, scratch3, scratch4);
+          output_ptr, scratch0, scratch1, scratch2, scratch3, scratch4,
+          scratch5);
     }
   } else {
     for (int b = 0; b < n_batch; b++) {
@@ -2748,7 +2755,7 @@ TfLiteStatus EvalInteger8x8_16Lstm(
             integer_lstm_param->projection_effective_bias, /*n_batch=*/1,
             n_cell, n_input, n_output, output_state_ptr, output_state_zp,
             cell_state_ptr, output_ptr, scratch0, scratch1, scratch2, scratch3,
-            scratch4);
+            scratch4, scratch5);
       }
     }
   }

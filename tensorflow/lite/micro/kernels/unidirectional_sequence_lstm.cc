@@ -1674,7 +1674,8 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
             reinterpret_cast<int16_t*>(
                 context->GetScratchBuffer(context, op_data->scratch_index[3])),
             reinterpret_cast<int8_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[4])));
+                context->GetScratchBuffer(context, op_data->scratch_index[4])),
+            nullptr);
       }
     } break;
     default:
