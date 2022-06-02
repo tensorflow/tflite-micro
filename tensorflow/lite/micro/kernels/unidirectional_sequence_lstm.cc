@@ -1406,18 +1406,14 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
     // Populate quantization parameters.
     PopulateQuantizedLstmParams8x8_16(context, node,
                                       &op_data->integer_lstm_param);
-    // Allocate scratch buffer. Need 6 16bit buffer with size n_batch * n_cell
-    // and 1 8bit buffer with size n_batch * n_cell. We also need 1 32 bit
-    // buffer with size n_batch * n_cell.
-    //
-    // Handle cifg case as well, which might save one buffer.
-    for (int i = 0; i < 6; ++i) {
+    // Allocate scratch buffer. Need 4 16-bit buffer with size n_batch * n_cell
+    // and 1 8-bit buffer with size n_batch * n_cell. For integer
+    // UnidirectionalSequenceLSTM, we do not need the extra 32-bit buffer.
+    for (int i = 0; i < 5; ++i) {
       TfLiteType buffer_type = kTfLiteInt16;
 
       if (i == 4) {
         buffer_type = kTfLiteInt8;
-      } else if (i == 5) {
-        buffer_type = kTfLiteInt32;
       }
 
       TF_LITE_ENSURE_OK(
@@ -1678,9 +1674,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
             reinterpret_cast<int16_t*>(
                 context->GetScratchBuffer(context, op_data->scratch_index[3])),
             reinterpret_cast<int8_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[4])),
-            reinterpret_cast<int32_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[5])));
+                context->GetScratchBuffer(context, op_data->scratch_index[4])));
       }
     } break;
     default:

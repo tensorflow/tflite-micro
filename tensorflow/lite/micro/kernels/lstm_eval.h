@@ -216,7 +216,7 @@ TfLiteStatus EvalInteger8x8_16Lstm(
     const IntegerLstmParameter* integer_lstm_param, int32_t output_state_zp,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
     TfLiteEvalTensor* output, int16_t* scratch0, int16_t* scratch1,
-    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4, int32_t* scratch5);
+    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4);
 
 TfLiteStatus EvalInteger8x8_8Lstm(
     const TfLiteEvalTensor* input,
