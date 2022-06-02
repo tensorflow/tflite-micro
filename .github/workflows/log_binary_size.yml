@@ -1,4 +1,27 @@
-name: Update Binary Size Log
+name: Binary Size Log 
+
+# Run some tests against the code in main and then store the logs, which are cumulative.
+# This is complicated by our branch protections, which do not allow us to check code into
+# main directly, so instead we have to store our logs in $LOG_BRANCH.
+#
+# High level:
+# 1. checkout main to get the latest codebase
+# 2. pull our latest logs from $LOG_BRANCH into main
+# 3. perform tests and emit log files
+# 4. checkout $LOG_BRANCH
+# 5. pull newly updated logs from main into $LOG_BRANCH
+# 6. push $LOG_BRANCH to repo
+#
+# Points that can be confusing: 
+# * git checkout --track <remote>/<branch> creates a local tracking branch from a remote
+#   branch reference and changes to that branch.
+# * git checkout <branch> -- <path> checks out files from <branch> into the current branch.
+#   It does not switch branches.
+# * In order to check out changed files from a branch you are not currently on, the files
+#   must have been committed. Changed files that aren't committed can't be moved between
+#   branches.
+#
+# The provided token must be able to push to $LOG_BRANCH
 
 on:
   workflow_dispatch: {}
@@ -14,7 +37,9 @@ on:
 #    branches:
 #      - main
 
-
+env:
+  LOG_BRANCH: profiling-logs
+  
 jobs:
   binary-size-log:
     runs-on: ubuntu-latest
@@ -23,7 +48,15 @@ jobs:
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
       github.event_name == 'schedule'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+    - name: prepare files for logging
+      run: |
+        git checkout --track origin/$LOG_BRANCH
+        git checkout main
+        git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
     - name: update logs x86
       uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
       with:
@@ -32,18 +65,10 @@ jobs:
       run: |
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
-        git commit -am "Automated size log update"
-    - name: Create Logs PR Request
-      id: create-pr
-      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
-      with:
-         branch: nightly_binary_size_profiling
-         delete-branch: true
-         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
-         title: Automated binary size log update
-         commit-message: Automated binary size log update
-         committer: TFLM-bot <tflm-github-bot@google.com>
-         author: TFLM-bot <tflm-github-bot@google.com>
-         body: "BUG=automated binary size log update"
-         labels: ci:run
-         reviewers: advaitjain
+        git commit -a -m "Automated binary size log update"
+        git checkout $LOG_BRANCH
+        git checkout main -- data/continuous_builds/size_profiling/
+        git add .
+        git status
+        git commit -a -m "Automated binary size log update"
+        git push
