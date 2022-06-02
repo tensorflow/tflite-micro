@@ -14,7 +14,7 @@ py_test(
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
-        "//tensorflow/lite/micro/tools/python_interpreter/src:tflm_runtime",
     ],
 )

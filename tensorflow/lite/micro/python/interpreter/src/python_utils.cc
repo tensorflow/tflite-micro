@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/tools/python_interpreter/src/python_utils.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 
 #include <Python.h>
 

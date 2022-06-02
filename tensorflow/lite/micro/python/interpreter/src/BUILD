@@ -1,7 +1,7 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
 
 package(
-    default_visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],
+    default_visibility = ["//visibility:public"],
     features = ["-layering_check"],
     licenses = ["notice"],
 )

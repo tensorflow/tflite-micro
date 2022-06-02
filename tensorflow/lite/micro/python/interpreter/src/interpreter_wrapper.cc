@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/tools/python_interpreter/src/interpreter_wrapper.h"
+#include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
 
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -29,10 +29,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/tools/python_interpreter/src/numpy_utils.h"
-#include "tensorflow/lite/micro/tools/python_interpreter/src/python_utils.h"
-
-namespace py = pybind11;
+#include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 
 namespace tflite {
 
@@ -59,17 +57,12 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
   }
 
   const Model* model = GetModel(buf);
-  std::unique_ptr<ErrorReporter> error_reporter(new MicroErrorReporter());
-  std::unique_ptr<uint8_t[]> tensor_arena(new uint8_t[arena_size]);
-  std::unique_ptr<MicroInterpreter> interpreter(
-      new MicroInterpreter(model, all_ops_resolver_, tensor_arena.get(),
-                           arena_size, error_reporter.get()));
-
-  // Save variables that need to be used or destroyed later
   model_ = model_data;
-  error_reporter_ = std::move(error_reporter);
-  interpreter_ = std::move(interpreter);
-  memory_arena_ = std::move(tensor_arena);
+  error_reporter_ = std::unique_ptr<ErrorReporter>(new MicroErrorReporter());
+  memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
+  interpreter_ = std::unique_ptr<MicroInterpreter>(
+      new MicroInterpreter(model, all_ops_resolver_, memory_arena_.get(),
+                           arena_size, error_reporter_.get()));
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
@@ -206,8 +199,11 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
     return nullptr;
   }
 
-  // Allocate a new buffer with output data to be returned to Python
-  uint8_t* data = new uint8_t[tensor->bytes];
+  // Allocate a new buffer with output data to be returned to Python. New memory
+  // is allocated here to prevent hard to debug issues in Python, like data
+  // potentially changing under the hood, which imposes an implicit requirement
+  // that the user needs to be aware of.
+  void* data = malloc(tensor->bytes);
   memcpy(data, tensor->data.data, tensor->bytes);
 
   PyObject* np_array;

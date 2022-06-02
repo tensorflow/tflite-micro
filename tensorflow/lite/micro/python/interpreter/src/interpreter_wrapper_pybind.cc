@@ -15,13 +15,13 @@ limitations under the License.
 
 #include <pybind11/pybind11.h>
 
-#include "tensorflow/lite/micro/tools/python_interpreter/src/interpreter_wrapper.h"
+#include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
 
 namespace py = pybind11;
 using tflite::InterpreterWrapper;
 
 PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
-  m.doc() = "pybind11 TFLM interpreter";
+  m.doc() = "TFLM interpreter";
 
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
       .def(py::init([](const py::bytes& data, size_t arena_size) {
@@ -38,7 +38,8 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
       .def(
           "GetOutputTensor",
           [](InterpreterWrapper& self, size_t index) {
-            return py::cast<py::object>(self.GetOutputTensor(index));
+            return py::reinterpret_steal<py::object>(
+                self.GetOutputTensor(index));
           },
           py::arg("index"));
 }
