@@ -59,7 +59,7 @@ class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
   def generate_golden(self):
     if not self.verify_output:
       return
-    super().generate_golden()
+    super().generate_golden_single_in_single_out()
 
   def generate_test(self, template_dir, template_file, out_file):
     template_file_path = os.path.join(template_dir, template_file)

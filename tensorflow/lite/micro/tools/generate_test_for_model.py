@@ -13,19 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 
-import os
-import sys
-import copy
 import csv
 
 import numpy as np
 import tensorflow as tf
-import random as rand
 
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 
 
 class TestDataGenerator:
+  """ Generate test input/output for given model(s). A list of model(s) are taken as input.
+      The generated input and output files are in csv format and created in given output folder. """
 
   def __init__(self, output_dir, model_paths, inputs):
     self.output_dir = output_dir
@@ -37,7 +35,7 @@ class TestDataGenerator:
     self.cc_hdrs = []
     self.includes = []
 
-  def generate_inputs_single(self, interpreter, dtype):
+  def _generate_inputs_single(self, interpreter, dtype):
     input_tensor = interpreter.tensor(
         interpreter.get_input_details()[0]['index'])
     return [
@@ -47,7 +45,7 @@ class TestDataGenerator:
                           size=input_tensor().shape),
     ]
 
-  def generate_inputs_add_sub(self, interpreter, dtype):
+  def _generate_inputs_add_sub(self, interpreter, dtype):
     input_tensor0 = interpreter.tensor(
         interpreter.get_input_details()[0]['index'])
     input_tensor1 = interpreter.tensor(
@@ -63,7 +61,7 @@ class TestDataGenerator:
                           size=input_tensor1().shape)
     ]
 
-  def generate_inputs_transpose_conv(self, interpreter, dtype):
+  def _generate_inputs_transpose_conv(self, interpreter, dtype):
     input_tensor0 = interpreter.tensor(0)
     filter_tensor = interpreter.tensor(1)
     input_tensor1 = interpreter.tensor(2)
@@ -92,7 +90,12 @@ class TestDataGenerator:
     if tensor.dtype == np.float:
       return 'float'
 
-  def generate_golden(self):
+  def generate_golden_single_in_single_out(self):
+    """ Takes a single model as input. It is expecting a list with one model.
+        It then generates input and output in CSV format for that model. """
+
+    if (len(self.model_paths) != 1):
+      raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
     interpreter = tf.lite.Interpreter(model_path=model_path)
 
@@ -111,16 +114,19 @@ class TestDataGenerator:
     if input_type != np.int8 or output_type != np.int8:
       raise RuntimeError(f'Only int8 models supported')
 
-    generated_inputs = self.generate_inputs_single(interpreter,
-                                                   input_tensor().dtype)
+    generated_inputs = self._generate_inputs_single(interpreter,
+                                                    input_tensor().dtype)
     for i, _input_detail in enumerate(input_details):
       interpreter.set_tensor(input_details[i]["index"], generated_inputs[i])
 
     interpreter.invoke()
 
-    self.write_golden(generated_inputs, model_path, output_tensor)
+    self._write_golden(generated_inputs, model_path, output_tensor)
 
   def generate_goldens(self, builtin_operator):
+    """ Takes a list of one or more models as input.
+        It then generates input and output in CSV format for those models. """
+
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
       interpreter = tf.lite.Interpreter(model_path=model_path)
@@ -135,17 +141,18 @@ class TestDataGenerator:
                               schema_fb.BuiltinOperator.STRIDED_SLICE,
                               schema_fb.BuiltinOperator.PAD,
                               schema_fb.BuiltinOperator.LEAKY_RELU):
-        generated_inputs = self.generate_inputs_single(interpreter,
-                                                       input_tensor().dtype)
+        generated_inputs = self._generate_inputs_single(
+            interpreter,
+            input_tensor().dtype)
       elif builtin_operator in (schema_fb.BuiltinOperator.ADD,
                                 schema_fb.BuiltinOperator.SUB):
-        generated_inputs = self.generate_inputs_add_sub(
+        generated_inputs = self._generate_inputs_add_sub(
             interpreter,
             input_tensor().dtype)
       elif builtin_operator == schema_fb.BuiltinOperator.TRANSPOSE_CONV:
         input_tensor = interpreter.tensor(
             interpreter.get_input_details()[1]['index'])
-        generated_inputs = self.generate_inputs_transpose_conv(
+        generated_inputs = self._generate_inputs_transpose_conv(
             interpreter,
             input_tensor().dtype)
       else:
@@ -157,7 +164,10 @@ class TestDataGenerator:
 
       self.write_golden(generated_inputs, model_path, output_tensor)
 
-  def write_golden(self, generated_inputs, model_path, output_tensor):
+  def _write_golden(self, generated_inputs, model_path, output_tensor):
+    """ Generates input and ouputs in CSV format for given model. """
+
+    # Write input to CSV file.
     for input_idx, input_tensor_data in enumerate(generated_inputs):
       input_type = self.GetTypeStringFromTensor(input_tensor_data)
       self.input_types[input_idx] = input_type
@@ -171,7 +181,7 @@ class TestDataGenerator:
 
     output_flat = output_tensor().flatten().tolist()
 
-    # Write inputs and goldens to CSV file.
+    # Write golden to CSV file.
     output_type = self.GetTypeStringFromTensor(output_tensor())
     self.output_type = output_type
     csv_golden_filename = f"{model_path.split('.')[0]}_golden_{output_type}.csv"
@@ -184,6 +194,10 @@ class TestDataGenerator:
   def generate_makefile(self,
                         test_file='integration_tests.cc',
                         src_prefix=None):
+    """ Generates a makefile which takes the the given input model(s) as input and also the
+        corresponding generated input(s) and ouput(s) in csv format. It also take the name of a test file as input.
+        For example usage see: tensorflow/lite/micro/integration_tests/generate_per_layer_tests.py. """
+
     makefile = open(self.output_dir + '/Makefile.inc', 'w')
     output_dir_list = self.output_dir.split('/')
     if src_prefix is None:
