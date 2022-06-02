@@ -30,8 +30,8 @@ limitations under the License.
 
 namespace tflite {
 namespace {
-constexpr size_t kBigBufferArenaSize = 256 * 1024;
-uint8_t big_arena_buffer[kBigBufferArenaSize];
+constexpr size_t buffer_arena_size = 256 * 1024;
+uint8_t arena_buffer[buffer_arena_size];
 class MockProfiler : public MicroProfiler {
  public:
   MockProfiler() : event_starts_(0), event_ends_(0) {}
@@ -525,7 +525,7 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
   tflite::MicroInterpreter interpreter(
-      model, op_resolver, tflite::big_arena_buffer, tflite::kBigBufferArenaSize,
+      model, op_resolver, tflite::arena_buffer, tflite::buffer_arena_size,
       tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
@@ -541,7 +541,7 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
   tflite::MicroInterpreter interpreter2(
-      model, op_resolver, tflite::big_arena_buffer, required_arena_size,
+      model, op_resolver, tflite::arena_buffer, required_arena_size,
       tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
 
