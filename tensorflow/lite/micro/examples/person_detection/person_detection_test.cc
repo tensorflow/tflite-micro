@@ -70,7 +70,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // Get information about the memory area to use for the model's input.
   TfLiteTensor* input = interpreter.input(0);
 
-  // Make sure the input has the properties we expect.
+  // Make sure the input has the properties we .
   TF_LITE_MICRO_EXPECT(nullptr != input);
   TF_LITE_MICRO_EXPECT_EQ(4, input->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
