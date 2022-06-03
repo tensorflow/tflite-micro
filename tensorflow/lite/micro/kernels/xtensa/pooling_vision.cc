@@ -48,7 +48,8 @@ TfLiteStatus PoolingPrepareVision(TfLiteContext* context, TfLiteNode* node,
 
   uint32_t context_size = 0;
   uint32_t status = xiPoolGetMemReqd_Context(&context_size);
-  if (!status && context_size) {
+  TFLITE_DCHECK(status == 0);
+  if (context_size) {
     void* context_data =
         context->AllocatePersistentBuffer(context, context_size);
     if (context_data == nullptr) {
