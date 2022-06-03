@@ -70,7 +70,7 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    // tflite::micro::clearBufferAPI(&context_);
+    tflite::micro::clearBufferAPI(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
