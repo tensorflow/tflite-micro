@@ -26,25 +26,12 @@ namespace micro {
 // TODO(b/161841696): Consider moving away from global arena buffers:
 constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
-enum ContextAPI {init, prepare, invoke };
 
-void setBufferAPI(TfLiteContext* context_, ContextAPI currentStage) {
-  switch (currentStage) {
-    case init:
-      context_->RequestScratchBufferInArena = nullptr;
-      context_->GetScratchBuffer = nullptr;
-      context_->GetExternalContext = nullptr;
-      break;
-    case prepare:
-      context_->RequestScratchBufferInArena =
-          MicroContextRequestScratchBufferInArena;
-      context_->GetExternalContext = MicroContextGetExternalContext;
-      break;
-    case invoke:
-      context_->AllocatePersistentBuffer = nullptr;
-      context_->RequestScratchBufferInArena = nullptr;
-      context_->GetScratchBuffer = MicroContextGetScratchBuffer;
-      break;
+void clearBufferAPI(TfLiteContext* context_) {
+  context_->GetScratchBuffer = nullptr;
+  context_->GetExternalContext = nullptr;
+  context_->AllocatePersistentBuffer = nullptr;
+  context_->RequestScratchBufferInArena = nullptr;
   }
 }
 
@@ -62,9 +49,9 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.impl_ = static_cast<void*>(&fake_micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.recommended_num_threads = 1;
-  // context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
-  // context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
+  clearBufferAPI(&context_);
+  context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
 
   context_.recommended_num_threads = 0;
 
@@ -82,14 +69,18 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    setBufferAPI(&context_, init);
+    clearBufferAPI();
+    context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
 
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    setBufferAPI(&context_, prepare);
+    clearBufferAPI();
+    context_->RequestScratchBufferInArena =
+        MicroContextRequestScratchBufferInArena;
+    context_->GetExternalContext = MicroContextGetExternalContext;
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
   }
 
@@ -99,7 +90,8 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 }
 
 TfLiteStatus KernelRunner::Invoke() {
-  setBufferAPI(&context_, invoke);
+  clearBufferAPI();
+  context_->GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.invoke == nullptr) {
     MicroPrintf("TfLiteRegistration missing invoke function pointer!");
