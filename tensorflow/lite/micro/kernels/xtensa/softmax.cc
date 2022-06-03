@@ -77,8 +77,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   if (input->type == kTfLiteInt8 && output->type == kTfLiteInt8) {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-    return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data),
+      return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data),
                         input, output, context);
+#elif defined(VISION_P6)
+      return SoftmaxEvalVision(
+        context, node, *(static_cast<XtensaSoftmaxOpData*>(node->user_data)),
+        input, output);
 #else
     tflite::reference_ops::Softmax(
         params, tflite::micro::GetTensorShape(input),

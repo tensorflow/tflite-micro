@@ -27,7 +27,14 @@ struct XtensaSoftmaxOpData {
   SoftmaxParams params;
   int scratch_tensor_index;
 };
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#elif defined( \
+    VISION_P6)  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+struct XtensaSoftmaxOpData {
+  SoftmaxParams params;
+  uint8_t* p_context;  // persistent lib context for this instance saved here
+  uint32_t context_size;
+};
+#endif          // elif defined(VISION_P6)
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length);
@@ -36,6 +43,14 @@ TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
                                         TfLiteNode* node);
+
+#if defined(VISION_P6)
+TfLiteStatus SoftmaxPrepareVision(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus SoftmaxEvalVision(TfLiteContext* context, TfLiteNode* node,
+                               const XtensaSoftmaxOpData& data,
+                               const TfLiteEvalTensor* input,
+                               TfLiteEvalTensor* output);
+#endif  // defined(VISION_P6)
 
 }  // namespace tflite
 
