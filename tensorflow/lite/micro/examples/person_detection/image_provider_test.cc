@@ -31,7 +31,7 @@ TF_LITE_MICRO_TEST(TestImageProvider) {
   TfLiteStatus get_status = GetImage(&micro_error_reporter, kNumCols, kNumRows,
                                      kNumChannels, image_data);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
-  TF_LITE_MICRO_EXPECT(image_data);
+  TF_LITE_MICRO_EXPECT(image_data != nullptr);
 
   // Make sure we can read all of the returned memory locations.
   uint32_t total = 0;
