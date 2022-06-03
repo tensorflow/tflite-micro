@@ -128,7 +128,7 @@ void VerifyRegistrationAndNodeAllocation(
     int num_subgraphs) {
   for (int subgraph_idx = 0; subgraph_idx < num_subgraphs; subgraph_idx++) {
     for (size_t i = 0; i < count; i++) {
-      TF_LITE_MICRO_EXPECT(nullptr != &subgraph_allocations[subgraph_idx]
+      TF_LITE_MICRO_EXPECT(&subgraph_allocations[subgraph_idx]
                                             .node_and_registrations[i]
                                             .registration);
     }
