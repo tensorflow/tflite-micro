@@ -21,7 +21,6 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/add.h"
-#include "utils.h"
 namespace tflite {
 
 struct XtensaAddOpData {
