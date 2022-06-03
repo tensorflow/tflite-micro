@@ -26,13 +26,13 @@ namespace micro {
 // TODO(b/161841696): Consider moving away from global arena buffers:
 constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
+enum ContextAPI { setup, init, prepare, invoke };
 
 void clearBufferAPI(TfLiteContext* context_) {
   context_->GetScratchBuffer = nullptr;
   context_->GetExternalContext = nullptr;
   context_->AllocatePersistentBuffer = nullptr;
   context_->RequestScratchBufferInArena = nullptr;
-  }
 }
 
 KernelRunner::KernelRunner(const TfLiteRegistration& registration,
@@ -50,7 +50,7 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.ReportError = MicroContextReportOpError;
   context_.recommended_num_threads = 1;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
-  clearBufferAPI(&context_);
+  tflite::micro:: clearBufferAPI(&context_);
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
 
   context_.recommended_num_threads = 0;
@@ -69,7 +69,7 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    clearBufferAPI();
+    tflite::micro::clearBufferAPI(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
@@ -77,10 +77,10 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    clearBufferAPI();
-    context_->RequestScratchBufferInArena =
+    tflite::micro::clearBufferAPI(&context_);
+    context_.RequestScratchBufferInArena =
         MicroContextRequestScratchBufferInArena;
-    context_->GetExternalContext = MicroContextGetExternalContext;
+    context_.GetExternalContext = MicroContextGetExternalContext;
     TF_LITE_ENSURE_STATUS(registration_.prepare(&context_, &node_));
   }
 
@@ -90,8 +90,8 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 }
 
 TfLiteStatus KernelRunner::Invoke() {
-  clearBufferAPI();
-  context_->GetScratchBuffer = MicroContextGetScratchBuffer;
+  tflite::micro::clearBufferAPI(&context_);
+  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.invoke == nullptr) {
     MicroPrintf("TfLiteRegistration missing invoke function pointer!");
