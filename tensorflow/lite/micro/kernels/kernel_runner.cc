@@ -70,7 +70,7 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    tflite::micro::clearBufferAPI(&context_);
+    // tflite::micro::clearBufferAPI(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
@@ -78,7 +78,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    tflite::micro::clearBufferAPI(&context_);
+    // tflite ::micro::clearBufferAPI(&context_);
     context_.RequestScratchBufferInArena =
         MicroContextRequestScratchBufferInArena;
     context_.GetExternalContext = MicroContextGetExternalContext;
@@ -91,7 +91,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 }
 
 TfLiteStatus KernelRunner::Invoke() {
-  tflite::micro::clearBufferAPI(&context_);
+  // tflite::micro::clearBufferAPI(&context_);
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.invoke == nullptr) {
