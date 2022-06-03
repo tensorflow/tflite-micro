@@ -195,7 +195,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentTfLiteTensorQuantizationData) {
   tflite::RecordingMicroAllocator* micro_allocator =
       tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT(micro_allocator !=  nullptr);
+  TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
   TfLiteTensor* tensor = micro_allocator->AllocatePersistentTfLiteTensor(

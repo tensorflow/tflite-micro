@@ -128,9 +128,9 @@ void VerifyRegistrationAndNodeAllocation(
     int num_subgraphs) {
   for (int subgraph_idx = 0; subgraph_idx < num_subgraphs; subgraph_idx++) {
     for (size_t i = 0; i < count; i++) {
-      TF_LITE_MICRO_EXPECT(&subgraph_allocations[subgraph_idx]
-                                            .node_and_registrations[i]
-                                            .registration);
+       TF_LITE_MICRO_EXPECT(&subgraph_allocations[subgraph_idx]
+                                .node_and_registrations[i]
+                                .registration);
     }
   }
 }
@@ -773,11 +773,11 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
   TF_LITE_MICRO_EXPECT_FALSE(tensor1->is_variable);
 
   TfLiteTensor* tensor2 = allocator->AllocatePersistentTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
-      /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor2->quantization.params !=  nullptr);
-  TF_LITE_MICRO_EXPECT_FALSE(tensor2->is_variable);
+       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
+       /*subgraph_index=*/0);
+   TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
+   TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
+   TF_LITE_MICRO_EXPECT_FALSE(tensor2->is_variable);
 
   // The address of tensor1 should be higher than the address of tensor2 since
   // persistent allocations take place in the tail which grows downward.
@@ -806,10 +806,10 @@ TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
       arena, arena_size, tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT(allocator != nullptr);
 
-  TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
-      /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 !=  nullptr);
+   TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
+       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
+       /*subgraph_index=*/0);
+  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
 
   TfLiteTensor* tensor2 = allocator->AllocateTempTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,

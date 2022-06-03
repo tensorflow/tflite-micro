@@ -453,7 +453,7 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
 
     TfLiteTensor* input = interpreter.input(0);
-    TF_LITE_MICRO_EXPECT(nullptr !=input);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
