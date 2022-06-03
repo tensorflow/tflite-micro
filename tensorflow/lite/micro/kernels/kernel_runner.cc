@@ -51,7 +51,7 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.recommended_num_threads = 1;
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
-  tflite::micro:: clearBufferAPI(&context_);
+  tflite::micro::clearBufferAPI(&context_);
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
 
   context_.recommended_num_threads = 0;
