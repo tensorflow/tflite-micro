@@ -79,7 +79,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 
   if (registration_.prepare) {
     tflite ::micro::clearBufferAPI(&context_);
-    context_.AllocatePersistentBuffer
+    context_.AllocatePersistentBuffer;
     context_.RequestScratchBufferInArena =
         MicroContextRequestScratchBufferInArena;
     context_.GetExternalContext = MicroContextGetExternalContext;
