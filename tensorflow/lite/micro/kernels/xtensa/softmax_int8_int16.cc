@@ -110,12 +110,10 @@ TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
   return PrepareHifi(context, node);
 #elif defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, SoftmaxPrepareVision(context, node));
+  return kTfLiteOk;
 #else
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
-#endif
-
   return kTfLiteOk;
-
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
 
