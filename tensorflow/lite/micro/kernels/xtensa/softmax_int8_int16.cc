@@ -108,10 +108,10 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
 TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   return PrepareHifi(context, node);
+#elif defined(VISION_P6)
+  TF_LITE_ENSURE_OK(context, SoftmaxPrepareVision(context, node));
 #else
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
-#if defined(VISION_P6)
-  TF_LITE_ENSURE_OK(context, SoftmaxPrepareVision(context, node));
 #endif
 
   return kTfLiteOk;
