@@ -11,7 +11,7 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
-  tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc 
+  tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc 
 
 ifeq ($(TARGET_ARCH), hifi5)
