@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,7 +27,15 @@ struct XtensaSoftmaxOpData {
   SoftmaxParams params;
   int scratch_tensor_index;
 };
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+
+#if defined(VISION_P6)
+struct XtensaSoftmaxOpData {
+  SoftmaxParams params;
+  uint8_t* p_context;  // persistent lib context for this instance saved here
+  uint32_t context_size;
+};
+#endif  // defined(VISION_P6)
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length);
@@ -36,6 +44,14 @@ TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
                                         TfLiteNode* node);
+
+#if defined(VISION_P6)
+TfLiteStatus SoftmaxPrepareVision(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus SoftmaxEvalVision(TfLiteContext* context, TfLiteNode* node,
+                               const XtensaSoftmaxOpData& data,
+                               const TfLiteEvalTensor* input,
+                               TfLiteEvalTensor* output);
+#endif  // defined(VISION_P6)
 
 }  // namespace tflite
 
