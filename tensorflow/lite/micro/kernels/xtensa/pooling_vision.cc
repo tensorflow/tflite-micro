@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,11 +90,11 @@ TfLiteStatus PoolingPrepareVision(TfLiteContext* context, TfLiteNode* node,
 }
 
 TfLiteStatus AvgPoolingPrepareVision(TfLiteContext* context, TfLiteNode* node) {
-  return (PoolingPrepareVision(context, node, AVG_POOLING));
+  return PoolingPrepareVision(context, node, AVG_POOLING);
 }
 
 TfLiteStatus MaxPoolingPrepareVision(TfLiteContext* context, TfLiteNode* node) {
-  return (PoolingPrepareVision(context, node, MAX_POOLING));
+  return PoolingPrepareVision(context, node, MAX_POOLING);
 }
 
 TfLiteStatus PoolEvalVision(TfLiteContext* context, TfLiteNode* node,
