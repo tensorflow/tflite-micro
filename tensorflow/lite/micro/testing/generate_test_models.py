@@ -31,7 +31,8 @@ import numpy as np
 import tensorflow as tf
 
 
-def generate_conv_model():
+def generate_conv_model(write_to_file=True,
+                        filename="/tmp/tf_micro_conv_test_model.int8.tflite"):
   """Creates a basic Keras model and converts to tflite.
 
   This model does not make any relevant classifications. It only exists to
@@ -70,7 +71,10 @@ def generate_conv_model():
   converter.representative_dataset = representative_dataset_gen
 
   tflite_model = converter.convert()
-  open("/tmp/tf_micro_conv_test_model.int8.tflite", "wb").write(tflite_model)
+  if write_to_file:
+    open(filename, "wb").write(tflite_model)
+
+  return tflite_model
 
 
 def main(argv):
