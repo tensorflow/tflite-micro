@@ -26,7 +26,6 @@ namespace micro {
 // TODO(b/161841696): Consider moving away from global arena buffers:
 constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
-enum ContextAPI { setup, init, prepare, invoke };
 
 void clearBufferAPI(TfLiteContext* context_) {
   context_->GetScratchBuffer = nullptr;
