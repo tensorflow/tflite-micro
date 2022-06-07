@@ -27,7 +27,7 @@ namespace micro {
 constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
 
-void clearBufferAPI(TfLiteContext* context_) {
+void ClearBufferApi(TfLiteContext* context_) {
   context_->GetScratchBuffer = nullptr;
   context_->GetExternalContext = nullptr;
   context_->AllocatePersistentBuffer = nullptr;
@@ -50,7 +50,7 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
   context_.recommended_num_threads = 1;
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
-  tflite::micro::clearBufferAPI(&context_);
+  tflite::micro::ClearBufferApi(&context_);
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
 
   context_.recommended_num_threads = 0;
@@ -69,7 +69,7 @@ bool KernelRunner::ValidateTempBufferDeallocated() {
 TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
                                           size_t length) {
   if (registration_.init) {
-    tflite::micro::clearBufferAPI(&context_);
+    tflite::micro::ClearBufferApi(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     node_.user_data = registration_.init(&context_, init_data, length);
   }
@@ -77,7 +77,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    tflite ::micro::clearBufferAPI(&context_);
+    tflite ::micro::ClearBufferApi(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     context_.RequestScratchBufferInArena =
         MicroContextRequestScratchBufferInArena;
@@ -91,7 +91,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
 }
 
 TfLiteStatus KernelRunner::Invoke() {
-  tflite::micro::clearBufferAPI(&context_);
+  tflite::micro::ClearBufferApi(&context_);
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.invoke == nullptr) {
