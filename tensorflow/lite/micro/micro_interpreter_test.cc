@@ -524,9 +524,9 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_NE(nullptr, model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-  tflite::MicroInterpreter interpreter(
-      model, op_resolver, tflite::arena_buffer, tflite::buffer_arena_size,
-      tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter(model, op_resolver, tflite::arena_buffer,
+                                       tflite::buffer_arena_size,
+                                       tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
   // Store the required arena size before Invoke() because this is what this
