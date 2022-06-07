@@ -55,9 +55,9 @@ elif [[ ${2} == "hifi5" ]]; then
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
   LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
 elif [[ ${2} == "vision_p6" ]]; then
-  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_05_17.zip"
+  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_03.zip"
   LIBRARY_DIRNAME="xi_tflmlib_vision_p6"
-  LIBRARY_MD5="4a890d11a995289abd26a431817330ce"
+  LIBRARY_MD5="cfa38ebc7d44e050708d984347a46b20"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1

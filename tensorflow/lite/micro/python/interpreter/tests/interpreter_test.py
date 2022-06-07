@@ -35,16 +35,17 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runti
 
 class ConvModelTests(test_util.TensorFlowTestCase):
   filename = "/tmp/interpreter_test_conv_model.tflite"
-  model_data = generate_test_models.generate_conv_model(True, filename)
   input_shape = (1, 16, 16, 1)
   output_shape = (1, 10)
 
   def testCompareWithTFLite(self):
+    model_data = generate_test_models.generate_conv_model(False)
+
     # TFLM interpreter
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(self.model_data)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
     # TFLite interpreter
-    tflite_interpreter = tf.lite.Interpreter(model_content=self.model_data)
+    tflite_interpreter = tf.lite.Interpreter(model_content=model_data)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
@@ -73,8 +74,10 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       self.assertAllLessEqual((tflite_output - tflm_output), 1)
 
   def testModelFromFileAndBufferEqual(self):
+    model_data = generate_test_models.generate_conv_model(True, self.filename)
+
     file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(self.model_data)
+    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
     num_steps = 100
     for i in range(0, num_steps):
@@ -96,8 +99,10 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       self.assertAllEqual(file_output, bytes_output)
 
   def testMultipleInterpreters(self):
+    model_data = generate_test_models.generate_conv_model(False)
+
     interpreters = [
-        tflm_runtime.Interpreter.from_bytes(self.model_data) for i in range(10)
+        tflm_runtime.Interpreter.from_bytes(model_data) for i in range(10)
     ]
 
     num_steps = 100
@@ -127,6 +132,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     return (int_ref, output_ref)
 
   def testOutputTensorMemoryLeak(self):
+    generate_test_models.generate_conv_model(True, self.filename)
+
     int_ref, output_ref = self._helperOutputTensorMemoryLeak()
     # Output obtained in the helper function should be out of scope now, perform
     # garbage collection and check that the weakref is dead. If it's still
