@@ -125,7 +125,9 @@ class TestDataGenerator:
 
   def generate_goldens(self, builtin_operator):
     """ Takes a list of one or more models as input.
-        It then generates input and output in CSV format for those models. """
+        It also takes a built in operator as input because the generated input depends
+        on what type of operator it is, and it supports a limited number of operators.
+        It generates input and output in CSV format for the corresponding models. """
 
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
