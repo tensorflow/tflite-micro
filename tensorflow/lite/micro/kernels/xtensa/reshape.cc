@@ -100,7 +100,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     MicroContext* micro_context = GetMicroContext(context);
     TfLiteTensor* input =
         micro_context->AllocateTempInputTensor(node, kReshapeInputTensor);
-    /* Vision P6 currently only supports upto 4D int8 input tensors */
+    // Vision P6 currently only supports upto 4D int8 input tensors
     if (NumDimensions(input) <= 4 && input->type == kTfLiteInt8) {
       TF_LITE_ENSURE_OK(context, ReshapePrepareVision(context, node));
     }
@@ -126,7 +126,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   if (input->data.raw != output->data.raw) {
     // Otherwise perform reshape with copy.
 #if defined(VISION_P6)
-    /* Vision P6 currently only supports upto 4D int8 input tensors */
+    // Vision P6 currently only supports upto 4D int8 input tensors
     if (tflite::micro::GetTensorShape(input).DimensionsCount() <= 4 &&
         input->type == kTfLiteInt8) {
       XtensaReshapeData* op_data_xtensa =
