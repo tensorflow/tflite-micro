@@ -35,9 +35,8 @@ uint32_t ticks_per_second() {
 }
 
 uint32_t GetCurrentTimeTicks() {
-  const unsigned ticks_real = _timer_default_read();
-  const uint32_t ticks_cast = static_cast<uint32_t>(ticks_real & 0x7fffffff);
-  return ticks_cast;
+  uint32_t ticks_real = _timer_default_read();
+  return ticks_real;
 }
 
 }  // namespace tflite
