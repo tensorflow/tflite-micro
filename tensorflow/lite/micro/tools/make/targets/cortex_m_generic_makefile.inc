@@ -94,8 +94,6 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
   # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
   GCC_TARGET_ARCH := cortex-m55
 
-else ifeq ($(TARGET_ARCH), project_generation)
- # None of the parameters matter since we are not going to build any code.
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -140,7 +138,7 @@ ifeq ($(TOOLCHAIN), armclang)
 
 else ifeq ($(TOOLCHAIN), gcc)
   TARGET_DEFAULT_TOOLCHAIN_ROOT := ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
-  TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
+  TARGET_TOOLCHAIN_ROOT ?= $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
   ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
     DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
     ifneq ($(DOWNLOAD_RESULT), SUCCESS)
