@@ -71,7 +71,7 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 
   # For this build type there is additional dependency to CMSIS.
   TOOLCHAIN = gcc
-  TARGET_TOOLCHAIN_ROOT = "do not download"
+  SKIP_ARM_GCC_DOWNLOAD := "yes please"
   include cortex_m_generic_makefile.inc
   INCLUDES += \
     -I./third_party/cmsis/Device/ARM/$(ARM_CPU)/Include

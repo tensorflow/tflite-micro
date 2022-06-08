@@ -137,12 +137,17 @@ ifeq ($(TOOLCHAIN), armclang)
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
 
 else ifeq ($(TOOLCHAIN), gcc)
+  # Download may be skipped in some cases, for example project generation.
+  SKIP_ARM_GCC_DOWNLOAD ?= no
+
   TARGET_DEFAULT_TOOLCHAIN_ROOT := ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
-  TARGET_TOOLCHAIN_ROOT ?= $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-  ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
-    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
-    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-      $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+  TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
+  ifeq ($(SKIP_ARM_GCC_DOWNLOAD), no)
+    ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
+      DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
+      ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+        $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+      endif
     endif
   endif
 
