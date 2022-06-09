@@ -16,6 +16,7 @@ limitations under the License.
 #include <cmath>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -27,6 +28,17 @@ namespace micro {
 namespace elementwise {
 namespace {
 
+const char kAbsName[] = "Abs";
+const char kRsqrtName[] = "Rsqrt";
+
+struct OpData {
+  int32_t multiplier;
+  int32_t shift;
+  int input_offset;
+  int output_offset;
+  bool needs_rescale;
+};
+
 bool IsNumericSupportedType(const TfLiteType type) {
   return type == kTfLiteFloat32;
 }
@@ -35,9 +47,18 @@ bool IsLogicalSupportedType(const TfLiteType type) {
   return type == kTfLiteBool;
 }
 
+inline void SetRsqrtOutputMultiplier(const float input_scale,
+                                     const float output_scale,
+                                     int32_t* multiplier, int32_t* shift) {
+  const double scale = 1.0 / (std::sqrt(static_cast<double>(input_scale)) *
+                              static_cast<double>(output_scale));
+  QuantizeMultiplier(scale, multiplier, shift);
+}
+
 typedef bool (*IsSupportedType)(TfLiteType);
-template <IsSupportedType>
-TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node,
+                            IsSupportedType is_supported_type,
+                            const char* op_name) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
@@ -47,10 +68,47 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  if (!IsSupportedType(input->type)) {
+  if (!is_supported_type(input->type)) {
     TF_LITE_KERNEL_LOG(context, "Input data type %s (%d) is not supported.",
                        TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
+  }
+
+  // For int16 type input, we support both quantized and non-quantized
+  // evaluation.
+  if (input->type == kTfLiteInt8 ||
+      (input->type == kTfLiteInt16 &&
+       input->quantization.type != kTfLiteNoQuantization)) {
+    auto* op_data = static_cast<OpData*>(node->user_data);
+    TF_LITE_ENSURE_EQ(context, input->quantization.type,
+                      kTfLiteAffineQuantization);
+    TF_LITE_ENSURE_EQ(context, output->quantization.type,
+                      kTfLiteAffineQuantization);
+    const auto* input_params =
+        reinterpret_cast<TfLiteAffineQuantization*>(input->quantization.params);
+    const auto* output_params = reinterpret_cast<TfLiteAffineQuantization*>(
+        output->quantization.params);
+    TF_LITE_ENSURE(context, input_params != nullptr);
+    TF_LITE_ENSURE(context, input_params->scale != nullptr);
+    TF_LITE_ENSURE(context, input_params->scale->size > 0);
+    TF_LITE_ENSURE(context, input_params->zero_point->size > 0);
+    TF_LITE_ENSURE(context, output_params != nullptr);
+    TF_LITE_ENSURE(context, output_params->scale != nullptr);
+    TF_LITE_ENSURE(context, output_params->scale->size > 0);
+    TF_LITE_ENSURE(context, output_params->zero_point->size > 0);
+    op_data->input_offset = input_params->zero_point->data[0];
+    op_data->output_offset = output_params->zero_point->data[0];
+    if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, op_data->input_offset, 0);
+      TF_LITE_ENSURE_EQ(context, op_data->output_offset, 0);
+    }
+    const float input_scale = input_params->scale->data[0];
+    const float output_scale = output_params->scale->data[0];
+    op_data->needs_rescale = input_scale != output_scale;
+    if (op_name == kRsqrtName) {
+      SetRsqrtOutputMultiplier(input_scale, output_scale, &op_data->multiplier,
+                               &op_data->shift);
+    }
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
@@ -130,52 +188,80 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 }  // namespace elementwise
 
+// Given a function...
+// template<int T>
+// int Foo(int b)
+//
+// typedef int(*Bar)(int);
+//
+// MSVC2015 will not see Foo<10> as the same type as Bar.
+//
+// This works around the issue by instantiating wrapper methods around
+// elementwise::GenericPrepare() rather than using a templated
+// elementwise::GenericPrepare method.
+#define GENERIC_PREPARE(function_name, is_supported_type_function, type_name)  \
+  static TfLiteStatus function_name(TfLiteContext* context,                    \
+                                    TfLiteNode* node) {                        \
+    return elementwise::GenericPrepare(context, node,                          \
+                                       is_supported_type_function, type_name); \
+  }
+
+GENERIC_PREPARE(PrepareAbs, elementwise::IsNumericSupportedType,
+                elementwise::kAbsName)
+
 TfLiteRegistration Register_ABS() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::AbsEval);
+      /*init=*/nullptr, PrepareAbs, elementwise::AbsEval);
 }
+
+GENERIC_PREPARE(PrepareSin, elementwise::IsNumericSupportedType, "Sin")
 
 TfLiteRegistration Register_SIN() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SinEval);
+      /*init=*/nullptr, PrepareSin, elementwise::SinEval);
 }
+
+GENERIC_PREPARE(PrepareCos, elementwise::IsNumericSupportedType, "Cos")
 
 TfLiteRegistration Register_COS() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::CosEval);
+      /*init=*/nullptr, PrepareCos, elementwise::CosEval);
 }
+
+GENERIC_PREPARE(PrepareLog, elementwise::IsNumericSupportedType, "Log")
 
 TfLiteRegistration Register_LOG() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::LogEval);
+      /*init=*/nullptr, PrepareLog, elementwise::LogEval);
 }
+
+GENERIC_PREPARE(PrepareSqrt, elementwise::IsNumericSupportedType, "Sqrt")
 
 TfLiteRegistration Register_SQRT() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SqrtEval);
+      /*init=*/nullptr, PrepareSqrt, elementwise::SqrtEval);
 }
+
+GENERIC_PREPARE(PrepareRsqrt, elementwise::IsNumericSupportedType,
+                elementwise::kRsqrtName)
 
 TfLiteRegistration Register_RSQRT() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::RsqrtEval);
+      /*init=*/nullptr, PrepareRsqrt, elementwise::RsqrtEval);
 }
+
+GENERIC_PREPARE(PrepareSquare, elementwise::IsNumericSupportedType, "Square")
 
 TfLiteRegistration Register_SQUARE() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SquareEval);
+      /*init=*/nullptr, PrepareSquare, elementwise::SquareEval);
 }
+
+GENERIC_PREPARE(PrepareNot, elementwise::IsLogicalSupportedType, "Not")
 
 TfLiteRegistration Register_LOGICAL_NOT() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsLogicalSupportedType>,
-      elementwise::LogicalNotEval);
+      /*init=*/nullptr, PrepareNot, elementwise::LogicalNotEval);
 }
 
 }  // namespace micro
