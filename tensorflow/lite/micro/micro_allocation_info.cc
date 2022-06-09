@@ -240,6 +240,7 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
     UpdateFirstCreated(current, allocation_scope_count_);
+    UpdateLastUsed(current, allocation_scope_count_);
   }
 
   for (uint32_t i = 0; i < operators_size; i++) {
