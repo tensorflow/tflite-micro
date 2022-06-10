@@ -16,10 +16,12 @@ limitations under the License.
 #include <cmath>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -45,6 +47,10 @@ bool IsNumericSupportedType(const TfLiteType type) {
 
 bool IsLogicalSupportedType(const TfLiteType type) {
   return type == kTfLiteBool;
+}
+
+bool IsRsqrtSupportedType(const TfLiteType type) {
+  return type == kTfLiteFloat32 || type == kTfLiteInt8;
 }
 
 inline void SetRsqrtOutputMultiplier(const float input_scale,
@@ -179,8 +185,54 @@ TfLiteStatus SqrtEval(TfLiteContext* context, TfLiteNode* node) {
   return EvalNumeric(context, node, std::sqrt);
 }
 
+TfLiteStatus RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node,
+                                TfLiteType type) {
+  const auto* op_data = static_cast<const OpData*>(node->user_data);
+  const int kMin = std::numeric_limits<int8_t>::min();
+  const int kMax = std::numeric_limits<int8_t>::max();
+  std::function<TfLiteStatus(int8_t)> validate_input_func = [&](int8_t i) {
+    TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
+                       "Rsqrt is only defined for positive values");
+    return kTfLiteOk;
+  };
+
+  std::function<int8_t(int8_t)> func = [&](int8_t i) {
+    const int32_t value = (i - op_data->input_offset);
+    const int32_t kShift = 20;  // Shift to keep value integer.
+    if (value == 0) {
+      // Assume that any value close to 0 represents the max output value.
+      return static_cast<int8_t>(kMax);
+    }
+    int32_t inv_sqrt_multiplier;
+    int inv_sqrt_shift;
+    GetInvSqrtQuantizedMultiplierExp(value, kReverseShift, &inv_sqrt_multiplier,
+                                     &inv_sqrt_shift);
+    const int32_t data = MultiplyByQuantizedMultiplier(1, inv_sqrt_multiplier,
+                                                       inv_sqrt_shift + kShift);
+    const int32_t output =
+        MultiplyByQuantizedMultiplier(data, op_data->multiplier,
+                                      op_data->shift - kShift) +
+        op_data->output_offset;
+    return static_cast<int8_t>(std::min(std::max(output, kMin), kMax));
+  };
+
+  return EvalImpl<int8_t>(context, node, func, validate_input_func, type);
+}
+
 TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, [](float f) { return 1.f / std::sqrt(f); });
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  switch (input->type) {
+    case kTfLiteFloat32:
+      return EvalImpl<float>(
+          context, node, [](float f) { return 1.f / std::sqrt(f); },
+          input->type);
+    case kTfLiteInt8:
+      return RsqrtEvalQuantized(context, node, input->type);
+    default:
+      MicroPrintf("Current data type %s is not supported.",
+                  TfLiteTypeGetName(input->type));
+      return kTfLiteError;
+  }
 }
 
 TfLiteStatus SquareEval(TfLiteContext* context, TfLiteNode* node) {
@@ -248,7 +300,7 @@ TfLiteRegistration Register_SQRT() {
       /*init=*/nullptr, PrepareSqrt, elementwise::SqrtEval);
 }
 
-GENERIC_PREPARE(PrepareRsqrt, elementwise::IsNumericSupportedType,
+GENERIC_PREPARE(PrepareRsqrt, elementwise::IsRsqrtSupportedType,
                 elementwise::kRsqrtName)
 
 TfLiteRegistration Register_RSQRT() {
