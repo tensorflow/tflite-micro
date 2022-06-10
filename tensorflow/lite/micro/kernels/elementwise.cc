@@ -153,6 +153,12 @@ inline TfLiteStatus EvalLogical(TfLiteContext* context, TfLiteNode* node,
   return EvalImpl<bool>(context, node, bool_func, kTfLiteBool);
 }
 
+void* ElementWiseQuantizedInit(TfLiteContext* context, const char* buffer,
+                               size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+}
+
 TfLiteStatus AbsEval(TfLiteContext* context, TfLiteNode* node) {
   return EvalNumeric(context, node, std::abs);
 }
@@ -246,8 +252,8 @@ GENERIC_PREPARE(PrepareRsqrt, elementwise::IsNumericSupportedType,
                 elementwise::kRsqrtName)
 
 TfLiteRegistration Register_RSQRT() {
-  return tflite::micro::RegisterOp(
-      /*init=*/nullptr, PrepareRsqrt, elementwise::RsqrtEval);
+  return tflite::micro::RegisterOp(elementwise::ElementWiseQuantizedInit,
+                                   PrepareRsqrt, elementwise::RsqrtEval);
 }
 
 GENERIC_PREPARE(PrepareSquare, elementwise::IsNumericSupportedType, "Square")
