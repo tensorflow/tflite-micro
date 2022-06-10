@@ -97,6 +97,7 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   intptr_t temp_buffer_ptr_check_sum_ = 0;
   // Count of outstanding temp buffers.
   int temp_buffer_count_ = 0;
+  bool resizable_buffer_allocated_ = false;
 };
 
 }  // namespace tflite

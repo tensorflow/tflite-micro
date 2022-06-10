@@ -146,6 +146,8 @@ cc_library(
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro/arena_allocator:ibuffer_allocator",
+        "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator",
+        "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
