@@ -50,9 +50,9 @@ limitations under the License.
 
 namespace tflite {
 
-int32_t ticks_per_second() { return 0; }
+uint32_t ticks_per_second() { return 0; }
 
-int32_t GetCurrentTimeTicks() {
+uint32_t GetCurrentTimeTicks() {
   static bool is_initialized = false;
   if (!is_initialized) {
     KIN1_UnlockAccessToDWT();
@@ -61,7 +61,7 @@ int32_t GetCurrentTimeTicks() {
     KIN1_EnableCycleCounter();
     is_initialized = true;
   }
-  return KIN1_GetCycleCounter();
+  return static_cast<uint32_t>(KIN1_GetCycleCounter());
 }
 
 }  // namespace tflite

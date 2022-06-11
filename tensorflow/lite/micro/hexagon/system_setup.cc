@@ -32,11 +32,11 @@ void InitializeTarget() {
 #endif  // TF_LITE_STRIP_ERROR_STRINGS
 }
 
-int32_t ticks_per_second() { return 1000000; }
+uint32_t ticks_per_second() { return 1000000; }
 
-int32_t GetCurrentTimeTicks() {
+uint32_t GetCurrentTimeTicks() {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-  return hexagon_sim_read_cycles();
+  return static_cast<uint32_t>(hexagon_sim_read_cycles());
 #else
   return 0;
 #endif  // TF_LITE_STRIP_ERROR_STRINGS
