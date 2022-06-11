@@ -31,9 +31,7 @@ struct OpDataReduce {
   int32_t multiplier;
   int shift;
   int temp_buffer_idx;
-  int temp_index_idx;
   int resolved_axis_idx;
-  int normalized_dims_idx;
   int input_zp;
   float input_scale;
   int output_zp;
