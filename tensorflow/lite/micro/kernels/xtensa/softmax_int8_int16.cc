@@ -96,6 +96,11 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
 #else
+#if defined(VISION_P6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif  // defined(VISION_P6)
   return SoftmaxInit(context, buffer, length);
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
@@ -104,7 +109,11 @@ TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   return PrepareHifi(context, node);
 #else
-  return SoftmaxPrepare(context, node);
+  TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
+#if defined(VISION_P6)
+  TF_LITE_ENSURE_OK(context, SoftmaxPrepareVision(context, node));
+#endif
+  return kTfLiteOk;
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
 
