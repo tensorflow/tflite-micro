@@ -44,10 +44,9 @@ void ExecuteDivTest(TfLiteTensor* tensors, int tensors_count,
 }
 
 template <typename T>
-void TestDiv(int* input1_dims_data, const T* input1_data,
-             int* input2_dims_data, const T* input2_data,
-             int* expected_dims, const T* expected_data, T* output_data,
-             TfLiteFusedActivation activation) {
+void TestDiv(int* input1_dims_data, const T* input1_data, int* input2_dims_data,
+             const T* input2_data, int* expected_dims, const T* expected_data,
+             T* output_data, TfLiteFusedActivation activation) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
