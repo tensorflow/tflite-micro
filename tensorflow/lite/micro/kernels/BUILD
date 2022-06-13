@@ -615,6 +615,19 @@ cc_test(
 )
 
 cc_test(
+    name = "div_test",
+    srcs = [
+        "div_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "elementwise_test",
     srcs = ["elementwise_test.cc"],
     deps = [

@@ -29,7 +29,7 @@ constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
 constexpr int kOutputTensor = 0;
 
-struct OpData {
+struct OpDataDiv {
   // Parameters used in the quantized paths where the output is 8bit
   int32_t input1_zero_point;
   int32_t input2_zero_point;
@@ -42,21 +42,9 @@ struct OpData {
   int output_shift;
 };
 
-TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
-                             TfLiteDivParams* params, OpData* data) {
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-
-  const TfLiteTensor* input1;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor1, &input1));
-  const TfLiteTensor* input2;
-  TF_LITE_ENSURE_OK(context,
-                    GetInputSafe(context, node, kInputTensor2, &input2));
-  TfLiteTensor* output;
-  TF_LITE_ENSURE_OK(context,
-                    GetOutputSafe(context, node, kOutputTensor, &output));
-
+TfLiteStatus CalculateOpDataDiv(TfLiteContext* context, TfLiteTensor* input1,
+                                TfLiteTensor* input2, TfLiteTensor* output,
+                                TfLiteDivParams* params, OpDataDiv* data) {
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, output->type);
 
@@ -78,17 +66,38 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataDiv));
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  auto* params = static_cast<TfLiteDivParams*>(node->builtin_data);
-  auto* data = static_cast<OpData*>(node->user_data);
-  return CalculateOpData(context, node, params, data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input1 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
+  TfLiteTensor* input2 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+
+  OpDataDiv* data = static_cast<OpDataDiv*>(node->user_data);
+  auto* params = reinterpret_cast<TfLiteDivParams*>(node->builtin_data);
+
+  TF_LITE_ENSURE_STATUS(
+      CalculateOpDataDiv(context, input1, input2, output, params, data));
+
+  micro_context->DeallocateTempTfLiteTensor(input1);
+  micro_context->DeallocateTempTfLiteTensor(input2);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  return kTfLiteOk;
 }
 
 void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
-             const OpData* data, const TfLiteEvalTensor* input1,
+             const OpDataDiv* data, const TfLiteEvalTensor* input1,
              const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
 
@@ -118,7 +127,7 @@ void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
 }
 
 TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                           TfLiteDivParams* params, const OpData* data,
+                           TfLiteDivParams* params, const OpDataDiv* data,
                            const TfLiteEvalTensor* input1,
                            const TfLiteEvalTensor* input2,
                            TfLiteEvalTensor* output) {
@@ -165,7 +174,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = static_cast<TfLiteDivParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
-  auto* data = static_cast<OpData*>(node->user_data);
+  auto* data = static_cast<OpDataDiv*>(node->user_data);
 
   const TfLiteEvalTensor* input1 =
       tflite::micro::GetEvalInput(context, node, kInputTensor1);
