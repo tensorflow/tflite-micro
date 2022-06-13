@@ -96,6 +96,63 @@ void TestElementwiseBool(const TfLiteRegistration& registration,
   }
 }
 
+template <typename T>
+void TestElementwiseQuantized(const TfLiteRegistration& registration,
+                              int* input_dims_data, const float* input_data,
+                              T* input_quantized, float input_scale,
+                              int input_zero_point,
+                              const float* expected_output_data,
+                              int* output_dims_data, float output_scale,
+                              int output_zero_point, T* output_quantized,
+                              float* output_dequantized,
+                              TfLiteStatus expected_status = kTfLiteOk) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_elements_count = ElementCount(*output_dims);
+
+  constexpr int inputs_size = 1;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                            input_scale, input_zero_point),
+
+      CreateQuantizedTensor(output_quantized, output_dims, output_scale,
+                            output_zero_point)};
+
+  int input_zero_points[2] = {1, input_zero_point};
+  float input_scales[2] = {1.0f, input_scale};
+  TfLiteAffineQuantization input_quant = {
+      tflite::testing::FloatArrayFromFloats(input_scales),
+      tflite::testing::IntArrayFromInts(input_zero_points), 0};
+  tensors[0].quantization = {kTfLiteAffineQuantization, &input_quant};
+
+  int output_zero_points[2] = {1, output_zero_point};
+  float output_scales[2] = {1.0f, output_scale};
+  TfLiteAffineQuantization output_quant = {
+      tflite::testing::FloatArrayFromFloats(output_scales),
+      tflite::testing::IntArrayFromInts(output_zero_points), 0};
+  tensors[1].quantization = {kTfLiteAffineQuantization, &output_quant};
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, /*builtin_data=*/nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(expected_status, runner.Invoke());
+
+  for (int i = 0; i < output_elements_count; ++i) {
+    output_dequantized[i] =
+        (output_quantized[i] - output_zero_point) * output_scale;
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_dequantized[i],
+                              input_scale);
+  }
+}
+
 }  // namespace testing
 }  // namespace tflite
 
@@ -165,6 +222,67 @@ TF_LITE_MICRO_TEST(Rsqrt) {
   tflite::testing::TestElementwiseFloat(tflite::ops::micro::Register_RSQRT(),
                                         shape, input, shape, golden,
                                         output_data);
+}
+
+TF_LITE_MICRO_TEST(RsqrtInt8) {
+  constexpr int output_dims_count = 8;
+  int shape[] = {2, 4, 2};
+  const float input[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int8_t input_quantized[output_dims_count];
+  float golden[output_dims_count];
+  for (int i = 0; i < output_dims_count; i++) {
+    golden[i] = 1.0f / std::sqrt(input[i]);
+  }
+  float output_dequantized[output_dims_count];
+  int8_t output_quantized[output_dims_count];
+  float kInputScale = 142.0 / 255.0;
+  float kOutputScale = 1.0 / 255.0;
+  int32_t zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input, input_quantized,
+      kInputScale, zero_point, golden, shape, kOutputScale, zero_point,
+      output_quantized, output_dequantized);
+}
+
+TF_LITE_MICRO_TEST(RsqrtCloseTo0Int8) {
+  constexpr int output_dims_count = 8;
+  int shape[] = {2, 4, 2};
+  const float input[] = {15., 46., 78., 142., 0.1, 1., 49., 113.};
+  int8_t input_quantized[output_dims_count];
+  float golden[output_dims_count];
+  for (int i = 0; i < output_dims_count; i++) {
+    golden[i] = 1.0f / std::sqrt(input[i]);
+  }
+  float output_dequantized[output_dims_count];
+  int8_t output_quantized[output_dims_count];
+  float kInputScale = 142.0 / 255.0;
+  float kOutputScale = 3.16 / 255.0;
+  int32_t zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input, input_quantized,
+      kInputScale, zero_point, golden, shape, kOutputScale, zero_point,
+      output_quantized, output_dequantized);
+}
+
+TF_LITE_MICRO_TEST(RsqrtNanInt8) {
+  constexpr int output_dims_count = 8;
+  int shape[] = {2, 4, 2};
+  const float input[] = {15., 46., 78., 142., 1., 17., -49., 113.};
+  int8_t input_quantized[output_dims_count];
+  float golden[output_dims_count];
+  for (int i = 0; i < output_dims_count; i++) {
+    golden[i] = 1.0f / std::sqrt(input[i]);
+  }
+  float output_dequantized[output_dims_count];
+  int8_t output_quantized[output_dims_count];
+  float kInputScale = 142.0 / 127.0;
+  float kOutputScale = 1.0 / 255.0;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = -128;
+  tflite::testing::TestElementwiseQuantized<int8_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input, input_quantized,
+      kInputScale, input_zero_point, golden, shape, kOutputScale,
+      output_zero_point, output_quantized, output_dequantized, kTfLiteError);
 }
 
 TF_LITE_MICRO_TEST(Square) {
