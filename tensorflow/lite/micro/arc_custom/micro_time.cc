@@ -25,19 +25,18 @@ limitations under the License.
 
 namespace tflite {
 
-int32_t ticks_per_second() {
+uint32_t ticks_per_second() {
   const unsigned long clocs_per_sec_real = _timer_clocks_per_sec();
   if (clocs_per_sec_real <
-      static_cast<unsigned long>(std::numeric_limits<int32_t>::max()))
-    return static_cast<int32_t>(clocs_per_sec_real);
+      static_cast<unsigned long>(std::numeric_limits<uint32_t>::max()))
+    return static_cast<uint32_t>(clocs_per_sec_real);
   else
-    return std::numeric_limits<int32_t>::max();
+    return std::numeric_limits<uint32_t>::max();
 }
 
-int32_t GetCurrentTimeTicks() {
-  const unsigned ticks_real = _timer_default_read();
-  const int32_t ticks_cast = static_cast<int32_t>(ticks_real & 0x7fffffff);
-  return ticks_cast;
+uint32_t GetCurrentTimeTicks() {
+  uint32_t ticks_real = _timer_default_read();
+  return ticks_real;
 }
 
 }  // namespace tflite
