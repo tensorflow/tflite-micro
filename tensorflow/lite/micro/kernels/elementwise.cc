@@ -123,10 +123,10 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node,
 }
 
 template <typename T>
-inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
-                             std::function<T(T)> func,
-                             std::function<TfLiteStatus(T)> validate_input_func,
-                             TfLiteType expected_type) {
+inline TfLiteStatus EvalImpl(
+    TfLiteContext* context, TfLiteNode* node, std::function<T(T)> func,
+    std::function<TfLiteStatus(TfLiteContext*, T)> validate_input_func,
+    TfLiteType expected_type) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, expected_type);
@@ -135,7 +135,7 @@ inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
   T* out_data = tflite::micro::GetTensorData<T>(output);
   for (size_t i = 0; i < num_elements; ++i) {
     if (validate_input_func) {
-      TF_LITE_ENSURE_OK(context, validate_input_func(in_data[i]));
+      TF_LITE_ENSURE_OK(context, validate_input_func(context, in_data[i]));
     }
     out_data[i] = func(in_data[i]);
   }
@@ -190,11 +190,12 @@ TfLiteStatus RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node,
   const auto* op_data = static_cast<const OpData*>(node->user_data);
   const int32_t kMin = std::numeric_limits<int8_t>::min();
   const int32_t kMax = std::numeric_limits<int8_t>::max();
-  std::function<TfLiteStatus(int8_t)> validate_input_func = [&](int8_t i) {
-    TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
-                       "Rsqrt is only defined for positive values");
-    return kTfLiteOk;
-  };
+  std::function<TfLiteStatus(TfLiteContext * context_func, int8_t)>
+      validate_input_func = [&](TfLiteContext* context_func, int8_t i) {
+        TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
+                           "Rsqrt is only defined for positive values");
+        return kTfLiteOk;
+      };
 
   std::function<int8_t(int8_t)> func = [&](int8_t i) {
     const int32_t value = (i - op_data->input_offset);
