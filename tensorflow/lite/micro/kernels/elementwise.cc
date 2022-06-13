@@ -123,10 +123,10 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node,
 }
 
 template <typename T>
-inline TfLiteStatus EvalImpl(
-    TfLiteContext* context, TfLiteNode* node, std::function<T(T)> func,
-    std::function<TfLiteStatus(TfLiteContext*, T)> validate_input_func,
-    TfLiteType expected_type) {
+inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
+                             T func(T, const OpData*),
+                             TfLiteType expected_type) {
+  const auto* op_data = static_cast<const OpData*>(node->user_data);
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, expected_type);
@@ -134,28 +134,18 @@ inline TfLiteStatus EvalImpl(
   const T* in_data = tflite::micro::GetTensorData<T>(input);
   T* out_data = tflite::micro::GetTensorData<T>(output);
   for (size_t i = 0; i < num_elements; ++i) {
-    if (validate_input_func) {
-      TF_LITE_ENSURE_OK(context, validate_input_func(context, in_data[i]));
-    }
-    out_data[i] = func(in_data[i]);
+    out_data[i] = func(in_data[i], op_data);
   }
   return kTfLiteOk;
 }
 
-template <typename T>
-inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
-                             T func(T), TfLiteType expected_type) {
-  return EvalImpl<T>(context, node, func, /*validate_input_func=*/nullptr,
-                     expected_type);
-}
-
 inline TfLiteStatus EvalNumeric(TfLiteContext* context, TfLiteNode* node,
-                                float float_func(float)) {
+                                float float_func(float, const OpData*)) {
   return EvalImpl<float>(context, node, float_func, kTfLiteFloat32);
 }
 
 inline TfLiteStatus EvalLogical(TfLiteContext* context, TfLiteNode* node,
-                                bool bool_func(bool)) {
+                                bool bool_func(bool, const OpData*)) {
   return EvalImpl<bool>(context, node, bool_func, kTfLiteBool);
 }
 
@@ -165,70 +155,99 @@ void* ElementWiseQuantizedInit(TfLiteContext* context, const char* buffer,
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
+float AbsFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return std::abs(f);
+}
+
 TfLiteStatus AbsEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, std::abs);
+  return EvalNumeric(context, node, AbsFunc);
+}
+
+float SinFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return std::sin(f);
 }
 
 TfLiteStatus SinEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, std::sin);
+  return EvalNumeric(context, node, SinFunc);
+}
+
+float CosFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return std::cos(f);
 }
 
 TfLiteStatus CosEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, std::cos);
+  return EvalNumeric(context, node, CosFunc);
+}
+
+float LogFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return std::log(f);
 }
 
 TfLiteStatus LogEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, std::log);
+  return EvalNumeric(context, node, LogFunc);
+}
+
+float SqrtFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return std::sqrt(f);
 }
 
 TfLiteStatus SqrtEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, std::sqrt);
+  return EvalNumeric(context, node, SqrtFunc);
 }
 
-TfLiteStatus RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node,
-                                TfLiteType type) {
-  const auto* op_data = static_cast<const OpData*>(node->user_data);
+int8_t RsqrtInt8Func(int8_t input_data, const OpData* op_data) {
   const int32_t kMin = std::numeric_limits<int8_t>::min();
   const int32_t kMax = std::numeric_limits<int8_t>::max();
-  std::function<TfLiteStatus(TfLiteContext * context_func, int8_t)>
-      validate_input_func = [&](TfLiteContext* context_func, int8_t i) {
-        TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
-                           "Rsqrt is only defined for positive values");
-        return kTfLiteOk;
-      };
 
-  std::function<int8_t(int8_t)> func = [&](int8_t i) {
-    const int32_t value = (i - op_data->input_offset);
-    const int32_t kShift = 20;  // Shift to keep value integer.
-    if (value == 0) {
-      // Assume that any value close to 0 represents the max output value.
-      return static_cast<int8_t>(kMax);
-    }
-    int32_t inv_sqrt_multiplier;
-    int inv_sqrt_shift;
-    GetInvSqrtQuantizedMultiplierExp(value, kReverseShift, &inv_sqrt_multiplier,
-                                     &inv_sqrt_shift);
-    const int32_t data = MultiplyByQuantizedMultiplier(
-        static_cast<int32_t>(1), inv_sqrt_multiplier, inv_sqrt_shift + kShift);
-    const int32_t output =
-        MultiplyByQuantizedMultiplier(data, op_data->multiplier,
-                                      op_data->shift - kShift) +
-        op_data->output_offset;
-    return static_cast<int8_t>(std::min(std::max(output, kMin), kMax));
-  };
+  const int32_t value = input_data - op_data->input_offset;
+  const int32_t kShift = 20;  // Shift to keep value integer.
+  if (value == 0) {
+    // Assume that any value close to 0 represents the max output value.
+    return static_cast<int8_t>(kMax);
+  }
+  int32_t inv_sqrt_multiplier;
+  int inv_sqrt_shift;
+  GetInvSqrtQuantizedMultiplierExp(value, kReverseShift, &inv_sqrt_multiplier,
+                                   &inv_sqrt_shift);
+  const int32_t data = MultiplyByQuantizedMultiplier(
+      static_cast<int32_t>(1), inv_sqrt_multiplier, inv_sqrt_shift + kShift);
+  const int32_t output =
+      MultiplyByQuantizedMultiplier(data, op_data->multiplier,
+                                    op_data->shift - kShift) +
+      op_data->output_offset;
+  return static_cast<int8_t>(std::min(std::max(output, kMin), kMax));
+}
 
-  return EvalImpl<int8_t>(context, node, func, validate_input_func, type);
+TfLiteStatus RsqrtInt8Eval(TfLiteContext* context, TfLiteNode* node,
+                           TfLiteType type) {
+  const auto* op_data = static_cast<const OpData*>(node->user_data);
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  const size_t num_elements = ElementCount(*input->dims);
+  const int8_t* in_data = tflite::micro::GetTensorData<int8_t>(input);
+  for (size_t i = 0; i < num_elements; ++i) {
+    TF_LITE_ENSURE_MSG(context, in_data[i] >= op_data->input_offset,
+                       "Rsqrt is only defined for positive values");
+  }
+  return EvalImpl<int8_t>(context, node, RsqrtInt8Func, type);
+}
+
+float RsqrtFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return 1.0f / std::sqrt(f);
 }
 
 TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   switch (input->type) {
     case kTfLiteFloat32:
-      return EvalImpl<float>(
-          context, node, [](float f) { return 1.f / std::sqrt(f); },
-          input->type);
+      return EvalImpl<float>(context, node, RsqrtFunc, input->type);
     case kTfLiteInt8:
-      return RsqrtEvalQuantized(context, node, input->type);
+      return RsqrtInt8Eval(context, node, input->type);
     default:
       MicroPrintf("Current data type %s is not supported.",
                   TfLiteTypeGetName(input->type));
@@ -236,12 +255,22 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
+float SquareFunc(float f, const OpData* op_data) {
+  (void)op_data;
+  return f * f;
+}
+
 TfLiteStatus SquareEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalNumeric(context, node, [](float f) { return f * f; });
+  return EvalNumeric(context, node, SquareFunc);
+}
+
+bool LogicalNotFunc(bool f, const OpData* op_data) {
+  (void)op_data;
+  return !f;
 }
 
 TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
-  return EvalLogical(context, node, [](bool v) { return !v; });
+  return EvalLogical(context, node, LogicalNotFunc);
 }
 
 }  // namespace
