@@ -109,6 +109,13 @@ void TestElementwiseQuantized(const TfLiteRegistration& registration,
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_elements_count = ElementCount(*output_dims);
+  const int output_dims_count = ElementCount(*output_dims);
+
+  // Place zero in the uninitialized output buffer.
+  for (int i = 0; i < output_dims_count; ++i) {
+    output_quantized[i] = 0;
+    output_dequantized[i] = 0.0f;
+  }
 
   constexpr int inputs_size = 1;
   constexpr int outputs_size = 1;
