@@ -21,8 +21,6 @@ limitations under the License.
 
 namespace tflite {
 
-namespace reference_ops {
-
 template <typename T>
 inline void DivCheckArithmeticParams(const ArithmeticParams& params) {
   TFLITE_DCHECK_LE(params.quantized_activation_min,
@@ -241,7 +239,6 @@ inline void Div(const ArithmeticParams& params,
   }
 }
 
-}  // namespace reference_ops
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_DIV_H_
