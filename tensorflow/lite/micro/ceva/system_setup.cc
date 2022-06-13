@@ -21,9 +21,9 @@ limitations under the License.
 
 namespace tflite {
 
-int32_t ticks_per_second() { return 100e6; }
+uint32_t ticks_per_second() { return 100e6; }
 
-int32_t GetCurrentTimeTicks() { return clock(); }
+uint32_t GetCurrentTimeTicks() { return static_cast<uint32_t>(clock()); }
 
 void InitializeTarget() {
   // start clock for profiler
