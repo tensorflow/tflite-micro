@@ -35,7 +35,7 @@ const char kRsqrtName[] = "Rsqrt";
 
 struct OpData {
   int32_t multiplier;
-  int32_t shift;
+  int shift;
   int input_offset;
   int output_offset;
   bool needs_rescale;
@@ -55,7 +55,7 @@ bool IsRsqrtSupportedType(const TfLiteType type) {
 
 inline void SetRsqrtOutputMultiplier(const float input_scale,
                                      const float output_scale,
-                                     int32_t* multiplier, int32_t* shift) {
+                                     int32_t* multiplier, int* shift) {
   const double scale = 1.0 / (std::sqrt(static_cast<double>(input_scale)) *
                               static_cast<double>(output_scale));
   QuantizeMultiplier(scale, multiplier, shift);
@@ -188,8 +188,8 @@ TfLiteStatus SqrtEval(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node,
                                 TfLiteType type) {
   const auto* op_data = static_cast<const OpData*>(node->user_data);
-  const int kMin = std::numeric_limits<int8_t>::min();
-  const int kMax = std::numeric_limits<int8_t>::max();
+  const int32_t kMin = std::numeric_limits<int8_t>::min();
+  const int32_t kMax = std::numeric_limits<int8_t>::max();
   std::function<TfLiteStatus(int8_t)> validate_input_func = [&](int8_t i) {
     TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
                        "Rsqrt is only defined for positive values");
@@ -207,8 +207,8 @@ TfLiteStatus RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node,
     int inv_sqrt_shift;
     GetInvSqrtQuantizedMultiplierExp(value, kReverseShift, &inv_sqrt_multiplier,
                                      &inv_sqrt_shift);
-    const int32_t data = MultiplyByQuantizedMultiplier(1, inv_sqrt_multiplier,
-                                                       inv_sqrt_shift + kShift);
+    const int32_t data = MultiplyByQuantizedMultiplier(
+        static_cast<int32_t>(1), inv_sqrt_multiplier, inv_sqrt_shift + kShift);
     const int32_t output =
         MultiplyByQuantizedMultiplier(data, op_data->multiplier,
                                       op_data->shift - kShift) +
