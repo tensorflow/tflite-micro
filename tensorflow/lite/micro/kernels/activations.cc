@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -60,8 +61,8 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default: {
-      TF_LITE_KERNEL_LOG(context, "Only float32 is supported currently, got %s",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Only float32 is supported currently, got %s",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
   }
@@ -99,8 +100,8 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default: {
-      TF_LITE_KERNEL_LOG(context, "Only float32 is supported currently, got %s",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Only float32 is supported currently, got %s",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
   }
