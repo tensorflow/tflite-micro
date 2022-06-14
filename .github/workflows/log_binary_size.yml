@@ -68,7 +68,7 @@ jobs:
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
         #troubleshooting
-        git check-ignore -v -- data/continuous_builds/size_profiling/linux_x86_64_release/keyword_benchmark.png
+ #       git check-ignore -v data/continuous_builds/size_profiling/linux_x86_64_release/keyword_benchmark.png
         ls -alh data/continuous_builds/size_profiling/linux_x86_64_release/
         git status
         git add -A .
