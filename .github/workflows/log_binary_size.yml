@@ -68,13 +68,16 @@ jobs:
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
         #troubleshooting
+        git check-ignore -v -- data/continuous_builds/size_profiling/linux_x86_64_release/keyword_benchmark.png
         ls -alh data/continuous_builds/size_profiling/linux_x86_64_release/
         git status
         git add -A .
+        git add data/continuous_builds/size_profiling/linux_x86_64_release/*.png
         git commit -a -m "Automated binary size log update"
         git checkout $LOG_BRANCH
         git checkout main -- data/continuous_builds/size_profiling/
         git add -A .
+        git add data/continuous_builds/size_profiling/linux_x86_64_release/*.png
         git status
         git commit -a -m "Automated binary size log update"
         git push
