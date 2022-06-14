@@ -219,6 +219,7 @@ tflm_kernel_cc_library(
         "quantize_common.cc",
         "read_variable.cc",
         "reduce.cc",
+        "reduce_common.cc",
         "reshape.cc",
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
@@ -267,6 +268,7 @@ tflm_kernel_cc_library(
         "pooling.h",
         "prelu.h",
         "quantize.h",
+        "reduce.h",
         "softmax.h",
         "sub.h",
         "svdf.h",
@@ -281,10 +283,7 @@ tflm_kernel_cc_library(
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(
-            ["xtensa/**/*.cc"],
-            exclude = ["xtensa/conv.cc"],
-        ),
+        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,

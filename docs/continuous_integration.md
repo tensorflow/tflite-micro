@@ -11,7 +11,7 @@ The continuous integration system is controlled by applying labels to PRs. There
   ## `ci:run`
   The `ci:run` label runs the [main testing suite](../.github/workflows/ci.yml) against the PR. For details of the tests involved, examine the linked file. The `ci:run` tag is self-removing.
   ## `ci:ready_to_merge`
-  After all tests from `ci:run` have passed, the Google CLA has been agreed to, and a reviewer has approved the PR, applying the `ci:ready_to_merge` label will enter the PR into the merge queue. Unless there is a conflict with other PR's in the queue, this should be a fire and forget operation. In the case of a conflict due to code that is merged before a given PR, you will need to troubleshoot your code manually. 
+  After all tests from `ci:run` have passed, the Google CLA has been agreed to, and a reviewer has approved the PR, applying the `ci:ready_to_merge` label will enter the PR into the merge queue. Unless there is a conflict with other PR's in the queue, this should be a fire and forget operation. In the case of a conflict due to code that is merged before a given PR, you will need to troubleshoot your code manually.
 # Manually Running Tests
 Tests can also be run manually on the command line within a docker container, which can be built with:
    ```
@@ -20,7 +20,17 @@ Tests can also be run manually on the command line within a docker container, wh
 
    or use the tflm-ci docker image from [here](https://github.com/users/TFLM-bot/packages/container/package/tflm-ci).
 
-  You will still need to copy or mount your fork of tflite-micro on to this docker container prior to running any tests.
+  You will still need to copy or mount your fork of tflite-micro on to this docker container prior to running any tests. To run the built Docker image interactively and mount your local copy of tflite-micro on the container, run:
+  ```
+  docker run -v /path/to/local/tflite-micro:/path/to/docker/tflite-micro -it tflm-ci /bin/bash
+  ```
+  This way changes from your local fork will be reflected in the Docker container.
+
+  You can also view or remove your instantiated containers by doing:
+  ```
+  docker ps --all
+  docker rm <docker image ID>
+  ```
 # Sync From The Tensorflow Repository
 While TfLite Micro and TfLite are in separate GitHub repositories, the two
 projects continue to share common code.
@@ -30,7 +40,7 @@ shared code. As a result, any changes to this shared code must be made in the
 [TensorFlow repo](https://github.com/tensorflow/tensorflow) which will then automatically sync'd via a scheduled
 [GitHub workflow](../.github/workflows/sync.yml).
 # Merge Queue Details
-This section is probably only of interest if you plan to be doing surgery on the CI system. 
+This section is probably only of interest if you plan to be doing surgery on the CI system.
 ## Mergify
 We use [Mergify](https://mergify.com/) for our merge queue. [The documentation](https://docs.mergify.com/) is reasonably straight forward.
 ## Config File

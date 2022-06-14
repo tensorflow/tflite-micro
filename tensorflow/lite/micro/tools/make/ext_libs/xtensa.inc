@@ -1,14 +1,20 @@
 # Explicitly add kernel sources specific to the Xtensa optimized
 # implementations.
 MICROLITE_CC_KERNEL_SRCS += \
+  tensorflow/lite/micro/kernels/xtensa/add_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
-  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
+  tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
   tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
   tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
-  tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc 
+  tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
+  tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc 
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${MAKEFILE_DIR}/downloads hifi5)
@@ -129,7 +135,7 @@ FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
 
 INCLUDES += -I$(FFT_PATH)/
 
-ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal))
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal hifi5))
 THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
 

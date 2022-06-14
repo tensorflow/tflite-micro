@@ -1,0 +1,54 @@
+From 6cd950c461ea56af59c68b15682e3d1e94ce7db8 Mon Sep 17 00:00:00 2001
+From: Hannes Mogensen <hannes.mogensen@arm.com>
+Date: Wed, 25 May 2022 09:30:09 +0200
+Subject: [PATCH] Increase stack size and and change memory allocation from
+ DTCM to SRAM
+
+Change-Id: If414fb875c0bff4940bf072e466068284579e5f6
+---
+ targets/corstone-300/platform.ld | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/targets/corstone-300/platform.ld b/targets/corstone-300/platform.ld
+index ec58acc..21316a4 100644
+--- a/targets/corstone-300/platform.ld
++++ b/targets/corstone-300/platform.ld
+@@ -75,7 +75,7 @@
+   #define ETHOSU_ARENA  1
+ #endif
+
+-__STACK_SIZE = 0x00008000;
++__STACK_SIZE = 0x00030000;
+ __HEAP_SIZE  = 0x00008000;
+
+ MEMORY
+@@ -150,9 +150,6 @@ SECTIONS
+     *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+     *(SORT(.dtors.*))
+     *(.dtors)
+-
+-    *(.rodata*)
+-
+     KEEP(*(.eh_frame*))
+   } > ITCM :rom_exec
+
+@@ -275,6 +272,7 @@ SECTIONS
+     *(network_model_sec)
+ #endif
+     * (expected_output_data_sec)
++    *(.rodata*)
+   } > DDR :rom_dram
+
+   __eddr_data = ALIGN (16) ;
+@@ -293,7 +291,7 @@ SECTIONS
+     *(COMMON)
+     . = ALIGN(4);
+     __bss_end__ = .;
+-  } > DTCM :null
++  } > SRAM :null
+
+   .heap (COPY) :
+   {
+--
+2.25.1
+
