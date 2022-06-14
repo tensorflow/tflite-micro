@@ -12,6 +12,7 @@ MICROLITE_CC_KERNEL_SRCS += \
   tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
+  tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc 
 

@@ -20,13 +20,13 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestBasicTimerFunctionality) {
-  int32_t ticks_per_second = tflite::ticks_per_second();
+  uint32_t ticks_per_second = tflite::ticks_per_second();
 
   // Retry enough times to guarantee a tick advance, while not taking too long
   // to complete.  With 1e6 retries, assuming each loop takes tens of cycles,
   // this will retry for less than 10 seconds on a 10MHz platform.
   constexpr int kMaxRetries = 1e6;
-  int start_time = tflite::GetCurrentTimeTicks();
+  unsigned int start_time = tflite::GetCurrentTimeTicks();
 
   if (ticks_per_second != 0) {
     for (int i = 0; i < kMaxRetries; i++) {
