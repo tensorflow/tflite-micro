@@ -56,7 +56,9 @@ jobs:
       run: |
         git checkout --track origin/$LOG_BRANCH
         git checkout main
-        git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
+        git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/
+        #troubleshooting
+        ls -alh data/continuous_builds/size_profiling/linux_x86_64_release/
     - name: update logs x86
       uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
       with:
@@ -65,6 +67,8 @@ jobs:
       run: |
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
+        git status
+        git add .
         git commit -a -m "Automated binary size log update"
         git checkout $LOG_BRANCH
         git checkout main -- data/continuous_builds/size_profiling/
