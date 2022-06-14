@@ -70,11 +70,11 @@ jobs:
         #troubleshooting
         ls -alh data/continuous_builds/size_profiling/linux_x86_64_release/
         git status
-        git add .
+        git add -A .
         git commit -a -m "Automated binary size log update"
         git checkout $LOG_BRANCH
         git checkout main -- data/continuous_builds/size_profiling/
-        git add .
+        git add -A .
         git status
         git commit -a -m "Automated binary size log update"
         git push
