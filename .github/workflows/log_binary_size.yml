@@ -67,6 +67,8 @@ jobs:
       run: |
         git config --local user.name 'TFLM-bot'
         git config --local user.email 'tflm-github-bot@google.com'
+        #troubleshooting
+        ls -alh data/continuous_builds/size_profiling/linux_x86_64_release/
         git status
         git add .
         git commit -a -m "Automated binary size log update"
