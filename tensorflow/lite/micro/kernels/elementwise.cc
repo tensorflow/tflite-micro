@@ -240,14 +240,16 @@ inline T AbsEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
 
   const int32_t value = std::abs(i - op_data->input_offset);
   if (!op_data->needs_rescale) {
-    return static_cast<T>(
-        std::fmin(std::fmax(value + op_data->output_offset, kMin), kMax));
+    return static_cast<T>(std::min(
+        std::max(value + op_data->output_offset, static_cast<int>(kMin)),
+        static_cast<int>(kMax)));
   }
 
   const int32_t output = tflite::MultiplyByQuantizedMultiplier(
                              value, op_data->multiplier, op_data->shift) +
                          op_data->output_offset;
-  return static_cast<T>(std::fmin(std::fmax(output, kMin), kMax));
+  return static_cast<T>(std::min(std::max(output, static_cast<int>(kMin)),
+                                 static_cast<int>(kMax)));
 }
 
 template <typename T>
@@ -272,7 +274,8 @@ inline T RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
       tflite::MultiplyByQuantizedMultiplier(data, op_data->multiplier,
                                             op_data->shift - kShift) +
       op_data->output_offset;
-  return static_cast<T>(std::fmin(std::fmax(output, kMin), kMax));
+  return static_cast<T>(std::min(std::max(output, static_cast<int>(kMin)),
+                                 static_cast<int>(kMax)));
 }
 
 template <typename T>
