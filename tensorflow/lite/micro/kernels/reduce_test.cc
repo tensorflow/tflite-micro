@@ -127,7 +127,8 @@ void TestReduceOpQuantized(int* input_dims_data, const float* input_data,
                            T* output_data_quant, T* expected_output_data_quant,
                            float output_scale, int output_zero_point,
                            const TfLiteRegistration& registration,
-                           TfLiteReducerParams* params) {
+                           TfLiteReducerParams* params,
+                           float tolerance = 0.01) {
   // Convert dimesion arguments to TfLiteArrays
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
@@ -154,45 +155,7 @@ void TestReduceOpQuantized(int* input_dims_data, const float* input_data,
       kTfLiteOk,
       ValidateReduceGoldens(tensors, tensors_size, expected_output_data_quant,
                             output_data_quant, output_dims_count, registration,
-                            params, 0.01));
-}
-
-template <typename T>
-void TestMeanOpQuantized(int* input_dims_data, const float* input_data,
-                         T* input_data_quant, float input_scale,
-                         int input_zero_point, int* axis_dims_data,
-                         const int32_t* axis_data, int* output_dims_data,
-                         const float* expected_output_data,
-                         T* output_data_quant, T* expected_output_data_quant,
-                         float output_scale, int output_zero_point,
-                         TfLiteReducerParams* params) {
-  // Convert dimesion arguments to TfLiteArrays
-  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
-  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
-
-  // Get number of elements in input and output tensors
-  const int output_dims_count = ElementCount(*output_dims);
-
-  // Initialize tensors
-  constexpr int tensors_size = 3;
-  TfLiteTensor tensors[] = {
-      CreateQuantizedTensor(input_data, input_data_quant, input_dims,
-                            input_scale, input_zero_point),
-      CreateTensor(axis_data, axis_dims),
-      CreateQuantizedTensor(output_data_quant, output_dims, output_scale,
-                            output_zero_point),
-  };
-
-  // Quantize expected output
-  tflite::Quantize(expected_output_data, expected_output_data_quant,
-                   output_dims_count, output_scale, output_zero_point);
-
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      ValidateReduceGoldens(tensors, tensors_size, expected_output_data_quant,
-                            output_data_quant, output_dims_count,
-                            tflite::Register_MEAN(), params, 1.0));
+                            params, tolerance));
 }
 
 }  // namespace
@@ -227,13 +190,13 @@ TF_LITE_MICRO_TEST(MeanInt82DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int8_t>(
+  tflite::testing::TestReduceOpQuantized<int8_t>(
       tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
       tflite::testing::kOutputShape2D, tflite::testing::kGoldenData2D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanInt162DKeepDims) {
@@ -250,13 +213,13 @@ TF_LITE_MICRO_TEST(MeanInt162DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int16_t>(
+  tflite::testing::TestReduceOpQuantized<int16_t>(
       tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
       tflite::testing::kOutputShape2D, tflite::testing::kGoldenData2D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanFloat3DKeepDims) {
@@ -285,13 +248,13 @@ TF_LITE_MICRO_TEST(MeanInt83DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int8_t>(
+  tflite::testing::TestReduceOpQuantized<int8_t>(
       tflite::testing::kInputShape3D, tflite::testing::kInputData3D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape3D, tflite::testing::kAxisData3D,
       tflite::testing::kOutputShape3D, tflite::testing::kGoldenData3D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanInt163DKeepDims) {
@@ -308,13 +271,13 @@ TF_LITE_MICRO_TEST(MeanInt163DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int16_t>(
+  tflite::testing::TestReduceOpQuantized<int16_t>(
       tflite::testing::kInputShape3D, tflite::testing::kInputData3D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape3D, tflite::testing::kAxisData3D,
       tflite::testing::kOutputShape3D, tflite::testing::kGoldenData3D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanFloat4DKeepDims) {
@@ -345,13 +308,13 @@ TF_LITE_MICRO_TEST(MeanInt84DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int8_t>(
+  tflite::testing::TestReduceOpQuantized<int8_t>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       tflite::testing::kOutputShape4D, tflite::testing::kGoldenData4D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanInt164DKeepDims) {
@@ -368,13 +331,13 @@ TF_LITE_MICRO_TEST(MeanInt164DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanOpQuantized<int16_t>(
+  tflite::testing::TestReduceOpQuantized<int16_t>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       tflite::testing::kOutputShape4D, tflite::testing::kGoldenData4D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDims) {
@@ -405,12 +368,13 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDims) {
   float output_scale = 0.5f;
   int output_zero_point = 0;
 
-  tflite::testing::TestMeanOpQuantized<int8_t>(
+  tflite::testing::TestReduceOpQuantized<int8_t>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       kOutputShape4D, tflite::testing::kGoldenData4D, output_data_quant,
-      expected_output_data_quant, output_scale, output_zero_point, &params);
+      expected_output_data_quant, output_scale, output_zero_point,
+      tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDims) {
@@ -427,12 +391,13 @@ TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDims) {
   float output_scale = 0.5f;
   int output_zero_point = 0;
 
-  tflite::testing::TestMeanOpQuantized<int16_t>(
+  tflite::testing::TestReduceOpQuantized<int16_t>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       kOutputShape4D, tflite::testing::kGoldenData4D, output_data_quant,
-      expected_output_data_quant, output_scale, output_zero_point, &params);
+      expected_output_data_quant, output_scale, output_zero_point,
+      tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
@@ -449,12 +414,13 @@ TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
   float output_scale = 0.7f;
   int output_zero_point = 0;
 
-  tflite::testing::TestMeanOpQuantized<int16_t>(
+  tflite::testing::TestReduceOpQuantized<int16_t>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       input_data_quant, input_scale, input_zero_point,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       kOutputShape4D, tflite::testing::kGoldenData4D, output_data_quant,
-      expected_output_data_quant, output_scale, output_zero_point, &params);
+      expected_output_data_quant, output_scale, output_zero_point,
+      tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
@@ -579,12 +545,12 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
   int8_t expected_output_data_quant[2];
   int8_t input_data_quant[12];
 
-  tflite::testing::TestMeanOpQuantized<int8_t>(
+  tflite::testing::TestReduceOpQuantized<int8_t>(
       kInputShape4D, kInputData4D, input_data_quant, input_scale,
       input_zero_point, tflite::testing::kAxisShape4D,
       tflite::testing::kAxisData4D, kOutputShape4D, kGoldenData4D,
       output_data_quant, expected_output_data_quant, output_scale,
-      output_zero_point, &params);
+      output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TESTS_END
