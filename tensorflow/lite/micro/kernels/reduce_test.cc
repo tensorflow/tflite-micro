@@ -91,34 +91,6 @@ TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
   return kTfLiteOk;
 }
 
-void TestMeanFloatInput4D(int* input_dims_data, const float* input_data,
-                          int* axis_dims_data, const int32_t* axis_data,
-                          int* output_dims_data,
-                          const float* expected_output_data, float* output_data,
-                          TfLiteReducerParams* params, float tolerance = 1e-5) {
-  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
-  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
-  const int output_dims_count = ElementCount(*output_dims);
-
-  const TfLiteRegistration registration = tflite::Register_MEAN();
-
-  constexpr int num_of_inputs = 2;   // input and axis
-  constexpr int num_of_outputs = 1;  // output
-
-  constexpr int tensors_size = num_of_inputs + num_of_outputs;
-  TfLiteTensor tensors[tensors_size] = {
-      CreateTensor(input_data, input_dims),
-      CreateTensor(axis_data, axis_dims),
-      CreateTensor(output_data, output_dims),
-  };
-
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, ValidateReduceGoldens(
-                     tensors, tensors_size, expected_output_data, output_data,
-                     output_dims_count, registration, params, tolerance));
-}
-
 void TestReduceOpFloat(int* input_dims_data, const float* input_data,
                        int* axis_dims_data, const int32_t* axis_data,
                        int* output_dims_data, float* output_data,
@@ -234,11 +206,11 @@ TF_LITE_MICRO_TEST(MeanFloat2DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestMeanFloatInput4D(
+  tflite::testing::TestReduceOpFloat(
       tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
       tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
-      tflite::testing::kOutputShape2D, tflite::testing::kGoldenData2D,
-      output_data, &params);
+      tflite::testing::kOutputShape2D, output_data,
+      tflite::testing::kGoldenData2D, tflite::Register_MEAN(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt82DKeepDims) {
@@ -292,11 +264,11 @@ TF_LITE_MICRO_TEST(MeanFloat3DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestMeanFloatInput4D(
+  tflite::testing::TestReduceOpFloat(
       tflite::testing::kInputShape3D, tflite::testing::kInputData3D,
       tflite::testing::kAxisShape3D, tflite::testing::kAxisData3D,
-      tflite::testing::kOutputShape3D, tflite::testing::kGoldenData3D,
-      output_data, &params);
+      tflite::testing::kOutputShape3D, output_data,
+      tflite::testing::kGoldenData3D, tflite::Register_MEAN(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt83DKeepDims) {
@@ -352,11 +324,11 @@ TF_LITE_MICRO_TEST(MeanFloat4DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestMeanFloatInput4D(
+  tflite::testing::TestReduceOpFloat(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
-      tflite::testing::kOutputShape4D, tflite::testing::kGoldenData4D,
-      output_data, &params);
+      tflite::testing::kOutputShape4D, output_data,
+      tflite::testing::kGoldenData4D, tflite::Register_MEAN(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt84DKeepDims) {
@@ -412,10 +384,11 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDims) {
       false  // keep_dims
   };
 
-  tflite::testing::TestMeanFloatInput4D(
+  tflite::testing::TestReduceOpFloat(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
-      kOutputShape4D, tflite::testing::kGoldenData4D, output_data, &params);
+      kOutputShape4D, output_data, tflite::testing::kGoldenData4D,
+      tflite::Register_MEAN(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDims) {
@@ -496,10 +469,10 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
       false  // keep_dims
   };
 
-  tflite::testing::TestMeanFloatInput4D(
+  tflite::testing::TestReduceOpFloat(
       kInputShape4D, kInputData4D, tflite::testing::kAxisShape4D,
-      tflite::testing::kAxisData4D, kOutputShape4D, kGoldenData4D, output_data,
-      &params);
+      tflite::testing::kAxisData4D, kOutputShape4D, output_data, kGoldenData4D,
+      tflite::Register_MEAN(), &params);
 }
 
 TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
