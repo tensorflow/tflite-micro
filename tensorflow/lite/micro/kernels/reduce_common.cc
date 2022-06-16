@@ -248,7 +248,7 @@ TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
     } break;
     default:
       TF_LITE_ENSURE_MSG(context, false,
-                         "Currently, only float32, int8 or uint8 input type "
+                         "Currently, only float32, int8 or int16 input type "
                          "is supported.");
   }
   return kTfLiteOk;
@@ -362,7 +362,7 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
     } break;
     default:
       TF_LITE_ENSURE_MSG(context, false,
-                         "Currently, only float32, int8 or uint8 input type "
+                         "Currently, only float32, int8 or int16 input type "
                          "is supported.");
   }
   return kTfLiteOk;
