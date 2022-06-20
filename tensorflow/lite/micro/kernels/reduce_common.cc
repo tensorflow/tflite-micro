@@ -329,8 +329,8 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
           reference_ops::ReduceSumImpl(
               tflite::micro::GetTensorData<float>(input), input->dims->data,
               output->dims->data, input->dims->size, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis,
-              temp_index, tflite::micro::GetTensorData<float>(output)));
+              tflite::micro::GetTensorData<int>(axis), num_axis, temp_index,
+              tflite::micro::GetTensorData<float>(output)));
     } break;
     case kTfLiteInt8: {
       int32_t* temp_buffer = static_cast<int32_t*>(
@@ -340,11 +340,11 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
           reference_ops::QuantizedMeanOrSum(
               tflite::micro::GetTensorData<int8_t>(input), op_data->input_zp,
               op_data->input_scale, input->dims->data, input->dims->size,
-              tflite::micro::GetTensorData<int8_t>(output),
-              op_data->output_zp, op_data->output_scale, output->dims->data,
-              output->dims->size, tflite::micro::GetTensorData<int>(axis),
-              num_axis, params->keep_dims, temp_index, resolved_axis,
-              temp_buffer, /*compute_sum=*/true));
+              tflite::micro::GetTensorData<int8_t>(output), op_data->output_zp,
+              op_data->output_scale, output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, temp_buffer,
+              /*compute_sum=*/true));
     } break;
     case kTfLiteInt16: {
       int32_t* temp_buffer = static_cast<int32_t*>(
@@ -354,11 +354,11 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
           reference_ops::QuantizedMeanOrSum(
               tflite::micro::GetTensorData<int16_t>(input), op_data->input_zp,
               op_data->input_scale, input->dims->data, input->dims->size,
-              tflite::micro::GetTensorData<int16_t>(output),
-              op_data->output_zp, op_data->output_scale, output->dims->data,
-              output->dims->size, tflite::micro::GetTensorData<int>(axis),
-              num_axis, params->keep_dims, temp_index, resolved_axis,
-              temp_buffer, /*compute_sum=*/true));
+              tflite::micro::GetTensorData<int16_t>(output), op_data->output_zp,
+              op_data->output_scale, output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, temp_buffer,
+              /*compute_sum=*/true));
     } break;
     default:
       TF_LITE_ENSURE_MSG(context, false,
