@@ -134,7 +134,9 @@ class AllocationInfoBuilder {
 
   const tflite::Model* model_ = nullptr;
   INonPersistentBufferAllocator* non_persistent_allocator_ = nullptr;
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   ErrorReporter* reporter_ = nullptr;
+#endif
 
   GraphAllocationInfo info_;
   int allocation_scope_count_ = 0;
