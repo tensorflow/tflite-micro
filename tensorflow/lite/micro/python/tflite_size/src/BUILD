@@ -4,11 +4,6 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "test_resources",
-    srcs = ["simple_add_model.tflite"],
-)
-
 # Append _lib at the end to avoid naming collision with the extension below
 # because internal tool appends a _pybind suffix.
 pybind_library(
