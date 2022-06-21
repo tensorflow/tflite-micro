@@ -40,7 +40,8 @@ SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {}
+      temp_(buffer_head_) {
+}
 
 SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
                                              uint8_t* buffer,

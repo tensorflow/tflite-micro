@@ -69,9 +69,11 @@ class AllocationInfoBuilder {
       : model_(model),
         non_persistent_allocator_(non_persistent_allocator)
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-        , reporter_(reporter)
+        ,
+        reporter_(reporter)
 #endif
-  {}
+  {
+  }
 
   // Check if model contains offline planned buffer offsets.
   //  - If there's no metadata available, offline_planner_offsets is not set
