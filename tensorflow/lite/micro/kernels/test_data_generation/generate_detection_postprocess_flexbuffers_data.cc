@@ -15,7 +15,7 @@ limitations under the License.
 #include "flatbuffers/flexbuffers.h"
 
 const char* license =
-    "/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.\n"
+    "/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.\n\n"
     "Licensed under the Apache License, Version 2.0 (the \"License\");\n"
     "you may not use this file except in compliance with the License.\n"
     "You may obtain a copy of the License at\n\n"
