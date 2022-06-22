@@ -9,9 +9,9 @@ struct) instead of storing it as the tflite buffer.
 Here is how you can use a visualization of tflite file
 
 ```
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size
+cd tensorflow/lite/micro/python/tflite_size/src import
 
-flatbuffer_size.convert_tflite_to_html(in_filename, out_html_file, out_json_file)
+bazel run flatbuffer_size -- in_tflite_file out_html_file
 ```
 
 A sample output html is [here](./tests/gold_simple_add_model.json.html).

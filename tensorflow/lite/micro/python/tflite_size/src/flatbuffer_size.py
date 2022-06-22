@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 import json
+import sys
 
 from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_wrapper_pybind
 from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_graph
@@ -42,3 +43,17 @@ def convert_tflite_to_html(in_filename, out_html_file, out_json_file=''):
     # Write html output to compare with golden vector file
     with open(out_html_file, 'w') as f:
       f.write(htmlString)
+
+
+def main(argv):
+  try:
+    tflite_input = argv[1]
+    html_output = argv[2]
+  except IndexError:
+    print("Usage: %s <input tflite> <output html>" % (argv[0]))
+  else:
+    convert_tflite_to_html(tflite_input, html_output)
+
+
+if __name__ == '__main__':
+  main(sys.argv)

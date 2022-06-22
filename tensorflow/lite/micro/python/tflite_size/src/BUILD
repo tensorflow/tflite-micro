@@ -35,9 +35,8 @@ pybind_extension(
 )
 
 py_library(
-    name = "flatbuffer_size",
+    name = "flatbuffer_size_lib",
     srcs = [
-        "flatbuffer_size.py",
         "flatbuffer_size_graph.py",
         "flatbuffer_size_graph_html_converter.py",
     ],
@@ -45,4 +44,15 @@ py_library(
         ":flatbuffer_size_wrapper_pybind.so",
     ],
     srcs_version = "PY3",
+)
+
+py_binary(
+    name = "flatbuffer_size",
+    srcs = [
+        "flatbuffer_size.py",
+    ],
+    srcs_version = "PY3",
+    deps = [
+        ":flatbuffer_size_lib",
+    ],
 )
