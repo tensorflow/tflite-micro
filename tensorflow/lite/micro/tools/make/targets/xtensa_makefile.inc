@@ -44,10 +44,6 @@ PLATFORM_FLAGS = \
   $(TARGET_ARCH_DEFINES) \
   -mlongcalls
 
-ifeq ($(BUILD_TYPE), release)
-  PLATFORM_FLAGS += -Wno-unused-private-field
-endif
-
 export PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/bin:$(PATH)
 TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
