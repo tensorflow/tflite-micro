@@ -31,10 +31,13 @@ SIZE_THRESHOLD_SETTING = {
 def _plot_and_detect_size_increase_for_binary(input_dir, output_dir,
                                               binary_name, threshold):
   csv_path = '%s/%s.csv' % (input_dir, binary_name)
-  size_log = pd.read_csv(csv_path, index_col=False, nrows=SIZE_HISTORY_DEPTH)
+  size_log = pd.read_csv(csv_path, index_col=False).iloc[-SIZE_HISTORY_DEPTH:]
+  size_log.reset_index(drop=True, inplace=True)
+  start_date = size_log.iloc[0, 0][0:10]
+  end_date = size_log.iloc[-1, 0][0:10]
 
   fig, axs = plt.subplots(3, 2)
-  fig.suptitle('Source: %s' % binary_name)
+  fig.suptitle('Source: %s\n%s - %s' % (binary_name, start_date, end_date))
 
   threshold_messages = []
 
