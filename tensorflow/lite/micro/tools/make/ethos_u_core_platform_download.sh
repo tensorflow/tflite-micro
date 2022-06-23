@@ -55,10 +55,11 @@ else
   fi
 
   git clone https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
-  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
+  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
   git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
+  rm -rf .git
+  create_git_repo ./
 
-  # Change memory allocation
   apply_patch_to_folder ./ ../../increase-stack-size-and-switch-DTCM-SRAM.patch "TFLM patch"
 
   cd "${ROOT_DIR}"
