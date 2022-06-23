@@ -80,7 +80,7 @@ class TestDataGenerator:
                           size=input_tensor1().shape)
     ]
 
-  def GetTypeStringFromTensor(self, tensor):
+  def _GetTypeStringFromTensor(self, tensor):
     if tensor.dtype == np.int8:
       return 'int8'
     if tensor.dtype == np.int16:
@@ -171,7 +171,7 @@ class TestDataGenerator:
 
     # Write input to CSV file.
     for input_idx, input_tensor_data in enumerate(generated_inputs):
-      input_type = self.GetTypeStringFromTensor(input_tensor_data)
+      input_type = self._GetTypeStringFromTensor(input_tensor_data)
       self.input_types[input_idx] = input_type
       input_flat = input_tensor_data.flatten().tolist()
       csv_input_filename = \
@@ -184,7 +184,7 @@ class TestDataGenerator:
     output_flat = output_tensor().flatten().tolist()
 
     # Write golden to CSV file.
-    output_type = self.GetTypeStringFromTensor(output_tensor())
+    output_type = self._GetTypeStringFromTensor(output_tensor())
     self.output_type = output_type
     csv_golden_filename = f"{model_path.split('.')[0]}_golden_{output_type}.csv"
     golden_csvfile = open(csv_golden_filename, 'w', newline='')
