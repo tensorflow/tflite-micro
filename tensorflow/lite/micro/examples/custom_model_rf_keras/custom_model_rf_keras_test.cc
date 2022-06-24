@@ -60,7 +60,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   resolver.AddShape();
   resolver.AddPack();
 
-  constexpr int kTensorArenaSize = 0.3456 * 1024.0 * 1024.0; // MB
+  constexpr int kTensorArenaSize = 0.5 * 1024.0 * 1024.0; // MB
   uint8_t tensor_arena[kTensorArenaSize];
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
@@ -77,21 +77,10 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   TF_LITE_MICRO_EXPECT_EQ(IMG_W, input->dims->data[2]); // W
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[3]);     // C
 
-  //std::string src_path = __FILE__;
-  //std::string src_dir = src_path.substr(0, src_path.rfind("/"));
-  //std::string img_path = cv::samples::findFile(
-  //    src_dir + "/images/test-img.jpeg");
-  //cv::Mat raw_img = cv::imread(img_path, cv::IMREAD_COLOR);
-  //cv::Mat img;
-  //cv::resize(raw_img, img, cv::Size(IMG_W, IMG_H), 0.0, 0.0, cv::INTER_LINEAR);
-
-  // img is in HWC format -> need to convert to NHWC
-  // also unroll image
+  // img is in HWC format -> need to convert to NHWC; also unroll image
   for (int vH = 0; vH < IMG_H; vH++) {
     for (int vW = 0; vW < IMG_W; vW++) {
-      //int vv = img.at<uchar>(vH*IMG_W + vW);
-      uint8_t v = 17;
-      input->data.f[vW + vH*IMG_W] = v;
+      input->data.int8[vW + vH*IMG_W] = 42;
     }
   }
 
