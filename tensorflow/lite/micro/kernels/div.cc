@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/div.h"
+#include "tensorflow/lite/kernels/internal/reference/div.h"
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
@@ -119,9 +119,9 @@ void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
       tflite::micro::GetTensorShape(input2), &op_params);
 
   if (requires_broadcast) {
-    TF_LITE_DIV(tflite, BroadcastDivSlow, float);
+    TF_LITE_DIV(reference_ops, BroadcastDivSlow, float);
   } else {
-    TF_LITE_DIV(tflite, Div, float);
+    TF_LITE_DIV(reference_ops, Div, float);
   }
 #undef TF_LITE_DIV
 }
@@ -156,9 +156,9 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
         tflite::micro::GetTensorShape(input2), &op_params);
 
     if (requires_broadcast) {
-      TF_LITE_DIV(tflite, BroadcastDivSlow, int8_t);
+      TF_LITE_DIV(reference_ops, BroadcastDivSlow, int8_t);
     } else {
-      TF_LITE_DIV(tflite, Div, int8_t);
+      TF_LITE_DIV(reference_ops, Div, int8_t);
     }
 #undef TF_LITE_DIV
   } else {

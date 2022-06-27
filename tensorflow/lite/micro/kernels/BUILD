@@ -256,7 +256,6 @@ tflm_kernel_cc_library(
         "conv.h",
         "depthwise_conv.h",
         "dequantize.h",
-        "div.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
