@@ -29,12 +29,12 @@ limitations under the License.
 namespace tflite {
 
 namespace {
-constexpr int kClocksPerSecond = 25e6;
+constexpr uint32_t kClocksPerSecond = 25e6;
 }  // namespace
 
-int32_t ticks_per_second() { return kClocksPerSecond; }
+uint32_t ticks_per_second() { return kClocksPerSecond; }
 
-int32_t GetCurrentTimeTicks() {
+uint32_t GetCurrentTimeTicks() {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
 #ifdef ARMCM55
   return ARM_PMU_Get_CCNTR();

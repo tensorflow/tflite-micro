@@ -23,9 +23,9 @@ limitations under the License.
 
 namespace tflite {
 
-int32_t ticks_per_second() { return 0; }
+uint32_t ticks_per_second() { return 0; }
 
-int32_t GetCurrentTimeTicks() {
+uint32_t GetCurrentTimeTicks() {
   static bool is_initialized = false;
 
   if (!is_initialized) {
