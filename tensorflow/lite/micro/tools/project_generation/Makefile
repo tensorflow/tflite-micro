@@ -40,14 +40,8 @@ INCLUDES := \
   -I./third_party/kissfft/tools \
   -I./third_party/ruy
 
-CXXFLAGS := \
-  -std=c++11 \
-  -fno-rtti \
-  -fno-exceptions \
-  -fno-threadsafe-statics
-
-CCFLAGS := \
-  -std=c11
+CXXFLAGS :=
+CCFLAGS :=
 
 ifeq ($(BUILD_TYPE), cmsis_nn)
   CXX := arm-none-eabi-g++
@@ -79,9 +73,14 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 endif
 
 CXXFLAGS += \
+  -std=c++11 \
+  -fno-rtti \
+  -fno-exceptions \
+  -fno-threadsafe-statics \
   $(COMMON_FLAGS)
 
 CCFLAGS += \
+  -std=c11 \
   $(COMMON_FLAGS)
 
 ARFLAGS := -r
