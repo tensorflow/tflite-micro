@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -145,9 +146,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::Register_ASSIGN_VARIABLE(), ParseAssignVariable);
   }
 
-  TfLiteStatus AddAveragePool2D() {
-    return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D,
-                      tflite::Register_AVERAGE_POOL_2D(), ParsePool);
+  TfLiteStatus AddAveragePool2D(
+      const TfLiteRegistration& registration = Register_AVERAGE_POOL_2D()) {
+    return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D, registration, ParsePool);
   }
 
   TfLiteStatus AddBatchToSpaceNd() {
