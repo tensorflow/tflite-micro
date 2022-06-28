@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@ limitations under the License.
 #include "flatbuffers/flexbuffers.h"
 
 const char* license =
-    "/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.\n"
+    "/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.\n\n"
     "Licensed under the Apache License, Version 2.0 (the \"License\");\n"
     "you may not use this file except in compliance with the License.\n"
     "You may obtain a copy of the License at\n\n"
@@ -52,7 +52,7 @@ void generate(const char* name, bool use_regular_nms) {
   int fbb_size = fbb.GetBuffer().size();
 
   printf("const int g_gen_data_size_%s = %d;\n", name, fbb_size);
-  printf("const unsigned char g_gen_data_%s[] = { ", name);
+  printf("alignas(4) const unsigned char g_gen_data_%s[] = { ", name);
   for (size_t i = 0; i < fbb_size; i++) {
     printf("0x%02x, ", init_data[i]);
   }
@@ -62,7 +62,7 @@ void generate(const char* name, bool use_regular_nms) {
 int main() {
   printf("%s\n", license);
   printf("// This file is generated. See:\n");
-  printf("// tensorflow/lite/micro/kernels/detection_postprocess_test/");
+  printf("// tflite-micro/tensorflow/lite/micro/kernels/test_data_generation/");
   printf("README.md\n");
   printf("\n");
   printf(
