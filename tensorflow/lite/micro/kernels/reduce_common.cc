@@ -326,11 +326,15 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
     case kTfLiteFloat32: {
       TF_LITE_ENSURE(
           context,
-          reference_ops::ReduceSumImpl(
+          reference_ops::ReduceGeneric<float>(
               tflite::micro::GetTensorData<float>(input), input->dims->data,
-              output->dims->data, input->dims->size, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis, temp_index,
-              tflite::micro::GetTensorData<float>(output)));
+              input->dims->size, tflite::micro::GetTensorData<float>(output),
+              output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, /*init_value=*/0.f,
+              [](const float current, const float in) -> float {
+                return in + current;
+              }));
     } break;
     case kTfLiteInt8: {
       int32_t* temp_buffer = static_cast<int32_t*>(
