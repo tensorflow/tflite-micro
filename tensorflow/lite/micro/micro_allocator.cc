@@ -120,7 +120,8 @@ TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
 
 IPersistentBufferAllocator* CreatePersistentArenaAllocator(uint8_t* buffer_head,
                                                            size_t buffer_size) {
-  // Always align the actually used area
+  // Align the actually used area by the tail because persistent buffer grows
+  // from the bottom to top.
   uint8_t* aligned_buffer_tail =
       AlignPointerDown(buffer_head + buffer_size, MicroArenaBufferAlignment());
   size_t aligned_buffer_size = aligned_buffer_tail - buffer_head;
@@ -147,7 +148,8 @@ INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
       persistent_buffer_allocator->AllocatePersistentBuffer(
           sizeof(NonPersistentArenaBufferAllocator),
           alignof(NonPersistentArenaBufferAllocator));
-  // Always align the actually used area
+  // Align the actually used area by the head because persistent buffer grows
+  // from the head to bottom.
   uint8_t* aligned_buffer_head =
       AlignPointerUp(buffer_head, MicroArenaBufferAlignment());
   size_t aligned_buffer_size = buffer_head + buffer_size - aligned_buffer_head;
