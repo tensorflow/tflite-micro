@@ -95,12 +95,14 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
-#else
-#if defined(VISION_P6)
+#elif defined(VISION_P6)
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   if (InitXtensaContext()) {
     return nullptr;
   }
-#endif  // defined(VISION_P6)
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(XtensaSoftmaxOpData));
+#else
   return SoftmaxInit(context, buffer, length);
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
 }
