@@ -178,6 +178,7 @@ tflm_kernel_cc_library(
         "dequantize.cc",
         "dequantize_common.cc",
         "detection_postprocess.cc",
+        "div.cc",
         "elementwise.cc",
         "elu.cc",
         "ethosu.cc",
@@ -609,6 +610,19 @@ cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
         "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_test(
+    name = "div_test",
+    srcs = [
+        "div_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
