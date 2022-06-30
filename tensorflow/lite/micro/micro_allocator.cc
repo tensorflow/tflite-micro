@@ -133,6 +133,9 @@ IPersistentBufferAllocator* CreatePersistentArenaAllocator(uint8_t* buffer_head,
   return new (allocator_buffer) PersistentArenaBufferAllocator(tmp);
 }
 
+// NonPersistentBufferAllocator instance is created in the persistent buffer
+// because it has to be persistent to keep track of the non-persistent buffer
+// information.
 INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
     uint8_t* buffer_head, size_t buffer_size,
     IPersistentBufferAllocator* persistent_buffer_allocator) {
