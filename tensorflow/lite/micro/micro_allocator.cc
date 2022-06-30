@@ -120,8 +120,12 @@ TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
 
 IPersistentBufferAllocator* CreatePersistentArenaAllocator(uint8_t* buffer_head,
                                                            size_t buffer_size) {
+  // Always align the actually used area
+  uint8_t* aligned_buffer_tail =
+      AlignPointerDown(buffer_head + buffer_size, MicroArenaBufferAlignment());
+  size_t aligned_buffer_size = aligned_buffer_tail - buffer_head;
   PersistentArenaBufferAllocator tmp =
-      PersistentArenaBufferAllocator(buffer_head, buffer_size);
+      PersistentArenaBufferAllocator(buffer_head, aligned_buffer_size);
 
   // Allocate enough bytes from the buffer to create a SimpleMemoryAllocator.
   // The new instance will use the current adjusted tail buffer from the tmp
@@ -143,9 +147,14 @@ INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
       persistent_buffer_allocator->AllocatePersistentBuffer(
           sizeof(NonPersistentArenaBufferAllocator),
           alignof(NonPersistentArenaBufferAllocator));
+  // Always align the actually used area
+  uint8_t* aligned_buffer_head =
+      AlignPointerUp(buffer_head, MicroArenaBufferAlignment());
+  size_t aligned_buffer_size = buffer_head + buffer_size - aligned_buffer_head;
+
   INonPersistentBufferAllocator* non_persistent_buffer_allocator =
-      new (allocator_buffer)
-          NonPersistentArenaBufferAllocator(buffer_head, buffer_size);
+      new (allocator_buffer) NonPersistentArenaBufferAllocator(
+          aligned_buffer_head, aligned_buffer_size);
   return non_persistent_buffer_allocator;
 }
 
