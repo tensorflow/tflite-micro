@@ -311,12 +311,13 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if defined(HIFI5)
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
-#else
-#if defined(VISION_P6)
+#elif defined(VISION_P6)
   if (InitXtensaContext()) {
     return nullptr;
   }
-#endif  // defined(VISION_P6)
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(XtensaOpDataPooling));
+#else
   return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
 #endif
 }
