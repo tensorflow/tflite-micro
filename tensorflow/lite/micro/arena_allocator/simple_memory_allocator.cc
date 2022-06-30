@@ -32,12 +32,16 @@ namespace tflite {
 SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
                                              uint8_t* buffer_head,
                                              uint8_t* buffer_tail)
-    : error_reporter_(error_reporter),
+    :
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+      error_reporter_(error_reporter),
+#endif
       buffer_head_(buffer_head),
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {}
+      temp_(buffer_head_) {
+}
 
 SimpleMemoryAllocator::SimpleMemoryAllocator(ErrorReporter* error_reporter,
                                              uint8_t* buffer,
