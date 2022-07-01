@@ -136,6 +136,15 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
+  // Creates a MicroAllocator instance using the provided SimpleMemoryAllocator
+  // instance and the MemoryPlanner. This allocator instance will use the
+  // SimpleMemoryAllocator instance to manage allocations internally.
+  static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
+                                size_t persistent_arena_size,
+                                uint8_t* non_persistent_tensor_arena,
+                                size_t non_persistent_arena_size,
+                                ErrorReporter* error_reporter);
+
   // Returns the fixed amount of memory overhead of MicroAllocator.
   static size_t GetDefaultTailUsage(bool is_memory_planner_given);
 
@@ -224,6 +233,10 @@ class MicroAllocator {
 
  protected:
   MicroAllocator(SimpleMemoryAllocator* memory_allocator,
+                 MicroMemoryPlanner* memory_planner,
+                 ErrorReporter* error_reporter);
+  MicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator,
+                 INonPersistentBufferAllocator* non_persistent_buffer_allocator,
                  MicroMemoryPlanner* memory_planner,
                  ErrorReporter* error_reporter);
   virtual ~MicroAllocator();
