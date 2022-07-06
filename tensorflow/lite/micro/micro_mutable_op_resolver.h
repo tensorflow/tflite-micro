@@ -382,8 +382,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_MINIMUM(), ParseMinimum);
   }
 
-  TfLiteStatus AddMul() {
-    return AddBuiltin(BuiltinOperator_MUL, tflite::Register_MUL(), ParseMul);
+  TfLiteStatus AddMul(const TfLiteRegistration& registration = Register_MUL()) {
+    return AddBuiltin(BuiltinOperator_MUL, registration, ParseMul);
   }
 
   TfLiteStatus AddNeg() {
