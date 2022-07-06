@@ -88,7 +88,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf("Couldn't register custom op '%s' ", name);
       MicroPrintf("resolver size is too small (%d)", tOpCount);
-      //TFLITE_ABORT;
+      // TFLITE_ABORT;
     }
 
     if (FindOp(name) != nullptr) {
