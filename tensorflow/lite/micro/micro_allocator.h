@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
@@ -96,7 +96,7 @@ typedef struct {
 //
 // The MicroAllocator simply plans out additional allocations that are required
 // to standup a model for inference in TF Micro. This class currently relies on
-// an additional allocator - SimpleMemoryAllocator - for all allocations from an
+// an additional allocator - SingleArenaBufferAllocator - for all allocations from an
 // arena. These allocations are divided into head (non-persistent) and tail
 // (persistent) regions:
 //
@@ -129,16 +129,16 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Creates a MicroAllocator instance using the provided SimpleMemoryAllocator
+  // Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator
   // instance and the MemoryPlanner. This allocator instance will use the
-  // SimpleMemoryAllocator instance to manage allocations internally.
-  static MicroAllocator* Create(SimpleMemoryAllocator* memory_allocator,
+  // SingleArenaBufferAllocator instance to manage allocations internally.
+  static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Creates a MicroAllocator instance using the provided SimpleMemoryAllocator
+  // Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator
   // instance and the MemoryPlanner. This allocator instance will use the
-  // SimpleMemoryAllocator instance to manage allocations internally.
+  // SingleArenaBufferAllocator instance to manage allocations internally.
   static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
                                 size_t persistent_arena_size,
                                 uint8_t* non_persistent_tensor_arena,
@@ -232,7 +232,7 @@ class MicroAllocator {
   BuiltinDataAllocator* GetBuiltinDataAllocator();
 
  protected:
-  MicroAllocator(SimpleMemoryAllocator* memory_allocator,
+  MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
                  MicroMemoryPlanner* memory_planner,
                  ErrorReporter* error_reporter);
   MicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator,

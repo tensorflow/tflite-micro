@@ -16,15 +16,15 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_ARENA_ALLOCATOR_RECORDING_SIMPLE_MEMORY_ALLOCATOR_H_
 #define TENSORFLOW_LITE_MICRO_ARENA_ALLOCATOR_RECORDING_SIMPLE_MEMORY_ALLOCATOR_H_
 
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
 
-// Utility class used to log allocations of a SimpleMemoryAllocator. Should only
+// Utility class used to log allocations of a SingleArenaBufferAllocator. Should only
 // be used in debug/evaluation settings or unit tests to evaluate allocation
 // usage.
-class RecordingSimpleMemoryAllocator : public SimpleMemoryAllocator {
+class RecordingSimpleMemoryAllocator : public SingleArenaBufferAllocator {
  public:
   RecordingSimpleMemoryAllocator(ErrorReporter* error_reporter,
                                  uint8_t* buffer_head, size_t buffer_size);

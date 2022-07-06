@@ -28,7 +28,7 @@ namespace tflite {
 
 size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
-  // similar with MicroAllocator with SimpleMemoryAllocator and MicroAllocator
+  // similar with MicroAllocator with SingleArenaBufferAllocator and MicroAllocator
   // being replaced.
   // TODO(b/208703041): a template version of AlignSizeUp to make expression
   // shorter.
@@ -36,8 +36,8 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
              /*is_memory_planner_given=*/false) +
          AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),
                      alignof(RecordingSimpleMemoryAllocator)) -
-         AlignSizeUp(sizeof(SimpleMemoryAllocator),
-                     alignof(SimpleMemoryAllocator)) +
+         AlignSizeUp(sizeof(SingleArenaBufferAllocator),
+                     alignof(SingleArenaBufferAllocator)) +
          AlignSizeUp(sizeof(RecordingMicroAllocator),
                      alignof(RecordingMicroAllocator)) -
          AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator));
@@ -167,7 +167,7 @@ TfLiteStatus RecordingMicroAllocator::AllocateNodeAndRegistrations(
        subgraph_idx++) {
     RecordAllocationUsage(allocations,
                           recorded_node_and_registration_array_data_);
-    // The allocation count in SimpleMemoryAllocator will only be 1. To provide
+    // The allocation count in SingleArenaBufferAllocator will only be 1. To provide
     // better logging, decrement by 1 and add in the actual number of operators
     // used in the graph:
     // The allocation for this recording will always be 1. This is because the

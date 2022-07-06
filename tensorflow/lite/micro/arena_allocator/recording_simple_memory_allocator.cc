@@ -23,7 +23,7 @@ namespace tflite {
 
 RecordingSimpleMemoryAllocator::RecordingSimpleMemoryAllocator(
     ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size)
-    : SimpleMemoryAllocator(error_reporter, buffer_head, buffer_size),
+    : SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size),
       requested_head_bytes_(0),
       requested_tail_bytes_(0),
       used_bytes_(0),
@@ -61,7 +61,7 @@ TfLiteStatus RecordingSimpleMemoryAllocator::ResizeBuffer(
     uint8_t* resizable_buf, size_t size, size_t alignment) {
   const uint8_t* previous_head = head();
   TfLiteStatus status =
-      SimpleMemoryAllocator::ResizeBuffer(resizable_buf, size, alignment);
+      SingleArenaBufferAllocator::ResizeBuffer(resizable_buf, size, alignment);
   if (status == kTfLiteOk) {
     used_bytes_ += head() - previous_head;
     requested_head_bytes_ = size;
@@ -73,7 +73,7 @@ uint8_t* RecordingSimpleMemoryAllocator::AllocatePersistentBuffer(
     size_t size, size_t alignment) {
   const uint8_t* previous_tail = tail();
   uint8_t* result =
-      SimpleMemoryAllocator::AllocatePersistentBuffer(size, alignment);
+      SingleArenaBufferAllocator::AllocatePersistentBuffer(size, alignment);
   if (result != nullptr) {
     used_bytes_ += previous_tail - tail();
     requested_tail_bytes_ += size;
