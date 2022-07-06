@@ -91,12 +91,6 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
 
-else ifeq ($(TARGET_ARCH), cortex-a32)
-  CORE=A32
-  ARM_LDFLAGS := -Wl,--cpu=Cortex-A32
-  FLOAT=softfp
-  GCC_TARGET_ARCH := cortex-a32
-
 else ifeq ($(TARGET_ARCH), project_generation)
  # None of the parameters matter since we are not going to build any code.
 else
@@ -112,15 +106,10 @@ endif
 
 # Toolchain specfic flags
 ifeq ($(TOOLCHAIN), armclang)
-  ARM_CXX_TOOL ?= armclang
-  ARM_CC_TOOL ?= armclang
-  ARM_AR_TOOL ?= armar
-  ARM_LD ?= armlink
-
-  CXX_TOOL  := $(ARM_CXX_TOOL)
-  CC_TOOL   := $(ARM_CC_TOOL)
-  AR_TOOL   := $(ARM_AR_TOOL)
-  LD        := $(ARM_LD_TOOL)
+  CXX_TOOL  := armclang
+  CC_TOOL   := armclang
+  AR_TOOL   := armar
+  LD        := armlink
 
   FLAGS_ARMC = \
     --target=arm-arm-none-eabi \
@@ -155,8 +144,6 @@ else ifeq ($(TOOLCHAIN), gcc)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
   else ifeq ($(TARGET_ARCH), cortex-m7)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
-  else ifeq ($(TARGET_ARCH), cortex-a32)
-    FLAGS_GCC += -mfpu=neon
   else
     FLAGS_GCC += -mfpu=auto
   endif
