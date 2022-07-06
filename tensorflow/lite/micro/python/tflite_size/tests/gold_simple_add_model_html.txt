@@ -45,27 +45,27 @@ ul {
 </head>
 <body>
 <ul id="root">
-<li> <span class = "caret"> ROOT (345) </span>
+<li> <span class = "caret"> ROOT (size: 345) </span>
 <ul class="nested">
 <li> version: 3 (size: 4) </li>
-<li> <span class = "caret"> operator_codes (4) </span>
+<li> <span class = "caret"> operator_codes (size: 4) </span>
 <ul class="nested">
-<li> <span class = "caret"> operator_codes[0] (4) </span>
+<li> <span class = "caret"> operator_codes[0] (size: 4) </span>
 <ul class="nested">
 <li> version: 2 (size: 4) </li>
 </ul>
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> subgraphs (243) </span>
+<li> <span class = "caret"> subgraphs (size: 243) </span>
 <ul class="nested">
-<li> <span class = "caret"> subgraphs[0] (243) </span>
+<li> <span class = "caret"> subgraphs[0] (size: 243) </span>
 <ul class="nested">
-<li> <span class = "caret"> tensors (214) </span>
+<li> <span class = "caret"> tensors (size: 214) </span>
 <ul class="nested">
-<li> <span class = "caret"> tensors[0] (74) </span>
+<li> <span class = "caret"> tensors[0] (size: 74) </span>
 <ul class="nested">
-<li> <span class = "caret"> shape (16) </span>
+<li> <span class = "caret"> shape (size: 16) </span>
 <ul class="nested">
 <li> shape[0]: 1 (size: 4) </li>
 <li> shape[1]: 128 (size: 4) </li>
@@ -76,21 +76,21 @@ ul {
 <li> type: INT8 (size: 1) </li>
 <li> buffer: 1 (size: 4) </li>
 <li> name: serving_default_input_1:0 (size: 25) </li>
-<li> <span class = "caret"> quantization (12) </span>
+<li> <span class = "caret"> quantization (size: 12) </span>
 <ul class="nested">
-<li> <span class = "caret"> scale (4) </span>
+<li> <span class = "caret"> scale (size: 4) </span>
 <ul class="nested">
 <li> scale[0]: 0.040725 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> zero_point (8) </span>
+<li> <span class = "caret"> zero_point (size: 8) </span>
 <ul class="nested">
 <li> zero_point[0]: -2 (size: 8) </li>
 </ul>
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> shape_signature (16) </span>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
 <ul class="nested">
 <li> shape_signature[0]: -1 (size: 4) </li>
 <li> shape_signature[1]: 128 (size: 4) </li>
@@ -100,9 +100,9 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> tensors[1] (74) </span>
+<li> <span class = "caret"> tensors[1] (size: 74) </span>
 <ul class="nested">
-<li> <span class = "caret"> shape (16) </span>
+<li> <span class = "caret"> shape (size: 16) </span>
 <ul class="nested">
 <li> shape[0]: 1 (size: 4) </li>
 <li> shape[1]: 128 (size: 4) </li>
@@ -113,21 +113,21 @@ ul {
 <li> type: INT8 (size: 1) </li>
 <li> buffer: 2 (size: 4) </li>
 <li> name: serving_default_input_2:0 (size: 25) </li>
-<li> <span class = "caret"> quantization (12) </span>
+<li> <span class = "caret"> quantization (size: 12) </span>
 <ul class="nested">
-<li> <span class = "caret"> scale (4) </span>
+<li> <span class = "caret"> scale (size: 4) </span>
 <ul class="nested">
 <li> scale[0]: 0.041246 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> zero_point (8) </span>
+<li> <span class = "caret"> zero_point (size: 8) </span>
 <ul class="nested">
 <li> zero_point[0]: -1 (size: 8) </li>
 </ul>
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> shape_signature (16) </span>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
 <ul class="nested">
 <li> shape_signature[0]: -1 (size: 4) </li>
 <li> shape_signature[1]: 128 (size: 4) </li>
@@ -137,9 +137,9 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> tensors[2] (66) </span>
+<li> <span class = "caret"> tensors[2] (size: 66) </span>
 <ul class="nested">
-<li> <span class = "caret"> shape (16) </span>
+<li> <span class = "caret"> shape (size: 16) </span>
 <ul class="nested">
 <li> shape[0]: 1 (size: 4) </li>
 <li> shape[1]: 128 (size: 4) </li>
@@ -150,21 +150,21 @@ ul {
 <li> type: INT8 (size: 1) </li>
 <li> buffer: 3 (size: 4) </li>
 <li> name: PartitionedCall:0 (size: 17) </li>
-<li> <span class = "caret"> quantization (12) </span>
+<li> <span class = "caret"> quantization (size: 12) </span>
 <ul class="nested">
-<li> <span class = "caret"> scale (4) </span>
+<li> <span class = "caret"> scale (size: 4) </span>
 <ul class="nested">
 <li> scale[0]: 0.058377 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> zero_point (8) </span>
+<li> <span class = "caret"> zero_point (size: 8) </span>
 <ul class="nested">
 <li> zero_point[0]: -3 (size: 8) </li>
 </ul>
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> shape_signature (16) </span>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
 <ul class="nested">
 <li> shape_signature[0]: -1 (size: 4) </li>
 <li> shape_signature[1]: 128 (size: 4) </li>
@@ -176,28 +176,28 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> inputs (8) </span>
+<li> <span class = "caret"> inputs (size: 8) </span>
 <ul class="nested">
 <li> inputs[0]: 0 (size: 4) </li>
 <li> inputs[1]: 1 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> outputs (4) </span>
+<li> <span class = "caret"> outputs (size: 4) </span>
 <ul class="nested">
 <li> outputs[0]: 2 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> operators (13) </span>
+<li> <span class = "caret"> operators (size: 13) </span>
 <ul class="nested">
-<li> <span class = "caret"> operators[0] (13) </span>
+<li> <span class = "caret"> operators[0] (size: 13) </span>
 <ul class="nested">
-<li> <span class = "caret"> inputs (8) </span>
+<li> <span class = "caret"> inputs (size: 8) </span>
 <ul class="nested">
 <li> inputs[0]: 0 (size: 4) </li>
 <li> inputs[1]: 1 (size: 4) </li>
 </ul>
 </li>
-<li> <span class = "caret"> outputs (4) </span>
+<li> <span class = "caret"> outputs (size: 4) </span>
 <ul class="nested">
 <li> outputs[0]: 2 (size: 4) </li>
 </ul>
@@ -214,15 +214,15 @@ ul {
 </ul>
 </li>
 <li> description: MLIR Converted. (size: 15) </li>
-<li> <span class = "caret"> buffers (16) </span>
+<li> <span class = "caret"> buffers (size: 16) </span>
 <ul class="nested">
 <li> buffers[0]: 0 (size: 0) </li>
 <li> buffers[1]: 0 (size: 0) </li>
 <li> buffers[2]: 0 (size: 0) </li>
 <li> buffers[3]: 0 (size: 0) </li>
-<li> <span class = "caret"> buffers[4] (16) </span>
+<li> <span class = "caret"> buffers[4] (size: 16) </span>
 <ul class="nested">
-<li> <span class = "caret"> data (16) </span>
+<li> <span class = "caret"> data (size: 16) </span>
 <ul class="nested">
 <li> data[0]: 49 (size: 1) </li>
 <li> data[1]: 46 (size: 1) </li>
@@ -246,9 +246,9 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> metadata (23) </span>
+<li> <span class = "caret"> metadata (size: 23) </span>
 <ul class="nested">
-<li> <span class = "caret"> metadata[0] (23) </span>
+<li> <span class = "caret"> metadata[0] (size: 23) </span>
 <ul class="nested">
 <li> name: min_runtime_version (size: 19) </li>
 <li> buffer: 4 (size: 4) </li>
@@ -256,18 +256,18 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> signature_defs (40) </span>
+<li> <span class = "caret"> signature_defs (size: 40) </span>
 <ul class="nested">
-<li> <span class = "caret"> signature_defs[0] (40) </span>
+<li> <span class = "caret"> signature_defs[0] (size: 40) </span>
 <ul class="nested">
-<li> <span class = "caret"> inputs (18) </span>
+<li> <span class = "caret"> inputs (size: 18) </span>
 <ul class="nested">
-<li> <span class = "caret"> inputs[0] (7) </span>
+<li> <span class = "caret"> inputs[0] (size: 7) </span>
 <ul class="nested">
 <li> name: input_1 (size: 7) </li>
 </ul>
 </li>
-<li> <span class = "caret"> inputs[1] (11) </span>
+<li> <span class = "caret"> inputs[1] (size: 11) </span>
 <ul class="nested">
 <li> name: input_2 (size: 7) </li>
 <li> tensor_index: 1 (size: 4) </li>
@@ -275,9 +275,9 @@ ul {
 </li>
 </ul>
 </li>
-<li> <span class = "caret"> outputs (7) </span>
+<li> <span class = "caret"> outputs (size: 7) </span>
 <ul class="nested">
-<li> <span class = "caret"> outputs[0] (7) </span>
+<li> <span class = "caret"> outputs[0] (size: 7) </span>
 <ul class="nested">
 <li> name: add (size: 3) </li>
 <li> tensor_index: 2 (size: 4) </li>
