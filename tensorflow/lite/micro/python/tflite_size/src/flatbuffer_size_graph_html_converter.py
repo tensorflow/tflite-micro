@@ -95,7 +95,7 @@ class HtmlConverter:
       self._htmlBody += "<li> %s: %s (size: %d) </li>\n" % (
           fNode.name, fNode.value, fNode.size)
     else:
-      self._htmlBody += "<li> <span class = \"caret\"> %s (%d) </span>\n" % (
+      self._htmlBody += "<li> <span class = \"caret\"> %s (size: %d) </span>\n" % (
           fNode.name, fNode.size)
       self._htmlBody += "<ul class=\"nested\">\n"
       for node in fNode.children:
