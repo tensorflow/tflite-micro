@@ -28,7 +28,8 @@ using ::tflite::testing::CreateTensor;
 using ::tflite::testing::IntArrayFromInts;
 
 tflite::FakeMicroContext CreateFakeMicroContext(
-    SingleArenaBufferAllocator* simple_memory_allocator, MicroGraph* micro_graph) {
+    SingleArenaBufferAllocator* simple_memory_allocator,
+    MicroGraph* micro_graph) {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transitent memories in static variables. This is
   // safe because tests are guarateed to run serially.

@@ -31,16 +31,18 @@ RecordingSingleArenaBufferAllocator::RecordingSingleArenaBufferAllocator(
 
 RecordingSingleArenaBufferAllocator::~RecordingSingleArenaBufferAllocator() {}
 
-RecordingSingleArenaBufferAllocator* RecordingSingleArenaBufferAllocator::Create(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
+RecordingSingleArenaBufferAllocator*
+RecordingSingleArenaBufferAllocator::Create(ErrorReporter* error_reporter,
+                                            uint8_t* buffer_head,
+                                            size_t buffer_size) {
   TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(buffer_head != nullptr);
-  RecordingSingleArenaBufferAllocator tmp =
-      RecordingSingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size);
+  RecordingSingleArenaBufferAllocator tmp = RecordingSingleArenaBufferAllocator(
+      error_reporter, buffer_head, buffer_size);
 
-  uint8_t* allocator_buffer =
-      tmp.AllocatePersistentBuffer(sizeof(RecordingSingleArenaBufferAllocator),
-                                   alignof(RecordingSingleArenaBufferAllocator));
+  uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
+      sizeof(RecordingSingleArenaBufferAllocator),
+      alignof(RecordingSingleArenaBufferAllocator));
   // Use the default copy constructor to populate internal states.
   return new (allocator_buffer) RecordingSingleArenaBufferAllocator(tmp);
 }

@@ -34,8 +34,8 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
  public:
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
-  SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer_head,
-                             uint8_t* buffer_tail);
+  SingleArenaBufferAllocator(ErrorReporter* error_reporter,
+                             uint8_t* buffer_head, uint8_t* buffer_tail);
   SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer,
                              size_t buffer_size);
   virtual ~SingleArenaBufferAllocator();

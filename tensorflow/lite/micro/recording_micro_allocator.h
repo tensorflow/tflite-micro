@@ -48,10 +48,10 @@ struct RecordedAllocation {
 // Utility subclass of MicroAllocator that records all allocations
 // inside the arena. A summary of allocations can be logged through the
 // ErrorReporter by invoking LogAllocations(). This special allocator requires
-// an instance of RecordingSingleArenaBufferAllocator to capture allocations in the
-// head and tail. Arena allocation recording can be retrieved by type through
-// the GetRecordedAllocation() function. This class should only be used for
-// auditing memory usage or integration testing.
+// an instance of RecordingSingleArenaBufferAllocator to capture allocations in
+// the head and tail. Arena allocation recording can be retrieved by type
+// through the GetRecordedAllocation() function. This class should only be used
+// for auditing memory usage or integration testing.
 class RecordingMicroAllocator : public MicroAllocator {
  public:
   static RecordingMicroAllocator* Create(uint8_t* tensor_arena,

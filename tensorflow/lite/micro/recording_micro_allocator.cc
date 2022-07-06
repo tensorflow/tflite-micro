@@ -28,8 +28,8 @@ namespace tflite {
 
 size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
-  // similar with MicroAllocator with SingleArenaBufferAllocator and MicroAllocator
-  // being replaced.
+  // similar with MicroAllocator with SingleArenaBufferAllocator and
+  // MicroAllocator being replaced.
   // TODO(b/208703041): a template version of AlignSizeUp to make expression
   // shorter.
   return MicroAllocator::GetDefaultTailUsage(
@@ -167,15 +167,15 @@ TfLiteStatus RecordingMicroAllocator::AllocateNodeAndRegistrations(
        subgraph_idx++) {
     RecordAllocationUsage(allocations,
                           recorded_node_and_registration_array_data_);
-    // The allocation count in SingleArenaBufferAllocator will only be 1. To provide
-    // better logging, decrement by 1 and add in the actual number of operators
-    // used in the graph:
-    // The allocation for this recording will always be 1. This is because the
-    // parent class mallocs one large allocation for the number of nodes in the
-    // graph (e.g. sizeof(NodeAndRegistration) * num_nodes).
-    // To prevent extra overhead and potential for fragmentation, manually
-    // adjust the accounting by decrementing by 1 and adding the actual number
-    // of nodes used in the graph:
+    // The allocation count in SingleArenaBufferAllocator will only be 1. To
+    // provide better logging, decrement by 1 and add in the actual number of
+    // operators used in the graph: The allocation for this recording will
+    // always be 1. This is because the parent class mallocs one large
+    // allocation for the number of nodes in the graph (e.g.
+    // sizeof(NodeAndRegistration) * num_nodes). To prevent extra overhead and
+    // potential for fragmentation, manually adjust the accounting by
+    // decrementing by 1 and adding the actual number of nodes used in the
+    // graph:
     recorded_node_and_registration_array_data_.count +=
         model->subgraphs()->Get(subgraph_idx)->operators()->size() - 1;
   }

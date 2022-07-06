@@ -29,9 +29,8 @@ limitations under the License.
 
 namespace tflite {
 
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(ErrorReporter* error_reporter,
-                                                       uint8_t* buffer_head,
-                                                       uint8_t* buffer_tail)
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(
+    ErrorReporter* error_reporter, uint8_t* buffer_head, uint8_t* buffer_tail)
     :
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
       error_reporter_(error_reporter),
@@ -43,10 +42,10 @@ SingleArenaBufferAllocator::SingleArenaBufferAllocator(ErrorReporter* error_repo
       temp_(buffer_head_) {
 }
 
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(ErrorReporter* error_reporter,
-                                                       uint8_t* buffer,
-                                                       size_t buffer_size)
-    : SingleArenaBufferAllocator(error_reporter, buffer, buffer + buffer_size) {}
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(
+    ErrorReporter* error_reporter, uint8_t* buffer, size_t buffer_size)
+    : SingleArenaBufferAllocator(error_reporter, buffer, buffer + buffer_size) {
+}
 
 /* static */
 SingleArenaBufferAllocator* SingleArenaBufferAllocator::Create(
@@ -56,9 +55,9 @@ SingleArenaBufferAllocator* SingleArenaBufferAllocator::Create(
   SingleArenaBufferAllocator tmp =
       SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size);
 
-  // Allocate enough bytes from the buffer to create a SingleArenaBufferAllocator.
-  // The new instance will use the current adjusted tail buffer from the tmp
-  // allocator instance.
+  // Allocate enough bytes from the buffer to create a
+  // SingleArenaBufferAllocator. The new instance will use the current adjusted
+  // tail buffer from the tmp allocator instance.
   uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
       sizeof(SingleArenaBufferAllocator), alignof(SingleArenaBufferAllocator));
   // Use the default copy constructor to populate internal states.
@@ -116,8 +115,8 @@ TfLiteStatus SingleArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_buf,
   return kTfLiteOk;
 }
 
-uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(size_t size,
-                                                              size_t alignment) {
+uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(
+    size_t size, size_t alignment) {
   uint8_t* const aligned_result = AlignPointerDown(tail_ - size, alignment);
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
@@ -133,7 +132,8 @@ uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(size_t size,
   return aligned_result;
 }
 
-uint8_t* SingleArenaBufferAllocator::AllocateTemp(size_t size, size_t alignment) {
+uint8_t* SingleArenaBufferAllocator::AllocateTemp(size_t size,
+                                                  size_t alignment) {
   uint8_t* const aligned_result = AlignPointerUp(temp_, alignment);
   const size_t available_memory = tail_ - aligned_result;
   if (available_memory < size) {

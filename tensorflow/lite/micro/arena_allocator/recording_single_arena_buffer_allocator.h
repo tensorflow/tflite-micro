@@ -21,9 +21,9 @@ limitations under the License.
 
 namespace tflite {
 
-// Utility class used to log allocations of a SingleArenaBufferAllocator. Should only
-// be used in debug/evaluation settings or unit tests to evaluate allocation
-// usage.
+// Utility class used to log allocations of a SingleArenaBufferAllocator. Should
+// only be used in debug/evaluation settings or unit tests to evaluate
+// allocation usage.
 class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
  public:
   RecordingSingleArenaBufferAllocator(ErrorReporter* error_reporter,
@@ -32,9 +32,8 @@ class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
   // functions.
   ~RecordingSingleArenaBufferAllocator() override;
 
-  static RecordingSingleArenaBufferAllocator* Create(ErrorReporter* error_reporter,
-                                                     uint8_t* buffer_head,
-                                                     size_t buffer_size);
+  static RecordingSingleArenaBufferAllocator* Create(
+      ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size);
 
   // Returns the number of bytes requested from the head or tail.
   size_t GetRequestedBytes() const;

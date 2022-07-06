@@ -168,8 +168,8 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
-      tflite::SingleArenaBufferAllocator::Create(tflite::GetMicroErrorReporter(),
-                                                 arena, arena_size);
+      tflite::SingleArenaBufferAllocator::Create(
+          tflite::GetMicroErrorReporter(), arena, arena_size);
 
   const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(100);
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
@@ -198,8 +198,8 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
-      tflite::SingleArenaBufferAllocator::Create(tflite::GetMicroErrorReporter(),
-                                                 arena, arena_size);
+      tflite::SingleArenaBufferAllocator::Create(
+          tflite::GetMicroErrorReporter(), arena, arena_size);
 
   const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(100);
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
@@ -227,8 +227,8 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
-      tflite::SingleArenaBufferAllocator::Create(tflite::GetMicroErrorReporter(),
-                                                 arena, arena_size);
+      tflite::SingleArenaBufferAllocator::Create(
+          tflite::GetMicroErrorReporter(), arena, arena_size);
 
   const tflite::Tensor* tensor =
       tflite::testing::CreateQuantizedFlatbufferTensor(100);
@@ -255,8 +255,8 @@ TF_LITE_MICRO_TEST(TestMissingQuantization) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
-      tflite::SingleArenaBufferAllocator::Create(tflite::GetMicroErrorReporter(),
-                                                 arena, arena_size);
+      tflite::SingleArenaBufferAllocator::Create(
+          tflite::GetMicroErrorReporter(), arena, arena_size);
 
   const tflite::Tensor* tensor =
       tflite::testing::CreateMissingQuantizationFlatbufferTensor(100);

@@ -96,9 +96,9 @@ typedef struct {
 //
 // The MicroAllocator simply plans out additional allocations that are required
 // to standup a model for inference in TF Micro. This class currently relies on
-// an additional allocator - SingleArenaBufferAllocator - for all allocations from an
-// arena. These allocations are divided into head (non-persistent) and tail
-// (persistent) regions:
+// an additional allocator - SingleArenaBufferAllocator - for all allocations
+// from an arena. These allocations are divided into head (non-persistent) and
+// tail (persistent) regions:
 //
 // Memory layout to help understand how it works
 // This information could change in the future version.
@@ -129,16 +129,18 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator
-  // instance and the MemoryPlanner. This allocator instance will use the
-  // SingleArenaBufferAllocator instance to manage allocations internally.
+  // Creates a MicroAllocator instance using the provided
+  // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
+  // instance will use the SingleArenaBufferAllocator instance to manage
+  // allocations internally.
   static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Creates a MicroAllocator instance using the provided SingleArenaBufferAllocator
-  // instance and the MemoryPlanner. This allocator instance will use the
-  // SingleArenaBufferAllocator instance to manage allocations internally.
+  // Creates a MicroAllocator instance using the provided
+  // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
+  // instance will use the SingleArenaBufferAllocator instance to manage
+  // allocations internally.
   static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
                                 size_t persistent_arena_size,
                                 uint8_t* non_persistent_tensor_arena,

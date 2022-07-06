@@ -536,8 +536,8 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   // The reported used_arena_size plus alignment padding is sufficient for this
-  // model to run. Plus alignment padding is because SingleArenaBufferAllocator is
-  // given the arena after the alignment.
+  // model to run. Plus alignment padding is because SingleArenaBufferAllocator
+  // is given the arena after the alignment.
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
   tflite::MicroInterpreter interpreter2(
