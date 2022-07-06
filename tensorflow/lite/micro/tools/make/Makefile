@@ -288,8 +288,8 @@ tensorflow/lite/micro/micro_utils_test.cc \
 tensorflow/lite/micro/recording_micro_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/simple_memory_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
 tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
