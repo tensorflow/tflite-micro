@@ -126,7 +126,9 @@ class SimpleMemoryAllocator : public INonPersistentBufferAllocator,
  private:
   size_t GetBufferSize() const;
 
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   ErrorReporter* error_reporter_;
+#endif
   uint8_t* buffer_head_;
   uint8_t* buffer_tail_;
   uint8_t* head_;

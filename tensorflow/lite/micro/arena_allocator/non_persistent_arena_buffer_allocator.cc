@@ -84,13 +84,14 @@ uint8_t* NonPersistentArenaBufferAllocator::AllocateResizableBuffer(
   // Only supports one resizable buffer, which starts at the buffer head.
   uint8_t* expected_resizable_buf = AlignPointerUp(buffer_head_, alignment);
 
-  if (head_temp_ != expected_resizable_buf) {
+  if (resizable_buffer_allocated_) {
     MicroPrintf(
         "Cannot allocate a new resizable buffer when one is already allocated");
     return nullptr;
   }
 
   if (ResizeBuffer(expected_resizable_buf, size, alignment) == kTfLiteOk) {
+    resizable_buffer_allocated_ = true;
     return expected_resizable_buf;
   }
   return nullptr;
@@ -128,7 +129,11 @@ TfLiteStatus NonPersistentArenaBufferAllocator::ResizeBuffer(
 // Frees up the memory occupied by the resizable buffer.
 TfLiteStatus NonPersistentArenaBufferAllocator::DeallocateResizableBuffer(
     uint8_t* resizable_buf) {
-  return ResizeBuffer(resizable_buf, 0, 1);
+  TfLiteStatus status = ResizeBuffer(resizable_buf, 0, 1);
+  if (status == kTfLiteOk) {
+    resizable_buffer_allocated_ = false;
+  }
+  return status;
 }
 
 // Returns a pointer pointing to the start of the overlay memory, which is
