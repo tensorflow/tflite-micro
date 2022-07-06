@@ -355,6 +355,51 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
                                                        /*num_subgraphs=*/1);
 }
 
+TF_LITE_MICRO_TEST(TestMockModelAllocationInTwoSeparateArenas) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+  constexpr size_t arena_size = 1024;
+  uint8_t persistent_arena[arena_size];
+  uint8_t non_persistent_arena[arena_size];
+
+  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
+      persistent_arena, arena_size, non_persistent_arena, arena_size,
+      tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
+                                                  &scratch_buffer_handles));
+
+  size_t model_tensor_size = tflite::testing::GetModelTensorCount(model);
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), model_tensor_size);
+
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 0);
+  tflite::testing::AllocateAndVerifyMockWeightTensor(model, allocator,
+                                                     subgraph_allocations, 1);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 2);
+  tflite::testing::AllocateAndVerifyMockTensor(model, allocator,
+                                               subgraph_allocations, 3);
+
+  TfLiteEvalTensor* eval_tensors = subgraph_allocations[0].tensors;
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[1].data.raw, eval_tensors[0].data.raw);
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[2].data.raw, eval_tensors[0].data.raw);
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[1].data.raw, eval_tensors[2].data.raw);
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[0].data.raw);
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[1].data.raw);
+  TF_LITE_MICRO_EXPECT_NE(eval_tensors[3].data.raw, eval_tensors[2].data.raw);
+
+  // SimpleMockModel has 2 operators:
+  tflite::testing::VerifyRegistrationAndNodeAllocation(subgraph_allocations,
+                                                       /*count=*/2,
+                                                       /*num_subgraphs=*/1);
+}
+
 TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
@@ -412,6 +457,47 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocation) {
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       arena, arena_size, tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+
+  // Allocate for model 1. We use ComplexMockModel here to cover the code path
+  // allocatig variables.
+  const tflite::Model* model1 = tflite::testing::GetComplexMockModel();
+  tflite::SubgraphAllocations* subgraph_allocations1 =
+      allocator->StartModelAllocation(model1);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations1);
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model1, subgraph_allocations1,
+                                                  &scratch_buffer_handles));
+  const size_t single_model_used_bytes = allocator->used_bytes();
+
+  // Allocate for model 2.
+  const tflite::Model* model2 = tflite::testing::GetComplexMockModel();
+  tflite::SubgraphAllocations* subgraph_allocations2 =
+      allocator->StartModelAllocation(model2);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations2);
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model2, subgraph_allocations2,
+                                                  &scratch_buffer_handles));
+
+  // Allocation for two instances of the same model takes less memory as `head`
+  // of the arena is reused.
+  TF_LITE_MICRO_EXPECT_LE(allocator->used_bytes(), 2 * single_model_used_bytes);
+}
+
+TF_LITE_MICRO_TEST(TestMultiTenantAllocationInTwoSeparateArenas) {
+  // The `OpResolver` is shared among different models in this test for
+  // simplicity but in practice you could have different `OpResolver`.
+  tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
+
+  // Create a shared allocator.
+  constexpr size_t arena_size = 4096;
+  uint8_t persistent_arena[arena_size];
+  uint8_t non_persistent_arena[arena_size];
+
+  tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
+      persistent_arena, arena_size, non_persistent_arena, arena_size,
+      tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
 
