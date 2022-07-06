@@ -189,10 +189,43 @@ TfLiteStatus EvalSvdf(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
+  auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
+
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteEvalTensor* weights_time =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
+  const TfLiteEvalTensor* bias =
+      (NumInputs(node) == 5)
+          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
+          : nullptr;
+  TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
+      context, node, kSvdfInputActivationStateTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
+
+  TFLITE_DCHECK((weights_time->type == kTfLiteInt8) ||
+                (weights_time->type == kTfLiteInt16));
+  // Because of the TODO mentioned below, the int16 weight data type is not
+  // split into a seperate registration.
+  // TODO(#523): remove 16-bit code when no longer needed.
+  return EvalIntegerSVDF(context, node, input, weights_feature, weights_time,
+                         bias, params, activation_state, output, data);
+}
+
 }  // namespace
 
 TfLiteRegistration Register_SVDF() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdf);
+}
+
+TfLiteRegistration Register_SVDF_INT8() {
+  return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdfInt8);
 }
 
 }  // namespace tflite
