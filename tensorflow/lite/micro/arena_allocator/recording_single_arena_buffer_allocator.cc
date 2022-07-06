@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 
 #include <new>
 
@@ -21,7 +21,7 @@ limitations under the License.
 
 namespace tflite {
 
-RecordingSimpleMemoryAllocator::RecordingSimpleMemoryAllocator(
+RecordingSingleArenaBufferAllocator::RecordingSingleArenaBufferAllocator(
     ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size)
     : SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size),
       requested_head_bytes_(0),
@@ -29,35 +29,35 @@ RecordingSimpleMemoryAllocator::RecordingSimpleMemoryAllocator(
       used_bytes_(0),
       alloc_count_(0) {}
 
-RecordingSimpleMemoryAllocator::~RecordingSimpleMemoryAllocator() {}
+RecordingSingleArenaBufferAllocator::~RecordingSingleArenaBufferAllocator() {}
 
-RecordingSimpleMemoryAllocator* RecordingSimpleMemoryAllocator::Create(
+RecordingSingleArenaBufferAllocator* RecordingSingleArenaBufferAllocator::Create(
     ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
   TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(buffer_head != nullptr);
-  RecordingSimpleMemoryAllocator tmp =
-      RecordingSimpleMemoryAllocator(error_reporter, buffer_head, buffer_size);
+  RecordingSingleArenaBufferAllocator tmp =
+      RecordingSingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size);
 
   uint8_t* allocator_buffer =
-      tmp.AllocatePersistentBuffer(sizeof(RecordingSimpleMemoryAllocator),
-                                   alignof(RecordingSimpleMemoryAllocator));
+      tmp.AllocatePersistentBuffer(sizeof(RecordingSingleArenaBufferAllocator),
+                                   alignof(RecordingSingleArenaBufferAllocator));
   // Use the default copy constructor to populate internal states.
-  return new (allocator_buffer) RecordingSimpleMemoryAllocator(tmp);
+  return new (allocator_buffer) RecordingSingleArenaBufferAllocator(tmp);
 }
 
-size_t RecordingSimpleMemoryAllocator::GetRequestedBytes() const {
+size_t RecordingSingleArenaBufferAllocator::GetRequestedBytes() const {
   return requested_head_bytes_ + requested_tail_bytes_;
 }
 
-size_t RecordingSimpleMemoryAllocator::GetUsedBytes() const {
+size_t RecordingSingleArenaBufferAllocator::GetUsedBytes() const {
   return used_bytes_;
 }
 
-size_t RecordingSimpleMemoryAllocator::GetAllocatedCount() const {
+size_t RecordingSingleArenaBufferAllocator::GetAllocatedCount() const {
   return alloc_count_;
 }
 
-TfLiteStatus RecordingSimpleMemoryAllocator::ResizeBuffer(
+TfLiteStatus RecordingSingleArenaBufferAllocator::ResizeBuffer(
     uint8_t* resizable_buf, size_t size, size_t alignment) {
   const uint8_t* previous_head = head();
   TfLiteStatus status =
@@ -69,7 +69,7 @@ TfLiteStatus RecordingSimpleMemoryAllocator::ResizeBuffer(
   return status;
 }
 
-uint8_t* RecordingSimpleMemoryAllocator::AllocatePersistentBuffer(
+uint8_t* RecordingSingleArenaBufferAllocator::AllocatePersistentBuffer(
     size_t size, size_t alignment) {
   const uint8_t* previous_tail = tail();
   uint8_t* result =

@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
@@ -34,8 +34,8 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // shorter.
   return MicroAllocator::GetDefaultTailUsage(
              /*is_memory_planner_given=*/false) +
-         AlignSizeUp(sizeof(RecordingSimpleMemoryAllocator),
-                     alignof(RecordingSimpleMemoryAllocator)) -
+         AlignSizeUp(sizeof(RecordingSingleArenaBufferAllocator),
+                     alignof(RecordingSingleArenaBufferAllocator)) -
          AlignSizeUp(sizeof(SingleArenaBufferAllocator),
                      alignof(SingleArenaBufferAllocator)) +
          AlignSizeUp(sizeof(RecordingMicroAllocator),
@@ -44,7 +44,7 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
 }
 
 RecordingMicroAllocator::RecordingMicroAllocator(
-    RecordingSimpleMemoryAllocator* recording_memory_allocator,
+    RecordingSingleArenaBufferAllocator* recording_memory_allocator,
     MicroMemoryPlanner* memory_planner, ErrorReporter* error_reporter)
     : MicroAllocator(recording_memory_allocator, memory_planner,
                      error_reporter),
@@ -54,9 +54,9 @@ RecordingMicroAllocator* RecordingMicroAllocator::Create(
     uint8_t* tensor_arena, size_t arena_size, ErrorReporter* error_reporter) {
   TFLITE_DCHECK(error_reporter != nullptr);
 
-  RecordingSimpleMemoryAllocator* simple_memory_allocator =
-      RecordingSimpleMemoryAllocator::Create(error_reporter, tensor_arena,
-                                             arena_size);
+  RecordingSingleArenaBufferAllocator* simple_memory_allocator =
+      RecordingSingleArenaBufferAllocator::Create(error_reporter, tensor_arena,
+                                                  arena_size);
   TFLITE_DCHECK(simple_memory_allocator != nullptr);
 
   uint8_t* memory_planner_buffer =
@@ -96,7 +96,7 @@ RecordedAllocation RecordingMicroAllocator::GetRecordedAllocation(
   return RecordedAllocation();
 }
 
-const RecordingSimpleMemoryAllocator*
+const RecordingSingleArenaBufferAllocator*
 RecordingMicroAllocator::GetSimpleMemoryAllocator() const {
   return recording_memory_allocator_;
 }
