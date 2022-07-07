@@ -16,7 +16,7 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -28,7 +28,8 @@ using ::tflite::testing::CreateTensor;
 using ::tflite::testing::IntArrayFromInts;
 
 tflite::FakeMicroContext CreateFakeMicroContext(
-    SimpleMemoryAllocator* simple_memory_allocator, MicroGraph* micro_graph) {
+    SingleArenaBufferAllocator* simple_memory_allocator,
+    MicroGraph* micro_graph) {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transitent memories in static variables. This is
   // safe because tests are guarateed to run serially.
@@ -56,7 +57,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
-  tflite::SimpleMemoryAllocator simple_memory_allocator(
+  tflite::SingleArenaBufferAllocator simple_memory_allocator(
       tflite::GetMicroErrorReporter(), arena_buffer, kArenaSize);
   tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
 
@@ -69,7 +70,7 @@ TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
 TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
-  tflite::SimpleMemoryAllocator simple_memory_allocator(
+  tflite::SingleArenaBufferAllocator simple_memory_allocator(
       tflite::GetMicroErrorReporter(), arena_buffer, kArenaSize);
   tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
 
