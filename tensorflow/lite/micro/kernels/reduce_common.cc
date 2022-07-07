@@ -365,9 +365,8 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
               /*compute_sum=*/true));
     } break;
     default:
-      TF_LITE_ENSURE_MSG(context, false,
-                         "Currently, only float32, int8 or int16 input type "
-                         "is supported.");
+      MicroPrintf("Only float32, int8, and int16 types are supported.");
+      return kTfLiteError;
   }
   return kTfLiteOk;
 }
