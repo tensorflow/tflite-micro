@@ -14,5 +14,19 @@ cd tensorflow/lite/micro/python/tflite_size/src import
 bazel run flatbuffer_size -- in_tflite_file out_html_file
 ```
 
-A sample output html is [here](./tests/gold_simple_add_model.json.html).
+A sample output html looks like this ![sample_output](./sample_output.png).
+
+It displays each field's name, value and size. The display is composed of
+collapsibly list so that you can zoom in/out individual structure based on need.
+
+## How to update `schema_generated_with_reflective_type.h`
+
+Currently, `schema_generated_with_rflective_type.h` is updated offline as
+follows
+
+```
+flatc -c -b --reflect-types --reflect-names third_party/tensorflow/lite/schema/schema.fbs
+```
+The last command will generate schema_generated.h with reflection that this
+library needs. Rename it to `schema_generated_with_reflective_type.h`.
 
