@@ -520,6 +520,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_SQUARE(), ParseSquare);
   }
 
+  TfLiteStatus AddSquaredDifference() {
+    return AddBuiltin(BuiltinOperator_SQUARED_DIFFERENCE,
+                      tflite::Register_SQUARED_DIFFERENCE(), ParseSquaredDifference);
+  }
+
   TfLiteStatus AddStridedSlice() {
     return AddBuiltin(BuiltinOperator_STRIDED_SLICE,
                       tflite::ops::micro::Register_STRIDED_SLICE(),
