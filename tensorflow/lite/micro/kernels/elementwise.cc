@@ -21,7 +21,9 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+
 
 namespace tflite {
 namespace ops {
@@ -90,8 +92,8 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
-    TF_LITE_KERNEL_LOG(context, "Input data type %s (%d) is not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Input data type %s (%d) is not supported.",
+                       TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
 
@@ -112,8 +114,8 @@ TfLiteStatus PrepareAbsRsqrt(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
-    TF_LITE_KERNEL_LOG(context, "Input data type %s (%d) is not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Input data type %s (%d) is not supported.",
+                       TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
 
@@ -317,7 +319,7 @@ TfLiteStatus AbsEval(TfLiteContext* context, TfLiteNode* node) {
                                            type);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Current data type %s is not supported.",
+      MicroPrintf("Current data type %s is not supported.",
                          TfLiteTypeGetName(type));
       return kTfLiteError;
       break;
@@ -355,8 +357,8 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
                                        elementwise::validate_input_func, type);
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Current data type %s is not supported.",
-                         TfLiteTypeGetName(type));
+      MicroPrintf("Current data type %s is not supported.",
+                         TfLiteTypeGetName(type), context);
       return kTfLiteError;
   }
 }

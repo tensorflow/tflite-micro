@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 /*
  * The circular buffer custom operator is used to implement strided streaming
@@ -90,8 +91,8 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
     EvalInt8(tflite::micro::GetTensorData<int8_t>(input), num_slots, depth,
              tflite::micro::GetTensorData<int8_t>(output));
   } else {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Type %s (%d) not supported.",
+                       TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
 
