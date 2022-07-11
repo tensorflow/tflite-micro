@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
@@ -128,9 +128,9 @@ IPersistentBufferAllocator* CreatePersistentArenaAllocator(uint8_t* buffer_head,
   PersistentArenaBufferAllocator tmp =
       PersistentArenaBufferAllocator(buffer_head, aligned_buffer_size);
 
-  // Allocate enough bytes from the buffer to create a SimpleMemoryAllocator.
-  // The new instance will use the current adjusted tail buffer from the tmp
-  // allocator instance.
+  // Allocate enough bytes from the buffer to create a
+  // SingleArenaBufferAllocator. The new instance will use the current adjusted
+  // tail buffer from the tmp allocator instance.
   uint8_t* allocator_buffer =
       tmp.AllocatePersistentBuffer(sizeof(PersistentArenaBufferAllocator),
                                    alignof(PersistentArenaBufferAllocator));
@@ -346,8 +346,8 @@ size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   // TODO(b/208703041): a template version of AlignSizeUp to make expression
   // shorter.
   size_t total_size =
-      AlignSizeUp(sizeof(SimpleMemoryAllocator),
-                  alignof(SimpleMemoryAllocator)) +
+      AlignSizeUp(sizeof(SingleArenaBufferAllocator),
+                  alignof(SingleArenaBufferAllocator)) +
       AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
       AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
                   alignof(MicroBuiltinDataAllocator)) +
@@ -359,7 +359,7 @@ size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   return total_size;
 }
 
-MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
+MicroAllocator::MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
                                MicroMemoryPlanner* memory_planner,
                                ErrorReporter* error_reporter)
     : non_persistent_buffer_allocator_(memory_allocator),
@@ -386,8 +386,9 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
   uint8_t* aligned_arena =
       AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
-  SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
-      error_reporter, aligned_arena, aligned_arena_size);
+  SingleArenaBufferAllocator* memory_allocator =
+      SingleArenaBufferAllocator::Create(error_reporter, aligned_arena,
+                                         aligned_arena_size);
 
   return Create(memory_allocator, memory_planner, error_reporter);
 }
@@ -397,8 +398,9 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
   uint8_t* aligned_arena =
       AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
-  SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
-      error_reporter, aligned_arena, aligned_arena_size);
+  SingleArenaBufferAllocator* memory_allocator =
+      SingleArenaBufferAllocator::Create(error_reporter, aligned_arena,
+                                         aligned_arena_size);
 
   // By default create GreedyMemoryPlanner.
   // If a different MemoryPlanner is needed, use the other api.
@@ -410,9 +412,9 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
   return Create(memory_allocator, memory_planner, error_reporter);
 }
 
-MicroAllocator* MicroAllocator::Create(SimpleMemoryAllocator* memory_allocator,
-                                       MicroMemoryPlanner* memory_planner,
-                                       ErrorReporter* error_reporter) {
+MicroAllocator* MicroAllocator::Create(
+    SingleArenaBufferAllocator* memory_allocator,
+    MicroMemoryPlanner* memory_planner, ErrorReporter* error_reporter) {
   TFLITE_DCHECK(memory_allocator != nullptr);
   TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(memory_planner != nullptr);

@@ -116,7 +116,7 @@ struct IterationVisitor {
   // These mark the scope of a table or struct.
   virtual void StartSequence() {}
   virtual void EndSequence(size_t) {}
-  // Called for each field regardless of wether it is present or not.
+  // Called for each field regardless of whether it is present or not.
   // If not present, val == nullptr. set_idx is the index of all set fields.
   virtual void Field(size_t /*field_idx*/, size_t /*set_idx*/,
                      ElementaryType /*type*/, bool /*is_vector*/,
