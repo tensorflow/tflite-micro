@@ -29,7 +29,6 @@ limitations under the License.
 
 // Include the specific model to run
 #include "tensorflow/lite/micro/examples/custom_model_rf_keras/custom_model_rf_keras_model_data.h"
-#include "tensorflow/lite/micro/examples/custom_model_rf_keras/custom_model_rf_keras_utils.h"
 #include "tensorflow/lite/micro/examples/custom_model_rf_keras/settings.h"
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -60,7 +59,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   resolver.AddShape();
   resolver.AddPack();
 
-  constexpr int kTensorArenaSize = 0.5 * 1024.0 * 1024.0; // MB
+  constexpr int kTensorArenaSize = 0.495 * 1024.0 * 1024.0; // MB
   uint8_t tensor_arena[kTensorArenaSize];
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
