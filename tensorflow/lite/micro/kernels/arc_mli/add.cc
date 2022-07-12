@@ -161,7 +161,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
     CalculateActivationRange(params->activation,
                              &data->output_activation_min_f32,
                              &data->output_activation_max_f32);
-#endif  //#if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
+#endif  // !defined(TF_LITE_STRIP_REFERENCE_IMPL)
   }
 
   return kTfLiteOk;
@@ -419,14 +419,7 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_ADD() {
-  return {/*init=*/AddInit,
-          /*free=*/nullptr,
-          /*prepare=*/AddPrepare,
-          /*invoke=*/AddEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(AddInit, AddPrepare, AddEval);
 }
 
 }  // namespace tflite

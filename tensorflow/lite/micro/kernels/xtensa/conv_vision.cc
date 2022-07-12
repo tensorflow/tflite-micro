@@ -84,12 +84,6 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
 
   const uint32_t input_depth = SizeOfDimension(input, 3);
   const uint32_t output_depth = SizeOfDimension(output, 3);
-  uint32_t padding = 0;
-  if (params.padding == kTfLitePaddingSame) {
-    padding = 1;
-  } else if (params.padding == kTfLitePaddingValid) {
-    padding = 0;
-  }
 
   status = xiConvSetContext(
       data->p_context, data->context_size, input_depth, input_width,
@@ -99,8 +93,10 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
       data->reference_op_data.output_multiplier,
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
-      data->reference_op_data.output_activation_max, padding,
-      (uint8_t*)GetTensorData<uint8_t>(filter));
+      data->reference_op_data.output_activation_max,
+      (uint8_t*)GetTensorData<uint8_t>(filter),
+      data->reference_op_data.padding.width,
+      data->reference_op_data.padding.height);
   if (status) {
     return kTfLiteError;
   }

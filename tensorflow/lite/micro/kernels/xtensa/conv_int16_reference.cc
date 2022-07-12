@@ -70,14 +70,7 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 // since the optimized conv implementation currently adds a lot to
 // the binary size (~30KB to text section).
 TfLiteRegistration Register_CONV_2D_INT16REF() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/ConvPrepare,
-          /*invoke=*/ConvReferenceEvalInt16,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, ConvPrepare, ConvReferenceEvalInt16);
 }
 
 }  // namespace tflite

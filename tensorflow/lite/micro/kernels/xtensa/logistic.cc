@@ -54,7 +54,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-#if HIFI_VFPU && defined(HIFI5)
+#if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))
       const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
       const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
       const int flat_size = MatchingFlatSize(input_shape, output_shape);
@@ -70,11 +70,11 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
                               tflite::micro::GetTensorData<float>(input),
                               tflite::micro::GetTensorShape(output),
                               tflite::micro::GetTensorData<float>(output));
-#endif  // HIFI_VFPU && defined(HIFI5)
+#endif  // HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))
       break;
     }
     case kTfLiteInt8: {
-#if defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
       const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
       const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
       const int flat_size = MatchingFlatSize(input_shape, output_shape);
@@ -96,7 +96,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
           data->input_multiplier, data->input_left_shift,
           NumElements(input->dims), tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
       break;
     }
     case kTfLiteInt16: {
@@ -129,13 +129,6 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_LOGISTIC() {
-  return {/*init=*/LogisticInit,
-          /*free=*/nullptr,
-          /*prepare=*/LogisticPrepare,
-          /*invoke=*/LogisticEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(LogisticInit, LogisticPrepare, LogisticEval);
 }
 }  // namespace tflite

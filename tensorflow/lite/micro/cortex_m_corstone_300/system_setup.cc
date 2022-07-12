@@ -58,12 +58,12 @@ limitations under the License.
 namespace tflite {
 
 namespace {
-constexpr int kClocksPerSecond = 25e6;
+constexpr uint32_t kClocksPerSecond = 25e6;
 }  // namespace
 
-int32_t ticks_per_second() { return kClocksPerSecond; }
+uint32_t ticks_per_second() { return kClocksPerSecond; }
 
-int32_t GetCurrentTimeTicks() { return KIN1_GetCycleCounter(); }
+uint32_t GetCurrentTimeTicks() { return KIN1_GetCycleCounter(); }
 
 #ifdef ETHOS_U
 #if defined(ETHOSU_FAST_MEMORY_SIZE) && ETHOSU_FAST_MEMORY_SIZE > 0

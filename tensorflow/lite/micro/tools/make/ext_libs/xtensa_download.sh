@@ -55,9 +55,9 @@ elif [[ ${2} == "hifi5" ]]; then
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
   LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
 elif [[ ${2} == "vision_p6" ]]; then
-  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_annlib_vision_p6_22_02_24.zip"
-  LIBRARY_DIRNAME="xi_annlib_vision_p6"
-  LIBRARY_MD5="f24ab989b14a2a37648e79c7ad09272a"
+  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_29.zip"
+  LIBRARY_DIRNAME="xi_tflmlib_vision_p6"
+  LIBRARY_MD5="fea3720d76fdb3a5a337ace7b6081b56"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1
@@ -79,15 +79,21 @@ else
     exit 1
   fi
 
-  unzip -qo "$TEMPFILE" -d ${DOWNLOADS_DIR} >&2
+  # Check if another make process has already extracted the downloaded files.
+  # If so, skip extracting and patching.
+  if [ -d ${LIBRARY_INSTALL_PATH} ]; then
+    echo >&2 "${LIBRARY_INSTALL_PATH} already exists, skipping the extraction."
+  else
+    unzip -qo "$TEMPFILE" -d ${DOWNLOADS_DIR} >&2
 
-  rm -rf "${TEMPDIR}"
+    rm -rf "${TEMPDIR}"
 
-  pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
-  chmod -R +w ./
-  if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
-    create_git_repo ./
-    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+    pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
+    chmod -R +w ./
+    if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
+      create_git_repo ./
+      apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+    fi
   fi
 fi
 

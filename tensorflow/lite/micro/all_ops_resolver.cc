@@ -29,6 +29,8 @@ AllOpsResolver::AllOpsResolver() {
   AddAssignVariable();
   AddAveragePool2D();
   AddBatchToSpaceNd();
+  AddBroadcastArgs();
+  AddBroadcastTo();
   AddCallOnce();
   AddCast();
   AddCeil();
@@ -108,6 +110,7 @@ AllOpsResolver::AllOpsResolver() {
   AddTransposeConv();
   AddUnpack();
   AddVarHandle();
+  AddWhile();
   AddZerosLike();
 }
 

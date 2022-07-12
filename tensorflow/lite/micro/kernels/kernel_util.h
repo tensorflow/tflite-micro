@@ -27,6 +27,11 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+TfLiteRegistration RegisterOp(
+    void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
+    TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node));
+
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
 TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,
@@ -40,17 +45,31 @@ const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
 TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
                                 const TfLiteNode* node, int index);
 
-// Returns data for a TfLiteEvalTensor struct.
+// Returns data for a TfLiteEvalTensor struct that are expected to exist.
 template <typename T>
 T* GetTensorData(TfLiteEvalTensor* tensor) {
-  return tensor != nullptr ? reinterpret_cast<T*>(tensor->data.raw) : nullptr;
+  TFLITE_DCHECK(tensor != nullptr);
+  return reinterpret_cast<T*>(tensor->data.raw);
 }
 
-// Returns const data for a TfLiteEvalTensor struct.
+// Returns const data for a TfLiteEvalTensor struct that are expected to exist.
 template <typename T>
 const T* GetTensorData(const TfLiteEvalTensor* tensor) {
   TFLITE_DCHECK(tensor != nullptr);
   return reinterpret_cast<const T*>(tensor->data.raw);
+}
+
+// Returns data for a TfLiteEvalTensor struct that could be null.
+template <typename T>
+T* GetOptionalTensorData(TfLiteEvalTensor* tensor) {
+  return tensor == nullptr ? nullptr : reinterpret_cast<T*>(tensor->data.raw);
+}
+
+// Returns const data for a TfLiteEvalTensor struct that could be null.
+template <typename T>
+const T* GetOptionalTensorData(const TfLiteEvalTensor* tensor) {
+  return tensor == nullptr ? nullptr
+                           : reinterpret_cast<const T*>(tensor->data.raw);
 }
 
 // Returns the shape of a TfLiteEvalTensor struct.
@@ -69,6 +88,34 @@ PaddingType RuntimePaddingType(TfLitePadding padding);
 TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteTensor* tensor,
                                               TfLiteEvalTensor* eval_tensor);
+
+// Copy all op input tensors to op output tensors. Requires all op input tensor
+// shapes and types to be identical to op output tensor shapes and types.
+TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node);
+
+// Copy all op input tensors to subgraph input tensors. Requires all op input
+// tensor shapes and types to be identical to subgraph input tensor shapes and
+// types.
+TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
+                                          TfLiteNode* node,
+                                          MicroGraph* graph_info,
+                                          int subgraph_idx,
+                                          int first_tensor_idx);
+
+// Copy all op output tensors to subgraph input tensors. Requires all op output
+// tensor shapes and types to be identical to subgraph input tensor shapes and
+// types.
+TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
+                                           TfLiteNode* node,
+                                           MicroGraph* graph_info,
+                                           int subgraph_idx);
+
+// Copy all subgraph output tensors to op outputs. Requires all subgraph output
+// tensor shapes and types to be identical to op output tensor shapes and types.
+TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
+                                            TfLiteNode* node,
+                                            MicroGraph* graph_info,
+                                            int subgraph_idx);
 
 }  // namespace micro
 }  // namespace tflite

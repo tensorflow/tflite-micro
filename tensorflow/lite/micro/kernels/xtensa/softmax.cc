@@ -79,6 +79,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
     return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data),
                         input, output, context);
+#elif defined(VISION_P6)
+    return SoftmaxEvalVision(
+        context, node, *(static_cast<XtensaSoftmaxOpData*>(node->user_data)),
+        input, output);
 #else
     tflite::reference_ops::Softmax(
         params, tflite::micro::GetTensorShape(input),
@@ -114,14 +118,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SOFTMAX() {
-  return {/*init=*/XtensaInitSoftmax,
-          /*free=*/nullptr,
-          /*prepare=*/XtensaPrepareSoftmax,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(XtensaInitSoftmax, XtensaPrepareSoftmax,
+                                   Eval);
 }
 
 }  // namespace tflite

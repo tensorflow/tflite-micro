@@ -26,6 +26,8 @@ tensorflow/lite/kernels/internal/reference/arg_min_max.h
 tensorflow/lite/kernels/internal/reference/batch_to_space_nd.h
 tensorflow/lite/kernels/internal/reference/batch_matmul.h
 tensorflow/lite/kernels/internal/reference/binary_function.h
+tensorflow/lite/kernels/internal/reference/broadcast_args.h
+tensorflow/lite/kernels/internal/reference/broadcast_to.h
 tensorflow/lite/kernels/internal/reference/ceil.h
 tensorflow/lite/kernels/internal/reference/comparisons.h
 tensorflow/lite/kernels/internal/reference/concatenation.h
@@ -35,6 +37,7 @@ tensorflow/lite/kernels/internal/reference/depth_to_space.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h
 tensorflow/lite/kernels/internal/reference/dequantize.h
+tensorflow/lite/kernels/internal/reference/div.h
 tensorflow/lite/kernels/internal/reference/elu.h
 tensorflow/lite/kernels/internal/reference/exp.h
 tensorflow/lite/kernels/internal/reference/fill.h
@@ -98,6 +101,7 @@ tensorflow/lite/python/schema_py_generated.py
 tensorflow/lite/python/schema_util.py
 tensorflow/lite/schema/schema_generated.h
 tensorflow/lite/schema/schema_utils.h
+tensorflow/lite/schema/schema.fbs
 tensorflow/lite/tools/flatbuffer_utils.py
 tensorflow/lite/tools/flatbuffer_utils_test.py
 tensorflow/lite/tools/randomize_weights.py
