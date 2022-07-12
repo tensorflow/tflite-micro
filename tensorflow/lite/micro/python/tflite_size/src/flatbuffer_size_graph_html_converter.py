@@ -87,24 +87,23 @@ class HtmlConverter:
   """ A class to convert the size graph to a tree of collapsible list """
 
   def __init__(self):
-    self._htmlBody = HTML_HEAD
+    self._html_body = HTML_HEAD
 
-  def _drawCollapsibleList(self, fNode):
-    #print("visiting %s %d %d " % (fNode.name , fNode.isLeaf, len(fNode.children)))
-    if fNode.isLeaf is True or len(fNode.children) == 0:
-      self._htmlBody += "<li> %s: %s (size: %d) </li>\n" % (
-          fNode.name, fNode.value, fNode.size)
+  def _draw_collapsible_list(self, node):
+    if node.isLeaf is True or len(node.children) == 0:
+      self._html_body += "<li> %s: %s (size: %d) </li>\n" % (
+          node.name, node.value, node.size)
     else:
-      self._htmlBody += "<li> <span class = \"caret\"> %s (size: %d) </span>\n" % (
-          fNode.name, fNode.size)
-      self._htmlBody += "<ul class=\"nested\">\n"
-      for node in fNode.children:
-        self._drawCollapsibleList(node)
-      self._htmlBody += "</ul>\n"
-      self._htmlBody += "</li>\n"
+      self._html_body += "<li> <span class = \"caret\"> %s (size: %d) </span>\n" % (
+          node.name, node.size)
+      self._html_body += "<ul class=\"nested\">\n"
+      for node in node.children:
+        self._draw_collapsible_list(node)
+      self._html_body += "</ul>\n"
+      self._html_body += "</li>\n"
 
-  def displayFlatbuffer(self, rootNode):
-    self._htmlBody = HTML_HEAD
-    self._drawCollapsibleList(rootNode)
-    self._htmlBody += HTML_TAIL
-    return self._htmlBody
+  def display_flatbuffer(self, root):
+    self._html_body = HTML_HEAD
+    self._draw_collapsible_list(root)
+    self._html_body += HTML_TAIL
+    return self._html_body
