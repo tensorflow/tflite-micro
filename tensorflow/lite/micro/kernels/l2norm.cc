@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/l2normalization.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -126,8 +127,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorData<int8_t>(input),
         tflite::micro::GetTensorData<int8_t>(output));
   } else {
-    TF_LITE_KERNEL_LOG(context, "Output type is %s, requires float.",
-                       TfLiteTypeGetName(output->type));
+    MicroPrintf("Output type is %s, requires float.",
+                       TfLiteTypeGetName(output->type), context);
     return kTfLiteError;
   }
 

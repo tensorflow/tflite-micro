@@ -430,7 +430,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                          filter, bias, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG("Type %s (%d) not supported.",
+      MicroPrintf("Type %s (%d) not supported.",
                          TfLiteTypeGetName(input->type), input->type, context);
       return kTfLiteError;
   }
