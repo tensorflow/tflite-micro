@@ -50,31 +50,31 @@ class FlatbufferSizeGraph:
     self._root = FNode()
     self._verbose = False
 
-  def _buildNodeForField(self, name, flatbuffer_json):
-    fNode = FNode()
-    fNode.name = name
+  def _build_node_for_field(self, name, flatbuffer_json):
+    node = FNode()
+    node.name = name
 
     if self._verbose:
       print("Start processing %s" % flatbuffer_json)
-      fNode.print()
+      node.print()
 
     if "value" in flatbuffer_json.keys(
     ) and "total_size" in flatbuffer_json.keys():
-      fNode.size = flatbuffer_json["total_size"]
-      self._processValue(fNode, flatbuffer_json["value"])
+      node.size = flatbuffer_json["total_size"]
+      self._process_value(node, flatbuffer_json["value"])
     else:
       raise Exception("Filed not a dict with value and total size!")
 
     if self._verbose:
       print("End processing %s" % flatbuffer_json)
-      fNode.print()
-    return fNode
+      node.print()
+    return node
 
-  def _processValue(self, fNode, value_in_flatbuffer_json):
+  def _process_value(self, node, value_in_flatbuffer_json):
     if type(value_in_flatbuffer_json) is not dict and type(
         value_in_flatbuffer_json) is not list:
-      fNode.value = value_in_flatbuffer_json
-      fNode.isLeaf = True
+      node.value = value_in_flatbuffer_json
+      node.isLeaf = True
 
     if type(value_in_flatbuffer_json) is dict:
       if "value" in value_in_flatbuffer_json.keys(
@@ -83,17 +83,18 @@ class FlatbufferSizeGraph:
             "Field is another dict with value and total size again??")
 
       for name in value_in_flatbuffer_json.keys():
-        fNode.children.append(
-            self._buildNodeForField(name, value_in_flatbuffer_json[name]))
+        node.children.append(
+            self._build_node_for_field(name, value_in_flatbuffer_json[name]))
     elif type(value_in_flatbuffer_json) is list:
       for nidx, next_obj in enumerate(value_in_flatbuffer_json):
-        leaf_name = "%s[%d]" % (fNode.name, nidx)
+        leaf_name = "%s[%d]" % (node.name, nidx)
         # array: "operator_codes": {"value": [{"value": {"version": {"value": 2, "total_size": 4}}, "total_size": 4}], "total_size": 4}
         # so, each element must be of {"value: { field_name: }", total_size}
-        fNode.children.append(self._buildNodeForField(leaf_name, next_obj))
+        node.children.append(self._build_node_for_field(leaf_name, next_obj))
 
-  def createGraph(self, flatbuffer_in_json_with_size):
-    self._root = self._buildNodeForField("ROOT", flatbuffer_in_json_with_size)
+  def create_graph(self, flatbuffer_in_json_with_size):
+    self._root = self._build_node_for_field("ROOT",
+                                            flatbuffer_in_json_with_size)
 
-  def displayGraph(self, graphTraveser):
-    return graphTraveser.displayFlatbuffer(self._root)
+  def display_graph(self, graph_traveser):
+    return graph_traveser.display_flatbuffer(self._root)
