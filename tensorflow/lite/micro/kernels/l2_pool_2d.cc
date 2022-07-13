@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace {
@@ -125,9 +126,8 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
       L2EvalFloat(*params, *input, &op_params, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context,
-                         "L2_POOL_2D only supports float32 currently, got %s.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("L2_POOL_2D only supports float32 currently, got %s.",
+                         TfLiteTypeGetName(input->type), context);
       return kTfLiteError;
   }
   return kTfLiteOk;

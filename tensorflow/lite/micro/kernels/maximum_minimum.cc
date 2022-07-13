@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -98,15 +99,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         TFLiteOperation<int64_t, OpType>(context, node, op_context);
         break;
       default:
-        TF_LITE_KERNEL_LOG(context,
-                           "Type %s (%d) is not supported by Maximum/Minimum.",
+        MicroPrintf("Type %s (%d) is not supported by Maximum/Minimum.",
                            TfLiteTypeGetName(op_context.output->type),
-                           op_context.output->type);
+                           op_context.output->type, context);
         return kTfLiteError;
     }
   } else {
-    TF_LITE_KERNEL_LOG(context,
-                       "Kernel type not supported by Maximum/Minimum.");
+    MicroPrintf("Kernel type not supported by Maximum/Minimum."
+                        , context);
     return kTfLiteError;
   }
   return kTfLiteOk;

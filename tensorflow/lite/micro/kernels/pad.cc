@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -213,8 +214,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
 
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported by Pad.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Type %s not currently supported by Pad.",
+                         TfLiteTypeGetName(input->type),  context);
       return kTfLiteError;
   }
   return kTfLiteOk;

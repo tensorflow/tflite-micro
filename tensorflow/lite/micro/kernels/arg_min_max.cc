@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_utils.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
 namespace ops {
@@ -70,21 +71,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node, bool is_arg_max) {
           TF_LITE_ARG_MIN_MAX(int8_t, int32_t, int32_t);
           break;
         default:
-          TF_LITE_KERNEL_LOG(context,
-                             "Only float32, uint8_t and int8_t are "
+          MicroPrintf("Only float32, uint8_t and int8_t are "
                              "supported currently, got %s.",
-                             TfLiteTypeGetName(input->type));
+                             TfLiteTypeGetName(input->type), context);
           return kTfLiteError;
       }
     } else {
-      TF_LITE_KERNEL_LOG(context,
-                         "Only int32_t are supported currently, got %s.",
-                         TfLiteTypeGetName(output->type));
+      MicroPrintf("Only int32_t are supported currently, got %s.",
+                         TfLiteTypeGetName(output->type), context);
       return kTfLiteError;
     }
   } else {
-    TF_LITE_KERNEL_LOG(context, "Only int32_t are supported currently, got %s.",
-                       TfLiteTypeGetName(axis->type));
+    MicroPrintf("Only int32_t are supported currently, got %s.",
+                       TfLiteTypeGetName(axis->type), context);
     return kTfLiteError;
   }
 
