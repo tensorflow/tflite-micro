@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -307,7 +307,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   // This test is designed to create the following classes/buffers successfully
   // on the arena:
   //
-  // From tail: RecordingSimpleMemoryAllocator, RecordingMicroAllocator,
+  // From tail: RecordingSingleArenaBufferAllocator, RecordingMicroAllocator,
   //        RecordingMicroAllocator.
   //
   // From head:ScratchBufferRequest buffer.
@@ -319,7 +319,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   constexpr size_t max_scratch_buffer_request_size = 192;
   constexpr size_t max_micro_builtin_data_allocator_size = 16;
   constexpr size_t allocator_buffer_size =
-      sizeof(tflite::RecordingSimpleMemoryAllocator) +
+      sizeof(tflite::RecordingSingleArenaBufferAllocator) +
       sizeof(tflite::RecordingMicroAllocator) +
       max_micro_builtin_data_allocator_size + max_scratch_buffer_request_size;
   uint8_t allocator_buffer[allocator_buffer_size];
@@ -536,8 +536,8 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   // The reported used_arena_size plus alignment padding is sufficient for this
-  // model to run. Plus alignment padding is because SimpleMemoryAllocator is
-  // given the arena after the alignment.
+  // model to run. Plus alignment padding is because SingleArenaBufferAllocator
+  // is given the arena after the alignment.
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
   tflite::MicroInterpreter interpreter2(

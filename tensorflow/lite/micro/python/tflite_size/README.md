@@ -9,7 +9,7 @@ struct) instead of storing it as the tflite buffer.
 Here is how you can use a visualization of tflite file
 
 ```
-cd tensorflow/lite/micro/python/tflite_size/src import
+cd tensorflow/lite/micro/python/tflite_size/src
 
 bazel run flatbuffer_size -- in_tflite_file out_html_file
 ```
