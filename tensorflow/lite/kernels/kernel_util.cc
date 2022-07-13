@@ -467,8 +467,7 @@ TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
     if (!(d1 == d2 || d1 == 1 || d2 == 1)) {
       MicroPrintf("Given shapes, %s, %s and %s, are not broadcastable.",
                   GetShapeDebugString(input1->dims).c_str(),
-                  GetShapeDebugString(input2->dims).c_str(),
-                  GetShapeDebugString(input3->dims).c_str(), context);
+                  GetShapeDebugString(input2->dims).c_str(), context);
       return kTfLiteError;
     }
 
