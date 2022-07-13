@@ -32,7 +32,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
-
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
 #endif
@@ -57,13 +56,13 @@ inline TfLiteStatus ValidateTensorIndexingSafe(const TfLiteContext* context,
                                                const int* tensor_indices,
                                                int* tensor_index) {
   if (index < 0 || index >= max_size) {
-    MicroPrintf("Invalid tensor index %d (not in [0, %d))\n", index,
-                       max_size, context);
+    MicroPrintf("Invalid tensor index %d (not in [0, %d))\n", index, max_size,
+                context);
     return kTfLiteError;
   }
   if (tensor_indices[index] == kTfLiteOptionalTensor) {
-    MicroPrintf("Tensor at index %d was optional but was expected\n",
-                       index, context);
+    MicroPrintf("Tensor at index %d was optional but was expected\n", index,
+                context);
     return kTfLiteError;
   }
 
@@ -466,10 +465,10 @@ TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
     const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
     const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
     if (!(d1 == d2 || d1 == 1 || d2 == 1)) {
-      MicroPrintf("Given shapes, %s and %s, are not broadcastable.",
-                         GetShapeDebugString(input1->dims).c_str(),
-                         GetShapeDebugString(input2->dims).c_str(),
-                         context);
+      MicroPrintf("Given shapes, %s, %s and %s, are not broadcastable.",
+                  GetShapeDebugString(input1->dims).c_str(),
+                  GetShapeDebugString(input2->dims).c_str(),
+                  GetShapeDebugString(input3->dims).c_str(), context);
       return kTfLiteError;
     }
 
