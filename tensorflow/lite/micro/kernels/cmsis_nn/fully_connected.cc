@@ -331,8 +331,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                 output);
     }
     default: {
-      MicroPrintf("Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type, context);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type, context);
       return kTfLiteError;
     }
   }
@@ -360,8 +360,8 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
 
   // Checks in Prepare ensure input, output and filter types are all the same.
   if (input->type != kTfLiteInt8) {
-    MicroPrintf("Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type, context);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type, context);
     return kTfLiteError;
   }
 
@@ -383,8 +383,8 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
   // Checks in Prepare ensure input, output and filter types are all the same.
   if (input->type != kTfLiteInt16) {
-    MicroPrintf("Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type, context);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type, context);
     return kTfLiteError;
   }
 

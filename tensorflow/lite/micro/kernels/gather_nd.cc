@@ -49,7 +49,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Params of type '%s' are not supported by gather_nd.",
-                         TfLiteTypeGetName(params->type), context);
+                  TfLiteTypeGetName(params->type), context);
       return kTfLiteError;
       break;
   }

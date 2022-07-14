@@ -199,8 +199,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
     }
     default:
       MicroPrintf("Type %s (%d) not supported.",
-                         TfLiteTypeGetName(output->type), output->type
-                         , context);
+                  TfLiteTypeGetName(output->type), output->type, context);
       return kTfLiteError;
   }
 
@@ -262,8 +261,8 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_OK(context, EvalAddQuantized(context, node, params, data,
                                                 input1, input2, output));
   } else {
-    MicroPrintf("Type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type, context);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
+                output->type, context);
     return kTfLiteError;
   }
 

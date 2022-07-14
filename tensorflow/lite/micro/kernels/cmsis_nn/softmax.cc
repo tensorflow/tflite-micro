@@ -125,8 +125,8 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default:
-      MicroPrintf("Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type, context);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type, context);
       return kTfLiteError;
   }
 }
