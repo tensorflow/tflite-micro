@@ -185,8 +185,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int32_t>(output));
       break;
     default:
-      MicroPrintf("Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type, context);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type, context);
       return kTfLiteError;
   }
   return kTfLiteOk;

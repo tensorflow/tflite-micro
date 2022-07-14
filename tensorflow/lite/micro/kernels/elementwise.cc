@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
-
 namespace tflite {
 namespace ops {
 namespace micro {
@@ -93,7 +92,7 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
-                       TfLiteTypeGetName(input->type), input->type, context);
+                TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
 
@@ -115,7 +114,7 @@ TfLiteStatus PrepareAbsRsqrt(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
-                       TfLiteTypeGetName(input->type), input->type, context);
+                TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
 
@@ -320,7 +319,7 @@ TfLiteStatus AbsEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Current data type %s is not supported.",
-                         TfLiteTypeGetName(type));
+                  TfLiteTypeGetName(type));
       return kTfLiteError;
       break;
   }
@@ -358,7 +357,7 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
 
     default:
       MicroPrintf("Current data type %s is not supported.",
-                         TfLiteTypeGetName(type), context);
+                  TfLiteTypeGetName(type), context);
       return kTfLiteError;
   }
 }

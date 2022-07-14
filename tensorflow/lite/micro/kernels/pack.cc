@@ -97,7 +97,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     default: {
       MicroPrintf("Type '%s' is not supported by pack.",
-                         TfLiteTypeGetName(output->type), context);
+                  TfLiteTypeGetName(output->type), context);
       return kTfLiteError;
     }
   }

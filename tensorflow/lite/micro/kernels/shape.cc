@@ -20,8 +20,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 
@@ -49,7 +49,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   if (output->type != kTfLiteInt32) {
     MicroPrintf("Output type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type, context);
+                TfLiteTypeGetName(output->type), output->type, context);
     return kTfLiteError;
   } else {
     ExtractShape(input, tflite::micro::GetTensorData<int32_t>(output));

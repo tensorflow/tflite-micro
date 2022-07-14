@@ -100,13 +100,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         break;
       default:
         MicroPrintf("Type %s (%d) is not supported by Maximum/Minimum.",
-                           TfLiteTypeGetName(op_context.output->type),
-                           op_context.output->type, context);
+                    TfLiteTypeGetName(op_context.output->type),
+                    op_context.output->type, context);
         return kTfLiteError;
     }
   } else {
-    MicroPrintf("Kernel type not supported by Maximum/Minimum."
-                        , context);
+    MicroPrintf("Kernel type not supported by Maximum/Minimum.", context);
     return kTfLiteError;
   }
   return kTfLiteOk;

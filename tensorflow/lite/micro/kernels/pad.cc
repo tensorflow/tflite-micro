@@ -215,7 +215,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     default:
 
       MicroPrintf("Type %s not currently supported by Pad.",
-                         TfLiteTypeGetName(input->type),  context);
+                  TfLiteTypeGetName(input->type), context);
       return kTfLiteError;
   }
   return kTfLiteOk;

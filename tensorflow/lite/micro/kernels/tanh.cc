@@ -24,8 +24,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace ops {
@@ -187,8 +187,8 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
       MicroPrintf("Input %s, output %s not supported.",
-                         TfLiteTypeGetName(input->type),
-                         TfLiteTypeGetName(output->type), context);
+                  TfLiteTypeGetName(input->type),
+                  TfLiteTypeGetName(output->type), context);
       return kTfLiteError;
   }
 }

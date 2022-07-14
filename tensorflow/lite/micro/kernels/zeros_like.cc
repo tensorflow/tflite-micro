@@ -72,9 +72,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf(
-                         "ZerosLike only currently supports int64, int32, "
-                         "and float32, got %d.",
-                         input->type,context);
+          "ZerosLike only currently supports int64, int32, "
+          "and float32, got %d.",
+          input->type, context);
       return kTfLiteError;
   }
   return kTfLiteOk;

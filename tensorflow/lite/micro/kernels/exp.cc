@@ -65,7 +65,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                        tflite::micro::GetTensorData<float>(output));
   } else {
     MicroPrintf("Type %s (%d) currently not supported by Exp.",
-                       TfLiteTypeGetName(input->type), input->type, context);
+                TfLiteTypeGetName(input->type), input->type, context);
     return kTfLiteError;
   }
   return kTfLiteOk;

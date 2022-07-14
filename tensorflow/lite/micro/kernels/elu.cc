@@ -137,7 +137,7 @@ TfLiteStatus EluEval(TfLiteContext* context, TfLiteNode* node) {
     }
     default:
       MicroPrintf("ELU only supports float32 and int8 currently, got %s.",
-          TfLiteTypeGetName(input->type), context);
+                  TfLiteTypeGetName(input->type), context);
       return kTfLiteError;
   }
 }

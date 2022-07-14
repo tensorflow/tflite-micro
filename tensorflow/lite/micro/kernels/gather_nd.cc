@@ -17,8 +17,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace {
@@ -58,7 +58,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Indices of type '%s' are not supported by gather_nd.",
-                         TfLiteTypeGetName(indices->type), context);
+                  TfLiteTypeGetName(indices->type), context);
       return kTfLiteError;
   }
 
@@ -74,12 +74,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
   if (indices_nd > params_rank) {
-    MicroPrintf("Index innermost dimension length must be <= params rank.", context);
+    MicroPrintf("Index innermost dimension length must be <= params rank.",
+                context);
     return kTfLiteError;
   }
   if (indices_nd > MAX_INDICES_ND) {
     MicroPrintf("Index innermost dimension length must not exceed %d.",
-                       MAX_INDICES_ND, context);
+                MAX_INDICES_ND, context);
     return kTfLiteError;
   }
 
@@ -164,7 +165,7 @@ TfLiteStatus EvalGatherNd(TfLiteContext* context,
       break;
     default:
       MicroPrintf("Params type '%s' are not supported by gather_nd.",
-                         TfLiteTypeGetName(params->type), context);
+                  TfLiteTypeGetName(params->type), context);
       return kTfLiteError;
   }
 }
@@ -183,7 +184,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Indices of type '%s' are not supported by gather_nd.",
-                         TfLiteTypeGetName(indices->type), context);
+                  TfLiteTypeGetName(indices->type), context);
       return kTfLiteError;
   }
 }
