@@ -896,4 +896,52 @@ TF_LITE_MICRO_TEST(SumInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
       tflite::Register_SUM(), &params, 1.0);
 }
 
+TF_LITE_MICRO_TEST(SumFloatSize1) {
+  int input_shape[] = {1, 1};
+  int output_shape[] = {1, 1};
+  int axis_shape[] = {1, 1};
+  int32_t axis_data[] = {0};
+  float input_data[] = {1.0};
+  float expected_output[] = {1.0};
+  float actual_output_data[1];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape,
+      actual_output_data, expected_output, tflite::Register_SUM(), &params);
+}
+
+TF_LITE_MICRO_TEST(SumFloat2DRedundantDims) {
+  int input_shape[] = {3, 1, 2, 4};
+  int output_shape[] = {2, 1, 4};
+  int axis_shape[] = {1, 1};
+  int32_t axis_data[] = {1};
+  float input_data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+  float expected_output[] = {6.0, 8.0 ,10.0, 12.0};
+  float actual_output_data[4];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape,
+      actual_output_data, expected_output, tflite::Register_SUM(), &params);
+}
+
+TF_LITE_MICRO_TEST(SumFloatScalar) {
+  int input_shape[] = {1, 1};
+  int output_shape[] = {1, 1};
+  int axis_shape[] = {1, 0};
+  int32_t axis_data[] = {};
+  float input_data[] = {1.0};
+  float expected_output[] = {1.0};
+  float actual_output_data[1];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape,
+      actual_output_data, expected_output, tflite::Register_SUM(), &params);
+}
+
 TF_LITE_MICRO_TESTS_END
