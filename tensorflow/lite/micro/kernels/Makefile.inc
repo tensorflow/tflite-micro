@@ -61,6 +61,7 @@ tensorflow/lite/micro/kernels/cumsum_test.cc \
 tensorflow/lite/micro/kernels/depth_to_space_test.cc \
 tensorflow/lite/micro/kernels/depthwise_conv_test.cc \
 tensorflow/lite/micro/kernels/dequantize_test.cc \
+tensorflow/lite/micro/kernels/div_test.cc \
 tensorflow/lite/micro/kernels/elementwise_test.cc \
 tensorflow/lite/micro/kernels/elu_test.cc \
 tensorflow/lite/micro/kernels/exp_test.cc \
