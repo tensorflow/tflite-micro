@@ -195,7 +195,7 @@ A good example is [PR #45311][].
 
     -   Flatten the namespace down to `tflite`.
     -   Stop resizing output tensors.
-    -   Remove input and output types other than `int8` and `float32`.
+    -   Remove input and output types other than `int8`, `int16`, and `float32`.
     -   Stop using gmock and gtest.
     -   etc.
 
