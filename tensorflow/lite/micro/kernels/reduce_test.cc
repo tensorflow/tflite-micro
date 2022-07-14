@@ -918,7 +918,7 @@ TF_LITE_MICRO_TEST(SumFloat2DRedundantDims) {
   int axis_shape[] = {1, 1};
   int32_t axis_data[] = {1};
   float input_data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
-  float expected_output[] = {6.0, 8.0 ,10.0, 12.0};
+  float expected_output[] = {6.0, 8.0, 10.0, 12.0};
   float actual_output_data[4];
 
   TfLiteReducerParams params = {false};
