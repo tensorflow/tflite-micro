@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
@@ -239,18 +240,22 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
 
   // Inputs and outputs share the same type, guaranteed by the converter.
   switch (input->type) {
-    case kTfLiteFloat32:
+    case kTfLiteFloat32: {
       AveragePoolingEvalFloat(context, node, params, reference_op_data, input,
                               output);
-      break;
-    case kTfLiteInt8:
+    } break;
+    case kTfLiteInt8: {
 #if defined(HIFI5)
       AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#elif defined(VISION_P6)
+      const auto& op_data =
+          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
+      PoolEvalVision(context, node, *params, op_data, input, output);
 #else
       AveragePoolingEvalQuantized(context, node, params, reference_op_data,
                                   input, output);
 #endif
-      break;
+    } break;
     default:
       TF_LITE_KERNEL_LOG(context, "Input type %s is not currently supported",
                          TfLiteTypeGetName(input->type));
@@ -278,18 +283,22 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       micro::GetEvalOutput(context, node, kPoolingOutputTensor);
 
   switch (input->type) {
-    case kTfLiteFloat32:
+    case kTfLiteFloat32: {
       MaxPoolingEvalFloat(context, node, params, reference_op_data, input,
                           output);
-      break;
-    case kTfLiteInt8:
+    } break;
+    case kTfLiteInt8: {
 #if defined(HIFI5)
       MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+#elif defined(VISION_P6)
+      const auto& op_data =
+          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
+      PoolEvalVision(context, node, *params, op_data, input, output);
 #else
       MaxPoolingEvalQuantized(context, node, params, reference_op_data, input,
                               output);
 #endif
-      break;
+    } break;
     default:
       TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
                          TfLiteTypeGetName(input->type));
@@ -302,6 +311,12 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if defined(HIFI5)
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
+#elif defined(VISION_P6)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(XtensaOpDataPooling));
 #else
   return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
 #endif
@@ -312,6 +327,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(Init, AveragePrepareHifi, AverageEval);
+#elif defined(VISION_P6)
+  return tflite::micro::RegisterOp(Init, AvgPoolingPrepareVision, AverageEval);
 #else
   return tflite::micro::RegisterOp(Init, PoolingPrepare, AverageEval);
 #endif
@@ -320,6 +337,8 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
 TfLiteRegistration Register_MAX_POOL_2D() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(Init, MaxPrepareHifi, MaxEval);
+#elif defined(VISION_P6)
+  return tflite::micro::RegisterOp(Init, MaxPoolingPrepareVision, MaxEval);
 #else
   return tflite::micro::RegisterOp(Init, PoolingPrepare, MaxEval);
 #endif
