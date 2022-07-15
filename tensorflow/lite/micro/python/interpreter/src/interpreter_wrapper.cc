@@ -25,7 +25,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -35,6 +34,12 @@ limitations under the License.
 namespace tflite {
 
 InterpreterWrapper::~InterpreterWrapper() {
+  // We don't use a unique_ptr for the interpreter because we need to call its
+  // destructor before we call Py_DECREF(model_). This ensures that the model
+  // is still in scope when MicroGraph:FreeSubgraphs() is called. Otherwise,
+  // a segmentation fault could occur.
+  delete interpreter_;
+
   // Undo any references incremented
   Py_DECREF(model_);
 }
@@ -60,9 +65,9 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
   model_ = model_data;
   error_reporter_ = std::unique_ptr<ErrorReporter>(new MicroErrorReporter());
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
-  interpreter_ = std::unique_ptr<MicroInterpreter>(
+  interpreter_ =
       new MicroInterpreter(model, all_ops_resolver_, memory_arena_.get(),
-                           arena_size, error_reporter_.get()));
+                           arena_size, error_reporter_.get());
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
@@ -75,16 +80,7 @@ InterpreterWrapper::InterpreterWrapper(PyObject* model_data,
   ImportNumpy();
 }
 
-int InterpreterWrapper::Invoke() {
-  TfLiteStatus status = interpreter_->Invoke();
-  if (status != kTfLiteOk) {
-    PyErr_Format(PyExc_RuntimeError, "TFLM failed to invoke. Error: %d",
-                 status);
-    return status;
-  }
-
-  return 0;
-}
+int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 
 // 1. Check that tensor and input array are safe to access
 // 2. Verify that input array metadata matches tensor metadata
