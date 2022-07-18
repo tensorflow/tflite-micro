@@ -557,6 +557,10 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
+#if !defined(XTENSA)
+// The reduce sum op doesn't exist in Xtensa optimized reduce kernel, so the
+// tests only make sense outside of Xtensa.
+
 TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
   int output_shape[] = {1, 4};
@@ -943,5 +947,7 @@ TF_LITE_MICRO_TEST(SumFloatScalar) {
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
+
+#endif
 
 TF_LITE_MICRO_TESTS_END
