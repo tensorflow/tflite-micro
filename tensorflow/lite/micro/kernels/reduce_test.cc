@@ -37,7 +37,11 @@ static const int32_t kAxisData2D[] = {1};
 static const int kOutputElements2D = 2;
 static int kOutputShape2D[] = {2, 1, 2};
 static const float kGoldenData2D[] = {2.5, 6.5};
+#if !defined(XTENSA)
+// The reduce sum op doesn't exist in Xtensa optimized reduce kernel, so the
+// tests only make sense outside of Xtensa.
 static const float kGoldenDataSum2D[] = {10.0, 26.0};
+#endif
 
 // Common 3D inputs, outputs and axis.
 static const int kInputElements3D = 8;
@@ -50,7 +54,9 @@ static const int32_t kAxisData3D[] = {1, 2};
 static const int kOutputElements3D = 2;
 static int kOutputShape3D[] = {2, 1, 2};
 static const float kGoldenData3D[] = {2.5, 6.5};
+#if !defined(XTENSA)
 static const float kGoldenDataSum3D[] = {10.0, 26.0};
+#endif
 
 // Common 4D inputs, outputs and axis.
 static const int kInputElements4D = 24;
@@ -65,8 +71,10 @@ static const int32_t kAxisData4D[] = {1, 2};
 static const int kOutputElements4D = 4;
 static int kOutputShape4D[] = {4, 2, 1, 1, 2};
 static const float kGoldenData4D[] = {6, 7, 18, 19};
+#if !defined(XTENSA)
 static const float kGoldenDataSum4D[] = {36, 42, 108, 114};
 static const float kGoldenDataSum4DOverflow[] = {36, 42, 108 - 128, 114 - 128};
+#endif
 
 // Axis shape and contents are independent of input / output dimensions.
 
@@ -558,8 +566,6 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
 }
 
 #if !defined(XTENSA)
-// The reduce sum op doesn't exist in Xtensa optimized reduce kernel, so the
-// tests only make sense outside of Xtensa.
 
 TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
