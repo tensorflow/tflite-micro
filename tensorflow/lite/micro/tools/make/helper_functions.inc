@@ -63,6 +63,8 @@ MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 ifneq (,$(findstring _test,$(1)))
 ifneq (,$(findstring integration_tests,$(1)))
   MICROLITE_INTEGRATION_TEST_TARGETS += test_$(1)
+else ifneq (,$(findstring generated_micro_mutable_op_resolver,$(1)))
+  MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS += test_$(1)
 else
   MICROLITE_TEST_TARGETS += test_$(1)
 endif
