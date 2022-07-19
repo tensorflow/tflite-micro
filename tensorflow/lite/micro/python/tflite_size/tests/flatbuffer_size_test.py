@@ -12,34 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import os
+
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size
 
-root_dir = 'tensorflow/lite/micro/python/tflite_size/tests'
-
 
 class FlatbufferSizeTest(test_util.TensorFlowTestCase):
 
-  def _compareFile(self, file1, file2):
+  def _compareFile(self, file1, data2):
     with open(file1, 'rb') as f1:
       data1 = f1.read()
-    with open(file2, 'rb') as f2:
-      data2 = f2.read()
-    self.assertEqual(data1, data2)
+    self.assertEqual(data1, data2.encode())
 
   def testCompareWithTFLite(self):
+    root_dir = os.path.split(os.path.abspath(__file__))[0]
+
     in_filename = root_dir + '/simple_add_model.tflite'
-    out_json_file = root_dir + '/simple_add_model.json'
-    out_html_file = root_dir + '/simple_add_model.json.html'
     gold_json_file = root_dir + '/gold_simple_add_model_json.txt'
     gold_html_file = root_dir + '/gold_simple_add_model_html.txt'
 
-    flatbuffer_size.convert_tflite_to_html(in_filename, out_html_file,
-                                           out_json_file)
+    with open(in_filename, 'rb') as f:
+      model = f.read()
 
-    self._compareFile(out_json_file, gold_json_file)
-    self._compareFile(out_html_file, gold_html_file)
+    html_string, formatted_json = flatbuffer_size.convert_tflite_to_html(model)
+
+    self._compareFile(gold_json_file, formatted_json)
+    self._compareFile(gold_html_file, html_string)
 
 
 if __name__ == '__main__':

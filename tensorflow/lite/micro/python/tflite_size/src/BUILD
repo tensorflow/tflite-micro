@@ -2,6 +2,8 @@ load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
 
 package(
     default_visibility = ["//visibility:public"],
+    features = ["-layering_check"],
+    licenses = ["notice"],
 )
 
 # Append _lib at the end to avoid naming collision with the extension below

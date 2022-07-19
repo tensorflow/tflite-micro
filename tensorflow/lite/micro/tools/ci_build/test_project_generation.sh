@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -68,22 +68,34 @@ rm -rf "${TEST_OUTPUT_DIR}"
 # Remove existing state prior to testing project generation for cortex-m target.
 make -f tensorflow/lite/micro/tools/make/Makefile clean clean_downloads
 
+ARM_CPU=55
+
 TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
 
 readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
+  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=cortex-m${ARM_CPU}" \
   "${TEST_OUTPUT_DIR_CMSIS}" \
   ${EXAMPLES}
 
 readable_run \
   cp tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR_CMSIS}"
 
+readable_run \
+  cp tensorflow/lite/micro/tools/make/targets/cortex_m_generic_makefile.inc "${TEST_OUTPUT_DIR_CMSIS}"
+
+readable_run \
+  mkdir -p "${TEST_OUTPUT_DIR_CMSIS}/third_party/cmsis/Device/ARM/ARMCM${ARM_CPU}"
+
+readable_run \
+  cp -r tensorflow/lite/micro/tools/make/downloads/cmsis/Device/ARM/ARMCM${ARM_CPU}/Include \
+    "${TEST_OUTPUT_DIR_CMSIS}/third_party/cmsis/Device/ARM/ARMCM${ARM_CPU}/"
+
 pushd "${TEST_OUTPUT_DIR_CMSIS}" > /dev/null
 
 PATH="${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
   readable_run \
-  make -j8 BUILD_TYPE=cmsis_nn
+  make -j8 BUILD_TYPE=cmsis_nn TARGET_ARCH=cortex-m${ARM_CPU}
 
 popd > /dev/null
 
