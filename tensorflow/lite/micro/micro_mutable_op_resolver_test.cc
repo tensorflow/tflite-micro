@@ -97,3 +97,4 @@ TF_LITE_MICRO_TEST(TestOperations) {
   registration = resolver->FindOp("nonexistent_custom");
   TF_LITE_MICRO_EXPECT(nullptr == registration);
 }
+TF_LITE_MICRO_TESTS_END
