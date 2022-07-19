@@ -35,6 +35,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+
 namespace tflite {
 TfLiteRegistration* Register_DETECTION_POSTPROCESS();
 
@@ -86,9 +87,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // kTfLiteError.
   TfLiteStatus AddCustom(const char* name, TfLiteRegistration* registration) {
     if (registrations_len_ >= tOpCount) {
-      MicroPrintf("Couldn't register custom op '%s' ", name);
-      MicroPrintf("resolver size is too small (%d)", tOpCount);
-      TFLITE_ABORT;
+      MicroPrintf(
+          "Couldn't register custom op '%s', resolver size is too"
+          "small (%d)",
+          name, tOpCount);
+      return kTfLiteError;
     }
 
     if (FindOp(name) != nullptr) {
@@ -589,7 +592,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf("Couldn't register builtin op #%d, resolver size ", op);
       MicroPrintf("is too small (%d).", tOpCount);
-      TFLITE_ABORT;
+      return kTfLiteError;
     }
 
     registrations_[registrations_len_] = registration;
