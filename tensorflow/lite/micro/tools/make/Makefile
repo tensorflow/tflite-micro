@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -264,6 +264,9 @@ endif
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
+tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
+
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
@@ -288,8 +291,8 @@ tensorflow/lite/micro/micro_utils_test.cc \
 tensorflow/lite/micro/recording_micro_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/simple_memory_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
 tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
@@ -610,6 +613,9 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
 
+# Load generated micro mutable op resolver test.
+include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
+
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
 
@@ -772,6 +778,7 @@ $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET)
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
+generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
 
 # Just build the test targets

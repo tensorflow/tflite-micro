@@ -20,29 +20,21 @@ from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer
 from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_graph_html_converter
 
 
-def convert_tflite_to_html(in_filename, out_html_file, out_json_file=''):
-  with open(in_filename, 'rb') as f:
-    in_flatbuf = f.read()
+def convert_tflite_to_html(in_flatbuf):
+  """ Given a input tflite flatbuffer, returns a html and a json with size info"""
+  size_wrapper = flatbuffer_size_wrapper_pybind.FlatbufferSize()
+  out_json = size_wrapper.convertToJsonString(in_flatbuf)
+  json_as_dict = json.loads(out_json)
 
-    sizeWrapper = flatbuffer_size_wrapper_pybind.FlatbufferSize()
-    outJson = sizeWrapper.convertToJsonString(in_flatbuf)
-    jsonAsDict = json.loads(outJson)
+  formatted_json = json.dumps(json_as_dict)
 
-    # Write json output to compare with golden vector file
-    if out_json_file:
-      formatedJson = json.dumps(jsonAsDict)
-      with open(out_json_file, 'w') as f:
-        f.write(formatedJson)
+  graph_builder = flatbuffer_size_graph.FlatbufferSizeGraph()
+  graph_builder.create_graph(json_as_dict)
 
-    graphBuilder = flatbuffer_size_graph.FlatbufferSizeGraph()
-    graphBuilder.createGraph(jsonAsDict)
+  html_converter = flatbuffer_size_graph_html_converter.HtmlConverter()
+  html_string = graph_builder.display_graph(html_converter)
 
-    htmlConverter = flatbuffer_size_graph_html_converter.HtmlConverter()
-    htmlString = graphBuilder.displayGraph(htmlConverter)
-
-    # Write html output to compare with golden vector file
-    with open(out_html_file, 'w') as f:
-      f.write(htmlString)
+  return html_string, formatted_json
 
 
 def main(argv):
@@ -52,7 +44,13 @@ def main(argv):
   except IndexError:
     print("Usage: %s <input tflite> <output html>" % (argv[0]))
   else:
-    convert_tflite_to_html(tflite_input, html_output)
+    with open(tflite_input, 'rb') as f:
+      in_flatbuf = f.read()
+
+    html_string = convert_tflite_to_html(in_flatbuf)[0]
+
+    with open(html_output, 'w') as f:
+      f.write(html_string)
 
 
 if __name__ == '__main__':
