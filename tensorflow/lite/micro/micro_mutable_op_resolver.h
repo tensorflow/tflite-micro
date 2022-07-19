@@ -35,7 +35,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-
 namespace tflite {
 TfLiteRegistration* Register_DETECTION_POSTPROCESS();
 
