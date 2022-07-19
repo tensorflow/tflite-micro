@@ -38,7 +38,6 @@ git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 # See http://b/235888271 for additional context as well as some of the workflows
 # that we will need to fix before upgrading to a newer flatbuffer version.
 rm -rf /tmp/tensorflow/third_party/flatbuffers
-cp -r third_party/flatbuffers/ /tmp/tensorflow/third_party/
 cp -r ci/flatbuffers_for_tf_sync/ /tmp/tensorflow/third_party/flatbuffers
 
 cd /tmp/tensorflow
