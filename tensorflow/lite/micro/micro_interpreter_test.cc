@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -30,7 +30,8 @@ limitations under the License.
 
 namespace tflite {
 namespace {
-
+constexpr size_t buffer_arena_size = 256 * 1024;
+uint8_t arena_buffer[buffer_arena_size];
 class MockProfiler : public MicroProfiler {
  public:
   MockProfiler() : event_starts_(0), event_ends_(0) {}
@@ -306,7 +307,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   // This test is designed to create the following classes/buffers successfully
   // on the arena:
   //
-  // From tail: RecordingSimpleMemoryAllocator, RecordingMicroAllocator,
+  // From tail: RecordingSingleArenaBufferAllocator, RecordingMicroAllocator,
   //        RecordingMicroAllocator.
   //
   // From head:ScratchBufferRequest buffer.
@@ -318,7 +319,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   constexpr size_t max_scratch_buffer_request_size = 192;
   constexpr size_t max_micro_builtin_data_allocator_size = 16;
   constexpr size_t allocator_buffer_size =
-      sizeof(tflite::RecordingSimpleMemoryAllocator) +
+      sizeof(tflite::RecordingSingleArenaBufferAllocator) +
       sizeof(tflite::RecordingMicroAllocator) +
       max_micro_builtin_data_allocator_size + max_scratch_buffer_request_size;
   uint8_t allocator_buffer[allocator_buffer_size];
@@ -523,14 +524,9 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
-
-  constexpr size_t arena_buffer_size = 256 * 1024;
-  uint8_t arena_buffer[arena_buffer_size];
-
-  tflite::MicroInterpreter interpreter(model, op_resolver, arena_buffer,
-                                       arena_buffer_size,
+  tflite::MicroInterpreter interpreter(model, op_resolver, tflite::arena_buffer,
+                                       tflite::buffer_arena_size,
                                        tflite::GetMicroErrorReporter());
-
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
   // Store the required arena size before Invoke() because this is what this
@@ -540,15 +536,13 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   // The reported used_arena_size plus alignment padding is sufficient for this
-  // model to run. Plus alignment padding is because SimpleMemoryAllocator is
-  // given the arena after the alignment.
+  // model to run. Plus alignment padding is because SingleArenaBufferAllocator
+  // is given the arena after the alignment.
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
-
-  tflite::MicroInterpreter interpreter2(model, op_resolver, arena_buffer,
-                                        required_arena_size,
-                                        tflite::GetMicroErrorReporter());
-
+  tflite::MicroInterpreter interpreter2(
+      model, op_resolver, tflite::arena_buffer, required_arena_size,
+      tflite::GetMicroErrorReporter());
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);

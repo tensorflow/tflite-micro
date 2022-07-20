@@ -1,6 +1,15 @@
+# Apply ci:run on the following conditions:
+#   1. ci:ready_to_merge is added to a PR (e.g. on review approval). This makes
+#      it so that a review approval is sufficient to get all the CI machinery
+#      going and have the PR be merged (if all the tests pass).
+#
+#   2. PR is updated and ci:ready_to_merge is already a label on the PR. This
+#      allows mergify to update the PR and keep the merging process moving
+#      along.
+
 on:
   pull_request_target:
-    types: [synchronize]
+    types: [labeled, synchronize]
 
 jobs:
   apply-label:
@@ -9,7 +18,7 @@ jobs:
     steps:
       - uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }} 
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
             github.rest.issues.addLabels({
               issue_number: context.issue.number,
