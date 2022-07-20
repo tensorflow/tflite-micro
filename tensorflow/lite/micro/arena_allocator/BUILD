@@ -48,12 +48,37 @@ cc_test(
 )
 
 cc_library(
+    name = "persistent_arena_buffer_allocator",
+    srcs = ["persistent_arena_buffer_allocator.cc"],
+    hdrs = ["persistent_arena_buffer_allocator.h"],
+    copts = micro_copts(),
+    deps = [
+        ":ibuffer_allocator",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:memory_helpers",
+        "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_error_reporter",
+    ],
+)
+
+cc_test(
+    name = "persistent_arena_buffer_allocator_test",
+    srcs = ["persistent_arena_buffer_allocator_test.cc"],
+    deps = [
+        ":persistent_arena_buffer_allocator",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
     name = "simple_memory_allocator",
     srcs = [
-        "simple_memory_allocator.cc",
+        "single_arena_buffer_allocator.cc",
     ],
     hdrs = [
-        "simple_memory_allocator.h",
+        "single_arena_buffer_allocator.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -69,7 +94,7 @@ cc_library(
 cc_test(
     name = "simple_memory_allocator_test",
     srcs = [
-        "simple_memory_allocator_test.cc",
+        "single_arena_buffer_allocator_test.cc",
     ],
     deps = [
         "//tensorflow/lite/micro:micro_framework",
@@ -81,10 +106,10 @@ cc_test(
 cc_library(
     name = "recording_simple_memory_allocator",
     srcs = [
-        "recording_simple_memory_allocator.cc",
+        "recording_single_arena_buffer_allocator.cc",
     ],
     hdrs = [
-        "recording_simple_memory_allocator.h",
+        "recording_single_arena_buffer_allocator.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -99,7 +124,7 @@ cc_library(
 cc_test(
     name = "recording_simple_memory_allocator_test",
     srcs = [
-        "recording_simple_memory_allocator_test.cc",
+        "recording_single_arena_buffer_allocator_test.cc",
     ],
     deps = [
         ":recording_simple_memory_allocator",

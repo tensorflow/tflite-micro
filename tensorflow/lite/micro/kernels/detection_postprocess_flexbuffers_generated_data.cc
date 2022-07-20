@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 // This file is generated. See:
-// tensorflow/lite/micro/kernels/detection_postprocess_test/README.md
+// tflite-micro/tensorflow/lite/micro/kernels/test_data_generation/README.md
 
 #include "tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h"
 
 const int g_gen_data_size_none_regular_nms = 242;
-const unsigned char g_gen_data_none_regular_nms[] = {
+alignas(4) const unsigned char g_gen_data_none_regular_nms[] = {
     0x6d, 0x61, 0x78, 0x5f, 0x64, 0x65, 0x74, 0x65, 0x63, 0x74, 0x69, 0x6f,
     0x6e, 0x73, 0x00, 0x6d, 0x61, 0x78, 0x5f, 0x63, 0x6c, 0x61, 0x73, 0x73,
     0x65, 0x73, 0x5f, 0x70, 0x65, 0x72, 0x5f, 0x64, 0x65, 0x74, 0x65, 0x63,
@@ -43,7 +43,7 @@ const unsigned char g_gen_data_none_regular_nms[] = {
     0x26, 0x01,
 };
 const int g_gen_data_size_regular_nms = 242;
-const unsigned char g_gen_data_regular_nms[] = {
+alignas(4) const unsigned char g_gen_data_regular_nms[] = {
     0x6d, 0x61, 0x78, 0x5f, 0x64, 0x65, 0x74, 0x65, 0x63, 0x74, 0x69, 0x6f,
     0x6e, 0x73, 0x00, 0x6d, 0x61, 0x78, 0x5f, 0x63, 0x6c, 0x61, 0x73, 0x73,
     0x65, 0x73, 0x5f, 0x70, 0x65, 0x72, 0x5f, 0x64, 0x65, 0x74, 0x65, 0x63,

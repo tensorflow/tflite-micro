@@ -40,6 +40,7 @@ py_binary(
     srcs = ["visualize.py"],
     python_version = "PY3",
     srcs_version = "PY3",
+    visibility = ["//:__subpackages__"],
     deps = [
         "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
