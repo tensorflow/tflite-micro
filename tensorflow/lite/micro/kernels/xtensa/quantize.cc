@@ -36,7 +36,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
-   if (input->type == kTfLiteFloat32 && output->type == kTfLiteInt16) {
+  if (input->type == kTfLiteFloat32 && output->type == kTfLiteInt16) {
     reference_ops::AffineQuantize(
         op_data->quantization_params, tflite::micro::GetTensorShape(input),
         tflite::micro::GetTensorData<float>(input),
