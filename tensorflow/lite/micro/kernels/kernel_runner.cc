@@ -39,9 +39,9 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
                            void* builtin_data, TfLiteIntArray* intermediates)
     : registration_(registration),
-      allocator_(SingleArenaBufferAllocator::Create(GetMicroErrorReporter(),
-                                                    kKernelRunnerBuffer_,
-                                                    kKernelRunnerBufferSize_)),
+      allocator_(SimpleMemoryAllocator::Create(GetMicroErrorReporter(),
+                                               kKernelRunnerBuffer_,
+                                               kKernelRunnerBufferSize_)),
       mock_micro_graph_(allocator_),
       fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
   // Prepare TfLiteContext:
