@@ -33,6 +33,13 @@ git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
 # As part of the import from upstream TF, we generate the Python bindings for
 # the TfLite flatbuffer schema.
+
+# TfLite is using flatbuffers2.0 but TFLM is currently staying with 1.12.0
+# See http://b/235888271 for additional context as well as some of the workflows
+# that we will need to fix before upgrading to a newer flatbuffer version.
+rm -rf /tmp/tensorflow/third_party/flatbuffers
+cp -r ci/flatbuffers_for_tf_sync/ /tmp/tensorflow/third_party/flatbuffers
+
 cd /tmp/tensorflow
 bazel build tensorflow/lite/python:schema_py
 /bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
