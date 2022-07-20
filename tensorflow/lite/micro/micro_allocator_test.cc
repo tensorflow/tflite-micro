@@ -499,7 +499,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantAllocationInTwoSeparateArenas) {
   tflite::MicroAllocator* allocator = tflite::MicroAllocator::Create(
       persistent_arena, arena_size, non_persistent_arena, arena_size,
       tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
 
   // Allocate for model 1. We use ComplexMockModel here to cover the code path
