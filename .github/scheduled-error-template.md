@@ -1,5 +1,5 @@
 ---
-title: scheduled workflow failed
+title: Scheduled workflow failed
 labels: bug
 ---
 {{ env.WORKFLOW }} run number {{ env.RUN_NUMBER }} failed.  Please examine the run itself for more details.

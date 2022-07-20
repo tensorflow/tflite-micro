@@ -39,5 +39,5 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          assignees: tflm-team
+          assignees: jwithers
           filename: .github/scheduled-error-template.md
