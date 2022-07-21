@@ -108,7 +108,7 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   ::tflite::AllOpsResolver resolver;
   const TfLiteRegistration* registration =
       resolver.FindOp("TFLite_Detection_PostProcess");
-  TF_LITE_MICRO_EXPECT_NE(nullptr, registration);
+  TF_LITE_MICRO_EXPECT(registration != nullptr);
 
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
