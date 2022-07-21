@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/core/api/error_reporter.h"
-
 #include <cstdarg>
 
 namespace tflite {
