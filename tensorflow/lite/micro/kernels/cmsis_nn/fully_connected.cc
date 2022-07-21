@@ -195,7 +195,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                        bias_dims, output_dims, ctx, data);
 
   const int32_t* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
+      tflite::micro::GetOptionalTensorData<int32_t>(bias);
 
   if (output_dim_count > 2 && data.accum_depth % 4 == 0) {
     cmsis_nn_conv_params conv_params;
@@ -266,7 +266,7 @@ TfLiteStatus EvalQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
                        bias_dims, output_dims, ctx, data);
 
   const int64_t* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<int64_t>(bias) : nullptr;
+      tflite::micro::GetOptionalTensorData<int64_t>(bias);
 
   cmsis_nn_fc_params fc_params;
   fc_params.input_offset = -data.reference_op_data.input_zero_point;
@@ -308,7 +308,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   switch (input->type) {
     case kTfLiteFloat32: {
       const float* bias_data =
-          nullptr != bias ? tflite::micro::GetTensorData<float>(bias) : nullptr;
+          tflite::micro::GetOptionalTensorData<float>(bias);
 
       tflite::reference_ops::FullyConnected(
           FullyConnectedParamsFloat(params->activation),
