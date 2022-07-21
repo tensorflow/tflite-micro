@@ -32,3 +32,14 @@ cc_binary(
         "@flatbuffers",
     ],
 )
+
+cc_binary(
+    name = "tflite_flatbuffer_transform_tool",
+    srcs = [
+        "tflite_flatbuffer_transform_tool.cc",
+    ],
+    deps = [
+        "//tensorflow/lite/schema:schema_fbs",
+        "@flatbuffers",
+    ],
+)
