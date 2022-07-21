@@ -1,12 +1,3 @@
-py_library(
-    name = "generate_test_for_model",
-    srcs = ["generate_test_for_model.py"],
-    srcs_version = "PY3",
-    deps = [
-        "//tensorflow/lite/python:schema_py",
-    ],
-)
-
 package(
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],
@@ -15,6 +6,15 @@ package(
 py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
+)
+
+py_library(
+    name = "generate_test_for_model",
+    srcs = ["generate_test_for_model.py"],
+    srcs_version = "PY3",
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+    ],
 )
 
 py_binary(
