@@ -49,7 +49,6 @@ void ValidateQuantizeGoldens(TfLiteTensor* tensors, int tensors_size,
   }
 }
 
-#if !defined(XTENSA)
 template <typename T>
 void TestQuantizeFloat(int* input_dims_data, const float* input_data,
                        int* output_dims_data, const float* golden,
@@ -79,7 +78,6 @@ void TestQuantizeFloat(int* input_dims_data, const float* input_data,
   ValidateQuantizeGoldens(tensors, tensors_size, golden, golden_quantized,
                           scale, zero_point, output_dims_count, output_data);
 }
-#endif  // defined(XTENSA)
 
 template <typename InputType, typename OutputType>
 void TestRequantize(int* input_dims_data, const float* input_data,
@@ -121,7 +119,7 @@ void TestRequantize(int* input_dims_data, const float* input_data,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA)
+
 TF_LITE_MICRO_TEST(QuantizeOpTestInt16) {
   const int length = 10;
   int dims[] = {2, 2, 5};
@@ -148,6 +146,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16NoScale) {
       dims, values, dims, values, values_quantized, scale, zero_point, output);
 }
 
+#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt16) {
   const int length = 10;
   int dims[] = {2, 2, 5};
@@ -215,6 +214,8 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt8NoZeroPoint) {
                                   values_quantized, output_scale,
                                   output_zero_point, output_quantized);
 }
+#endif  // !defined(XTENSA)
+
 
 TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt16) {
   const int length = 10;
@@ -252,6 +253,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt16) {
                                   output_zero_point, output_quantized);
 }
 
+#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
   constexpr int length = 10;
   int dims[] = {2, 2, 5};
@@ -270,6 +272,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
                                   values_quantized, output_scale,
                                   output_zero_point, output_quantized);
 }
+#endif  // !defined(XTENSA)
 
 // TODO(b/155682734): Hifimini optimized quantize requires input scale to be
 // smaller then output scale.
@@ -290,6 +293,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
                                   output_zero_point, output_quantized);
 }
 
+#if !defined(XTENSA)
 // Test the fast algorithm from int8 to uint8 when zero point diff = -128
 TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
   constexpr int length = 10;
