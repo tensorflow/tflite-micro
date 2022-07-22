@@ -19,7 +19,6 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 #include<iostream>
 
-
 void strip_strings(tflite::ModelT* model) {
   /*Strips all nonessential strings from the model to reduce model size.
 
@@ -35,7 +34,6 @@ void strip_strings(tflite::ModelT* model) {
   */
   model->description.clear();
   model->signature_defs.clear();
-  std::cout<< model->subgraphs.size()<<std::endl;
   for(int subgraph_index = 0; subgraph_index < model->subgraphs.size(); subgraph_index++){
     model->subgraphs[subgraph_index]->name.clear();
     for(int tensor_index = 0; tensor_index < model->subgraphs[subgraph_index]->tensors.size(); tensor_index++){
@@ -43,8 +41,6 @@ void strip_strings(tflite::ModelT* model) {
     }
   }
 }
-
-
 
 int main(int argc, char** argv) {
   if (argc < 1) {
