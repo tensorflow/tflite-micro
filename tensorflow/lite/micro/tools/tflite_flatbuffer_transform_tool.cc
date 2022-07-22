@@ -17,6 +17,33 @@ limitations under the License.
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include<iostream>
+
+
+void strip_strings(tflite::ModelT* model) {
+  /*Strips all nonessential strings from the model to reduce model size.
+
+  We remove the following strings:
+  (find strings by searching ":string" in the tensorflow lite flatbuffer schema)
+  1. Model description
+  2. SubGraph name
+  3. Tensor names
+  We retain OperatorCode custom_code and Metadata name.
+
+  Args:
+    model: The model from which to remove nonessential strings.
+  */
+  model->description.clear();
+  model->signature_defs.clear();
+  std::cout<< model->subgraphs.size()<<std::endl;
+  for(int subgraph_index = 0; subgraph_index < model->subgraphs.size(); subgraph_index++){
+    model->subgraphs[subgraph_index]->name.clear();
+    for(int tensor_index = 0; tensor_index < model->subgraphs[subgraph_index]->tensors.size(); tensor_index++){
+      model->subgraphs[subgraph_index]->tensors[tensor_index]->name.clear();
+    }
+  }
+}
+
 
 
 int main(int argc, char** argv) {
@@ -36,10 +63,10 @@ int main(int argc, char** argv) {
   // a file with the force_align attributes respected.
   // ModelT is just the unpacked version of the model file.
   tflite::ModelT* unpacked_model = model->UnPack();
+  strip_strings(unpacked_model);
   flatbuffers::FlatBufferBuilder fbb;
-  auto new_model = tflite::Model::Pack(fbb, unpacked_model);
-  fbb.Finish(new_model, tflite::ModelIdentifier());
-  const tflite::Model* aligned_model = tflite::GetModel(fbb.GetBufferPointer());
+  auto optimized_model = tflite::Model::Pack(fbb, unpacked_model);
+  fbb.Finish(optimized_model, tflite::ModelIdentifier());
   // flatbuffers::SaveFile(argv[2],
   //                       reinterpret_cast<char*>(fbb.GetBufferPointer()),
   //                       fbb.GetSize(), /*binary*/ true);
