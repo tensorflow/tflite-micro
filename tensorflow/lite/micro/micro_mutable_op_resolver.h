@@ -529,7 +529,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
   }
 
-  TfLiteStatus AddReduceSum() {
+  TfLiteStatus AddSum() {
     return AddBuiltin(BuiltinOperator_SUM, Register_SUM(), ParseReducer);
   }
 
