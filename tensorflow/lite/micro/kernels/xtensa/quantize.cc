@@ -37,7 +37,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
   switch (input->type) {
-     case kTfLiteUInt8: {
+    case kTfLiteUInt8: {
       switch (output->type) {
         case kTfLiteInt8: {
           int size = ElementCount(*input->dims);
@@ -151,8 +151,8 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
           reference_ops::Requantize(
               tflite::micro::GetTensorData<int16_t>(input), size,
               op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift,
-              op_data->input_zero_point, op_data->quantization_params.zero_point,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
               tflite::micro::GetTensorData<int16_t>(output));
           break;
         }
