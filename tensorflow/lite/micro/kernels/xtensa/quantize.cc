@@ -44,8 +44,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
           reference_ops::Requantize(
               tflite::micro::GetTensorData<uint8_t>(input), size,
               op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift,
-              op_data->input_zero_point,
+              op_data->requantize_output_shift, op_data->input_zero_point,
               op_data->quantization_params.zero_point,
               tflite::micro::GetTensorData<int8_t>(output));
           break;
@@ -53,8 +52,8 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
         default:
           TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+                             TfLiteTypeGetName(input->type),
+                             TfLiteTypeGetName(output->type));
           return kTfLiteError;
       }
       break;
@@ -62,13 +61,12 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
     case kTfLiteInt8: {
       switch (output->type) {
-         case kTfLiteUInt8: {
+        case kTfLiteUInt8: {
           int size = ElementCount(*input->dims);
           reference_ops::Requantize(
               tflite::micro::GetTensorData<int8_t>(input), size,
               op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift,
-              op_data->input_zero_point,
+              op_data->requantize_output_shift, op_data->input_zero_point,
               op_data->quantization_params.zero_point,
               tflite::micro::GetTensorData<uint8_t>(output));
           break;
@@ -79,8 +77,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
           reference_ops::Requantize(
               tflite::micro::GetTensorData<int8_t>(input), size,
               op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift,
-              op_data->input_zero_point,
+              op_data->requantize_output_shift, op_data->input_zero_point,
               op_data->quantization_params.zero_point,
               tflite::micro::GetTensorData<int8_t>(output));
           break;
@@ -152,11 +149,11 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt16: {
           int size = ElementCount(*input->dims);
           reference_ops::Requantize(
-            tflite::micro::GetTensorData<int16_t>(input), size,
-            op_data->requantize_output_multiplier,
-            op_data->requantize_output_shift,
-            op_data->input_zero_point, op_data->quantization_params.zero_point,
-            tflite::micro::GetTensorData<int16_t>(output));
+              tflite::micro::GetTensorData<int16_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift,
+              op_data->input_zero_point, op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<int16_t>(output));
           break;
         }
 
@@ -200,8 +197,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
           reference_ops::Requantize(
               tflite::micro::GetTensorData<int32_t>(input), size,
               op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift,
-              op_data->input_zero_point,
+              op_data->requantize_output_shift, op_data->input_zero_point,
               op_data->quantization_params.zero_point,
               tflite::micro::GetTensorData<int8_t>(output));
           break;
