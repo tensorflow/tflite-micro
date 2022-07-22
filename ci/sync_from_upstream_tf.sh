@@ -43,6 +43,11 @@ cp -r ci/flatbuffers_for_tf_sync/ /tmp/tensorflow/third_party/flatbuffers
 cd /tmp/tensorflow
 bazel build tensorflow/lite/python:schema_py
 /bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
+
+# Also generate C++ bindings with flatc 1.12.0
+bazel build tensorflow/lite/schema:schema_fbs_srcs
+/bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
+
 cd -
 
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
