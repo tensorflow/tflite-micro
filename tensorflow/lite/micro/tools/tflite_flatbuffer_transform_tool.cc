@@ -13,13 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <iostream>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include<iostream>
 
-void strip_strings(tflite::ModelT* model) {
+void StripStrings(tflite::ModelT* model) {
   /*Strips all nonessential strings from the model to reduce model size.
 
   We remove the following strings:
@@ -34,10 +35,60 @@ void strip_strings(tflite::ModelT* model) {
   */
   model->description.clear();
   model->signature_defs.clear();
-  for(int subgraph_index = 0; subgraph_index < model->subgraphs.size(); subgraph_index++){
+  for (int subgraph_index = 0; subgraph_index < model->subgraphs.size();
+       subgraph_index++) {
     model->subgraphs[subgraph_index]->name.clear();
-    for(int tensor_index = 0; tensor_index < model->subgraphs[subgraph_index]->tensors.size(); tensor_index++){
+    for (int tensor_index = 0;
+         tensor_index < model->subgraphs[subgraph_index]->tensors.size();
+         tensor_index++) {
       model->subgraphs[subgraph_index]->tensors[tensor_index]->name.clear();
+    }
+  }
+}
+
+void RemoveExtraneousQuantizationData(tflite::ModelT* model) {
+  /*
+  We remove the following arrays from weight tensors when quanzation paramaters
+  aren't needed to reduce model size:
+  1. max
+  2. min
+  3. zero_point
+
+  Args:
+    model: The model from which to remove nonessential quanzation data.
+  */
+
+  for (int subgraph_index = 0; subgraph_index < model->subgraphs.size();
+       subgraph_index++) {
+    for (int tensor_index = 0;
+         tensor_index < model->subgraphs[subgraph_index]->tensors.size();
+         tensor_index++) {
+      if (model->subgraphs[subgraph_index]
+              ->tensors[tensor_index]
+              ->quantization) {
+        // Remove unused min and max arrays from all tensors.
+        model->subgraphs[subgraph_index]
+            ->tensors[tensor_index]
+            ->quantization->max.clear();
+        model->subgraphs[subgraph_index]
+            ->tensors[tensor_index]
+            ->quantization->min.clear();
+
+        // Shorten zero point arrays only on weight and bias tensors.
+        if (model->subgraphs[subgraph_index]->tensors[tensor_index]->buffer) {
+          if (model->subgraphs[subgraph_index]
+                  ->tensors[tensor_index]
+                  ->quantization->zero_point.empty()) {
+            if (model->subgraphs[subgraph_index]
+                    ->tensors[tensor_index]
+                    ->quantization->zero_point.size() > 1) {
+              model->subgraphs[subgraph_index]
+                  ->tensors[tensor_index]
+                  ->quantization->zero_point.resize(1);
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -59,7 +110,8 @@ int main(int argc, char** argv) {
   // a file with the force_align attributes respected.
   // ModelT is just the unpacked version of the model file.
   tflite::ModelT* unpacked_model = model->UnPack();
-  strip_strings(unpacked_model);
+  StripStrings(unpacked_model);
+  RemoveExtraneousQuantizationData(unpacked_model);
   flatbuffers::FlatBufferBuilder fbb;
   auto optimized_model = tflite::Model::Pack(fbb, unpacked_model);
   fbb.Finish(optimized_model, tflite::ModelIdentifier());
