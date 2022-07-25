@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/quantize.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -51,9 +52,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         }
 
         default:
-          TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                             TfLiteTypeGetName(input->type),
-                             TfLiteTypeGetName(output->type));
+         MicroPrintf("Input %s, output %s not supported.",
+                     TfLiteTypeGetName(input->type),
+                     TfLiteTypeGetName(output->type));
           return kTfLiteError;
       }
       break;
@@ -121,9 +122,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         }
 
         default: {
-          TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                             TfLiteTypeGetName(input->type),
-                             TfLiteTypeGetName(output->type));
+         MicroPrintf("Input %s, output %s not supported.",
+                     TfLiteTypeGetName(input->type),
+                     TfLiteTypeGetName(output->type));
           return kTfLiteError;
         }
       }
@@ -181,9 +182,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         }
 
         default: {
-          TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                             TfLiteTypeGetName(input->type),
-                             TfLiteTypeGetName(output->type));
+         MicroPrintf("Input %s, output %s not supported.",
+                     TfLiteTypeGetName(input->type),
+                     TfLiteTypeGetName(output->type));
           return kTfLiteError;
         }
       }
@@ -215,9 +216,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         }
 
         default: {
-          TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                             TfLiteTypeGetName(input->type),
-                             TfLiteTypeGetName(output->type));
+         MicroPrintf("Input %s, output %s not supported.",
+                     TfLiteTypeGetName(input->type),
+                     TfLiteTypeGetName(output->type));
           return kTfLiteError;
         }
       }
@@ -237,9 +238,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         }
 
         default: {
-          TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                             TfLiteTypeGetName(input->type),
-                             TfLiteTypeGetName(output->type));
+         MicroPrintf("Input %s, output %s not supported.",
+                     TfLiteTypeGetName(input->type),
+                     TfLiteTypeGetName(output->type));
           return kTfLiteError;
         }
       }
@@ -247,9 +248,9 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default: {
-      TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                         TfLiteTypeGetName(input->type),
-                         TfLiteTypeGetName(output->type));
+     MicroPrintf("Input %s, output %s not supported.",
+                 TfLiteTypeGetName(input->type),
+                 TfLiteTypeGetName(output->type));
       return kTfLiteError;
     }
   }
