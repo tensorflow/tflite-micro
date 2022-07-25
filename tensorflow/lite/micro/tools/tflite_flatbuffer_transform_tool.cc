@@ -94,7 +94,7 @@ void RemoveExtraneousQuantizationData(tflite::ModelT* model) {
 }
 
 int main(int argc, char** argv) {
-  if (argc < 1) {
+  if (argc <= 1) {
     fprintf(stderr, "usage: %s input_flatbuffer output_flatbuffer\n", argv[0]);
     exit(-1);
   }
