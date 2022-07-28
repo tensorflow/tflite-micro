@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -60,7 +60,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestInterpreter) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -78,32 +78,32 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), interpreter.outputs_size());
 
     TfLiteTensor* input = interpreter.input(0);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.i32);
     input->data.i32[0] = 21;
 
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 
     TfLiteTensor* output = interpreter.output(0);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.i32);
     TF_LITE_MICRO_EXPECT_EQ(42, output->data.i32[0]);
 
     output = interpreter.output(1);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.i32);
     TF_LITE_MICRO_EXPECT_EQ(42, output->data.i32[0]);
   }
 
@@ -205,7 +205,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
 
 TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
   const tflite::Model* model = tflite::testing::GetSimpleStatefulModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -258,7 +258,7 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
 // case.
 TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -274,7 +274,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
 // profiler each time an operator is invoked.
 TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -300,14 +300,14 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
 
 TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
   // This test is designed to create the following classes/buffers successfully
   // on the arena:
   //
-  // From tail: RecordingSimpleMemoryAllocator, RecordingMicroAllocator,
+  // From tail: RecordingSingleArenaBufferAllocator, RecordingMicroAllocator,
   //        RecordingMicroAllocator.
   //
   // From head:ScratchBufferRequest buffer.
@@ -319,7 +319,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
   constexpr size_t max_scratch_buffer_request_size = 192;
   constexpr size_t max_micro_builtin_data_allocator_size = 16;
   constexpr size_t allocator_buffer_size =
-      sizeof(tflite::RecordingSimpleMemoryAllocator) +
+      sizeof(tflite::RecordingSingleArenaBufferAllocator) +
       sizeof(tflite::RecordingMicroAllocator) +
       max_micro_builtin_data_allocator_size + max_scratch_buffer_request_size;
   uint8_t allocator_buffer[allocator_buffer_size];
@@ -328,7 +328,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
       tflite::RecordingMicroAllocator::Create(allocator_buffer,
                                               allocator_buffer_size,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator,
                                        tflite::GetMicroErrorReporter());
@@ -363,7 +363,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
 
 TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
   const tflite::Model* model = tflite::testing::GetComplexMockModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -374,7 +374,7 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
       tflite::RecordingMicroAllocator::Create(allocator_buffer,
                                               allocator_buffer_size,
                                               tflite::GetMicroErrorReporter());
-  TF_LITE_MICRO_EXPECT_NE(nullptr, allocator);
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator,
                                        tflite::GetMicroErrorReporter());
@@ -434,7 +434,7 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
 
 TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   const tflite::Model* model = tflite::testing::GetSimpleMultipleInputsModel();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -454,41 +454,41 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
 
     TfLiteTensor* input = interpreter.input(0);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.i32);
     input->data.i32[0] = 21;
 
     TfLiteTensor* input1 = interpreter.input(1);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input1);
+    TF_LITE_MICRO_EXPECT(nullptr != input1);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input1->type);
     TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, input1->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), input1->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input1->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != input1->data.i32);
     input1->data.i32[0] = 21;
 
     TfLiteTensor* input2 = interpreter.input(2);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input2);
+    TF_LITE_MICRO_EXPECT(nullptr != input2);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input2->type);
     TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, input2->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input2->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, input2->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != input2->data.i32);
     input2->data.i32[0] = 24;
 
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
 
     TfLiteTensor* output = interpreter.output(0);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
     TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
-    TF_LITE_MICRO_EXPECT_NE(nullptr, output->data.i32);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.i32);
     TF_LITE_MICRO_EXPECT_EQ(66, output->data.i32[0]);
   }
 
@@ -498,7 +498,7 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
 TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
 
@@ -521,7 +521,7 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
 // than what our Bluepill simulation platform specifies.
 TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
-  TF_LITE_MICRO_EXPECT_NE(nullptr, model);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
   tflite::MicroInterpreter interpreter(model, op_resolver, tflite::arena_buffer,
@@ -536,8 +536,8 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   // The reported used_arena_size plus alignment padding is sufficient for this
-  // model to run. Plus alignment padding is because SimpleMemoryAllocator is
-  // given the arena after the alignment.
+  // model to run. Plus alignment padding is because SingleArenaBufferAllocator
+  // is given the arena after the alignment.
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
   tflite::MicroInterpreter interpreter2(

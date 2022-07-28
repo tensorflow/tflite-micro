@@ -26,4 +26,25 @@ TF_LITE_MICRO_TEST(ArgumentsExecutedOnlyOnce) {
   TF_LITE_MICRO_EXPECT_NEAR(count++, 3, 0.1f);
 }
 
+TF_LITE_MICRO_TEST(TestExpectEQ) {
+  // test TF_LITE_EXPECT_EQ for expected behavior
+  double a = 2.1;
+  TF_LITE_MICRO_EXPECT_EQ(0, 0);
+  TF_LITE_MICRO_EXPECT_EQ(true, true);
+  TF_LITE_MICRO_EXPECT_EQ(false, false);
+  TF_LITE_MICRO_EXPECT_EQ(2.1, a);
+  TF_LITE_MICRO_EXPECT_EQ(1.0, true);
+  TF_LITE_MICRO_EXPECT_EQ(1.0, 1);
+}
+
+TF_LITE_MICRO_TEST(TestExpectNE) {
+  // test TF_LITE_EXPECT_NE for expected behavior
+  float b = 2.1f;
+  double a = 2.1;
+  TF_LITE_MICRO_EXPECT_NE(0, 1);
+  TF_LITE_MICRO_EXPECT_NE(true, false);
+  TF_LITE_MICRO_EXPECT_NE(2.10005f, b);
+  TF_LITE_MICRO_EXPECT_NE(2.2, a);
+}
+
 TF_LITE_MICRO_TESTS_END

@@ -35,9 +35,9 @@ class InterpreterWrapper {
  private:
   const PyObject* model_;
   std::unique_ptr<tflite::ErrorReporter> error_reporter_;
-  std::unique_ptr<tflite::MicroInterpreter> interpreter_;
   std::unique_ptr<uint8_t[]> memory_arena_;
   const tflite::AllOpsResolver all_ops_resolver_;
+  tflite::MicroInterpreter* interpreter_;
 };
 
 }  // namespace tflite
