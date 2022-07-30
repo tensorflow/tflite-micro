@@ -100,13 +100,13 @@ int MicroProfiler::FindExistingOrNextPosition(const char* tagName) {
     if (ticksPerTag.tag == nullptr) {
       return pos;
     } else {
-      const char* tag = ticksPerTag.tag;
-      const char* tagName_t = tagName;
+      const char* currentTagName_t = ticksPerTag.tag;
+      const char* newTagName_t = tagName;
       bool matched = true;
-      while ((*tag != '\0') && (*tagName_t != '\0')) {
-        if (((*tag) == (*tagName_t))) {
-          ++tag;
-          ++tagName_t;
+      while ((*currentTagName_t != '\0') && (*newTagName_t != '\0')) {
+        if (((*currentTagName_t) == (*newTagName_t))) {
+          ++currentTagName_t;
+          ++newTagName_t;
         } else {
           matched = false;
           break;
