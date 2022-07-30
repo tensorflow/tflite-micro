@@ -231,7 +231,7 @@ LstmIntegerTestConfig lstm_integer_no_peephole_config = {
                 kLstmSeqLengthIntegerNoPeephole *
                 kLstmNumOutputIntegerNoPeephole]){
             127, 127, -108, -67, 127, 127, -128, 127, 127, -128, 127, 127, 127,
-            127, 127, -128, 127, 127},
+            127, 13, -128, 127, 127},
 
     .asymmetric_quantize_inputs = false,
     .ranges = {{-1.0, 127.0 / 128},
@@ -471,9 +471,9 @@ LstmIntegerTestConfig lstm_integer_peephole_config = {
     .output = lstm_output_peephole,
     .expected_output =
         (int8_t[kLstmNumBatchIntegerPeephole * kLstmSeqLengthIntegerPeephole *
-                kLstmNumOutputIntegerPeephole]){127, 127, -16, -21, 127, 127,
-                                                23, 127, 127, -128, 127, 127,
-                                                127, 127, 127, -128, 127, 127},
+                kLstmNumOutputIntegerPeephole]){127,127, -16, -21, 127, 127,
+                                                -128, 127, 127, -128, 127, 127,
+                                                127, 127, 105, -128, 127, 127},
 
     .asymmetric_quantize_inputs = false,
     .ranges = {{-1.0, 127.0 / 128},
