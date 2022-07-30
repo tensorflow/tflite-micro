@@ -215,6 +215,24 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus AverageEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+
+  const TfLiteEvalTensor* input =
+      micro::GetEvalInput(context, node, kPoolingInputTensor);
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
+  TfLiteEvalTensor* output =
+      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
+
+  AverageEvalQuantized(context, node, params, data, input, output);
+
+  return kTfLiteOk;
+}
+
 TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
@@ -243,10 +261,35 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus MaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData& data = *(static_cast<const OpData*>(node->user_data));
+
+  const TfLiteEvalTensor* input =
+      micro::GetEvalInput(context, node, kPoolingInputTensor);
+  TFLITE_DCHECK(input->type == kTfLiteInt8);
+  TfLiteEvalTensor* output =
+      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
+
+  MaxEvalInt8(context, node, params, data, input, output);
+  return kTfLiteOk;
+}
+
 }  // namespace
+
+TfLiteRegistration Register_AVERAGE_POOL_2D_INT8() {
+  return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEvalInt8);
+}
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
   return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEval);
+}
+
+TfLiteRegistration Register_MAX_POOL_2D_INT8() {
+  return tflite::micro::RegisterOp(Init, MaxPrepare, MaxEvalInt8);
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {

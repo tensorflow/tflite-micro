@@ -54,7 +54,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // incur some penalty in code space for op implementations that are not
   // needed by this graph.
   tflite::MicroMutableOpResolver<5> micro_op_resolver;
-  micro_op_resolver.AddAveragePool2D();
+  micro_op_resolver.AddAveragePool2D(tflite::Register_AVERAGE_POOL_2D_INT8());
   micro_op_resolver.AddConv2D(tflite::Register_CONV_2D_INT8());
   micro_op_resolver.AddDepthwiseConv2D(
       tflite::Register_DEPTHWISE_CONV_2D_INT8());
