@@ -71,7 +71,7 @@ void MicroProfiler::LogTicksPerTagCsv() {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   MicroPrintf(
       "\"Unique Ops in the Graph\",\"Total Ticks (all instances of the Op)\"");
-  uint totalTicks = 0;
+  int totalTicks = 0;
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
     int position = FindExistingOrNextPosition(tags_[i]);
