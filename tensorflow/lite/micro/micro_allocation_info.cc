@@ -165,9 +165,9 @@ TfLiteStatus AllocationInfoBuilder::ValidateSubgraph(
           &eval_tensors[tensor_index], &tensor_size));
       if (tensor_size != 0) {
         MicroPrintf(
-            "Does not support intermediate tensor with non-zero size: %d",
+            "Warning: intermediate tensor with non-zero size likely waste "
+            "memory: %d",
             tensor_size);
-        return kTfLiteError;
       }
     }
   }
