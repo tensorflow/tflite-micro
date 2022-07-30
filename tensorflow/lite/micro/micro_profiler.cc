@@ -67,4 +67,58 @@ void MicroProfiler::LogCsv() const {
 #endif
 }
 
+void MicroProfiler::LogTicksPerTagCsv() {
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+  MicroPrintf(
+      "\"Unique Ops in the Graph\",\"Total Ticks (all instances of the Op)\"");
+  uint totalTicks = 0;
+  for (int i = 0; i < num_events_; ++i) {
+    uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+    int position = FindExistingOrNextPosition(tags_[i]);
+    total_ticks_per_tag[position].tag = tags_[i];
+    total_ticks_per_tag[position].ticks =
+        total_ticks_per_tag[position].ticks + ticks;
+    totalTicks += ticks;
+  }
+
+  for (int i = 0; i < num_events_; ++i) {
+    ticks_per_tag ticksPerTag = total_ticks_per_tag[i];
+    if (ticksPerTag.tag == nullptr) {
+      break;
+    }
+    MicroPrintf("%s,%d", ticksPerTag.tag, ticksPerTag.ticks);
+  }
+  MicroPrintf("total,%d", totalTicks);
+
+#endif
+}
+
+int MicroProfiler::FindExistingOrNextPosition(const char* tagName) {
+  int pos = 0;
+  for (; pos < num_events_; pos++) {
+    ticks_per_tag ticksPerTag = total_ticks_per_tag[pos];
+    if (ticksPerTag.tag == nullptr) {
+      return pos;
+    } else {
+      const char* tag = ticksPerTag.tag;
+      const char* tagName_t = tagName;
+      bool matched = true;
+      while ((*tag != '\0') && (*tagName_t != '\0')) {
+        if (((*tag) == (*tagName_t))) {
+          ++tag;
+          ++tagName_t;
+        } else {
+          matched = false;
+          break;
+        }
+      }
+
+      if (matched) {
+        return pos;
+      }
+    }
+  }
+  return pos;
+}
+
 }  // namespace tflite
