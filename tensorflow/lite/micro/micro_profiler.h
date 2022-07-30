@@ -61,6 +61,10 @@ class MicroProfiler {
   // Separated Value) form.
   void LogCsv() const;
 
+  // Prints the profiling information of each of the tags in CSV (Comma
+  // Separated Value) form.
+  void LogTicksPerTagCsv();
+
  private:
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
@@ -71,6 +75,14 @@ class MicroProfiler {
   uint32_t start_ticks_[kMaxEvents];
   uint32_t end_ticks_[kMaxEvents];
   int num_events_ = 0;
+
+  struct ticks_per_tag {
+    const char* tag;
+    uint32_t ticks;
+  };
+  ticks_per_tag total_ticks_per_tag[kMaxEvents];
+
+  int FindExistingOrNextPosition(const char* tagName);
 
   TF_LITE_REMOVE_VIRTUAL_DELETE;
 };
