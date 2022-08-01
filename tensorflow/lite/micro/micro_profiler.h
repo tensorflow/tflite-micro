@@ -61,8 +61,9 @@ class MicroProfiler {
   // Separated Value) form.
   void LogCsv() const;
 
-  // Prints the profiling information of each of the tags in CSV (Comma
-  // Separated Value) form.
+  // Prints  total ticks for each unique tag in CSV format.
+  // Output will have one row for each unique tag along with the
+  // total ticks summed across all events with that particular tag.
   void LogTicksPerTagCsv();
 
  private:
@@ -76,11 +77,14 @@ class MicroProfiler {
   uint32_t end_ticks_[kMaxEvents];
   int num_events_ = 0;
 
-  struct ticks_per_tag {
+  struct TicksPerTag {
     const char* tag;
     uint32_t ticks;
   };
-  ticks_per_tag total_ticks_per_tag[kMaxEvents];
+  // In practice, the number of tags will be much lower than the number of
+  // events. But it is theoretically possible that each event to be unique and
+  // hence we allow total_ticks_per_tag to have kMaxEvents entries.
+  TicksPerTag total_ticks_per_tag[kMaxEvents];
 
   int FindExistingOrNextPosition(const char* tagName);
 

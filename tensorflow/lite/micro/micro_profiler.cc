@@ -70,38 +70,45 @@ void MicroProfiler::LogCsv() const {
 void MicroProfiler::LogTicksPerTagCsv() {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   MicroPrintf(
-      "\"Unique Ops in the Graph\",\"Total Ticks (all instances of the Op)\"");
-  int totalTicks = 0;
+      "\"Unique Tag\",\"Total ticks across all events with that tag.\"");
+  int total_ticks = 0;
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
     int position = FindExistingOrNextPosition(tags_[i]);
     total_ticks_per_tag[position].tag = tags_[i];
     total_ticks_per_tag[position].ticks =
         total_ticks_per_tag[position].ticks + ticks;
-    totalTicks += ticks;
+    total_ticks += ticks;
   }
 
   for (int i = 0; i < num_events_; ++i) {
-    ticks_per_tag ticksPerTag = total_ticks_per_tag[i];
-    if (ticksPerTag.tag == nullptr) {
+    TicksPerTag each_tag_entry = total_ticks_per_tag[i];
+    if (each_tag_entry.tag == nullptr) {
       break;
     }
-    MicroPrintf("%s,%d", ticksPerTag.tag, ticksPerTag.ticks);
+    MicroPrintf("%s,%d", each_tag_entry.tag, each_tag_entry.ticks);
   }
-  MicroPrintf("total,%d", totalTicks);
-
+  MicroPrintf("total,%d", total_ticks);
 #endif
 }
 
-int MicroProfiler::FindExistingOrNextPosition(const char* tagName) {
+/**
+ * This method finds a particular array element in the total_ticks_per_tag array
+ * with the matching tag_name passed in the method. If it can find a
+ * matching array element that has the same tag_name, then it will return the
+ * position of the matching element. But if it unable to find a matching element
+ * with the given tag_name, it will return the next available empty postion
+ * from the array.
+ */
+int MicroProfiler::FindExistingOrNextPosition(const char* tag_name) {
   int pos = 0;
   for (; pos < num_events_; pos++) {
-    ticks_per_tag ticksPerTag = total_ticks_per_tag[pos];
-    if (ticksPerTag.tag == nullptr) {
+    TicksPerTag each_tag_entry = total_ticks_per_tag[pos];
+    if (each_tag_entry.tag == nullptr) {
       return pos;
     } else {
-      const char* currentTagName_t = ticksPerTag.tag;
-      const char* newTagName_t = tagName;
+      const char* currentTagName_t = each_tag_entry.tag;
+      const char* newTagName_t = tag_name;
       bool matched = true;
       while ((*currentTagName_t != '\0') && (*newTagName_t != '\0')) {
         if (((*currentTagName_t) == (*newTagName_t))) {
