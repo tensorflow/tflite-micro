@@ -365,9 +365,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
   }
 
-  TfLiteStatus AddMaxPool2D() {
-    return AddBuiltin(BuiltinOperator_MAX_POOL_2D,
-                      tflite::Register_MAX_POOL_2D(), ParsePool);
+  TfLiteStatus AddMaxPool2D(
+      const TfLiteRegistration& registration = Register_MAX_POOL_2D()) {
+    return AddBuiltin(BuiltinOperator_MAX_POOL_2D, registration, ParsePool);
   }
 
   TfLiteStatus AddMirrorPad() {
