@@ -74,17 +74,17 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node, bool is_arg_max) {
           MicroPrintf(
               "Only float32, uint8_t and int8_t are "
               "supported currently, got %s.",
-              TfLiteTypeGetName(input->type), context);
+              TfLiteTypeGetName(input->type));
           return kTfLiteError;
       }
     } else {
       MicroPrintf("Only int32_t are supported currently, got %s.",
-                  TfLiteTypeGetName(output->type), context);
+                  TfLiteTypeGetName(output->type));
       return kTfLiteError;
     }
   } else {
     MicroPrintf("Only int32_t are supported currently, got %s.",
-                TfLiteTypeGetName(axis->type), context);
+                TfLiteTypeGetName(axis->type));
     return kTfLiteError;
   }
 
