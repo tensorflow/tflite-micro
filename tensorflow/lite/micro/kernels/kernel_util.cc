@@ -160,6 +160,29 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+void PrintNBytes(const int8_t* tensor_data, int n_bytes, const char* prefix) {
+
+  if (prefix != nullptr) {
+    MicroPrintf("%s", prefix);
+  }
+
+  for (int i = 0; i < n_bytes; ++i) {
+    MicroPrintf(" %x", tensor_data[i]);
+  }
+  MicroPrintf("\n");
+}
+
+void PrintNBytes(const TfLiteEvalTensor* tensor, int n_bytes,
+                 const char* prefix) {
+  const int8_t* tensor_data = tflite::micro::GetTensorData<int8_t>(tensor);
+  PrintNBytes(tensor_data, n_bytes, prefix);
+}
+
+void PrintNBytes(const TfLiteTensor* tensor, int n_bytes, const char* prefix) {
+  const int8_t* tensor_data = tflite::GetTensorData<int8_t>(tensor);
+  PrintNBytes(tensor_data, n_bytes, prefix);
+}
+
 TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
                                           TfLiteNode* node,
                                           MicroGraph* graph_info,
@@ -216,3 +239,4 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
 
 }  // namespace micro
 }  // namespace tflite
+
