@@ -133,4 +133,3 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_KERNEL_UTIL_H_
-

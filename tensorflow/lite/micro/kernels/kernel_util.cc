@@ -161,7 +161,6 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void PrintNBytes(const int8_t* tensor_data, int n_bytes, const char* prefix) {
-
   if (prefix != nullptr) {
     MicroPrintf("%s", prefix);
   }
@@ -239,4 +238,3 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
 
 }  // namespace micro
 }  // namespace tflite
-
