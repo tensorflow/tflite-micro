@@ -129,7 +129,8 @@ TfLiteStatus GatherNd(const TfLiteEvalTensor* params,
     slice_size *= params->dims->data[i];
   }
 
-  int remain_flat_size = ElementCount(*params->dims);
+  int params_flat_size = ElementCount(*params->dims);
+  int remain_flat_size = params_flat_size;
 
   // Number of elements per dimension
   int dims_to_count[MAX_INDICES_ND];
@@ -145,6 +146,9 @@ TfLiteStatus GatherNd(const TfLiteEvalTensor* params,
       IndicesT index = index_data[offset];
       from_pos += index * dims_to_count[j];
     }
+    if (from_pos < 0 || from_pos + slice_size > params_flat_size) {
+      return kTfLiteError;
+    }
     std::memcpy(output_data + i * slice_size, param_data + from_pos,
                 sizeof(ParamsT) * slice_size);
   }
@@ -156,18 +160,23 @@ TfLiteStatus EvalGatherNd(TfLiteContext* context,
                           const TfLiteEvalTensor* params,
                           const TfLiteEvalTensor* indices,
                           TfLiteEvalTensor* output) {
+  TfLiteStatus status = kTfLiteError;
   switch (params->type) {
     case kTfLiteFloat32:
-      return GatherNd<float, IndicesT>(params, indices, output);
+      status = GatherNd<float, IndicesT>(params, indices, output);
       break;
     case kTfLiteInt8:
-      return GatherNd<int8_t, IndicesT>(params, indices, output);
+      status = GatherNd<int8_t, IndicesT>(params, indices, output);
       break;
     default:
       MicroPrintf("Params type '%s' are not supported by gather_nd.",
                   TfLiteTypeGetName(params->type), context);
       return kTfLiteError;
   }
+  if (status != kTfLiteOk) {
+    TF_LITE_KERNEL_LOG(context, "gather_nd index out of bounds");
+  }
+  return status;
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {

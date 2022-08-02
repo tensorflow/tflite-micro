@@ -31,3 +31,12 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_generate_integration_tests.sh
+      - name: error trapping
+        if: ${{ failure() }}
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          WORKFLOW: ${{ github.workflow }}
+          RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/scheduled-error-template.md

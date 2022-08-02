@@ -86,9 +86,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // kTfLiteError.
   TfLiteStatus AddCustom(const char* name, TfLiteRegistration* registration) {
     if (registrations_len_ >= tOpCount) {
-      MicroPrintf("Couldn't register custom op '%s' ", name);
-      MicroPrintf("resolver size is too small (%d)", tOpCount);
-      // TFLITE_ABORT;
+      MicroPrintf(
+          "Couldn't register custom op '%s', resolver size is too"
+          "small (%d)",
+          name, tOpCount);
+      return kTfLiteError;
     }
 
     if (FindOp(name) != nullptr) {
@@ -216,6 +218,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddDetectionPostprocess() {
     return AddCustom("TFLite_Detection_PostProcess",
                      tflite::Register_DETECTION_POSTPROCESS());
+  }
+
+  TfLiteStatus AddDiv() {
+    return AddBuiltin(BuiltinOperator_DIV, tflite::Register_DIV(), ParseDiv);
   }
 
   TfLiteStatus AddElu() {
@@ -523,6 +529,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
   }
 
+  TfLiteStatus AddSum() {
+    return AddBuiltin(BuiltinOperator_SUM, Register_SUM(), ParseReducer);
+  }
+
   TfLiteStatus AddSvdf(
       const TfLiteRegistration& registration = Register_SVDF()) {
     return AddBuiltin(BuiltinOperator_SVDF, registration, ParseSvdf);
@@ -589,7 +599,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf("Couldn't register builtin op #%d, resolver size ", op);
       MicroPrintf("is too small (%d).", tOpCount);
-      TFLITE_ABORT;
+      return kTfLiteError;
     }
 
     registrations_[registrations_len_] = registration;
