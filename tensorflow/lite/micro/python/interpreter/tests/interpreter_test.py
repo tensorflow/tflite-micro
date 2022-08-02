@@ -148,28 +148,29 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertFalse(output_ref.alive)
 
   # TODO (b/240162715): Add a test case to register a custom OP
-  
+
   def testMalformedCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = [("wrong", "format")]
-    with self.assertRaisesWithPredicateMatch(
-        ValueError, "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
-                                                        custom_op_registerers)
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "must be a list of strings"):
+      interpreter = tflm_runtime.Interpreter.from_bytes(
+          model_data, custom_op_registerers)
 
     custom_op_registerers = "WrongFormat"
-    with self.assertRaisesWithPredicateMatch(
-        ValueError, "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
-                                                        custom_op_registerers)
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "must be a list of strings"):
+      interpreter = tflm_runtime.Interpreter.from_bytes(
+          model_data, custom_op_registerers)
 
   def testNonExistentCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = ["SomeRandomOp"]
     with self.assertRaisesWithPredicateMatch(
         SystemError, "returned a result with an error set"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
-                                                        custom_op_registerers)
+      interpreter = tflm_runtime.Interpreter.from_bytes(
+          model_data, custom_op_registerers)
+
 
 if __name__ == "__main__":
   test.main()
