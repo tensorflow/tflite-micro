@@ -123,7 +123,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
         &data->output_activation_max));
   } else {
     MicroPrintf("ADD_N only supports FLOAT32 and INT8, got %s.",
-                TfLiteTypeGetName(output->type), context);
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
 
@@ -200,7 +200,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     EvalAddNQuantized<int8_t>(context, node, output);
   } else {
     MicroPrintf("ADD_N only supports FLOAT32 and INT8, got %s.",
-                TfLiteTypeGetName(output->type), context);
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
   return kTfLiteOk;
