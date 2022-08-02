@@ -161,6 +161,19 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+/*
+  Args:
+    1. int8_t tensor_data - int8_t buffer of unknown size who's data you'd like
+  to print
+    2. int n_btyes -  a small int representing number of bytes you want to print
+  to debug output. It should always be <= tensor_data's size.
+    3. prefix - optional message you'd like to print before printing bytes
+
+  Purpose:
+    Function takes in paramaters above and prints n_bytes bytes from the
+  tensor_data buffer. This can be use to debug  the output of a model and it's
+  op.
+*/
 void PrintNBytes(const int8_t* tensor_data, int n_bytes, const char* prefix) {
   if (prefix != nullptr) {
     MicroPrintf("%s", prefix);
@@ -172,12 +185,16 @@ void PrintNBytes(const int8_t* tensor_data, int n_bytes, const char* prefix) {
   MicroPrintf("\n");
 }
 
+// same as the PrintNBytes above but the buffer needs to be extracted out of the
+// TfLiteEvalTensor*
 void PrintNBytes(const TfLiteEvalTensor* tensor, int n_bytes,
                  const char* prefix) {
   const int8_t* tensor_data = tflite::micro::GetTensorData<int8_t>(tensor);
   PrintNBytes(tensor_data, n_bytes, prefix);
 }
 
+// same as the PrintNBytes above but the buffer needs to be extracted out of the
+// TfLiteEvalTensor*
 void PrintNBytes(const TfLiteTensor* tensor, int n_bytes, const char* prefix) {
   const int8_t* tensor_data = tflite::GetTensorData<int8_t>(tensor);
   PrintNBytes(tensor_data, n_bytes, prefix);
