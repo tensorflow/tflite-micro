@@ -16,6 +16,7 @@ limitations under the License.
 
 #include <cinttypes>
 #include <cstdint>
+#include <cstring>
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -74,7 +75,15 @@ void MicroProfiler::LogTicksPerTagCsv() {
   int total_ticks = 0;
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+    if (tags_[i] == nullptr) {
+      MicroPrintf("Event does not have a tag name.");
+      continue;
+    }
     int position = FindExistingOrNextPosition(tags_[i]);
+    if (position == -1) {
+      MicroPrintf("Number of tags exceeds the memory allocation.");
+      return;
+    }
     total_ticks_per_tag[position].tag = tags_[i];
     total_ticks_per_tag[position].ticks =
         total_ticks_per_tag[position].ticks + ticks;
@@ -92,40 +101,21 @@ void MicroProfiler::LogTicksPerTagCsv() {
 #endif
 }
 
-/**
- * This method finds a particular array element in the total_ticks_per_tag array
- * with the matching tag_name passed in the method. If it can find a
- * matching array element that has the same tag_name, then it will return the
- * position of the matching element. But if it unable to find a matching element
- * with the given tag_name, it will return the next available empty postion
- * from the array.
- */
+// This method finds a particular array element in the total_ticks_per_tag array
+// with the matching tag_name passed in the method. If it can find a
+// matching array element that has the same tag_name, then it will return the
+// position of the matching element. But if it unable to find a matching element
+// with the given tag_name, it will return the next available empty position
+// from the array.
 int MicroProfiler::FindExistingOrNextPosition(const char* tag_name) {
   int pos = 0;
   for (; pos < num_events_; pos++) {
     TicksPerTag each_tag_entry = total_ticks_per_tag[pos];
-    if (each_tag_entry.tag == nullptr) {
+    if (each_tag_entry.tag == nullptr ||
+        strcmp(each_tag_entry.tag, tag_name) == 0) {
       return pos;
-    } else {
-      const char* currentTagName_t = each_tag_entry.tag;
-      const char* newTagName_t = tag_name;
-      bool matched = true;
-      while ((*currentTagName_t != '\0') && (*newTagName_t != '\0')) {
-        if (((*currentTagName_t) == (*newTagName_t))) {
-          ++currentTagName_t;
-          ++newTagName_t;
-        } else {
-          matched = false;
-          break;
-        }
-      }
-
-      if (matched) {
-        return pos;
-      }
     }
   }
-  return pos;
+  return pos < num_events_ ? pos : -1;
 }
-
 }  // namespace tflite

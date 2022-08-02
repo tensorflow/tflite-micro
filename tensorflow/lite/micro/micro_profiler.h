@@ -86,7 +86,7 @@ class MicroProfiler {
   // hence we allow total_ticks_per_tag to have kMaxEvents entries.
   TicksPerTag total_ticks_per_tag[kMaxEvents];
 
-  int FindExistingOrNextPosition(const char* tagName);
+  int FindExistingOrNextPosition(const char* tag_name);
 
   TF_LITE_REMOVE_VIRTUAL_DELETE;
 };
