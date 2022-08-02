@@ -318,7 +318,7 @@ TfLiteTensor* MicroInterpreter::output(size_t index) {
   return output_tensors_[index];
 }
 // Repurposing free subgraphs to reset state for some ops for now
-// will reset api is made
+// will reset api is made. See b/220940833#comment25 for more context.
 TfLiteStatus MicroInterpreter::Reset() {
   TfLiteStatus status = graph_.FreeSubgraphs();
   if (status != kTfLiteOk) {
