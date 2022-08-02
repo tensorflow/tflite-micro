@@ -55,15 +55,13 @@ inline TfLiteStatus ValidateTensorIndexingSafe(const TfLiteContext* context,
                                                const int* tensor_indices,
                                                int* tensor_index) {
   if (index < 0 || index >= max_size) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Invalid tensor index %d (not in [0, %d))\n", index,
-                       max_size);
+    MicroPrintf("Invalid tensor index %d (not in [0, %d))\n", index, max_size,
+                const_cast<TfLiteContext*>(context));
     return kTfLiteError;
   }
   if (tensor_indices[index] == kTfLiteOptionalTensor) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Tensor at index %d was optional but was expected\n",
-                       index);
+    MicroPrintf("Tensor at index %d was optional but was expected\n", index,
+                const_cast<TfLiteContext*>(context), context);
     return kTfLiteError;
   }
 
@@ -415,9 +413,8 @@ TfLiteStatus GetOutputShapeFromInput(TfLiteContext* context,
                                      const TfLiteTensor* input,
                                      TfLiteIntArray** output_shape) {
   if (NumDimensions(input) != 1) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Invalid %dD input tensor (must be a 1D tensor).",
-                       NumDimensions(input));
+    MicroPrintf("Invalid %dD input tensor (must be a 1D tensor).",
+                NumDimensions(input), const_cast<TfLiteContext*>(context));
     return kTfLiteError;
   }
   const int output_dims = SizeOfDimension(input, 0);
@@ -467,10 +464,9 @@ TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
     const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
     const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
     if (!(d1 == d2 || d1 == 1 || d2 == 1)) {
-      TF_LITE_KERNEL_LOG(context,
-                         "Given shapes, %s and %s, are not broadcastable.",
-                         GetShapeDebugString(input1->dims).c_str(),
-                         GetShapeDebugString(input2->dims).c_str());
+      MicroPrintf("Given shapes, %s and %s, are not broadcastable.",
+                  GetShapeDebugString(input1->dims).c_str(),
+                  GetShapeDebugString(input2->dims).c_str(), context);
       return kTfLiteError;
     }
 
@@ -505,11 +501,10 @@ TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
     if (min_value == 0) max_value = 0;
     if (!(d1 == 1 || d1 == max_value) || !(d2 == 1 || d2 == max_value) ||
         !(d3 == 1 || d3 == max_value)) {
-      TF_LITE_KERNEL_LOG(context,
-                         "Given shapes, %s, %s and %s, are not broadcastable.",
-                         GetShapeDebugString(input1->dims).c_str(),
-                         GetShapeDebugString(input2->dims).c_str(),
-                         GetShapeDebugString(input3->dims).c_str());
+      MicroPrintf("Given shapes, %s, %s and %s, are not broadcastable.",
+                  GetShapeDebugString(input1->dims).c_str(),
+                  GetShapeDebugString(input2->dims).c_str(),
+                  GetShapeDebugString(input3->dims).c_str(), context);
       return kTfLiteError;
     }
     shape->data[out_dims - i - 1] = max_value;
