@@ -18,12 +18,12 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/micro/micro_context.h"
+#include "third_party/tensorflow/lite/c/builtin_op_data.h"
+#include "third_party/tensorflow/lite/c/common.h"
+#include "third_party/tensorflow/lite/kernels/internal/compatibility.h"
+#include "third_party/tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "third_party/tensorflow/lite/kernels/internal/types.h"
+#include "third_party/tflite_micro/tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
 namespace micro {
@@ -31,7 +31,8 @@ namespace micro {
 TfLiteRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
-    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node));
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
+    void (*free)(TfLiteContext* context, void* buffer) = nullptr);
 
 // Prints out n bytes in a int8_t buffer as hex
 void PrintNBytes(const int8_t* tensor_data, int n_bytes,
