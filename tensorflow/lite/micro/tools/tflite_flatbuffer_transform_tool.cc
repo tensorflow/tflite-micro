@@ -98,6 +98,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "usage: %s input_flatbuffer output_flatbuffer\n", argv[0]);
     exit(-1);
   }
+  fprintf(stderr, "model name: %s", argv[1]);
   std::string model_file;
   // Read the file into a string using the included util API call:
   flatbuffers::LoadFile(argv[1], false, &model_file);
