@@ -210,7 +210,7 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Input type %s is not currently supported",
-                  TfLiteTypeGetName(input->type), context);
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -238,7 +238,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf("Type %s not currently supported.",
-                  TfLiteTypeGetName(input->type), context);
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
