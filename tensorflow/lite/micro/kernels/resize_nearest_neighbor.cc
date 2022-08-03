@@ -55,7 +55,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   output->type = input->type;
 
   if (!IsConstantTensor(size)) {
-    MicroPrintf("Dynamic tensors are unsupported in tfmicro.", context);
+    MicroPrintf("Dynamic tensors are unsupported in tfmicro.");
     return kTfLiteError;
   }
 
