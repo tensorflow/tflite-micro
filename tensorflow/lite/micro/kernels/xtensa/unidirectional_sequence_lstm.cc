@@ -846,9 +846,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // This is deprecated and is only kept here for backward compatibility.
     use_layer_norm = false;
   } else {
-    MicroPrintf(
-         "The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
-        node->inputs->size);
+    MicroPrintf("The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
+                node->inputs->size);
     return kTfLiteError;
   }
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
@@ -1035,7 +1034,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       const bool is_hybrid = input->type == kTfLiteFloat32;
       if (is_hybrid) {
-        MicroPrintf( " hybrid type is not supported.");
+        MicroPrintf(" hybrid type is not supported.");
         return kTfLiteError;
 
       } else {
@@ -1102,8 +1101,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      MicroPrintf( "Type %s is not currently supported.",
-                         TfLiteTypeGetName(input_to_output_weights->type));
+      MicroPrintf("Type %s is not currently supported.",
+                  TfLiteTypeGetName(input_to_output_weights->type));
       return kTfLiteError;
   }
   return kTfLiteOk;

@@ -176,9 +176,8 @@ void AverageEvalFloat(TfLiteContext* context, const TfLiteNode* node,
                              tflite::micro::GetTensorShape(output),
                              tflite::micro::GetTensorData<float>(output));
 #else
-  MicroPrintf(
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
+  MicroPrintf("Type %s (%d) is not supported by ARC MLI Library.",
+              TfLiteTypeGetName(input->type), input->type);
 #endif
 }
 
@@ -286,9 +285,8 @@ void AverageEvalQuantized(TfLiteContext* context, const TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 #else
-  MicroPrintf(
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
+  MicroPrintf("Type %s (%d) is not supported by ARC MLI Library.",
+              TfLiteTypeGetName(input->type), input->type);
 #endif
 }
 
@@ -311,7 +309,7 @@ void MaxEvalFloat(TfLiteContext* context, TfLiteNode* node,
                          tflite::micro::GetTensorData<float>(output));
 #else
   MicroPrintf(
-      
+
       "Node configuration or type %s (%d) is not supported by ARC MLI Library.",
       TfLiteTypeGetName(input->type), input->type);
 #endif
@@ -370,8 +368,8 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       }
       break;
     default:
-      MicroPrintf( "Input type %s is not currently supported",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Input type %s is not currently supported",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -400,8 +398,8 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       }
       break;
     default:
-      MicroPrintf( "Type %s not currently supported.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;

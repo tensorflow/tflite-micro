@@ -62,7 +62,7 @@ TfLiteStatus PreluEval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
       MicroPrintf("Only float32 and uint8_t are supported currently, got %d.",
-          TfLiteTypeGetName(input->type));
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 }

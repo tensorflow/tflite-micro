@@ -193,8 +193,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 #else
-  MicroPrintf(
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
   return kTfLiteError;
 #endif
 }
@@ -264,15 +263,14 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     default:
-      MicroPrintf( "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(output->type), output->type);
+      MicroPrintf("Type %s (%d) not supported.",
+                  TfLiteTypeGetName(output->type), output->type);
       return kTfLiteError;
   }
 
   return kTfLiteOk;
 #else
-  MicroPrintf(
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
   return kTfLiteError;
 #endif
 }
@@ -410,8 +408,8 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
     ret_val =
         EvalAddQuantized(context, node, params, data, input1, input2, output);
   } else {
-    MicroPrintf( "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
+                output->type);
     ret_val = kTfLiteError;
   }
 

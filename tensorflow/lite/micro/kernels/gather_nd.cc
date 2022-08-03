@@ -172,8 +172,7 @@ TfLiteStatus EvalGatherNd(TfLiteContext* context,
       return kTfLiteError;
   }
   if (status != kTfLiteOk) {
-    MicroPrintf(
- "gather_nd index out of bounds");
+    MicroPrintf("gather_nd index out of bounds");
   }
   return status;
 }

@@ -123,7 +123,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   if (axis < 0) axis += input_shape.DimensionsCount();
 
   if (axis < 0 || axis >= input_shape.DimensionsCount()) {
-    MicroPrintf( "CUMSUM Invalid axis: %d", axis);
+    MicroPrintf("CUMSUM Invalid axis: %d", axis);
     return kTfLiteError;
   }
 
@@ -156,9 +156,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     } break;
 
     default: {
-      MicroPrintf(
-                         "CUMSUM only supports FLOAT32 and INT8, got %s.",
-                         TfLiteTypeGetName(output->type));
+      MicroPrintf("CUMSUM only supports FLOAT32 and INT8, got %s.",
+                  TfLiteTypeGetName(output->type));
       return kTfLiteError;
     }
   }

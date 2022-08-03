@@ -205,7 +205,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     }
     default:
       MicroPrintf("Op Concatenation does not currently support Type '%s'.",
-          TfLiteTypeGetName(output_type));
+                  TfLiteTypeGetName(output_type));
       return kTfLiteError;
   }
 
@@ -238,9 +238,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
 
     default:
-      MicroPrintf(
-           "Op Concatenation does not currently support Type '%s'.",
-          TfLiteTypeGetName(output_type));
+      MicroPrintf("Op Concatenation does not currently support Type '%s'.",
+                  TfLiteTypeGetName(output_type));
       return kTfLiteError;
   }
 

@@ -161,8 +161,8 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   const int dilation_height_factor = params->dilation_height_factor;
 
   if ((input_depth * 4) > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-    MicroPrintf( "Scratch size (%d) less that required (%d)",
-                       CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, (input_depth * 4));
+    MicroPrintf("Scratch size (%d) less that required (%d)",
+                CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, (input_depth * 4));
   }
 
 #ifdef MCPS_MEASUREMENT
@@ -223,8 +223,8 @@ TfLiteStatus EvalCEVA(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     default:
-      MicroPrintf( "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

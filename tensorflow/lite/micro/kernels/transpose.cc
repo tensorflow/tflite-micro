@@ -104,9 +104,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     default:
       MicroPrintf(
-                         "Type %s is currently not supported by Transpose. "
-                         "Only float32 and int8 is supported",
-                         TfLiteTypeGetName(input->type));
+          "Type %s is currently not supported by Transpose. "
+          "Only float32 and int8 is supported",
+          TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 

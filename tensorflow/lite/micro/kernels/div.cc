@@ -162,8 +162,7 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
     }
 #undef TF_LITE_DIV
   } else {
-    MicroPrintf(
-        "Unsupported combination of input and output types in DIV.");
+    MicroPrintf("Unsupported combination of input and output types in DIV.");
     return kTfLiteError;
   }
 
@@ -190,9 +189,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                              input1, input2, output));
   } else {
     MicroPrintf(
-                       "DIV only supports FLOAT32, quantized INT8 "
-                       "now, got type %s (%d).",
-                       TfLiteTypeGetName(output->type), output->type);
+        "DIV only supports FLOAT32, quantized INT8 "
+        "now, got type %s (%d).",
+        TfLiteTypeGetName(output->type), output->type);
     return kTfLiteError;
   }
 

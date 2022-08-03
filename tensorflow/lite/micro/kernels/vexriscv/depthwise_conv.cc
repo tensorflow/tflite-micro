@@ -461,8 +461,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     default:
-      MicroPrintf( "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

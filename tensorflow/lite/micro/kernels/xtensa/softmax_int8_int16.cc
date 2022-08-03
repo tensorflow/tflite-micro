@@ -139,8 +139,8 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
     return kTfLiteOk;
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   } else {
-    MicroPrintf( "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type);
     return kTfLiteError;
   }
 }
