@@ -92,7 +92,7 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
-                TfLiteTypeGetName(input->type), input->type, context);
+                TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
   }
 
@@ -114,7 +114,7 @@ TfLiteStatus PrepareAbsRsqrt(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   if (!IsSupportedType(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
-                TfLiteTypeGetName(input->type), input->type, context);
+                TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
   }
 
@@ -357,7 +357,7 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
 
     default:
       MicroPrintf("Current data type %s is not supported.",
-                  TfLiteTypeGetName(type), context);
+                  TfLiteTypeGetName(type));
       return kTfLiteError;
   }
 }
