@@ -37,7 +37,7 @@ struct NodeConnection_ {
   std::initializer_list<int32_t> input;
   std::initializer_list<int32_t> output;
 };
-struct NodeConnection_ NodeConnection;
+struct NodeConnection NodeConnection;
 
 // A simple operator that returns the median of the input with the number of
 // times the kernel was invoked. The implementation below is deliberately
