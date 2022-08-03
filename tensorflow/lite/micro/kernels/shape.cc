@@ -49,7 +49,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   if (output->type != kTfLiteInt32) {
     MicroPrintf("Output type %s (%d) not supported.",
-                TfLiteTypeGetName(output->type), output->type, context);
+                TfLiteTypeGetName(output->type), output->type);
     return kTfLiteError;
   } else {
     ExtractShape(input, tflite::micro::GetTensorData<int32_t>(output));
