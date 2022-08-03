@@ -49,7 +49,7 @@ enum class BroadcastableOpCategory : uint8_t {
 };
 #endif
 
- struct ArithmeticParams_ceva{
+struct ArithmeticParams_ceva {
   // Shape dependent / common to data / op types.
   uint8_t broadcast_category;  // BroadcastableOpCategory broadcast_category;
   // uint8_t inference params.
@@ -81,7 +81,7 @@ enum class BroadcastableOpCategory : uint8_t {
   // broadcast_shape[1] = a3; b3 = 1.
   // broadcast_shape[0] = b4 = a4.
   int broadcast_shape[5];
-} ;
+};
 
 struct SoftmaxParams_ceva {
   // beta is not really used (not a Tensorflow parameter) and not implemented
