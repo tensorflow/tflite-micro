@@ -21,17 +21,29 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interprete
 
 class Interpreter(object):
 
-  def __init__(self, model_data, arena_size):
+  def __init__(self, model_data, custom_op_registerers, arena_size):
+    if model_data is None:
+      raise ValueError("Model must not be None")
+
+    if not isinstance(custom_op_registerers, list) or not all(
+        isinstance(s, str) for s in custom_op_registerers):
+      raise ValueError("Custom ops registerers must be a list of strings")
+
+    # This is a heuristic to ensure that the arena is sufficiently sized.
+    if arena_size is None:
+      arena_size = len(model_data) * 10
+
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, arena_size)
+        model_data, custom_op_registerers, arena_size)
 
   @classmethod
-  def from_file(self, model_path, arena_size=None):
-    """
-    Instantiates a TFLM interpreter from a model .tflite filepath.
+  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
+    """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
       model_path: Filepath to the .tflite model
+      custom_op_registerers: List of strings, each of which is the name of a
+        custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
 
@@ -44,35 +56,27 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    if arena_size is None:
-      arena_size = len(model_data) * 10
-
-    return Interpreter(model_data, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   @classmethod
-  def from_bytes(self, model_data, arena_size=None):
-    """
-    Instantiates a TFLM interpreter from a model in byte array.
+  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
+    """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
       model_data: Model in byte array format
+      custom_op_registerers: List of strings, each of which is the name of a
+        custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
 
     Returns:
       An Interpreter instance
     """
-    if model_data is None:
-      raise ValueError("Model must not be None")
 
-    if arena_size is None:
-      arena_size = len(model_data) * 10
-
-    return Interpreter(model_data, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   def invoke(self):
-    """
-    Invoke the TFLM interpreter to run an inference.
+    """Invoke the TFLM interpreter to run an inference.
 
     This should be called after `set_input()`.
 
@@ -83,8 +87,7 @@ class Interpreter(object):
     return self._interpreter.Invoke()
 
   def set_input(self, input_data, index):
-    """
-    Set input data into input tensor.
+    """Set input data into input tensor.
 
     This should be called before `invoke()`.
 
@@ -103,8 +106,7 @@ class Interpreter(object):
     self._interpreter.SetInputTensor(input_data, index)
 
   def get_output(self, index):
-    """
-    Get data from output tensor.
+    """Get data from output tensor.
 
     The output data correspond to the most recent `invoke()`.
 
