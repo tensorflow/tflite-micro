@@ -32,7 +32,8 @@ namespace micro {
 TfLiteRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
-    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node));
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
+    void (*free)(TfLiteContext* context, void* buffer) = nullptr);
 
 // Prints out n bytes in a int8_t buffer as hex
 void PrintNBytes(const int8_t* tensor_data, int n_bytes,
