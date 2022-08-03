@@ -103,7 +103,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                tflite::micro::GetTensorData<int8_t>(output));
       break;
     default:
-      TF_LITE_KERNEL_LOG(context,
+      MicroPrintf(
                          "Type %s is currently not supported by Transpose. "
                          "Only float32 and int8 is supported",
                          TfLiteTypeGetName(input->type));

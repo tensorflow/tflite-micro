@@ -111,7 +111,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                  output);
     }
     default: {
-      TF_LITE_KERNEL_LOG(context, "Type '%s' is not supported by FLOOR_MOD.",
+      MicroPrintf( "Type '%s' is not supported by FLOOR_MOD.",
                          TfLiteTypeGetName(input1->type));
       return kTfLiteError;
     }

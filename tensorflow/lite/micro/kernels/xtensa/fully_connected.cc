@@ -88,7 +88,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
 
   if (input->type != kTfLiteInt8) {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+    MicroPrintf( "Type %s (%d) not supported.",
                        TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
   }

@@ -255,7 +255,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
 
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported by Pad.",
+      MicroPrintf( "Type %s not currently supported by Pad.",
                          TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }

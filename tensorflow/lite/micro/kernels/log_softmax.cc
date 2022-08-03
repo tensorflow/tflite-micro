@@ -132,7 +132,7 @@ TfLiteStatus LogSoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default:
-      TF_LITE_KERNEL_LOG(context,
+      MicroPrintf(
                          "LOG_SOFTMAX only supports float32, int8, got %s.",
                          TfLiteTypeGetName(input->type));
       return kTfLiteError;

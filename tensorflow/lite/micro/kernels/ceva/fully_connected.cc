@@ -111,7 +111,7 @@ __attribute__((optnone)) TfLiteStatus EvalQuantizedInt8CEVA(
   int sizeof_scratch_required = output_shape_dims_data[1];
 
   if (sizeof_scratch_required > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-    TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
+    MicroPrintf( "Scratch size (%d) less that required (%d)",
                        CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL,
                        sizeof_scratch_required);
     return kTfLiteError;
@@ -226,7 +226,7 @@ TfLiteStatus EvalCEVA(TfLiteContext* context, TfLiteNode* node) {
                                    output);
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input->type), input->type);
       return kTfLiteError;
   }

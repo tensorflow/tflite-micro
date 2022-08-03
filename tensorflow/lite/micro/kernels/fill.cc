@@ -53,7 +53,7 @@ TfLiteStatus EnsureEq(TfLiteContext* context, const TfLiteIntArray* array,
     case kTfLiteInt64:
       return EnsureEqImpl<int64_t>(context, array, tensor);
     default:
-      TF_LITE_KERNEL_LOG(context,
+      MicroPrintf(
                          "cannot compare int array to tensor of type %d.",
                          tensor->type);
       return kTfLiteError;
@@ -123,8 +123,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       FillImpl<int8_t>(value, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(
-          context, "Fill only currently supports float32 for input 1, got %d.",
+      MicroPrintf(
+          "Fill only currently supports float32 for input 1, got %d.",
           TfLiteTypeGetName(value->type));
       return kTfLiteError;
   }

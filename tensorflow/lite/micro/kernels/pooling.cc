@@ -45,7 +45,7 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       AveragePoolingEvalQuantized(context, node, params, data, input, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Input type %s is not currently supported",
+      MicroPrintf( "Input type %s is not currently supported",
                          TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
@@ -73,7 +73,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       MaxPoolingEvalQuantized(context, node, params, data, input, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
+      MicroPrintf( "Type %s not currently supported.",
                          TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }

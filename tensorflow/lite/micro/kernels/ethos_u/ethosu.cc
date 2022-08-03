@@ -82,7 +82,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto root = flexbuffers::GetRoot(custom_data, node->custom_initial_data_size);
   co_type = root.AsInt8();
   if (co_type != CO_TYPE_ETHOSU) {
-    TF_LITE_KERNEL_LOG(context, "CO_TYPE != ETHOSU");
+    MicroPrintf( "CO_TYPE != ETHOSU");
     return kTfLiteError;
   }
 

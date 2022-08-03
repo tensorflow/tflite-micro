@@ -139,7 +139,7 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context,
+      MicroPrintf(
                          "Could not find matching function for type %s.",
                          TfLiteTypeGetName(weights_time_tensor->type));
       return kTfLiteError;
@@ -182,7 +182,7 @@ TfLiteStatus EvalSvdf(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
+      MicroPrintf( "Type %s not currently supported.",
                          TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }

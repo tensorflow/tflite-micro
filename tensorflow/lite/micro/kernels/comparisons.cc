@@ -118,7 +118,7 @@ TfLiteStatus EqualEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }
@@ -210,7 +210,7 @@ TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }
@@ -288,7 +288,7 @@ TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }
@@ -366,7 +366,7 @@ TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }
@@ -444,7 +444,7 @@ TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }
@@ -522,7 +522,7 @@ TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
                 output_data);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
+      MicroPrintf( "Type %s (%d) not supported.",
                          TfLiteTypeGetName(input1->type), input1->type);
       return kTfLiteError;
   }

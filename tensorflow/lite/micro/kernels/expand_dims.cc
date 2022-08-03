@@ -31,7 +31,7 @@ TfLiteStatus GetAxisValueFromTensor(TfLiteContext* context,
                                     int32_t* axis_value) {
   const int axis_dims = (tflite::GetTensorShape(axis)).DimensionsCount();
   if (axis_dims > 1) {
-    TF_LITE_KERNEL_LOG(context, "Axis has only one element for Expand_Dims.",
+    MicroPrintf( "Axis has only one element for Expand_Dims.",
                        axis_dims);
     return kTfLiteError;
   }
@@ -41,7 +41,7 @@ TfLiteStatus GetAxisValueFromTensor(TfLiteContext* context,
     *axis_value = axis_ptr[0];
     return kTfLiteOk;
   } else {
-    TF_LITE_KERNEL_LOG(context,
+    MicroPrintf(
                        "Axis type %s (%d) not supported by Expand_Dims.",
                        TfLiteTypeGetName(axis->type), axis->type);
     return kTfLiteError;
@@ -99,7 +99,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
   output->type = input->type;
   if (IsDynamicTensor(axis)) {
-    TF_LITE_KERNEL_LOG(context,
+    MicroPrintf(
                        "DynamicTensor is not yet supported by Expand_Dims.");
     return kTfLiteError;
   }
@@ -135,8 +135,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                tflite::micro::GetTensorData<int8_t>(input), flat_size);
     } break;
     default:
-      TF_LITE_KERNEL_LOG(
-          context,
+      MicroPrintf(
           "Expand_Dims only currently supports int8 and float32, got %d.",
           input->type);
       return kTfLiteError;
