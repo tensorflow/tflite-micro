@@ -29,5 +29,5 @@ with the model and sample inputs.
 
 So far you have used an existing trained model to run inference on
 microcontrollers. If you wish to train your own model, follow the instructions
-that are given in the [train/](train/) directory.
+given in the [train/](train/) directory.
 
