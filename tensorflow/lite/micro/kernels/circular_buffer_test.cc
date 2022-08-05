@@ -29,7 +29,7 @@ namespace {
 constexpr int kRunPeriod = 2;
 
 // TODO(b/149795762): Add this to TfLiteStatus enum.
-constexpr TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
+const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
 
 }  // namespace
 }  // namespace testing
