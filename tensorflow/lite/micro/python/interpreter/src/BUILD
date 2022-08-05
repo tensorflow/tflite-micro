@@ -19,6 +19,7 @@ pybind_library(
         "interpreter_wrapper.h",
         "numpy_utils.h",
         "python_utils.h",
+        "shared_library.h",
     ],
     deps = [
         "//tensorflow/lite/micro:micro_error_reporter",
