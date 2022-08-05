@@ -521,7 +521,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddSquaredDifference() {
     return AddBuiltin(BuiltinOperator_SQUARED_DIFFERENCE,
-                      tflite::Register_SQUARED_DIFFERENCE(), ParseSquaredDifference);
+                      tflite::Register_SQUARED_DIFFERENCE(),
+                      ParseSquaredDifference);
   }
 
   TfLiteStatus AddStridedSlice() {
