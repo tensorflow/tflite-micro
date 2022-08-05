@@ -75,15 +75,9 @@ void MicroProfiler::LogTicksPerTagCsv() {
   int total_ticks = 0;
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-    if (tags_[i] == nullptr) {
-      MicroPrintf("Event does not have a tag name.");
-      continue;
-    }
+    TFLITE_DCHECK(tags_[i] != nullptr);
     int position = FindExistingOrNextPosition(tags_[i]);
-    if (position == -1) {
-      MicroPrintf("Number of tags exceeds the memory allocation.");
-      return;
-    }
+    TFLITE_DCHECK(position >= 0);
     total_ticks_per_tag[position].tag = tags_[i];
     total_ticks_per_tag[position].ticks =
         total_ticks_per_tag[position].ticks + ticks;
@@ -95,9 +89,9 @@ void MicroProfiler::LogTicksPerTagCsv() {
     if (each_tag_entry.tag == nullptr) {
       break;
     }
-    MicroPrintf("%s,%d", each_tag_entry.tag, each_tag_entry.ticks);
+    MicroPrintf("%s, %d", each_tag_entry.tag, each_tag_entry.ticks);
   }
-  MicroPrintf("total,%d", total_ticks);
+  MicroPrintf("total number of ticks, %d", total_ticks);
 #endif
 }
 
