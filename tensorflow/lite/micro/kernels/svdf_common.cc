@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -487,6 +487,10 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
             &(data->scratch_output_tensor_index));
     TF_LITE_ENSURE_OK(context, scratch_output_status);
   } else {
+    if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+    }
     TF_LITE_ENSURE_EQ(context, weights_feature->type, kTfLiteFloat32);
     TF_LITE_ENSURE_EQ(context, weights_time->type, kTfLiteFloat32);
     TF_LITE_ENSURE_EQ(context, activation_state->type, kTfLiteFloat32);
