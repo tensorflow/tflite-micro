@@ -17,7 +17,7 @@ pull_request_rules:
         method: squash
         commit_message_template: |
           {{ title }}
-          {{ body  }}
+          {{ body_raw  }}
 
   - name: remove ci:ready_to_merge label
     conditions:
