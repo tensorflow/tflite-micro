@@ -78,13 +78,13 @@ class MicroProfiler {
   int num_events_ = 0;
 
   struct TicksPerTag {
-    const char* tag;
-    uint32_t ticks;
+    const char* tag = nullptr;
+    uint32_t ticks = 0;
   };
   // In practice, the number of tags will be much lower than the number of
   // events. But it is theoretically possible that each event to be unique and
   // hence we allow total_ticks_per_tag to have kMaxEvents entries.
-  TicksPerTag total_ticks_per_tag[kMaxEvents];
+  TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
 
   int FindExistingOrNextPosition(const char* tag_name);
 
