@@ -49,7 +49,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -105,7 +105,7 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -153,7 +153,7 @@ cc_library(
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -173,7 +173,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -186,7 +186,7 @@ cc_library(
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels/internal:reference",
         "//tensorflow/lite/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -212,7 +212,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 

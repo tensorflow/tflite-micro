@@ -1,0 +1,43 @@
+{
+  "name": "flatbuffers",
+  "version": "2.0.4",
+  "description": "Memory Efficient Serialization Library",
+  "files": [
+    "js/**/*.js",
+    "js/**/*.d.ts",
+    "mjs/**/*.js",
+    "mjs/**/*.d.ts",
+    "ts/**/*.ts"
+  ],
+  "main": "js/flatbuffers.js",
+  "module": "mjs/flatbuffers.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npm run compile && cd tests && ./TypeScriptTest.sh",
+    "compile": "tsc && tsc -p tsconfig.mjs.json",
+    "prepublishOnly": "npm install --only=dev && npm run compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/google/flatbuffers.git"
+  },
+  "keywords": [
+    "flatbuffers"
+  ],
+  "author": "The FlatBuffers project",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "bugs": {
+    "url": "https://github.com/google/flatbuffers/issues"
+  },
+  "homepage": "https://google.github.io/flatbuffers/",
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "eslint": "^7.17.0",
+    "typescript": "^4.1.3"
+  }
+}

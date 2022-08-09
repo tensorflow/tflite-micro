@@ -1,11 +1,11 @@
-load("//third_party/flatbuffers:workspace.bzl", flatbuffers = "repo")
+# load("//third_party/flatbuffers:workspace.bzl", flatbuffers = "repo")
 load("//third_party/kissfft:workspace.bzl", kissfft = "repo")
 load("//third_party/ruy:workspace.bzl", ruy = "repo")
 load("//third_party:repo.bzl", "tf_http_archive")
 
 def initialize_third_party():
     """ Load third party repositories.  See above load() statements. """
-    flatbuffers()
+    #flatbuffers()
     kissfft()
     ruy()
 

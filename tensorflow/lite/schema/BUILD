@@ -13,7 +13,7 @@ cc_library(
     name = "schema_fbs",
     hdrs = ["schema_generated.h"],
     deps = [
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -24,6 +24,6 @@ cc_library(
     deps = [
         ":schema_fbs",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
