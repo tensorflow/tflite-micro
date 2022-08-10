@@ -46,6 +46,10 @@ void StripStrings(tflite::ModelT* model) {
   }
 }
 
+void RemoveCallOnceOp(tflite::ModelT* model){
+
+}
+
 void RemoveExtraneousQuantizationData(tflite::ModelT* model) {
   /*
   We remove the following arrays from weight tensors when quanzation paramaters
