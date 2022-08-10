@@ -10,7 +10,7 @@ cc_binary(
         "generate_detection_postprocess_flexbuffers_data.cc",
     ],
     deps = [
-        "//third_party/flatbuffers:runtime_cc",
+        "//third_party/flatbuffers",
     ],
 )
 
@@ -20,6 +20,6 @@ cc_binary(
         "generate_circular_buffer_flexbuffers_data.cc",
     ],
     deps = [
-        "//third_party/flatbuffers:runtime_cc",
+        "//third_party/flatbuffers",
     ],
 )

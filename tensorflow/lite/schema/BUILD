@@ -1,3 +1,6 @@
+load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library")
+load("//tensorflow:extra_rules.bzl", "get_compatible_with_portable")
+
 package(
     default_visibility = [
         "//visibility:public",
@@ -16,6 +19,12 @@ cc_library(
         "//third_party/flatbuffers:runtime_cc",
     ],
 )
+
+# flatbuffer_cc_library(
+#     name = "schema_fbs",
+#     srcs = ["schema.fbs"],
+#     compatible_with = get_compatible_with_portable(),
+# )
 
 cc_library(
     name = "schema_utils",

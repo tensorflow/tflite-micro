@@ -76,7 +76,7 @@ cc_binary(
     }),
     visibility = ["//visibility:public"],
     deps = [
-        "@flatbuffers//src:flatc",
+        "//third_party/flatbuffers/src:flatc",
     ],
 )
 

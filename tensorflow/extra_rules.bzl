@@ -19,3 +19,6 @@ def xtensa_hifi_5_config():
 def xtensa_vision_p6_config():
     """Config setting for all Vision P6 based cores."""
     return "//tensorflow/lite/micro/kernels:xtensa_vision_p6_default"
+
+def get_compatible_with_portable():
+    return []
