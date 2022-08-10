@@ -84,7 +84,7 @@ class MicroProfiler {
   // In practice, the number of tags will be much lower than the number of
   // events. But it is theoretically possible that each event to be unique and
   // hence we allow total_ticks_per_tag to have kMaxEvents entries.
-  TicksPerTag total_ticks_per_tag[kMaxEvents];
+  TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
 
   int FindExistingOrNextPosition(const char* tag_name);
 
