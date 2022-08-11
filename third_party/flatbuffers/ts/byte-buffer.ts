@@ -1,11 +1,11 @@
-import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants";
-import { Long } from "./long";
-import { int32, isLittleEndian, float32, float64 } from "./utils";
-import { Offset, Table, IGeneratedObject } from "./types";
-import { Encoding } from "./encoding";
+import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants.js";
+import { int32, isLittleEndian, float32, float64 } from "./utils.js";
+import { Offset, Table, IGeneratedObject } from "./types.js";
+import { Encoding } from "./encoding.js";
 
 export class ByteBuffer {
     private position_ = 0;
+    private text_decoder_ = new TextDecoder();
   
     /**
      * Create a new ByteBuffer with a given array of bytes (`Uint8Array`)
@@ -75,12 +75,12 @@ export class ByteBuffer {
       return this.readInt32(offset) >>> 0;
     }
   
-    readInt64(offset: number): Long {
-      return new Long(this.readInt32(offset), this.readInt32(offset + 4));
+    readInt64(offset: number): bigint {
+      return BigInt.asIntN(64, BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
     }
   
-    readUint64(offset: number): Long {
-      return new Long(this.readUint32(offset), this.readUint32(offset + 4));
+    readUint64(offset: number): bigint {
+      return BigInt.asUintN(64, BigInt(this.readUint32(offset)) + (BigInt(this.readUint32(offset + 4)) << BigInt(32)));
     }
   
     readFloat32(offset: number): number {
@@ -108,8 +108,8 @@ export class ByteBuffer {
     }
   
     writeUint16(offset: number, value: number): void {
-        this.bytes_[offset] = value;
-        this.bytes_[offset + 1] = value >> 8;
+      this.bytes_[offset] = value;
+      this.bytes_[offset + 1] = value >> 8;
     }
   
     writeInt32(offset: number, value: number): void {
@@ -120,20 +120,20 @@ export class ByteBuffer {
     }
   
     writeUint32(offset: number, value: number): void {
-        this.bytes_[offset] = value;
-        this.bytes_[offset + 1] = value >> 8;
-        this.bytes_[offset + 2] = value >> 16;
-        this.bytes_[offset + 3] = value >> 24;
+      this.bytes_[offset] = value;
+      this.bytes_[offset + 1] = value >> 8;
+      this.bytes_[offset + 2] = value >> 16;
+      this.bytes_[offset + 3] = value >> 24;
     }
   
-    writeInt64(offset: number, value: Long): void {
-      this.writeInt32(offset, value.low);
-      this.writeInt32(offset + 4, value.high);
+    writeInt64(offset: number, value: bigint): void {
+      this.writeInt32(offset, Number(BigInt.asIntN(32, value)));
+      this.writeInt32(offset + 4, Number(BigInt.asIntN(32, value >> BigInt(32))));
     }
   
-    writeUint64(offset: number, value: Long): void {
-        this.writeUint32(offset, value.low);
-        this.writeUint32(offset + 4, value.high);
+    writeUint64(offset: number, value: bigint): void {
+      this.writeUint32(offset, Number(BigInt.asUintN(32, value)));
+      this.writeUint32(offset + 4, Number(BigInt.asUintN(32, value >> BigInt(32))));
     }
   
     writeFloat32(offset: number, value: number): void {
@@ -188,70 +188,22 @@ export class ByteBuffer {
      * Create a JavaScript string from UTF-8 data stored inside the FlatBuffer.
      * This allocates a new string and converts to wide chars upon each access.
      *
-     * To avoid the conversion to UTF-16, pass Encoding.UTF8_BYTES as
-     * the "optionalEncoding" argument. This is useful for avoiding conversion to
-     * and from UTF-16 when the data will just be packaged back up in another
-     * FlatBuffer later on.
+     * To avoid the conversion to string, pass Encoding.UTF8_BYTES as the
+     * "optionalEncoding" argument. This is useful for avoiding conversion when
+     * the data will just be packaged back up in another FlatBuffer later on.
      *
      * @param offset
      * @param opt_encoding Defaults to UTF16_STRING
      */
     __string(offset: number, opt_encoding?: Encoding): string | Uint8Array {
       offset += this.readInt32(offset);
-  
       const length = this.readInt32(offset);
-      let result = '';
-      let i = 0;
-  
       offset += SIZEOF_INT;
-  
-      if (opt_encoding === Encoding.UTF8_BYTES) {
-        return this.bytes_.subarray(offset, offset + length);
-      }
-  
-      while (i < length) {
-        let codePoint;
-  
-        // Decode UTF-8
-        const a = this.readUint8(offset + i++);
-        if (a < 0xC0) {
-          codePoint = a;
-        } else {
-          const b = this.readUint8(offset + i++);
-          if (a < 0xE0) {
-            codePoint =
-              ((a & 0x1F) << 6) |
-              (b & 0x3F);
-          } else {
-            const c = this.readUint8(offset + i++);
-            if (a < 0xF0) {
-              codePoint =
-                ((a & 0x0F) << 12) |
-                ((b & 0x3F) << 6) |
-                (c & 0x3F);
-            } else {
-              const d = this.readUint8(offset + i++);
-              codePoint =
-                ((a & 0x07) << 18) |
-                ((b & 0x3F) << 12) |
-                ((c & 0x3F) << 6) |
-                (d & 0x3F);
-            }
-          }
-        }
-  
-        // Encode UTF-16
-        if (codePoint < 0x10000) {
-          result += String.fromCharCode(codePoint);
-        } else {
-          codePoint -= 0x10000;
-          result += String.fromCharCode(
-            (codePoint >> 10) + 0xD800,
-            (codePoint & ((1 << 10) - 1)) + 0xDC00);
-        }
-      }
-  
-      return result;
+      const utf8bytes = this.bytes_.subarray(offset, offset + length);
+      if (opt_encoding === Encoding.UTF8_BYTES)
+        return utf8bytes;
+      else
+        return this.text_decoder_.decode(utf8bytes);
     }
   
     /**
@@ -301,14 +253,7 @@ export class ByteBuffer {
       }
       return true;
     }
-  
-    /**
-     * A helper function to avoid generated code depending on this file directly.
-     */
-    createLong(low: number, high: number): Long {
-      return Long.create(low, high);
-    }
-  
+
     /**
      * A helper function for generating list for obj api
      */

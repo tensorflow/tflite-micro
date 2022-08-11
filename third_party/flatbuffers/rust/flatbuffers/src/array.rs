@@ -17,9 +17,9 @@
 use crate::follow::Follow;
 use crate::vector::VectorIter;
 use crate::EndianScalar;
-use std::fmt::{Debug, Formatter, Result};
-use std::marker::PhantomData;
-use std::mem::size_of;
+use core::fmt::{Debug, Formatter, Result};
+use core::marker::PhantomData;
+use core::mem::size_of;
 
 #[derive(Copy, Clone)]
 pub struct Array<'a, T: 'a, const N: usize>(&'a [u8], PhantomData<T>);
@@ -39,7 +39,7 @@ where
 impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn new(buf: &'a [u8]) -> Self {
-        debug_assert!(size_of::<T>() * N == buf.len());
+        assert!(size_of::<T>() * N == buf.len());
 
         Array {
             0: buf,
@@ -59,7 +59,7 @@ impl<'a, T: 'a, const N: usize> Array<'a, T, N> {
 impl<'a, T: Follow<'a> + 'a, const N: usize> Array<'a, T, N> {
     #[inline(always)]
     pub fn get(&self, idx: usize) -> T::Inner {
-        debug_assert!(idx < N);
+        assert!(idx < N);
         let sz = size_of::<T>();
         T::follow(self.0, sz * idx)
     }
@@ -131,5 +131,24 @@ where
             ptr_i = ptr_i.add(1);
         }
         array.assume_init()
+    }
+}
+
+#[cfg(feature="serialize")]
+impl<'a, T: 'a, const N: usize> serde::ser::Serialize for Array<'a, T, N>
+where
+    T: 'a + Follow<'a>,
+    <T as Follow<'a>>::Inner: serde::ser::Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        use serde::ser::SerializeSeq;
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+        for element in self.iter() {
+            seq.serialize_element(&element)?;
+        }
+        seq.end()
     }
 }

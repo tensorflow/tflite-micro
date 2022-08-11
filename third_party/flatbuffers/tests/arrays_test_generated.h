@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 namespace MyGame {
 namespace Example {
 
@@ -265,6 +272,10 @@ inline bool operator!=(const ArrayStruct &lhs, const ArrayStruct &rhs) {
 struct ArrayTableT : public flatbuffers::NativeTable {
   typedef ArrayTable TableType;
   flatbuffers::unique_ptr<MyGame::Example::ArrayStruct> a{};
+  ArrayTableT() = default;
+  ArrayTableT(const ArrayTableT &o);
+  ArrayTableT(ArrayTableT&&) FLATBUFFERS_NOEXCEPT = default;
+  ArrayTableT &operator=(ArrayTableT o) FLATBUFFERS_NOEXCEPT;
 };
 
 struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -284,7 +295,7 @@ struct ArrayTable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<MyGame::Example::ArrayStruct>(verifier, VT_A) &&
+           VerifyField<MyGame::Example::ArrayStruct>(verifier, VT_A, 8) &&
            verifier.EndTable();
   }
   ArrayTableT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -331,6 +342,15 @@ inline bool operator!=(const ArrayTableT &lhs, const ArrayTableT &rhs) {
 }
 
 
+inline ArrayTableT::ArrayTableT(const ArrayTableT &o)
+      : a((o.a) ? new MyGame::Example::ArrayStruct(*o.a) : nullptr) {
+}
+
+inline ArrayTableT &ArrayTableT::operator=(ArrayTableT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(a, o.a);
+  return *this;
+}
+
 inline ArrayTableT *ArrayTable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ArrayTableT>(new ArrayTableT());
   UnPackTo(_o.get(), _resolver);
@@ -351,7 +371,7 @@ inline flatbuffers::Offset<ArrayTable> CreateArrayTable(flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ArrayTableT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _a = _o->a ? _o->a.get() : 0;
+  auto _a = _o->a ? _o->a.get() : nullptr;
   return MyGame::Example::CreateArrayTable(
       _fbb,
       _a);
@@ -468,6 +488,11 @@ inline const char *ArrayTableIdentifier() {
 inline bool ArrayTableBufferHasIdentifier(const void *buf) {
   return flatbuffers::BufferHasIdentifier(
       buf, ArrayTableIdentifier());
+}
+
+inline bool SizePrefixedArrayTableBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, ArrayTableIdentifier(), true);
 }
 
 inline bool VerifyArrayTableBuffer(

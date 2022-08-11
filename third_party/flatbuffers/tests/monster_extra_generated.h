@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 namespace MyGame {
 
 struct MonsterExtra;
@@ -111,14 +118,14 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<double>(verifier, VT_D0) &&
-           VerifyField<double>(verifier, VT_D1) &&
-           VerifyField<double>(verifier, VT_D2) &&
-           VerifyField<double>(verifier, VT_D3) &&
-           VerifyField<float>(verifier, VT_F0) &&
-           VerifyField<float>(verifier, VT_F1) &&
-           VerifyField<float>(verifier, VT_F2) &&
-           VerifyField<float>(verifier, VT_F3) &&
+           VerifyField<double>(verifier, VT_D0, 8) &&
+           VerifyField<double>(verifier, VT_D1, 8) &&
+           VerifyField<double>(verifier, VT_D2, 8) &&
+           VerifyField<double>(verifier, VT_D3, 8) &&
+           VerifyField<float>(verifier, VT_F0, 4) &&
+           VerifyField<float>(verifier, VT_F1, 4) &&
+           VerifyField<float>(verifier, VT_F2, 4) &&
+           VerifyField<float>(verifier, VT_F3, 4) &&
            VerifyOffset(verifier, VT_DVEC) &&
            verifier.VerifyVector(dvec()) &&
            VerifyOffset(verifier, VT_FVEC) &&
@@ -360,6 +367,11 @@ inline const char *MonsterExtraIdentifier() {
 inline bool MonsterExtraBufferHasIdentifier(const void *buf) {
   return flatbuffers::BufferHasIdentifier(
       buf, MonsterExtraIdentifier());
+}
+
+inline bool SizePrefixedMonsterExtraBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(
+      buf, MonsterExtraIdentifier(), true);
 }
 
 inline bool VerifyMonsterExtraBuffer(

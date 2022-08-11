@@ -33,7 +33,8 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
-  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: "NULL", addPrefix: prefix) }
+  public static var id: String { "NULL" } 
+  public static func finish(_ fbb: inout FlatBufferBuilder, end: Offset, prefix: Bool = false) { fbb.finish(offset: end, fileId: optional_scalars_ScalarStuff.id, addPrefix: prefix) }
   public static func getRootAsScalarStuff(bb: ByteBuffer) -> optional_scalars_ScalarStuff { return optional_scalars_ScalarStuff(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
 
   private init(_ t: Table) { _accessor = t }
@@ -111,7 +112,7 @@ public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
   public var maybeF64: Double? { let o = _accessor.offset(VTOFFSET.maybeF64.v); return o == 0 ? nil : _accessor.readBuffer(of: Double.self, at: o) }
   public var defaultF64: Double { let o = _accessor.offset(VTOFFSET.defaultF64.v); return o == 0 ? 42.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public var justBool: Bool { let o = _accessor.offset(VTOFFSET.justBool.v); return o == 0 ? false : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
-  public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
+  public var maybeBool: Bool? { let o = _accessor.offset(VTOFFSET.maybeBool.v); return o == 0 ? nil : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
   public var defaultBool: Bool { let o = _accessor.offset(VTOFFSET.defaultBool.v); return o == 0 ? true : 0 != _accessor.readBuffer(of: Byte.self, at: o) }
   public var justEnum: optional_scalars_OptionalByte { let o = _accessor.offset(VTOFFSET.justEnum.v); return o == 0 ? .none_ : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .none_ }
   public var maybeEnum: optional_scalars_OptionalByte? { let o = _accessor.offset(VTOFFSET.maybeEnum.v); return o == 0 ? nil : optional_scalars_OptionalByte(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? nil }

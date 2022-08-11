@@ -49,6 +49,8 @@ class FlatCompiler {
     typedef std::string (*MakeRuleFn)(const flatbuffers::Parser &parser,
                                       const std::string &path,
                                       const std::string &file_name);
+    typedef bool (*ParsingCompletedFn)(const flatbuffers::Parser &parser,
+                                       const std::string &output_path);
 
     GenerateFn generate;
     const char *lang_name;
@@ -58,6 +60,7 @@ class FlatCompiler {
     FlatCOption option;
     MakeRuleFn make_rule;
     BfbsGenerator *bfbs_generator;
+    ParsingCompletedFn parsing_completed;
   };
 
   typedef void (*WarnFn)(const FlatCompiler *flatc, const std::string &warn,
@@ -84,6 +87,7 @@ class FlatCompiler {
 
   int Compile(int argc, const char **argv);
 
+  std::string GetShortUsageString(const char *program_name) const;
   std::string GetUsageString(const char *program_name) const;
 
  private:
@@ -98,6 +102,11 @@ class FlatCompiler {
 
   void Error(const std::string &err, bool usage = true,
              bool show_exe_name = true) const;
+
+  void AnnotateBinaries(const uint8_t *binary_schema,
+                        uint64_t binary_schema_size,
+                        const std::string & schema_filename,
+                        const std::vector<std::string> &binary_files);
 
   InitParams params_;
 };

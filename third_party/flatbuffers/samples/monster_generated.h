@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 namespace MyGame {
 namespace Sample {
 
@@ -239,6 +246,10 @@ struct MonsterT : public flatbuffers::NativeTable {
   std::vector<flatbuffers::unique_ptr<MyGame::Sample::WeaponT>> weapons{};
   MyGame::Sample::EquipmentUnion equipped{};
   std::vector<MyGame::Sample::Vec3> path{};
+  MonsterT() = default;
+  MonsterT(const MonsterT &o);
+  MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+  MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
 };
 
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -322,18 +333,18 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<MyGame::Sample::Vec3>(verifier, VT_POS) &&
-           VerifyField<int16_t>(verifier, VT_MANA) &&
-           VerifyField<int16_t>(verifier, VT_HP) &&
+           VerifyField<MyGame::Sample::Vec3>(verifier, VT_POS, 4) &&
+           VerifyField<int16_t>(verifier, VT_MANA, 2) &&
+           VerifyField<int16_t>(verifier, VT_HP, 2) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_INVENTORY) &&
            verifier.VerifyVector(inventory()) &&
-           VerifyField<int8_t>(verifier, VT_COLOR) &&
+           VerifyField<int8_t>(verifier, VT_COLOR, 1) &&
            VerifyOffset(verifier, VT_WEAPONS) &&
            verifier.VerifyVector(weapons()) &&
            verifier.VerifyVectorOfTables(weapons()) &&
-           VerifyField<uint8_t>(verifier, VT_EQUIPPED_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_EQUIPPED_TYPE, 1) &&
            VerifyOffset(verifier, VT_EQUIPPED) &&
            VerifyEquipment(verifier, equipped(), equipped_type()) &&
            VerifyOffset(verifier, VT_PATH) &&
@@ -484,7 +495,7 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyField<int16_t>(verifier, VT_DAMAGE) &&
+           VerifyField<int16_t>(verifier, VT_DAMAGE, 2) &&
            verifier.EndTable();
   }
   WeaponT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -545,7 +556,7 @@ inline bool operator==(const MonsterT &lhs, const MonsterT &rhs) {
       (lhs.name == rhs.name) &&
       (lhs.inventory == rhs.inventory) &&
       (lhs.color == rhs.color) &&
-      (lhs.weapons == rhs.weapons) &&
+      (lhs.weapons.size() == rhs.weapons.size() && std::equal(lhs.weapons.cbegin(), lhs.weapons.cend(), rhs.weapons.cbegin(), [](flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &a, flatbuffers::unique_ptr<MyGame::Sample::WeaponT> const &b) { return (a == b) || (a && b && *a == *b); })) &&
       (lhs.equipped == rhs.equipped) &&
       (lhs.path == rhs.path);
 }
@@ -554,6 +565,32 @@ inline bool operator!=(const MonsterT &lhs, const MonsterT &rhs) {
     return !(lhs == rhs);
 }
 
+
+inline MonsterT::MonsterT(const MonsterT &o)
+      : pos((o.pos) ? new MyGame::Sample::Vec3(*o.pos) : nullptr),
+        mana(o.mana),
+        hp(o.hp),
+        name(o.name),
+        inventory(o.inventory),
+        color(o.color),
+        equipped(o.equipped),
+        path(o.path) {
+  weapons.reserve(o.weapons.size());
+  for (const auto &weapons_ : o.weapons) { weapons.emplace_back((weapons_) ? new MyGame::Sample::WeaponT(*weapons_) : nullptr); }
+}
+
+inline MonsterT &MonsterT::operator=(MonsterT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(pos, o.pos);
+  std::swap(mana, o.mana);
+  std::swap(hp, o.hp);
+  std::swap(name, o.name);
+  std::swap(inventory, o.inventory);
+  std::swap(color, o.color);
+  std::swap(weapons, o.weapons);
+  std::swap(equipped, o.equipped);
+  std::swap(path, o.path);
+  return *this;
+}
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MonsterT>(new MonsterT());
@@ -584,7 +621,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _pos = _o->pos ? _o->pos.get() : 0;
+  auto _pos = _o->pos ? _o->pos.get() : nullptr;
   auto _mana = _o->mana;
   auto _hp = _o->hp;
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);

@@ -210,12 +210,18 @@ public final class Monster extends Table {
   public MyGame.Example.Stat scalarKeySortedTablesByKey(MyGame.Example.Stat obj, int key) { int o = __offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public MyGame.Example.Stat.Vector scalarKeySortedTablesVector() { return scalarKeySortedTablesVector(new MyGame.Example.Stat.Vector()); }
   public MyGame.Example.Stat.Vector scalarKeySortedTablesVector(MyGame.Example.Stat.Vector obj) { int o = __offset(104); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Test nativeInline() { return nativeInline(new MyGame.Example.Test()); }
+  public MyGame.Example.Test nativeInline(MyGame.Example.Test obj) { int o = __offset(106); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
+  public long longEnumNonEnumDefault() { int o = __offset(108); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+  public boolean mutateLongEnumNonEnumDefault(long long_enum_non_enum_default) { int o = __offset(108); if (o != 0) { bb.putLong(o + bb_pos, long_enum_non_enum_default); return true; } else { return false; } }
+  public long longEnumNormalDefault() { int o = __offset(110); return o != 0 ? bb.getLong(o + bb_pos) : 2L; }
+  public boolean mutateLongEnumNormalDefault(long long_enum_normal_default) { int o = __offset(110); if (o != 0) { bb.putLong(o + bb_pos, long_enum_normal_default); return true; } else { return false; } }
 
-  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(51); }
+  public static void startMonster(FlatBufferBuilder builder) { builder.startTable(54); }
   public static void addPos(FlatBufferBuilder builder, int posOffset) { builder.addStruct(0, posOffset, 0); }
   public static void addMana(FlatBufferBuilder builder, short mana) { builder.addShort(1, mana, 150); }
   public static void addHp(FlatBufferBuilder builder, short hp) { builder.addShort(2, hp, 100); }
-  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(3, nameOffset, 0); }
+  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(nameOffset); builder.slot(3); }
   public static void addInventory(FlatBufferBuilder builder, int inventoryOffset) { builder.addOffset(5, inventoryOffset, 0); }
   public static int createInventoryVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createInventoryVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
@@ -304,6 +310,9 @@ public final class Monster extends Table {
   public static void addScalarKeySortedTables(FlatBufferBuilder builder, int scalarKeySortedTablesOffset) { builder.addOffset(50, scalarKeySortedTablesOffset, 0); }
   public static int createScalarKeySortedTablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startScalarKeySortedTablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addNativeInline(FlatBufferBuilder builder, int nativeInlineOffset) { builder.addStruct(51, nativeInlineOffset, 0); }
+  public static void addLongEnumNonEnumDefault(FlatBufferBuilder builder, long longEnumNonEnumDefault) { builder.addLong(52, longEnumNonEnumDefault, 0L); }
+  public static void addLongEnumNormalDefault(FlatBufferBuilder builder, long longEnumNormalDefault) { builder.addLong(53, longEnumNormalDefault, 2L); }
   public static int endMonster(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 10);  // name
@@ -518,6 +527,12 @@ public final class Monster extends Table {
     MyGame.Example.StatT[] _oScalarKeySortedTables = new MyGame.Example.StatT[scalarKeySortedTablesLength()];
     for (int _j = 0; _j < scalarKeySortedTablesLength(); ++_j) {_oScalarKeySortedTables[_j] = (scalarKeySortedTables(_j) != null ? scalarKeySortedTables(_j).unpack() : null);}
     _o.setScalarKeySortedTables(_oScalarKeySortedTables);
+    if (nativeInline() != null) nativeInline().unpackTo(_o.getNativeInline());
+    else _o.setNativeInline(null);
+    long _oLongEnumNonEnumDefault = longEnumNonEnumDefault();
+    _o.setLongEnumNonEnumDefault(_oLongEnumNonEnumDefault);
+    long _oLongEnumNormalDefault = longEnumNormalDefault();
+    _o.setLongEnumNormalDefault(_oLongEnumNormalDefault);
   }
   public static int pack(FlatBufferBuilder builder, MonsterT _o) {
     if (_o == null) return 0;
@@ -601,7 +616,7 @@ public final class Monster extends Table {
     if (_o.getVectorOfDoubles() != null) {
       _vectorOfDoubles = createVectorOfDoublesVector(builder, _o.getVectorOfDoubles());
     }
-    int _parent_namespace_test = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
+    int _parentNamespaceTest = _o.getParentNamespaceTest() == null ? 0 : MyGame.InParentNamespace.pack(builder, _o.getParentNamespaceTest());
     int _vectorOfReferrables = 0;
     if (_o.getVectorOfReferrables() != null) {
       int[] __vectorOfReferrables = new int[_o.getVectorOfReferrables().length];
@@ -687,7 +702,7 @@ public final class Monster extends Table {
     addTest5(builder, _test5);
     addVectorOfLongs(builder, _vectorOfLongs);
     addVectorOfDoubles(builder, _vectorOfDoubles);
-    addParentNamespaceTest(builder, _parent_namespace_test);
+    addParentNamespaceTest(builder, _parentNamespaceTest);
     addVectorOfReferrables(builder, _vectorOfReferrables);
     addSingleWeakReference(builder, _o.getSingleWeakReference());
     addVectorOfWeakReferences(builder, _vectorOfWeakReferences);
@@ -704,6 +719,9 @@ public final class Monster extends Table {
     addSignedEnum(builder, _o.getSignedEnum());
     addTestrequirednestedflatbuffer(builder, _testrequirednestedflatbuffer);
     addScalarKeySortedTables(builder, _scalarKeySortedTables);
+    addNativeInline(builder, MyGame.Example.Test.pack(builder, _o.getNativeInline()));
+    addLongEnumNonEnumDefault(builder, _o.getLongEnumNonEnumDefault());
+    addLongEnumNormalDefault(builder, _o.getLongEnumNormalDefault());
     return endMonster(builder);
   }
 }

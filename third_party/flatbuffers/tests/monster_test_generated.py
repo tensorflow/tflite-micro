@@ -23,6 +23,12 @@ class Race(object):
     Elf = 2
 
 
+class LongEnum(object):
+    LongOne = 2
+    LongTwo = 4
+    LongBig = 1099511627776
+
+
 class Any(object):
     NONE = 0
     Monster = 1
@@ -535,6 +541,73 @@ class StructOfStructsT(object):
     # StructOfStructsT
     def Pack(self, builder):
         return CreateStructOfStructs(builder, self.a.id, self.a.distance, self.b.a, self.b.b, self.c.id, self.c.distance)
+
+
+class StructOfStructsOfStructs(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def SizeOf(cls):
+        return 20
+
+    # StructOfStructsOfStructs
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # StructOfStructsOfStructs
+    def A(self, obj):
+        obj.Init(self._tab.Bytes, self._tab.Pos + 0)
+        return obj
+
+
+def CreateStructOfStructsOfStructs(builder, a_a_id, a_a_distance, a_b_a, a_b_b, a_c_id, a_c_distance):
+    builder.Prep(4, 20)
+    builder.Prep(4, 20)
+    builder.Prep(4, 8)
+    builder.PrependUint32(a_c_distance)
+    builder.PrependUint32(a_c_id)
+    builder.Prep(2, 4)
+    builder.Pad(1)
+    builder.PrependInt8(a_b_b)
+    builder.PrependInt16(a_b_a)
+    builder.Prep(4, 8)
+    builder.PrependUint32(a_a_distance)
+    builder.PrependUint32(a_a_id)
+    return builder.Offset()
+
+try:
+    from typing import Optional
+except:
+    pass
+
+class StructOfStructsOfStructsT(object):
+
+    # StructOfStructsOfStructsT
+    def __init__(self):
+        self.a = None  # type: Optional[StructOfStructsT]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        structOfStructsOfStructs = StructOfStructsOfStructs()
+        structOfStructsOfStructs.Init(buf, pos)
+        return cls.InitFromObj(structOfStructsOfStructs)
+
+    @classmethod
+    def InitFromObj(cls, structOfStructsOfStructs):
+        x = StructOfStructsOfStructsT()
+        x._UnPack(structOfStructsOfStructs)
+        return x
+
+    # StructOfStructsOfStructsT
+    def _UnPack(self, structOfStructsOfStructs):
+        if structOfStructsOfStructs is None:
+            return
+        if structOfStructsOfStructs.A(StructOfStructs()) is not None:
+            self.a = StructOfStructsT.InitFromObj(structOfStructsOfStructs.A(StructOfStructs()))
+
+    # StructOfStructsOfStructsT
+    def Pack(self, builder):
+        return CreateStructOfStructsOfStructs(builder, self.a.a.id, self.a.a.distance, self.a.b.a, self.a.b.b, self.a.c.id, self.a.c.distance)
 
 
 class Stat(object):
@@ -1468,7 +1541,31 @@ class Monster(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(104))
         return o == 0
 
-def MonsterStart(builder): builder.StartObject(51)
+    # Monster
+    def NativeInline(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(106))
+        if o != 0:
+            x = o + self._tab.Pos
+            obj = Test()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Monster
+    def LongEnumNonEnumDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(108))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # Monster
+    def LongEnumNormalDefault(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(110))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 2
+
+def MonsterStart(builder): builder.StartObject(54)
 def MonsterAddPos(builder, pos): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(pos), 0)
 def MonsterAddMana(builder, mana): builder.PrependInt16Slot(1, mana, 150)
 def MonsterAddHp(builder, hp): builder.PrependInt16Slot(2, hp, 100)
@@ -1549,6 +1646,9 @@ def MonsterMakeTestrequirednestedflatbufferVectorFromBytes(builder, bytes):
     return builder.EndVector()
 def MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables): builder.PrependUOffsetTRelativeSlot(50, flatbuffers.number_types.UOffsetTFlags.py_type(scalarKeySortedTables), 0)
 def MonsterStartScalarKeySortedTablesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+def MonsterAddNativeInline(builder, nativeInline): builder.PrependStructSlot(51, flatbuffers.number_types.UOffsetTFlags.py_type(nativeInline), 0)
+def MonsterAddLongEnumNonEnumDefault(builder, longEnumNonEnumDefault): builder.PrependUint64Slot(52, longEnumNonEnumDefault, 0)
+def MonsterAddLongEnumNormalDefault(builder, longEnumNormalDefault): builder.PrependUint64Slot(53, longEnumNormalDefault, 2)
 def MonsterEnd(builder): return builder.EndObject()
 
 try:
@@ -1610,6 +1710,9 @@ class MonsterT(object):
         self.signedEnum = -1  # type: int
         self.testrequirednestedflatbuffer = None  # type: List[int]
         self.scalarKeySortedTables = None  # type: List[StatT]
+        self.nativeInline = None  # type: Optional[TestT]
+        self.longEnumNonEnumDefault = 0  # type: int
+        self.longEnumNormalDefault = 2  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1802,6 +1905,10 @@ class MonsterT(object):
                 else:
                     stat_ = StatT.InitFromObj(monster.ScalarKeySortedTables(i))
                     self.scalarKeySortedTables.append(stat_)
+        if monster.NativeInline() is not None:
+            self.nativeInline = TestT.InitFromObj(monster.NativeInline())
+        self.longEnumNonEnumDefault = monster.LongEnumNonEnumDefault()
+        self.longEnumNormalDefault = monster.LongEnumNormalDefault()
 
     # MonsterT
     def Pack(self, builder):
@@ -2050,6 +2157,11 @@ class MonsterT(object):
             MonsterAddTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer)
         if self.scalarKeySortedTables is not None:
             MonsterAddScalarKeySortedTables(builder, scalarKeySortedTables)
+        if self.nativeInline is not None:
+            nativeInline = self.nativeInline.Pack(builder)
+            MonsterAddNativeInline(builder, nativeInline)
+        MonsterAddLongEnumNonEnumDefault(builder, self.longEnumNonEnumDefault)
+        MonsterAddLongEnumNormalDefault(builder, self.longEnumNormalDefault)
         monster = MonsterEnd(builder)
         return monster
 

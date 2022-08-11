@@ -1,7 +1,6 @@
-import { ByteBuffer } from "./byte-buffer"
-import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants"
-import { Offset, IGeneratedObject } from "./types"
-import { Long } from "./long"
+import { ByteBuffer } from "./byte-buffer.js"
+import { SIZEOF_SHORT, SIZE_PREFIX_LENGTH, SIZEOF_INT, FILE_IDENTIFIER_LENGTH } from "./constants.js"
+import { Offset, IGeneratedObject } from "./types.js"
 
 export class Builder {
     private bb: ByteBuffer
@@ -25,6 +24,7 @@ export class Builder {
     private force_defaults = false;
     
     private string_maps: Map<string | Uint8Array, number> | null = null;
+    private text_encoder = new TextEncoder();
   
     /**
      * Create a FlatBufferBuilder.
@@ -136,7 +136,7 @@ export class Builder {
       this.bb.writeInt32(this.space -= 4, value);
     }
   
-    writeInt64(value: Long): void {
+    writeInt64(value: bigint): void {
       this.bb.writeInt64(this.space -= 8, value);
     }
   
@@ -179,7 +179,7 @@ export class Builder {
      * Add an `int64` to the buffer, properly aligned, and grows the buffer (if necessary).
      * @param value The `int64` to add the the buffer.
      */
-    addInt64(value: Long): void {
+    addInt64(value: bigint): void {
       this.prep(8, 0);
       this.writeInt64(value);
     }
@@ -223,8 +223,8 @@ export class Builder {
       }
     }
   
-    addFieldInt64(voffset: number, value: Long, defaultValue: Long): void {
-      if (this.force_defaults || !value.equals(defaultValue)) {
+    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint): void {
+      if (this.force_defaults || value !== defaultValue) {
         this.addInt64(value);
         this.slot(voffset);
       }
@@ -523,46 +523,16 @@ export class Builder {
      * @param s The string to encode
      * @return The offset in the buffer where the encoded string starts
      */
-    createString(s: string | Uint8Array): Offset {
-      if (!s) { return 0 }
+    createString(s: string | Uint8Array | null | undefined): Offset {
+      if (s === null || s === undefined) {
+        return 0;
+      }
+
       let utf8: string | Uint8Array | number[];
       if (s instanceof Uint8Array) {
         utf8 = s;
       } else {
-        utf8 = [];
-        let i = 0;
-  
-        while (i < s.length) {
-          let codePoint;
-  
-          // Decode UTF-16
-          const a = s.charCodeAt(i++);
-          if (a < 0xD800 || a >= 0xDC00) {
-            codePoint = a;
-          } else {
-            const b = s.charCodeAt(i++);
-            codePoint = (a << 10) + b + (0x10000 - (0xD800 << 10) - 0xDC00);
-          }
-  
-          // Encode UTF-8
-          if (codePoint < 0x80) {
-            utf8.push(codePoint);
-          } else {
-            if (codePoint < 0x800) {
-              utf8.push(((codePoint >> 6) & 0x1F) | 0xC0);
-            } else {
-              if (codePoint < 0x10000) {
-                utf8.push(((codePoint >> 12) & 0x0F) | 0xE0);
-              } else {
-                utf8.push(
-                  ((codePoint >> 18) & 0x07) | 0xF0,
-                  ((codePoint >> 12) & 0x3F) | 0x80);
-              }
-              utf8.push(((codePoint >> 6) & 0x3F) | 0x80);
-            }
-            utf8.push((codePoint & 0x3F) | 0x80);
-          }
-        }
+        utf8 = this.text_encoder.encode(s);
       }
   
       this.addInt8(0);
@@ -572,13 +542,6 @@ export class Builder {
         bytes[offset++] = utf8[i];
       }
       return this.endVector();
-    }
-  
-    /**
-     * A helper function to avoid generated code depending on this file directly.
-     */
-    createLong(low: number, high: number): Long {
-      return Long.create(low, high);
     }
   
     /**
@@ -622,7 +585,7 @@ export class Builder {
   
     createStructOffsetList(list: string[] | any[], startFunc: (builder: Builder, length: number) => void): Offset {
       startFunc(this, list.length);
-      this.createObjectOffsetList(list);
+      this.createObjectOffsetList(list.slice().reverse());
       return this.endVector();
     }
   }

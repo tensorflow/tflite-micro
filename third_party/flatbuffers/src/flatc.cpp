@@ -19,7 +19,8 @@
 #include <list>
 #include <sstream>
 
-#include "bfbs_gen_lua.h"
+#include "annotated_binary_text_gen.h"
+#include "binary_annotator.h"
 #include "flatbuffers/util.h"
 
 namespace flatbuffers {
@@ -65,8 +66,8 @@ const static FlatCOption options[] = {
   { "I", "", "PATH", "Search for includes in the specified path." },
   { "M", "", "", "Print make rules for generated files." },
   { "", "version", "", "Print the version number of flatc and exit." },
-  { "", "help", "", "Prints this help text and exit." },
-  { "", "string-json", "",
+  { "h", "help", "", "Prints this help text and exit." },
+  { "", "strict-json", "",
     "Strict JSON: field names must be / will be quoted, no trailing commas in "
     "tables/vectors." },
   { "", "allow-non-utf8", "",
@@ -81,20 +82,23 @@ const static FlatCOption options[] = {
     "Allow fields in JSON that are not defined in the schema. These fields "
     "will be discared when generating binaries." },
   { "", "no-prefix", "",
-    "Don\'t prefix enum values with the enum type in C++." },
+    "Don't prefix enum values with the enum type in C++." },
   { "", "scoped-enums", "",
     "Use C++11 style scoped and strongly typed enums. Also implies "
     "--no-prefix." },
+  { "", "swift-implementation-only", "",
+    "Adds a @_implementationOnly to swift imports" },
   { "", "gen-inclues", "",
     "(deprecated), this is the default behavior. If the original behavior is "
     "required (no include statements) use --no-includes." },
   { "", "no-includes", "",
-    "Don\'t generate include statements for included schemas the generated "
-    "file depends on (C++ / Python)." },
+    "Don't generate include statements for included schemas the generated "
+    "file depends on (C++, Python, Proto-to-Fbs)." },
   { "", "gen-mutable", "",
     "Generate accessors that can mutate buffers in-place." },
   { "", "gen-onefile", "",
-    "Generate single output file for C#, Go, and Python." },
+    "Generate a single output file for C#, Go, Java, Kotlin and Python. "
+    "Implies --no-include." },
   { "", "gen-name-strings", "",
     "Generate type name functions for C++ and Rust." },
   { "", "gen-object-api", "", "Generate an additional object-based API." },
@@ -184,6 +188,10 @@ const static FlatCOption options[] = {
   { "", "reflect-types", "",
     "Add minimal type reflection to code generation." },
   { "", "reflect-names", "", "Add minimal type/name reflection." },
+  { "", "rust-serialize", "",
+    "Implement serde::Serialize on generated Rust types." },
+  { "", "rust-module-root-file", "",
+    "Generate rust code in individual files with a module root file." },
   { "", "root-type", "T", "Select or override the default root_type." },
   { "", "require-explicit-ids", "",
     "When parsing schemas, require explicit ids (id: x)." },
@@ -199,6 +207,7 @@ const static FlatCOption options[] = {
     "Used with \"binary\" and \"json\" options, it generates data using "
     "schema-less FlexBuffers." },
   { "", "no-warnings", "", "Inhibit all warnings messages." },
+  { "", "warnings-as-errors", "", "Treat all warnings as errors." },
   { "", "cs-global-alias", "",
     "Prepend \"global::\" to all user generated csharp classes and "
     "structs." },
@@ -208,6 +217,13 @@ const static FlatCOption options[] = {
   { "", "json-nested-bytes", "",
     "Allow a nested_flatbuffer field to be parsed as a vector of bytes"
     "in JSON, which is unsafe unless checked by a verifier afterwards." },
+  { "", "ts-flat-files", "",
+    "Only generated one typescript file per .fbs file." },
+  { "", "annotate", "SCHEMA",
+    "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
+  { "", "no-leak-private-annotation", "",
+    "Prevents multiple type of annotations within a Fbs SCHEMA file."
+    "Currently this is required to generate private types in Rust" },
 };
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
@@ -268,9 +284,39 @@ static void AppendOption(std::stringstream &ss, const FlatCOption &option,
   ss << "\n";
 }
 
+static void AppendShortOption(std::stringstream &ss,
+                              const FlatCOption &option) {
+  if (!option.short_opt.empty()) {
+    ss << "-" << option.short_opt;
+    if (!option.long_opt.empty()) { ss << "|"; }
+  }
+  if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
+}
+
+std::string FlatCompiler::GetShortUsageString(const char *program_name) const {
+  std::stringstream ss;
+  ss << "Usage: " << program_name << " [";
+  for (size_t i = 0; i < params_.num_generators; ++i) {
+    const Generator &g = params_.generators[i];
+    AppendShortOption(ss, g.option);
+    ss << ", ";
+  }
+  for (const FlatCOption &option : options) {
+    AppendShortOption(ss, option);
+    ss << ", ";
+  }
+  ss.seekp(-2, ss.cur);
+  ss << "]... FILE... [-- BINARY_FILE...]";
+  std::string help = ss.str();
+  std::stringstream ss_textwrap;
+  AppendTextWrappedString(ss_textwrap, help, 80, 0);
+  return ss_textwrap.str();
+}
+
 std::string FlatCompiler::GetUsageString(const char *program_name) const {
   std::stringstream ss;
-  ss << "Usage: " << program_name << " [OPTION]... FILE... [-- FILE...]\n";
+  ss << "Usage: " << program_name
+     << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
   for (size_t i = 0; i < params_.num_generators; ++i) {
     const Generator &g = params_.generators[i];
     AppendOption(ss, g.option, 80, 25);
@@ -284,20 +330,54 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
 
   std::string files_description =
       "FILEs may be schemas (must end in .fbs), binary schemas (must end in "
-      ".bfbs) or JSON files (conforming to preceding schema). FILEs after the "
-      "-- must be binary flatbuffer format files. Output files are named using "
-      "the base file name of the input, and written to the current directory "
-      "or the path given by -o. example: " +
+      ".bfbs) or JSON files (conforming to preceding schema). BINARY_FILEs "
+      "after the -- must be binary flatbuffer format files. Output files are "
+      "named using the base file name of the input, and written to the current "
+      "directory or the path given by -o. example: " +
       std::string(program_name) + " -c -b schema1.fbs schema2.fbs data.json";
   AppendTextWrappedString(ss, files_description, 80, 0);
   ss << "\n";
   return ss.str();
 }
 
+void FlatCompiler::AnnotateBinaries(
+    const uint8_t *binary_schema, const uint64_t binary_schema_size,
+    const std::string &schema_filename,
+    const std::vector<std::string> &binary_files) {
+  for (const std::string &filename : binary_files) {
+    std::string binary_contents;
+    if (!flatbuffers::LoadFile(filename.c_str(), true, &binary_contents)) {
+      Warn("unable to load binary file: " + filename);
+      continue;
+    }
+
+    const uint8_t *binary =
+        reinterpret_cast<const uint8_t *>(binary_contents.c_str());
+    const size_t binary_size = binary_contents.size();
+
+    flatbuffers::BinaryAnnotator binary_annotator(
+        binary_schema, binary_schema_size, binary, binary_size);
+
+    auto annotations = binary_annotator.Annotate();
+
+    // TODO(dbaileychess): Right now we just support a single text-based
+    // output of the annotated binary schema, which we generate here. We
+    // could output the raw annotations instead and have third-party tools
+    // use them to generate their own output.
+    flatbuffers::AnnotatedBinaryTextGenerator text_generator(
+        flatbuffers::AnnotatedBinaryTextGenerator::Options{}, annotations,
+        binary, binary_size);
+
+    text_generator.Generate(filename, schema_filename);
+  }
+}
+
 int FlatCompiler::Compile(int argc, const char **argv) {
   if (params_.generators == nullptr || params_.num_generators == 0) {
     return 0;
   }
+
+  if (argc <= 1) { Error("Need to provide at least one argument."); }
 
   flatbuffers::IDLOptions opts;
   std::string output_path;
@@ -315,6 +395,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   std::vector<bool> generator_enabled(params_.num_generators, false);
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
+  std::string annotate_schema;
 
   const char *program_name = argv[0];
 
@@ -352,7 +433,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.include_prefix = flatbuffers::ConCatPathFileName(
             flatbuffers::PosixPath(argv[argi]), "");
       } else if (arg == "--keep-prefix") {
-        opts.keep_include_path = true;
+        opts.keep_prefix = true;
       } else if (arg == "--strict-json") {
         opts.strict_json = true;
       } else if (arg == "--allow-non-utf8") {
@@ -414,6 +495,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.java_checkerframework = true;
       } else if (arg == "--gen-generated") {
         opts.gen_generated = true;
+      } else if (arg == "--swift-implementation-only") {
+        opts.swift_implementation_only = true;
       } else if (arg == "--gen-json-emit") {
         opts.gen_json_coders = true;
       } else if (arg == "--object-prefix") {
@@ -453,7 +536,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       } else if (arg == "--version") {
         printf("flatc version %s\n", FLATC_VERSION());
         exit(0);
-      } else if (arg == "--help") {
+      } else if (arg == "--help" || arg == "-h") {
         printf("%s\n", GetUsageString(program_name).c_str());
         exit(0);
       } else if (arg == "--grpc") {
@@ -468,6 +551,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--rust-serialize") {
+        opts.rust_serialize = true;
+      } else if (arg == "--rust-module-root-file") {
+        opts.rust_module_root_file = true;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
@@ -496,6 +583,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.gen_jvmstatic = true;
       } else if (arg == "--no-warnings") {
         opts.no_warnings = true;
+      } else if (arg == "--warnings-as-errors") {
+        opts.warnings_as_errors = true;
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);
@@ -508,6 +597,13 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.cs_global_alias = true;
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
+      } else if (arg == "--ts-flat-files") {
+        opts.ts_flat_file = true;
+      } else if (arg == "--no-leak-private-annotation") {
+        opts.no_leak_private_annotations = true;
+      } else if (arg == "--annotate") {
+        if (++argi >= argc) Error("missing path following: " + arg, true);
+        annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else {
         for (size_t i = 0; i < params_.num_generators; ++i) {
           if (arg == "--" + params_.generators[i].option.long_opt ||
@@ -536,7 +632,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
   if (opts.proto_mode) {
     if (any_generator)
       Error("cannot generate code directly from .proto files", true);
-  } else if (!any_generator && conform_to_schema.empty()) {
+  } else if (!any_generator && conform_to_schema.empty() &&
+             annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
   }
 
@@ -544,6 +641,10 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     Error(
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
+  }
+
+  if (opts.ts_flat_file && opts.generate_all) {
+    Error("Combining --ts-flat-file and --gen-all is not supported.");
   }
 
   flatbuffers::Parser conform_parser;
@@ -559,6 +660,53 @@ int FlatCompiler::Compile(int argc, const char **argv) {
       ParseFile(conform_parser, conform_to_schema, contents,
                 conform_include_directories);
     }
+  }
+
+  if (!annotate_schema.empty()) {
+    const std::string ext = flatbuffers::GetExtension(annotate_schema);
+    if (!(ext == reflection::SchemaExtension() || ext == "fbs")) {
+      Error("Expected a `.bfbs` or `.fbs` schema, got: " + annotate_schema);
+    }
+
+    const bool is_binary_schema = ext == reflection::SchemaExtension();
+
+    std::string schema_contents;
+    if (!flatbuffers::LoadFile(annotate_schema.c_str(),
+                               /*binary=*/is_binary_schema, &schema_contents)) {
+      Error("unable to load schema: " + annotate_schema);
+    }
+
+    const uint8_t *binary_schema = nullptr;
+    uint64_t binary_schema_size = 0;
+
+    IDLOptions binary_opts;
+    binary_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+    flatbuffers::Parser parser(binary_opts);
+
+    if (is_binary_schema) {
+      binary_schema =
+          reinterpret_cast<const uint8_t *>(schema_contents.c_str());
+      binary_schema_size = schema_contents.size();
+    } else {
+      // If we need to generate the .bfbs file from the provided schema file
+      // (.fbs)
+      ParseFile(parser, annotate_schema, schema_contents, include_directories);
+      parser.Serialize();
+
+      binary_schema = parser.builder_.GetBufferPointer();
+      binary_schema_size = parser.builder_.GetSize();
+    }
+
+    if (binary_schema == nullptr || !binary_schema_size) {
+      Error("could not parse a value binary schema from: " + annotate_schema);
+    }
+
+    // Annotate the provided files with the binary_schema.
+    AnnotateBinaries(binary_schema, binary_schema_size, annotate_schema,
+                     filenames);
+
+    // We don't support doing anything else after annotating a binary.
+    return 0;
   }
 
   std::unique_ptr<flatbuffers::Parser> parser(new flatbuffers::Parser(opts));
@@ -705,7 +853,7 @@ int FlatCompiler::Compile(int argc, const char **argv) {
           if (params_.generators[i].generateGRPC != nullptr) {
             if (!params_.generators[i].generateGRPC(*parser.get(), output_path,
                                                     filebase)) {
-              Error(std::string("Unable to generate GRPC interface for") +
+              Error(std::string("Unable to generate GRPC interface for ") +
                     params_.generators[i].lang_name);
             }
           } else {
@@ -729,9 +877,19 @@ int FlatCompiler::Compile(int argc, const char **argv) {
     // in any files coming up next.
     parser->MarkGenerated();
   }
-  if (opts.lang_to_generate & IDLOptions::kRust && !parser->opts.one_file) {
-    GenerateRustModuleRootFile(*parser, output_path);
+
+  // Once all the files have been parsed, run any generators Parsing Completed
+  // function for final generation.
+  for (size_t i = 0; i < params_.num_generators; ++i) {
+    if (generator_enabled[i] &&
+        params_.generators[i].parsing_completed != nullptr) {
+      if (!params_.generators[i].parsing_completed(*parser, output_path)) {
+        Error("failed running parsing completed for " +
+              std::string(params_.generators[i].lang_name));
+      }
+    }
   }
+
   return 0;
 }
 

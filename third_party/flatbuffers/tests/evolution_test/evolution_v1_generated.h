@@ -6,6 +6,13 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+// Ensure the included flatbuffers.h is the same version as when this file was
+// generated, otherwise it may not be compatible.
+static_assert(FLATBUFFERS_VERSION_MAJOR == 2 &&
+              FLATBUFFERS_VERSION_MINOR == 0 &&
+              FLATBUFFERS_VERSION_REVISION == 6,
+             "Non-compatible flatbuffers version included");
+
 namespace Evolution {
 namespace V1 {
 
@@ -151,8 +158,8 @@ struct TableA FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_A) &&
-           VerifyField<int32_t>(verifier, VT_B) &&
+           VerifyField<float>(verifier, VT_A, 4) &&
+           VerifyField<int32_t>(verifier, VT_B, 4) &&
            verifier.EndTable();
   }
 };
@@ -198,7 +205,7 @@ struct TableB FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_A) &&
+           VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
   }
 };
@@ -297,22 +304,22 @@ struct Root FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_A) &&
-           VerifyField<uint8_t>(verifier, VT_B) &&
-           VerifyField<uint8_t>(verifier, VT_C_TYPE) &&
+           VerifyField<int32_t>(verifier, VT_A, 4) &&
+           VerifyField<uint8_t>(verifier, VT_B, 1) &&
+           VerifyField<uint8_t>(verifier, VT_C_TYPE, 1) &&
            VerifyOffset(verifier, VT_C) &&
            VerifyUnion(verifier, c(), c_type()) &&
-           VerifyField<int8_t>(verifier, VT_D) &&
+           VerifyField<int8_t>(verifier, VT_D, 1) &&
            VerifyOffset(verifier, VT_E) &&
            verifier.VerifyTable(e()) &&
-           VerifyField<Evolution::V1::Struct>(verifier, VT_F) &&
+           VerifyField<Evolution::V1::Struct>(verifier, VT_F, 8) &&
            VerifyOffset(verifier, VT_G) &&
            verifier.VerifyVector(g()) &&
            VerifyOffset(verifier, VT_H) &&
            verifier.VerifyVector(h()) &&
            verifier.VerifyVectorOfTables(h()) &&
-           VerifyField<int32_t>(verifier, VT_I) &&
-           VerifyField<uint8_t>(verifier, VT_J_TYPE) &&
+           VerifyField<int32_t>(verifier, VT_I, 4) &&
+           VerifyField<uint8_t>(verifier, VT_J_TYPE, 1) &&
            VerifyOffset(verifier, VT_J) &&
            VerifyUnion(verifier, j(), j_type()) &&
            verifier.EndTable();

@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdint.h>
+
 #include <cmath>
+#include <memory>
 #include <string>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
+#include "flatbuffers/stl_emulation.h"
 #include "flatbuffers/util.h"
 #include "monster_test_generated.h"
 #include "namespace_test/namespace_test1_generated.h"
@@ -86,8 +90,9 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   auto name = builder.CreateString("MyMonster");
 
-  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  auto inventory = builder.CreateVector(inv_data, 10);
+  // Use the initializer_list specialization of CreateVector.
+  auto inventory =
+      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 
   // Alternatively, create the vector first, and fill in data later:
   // unsigned char *inv_buf = nullptr;
@@ -135,6 +140,22 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   names2.push_back("jane");
   names2.push_back("mary");
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
+
+  // Creating vectors from types that are different from std::string
+  std::vector<const char *> names3;
+  names3.push_back("foo");
+  names3.push_back("bar");
+  builder.CreateVectorOfStrings(names3);  // Also an accepted type
+
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  std::vector<flatbuffers::string_view> names4;
+  names3.push_back("baz");
+  names3.push_back("quux");
+  builder.CreateVectorOfStrings(names4);  // Also an accepted type
+#endif
+
+  // Make sure the template deduces an initializer as std::vector<std::string>
+  builder.CreateVectorOfStrings({ "hello", "world" });
 
   // Create many vectors of strings
   std::vector<std::string> manyNames;
@@ -495,47 +516,8 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
   AccessFlatBufferTest(flatbuf, length);
 }
 
-// Unpack a FlatBuffer into objects.
-void ObjectFlatBuffersTest(uint8_t *flatbuf) {
-  // Optional: we can specify resolver and rehasher functions to turn hashed
-  // strings into object pointers and back, to implement remote references
-  // and such.
-  auto resolver = flatbuffers::resolver_function_t(
-      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
-        (void)pointer_adr;
-        (void)hash;
-        // Don't actually do anything, leave variable null.
-      });
-  auto rehasher = flatbuffers::rehasher_function_t(
-      [](void *pointer) -> flatbuffers::hash_value_t {
-        (void)pointer;
-        return 0;
-      });
-
-  // Turn a buffer into C++ objects.
-  auto monster1 = UnPackMonster(flatbuf, &resolver);
-
-  // Re-serialize the data.
-  flatbuffers::FlatBufferBuilder fbb1;
-  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Unpack again, and re-serialize again.
-  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
-  flatbuffers::FlatBufferBuilder fbb2;
-  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
-              MonsterIdentifier());
-
-  // Now we've gone full round-trip, the two buffers should match.
-  auto len1 = fbb1.GetSize();
-  auto len2 = fbb2.GetSize();
-  TEST_EQ(len1, len2);
-  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
-
-  // Test it with the original buffer test to make sure all data survived.
-  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
-
-  // Test accessing fields, similar to AccessFlatBufferTest above.
+// Utility function to check a Monster object.
+void CheckMonsterObject(MonsterT *monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
@@ -582,12 +564,68 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
   TEST_EQ(tests[1].b(), 40);
 }
 
+// Unpack a FlatBuffer into objects.
+void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+  // Optional: we can specify resolver and rehasher functions to turn hashed
+  // strings into object pointers and back, to implement remote references
+  // and such.
+  auto resolver = flatbuffers::resolver_function_t(
+      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
+        (void)pointer_adr;
+        (void)hash;
+        // Don't actually do anything, leave variable null.
+      });
+  auto rehasher = flatbuffers::rehasher_function_t(
+      [](void *pointer) -> flatbuffers::hash_value_t {
+        (void)pointer;
+        return 0;
+      });
+
+  // Turn a buffer into C++ objects.
+  auto monster1 = UnPackMonster(flatbuf, &resolver);
+
+  // Re-serialize the data.
+  flatbuffers::FlatBufferBuilder fbb1;
+  fbb1.Finish(CreateMonster(fbb1, monster1.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Unpack again, and re-serialize again.
+  auto monster2 = UnPackMonster(fbb1.GetBufferPointer(), &resolver);
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(CreateMonster(fbb2, monster2.get(), &rehasher),
+              MonsterIdentifier());
+
+  // Now we've gone full round-trip, the two buffers should match.
+  const auto len1 = fbb1.GetSize();
+  const auto len2 = fbb2.GetSize();
+  TEST_EQ(len1, len2);
+  TEST_EQ(memcmp(fbb1.GetBufferPointer(), fbb2.GetBufferPointer(), len1), 0);
+
+  // Test it with the original buffer test to make sure all data survived.
+  AccessFlatBufferTest(fbb2.GetBufferPointer(), len2, false);
+
+  // Test accessing fields, similar to AccessFlatBufferTest above.
+  CheckMonsterObject(monster2.get());
+
+  // Test object copy.
+  auto monster3 = *monster2;
+  flatbuffers::FlatBufferBuilder fbb3;
+  fbb3.Finish(CreateMonster(fbb3, &monster3, &rehasher), MonsterIdentifier());
+  const auto len3 = fbb3.GetSize();
+  TEST_EQ(len2, len3);
+  TEST_EQ(memcmp(fbb2.GetBufferPointer(), fbb3.GetBufferPointer(), len2), 0);
+  // Delete monster1 and monster2, then test accessing fields in monster3.
+  monster1.reset();
+  monster2.reset();
+  CheckMonsterObject(&monster3);
+}
+
 // Prefix a FlatBuffer with a size field.
 void SizePrefixedTest() {
   // Create size prefixed buffer.
   flatbuffers::FlatBufferBuilder fbb;
   FinishSizePrefixedMonsterBuffer(
-      fbb, CreateMonster(fbb, 0, 200, 300, fbb.CreateString("bob")));
+      fbb, CreateMonster(fbb, nullptr, 200, 300, fbb.CreateString("bob")));
 
   // Verify it.
   flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
@@ -681,6 +719,47 @@ void JsonEnumsTest() {
   result = GenerateText(parser, builder.GetBufferPointer(), &future_json);
   TEST_EQ(result, true);
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
+}
+
+void JsonOptionalTest(bool default_scalars) {
+  // load FlatBuffer schema (.fbs) and JSON from disk
+  std::string schemafile;
+  std::string jsonfile;
+  TEST_EQ(
+      flatbuffers::LoadFile((test_data_path + "optional_scalars.fbs").c_str(),
+                            false, &schemafile),
+      true);
+  TEST_EQ(flatbuffers::LoadFile((test_data_path + "optional_scalars" +
+                                 (default_scalars ? "_defaults" : "") + ".json")
+                                    .c_str(),
+                                false, &jsonfile),
+          true);
+
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(test_data_path, "include_test");
+  const char *include_directories[] = { test_data_path.c_str(),
+                                        include_test_path.c_str(), nullptr };
+
+  // parse schema first, so we can use it to parse the data after
+  flatbuffers::Parser parser;
+  parser.opts.output_default_scalars_in_json = default_scalars;
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+  TEST_EQ(parser.ParseJson(jsonfile.c_str()), true);
+
+  // here, parser.builder_ contains a binary buffer that is the parsed data.
+
+  // First, verify it, just in case:
+  flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                 parser.builder_.GetSize());
+  TEST_EQ(optional_scalars::VerifyScalarStuffBuffer(verifier), true);
+
+  // to ensure it is correct, we now generate text back from the binary,
+  // and compare the two:
+  std::string jsongen;
+  auto result =
+      GenerateText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_EQ(result, true);
+  TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 }
 
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
@@ -827,8 +906,9 @@ void ParseAndGenerateTextTest(bool binary) {
         schemafile.size());
     TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
     // auto schema = reflection::GetSchema(schemafile.c_str());
-    TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
-                               schemafile.size()),
+    TEST_EQ(parser.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
   } else {
     TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
@@ -1376,6 +1456,98 @@ void CompareTableFieldValue(flatbuffers::Table *table,
                             flatbuffers::voffset_t voffset, T val) {
   T read = table->GetField(voffset, static_cast<T>(0));
   TEST_EQ(read, val);
+}
+
+void UtilConvertCase() {
+  {
+    std::vector<std::tuple<std::string, flatbuffers::Case, std::string>>
+        cases = {
+          // Tests for the common cases
+          { "the_quick_brown_fox", flatbuffers::Case::kUpperCamel,
+            "TheQuickBrownFox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kLowerCamel,
+            "theQuickBrownFox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kSnake,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kScreamingSnake,
+            "THE_QUICK_BROWN_FOX" },
+          { "the_quick_brown_fox", flatbuffers::Case::kAllLower,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kAllUpper,
+            "THE_QUICK_BROWN_FOX" },
+          { "the_quick_brown_fox", flatbuffers::Case::kUnknown,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kKeep,
+            "the_quick_brown_fox" },
+          { "the_quick_brown_fox", flatbuffers::Case::kSnake2,
+            "the_quick_brown_fox" },
+
+          // Tests for some snake_cases where the _ is oddly placed or missing.
+          { "single", flatbuffers::Case::kUpperCamel, "Single" },
+          { "Single", flatbuffers::Case::kUpperCamel, "Single" },
+          { "_leading", flatbuffers::Case::kUpperCamel, "_leading" },
+          { "trailing_", flatbuffers::Case::kUpperCamel, "Trailing_" },
+          { "double__underscore", flatbuffers::Case::kUpperCamel,
+            "Double_underscore" },
+          { "single", flatbuffers::Case::kLowerCamel, "single" },
+          { "Single", flatbuffers::Case::kLowerCamel, "Single" },
+          { "_leading", flatbuffers::Case::kLowerCamel, "Leading" },
+          { "trailing_", flatbuffers::Case::kLowerCamel, "trailing_" },
+          { "double__underscore", flatbuffers::Case::kLowerCamel,
+            "double_underscore" },
+
+          // Tests for some output snake_cases
+          { "single", flatbuffers::Case::kSnake, "single" },
+          { "single", flatbuffers::Case::kScreamingSnake, "SINGLE" },
+          { "_leading", flatbuffers::Case::kScreamingSnake, "_LEADING" },
+          { "trailing_", flatbuffers::Case::kScreamingSnake, "TRAILING_" },
+          { "double__underscore", flatbuffers::Case::kScreamingSnake,
+            "DOUBLE__UNDERSCORE" },
+        };
+
+    for (auto &test_case : cases) {
+      TEST_EQ(std::get<2>(test_case),
+              flatbuffers::ConvertCase(std::get<0>(test_case),
+                                       std::get<1>(test_case)));
+    }
+  }
+
+  // Tests for the non snake_case inputs.
+  {
+    std::vector<std::tuple<flatbuffers::Case, std::string, flatbuffers::Case,
+                           std::string>>
+        cases = {
+          { flatbuffers::Case::kUpperCamel, "TheQuickBrownFox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kLowerCamel, "theQuickBrownFox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kSnake, "the_quick_brown_fox",
+            flatbuffers::Case::kSnake, "the_quick_brown_fox" },
+          { flatbuffers::Case::kScreamingSnake, "THE_QUICK_BROWN_FOX",
+            flatbuffers::Case::kSnake, "THE_QUICK_BROWN_FOX" },
+          { flatbuffers::Case::kAllUpper, "SINGLE", flatbuffers::Case::kSnake,
+            "SINGLE" },
+          { flatbuffers::Case::kAllLower, "single", flatbuffers::Case::kSnake,
+            "single" },
+          { flatbuffers::Case::kUpperCamel, "ABCtest",
+            flatbuffers::Case::kSnake, "abctest" },
+          { flatbuffers::Case::kUpperCamel, "tHe_qUiCk_BrOwN_fOx",
+            flatbuffers::Case::kKeep, "tHe_qUiCk_BrOwN_fOx" },
+          { flatbuffers::Case::kLowerCamel, "theQuick12345Fox",
+            flatbuffers::Case::kSnake, "the_quick_12345fox" },
+          { flatbuffers::Case::kLowerCamel, "a12b34c45",
+            flatbuffers::Case::kSnake, "a_12b_34c_45" },
+          { flatbuffers::Case::kLowerCamel, "a12b34c45",
+            flatbuffers::Case::kSnake2, "a12_b34_c45" },
+        };
+
+    for (auto &test_case : cases) {
+      TEST_EQ(std::get<3>(test_case),
+              flatbuffers::ConvertCase(std::get<1>(test_case),
+                                       std::get<2>(test_case),
+                                       std::get<0>(test_case)));
+    }
+  }
 }
 
 // Low level stress/fuzz test: serialize/deserialize a variety of
@@ -2943,6 +3115,25 @@ void StructUnionTest() {
   gadget.Set(fan);
 }
 
+void WarningsAsErrorsTest() {
+  {
+    flatbuffers::IDLOptions opts;
+    // opts.warnings_as_errors should default to false
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            true);
+  }
+  {
+    flatbuffers::IDLOptions opts;
+    opts.warnings_as_errors = true;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse("table T { THIS_NAME_CAUSES_A_WARNING:string;}\n"
+                         "root_type T;"),
+            false);
+  }
+}
+
 void ConformTest() {
   flatbuffers::Parser parser;
   TEST_EQ(parser.Parse("table T { A:int; } enum E:byte { A }"), true);
@@ -3025,8 +3216,9 @@ void FlexBuffersTest() {
   // clang-format on
 
   std::vector<uint8_t> reuse_tracker;
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
 
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
@@ -3085,8 +3277,9 @@ void FlexBuffersTest() {
   slb.Clear();
   auto jsontest = "{ a: [ 123, 456.0 ], b: \"hello\", c: true, d: false }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                            &reuse_tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
@@ -3113,6 +3306,24 @@ void FlexBuffersTest() {
   TEST_EQ(slb.GetSize(), 664);
 }
 
+void FlexBuffersReuseBugTest() {
+  flexbuffers::Builder slb;
+  slb.Map([&]() {
+    slb.Vector("vec", [&]() {});
+    slb.Bool("bool", true);
+  });
+  slb.Finish();
+  std::vector<uint8_t> reuse_tracker;
+  // This would fail before, since the reuse_tracker would use the address of
+  // the vector reference to check for reuse, but in this case we have an empty
+  // vector, and since the size field is before the pointer, its address is the
+  // same as thing after it, the key "bool".
+  // We fix this by using the address of the size field for tracking reuse.
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
@@ -3124,8 +3335,9 @@ void FlexBuffersFloatingPointTest() {
       "{ a: [1.0, nan, inf, infinity, -inf, +inf, -infinity, 8.0] }";
   TEST_EQ(parser.ParseFlexBuffer(jsontest, nullptr, &slb), true);
   auto jroot = flexbuffers::GetRoot(slb.GetBuffer());
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   auto jmap = jroot.AsMap();
   auto jvec = jmap["a"].AsVector();
   TEST_EQ(8, jvec.size());
@@ -3170,8 +3382,9 @@ void FlexBuffersDeprecatedTest() {
   slb.EndVector(start, true, false);
   slb.Finish();
   // Verify because why not.
-  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(), slb.GetBuffer().size(),
-                           nullptr), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
   // So now lets read this data back.
   // For existing data, since we have no way of knowing what the actual
   // bit-width of the size field of the string is, we are going to ignore this
@@ -3331,6 +3544,48 @@ void EqualOperatorTest() {
   b.test.type = Any_Monster;
   TEST_EQ(b == a, false);
   TEST_EQ(b != a, true);
+
+  // Test that vector of tables are compared by value and not by reference.
+  {
+    // Two tables are equal by default.
+    MonsterT a, b;
+    TEST_EQ(a == b, true);
+
+    // Adding only a table to one of the monster vectors should make it not
+    // equal (due to size mistmatch).
+    a.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+
+    // Adding an equalivant table to the other monster vector should make it
+    // equal again.
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, true);
+
+    // Create two new monsters that are different.
+    auto c = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    auto d = flatbuffers::unique_ptr<MonsterT>(new MonsterT);
+    c->hp = 1;
+    d->hp = 2;
+    TEST_EQ(c == d, false);
+
+    // Adding them to the original monsters should also make them different.
+    a.testarrayoftables.push_back(std::move(c));
+    b.testarrayoftables.push_back(std::move(d));
+    TEST_EQ(a == b, false);
+
+    // Remove the mismatching monsters to get back to equality
+    a.testarrayoftables.pop_back();
+    b.testarrayoftables.pop_back();
+    TEST_EQ(a == b, true);
+
+    // Check that nullptr are OK.
+    a.testarrayoftables.push_back(nullptr);
+    b.testarrayoftables.push_back(
+        flatbuffers::unique_ptr<MonsterT>(new MonsterT));
+    TEST_EQ(a == b, false);
+  }
 }
 
 // For testing any binaries, e.g. from fuzzing.
@@ -3365,11 +3620,11 @@ void CreateSharedStringTest() {
   TEST_EQ(null_b1.o, null_b2.o);
 
   // Put the strings into an array for round trip verification.
-  const flatbuffers::Offset<flatbuffers::String> array[7] = {
+  std::array<flatbuffers::Offset<flatbuffers::String>, 7> array = {
     one1, two, one2, onetwo, null_b1, null_c, null_b2
   };
   const auto vector_offset =
-      builder.CreateVector(array, flatbuffers::uoffset_t(7));
+      builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(array);
   MonsterBuilder monster_builder(builder);
   monster_builder.add_name(two);
   monster_builder.add_testarrayofstring(vector_offset);
@@ -3402,7 +3657,7 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
-#if !defined(FLATBUFFERS_SPAN_MINIMAL)
+#if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
   using flatbuffers::internal::is_span_convertable;
@@ -3699,11 +3954,13 @@ void FixedLengthArrayJsonTest(bool binary) {
         reinterpret_cast<const uint8_t *>(schemafile.c_str()),
         schemafile.size());
     TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-    TEST_EQ(parserOrg.Deserialize((const uint8_t *)schemafile.c_str(),
-                                  schemafile.size()),
+    TEST_EQ(parserOrg.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
-    TEST_EQ(parserGen.Deserialize((const uint8_t *)schemafile.c_str(),
-                                  schemafile.size()),
+    TEST_EQ(parserGen.Deserialize(
+                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                schemafile.size()),
             true);
   } else {
     TEST_EQ(parserOrg.Parse(schemafile.c_str()), true);
@@ -3787,11 +4044,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_c.size());
     TEST_EQ(MyGame::Example::TestEnum::C, const_d_c[0]);
     TEST_EQ(MyGame::Example::TestEnum::B, const_d_c[1]);
-    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.cbegin(),
-                                               const_d_c.cend(),
+    TEST_ASSERT(mutable_d_c.end() == std::copy(const_d_c.begin(),
+                                               const_d_c.end(),
                                                mutable_d_c.begin()));
     TEST_ASSERT(
-        std::equal(const_d_c.cbegin(), const_d_c.cend(), mutable_d_c.cbegin()));
+        std::equal(const_d_c.begin(), const_d_c.end(), mutable_d_c.begin()));
   }
   // test little endian array of int32
 #  if FLATBUFFERS_LITTLEENDIAN
@@ -3803,11 +4060,11 @@ void FixedLengthArraySpanTest() {
     TEST_EQ(2, mutable_d_a.size());
     TEST_EQ(-1, const_d_a[0]);
     TEST_EQ(2, const_d_a[1]);
-    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.cbegin(),
-                                               const_d_a.cend(),
+    TEST_ASSERT(mutable_d_a.end() == std::copy(const_d_a.begin(),
+                                               const_d_a.end(),
                                                mutable_d_a.begin()));
     TEST_ASSERT(
-        std::equal(const_d_a.cbegin(), const_d_a.cend(), mutable_d_a.cbegin()));
+        std::equal(const_d_a.begin(), const_d_a.end(), mutable_d_a.begin()));
   }
 #  endif
 }
@@ -4028,6 +4285,63 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void NestedVerifierTest() {
+  // Create a nested monster.
+  flatbuffers::FlatBufferBuilder nested_builder;
+  FinishMonsterBuffer(
+      nested_builder,
+      CreateMonster(nested_builder, nullptr, 0, 0,
+                    nested_builder.CreateString("NestedMonster")));
+
+  // Verify the nested monster
+  flatbuffers::Verifier verifier(nested_builder.GetBufferPointer(),
+                                 nested_builder.GetSize());
+  TEST_EQ(true, VerifyMonsterBuffer(verifier));
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Add the nested monster as a vector of bytes.
+    auto nested_monster_bytes = builder.CreateVector(
+        nested_builder.GetBufferPointer(), nested_builder.GetSize());
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster, which includes verifing the nested monster
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(true, VerifyMonsterBuffer(verifier));
+  }
+
+  {
+    // Create the outer monster.
+    flatbuffers::FlatBufferBuilder builder;
+
+    // Purposely invalidate the nested flatbuffer setting its length to 1, an
+    // invalid length.
+    uint8_t invalid_nested_buffer[1];
+    auto nested_monster_bytes = builder.CreateVector(invalid_nested_buffer, 1);
+
+    auto name = builder.CreateString("OuterMonster");
+
+    MonsterBuilder mon_builder(builder);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
+    FinishMonsterBuffer(builder, mon_builder.Finish());
+
+    // Verify the root monster fails, since the included nested monster fails.
+    flatbuffers::Verifier verifier(builder.GetBufferPointer(),
+                                   builder.GetSize());
+    TEST_EQ(false, VerifyMonsterBuffer(verifier));
+  }
+}
+
 void ParseIncorrectMonsterJsonTest() {
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((test_data_path + "monster_test.bfbs").c_str(),
@@ -4037,9 +4351,10 @@ void ParseIncorrectMonsterJsonTest() {
   flatbuffers::Verifier verifier(
       reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
-  TEST_EQ(parser.Deserialize((const uint8_t *)schemafile.c_str(),
-                             schemafile.size()),
-          true);
+  TEST_EQ(
+      parser.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+                         schemafile.size()),
+      true);
   TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);
   TEST_EQ(parser.ParseJson(""), false);
   TEST_EQ(parser.ParseJson("{name: 1}"), false);
@@ -4112,6 +4427,129 @@ void FlatbuffersIteratorsTest() {
 void FlatbuffersIteratorsTest() {}
 #endif
 
+void PrivateAnnotationsLeaks() {
+  // Simple schemas and a "has optional scalar" sentinal.
+  std::vector<std::string> schemas;
+  std::vector<std::string> failure_schemas;
+
+  // (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }");
+
+  // (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }");
+
+  // (private) (union) containing (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; } "
+      "struct ABC (private) { mana: int; } "
+      "union Any (private) { Monster, ABC } ");
+
+  // (public) (union) containing (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "union Any { Monster, ABC }");
+
+  // (private) (table/struct/enum)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte (private) { None = -1, Human = 0, }");
+
+  // (public) (table/struct/enum)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }");
+
+  // (private) (union) containing (private) (table/struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte (private) { None = -1, Human = 0, }"
+      "union Any (private) { Monster, ABC }");
+
+  // (public) (union) containing (public) (table/struct)
+  schemas.push_back(
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }"
+      "union Any { Monster, ABC }");
+
+  // (private) (table), (public struct)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }");
+
+  // (private) (table), (public) (struct/enum)
+  schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }");
+
+  // (public) (struct) containing (public) (enum)
+  schemas.push_back(
+      "enum Race:byte { None = -1, Human = 0, }"
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; type: Race; }");
+
+  // (public) (union) containing (private) (table) & (public) (struct)
+  failure_schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC { mana: int; }"
+      "union Any { Monster, ABC }");
+
+  // (public) (union) containing (private) (table/struct)
+  failure_schemas.push_back(
+      "table Monster (private) { mana: int; }"
+      "struct ABC (private) { mana: int; }"
+      "enum Race:byte { None = -1, Human = 0, }"
+      "union Any { Monster, ABC }");
+
+  // (public) (table) containing (private) (struct)
+  failure_schemas.push_back(
+      "table Monster { mana: int; ab: ABC; }"
+      "struct ABC (private) { mana: int; }");
+
+  // (public) (struct) containing (private) (enum)
+  failure_schemas.push_back(
+      "enum Race:byte (private) { None = -1, Human = 0, }"
+      "table Monster { mana: int; }"
+      "struct ABC { mana: int; type: Race; }");
+
+  flatbuffers::IDLOptions opts;
+  opts.lang_to_generate = flatbuffers::IDLOptions::Language::kSwift;
+  opts.no_leak_private_annotations = true;
+
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+
+  for (auto schema = failure_schemas.begin(); schema < failure_schemas.end();
+       schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(false, parser.Parse(schema->c_str()));
+  }
+
+  opts.no_leak_private_annotations = false;
+
+  for (auto schema = schemas.begin(); schema < schemas.end(); schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+
+  for (auto schema = failure_schemas.begin(); schema < failure_schemas.end();
+       schema++) {
+    flatbuffers::Parser parser(opts);
+    TEST_ASSERT(parser.Parse(schema->c_str()));
+  }
+}
+
 int FlatBufferTests() {
   // clang-format off
 
@@ -4155,8 +4593,12 @@ int FlatBufferTests() {
     LoadVerifyBinaryTest();
     GenerateTableTextTest();
     TestEmbeddedBinarySchema();
+    JsonOptionalTest(false);
+    JsonOptionalTest(true);
   #endif
   // clang-format on
+
+  UtilConvertCase();
 
   FuzzTest1();
   FuzzTest2();
@@ -4188,6 +4630,7 @@ int FlatBufferTests() {
   JsonDefaultTest();
   JsonEnumsTest();
   FlexBuffersTest();
+  FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();
@@ -4209,10 +4652,27 @@ int FlatBufferTests() {
   FlatbuffersIteratorsTest();
   FixedLengthArraySpanTest();
   StructUnionTest();
+  WarningsAsErrorsTest();
+  NestedVerifierTest();
+  PrivateAnnotationsLeaks();
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int argc, const char *argv[]) {
+  for (int argi = 1; argi < argc; argi++) {
+    std::string arg = argv[argi];
+    if (arg == "--test_path") {
+      if (++argi >= argc) {
+        fprintf(stderr, "error: missing path following: %s\n", arg.c_str());
+        exit(1);
+      }
+      test_data_path = argv[argi];
+    } else {
+      fprintf(stderr, "error: Unknown argument: %s\n", arg.c_str());
+      exit(1);
+    }
+  }
+
   InitTestEngine();
 
   std::string req_locale;

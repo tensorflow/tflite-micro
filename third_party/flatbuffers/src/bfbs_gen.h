@@ -73,10 +73,6 @@ static bool IsStructOrTable(const reflection::BaseType base_type) {
   return base_type == reflection::Obj;
 }
 
-static bool IsScalar(const reflection::BaseType base_type) {
-  return base_type >= reflection::UType && base_type <= reflection::Double;
-}
-
 static bool IsFloatingPoint(const reflection::BaseType base_type) {
   return base_type == reflection::Float || base_type == reflection::Double;
 }
@@ -91,36 +87,6 @@ static bool IsSingleByte(const reflection::BaseType base_type) {
 
 static bool IsVector(const reflection::BaseType base_type) {
   return base_type == reflection::Vector;
-}
-
-static std::string MakeCamelCase(const std::string &in,
-                                 bool uppercase_first = true) {
-  std::string s;
-  for (size_t i = 0; i < in.length(); i++) {
-    if (!i && uppercase_first)
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[0])));
-    else if (in[i] == '_' && i + 1 < in.length())
-      s += static_cast<char>(::toupper(static_cast<unsigned char>(in[++i])));
-    else
-      s += in[i];
-  }
-  return s;
-}
-
-static std::string Denamespace(const flatbuffers::String *name,
-                               std::string &ns) {
-  const size_t pos = name->str().find_last_of('.');
-  if (pos == std::string::npos) {
-    ns = "";
-    return name->str();
-  }
-  ns = name->str().substr(0, pos);
-  return name->str().substr(pos + 1);
-}
-
-static std::string Denamespace(const flatbuffers::String *name) {
-  std::string ns;
-  return Denamespace(name, ns);
 }
 
 // A concrete base Flatbuffer Generator that specific language generators can

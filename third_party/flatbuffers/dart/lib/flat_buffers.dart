@@ -1,7 +1,3 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -308,7 +304,7 @@ class Builder {
     assert(_inVTable);
     // Prepare for writing the VTable.
     _prepare(_sizeofInt32, 1);
-    int tableTail = _tail;
+    var tableTail = _tail;
     // Prepare the size of the current table.
     final currentVTable = _currentVTable!;
     currentVTable.tableSize = tableTail - _currentTableEndTail;
@@ -320,10 +316,10 @@ class Builder {
       // Try to find an existing compatible VTable.
       if (deduplicateTables) {
         // Search backward - more likely to have recently used one
-        for (int i = _vTables.length - 1; i >= 0; i--) {
-          final int vt2Offset = _vTables[i];
-          final int vt2Start = _buf.lengthInBytes - vt2Offset;
-          final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
+        for (var i = _vTables.length - 1; i >= 0; i--) {
+          final vt2Offset = _vTables[i];
+          final vt2Start = _buf.lengthInBytes - vt2Offset;
+          final vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
           if (currentVTable._vTableSize == vt2Size &&
               currentVTable._offsetsMatch(vt2Start, _buf)) {
@@ -370,7 +366,7 @@ class Builder {
     final finishedSize = size();
     _setUint32AtTail(finishedSize, finishedSize - offset);
     if (fileIdentifier != null) {
-      for (int i = 0; i < 4; i++) {
+      for (var i = 0; i < 4; i++) {
         _setUint8AtTail(
             finishedSize - _sizeofUint32 - i, fileIdentifier.codeUnitAt(i));
       }
@@ -399,6 +395,15 @@ class Builder {
   void putFloat32(double value) {
     _prepare(_sizeofFloat32, 1);
     _setFloat32AtTail(_tail, value);
+  }
+
+  /// Writes a bool to the tail of the buffer after preparing space for it.
+  /// Bools are represented as a Uint8, with the value set to '1' for true, and '0' for false
+  ///
+  /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
+  void putBool(bool value) {
+    _prepare(_sizeofUint8, 1);
+    _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
   }
 
   /// Writes a Int64 to the tail of the buffer after preparing space for it.
@@ -495,7 +500,7 @@ class Builder {
   /// Writes a list of Structs to the buffer, returning the offset
   int writeListOfStructs(List<ObjectBuilder> structBuilders) {
     assert(!_inVTable);
-    for (int i = structBuilders.length - 1; i >= 0; i--) {
+    for (var i = structBuilders.length - 1; i >= 0; i--) {
       structBuilders[i].finish(this);
     }
     return endStructVector(structBuilders.length);
@@ -505,11 +510,11 @@ class Builder {
   int writeList(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setUint32AtTail(tail, tail - value);
       tail -= _sizeofUint32;
     }
@@ -520,11 +525,11 @@ class Builder {
   int writeListFloat64(List<double> values) {
     assert(!_inVTable);
     _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (double value in values) {
+    for (var value in values) {
       _setFloat64AtTail(tail, value);
       tail -= _sizeofFloat64;
     }
@@ -535,11 +540,11 @@ class Builder {
   int writeListFloat32(List<double> values) {
     assert(!_inVTable);
     _prepare(_sizeofFloat32, 1 + values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (double value in values) {
+    for (var value in values) {
       _setFloat32AtTail(tail, value);
       tail -= _sizeofFloat32;
     }
@@ -550,11 +555,11 @@ class Builder {
   int writeListInt64(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setInt64AtTail(tail, value);
       tail -= _sizeofInt64;
     }
@@ -565,11 +570,11 @@ class Builder {
   int writeListUint64(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setUint64AtTail(tail, value);
       tail -= _sizeofUint64;
     }
@@ -580,11 +585,11 @@ class Builder {
   int writeListInt32(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setInt32AtTail(tail, value);
       tail -= _sizeofInt32;
     }
@@ -595,11 +600,11 @@ class Builder {
   int writeListUint32(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1 + values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setUint32AtTail(tail, value);
       tail -= _sizeofUint32;
     }
@@ -610,11 +615,11 @@ class Builder {
   int writeListInt16(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setInt16AtTail(tail, value);
       tail -= _sizeofInt16;
     }
@@ -625,11 +630,11 @@ class Builder {
   int writeListUint16(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setUint16AtTail(tail, value);
       tail -= _sizeofUint16;
     }
@@ -645,11 +650,11 @@ class Builder {
   int writeListInt8(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setInt8AtTail(tail, value);
       tail -= _sizeofUint8;
     }
@@ -660,11 +665,11 @@ class Builder {
   int writeListUint8(List<int> values) {
     assert(!_inVTable);
     _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-    final int result = _tail;
-    int tail = _tail;
+    final result = _tail;
+    var tail = _tail;
     _setUint32AtTail(tail, values.length);
     tail -= _sizeofUint32;
-    for (int value in values) {
+    for (var value in values) {
       _setUint8AtTail(tail, value);
       tail -= _sizeofUint8;
     }
@@ -729,7 +734,7 @@ class Builder {
     _prepare(4, 1, additionalBytes: length + 1);
     _setUint32AtTail(_tail, length);
     var offset = _buf.lengthInBytes - _tail + 4;
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       _buf.setUint8(offset++, bytes[i]);
     }
     _buf.setUint8(offset, 0); // trailing zero
@@ -756,7 +761,7 @@ class Builder {
   /// Zero-pads the buffer, which may be required for some struct layouts.
   @pragma('vm:prefer-inline')
   void pad(int howManyBytes) {
-    for (int i = 0; i < howManyBytes; i++) {
+    for (var i = 0; i < howManyBytes; i++) {
       putUint8(0);
     }
   }
@@ -772,17 +777,17 @@ class Builder {
       _maxAlign = size;
     }
     // Prepare amount of required space.
-    int dataSize = size * count + additionalBytes;
-    int alignDelta = (-(_tail + dataSize)) & (size - 1);
-    int bufSize = alignDelta + dataSize;
+    var dataSize = size * count + additionalBytes;
+    var alignDelta = (-(_tail + dataSize)) & (size - 1);
+    var bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
     {
-      int oldCapacity = _buf.lengthInBytes;
+      var oldCapacity = _buf.lengthInBytes;
       if (_tail + bufSize > oldCapacity) {
-        int desiredNewCapacity = (oldCapacity + bufSize) * 2;
-        int deltaCapacity = desiredNewCapacity - oldCapacity;
+        var desiredNewCapacity = (oldCapacity + bufSize) * 2;
+        var deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
-        int newCapacity = oldCapacity + deltaCapacity;
+        var newCapacity = oldCapacity + deltaCapacity;
         _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
       }
     }
@@ -1018,22 +1023,22 @@ abstract class Reader<T> {
   /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
   T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
-    int fieldOffset = _vTableFieldOffset(object, offset, field);
+    var fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
   }
 
   /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
   T? vTableGetNullable(BufferContext object, int offset, int field) {
-    int fieldOffset = _vTableFieldOffset(object, offset, field);
+    var fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? null : read(object, offset + fieldOffset);
   }
 
   @pragma('vm:prefer-inline')
   int _vTableFieldOffset(BufferContext object, int offset, int field) {
-    int vTableSOffset = object._getInt32(offset);
-    int vTableOffset = offset - vTableSOffset;
-    int vTableSize = object._getUint16(vTableOffset);
+    var vTableSOffset = object._getInt32(offset);
+    var vTableOffset = offset - vTableSOffset;
+    var vTableSize = object._getUint16(vTableOffset);
     if (field >= vTableSize) return 0;
     return object._getUint16(vTableOffset + field);
   }
@@ -1052,9 +1057,9 @@ class StringReader extends Reader<String> {
   @override
   @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
-    int strOffset = bc.derefObject(offset);
-    int length = bc._getUint32(strOffset);
-    Uint8List bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
+    var strOffset = bc.derefObject(offset);
+    var length = bc._getUint32(strOffset);
+    var bytes = bc._asUint8List(strOffset + _sizeofUint32, length);
     if (asciiOptimization && _isLatin(bytes)) {
       return String.fromCharCodes(bytes);
     }
@@ -1063,8 +1068,8 @@ class StringReader extends Reader<String> {
 
   @pragma('vm:prefer-inline')
   static bool _isLatin(Uint8List bytes) {
-    int length = bytes.length;
-    for (int i = 0; i < length; i++) {
+    var length = bytes.length;
+    for (var i = 0; i < length; i++) {
       if (bytes[i] > 127) {
         return false;
       }
@@ -1099,7 +1104,7 @@ abstract class TableReader<T> extends Reader<T> {
 
   @override
   T read(BufferContext bc, int offset) {
-    int objectOffset = bc.derefObject(offset);
+    var objectOffset = bc.derefObject(offset);
     return createObject(bc, objectOffset);
   }
 }
@@ -1285,7 +1290,7 @@ class _FbGenericList<E> extends _FbList<E> {
   @pragma('vm:prefer-inline')
   E operator [](int i) {
     _items ??= List<E?>.filled(length, null);
-    E? item = _items![i];
+    var item = _items![i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);
       _items![i] = item;
@@ -1394,7 +1399,7 @@ class _VTable {
   @pragma('vm:prefer-inline')
   bool _offsetsMatch(int vt2Start, ByteData buf) {
     assert(offsetsComputed);
-    for (int i = 0; i < numFields; i++) {
+    for (var i = 0; i < numFields; i++) {
       if (fieldOffsets[i] !=
           buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
@@ -1427,7 +1432,7 @@ class _VTable {
     buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
-    for (int i = 0; i < numFields; i++) {
+    for (var i = 0; i < numFields; i++) {
       buf.setUint16(bufOffset, fieldOffsets[i], Endian.little);
       bufOffset += 2;
     }

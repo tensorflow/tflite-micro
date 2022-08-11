@@ -1,5 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "flatbuffer_cc_library")
+load("//:typescript.bzl", "flatbuffer_ts_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -49,6 +50,8 @@ cc_test(
         ":name_clash_test/valid_test2.fbs",
         ":native_type_test.fbs",
         ":optional_scalars.fbs",
+        ":optional_scalars.json",
+        ":optional_scalars_defaults.json",
         ":prototest/imported.proto",
         ":prototest/test.golden",
         ":prototest/test.proto",
@@ -116,14 +119,50 @@ cc_library(
 )
 
 flatbuffer_cc_library(
-    name = "monster_test_cc_fbs",
-    srcs = ["monster_test.fbs"],
-    include_paths = ["tests/include_test"],
-    includes = [
+    name = "include_test_fbs",
+    srcs = [
         "include_test/include_test1.fbs",
         "include_test/sub/include_test2.fbs",
     ],
+    include_paths = ["tests/include_test"],
+)
+
+flatbuffer_cc_library(
+    name = "monster_test_cc_fbs",
+    srcs = ["monster_test.fbs"],
+    include_paths = ["tests/include_test"],
     visibility = ["//grpc/tests:__subpackages__"],
+    deps = [":include_test_fbs"],
+)
+
+# Test that running without --no-includes works properly (monster_test doesn't
+# work cleanly due to the circular dependency in the include_tests/ files).
+include_test_args = [
+    "--gen-object-api",
+    "--gen-compare",
+    "--gen-mutable",
+    "--reflect-names",
+    "--cpp-ptr-type flatbuffers::unique_ptr",
+    "--force-empty",
+]
+
+flatbuffer_cc_library(
+    name = "included_test_fbs",
+    srcs = ["included_test.fbs"],
+    flatc_args = include_test_args,
+)
+
+flatbuffer_cc_library(
+    name = "includer_test_fbs",
+    srcs = ["includer_test.fbs"],
+    flatc_args = include_test_args,
+    deps = [":included_test_fbs"],
+)
+
+cc_library(
+    name = "include_build_test",
+    srcs = ["include_build_test.cc"],
+    deps = [":includer_test_fbs"],
 )
 
 flatbuffer_cc_library(
@@ -152,5 +191,14 @@ flatbuffer_cc_library(
         "--gen-object-api",
         "--gen-mutable",
         "--cpp-ptr-type flatbuffers::unique_ptr",
+    ],
+)
+
+flatbuffer_ts_library(
+    name = "typescript_ts_fbs",
+    srcs = ["typescript_keywords.fbs"],
+    deps = [
+        "//tests/test_dir:include_ts_fbs",
+        "//tests/test_dir:typescript_transitive_ts_fbs",
     ],
 )
