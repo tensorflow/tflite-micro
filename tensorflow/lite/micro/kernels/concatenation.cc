@@ -12,17 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/concatenation.h"
+#include "third_party/tensorflow/lite/kernels/internal/reference/concatenation.h"
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "third_party/tensorflow/lite/c/builtin_op_data.h"
+#include "third_party/tensorflow/lite/c/common.h"
+#include "third_party/tensorflow/lite/kernels/internal/portable_tensor.h"
+#include "third_party/tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "third_party/tensorflow/lite/kernels/internal/types.h"
+#include "third_party/tensorflow/lite/kernels/kernel_util.h"
+#include "third_party/tflite_micro/tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace ops {
@@ -132,8 +132,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, params->activation, kTfLiteActNone);
   TF_LITE_ENSURE(context,
                  input_type == kTfLiteFloat32 || input_type == kTfLiteInt8 ||
-                     input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
-                     input_type == kTfLiteInt64);
+                 input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
+                 input_type == kTfLiteInt64 || input_type == kTfLiteBool);
 
   // Output type must match input type
   TF_LITE_ENSURE_EQ(context, output_type, input_type);
@@ -167,6 +167,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
 
   switch (output_type) {  // Already know in/outtypes are same.
+    case kTfLiteBool:
     case kTfLiteFloat32:
     case kTfLiteInt16:
     case kTfLiteInt32:
@@ -235,6 +236,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt16:
       EvalUnquantized<int16_t>(context, node);
+      break;
+    case kTfLiteBool:
+      EvalUnquantized<bool>(context, node);
       break;
 
     default:
