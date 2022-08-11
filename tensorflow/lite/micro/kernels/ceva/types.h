@@ -49,7 +49,7 @@ enum class BroadcastableOpCategory : uint8_t {
 };
 #endif
 
-typedef struct {
+struct ArithmeticParams_ceva {
   // Shape dependent / common to data / op types.
   uint8_t broadcast_category;  // BroadcastableOpCategory broadcast_category;
   // uint8_t inference params.
@@ -81,7 +81,7 @@ typedef struct {
   // broadcast_shape[1] = a3; b3 = 1.
   // broadcast_shape[0] = b4 = a4.
   int broadcast_shape[5];
-} ArithmeticParams_ceva;
+};
 
 struct SoftmaxParams_ceva {
   // beta is not really used (not a Tensorflow parameter) and not implemented
@@ -122,7 +122,7 @@ struct PaddingValues_ceva {
   int16_t height_offset;
 };
 
-typedef struct {
+struct StridedSliceParams_ceva {
   int8_t start_indices_count;
   int32_t start_indices[5];
   int8_t stop_indices_count;
@@ -135,7 +135,7 @@ typedef struct {
   int16_t end_mask;
   int16_t new_axis_mask;
   int16_t shrink_axis_mask;
-} StridedSliceParams_ceva;
+};
 
 struct PoolParams_ceva {
   FusedActivationFunctionType_ceva activation;

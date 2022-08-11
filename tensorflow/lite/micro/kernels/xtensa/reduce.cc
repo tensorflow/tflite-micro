@@ -94,6 +94,12 @@ TfLiteStatus XtensaEvalMax(TfLiteContext* context, TfLiteNode* node) {
 #endif
 }
 
+TfLiteStatus XtensaEvalSum(TfLiteContext* context, TfLiteNode* node) {
+  OpDataReduce* op_data =
+      &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
+  return EvalSumHelper(context, node, op_data);
+}
+
 TfLiteRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalMean);
@@ -102,6 +108,11 @@ TfLiteRegistration Register_MEAN() {
 TfLiteRegistration Register_REDUCE_MAX() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMax,
                                    XtensaEvalMax);
+}
+
+TfLiteRegistration Register_SUM() {
+  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
+                                   XtensaEvalSum);
 }
 
 }  // namespace tflite

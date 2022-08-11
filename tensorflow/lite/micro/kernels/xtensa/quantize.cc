@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/quantize.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -36,100 +37,224 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
-  if (output->type == kTfLiteInt8 && input->type == kTfLiteInt16) {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
-    int size = ElementCount(*input->dims);
-    TF_LITE_ENSURE_EQ(
-        context,
-        xa_nn_elm_requantize_asym16s_asym8s(
-            tflite::micro::GetTensorData<int8_t>(output),
-            tflite::micro::GetTensorData<int16_t>(input),
-            op_data->input_zero_point, op_data->quantization_params.zero_point,
-            op_data->requantize_output_shift,
-            op_data->requantize_output_multiplier, size),
-        0);
-#elif defined(HIFI5)
-    int size = ElementCount(*input->dims);
-    TF_LITE_ENSURE_EQ(
-        context,
-        xa_nn_elm_requantize_asym16s_asym8s(
-            tflite::micro::GetTensorData<int8_t>(output),
-            tflite::micro::GetTensorData<int16_t>(input),
-            op_data->input_zero_point, op_data->quantization_params.zero_point,
-            op_data->requantize_output_shift,
-            op_data->requantize_output_multiplier, size),
-        0);
-#else
-    static_assert(false, "Unsupported xtensa architecture.");
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
-  } else if (output->type == kTfLiteInt32 &&
-             (input->type == kTfLiteInt16 || input->type == kTfLiteInt8)) {
-    int size = ElementCount(*input->dims);
+  switch (input->type) {
+    case kTfLiteUInt8: {
+      switch (output->type) {
+        case kTfLiteInt8: {
+          int size = ElementCount(*input->dims);
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<uint8_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
 
-    int32_t zero_point = op_data->quantization_params.zero_point;
-    if (input->type == kTfLiteInt16) {
-#if defined(HIFI5)
-      int size = ElementCount(*input->dims);
-      TF_LITE_ENSURE_EQ(context,
-                        xa_nn_elm_requantize_asym16s_asym32s(
-                            tflite::micro::GetTensorData<int32_t>(output),
-                            tflite::micro::GetTensorData<int16_t>(input),
-                            op_data->input_zero_point,
-                            op_data->quantization_params.zero_point,
-                            op_data->requantize_output_shift,
-                            op_data->requantize_output_multiplier, size),
-                        0);
-#else
-      reference_ops::Requantize(tflite::micro::GetTensorData<int16_t>(input),
-                                size, op_data->requantize_output_multiplier,
-                                op_data->requantize_output_shift,
-                                op_data->input_zero_point, zero_point,
-                                tflite::micro::GetTensorData<int32_t>(output));
-#endif  // defined(HIFI5)
-    } else {
-#if defined(HIFI5)
-      const int8_t* input_data_ptr;
-      int32_t* output_data_ptr;
-      input_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
-      output_data_ptr = tflite::micro::GetTensorData<int32_t>(output);
-
-      TF_LITE_ENSURE_EQ(
-          context,
-          xa_nn_elm_requantize_asym8s_asym32s(
-              output_data_ptr, input_data_ptr, op_data->input_zero_point,
-              zero_point, op_data->requantize_output_shift,
-              op_data->requantize_output_multiplier, size),
-          0);
-#else
-      reference_ops::Requantize(tflite::micro::GetTensorData<int8_t>(input),
-                                size, op_data->requantize_output_multiplier,
-                                op_data->requantize_output_shift,
-                                op_data->input_zero_point, zero_point,
-                                tflite::micro::GetTensorData<int32_t>(output));
-#endif  // defined(HIFI5)
+        default:
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+      }
+      break;
     }
-  } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt32) {
-    int size = ElementCount(*input->dims);
-    int32_t zero_point = op_data->quantization_params.zero_point;
-    reference_ops::Requantize(tflite::micro::GetTensorData<int32_t>(input),
-                              size, op_data->requantize_output_multiplier,
-                              op_data->requantize_output_shift,
-                              op_data->input_zero_point, zero_point,
-                              tflite::micro::GetTensorData<int16_t>(output));
-  } else if (output->type == kTfLiteInt16 && input->type == kTfLiteInt8) {
-    int size = ElementCount(*input->dims);
-    int32_t zero_point = op_data->quantization_params.zero_point;
-    reference_ops::Requantize(tflite::micro::GetTensorData<int8_t>(input), size,
-                              op_data->requantize_output_multiplier,
-                              op_data->requantize_output_shift,
-                              op_data->input_zero_point, zero_point,
-                              tflite::micro::GetTensorData<int16_t>(output));
-  } else {
-    TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                       TfLiteTypeGetName(input->type),
-                       TfLiteTypeGetName(output->type));
-    return kTfLiteError;
+
+    case kTfLiteInt8: {
+      switch (output->type) {
+        case kTfLiteUInt8: {
+          int size = ElementCount(*input->dims);
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int8_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<uint8_t>(output));
+          break;
+        }
+
+        case kTfLiteInt8: {
+          int size = ElementCount(*input->dims);
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int8_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+
+        case kTfLiteInt16: {
+          int size = ElementCount(*input->dims);
+          int32_t zero_point = op_data->quantization_params.zero_point;
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int8_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              zero_point, tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+
+        case kTfLiteInt32: {
+          int size = ElementCount(*input->dims);
+          int32_t zero_point = op_data->quantization_params.zero_point;
+#if defined(HIFI5)
+          const int8_t* input_data_ptr;
+          int32_t* output_data_ptr;
+          input_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
+          output_data_ptr = tflite::micro::GetTensorData<int32_t>(output);
+
+          TF_LITE_ENSURE_EQ(
+              context,
+              xa_nn_elm_requantize_asym8s_asym32s(
+                  output_data_ptr, input_data_ptr, op_data->input_zero_point,
+                  zero_point, op_data->requantize_output_shift,
+                  op_data->requantize_output_multiplier, size),
+              0);
+#else
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int8_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              zero_point, tflite::micro::GetTensorData<int32_t>(output));
+#endif  // defined(HIFI5)
+          break;
+        }
+
+        default: {
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    case kTfLiteInt16: {
+      switch (output->type) {
+        case kTfLiteInt8: {
+          int size = ElementCount(*input->dims);
+          TF_LITE_ENSURE_EQ(context,
+                            xa_nn_elm_requantize_asym16s_asym8s(
+                                tflite::micro::GetTensorData<int8_t>(output),
+                                tflite::micro::GetTensorData<int16_t>(input),
+                                op_data->input_zero_point,
+                                op_data->quantization_params.zero_point,
+                                op_data->requantize_output_shift,
+                                op_data->requantize_output_multiplier, size),
+                            0);
+          break;
+        }
+
+        case kTfLiteInt16: {
+          int size = ElementCount(*input->dims);
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int16_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+
+        case kTfLiteInt32: {
+          int size = ElementCount(*input->dims);
+#if defined(HIFI5)
+          TF_LITE_ENSURE_EQ(context,
+                            xa_nn_elm_requantize_asym16s_asym32s(
+                                tflite::micro::GetTensorData<int32_t>(output),
+                                tflite::micro::GetTensorData<int16_t>(input),
+                                op_data->input_zero_point,
+                                op_data->quantization_params.zero_point,
+                                op_data->requantize_output_shift,
+                                op_data->requantize_output_multiplier, size),
+                            0);
+#else
+          int32_t zero_point = op_data->quantization_params.zero_point;
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int16_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              zero_point, tflite::micro::GetTensorData<int32_t>(output));
+#endif  // defined(HIFI5)
+          break;
+        }
+
+        default: {
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    case kTfLiteInt32: {
+      switch (output->type) {
+        case kTfLiteInt8: {
+          int size = ElementCount(*input->dims);
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int32_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              op_data->quantization_params.zero_point,
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+
+        case kTfLiteInt16: {
+          int size = ElementCount(*input->dims);
+          int32_t zero_point = op_data->quantization_params.zero_point;
+          reference_ops::Requantize(
+              tflite::micro::GetTensorData<int32_t>(input), size,
+              op_data->requantize_output_multiplier,
+              op_data->requantize_output_shift, op_data->input_zero_point,
+              zero_point, tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+
+        default: {
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    case kTfLiteFloat32: {
+      switch (output->type) {
+        case kTfLiteInt16: {
+          reference_ops::AffineQuantize(
+              op_data->quantization_params,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<float>(input),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+
+        default: {
+          MicroPrintf("Input %s, output %s not supported.",
+                      TfLiteTypeGetName(input->type),
+                      TfLiteTypeGetName(output->type));
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    default: {
+      MicroPrintf("Input %s, output %s not supported.",
+                  TfLiteTypeGetName(input->type),
+                  TfLiteTypeGetName(output->type));
+      return kTfLiteError;
+    }
   }
+
   return kTfLiteOk;
 }
 #endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
