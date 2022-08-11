@@ -17,7 +17,7 @@
 All functions that can be commonly used by various tests.
 """
 
-import flatbuffers
+import tflite_micro.third_party.flatbuffers.python.flatbuffers as flatbuffers
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 
 TFLITE_SCHEMA_VERSION = 3
