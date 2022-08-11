@@ -134,8 +134,8 @@ class KotlinGenerator : public BaseGenerator {
       code += "import com.google.flatbuffers.*\n\n";
     }
     code += classcode;
-    auto filename = namer_.Directories(ns)
-                  + namer_.File(defname, SkipFile::Suffix);
+    auto filename =
+        namer_.Directories(ns) + namer_.File(defname, SkipFile::Suffix);
 
     return SaveFile(filename.c_str(), code, false);
   }

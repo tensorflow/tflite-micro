@@ -2,13 +2,18 @@
 
 @SuppressWarnings("unused")
 public final class Gadget {
-  private Gadget() { }
+  private Gadget() {}
   public static final byte NONE = 0;
   public static final byte FallingTub = 1;
   public static final byte HandFan = 2;
 
-  public static final String[] names = { "NONE", "FallingTub", "HandFan", };
+  public static final String[] names = {
+      "NONE",
+      "FallingTub",
+      "HandFan",
+  };
 
-  public static String name(int e) { return names[e]; }
+  public static String name(int e) {
+    return names[e];
+  }
 }
-

@@ -7,7 +7,7 @@ package MyGame.Example;
  */
 @SuppressWarnings("unused")
 public final class Color {
-  private Color() { }
+  private Color() {}
   public static final int Red = 1;
   /**
    * \brief color Green
@@ -19,8 +19,18 @@ public final class Color {
    */
   public static final int Blue = 8;
 
-  public static final String[] names = { "Red", "Green", "", "", "", "", "", "Blue", };
+  public static final String[] names = {
+      "Red",
+      "Green",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Blue",
+  };
 
-  public static String name(int e) { return names[e - Red]; }
+  public static String name(int e) {
+    return names[e - Red];
+  }
 }
-

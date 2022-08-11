@@ -5,6 +5,7 @@ load("//third_party:repo.bzl", "tf_http_archive")
 
 def initialize_third_party():
     """ Load third party repositories.  See above load() statements. """
+
     #flatbuffers()
     kissfft()
     ruy()

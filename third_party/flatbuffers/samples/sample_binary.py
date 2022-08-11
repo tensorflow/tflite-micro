@@ -20,6 +20,7 @@
 # folder (where it gets placed when using `cmake`).
 import os
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../python'))
 
 import flatbuffers
@@ -30,6 +31,7 @@ import MyGame.Sample.Vec3
 import MyGame.Sample.Weapon
 
 # Example of how to use FlatBuffers to create and read binary buffers.
+
 
 def main():
   builder = flatbuffers.Builder(0)
@@ -74,7 +76,8 @@ def main():
                                         MyGame.Sample.Color.Color().Red)
   MyGame.Sample.Monster.MonsterAddWeapons(builder, weapons)
   MyGame.Sample.Monster.MonsterAddEquippedType(
-      builder, MyGame.Sample.Equipment.Equipment().Weapon)
+      builder,
+      MyGame.Sample.Equipment.Equipment().Weapon)
   MyGame.Sample.Monster.MonsterAddEquipped(builder, axe)
   orc = MyGame.Sample.Monster.MonsterEnd(builder)
 
@@ -132,6 +135,7 @@ def main():
     assert union_weapon.Damage() == 5
 
   print 'The FlatBuffer was successfully created and verified!'
+
 
 if __name__ == '__main__':
   main()

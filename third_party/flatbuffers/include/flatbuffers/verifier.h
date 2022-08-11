@@ -41,7 +41,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Central location where any verification failures register.
   bool Check(bool ok) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       FLATBUFFERS_ASSERT(ok);
     #endif
@@ -55,7 +55,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(size_t elem, size_t elem_len) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound)
@@ -164,9 +164,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // gives the result we want.
     auto vtableo = tableo - static_cast<size_t>(ReadScalar<soffset_t>(table));
     // Check the vtable size field, then check vtable fits in its entirety.
-    if (!( VerifyComplexity() && Verify<voffset_t>(vtableo) &&
-           VerifyAlignment(ReadScalar<voffset_t>(buf_ + vtableo),
-                           sizeof(voffset_t)))) return false;
+    if (!(VerifyComplexity() && Verify<voffset_t>(vtableo) &&
+          VerifyAlignment(ReadScalar<voffset_t>(buf_ + vtableo),
+                          sizeof(voffset_t))))
+      return false;
     auto vsize = ReadScalar<voffset_t>(buf_ + vtableo);
     return Check((vsize & 1) == 0) && Verify(vtableo, vsize);
   }
@@ -181,7 +182,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // Call T::Verify, which must be in the generated code for this type.
     auto o = VerifyOffset(start);
     return o && reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
            && GetComputedSize()
     #endif
@@ -245,7 +246,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t

@@ -2,28 +2,39 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class StatT {
   private String id;
   private long val;
   private int count;
 
-  public String getId() { return id; }
+  public String getId() {
+    return id;
+  }
 
-  public void setId(String id) { this.id = id; }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-  public long getVal() { return val; }
+  public long getVal() {
+    return val;
+  }
 
-  public void setVal(long val) { this.val = val; }
+  public void setVal(long val) {
+    this.val = val;
+  }
 
-  public int getCount() { return count; }
+  public int getCount() {
+    return count;
+  }
 
-  public void setCount(int count) { this.count = count; }
-
+  public void setCount(int count) {
+    this.count = count;
+  }
 
   public StatT() {
     this.id = null;
@@ -31,4 +42,3 @@ public class StatT {
     this.count = 0;
   }
 }
-

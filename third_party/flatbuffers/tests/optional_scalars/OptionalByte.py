@@ -2,7 +2,8 @@
 
 # namespace: optional_scalars
 
+
 class OptionalByte(object):
-    None_ = 0
-    One = 1
-    Two = 2
+  None_ = 0
+  One = 1
+  Two = 2

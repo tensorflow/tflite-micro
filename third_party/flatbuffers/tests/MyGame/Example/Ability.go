@@ -7,12 +7,14 @@ import (
 )
 
 type AbilityT struct {
-	Id uint32 `json:"id"`
+	Id       uint32 `json:"id"`
 	Distance uint32 `json:"distance"`
 }
 
 func (t *AbilityT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	return CreateAbility(builder, t.Id, t.Distance)
 }
 func (rcv *Ability) UnPackTo(t *AbilityT) {
@@ -21,7 +23,9 @@ func (rcv *Ability) UnPackTo(t *AbilityT) {
 }
 
 func (rcv *Ability) UnPack() *AbilityT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &AbilityT{}
 	rcv.UnPackTo(t)
 	return t

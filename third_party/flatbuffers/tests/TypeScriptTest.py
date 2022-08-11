@@ -30,35 +30,46 @@ tests_path = Path(__file__).parent.resolve()
 root_path = tests_path.parent.absolute()
 
 # Get the location of the flatc executable
-flatc_exe = Path("flatc" if not platform.system() == "Windows" else "flatc.exe")
+flatc_exe = Path(
+    "flatc" if not platform.system() == "Windows" else "flatc.exe")
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
+  flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
+
 # Execute the flatc compiler with the specified parameters
-def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
-    cmd = [str(flatc_path)] + options
-    if prefix:
-        cmd += ["-o"] + [prefix]
-    if include:
-        cmd += ["-I"] + [include]
-    cmd += [schema] if isinstance(schema, str) else schema
-    if data:
-        cmd += [data] if isinstance(data, str) else data
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+def flatc(options,
+          schema,
+          prefix=None,
+          include=None,
+          data=None,
+          cwd=tests_path):
+  cmd = [str(flatc_path)] + options
+  if prefix:
+    cmd += ["-o"] + [prefix]
+  if include:
+    cmd += ["-I"] + [include]
+  cmd += [schema] if isinstance(schema, str) else schema
+  if data:
+    cmd += [data] if isinstance(data, str) else data
+  result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
 print("Removing node_modules/ directory...")
 shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
 
-assert subprocess.run(["npm", "install", "--silent"], cwd=str(tests_path), shell=True)
+assert subprocess.run(["npm", "install", "--silent"],
+                      cwd=str(tests_path),
+                      shell=True)
 
 print("Invoking flatc...")
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=[
+        "--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"
+    ],
     schema="monster_test.fbs",
     include="include_test",
 )
@@ -71,7 +82,9 @@ flatc(
 )
 
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=[
+        "--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"
+    ],
     schema="union_vector/union_vector.fbs",
     prefix="union_vector",
 )
@@ -82,7 +95,9 @@ flatc(
 )
 
 flatc(
-    options=["--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"],
+    options=[
+        "--ts", "--gen-name-strings", "--gen-mutable", "--gen-object-api"
+    ],
     schema=[
         "typescript_keywords.fbs",
         "test_dir/typescript_include.fbs",
@@ -115,10 +130,12 @@ assert subprocess.run(["tsc"], cwd=str(tests_path), shell=True)
 NODE_CMD = ["node", "-r", "esm"]
 
 print("Running TypeScript Tests...")
-assert subprocess.run(NODE_CMD + ["JavaScriptTest"], cwd=str(tests_path), shell=True)
-assert subprocess.run(
-    NODE_CMD + ["JavaScriptUnionVectorTest"], cwd=str(tests_path), shell=True
-)
-assert subprocess.run(
-    NODE_CMD + ["JavaScriptFlexBuffersTest"], cwd=str(tests_path), shell=True
-)
+assert subprocess.run(NODE_CMD + ["JavaScriptTest"],
+                      cwd=str(tests_path),
+                      shell=True)
+assert subprocess.run(NODE_CMD + ["JavaScriptUnionVectorTest"],
+                      cwd=str(tests_path),
+                      shell=True)
+assert subprocess.run(NODE_CMD + ["JavaScriptFlexBuffersTest"],
+                      cwd=str(tests_path),
+                      shell=True)

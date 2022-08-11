@@ -2,34 +2,57 @@
 
 package DictionaryLookup;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class LongFloatEntry extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_2_0_0(); }
-  public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb) { return getRootAsLongFloatEntry(_bb, new LongFloatEntry()); }
-  public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb, LongFloatEntry obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public LongFloatEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public static void ValidateVersion() {
+    Constants.FLATBUFFERS_2_0_0();
+  }
+  public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb) {
+    return getRootAsLongFloatEntry(_bb, new LongFloatEntry());
+  }
+  public static LongFloatEntry getRootAsLongFloatEntry(ByteBuffer _bb, LongFloatEntry obj) {
+    _bb.order(ByteOrder.LITTLE_ENDIAN);
+    return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+  }
+  public void __init(int _i, ByteBuffer _bb) {
+    __reset(_i, _bb);
+  }
+  public LongFloatEntry __assign(int _i, ByteBuffer _bb) {
+    __init(_i, _bb);
+    return this;
+  }
 
-  public long key() { int o = __offset(4); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
-  public float value() { int o = __offset(6); return o != 0 ? bb.getFloat(o + bb_pos) : 0.0f; }
+  public long key() {
+    int o = __offset(4);
+    return o != 0 ? bb.getLong(o + bb_pos) : 0L;
+  }
+  public float value() {
+    int o = __offset(6);
+    return o != 0 ? bb.getFloat(o + bb_pos) : 0.0f;
+  }
 
-  public static int createLongFloatEntry(FlatBufferBuilder builder,
-      long key,
-      float value) {
+  public static int createLongFloatEntry(FlatBufferBuilder builder, long key, float value) {
     builder.startTable(2);
     LongFloatEntry.addKey(builder, key);
     LongFloatEntry.addValue(builder, value);
     return LongFloatEntry.endLongFloatEntry(builder);
   }
 
-  public static void startLongFloatEntry(FlatBufferBuilder builder) { builder.startTable(2); }
-  public static void addKey(FlatBufferBuilder builder, long key) { builder.addLong(key); builder.slot(0); }
-  public static void addValue(FlatBufferBuilder builder, float value) { builder.addFloat(1, value, 0.0f); }
+  public static void startLongFloatEntry(FlatBufferBuilder builder) {
+    builder.startTable(2);
+  }
+  public static void addKey(FlatBufferBuilder builder, long key) {
+    builder.addLong(key);
+    builder.slot(0);
+  }
+  public static void addValue(FlatBufferBuilder builder, float value) {
+    builder.addFloat(1, value, 0.0f);
+  }
   public static int endLongFloatEntry(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;
@@ -42,7 +65,8 @@ public final class LongFloatEntry extends Table {
     return val_1 > val_2 ? 1 : val_1 < val_2 ? -1 : 0;
   }
 
-  public static LongFloatEntry __lookup_by_key(LongFloatEntry obj, int vectorLocation, long key, ByteBuffer bb) {
+  public static LongFloatEntry __lookup_by_key(
+      LongFloatEntry obj, int vectorLocation, long key, ByteBuffer bb) {
     int span = bb.getInt(vectorLocation - 4);
     int start = 0;
     while (span != 0) {
@@ -64,12 +88,22 @@ public final class LongFloatEntry extends Table {
   }
 
   public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+      __reset(_vector, _element_size, _bb);
+      return this;
+    }
 
-    public LongFloatEntry get(int j) { return get(new LongFloatEntry(), j); }
-    public LongFloatEntry get(LongFloatEntry obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
-    public LongFloatEntry getByKey(long key) {  return __lookup_by_key(null, __vector(), key, bb); }
-    public LongFloatEntry getByKey(LongFloatEntry obj, long key) {  return __lookup_by_key(obj, __vector(), key, bb); }
+    public LongFloatEntry get(int j) {
+      return get(new LongFloatEntry(), j);
+    }
+    public LongFloatEntry get(LongFloatEntry obj, int j) {
+      return obj.__assign(__indirect(__element(j), bb), bb);
+    }
+    public LongFloatEntry getByKey(long key) {
+      return __lookup_by_key(null, __vector(), key, bb);
+    }
+    public LongFloatEntry getByKey(LongFloatEntry obj, long key) {
+      return __lookup_by_key(obj, __vector(), key, bb);
+    }
   }
 }
-

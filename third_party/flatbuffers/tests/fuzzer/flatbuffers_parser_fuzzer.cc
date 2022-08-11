@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include <stddef.h>
 #include <stdint.h>
+
 #include <clocale>
 #include <string>
 
@@ -46,7 +47,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Check Parser.
   parser.Parse(parse_input);
   // TODO:
-  // Need to add additional checks for inputs passed Parse(parse_input) successfully:
+  // Need to add additional checks for inputs passed Parse(parse_input)
+  // successfully:
   // 1. Serialization to bfbs.
   // 2. Generation of a default object.
   // 3. Verification of the object using reflection.

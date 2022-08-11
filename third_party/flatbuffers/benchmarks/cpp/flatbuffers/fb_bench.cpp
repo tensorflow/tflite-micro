@@ -66,7 +66,7 @@ struct FlatBufferBench : Bench {
   }
 
   void *Decode(void *buffer, int64_t) override { return buffer; }
-  void Dealloc(void *) override {};
+  void Dealloc(void *) override{};
 
   FlatBufferBuilder fbb;
 };

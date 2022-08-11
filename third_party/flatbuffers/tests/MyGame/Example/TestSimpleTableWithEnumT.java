@@ -2,21 +2,23 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 class TestSimpleTableWithEnumT {
   private int color;
 
-  public int getColor() { return color; }
+  public int getColor() {
+    return color;
+  }
 
-  public void setColor(int color) { this.color = color; }
-
+  public void setColor(int color) {
+    this.color = color;
+  }
 
   public TestSimpleTableWithEnumT() {
     this.color = 2;
   }
 }
-

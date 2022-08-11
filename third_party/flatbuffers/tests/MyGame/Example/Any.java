@@ -4,14 +4,20 @@ package MyGame.Example;
 
 @SuppressWarnings("unused")
 public final class Any {
-  private Any() { }
+  private Any() {}
   public static final byte NONE = 0;
   public static final byte Monster = 1;
   public static final byte TestSimpleTableWithEnum = 2;
   public static final byte MyGame_Example2_Monster = 3;
 
-  public static final String[] names = { "NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster", };
+  public static final String[] names = {
+      "NONE",
+      "Monster",
+      "TestSimpleTableWithEnum",
+      "MyGame_Example2_Monster",
+  };
 
-  public static String name(int e) { return names[e]; }
+  public static String name(int e) {
+    return names[e];
+  }
 }
-

@@ -2,21 +2,23 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class StructOfStructsOfStructsT {
   private MyGame.Example.StructOfStructsT a;
 
-  public MyGame.Example.StructOfStructsT getA() { return a; }
+  public MyGame.Example.StructOfStructsT getA() {
+    return a;
+  }
 
-  public void setA(MyGame.Example.StructOfStructsT a) { this.a = a; }
-
+  public void setA(MyGame.Example.StructOfStructsT a) {
+    this.a = a;
+  }
 
   public StructOfStructsOfStructsT() {
     this.a = new MyGame.Example.StructOfStructsT();
   }
 }
-

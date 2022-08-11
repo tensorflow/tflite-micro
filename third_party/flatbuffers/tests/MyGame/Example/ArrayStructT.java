@@ -2,10 +2,10 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class ArrayStructT {
   private float a;
@@ -15,30 +15,56 @@ public class ArrayStructT {
   private int e;
   private long[] f;
 
-  public float getA() { return a; }
+  public float getA() {
+    return a;
+  }
 
-  public void setA(float a) { this.a = a; }
+  public void setA(float a) {
+    this.a = a;
+  }
 
-  public int[] getB() { return b; }
+  public int[] getB() {
+    return b;
+  }
 
-  public void setB(int[] b) { if (b != null && b.length == 15) this.b = b; }
+  public void setB(int[] b) {
+    if (b != null && b.length == 15)
+      this.b = b;
+  }
 
-  public byte getC() { return c; }
+  public byte getC() {
+    return c;
+  }
 
-  public void setC(byte c) { this.c = c; }
+  public void setC(byte c) {
+    this.c = c;
+  }
 
-  public MyGame.Example.NestedStructT[] getD() { return d; }
+  public MyGame.Example.NestedStructT[] getD() {
+    return d;
+  }
 
-  public void setD(MyGame.Example.NestedStructT[] d) { if (d != null && d.length == 2) this.d = d; }
+  public void setD(MyGame.Example.NestedStructT[] d) {
+    if (d != null && d.length == 2)
+      this.d = d;
+  }
 
-  public int getE() { return e; }
+  public int getE() {
+    return e;
+  }
 
-  public void setE(int e) { this.e = e; }
+  public void setE(int e) {
+    this.e = e;
+  }
 
-  public long[] getF() { return f; }
+  public long[] getF() {
+    return f;
+  }
 
-  public void setF(long[] f) { if (f != null && f.length == 2) this.f = f; }
-
+  public void setF(long[] f) {
+    if (f != null && f.length == 2)
+      this.f = f;
+  }
 
   public ArrayStructT() {
     this.a = 0.0f;
@@ -49,4 +75,3 @@ public class ArrayStructT {
     this.f = new long[2];
   }
 }
-

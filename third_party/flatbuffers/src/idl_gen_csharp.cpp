@@ -1240,7 +1240,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "); return ";
             code += "builder.EndVector(); }\n";
 
-            // add Create...VectorBlock() overloads for T[], ArraySegment<T> and IntPtr
+            // add Create...VectorBlock() overloads for T[], ArraySegment<T> and
+            // IntPtr
             code += "  public static VectorOffset ";
             code += "Create";
             code += Name(field);
@@ -1269,7 +1270,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "VectorBlock(FlatBufferBuilder builder, ";
             code += "IntPtr dataPtr, int sizeInBytes) ";
             code += "{ builder.StartVector(1, sizeInBytes, 1); ";
-            code += "builder.Add<" + GenTypeBasic(vector_type) + ">(dataPtr, sizeInBytes); return builder.EndVector(); }\n";
+            code += "builder.Add<" + GenTypeBasic(vector_type) +
+                    ">(dataPtr, sizeInBytes); return builder.EndVector(); }\n";
           }
           // Generate a method to start a vector, data to be added manually
           // after.
@@ -1608,8 +1610,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += NamespacedName(enum_def) + "Union();\n";
     code += indent + varialbe_name + ".Type = this." + camel_name_short +
-            "Type" +
-            type_suffix + ";\n";
+            "Type" + type_suffix + ";\n";
     code += indent + "switch (this." + camel_name_short + "Type" + type_suffix +
             ") {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();

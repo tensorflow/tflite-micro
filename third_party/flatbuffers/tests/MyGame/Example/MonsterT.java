@@ -2,10 +2,10 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class MonsterT {
   private MyGame.Example.Vec3T pos;
@@ -59,206 +59,405 @@ public class MonsterT {
   private long longEnumNonEnumDefault;
   private long longEnumNormalDefault;
 
-  public MyGame.Example.Vec3T getPos() { return pos; }
-
-  public void setPos(MyGame.Example.Vec3T pos) { this.pos = pos; }
-
-  public short getMana() { return mana; }
-
-  public void setMana(short mana) { this.mana = mana; }
-
-  public short getHp() { return hp; }
-
-  public void setHp(short hp) { this.hp = hp; }
-
-  public String getName() { return name; }
-
-  public void setName(String name) { this.name = name; }
-
-  public int[] getInventory() { return inventory; }
-
-  public void setInventory(int[] inventory) { this.inventory = inventory; }
-
-  public int getColor() { return color; }
-
-  public void setColor(int color) { this.color = color; }
-
-  public MyGame.Example.AnyUnion getTest() { return test; }
-
-  public void setTest(MyGame.Example.AnyUnion test) { this.test = test; }
-
-  public MyGame.Example.TestT[] getTest4() { return test4; }
-
-  public void setTest4(MyGame.Example.TestT[] test4) { this.test4 = test4; }
-
-  public String[] getTestarrayofstring() { return testarrayofstring; }
-
-  public void setTestarrayofstring(String[] testarrayofstring) { this.testarrayofstring = testarrayofstring; }
-
-  public MyGame.Example.MonsterT[] getTestarrayoftables() { return testarrayoftables; }
-
-  public void setTestarrayoftables(MyGame.Example.MonsterT[] testarrayoftables) { this.testarrayoftables = testarrayoftables; }
-
-  public MyGame.Example.MonsterT getEnemy() { return enemy; }
-
-  public void setEnemy(MyGame.Example.MonsterT enemy) { this.enemy = enemy; }
-
-  public int[] getTestnestedflatbuffer() { return testnestedflatbuffer; }
-
-  public void setTestnestedflatbuffer(int[] testnestedflatbuffer) { this.testnestedflatbuffer = testnestedflatbuffer; }
-
-  public MyGame.Example.StatT getTestempty() { return testempty; }
-
-  public void setTestempty(MyGame.Example.StatT testempty) { this.testempty = testempty; }
-
-  public boolean getTestbool() { return testbool; }
-
-  public void setTestbool(boolean testbool) { this.testbool = testbool; }
-
-  public int getTesthashs32Fnv1() { return testhashs32Fnv1; }
-
-  public void setTesthashs32Fnv1(int testhashs32Fnv1) { this.testhashs32Fnv1 = testhashs32Fnv1; }
-
-  public long getTesthashu32Fnv1() { return testhashu32Fnv1; }
-
-  public void setTesthashu32Fnv1(long testhashu32Fnv1) { this.testhashu32Fnv1 = testhashu32Fnv1; }
-
-  public long getTesthashs64Fnv1() { return testhashs64Fnv1; }
-
-  public void setTesthashs64Fnv1(long testhashs64Fnv1) { this.testhashs64Fnv1 = testhashs64Fnv1; }
-
-  public long getTesthashu64Fnv1() { return testhashu64Fnv1; }
-
-  public void setTesthashu64Fnv1(long testhashu64Fnv1) { this.testhashu64Fnv1 = testhashu64Fnv1; }
-
-  public int getTesthashs32Fnv1a() { return testhashs32Fnv1a; }
-
-  public void setTesthashs32Fnv1a(int testhashs32Fnv1a) { this.testhashs32Fnv1a = testhashs32Fnv1a; }
-
-  public long getTesthashu32Fnv1a() { return testhashu32Fnv1a; }
-
-  public void setTesthashu32Fnv1a(long testhashu32Fnv1a) { this.testhashu32Fnv1a = testhashu32Fnv1a; }
-
-  public long getTesthashs64Fnv1a() { return testhashs64Fnv1a; }
-
-  public void setTesthashs64Fnv1a(long testhashs64Fnv1a) { this.testhashs64Fnv1a = testhashs64Fnv1a; }
-
-  public long getTesthashu64Fnv1a() { return testhashu64Fnv1a; }
-
-  public void setTesthashu64Fnv1a(long testhashu64Fnv1a) { this.testhashu64Fnv1a = testhashu64Fnv1a; }
-
-  public boolean[] getTestarrayofbools() { return testarrayofbools; }
-
-  public void setTestarrayofbools(boolean[] testarrayofbools) { this.testarrayofbools = testarrayofbools; }
-
-  public float getTestf() { return testf; }
-
-  public void setTestf(float testf) { this.testf = testf; }
-
-  public float getTestf2() { return testf2; }
-
-  public void setTestf2(float testf2) { this.testf2 = testf2; }
-
-  public float getTestf3() { return testf3; }
-
-  public void setTestf3(float testf3) { this.testf3 = testf3; }
-
-  public String[] getTestarrayofstring2() { return testarrayofstring2; }
-
-  public void setTestarrayofstring2(String[] testarrayofstring2) { this.testarrayofstring2 = testarrayofstring2; }
-
-  public MyGame.Example.AbilityT[] getTestarrayofsortedstruct() { return testarrayofsortedstruct; }
-
-  public void setTestarrayofsortedstruct(MyGame.Example.AbilityT[] testarrayofsortedstruct) { this.testarrayofsortedstruct = testarrayofsortedstruct; }
-
-  public int[] getFlex() { return flex; }
-
-  public void setFlex(int[] flex) { this.flex = flex; }
-
-  public MyGame.Example.TestT[] getTest5() { return test5; }
-
-  public void setTest5(MyGame.Example.TestT[] test5) { this.test5 = test5; }
-
-  public long[] getVectorOfLongs() { return vectorOfLongs; }
-
-  public void setVectorOfLongs(long[] vectorOfLongs) { this.vectorOfLongs = vectorOfLongs; }
-
-  public double[] getVectorOfDoubles() { return vectorOfDoubles; }
-
-  public void setVectorOfDoubles(double[] vectorOfDoubles) { this.vectorOfDoubles = vectorOfDoubles; }
-
-  public MyGame.InParentNamespaceT getParentNamespaceTest() { return parentNamespaceTest; }
-
-  public void setParentNamespaceTest(MyGame.InParentNamespaceT parentNamespaceTest) { this.parentNamespaceTest = parentNamespaceTest; }
-
-  public MyGame.Example.ReferrableT[] getVectorOfReferrables() { return vectorOfReferrables; }
-
-  public void setVectorOfReferrables(MyGame.Example.ReferrableT[] vectorOfReferrables) { this.vectorOfReferrables = vectorOfReferrables; }
-
-  public long getSingleWeakReference() { return singleWeakReference; }
-
-  public void setSingleWeakReference(long singleWeakReference) { this.singleWeakReference = singleWeakReference; }
-
-  public long[] getVectorOfWeakReferences() { return vectorOfWeakReferences; }
-
-  public void setVectorOfWeakReferences(long[] vectorOfWeakReferences) { this.vectorOfWeakReferences = vectorOfWeakReferences; }
-
-  public MyGame.Example.ReferrableT[] getVectorOfStrongReferrables() { return vectorOfStrongReferrables; }
-
-  public void setVectorOfStrongReferrables(MyGame.Example.ReferrableT[] vectorOfStrongReferrables) { this.vectorOfStrongReferrables = vectorOfStrongReferrables; }
-
-  public long getCoOwningReference() { return coOwningReference; }
-
-  public void setCoOwningReference(long coOwningReference) { this.coOwningReference = coOwningReference; }
-
-  public long[] getVectorOfCoOwningReferences() { return vectorOfCoOwningReferences; }
-
-  public void setVectorOfCoOwningReferences(long[] vectorOfCoOwningReferences) { this.vectorOfCoOwningReferences = vectorOfCoOwningReferences; }
-
-  public long getNonOwningReference() { return nonOwningReference; }
-
-  public void setNonOwningReference(long nonOwningReference) { this.nonOwningReference = nonOwningReference; }
-
-  public long[] getVectorOfNonOwningReferences() { return vectorOfNonOwningReferences; }
-
-  public void setVectorOfNonOwningReferences(long[] vectorOfNonOwningReferences) { this.vectorOfNonOwningReferences = vectorOfNonOwningReferences; }
-
-  public MyGame.Example.AnyUniqueAliasesUnion getAnyUnique() { return anyUnique; }
-
-  public void setAnyUnique(MyGame.Example.AnyUniqueAliasesUnion anyUnique) { this.anyUnique = anyUnique; }
-
-  public MyGame.Example.AnyAmbiguousAliasesUnion getAnyAmbiguous() { return anyAmbiguous; }
-
-  public void setAnyAmbiguous(MyGame.Example.AnyAmbiguousAliasesUnion anyAmbiguous) { this.anyAmbiguous = anyAmbiguous; }
-
-  public int[] getVectorOfEnums() { return vectorOfEnums; }
-
-  public void setVectorOfEnums(int[] vectorOfEnums) { this.vectorOfEnums = vectorOfEnums; }
-
-  public byte getSignedEnum() { return signedEnum; }
-
-  public void setSignedEnum(byte signedEnum) { this.signedEnum = signedEnum; }
-
-  public int[] getTestrequirednestedflatbuffer() { return testrequirednestedflatbuffer; }
-
-  public void setTestrequirednestedflatbuffer(int[] testrequirednestedflatbuffer) { this.testrequirednestedflatbuffer = testrequirednestedflatbuffer; }
-
-  public MyGame.Example.StatT[] getScalarKeySortedTables() { return scalarKeySortedTables; }
-
-  public void setScalarKeySortedTables(MyGame.Example.StatT[] scalarKeySortedTables) { this.scalarKeySortedTables = scalarKeySortedTables; }
-
-  public MyGame.Example.TestT getNativeInline() { return nativeInline; }
-
-  public void setNativeInline(MyGame.Example.TestT nativeInline) { this.nativeInline = nativeInline; }
-
-  public long getLongEnumNonEnumDefault() { return longEnumNonEnumDefault; }
-
-  public void setLongEnumNonEnumDefault(long longEnumNonEnumDefault) { this.longEnumNonEnumDefault = longEnumNonEnumDefault; }
-
-  public long getLongEnumNormalDefault() { return longEnumNormalDefault; }
-
-  public void setLongEnumNormalDefault(long longEnumNormalDefault) { this.longEnumNormalDefault = longEnumNormalDefault; }
-
+  public MyGame.Example.Vec3T getPos() {
+    return pos;
+  }
+
+  public void setPos(MyGame.Example.Vec3T pos) {
+    this.pos = pos;
+  }
+
+  public short getMana() {
+    return mana;
+  }
+
+  public void setMana(short mana) {
+    this.mana = mana;
+  }
+
+  public short getHp() {
+    return hp;
+  }
+
+  public void setHp(short hp) {
+    this.hp = hp;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public int[] getInventory() {
+    return inventory;
+  }
+
+  public void setInventory(int[] inventory) {
+    this.inventory = inventory;
+  }
+
+  public int getColor() {
+    return color;
+  }
+
+  public void setColor(int color) {
+    this.color = color;
+  }
+
+  public MyGame.Example.AnyUnion getTest() {
+    return test;
+  }
+
+  public void setTest(MyGame.Example.AnyUnion test) {
+    this.test = test;
+  }
+
+  public MyGame.Example.TestT[] getTest4() {
+    return test4;
+  }
+
+  public void setTest4(MyGame.Example.TestT[] test4) {
+    this.test4 = test4;
+  }
+
+  public String[] getTestarrayofstring() {
+    return testarrayofstring;
+  }
+
+  public void setTestarrayofstring(String[] testarrayofstring) {
+    this.testarrayofstring = testarrayofstring;
+  }
+
+  public MyGame.Example.MonsterT[] getTestarrayoftables() {
+    return testarrayoftables;
+  }
+
+  public void setTestarrayoftables(MyGame.Example.MonsterT[] testarrayoftables) {
+    this.testarrayoftables = testarrayoftables;
+  }
+
+  public MyGame.Example.MonsterT getEnemy() {
+    return enemy;
+  }
+
+  public void setEnemy(MyGame.Example.MonsterT enemy) {
+    this.enemy = enemy;
+  }
+
+  public int[] getTestnestedflatbuffer() {
+    return testnestedflatbuffer;
+  }
+
+  public void setTestnestedflatbuffer(int[] testnestedflatbuffer) {
+    this.testnestedflatbuffer = testnestedflatbuffer;
+  }
+
+  public MyGame.Example.StatT getTestempty() {
+    return testempty;
+  }
+
+  public void setTestempty(MyGame.Example.StatT testempty) {
+    this.testempty = testempty;
+  }
+
+  public boolean getTestbool() {
+    return testbool;
+  }
+
+  public void setTestbool(boolean testbool) {
+    this.testbool = testbool;
+  }
+
+  public int getTesthashs32Fnv1() {
+    return testhashs32Fnv1;
+  }
+
+  public void setTesthashs32Fnv1(int testhashs32Fnv1) {
+    this.testhashs32Fnv1 = testhashs32Fnv1;
+  }
+
+  public long getTesthashu32Fnv1() {
+    return testhashu32Fnv1;
+  }
+
+  public void setTesthashu32Fnv1(long testhashu32Fnv1) {
+    this.testhashu32Fnv1 = testhashu32Fnv1;
+  }
+
+  public long getTesthashs64Fnv1() {
+    return testhashs64Fnv1;
+  }
+
+  public void setTesthashs64Fnv1(long testhashs64Fnv1) {
+    this.testhashs64Fnv1 = testhashs64Fnv1;
+  }
+
+  public long getTesthashu64Fnv1() {
+    return testhashu64Fnv1;
+  }
+
+  public void setTesthashu64Fnv1(long testhashu64Fnv1) {
+    this.testhashu64Fnv1 = testhashu64Fnv1;
+  }
+
+  public int getTesthashs32Fnv1a() {
+    return testhashs32Fnv1a;
+  }
+
+  public void setTesthashs32Fnv1a(int testhashs32Fnv1a) {
+    this.testhashs32Fnv1a = testhashs32Fnv1a;
+  }
+
+  public long getTesthashu32Fnv1a() {
+    return testhashu32Fnv1a;
+  }
+
+  public void setTesthashu32Fnv1a(long testhashu32Fnv1a) {
+    this.testhashu32Fnv1a = testhashu32Fnv1a;
+  }
+
+  public long getTesthashs64Fnv1a() {
+    return testhashs64Fnv1a;
+  }
+
+  public void setTesthashs64Fnv1a(long testhashs64Fnv1a) {
+    this.testhashs64Fnv1a = testhashs64Fnv1a;
+  }
+
+  public long getTesthashu64Fnv1a() {
+    return testhashu64Fnv1a;
+  }
+
+  public void setTesthashu64Fnv1a(long testhashu64Fnv1a) {
+    this.testhashu64Fnv1a = testhashu64Fnv1a;
+  }
+
+  public boolean[] getTestarrayofbools() {
+    return testarrayofbools;
+  }
+
+  public void setTestarrayofbools(boolean[] testarrayofbools) {
+    this.testarrayofbools = testarrayofbools;
+  }
+
+  public float getTestf() {
+    return testf;
+  }
+
+  public void setTestf(float testf) {
+    this.testf = testf;
+  }
+
+  public float getTestf2() {
+    return testf2;
+  }
+
+  public void setTestf2(float testf2) {
+    this.testf2 = testf2;
+  }
+
+  public float getTestf3() {
+    return testf3;
+  }
+
+  public void setTestf3(float testf3) {
+    this.testf3 = testf3;
+  }
+
+  public String[] getTestarrayofstring2() {
+    return testarrayofstring2;
+  }
+
+  public void setTestarrayofstring2(String[] testarrayofstring2) {
+    this.testarrayofstring2 = testarrayofstring2;
+  }
+
+  public MyGame.Example.AbilityT[] getTestarrayofsortedstruct() {
+    return testarrayofsortedstruct;
+  }
+
+  public void setTestarrayofsortedstruct(MyGame.Example.AbilityT[] testarrayofsortedstruct) {
+    this.testarrayofsortedstruct = testarrayofsortedstruct;
+  }
+
+  public int[] getFlex() {
+    return flex;
+  }
+
+  public void setFlex(int[] flex) {
+    this.flex = flex;
+  }
+
+  public MyGame.Example.TestT[] getTest5() {
+    return test5;
+  }
+
+  public void setTest5(MyGame.Example.TestT[] test5) {
+    this.test5 = test5;
+  }
+
+  public long[] getVectorOfLongs() {
+    return vectorOfLongs;
+  }
+
+  public void setVectorOfLongs(long[] vectorOfLongs) {
+    this.vectorOfLongs = vectorOfLongs;
+  }
+
+  public double[] getVectorOfDoubles() {
+    return vectorOfDoubles;
+  }
+
+  public void setVectorOfDoubles(double[] vectorOfDoubles) {
+    this.vectorOfDoubles = vectorOfDoubles;
+  }
+
+  public MyGame.InParentNamespaceT getParentNamespaceTest() {
+    return parentNamespaceTest;
+  }
+
+  public void setParentNamespaceTest(MyGame.InParentNamespaceT parentNamespaceTest) {
+    this.parentNamespaceTest = parentNamespaceTest;
+  }
+
+  public MyGame.Example.ReferrableT[] getVectorOfReferrables() {
+    return vectorOfReferrables;
+  }
+
+  public void setVectorOfReferrables(MyGame.Example.ReferrableT[] vectorOfReferrables) {
+    this.vectorOfReferrables = vectorOfReferrables;
+  }
+
+  public long getSingleWeakReference() {
+    return singleWeakReference;
+  }
+
+  public void setSingleWeakReference(long singleWeakReference) {
+    this.singleWeakReference = singleWeakReference;
+  }
+
+  public long[] getVectorOfWeakReferences() {
+    return vectorOfWeakReferences;
+  }
+
+  public void setVectorOfWeakReferences(long[] vectorOfWeakReferences) {
+    this.vectorOfWeakReferences = vectorOfWeakReferences;
+  }
+
+  public MyGame.Example.ReferrableT[] getVectorOfStrongReferrables() {
+    return vectorOfStrongReferrables;
+  }
+
+  public void setVectorOfStrongReferrables(MyGame.Example.ReferrableT[] vectorOfStrongReferrables) {
+    this.vectorOfStrongReferrables = vectorOfStrongReferrables;
+  }
+
+  public long getCoOwningReference() {
+    return coOwningReference;
+  }
+
+  public void setCoOwningReference(long coOwningReference) {
+    this.coOwningReference = coOwningReference;
+  }
+
+  public long[] getVectorOfCoOwningReferences() {
+    return vectorOfCoOwningReferences;
+  }
+
+  public void setVectorOfCoOwningReferences(long[] vectorOfCoOwningReferences) {
+    this.vectorOfCoOwningReferences = vectorOfCoOwningReferences;
+  }
+
+  public long getNonOwningReference() {
+    return nonOwningReference;
+  }
+
+  public void setNonOwningReference(long nonOwningReference) {
+    this.nonOwningReference = nonOwningReference;
+  }
+
+  public long[] getVectorOfNonOwningReferences() {
+    return vectorOfNonOwningReferences;
+  }
+
+  public void setVectorOfNonOwningReferences(long[] vectorOfNonOwningReferences) {
+    this.vectorOfNonOwningReferences = vectorOfNonOwningReferences;
+  }
+
+  public MyGame.Example.AnyUniqueAliasesUnion getAnyUnique() {
+    return anyUnique;
+  }
+
+  public void setAnyUnique(MyGame.Example.AnyUniqueAliasesUnion anyUnique) {
+    this.anyUnique = anyUnique;
+  }
+
+  public MyGame.Example.AnyAmbiguousAliasesUnion getAnyAmbiguous() {
+    return anyAmbiguous;
+  }
+
+  public void setAnyAmbiguous(MyGame.Example.AnyAmbiguousAliasesUnion anyAmbiguous) {
+    this.anyAmbiguous = anyAmbiguous;
+  }
+
+  public int[] getVectorOfEnums() {
+    return vectorOfEnums;
+  }
+
+  public void setVectorOfEnums(int[] vectorOfEnums) {
+    this.vectorOfEnums = vectorOfEnums;
+  }
+
+  public byte getSignedEnum() {
+    return signedEnum;
+  }
+
+  public void setSignedEnum(byte signedEnum) {
+    this.signedEnum = signedEnum;
+  }
+
+  public int[] getTestrequirednestedflatbuffer() {
+    return testrequirednestedflatbuffer;
+  }
+
+  public void setTestrequirednestedflatbuffer(int[] testrequirednestedflatbuffer) {
+    this.testrequirednestedflatbuffer = testrequirednestedflatbuffer;
+  }
+
+  public MyGame.Example.StatT[] getScalarKeySortedTables() {
+    return scalarKeySortedTables;
+  }
+
+  public void setScalarKeySortedTables(MyGame.Example.StatT[] scalarKeySortedTables) {
+    this.scalarKeySortedTables = scalarKeySortedTables;
+  }
+
+  public MyGame.Example.TestT getNativeInline() {
+    return nativeInline;
+  }
+
+  public void setNativeInline(MyGame.Example.TestT nativeInline) {
+    this.nativeInline = nativeInline;
+  }
+
+  public long getLongEnumNonEnumDefault() {
+    return longEnumNonEnumDefault;
+  }
+
+  public void setLongEnumNonEnumDefault(long longEnumNonEnumDefault) {
+    this.longEnumNonEnumDefault = longEnumNonEnumDefault;
+  }
+
+  public long getLongEnumNormalDefault() {
+    return longEnumNormalDefault;
+  }
+
+  public void setLongEnumNormalDefault(long longEnumNormalDefault) {
+    this.longEnumNormalDefault = longEnumNormalDefault;
+  }
 
   public MonsterT() {
     this.pos = new MyGame.Example.Vec3T();
@@ -321,4 +520,3 @@ public class MonsterT {
     return fbb.sizedByteArray();
   }
 }
-

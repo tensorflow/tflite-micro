@@ -28,12 +28,11 @@ root_path = script_path.parent.parent.absolute()
 # Get the location of the flatc executable, reading from the first command line
 # argument or defaulting to default names.
 flatc_exe = Path(
-    ("flatc" if not platform.system() == "Windows" else "flatc.exe")
-)
+    ("flatc" if not platform.system() == "Windows" else "flatc.exe"))
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
+  flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
@@ -42,8 +41,8 @@ tests_path = Path(script_path, "tests")
 
 
 def flatc_annotate(schema, file, cwd=script_path):
-    cmd = [str(flatc_path), "--annotate", schema, file]
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+  cmd = [str(flatc_path), "--annotate", schema, file]
+  result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
 test_files = [
@@ -73,4 +72,4 @@ test_files = [
 ]
 
 for test_file in test_files:
-    flatc_annotate("annotated_binary.fbs", test_file)
+  flatc_annotate("annotated_binary.fbs", test_file)

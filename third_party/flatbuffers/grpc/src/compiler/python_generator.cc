@@ -16,30 +16,26 @@
  *
  */
 
+#include "src/compiler/python_generator.h"
+
 #include <map>
 #include <sstream>
 
 #include "flatbuffers/util.h"
-#include "src/compiler/python_generator.h"
 
 namespace grpc_python_generator {
 
 grpc::string GenerateMethodType(const grpc_generator::Method *method) {
+  if (method->NoStreaming()) return "unary_unary";
 
-  if (method->NoStreaming())
-    return "unary_unary";
+  if (method->ServerStreaming()) return "unary_stream";
 
-  if (method->ServerStreaming())
-    return "unary_stream";
-
-  if (method->ClientStreaming())
-    return "stream_unary";
+  if (method->ClientStreaming()) return "stream_unary";
 
   return "stream_stream";
 }
 
 grpc::string GenerateMethodInput(const grpc_generator::Method *method) {
-
   if (method->NoStreaming() || method->ServerStreaming())
     return "self, request, context";
 
@@ -100,14 +96,14 @@ void GenerateServicer(const grpc_generator::Service *service,
   }
   printer->Outdent();
   printer->Print("\n");
-
 }
 
 void GenerateRegister(const grpc_generator::Service *service,
                       grpc_generator::Printer *printer,
                       std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(vars, "def add_$ServiceName$Servicer_to_server(servicer, server):\n");
+  printer->Print(
+      vars, "def add_$ServiceName$Servicer_to_server(servicer, server):\n");
   printer->Indent();
   printer->Print("rpc_method_handlers = {\n");
   printer->Indent();
@@ -115,7 +111,8 @@ void GenerateRegister(const grpc_generator::Service *service,
     auto method = service->method(j);
     vars["MethodName"] = method->name();
     vars["MethodType"] = GenerateMethodType(&*method);
-    printer->Print(vars, "'$MethodName$': grpc.$MethodType$_rpc_method_handler(\n");
+    printer->Print(vars,
+                   "'$MethodName$': grpc.$MethodType$_rpc_method_handler(\n");
     printer->Indent();
     printer->Print(vars, "servicer.$MethodName$\n");
     printer->Outdent();
@@ -123,7 +120,8 @@ void GenerateRegister(const grpc_generator::Service *service,
   }
   printer->Outdent();
   printer->Print("}\n");
-  printer->Print(vars, "generic_handler = grpc.method_handlers_generic_handler(\n");
+  printer->Print(vars,
+                 "generic_handler = grpc.method_handlers_generic_handler(\n");
   printer->Indent();
   printer->Print(vars, "'$PATH$$ServiceName$', rpc_method_handlers)\n");
   printer->Outdent();

@@ -4,13 +4,18 @@ package optional_scalars;
 
 @SuppressWarnings("unused")
 public final class OptionalByte {
-  private OptionalByte() { }
+  private OptionalByte() {}
   public static final byte None = 0;
   public static final byte One = 1;
   public static final byte Two = 2;
 
-  public static final String[] names = { "None", "One", "Two", };
+  public static final String[] names = {
+      "None",
+      "One",
+      "Two",
+  };
 
-  public static String name(int e) { return names[e]; }
+  public static String name(int e) {
+    return names[e];
+  }
 }
-

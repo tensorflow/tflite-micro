@@ -16,4 +16,4 @@ struct Bench {
   int64_t sum = 0;
 };
 
-#endif // BENCHMARKS_CPP_BENCH_H_
+#endif  // BENCHMARKS_CPP_BENCH_H_

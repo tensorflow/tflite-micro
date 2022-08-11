@@ -2,10 +2,10 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class TypeAliasesT {
   private byte i8;
@@ -21,54 +21,101 @@ public class TypeAliasesT {
   private byte[] v8;
   private double[] vf64;
 
-  public byte getI8() { return i8; }
+  public byte getI8() {
+    return i8;
+  }
 
-  public void setI8(byte i8) { this.i8 = i8; }
+  public void setI8(byte i8) {
+    this.i8 = i8;
+  }
 
-  public int getU8() { return u8; }
+  public int getU8() {
+    return u8;
+  }
 
-  public void setU8(int u8) { this.u8 = u8; }
+  public void setU8(int u8) {
+    this.u8 = u8;
+  }
 
-  public short getI16() { return i16; }
+  public short getI16() {
+    return i16;
+  }
 
-  public void setI16(short i16) { this.i16 = i16; }
+  public void setI16(short i16) {
+    this.i16 = i16;
+  }
 
-  public int getU16() { return u16; }
+  public int getU16() {
+    return u16;
+  }
 
-  public void setU16(int u16) { this.u16 = u16; }
+  public void setU16(int u16) {
+    this.u16 = u16;
+  }
 
-  public int getI32() { return i32; }
+  public int getI32() {
+    return i32;
+  }
 
-  public void setI32(int i32) { this.i32 = i32; }
+  public void setI32(int i32) {
+    this.i32 = i32;
+  }
 
-  public long getU32() { return u32; }
+  public long getU32() {
+    return u32;
+  }
 
-  public void setU32(long u32) { this.u32 = u32; }
+  public void setU32(long u32) {
+    this.u32 = u32;
+  }
 
-  public long getI64() { return i64; }
+  public long getI64() {
+    return i64;
+  }
 
-  public void setI64(long i64) { this.i64 = i64; }
+  public void setI64(long i64) {
+    this.i64 = i64;
+  }
 
-  public long getU64() { return u64; }
+  public long getU64() {
+    return u64;
+  }
 
-  public void setU64(long u64) { this.u64 = u64; }
+  public void setU64(long u64) {
+    this.u64 = u64;
+  }
 
-  public float getF32() { return f32; }
+  public float getF32() {
+    return f32;
+  }
 
-  public void setF32(float f32) { this.f32 = f32; }
+  public void setF32(float f32) {
+    this.f32 = f32;
+  }
 
-  public double getF64() { return f64; }
+  public double getF64() {
+    return f64;
+  }
 
-  public void setF64(double f64) { this.f64 = f64; }
+  public void setF64(double f64) {
+    this.f64 = f64;
+  }
 
-  public byte[] getV8() { return v8; }
+  public byte[] getV8() {
+    return v8;
+  }
 
-  public void setV8(byte[] v8) { this.v8 = v8; }
+  public void setV8(byte[] v8) {
+    this.v8 = v8;
+  }
 
-  public double[] getVf64() { return vf64; }
+  public double[] getVf64() {
+    return vf64;
+  }
 
-  public void setVf64(double[] vf64) { this.vf64 = vf64; }
-
+  public void setVf64(double[] vf64) {
+    this.vf64 = vf64;
+  }
 
   public TypeAliasesT() {
     this.i8 = 0;
@@ -85,4 +132,3 @@ public class TypeAliasesT {
     this.vf64 = null;
   }
 }
-

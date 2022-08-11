@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Provide pre-compiled struct packers for encoding and decoding.
 
@@ -20,7 +19,6 @@ See: https://docs.python.org/2/library/struct.html#format-characters
 
 import struct
 from . import compat
-
 
 boolean = struct.Struct(compat.struct_bool_decl)
 

@@ -2,20 +2,33 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class Ability extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public Ability __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public void __init(int _i, ByteBuffer _bb) {
+    __reset(_i, _bb);
+  }
+  public Ability __assign(int _i, ByteBuffer _bb) {
+    __init(_i, _bb);
+    return this;
+  }
 
-  public long id() { return (long)bb.getInt(bb_pos + 0) & 0xFFFFFFFFL; }
-  public void mutateId(long id) { bb.putInt(bb_pos + 0, (int) id); }
-  public long distance() { return (long)bb.getInt(bb_pos + 4) & 0xFFFFFFFFL; }
-  public void mutateDistance(long distance) { bb.putInt(bb_pos + 4, (int) distance); }
+  public long id() {
+    return (long) bb.getInt(bb_pos + 0) & 0xFFFFFFFFL;
+  }
+  public void mutateId(long id) {
+    bb.putInt(bb_pos + 0, (int) id);
+  }
+  public long distance() {
+    return (long) bb.getInt(bb_pos + 4) & 0xFFFFFFFFL;
+  }
+  public void mutateDistance(long distance) {
+    bb.putInt(bb_pos + 4, (int) distance);
+  }
 
   public static int createAbility(FlatBufferBuilder builder, long id, long distance) {
     builder.prep(4, 8);
@@ -25,10 +38,17 @@ public final class Ability extends Struct {
   }
 
   public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+      __reset(_vector, _element_size, _bb);
+      return this;
+    }
 
-    public Ability get(int j) { return get(new Ability(), j); }
-    public Ability get(Ability obj, int j) {  return obj.__assign(__element(j), bb); }
+    public Ability get(int j) {
+      return get(new Ability(), j);
+    }
+    public Ability get(Ability obj, int j) {
+      return obj.__assign(__element(j), bb);
+    }
   }
   public AbilityT unpack() {
     AbilityT _o = new AbilityT();
@@ -42,11 +62,8 @@ public final class Ability extends Struct {
     _o.setDistance(_oDistance);
   }
   public static int pack(FlatBufferBuilder builder, AbilityT _o) {
-    if (_o == null) return 0;
-    return createAbility(
-      builder,
-      _o.getId(),
-      _o.getDistance());
+    if (_o == null)
+      return 0;
+    return createAbility(builder, _o.getId(), _o.getDistance());
   }
 }
-

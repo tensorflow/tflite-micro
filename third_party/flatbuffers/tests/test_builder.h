@@ -17,21 +17,23 @@ class MessageBuilder;
 }
 }  // namespace flatbuffers
 
-template<class T, class U> struct is_same { static const bool value = false; };
+template<class T, class U> struct is_same {
+  static const bool value = false;
+};
 
-template<class T> struct is_same<T, T> { static const bool value = true; };
+template<class T> struct is_same<T, T> {
+  static const bool value = true;
+};
 
 inline std::string m1_name() { return "Cyberdemon"; }
 inline std::string m2_name() { return "Imp"; }
-inline MyGame::Example::Color m1_color() {
-  return MyGame::Example::Color_Red;
-}
+inline MyGame::Example::Color m1_color() { return MyGame::Example::Color_Red; }
 inline MyGame::Example::Color m2_color() {
   return MyGame::Example::Color_Green;
 }
 inline void m1_color_check() {
   // Ensure that all compilation units see the same monster_test_generated.h.
-  extern void CheckTestGeneratedIsValid(const MyGame::Example::Color&);
+  extern void CheckTestGeneratedIsValid(const MyGame::Example::Color &);
   CheckTestGeneratedIsValid(m1_color());
 }
 
@@ -63,10 +65,9 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
   size_t size, offset;
 
   uint8_t *rr = b1.ReleaseRaw(size, offset);
-  std::shared_ptr<uint8_t> raw(
-      rr, [size](uint8_t *ptr) {
-        flatbuffers::DefaultAllocator::dealloc(ptr, size);
-      });
+  std::shared_ptr<uint8_t> raw(rr, [size](uint8_t *ptr) {
+    flatbuffers::DefaultAllocator::dealloc(ptr, size);
+  });
   Builder src;
   auto root_offset2 = populate2(src);
   src.Finish(root_offset2);

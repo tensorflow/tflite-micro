@@ -16,6 +16,7 @@
 import os.path
 import sys
 import imp
+
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
@@ -103,11 +104,10 @@ class TestWireFormat(unittest.TestCase):
       for file_identifier in [None, b'MONS']:
         gen_buf, gen_off = make_monster_from_generated_code(
             sizePrefix=sizePrefix, file_identifier=file_identifier)
-        CheckReadBuffer(
-            gen_buf,
-            gen_off,
-            sizePrefix=sizePrefix,
-            file_identifier=file_identifier)
+        CheckReadBuffer(gen_buf,
+                        gen_off,
+                        sizePrefix=sizePrefix,
+                        file_identifier=file_identifier)
 
     # Verify that the canonical flatbuffer file is readable by the
     # generated Python code. Note that context managers are not part of
@@ -288,13 +288,15 @@ class TestObjectBasedAPI(unittest.TestCase):
     b1.Finish(gen_opt)
 
     # Converts the flatbuffer into the object class.
-    opts1 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b1.Bytes, b1.Head())
+    opts1 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(
+        b1.Bytes, b1.Head())
     optsT1 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts1)
 
     # Packs the object class into another flatbuffer.
     b2 = flatbuffers.Builder(0)
     b2.Finish(optsT1.Pack(b2))
-    opts2 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(b2.Bytes, b2.Head())
+    opts2 = optional_scalars.ScalarStuff.ScalarStuff.GetRootAs(
+        b2.Bytes, b2.Head())
     optsT2 = optional_scalars.ScalarStuff.ScalarStuffT.InitFromObj(opts2)
     # Checks the default values.
     self.assertTrue(opts2.JustI8() == 0)
@@ -303,7 +305,6 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertTrue(optsT2.justU16 == 0)
     self.assertTrue(optsT2.maybeEnum is None)
     self.assertTrue(optsT2.defaultU64 == 42)
-
 
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
@@ -615,14 +616,14 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
         util.GetBufferIdentifier(buf, offset, size_prefixed=sizePrefix) ==
         file_identifier)
     asserter(
-        util.BufferHasIdentifier(
-            buf,
-            offset,
-            file_identifier=file_identifier,
-            size_prefixed=sizePrefix))
+        util.BufferHasIdentifier(buf,
+                                 offset,
+                                 file_identifier=file_identifier,
+                                 size_prefixed=sizePrefix))
     asserter(
-        _MONSTER.Monster.MonsterBufferHasIdentifier(
-            buf, offset, size_prefixed=sizePrefix))
+        _MONSTER.Monster.MonsterBufferHasIdentifier(buf,
+                                                    offset,
+                                                    size_prefixed=sizePrefix))
   if sizePrefix:
     size = util.GetSizePrefix(buf, offset)
     asserter(size == len(buf[offset:]) - 4)
@@ -686,7 +687,8 @@ def CheckReadBuffer(buf, offset, sizePrefix=False, file_identifier=None):
 
   asserter(not monster.VectorOfDoublesIsNone())
   asserter(([-1.7976931348623157e+308, 0, 1.7976931348623157e+308] == [
-      monster.VectorOfDoubles(i) for i in range(monster.VectorOfDoublesLength())
+      monster.VectorOfDoubles(i)
+      for i in range(monster.VectorOfDoublesLength())
   ]))
 
   try:
@@ -987,7 +989,8 @@ class TestByteLayout(unittest.TestCase):
     b.CreateString(u'moop', encoding='ascii')
     # 0-terminated, 3-byte pad:
     self.assertBuilderEquals(b, [
-        4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, 3, 0, 0, 0, 'f', 'o', 'o', 0
+        4, 0, 0, 0, 'm', 'o', 'o', 'p', 0, 0, 0, 0, 3, 0, 0, 0, 'f', 'o', 'o',
+        0
     ])
 
   def test_create_utf8_string(self):

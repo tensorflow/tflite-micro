@@ -19,7 +19,7 @@ FetchContent_Declare(
     GIT_TAG        0d98dba29d66e93259db7daa53a9327df767a415 # v1.6.1
 )
 
-# For Windows: Prevent overriding the parent project's compiler/linker 
+# For Windows: Prevent overriding the parent project's compiler/linker
 # settings.
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(
@@ -46,12 +46,12 @@ set(FlatBenchmark_SRCS
 # correct times.
 add_custom_command(
     OUTPUT ${CPP_BENCH_FB_GEN}
-    COMMAND 
+    COMMAND
         "${FLATBUFFERS_FLATC_EXECUTABLE}"
         --cpp
         -o ${CPP_FB_BENCH_DIR}
         ${CPP_BENCH_FBS}
-    DEPENDS 
+    DEPENDS
         flatc
         flatbuffers
         ${CPP_BENCH_FBS}
@@ -61,7 +61,7 @@ add_custom_command(
 # The main flatbuffers benchmark executable
 add_executable(flatbenchmark ${FlatBenchmark_SRCS})
 
-# Benchmark requires C++11 
+# Benchmark requires C++11
 target_compile_features(flatbenchmark PUBLIC
     cxx_std_11
 )
@@ -73,15 +73,15 @@ target_compile_options(flatbenchmark
 )
 
 # Set the output directory to the root binary directory
-set_target_properties(flatbenchmark 
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY 
+set_target_properties(flatbenchmark
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}"
 )
 
 # The includes of the benchmark files are fully qualified from flatbuffers root.
 target_include_directories(flatbenchmark PUBLIC ${CMAKE_SOURCE_DIR})
 
-target_link_libraries(flatbenchmark 
-    benchmark::benchmark_main # _main to use their entry point 
+target_link_libraries(flatbenchmark
+    benchmark::benchmark_main # _main to use their entry point
     gtest # Link to gtest so we can also assert in the benchmarks
 )

@@ -2,15 +2,11 @@
 
 package MyGame.Example2;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class MonsterT {
-
-
-  public MonsterT() {
-  }
+  public MonsterT() {}
 }
-

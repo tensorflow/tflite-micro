@@ -2,21 +2,23 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class ReferrableT {
   private long id;
 
-  public long getId() { return id; }
+  public long getId() {
+    return id;
+  }
 
-  public void setId(long id) { this.id = id; }
-
+  public void setId(long id) {
+    this.id = id;
+  }
 
   public ReferrableT() {
     this.id = 0L;
   }
 }
-

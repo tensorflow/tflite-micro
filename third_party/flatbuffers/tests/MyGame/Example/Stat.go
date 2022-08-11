@@ -7,13 +7,15 @@ import (
 )
 
 type StatT struct {
-	Id string `json:"id"`
-	Val int64 `json:"val"`
+	Id    string `json:"id"`
+	Val   int64  `json:"val"`
 	Count uint16 `json:"count"`
 }
 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	idOffset := builder.CreateString(t.Id)
 	StatStart(builder)
 	StatAddId(builder, idOffset)
@@ -29,7 +31,9 @@ func (rcv *Stat) UnPackTo(t *StatT) {
 }
 
 func (rcv *Stat) UnPack() *StatT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StatT{}
 	rcv.UnPackTo(t)
 	return t

@@ -1,5 +1,6 @@
-#include <iostream>
 #include <assert.h>
+
+#include <iostream>
 
 #include "flatbuffers/util.h"
 

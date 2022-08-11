@@ -2,20 +2,30 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public final class StructOfStructsOfStructs extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public StructOfStructsOfStructs __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public void __init(int _i, ByteBuffer _bb) {
+    __reset(_i, _bb);
+  }
+  public StructOfStructsOfStructs __assign(int _i, ByteBuffer _bb) {
+    __init(_i, _bb);
+    return this;
+  }
 
-  public MyGame.Example.StructOfStructs a() { return a(new MyGame.Example.StructOfStructs()); }
-  public MyGame.Example.StructOfStructs a(MyGame.Example.StructOfStructs obj) { return obj.__assign(bb_pos + 0, bb); }
+  public MyGame.Example.StructOfStructs a() {
+    return a(new MyGame.Example.StructOfStructs());
+  }
+  public MyGame.Example.StructOfStructs a(MyGame.Example.StructOfStructs obj) {
+    return obj.__assign(bb_pos + 0, bb);
+  }
 
-  public static int createStructOfStructsOfStructs(FlatBufferBuilder builder, long a_a_id, long a_a_distance, short a_b_a, byte a_b_b, long a_c_id, long a_c_distance) {
+  public static int createStructOfStructsOfStructs(FlatBufferBuilder builder, long a_a_id,
+      long a_a_distance, short a_b_a, byte a_b_b, long a_c_id, long a_c_distance) {
     builder.prep(4, 20);
     builder.prep(4, 20);
     builder.prep(4, 8);
@@ -32,10 +42,17 @@ public final class StructOfStructsOfStructs extends Struct {
   }
 
   public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+      __reset(_vector, _element_size, _bb);
+      return this;
+    }
 
-    public StructOfStructsOfStructs get(int j) { return get(new StructOfStructsOfStructs(), j); }
-    public StructOfStructsOfStructs get(StructOfStructsOfStructs obj, int j) {  return obj.__assign(__element(j), bb); }
+    public StructOfStructsOfStructs get(int j) {
+      return get(new StructOfStructsOfStructs(), j);
+    }
+    public StructOfStructsOfStructs get(StructOfStructsOfStructs obj, int j) {
+      return obj.__assign(__element(j), bb);
+    }
   }
   public StructOfStructsOfStructsT unpack() {
     StructOfStructsOfStructsT _o = new StructOfStructsOfStructsT();
@@ -46,7 +63,8 @@ public final class StructOfStructsOfStructs extends Struct {
     a().unpackTo(_o.getA());
   }
   public static int pack(FlatBufferBuilder builder, StructOfStructsOfStructsT _o) {
-    if (_o == null) return 0;
+    if (_o == null)
+      return 0;
     int _a_a_id = _o.getA().getA().getId();
     int _a_a_distance = _o.getA().getA().getDistance();
     short _a_b_a = _o.getA().getB().getA();
@@ -54,13 +72,6 @@ public final class StructOfStructsOfStructs extends Struct {
     int _a_c_id = _o.getA().getC().getId();
     int _a_c_distance = _o.getA().getC().getDistance();
     return createStructOfStructsOfStructs(
-      builder,
-      _a_a_id,
-      _a_a_distance,
-      _a_b_a,
-      _a_b_b,
-      _a_c_id,
-      _a_c_distance);
+        builder, _a_a_id, _a_a_distance, _a_b_a, _a_b_b, _a_c_id, _a_c_distance);
   }
 }
-

@@ -16,12 +16,12 @@
 
 #include <cstdlib>
 #include <iostream>
+
 #include "flatbuffers/util.h"
 
 // Test to validate Conan package generated
 
-int main(int /*argc*/, const char * /*argv*/ []) {
-
+int main(int /*argc*/, const char * /*argv*/[]) {
   const std::string filename("conanbuildinfo.cmake");
 
   if (flatbuffers::FileExists(filename.c_str())) {

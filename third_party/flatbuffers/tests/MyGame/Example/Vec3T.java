@@ -2,10 +2,10 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class Vec3T {
   private float x;
@@ -15,30 +15,53 @@ public class Vec3T {
   private int test2;
   private MyGame.Example.TestT test3;
 
-  public float getX() { return x; }
+  public float getX() {
+    return x;
+  }
 
-  public void setX(float x) { this.x = x; }
+  public void setX(float x) {
+    this.x = x;
+  }
 
-  public float getY() { return y; }
+  public float getY() {
+    return y;
+  }
 
-  public void setY(float y) { this.y = y; }
+  public void setY(float y) {
+    this.y = y;
+  }
 
-  public float getZ() { return z; }
+  public float getZ() {
+    return z;
+  }
 
-  public void setZ(float z) { this.z = z; }
+  public void setZ(float z) {
+    this.z = z;
+  }
 
-  public double getTest1() { return test1; }
+  public double getTest1() {
+    return test1;
+  }
 
-  public void setTest1(double test1) { this.test1 = test1; }
+  public void setTest1(double test1) {
+    this.test1 = test1;
+  }
 
-  public int getTest2() { return test2; }
+  public int getTest2() {
+    return test2;
+  }
 
-  public void setTest2(int test2) { this.test2 = test2; }
+  public void setTest2(int test2) {
+    this.test2 = test2;
+  }
 
-  public MyGame.Example.TestT getTest3() { return test3; }
+  public MyGame.Example.TestT getTest3() {
+    return test3;
+  }
 
-  public void setTest3(MyGame.Example.TestT test3) { this.test3 = test3; }
-
+  public void setTest3(MyGame.Example.TestT test3) {
+    this.test3 = test3;
+  }
 
   public Vec3T() {
     this.x = 0.0f;
@@ -49,4 +72,3 @@ public class Vec3T {
     this.test3 = new MyGame.Example.TestT();
   }
 }
-

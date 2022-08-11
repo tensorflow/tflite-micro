@@ -2,18 +2,21 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class ArrayTableT {
   private MyGame.Example.ArrayStructT a;
 
-  public MyGame.Example.ArrayStructT getA() { return a; }
+  public MyGame.Example.ArrayStructT getA() {
+    return a;
+  }
 
-  public void setA(MyGame.Example.ArrayStructT a) { this.a = a; }
-
+  public void setA(MyGame.Example.ArrayStructT a) {
+    this.a = a;
+  }
 
   public ArrayTableT() {
     this.a = new MyGame.Example.ArrayStructT();
@@ -27,4 +30,3 @@ public class ArrayTableT {
     return fbb.sizedByteArray();
   }
 }
-

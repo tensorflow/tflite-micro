@@ -2,27 +2,33 @@
 
 package MyGame.Example;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.lang.*;
+import java.nio.*;
+import java.util.*;
 
 public class AbilityT {
   private long id;
   private long distance;
 
-  public long getId() { return id; }
+  public long getId() {
+    return id;
+  }
 
-  public void setId(long id) { this.id = id; }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-  public long getDistance() { return distance; }
+  public long getDistance() {
+    return distance;
+  }
 
-  public void setDistance(long distance) { this.distance = distance; }
-
+  public void setDistance(long distance) {
+    this.distance = distance;
+  }
 
   public AbilityT() {
     this.id = 0L;
     this.distance = 0L;
   }
 }
-
