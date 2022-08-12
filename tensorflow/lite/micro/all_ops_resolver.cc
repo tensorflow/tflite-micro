@@ -102,6 +102,7 @@ AllOpsResolver::AllOpsResolver() {
   AddSplitV();
   AddSqrt();
   AddSquare();
+  AddSquaredDifference();
   AddSqueeze();
   AddStridedSlice();
   AddSub();
