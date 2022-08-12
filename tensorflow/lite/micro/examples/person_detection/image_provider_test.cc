@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ TF_LITE_MICRO_TEST(TestImageProvider) {
   for (int i = 0; i < kMaxImageSize; ++i) {
     total += image_data[i];
   }
+  (void)total;
 }
 
 TF_LITE_MICRO_TESTS_END
