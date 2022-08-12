@@ -25,7 +25,9 @@ namespace tflite {
 
 class InterpreterWrapper {
  public:
-  InterpreterWrapper(PyObject* model_data, size_t arena_size);
+  InterpreterWrapper(PyObject* model_data,
+                     const std::vector<std::string>& registerers_by_name,
+                     size_t arena_size);
   ~InterpreterWrapper();
 
   int Invoke();
@@ -36,7 +38,7 @@ class InterpreterWrapper {
   const PyObject* model_;
   std::unique_ptr<tflite::ErrorReporter> error_reporter_;
   std::unique_ptr<uint8_t[]> memory_arena_;
-  const tflite::AllOpsResolver all_ops_resolver_;
+  tflite::AllOpsResolver all_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
 };
 

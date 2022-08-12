@@ -58,7 +58,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect
-  TF_LITE_MICRO_EXPECT_NE(nullptr, input);
+  TF_LITE_MICRO_EXPECT(input != nullptr);
   // The property "dims" tells us the tensor's shape. It has one element for
   // each dimension. Our input is a 2D tensor containing 1 element, so "dims"
   // should have size 2.

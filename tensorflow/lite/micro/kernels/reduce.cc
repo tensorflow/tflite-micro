@@ -52,12 +52,21 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
   return EvalMaxHelper(context, node, op_data);
 }
 
+TfLiteStatus EvalSum(TfLiteContext* context, TfLiteNode* node) {
+  return EvalSumHelper(context, node,
+                       static_cast<OpDataReduce*>(node->user_data));
+}
+
 TfLiteRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalMean);
 }
 
 TfLiteRegistration Register_REDUCE_MAX() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMax, EvalMax);
+}
+
+TfLiteRegistration Register_SUM() {
+  return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalSum);
 }
 
 }  // namespace tflite

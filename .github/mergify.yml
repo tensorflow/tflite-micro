@@ -15,6 +15,9 @@ pull_request_rules:
         name: default
         require_branch_protection: true
         method: squash
+        commit_message_template: |
+          {{ title }}
+          {{ body_raw  }}
 
   - name: remove ci:ready_to_merge label
     conditions:
