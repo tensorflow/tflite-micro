@@ -133,7 +133,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context,
                  input_type == kTfLiteFloat32 || input_type == kTfLiteInt8 ||
                      input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
-                     input_type == kTfLiteInt64);
+                     input_type == kTfLiteInt64 || input_type == kTfLiteBool);
 
   // Output type must match input type
   TF_LITE_ENSURE_EQ(context, output_type, input_type);
@@ -167,6 +167,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
 
   switch (output_type) {  // Already know in/outtypes are same.
+    case kTfLiteBool:
     case kTfLiteFloat32:
     case kTfLiteInt16:
     case kTfLiteInt32:
@@ -235,6 +236,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt16:
       EvalUnquantized<int16_t>(context, node);
+      break;
+    case kTfLiteBool:
+      EvalUnquantized<bool>(context, node);
       break;
 
     default:
