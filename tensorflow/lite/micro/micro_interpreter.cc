@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    size_t tensor_arena_size,
                                    ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfiler* profiler)
+                                   IMicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       error_reporter_(error_reporter),
@@ -61,7 +61,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    MicroAllocator* allocator,
                                    ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfiler* profiler)
+                                   IMicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       error_reporter_(error_reporter),
@@ -81,7 +81,7 @@ MicroInterpreter::~MicroInterpreter() {
   }
 }
 
-void MicroInterpreter::Init(MicroProfiler* profiler) {
+void MicroInterpreter::Init(IMicroProfiler* profiler) {
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;

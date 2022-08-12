@@ -308,6 +308,14 @@ cc_library(
 )
 
 cc_library(
+    name = "imicro_profiler",
+    hdrs = [
+        "imicro_profiler.h",
+    ],
+    copts = micro_copts(),
+)
+
+cc_library(
     name = "micro_profiler",
     srcs = [
         "micro_profiler.cc",
@@ -317,6 +325,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":imicro_profiler",
         ":micro_compatibility",
         ":micro_error_reporter",
         ":micro_time",

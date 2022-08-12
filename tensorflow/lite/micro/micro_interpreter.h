@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ class MicroInterpreter {
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr);
+                   IMicroProfiler* profiler = nullptr);
 
   // Create an interpreter instance using an existing MicroAllocator instance.
   // This constructor should be used when creating an allocator that needs to
@@ -61,7 +61,7 @@ class MicroInterpreter {
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr);
+                   IMicroProfiler* profiler = nullptr);
 
   ~MicroInterpreter();
 
@@ -147,7 +147,7 @@ class MicroInterpreter {
  private:
   // TODO(b/158263161): Consider switching to Create() function to enable better
   // error reporting during initialization.
-  void Init(MicroProfiler* profiler);
+  void Init(IMicroProfiler* profiler);
 
   // Gets the current subgraph index used from within context methods.
   int get_subgraph_index() { return graph_.GetCurrentSubgraphIndex(); }

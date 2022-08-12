@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
-#include <cstdint>
-
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/imicro_profiler.h"
 
 namespace tflite {
 
@@ -26,7 +25,7 @@ namespace tflite {
 // performance. Bottleck operators can be identified along with slow code
 // sections. This can be used in conjunction with running the relevant micro
 // benchmark to evaluate end-to-end performance.
-class MicroProfiler {
+class MicroProfiler : public IMicroProfiler {
  public:
   MicroProfiler() = default;
   virtual ~MicroProfiler() = default;
