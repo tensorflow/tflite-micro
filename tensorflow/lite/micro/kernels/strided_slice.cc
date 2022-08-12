@@ -12,17 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "third_party/tensorflow/lite/kernels/internal/reference/strided_slice.h"
+#include "tensorflow/lite/kernels/internal/reference/strided_slice.h"
 
 #include <cmath>
 #include <cstring>
 
-#include "third_party/tensorflow/lite/c/builtin_op_data.h"
-#include "third_party/tensorflow/lite/c/common.h"
-#include "third_party/tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "third_party/tensorflow/lite/kernels/kernel_util.h"
-#include "third_party/tensorflow/lite/kernels/op_macros.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace ops {
