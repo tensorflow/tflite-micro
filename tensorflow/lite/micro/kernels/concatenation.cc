@@ -1,5 +1,5 @@
 /* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
-
+d
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -132,8 +132,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, params->activation, kTfLiteActNone);
   TF_LITE_ENSURE(context,
                  input_type == kTfLiteFloat32 || input_type == kTfLiteInt8 ||
-                 input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
-                 input_type == kTfLiteInt64 || input_type == kTfLiteBool);
+                     input_type == kTfLiteInt16 || input_type == kTfLiteInt32 ||
+                     input_type == kTfLiteInt64 || input_type == kTfLiteBool);
 
   // Output type must match input type
   TF_LITE_ENSURE_EQ(context, output_type, input_type);
