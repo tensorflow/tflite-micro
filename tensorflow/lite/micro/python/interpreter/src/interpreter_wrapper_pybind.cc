@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
 
@@ -24,9 +25,11 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   m.doc() = "TFLM interpreter";
 
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
-      .def(py::init([](const py::bytes& data, size_t arena_size) {
-        return std::unique_ptr<InterpreterWrapper>(
-            new InterpreterWrapper(data.ptr(), arena_size));
+      .def(py::init([](const py::bytes& data,
+                       const std::vector<std::string>& registerers_by_name,
+                       size_t arena_size) {
+        return std::unique_ptr<InterpreterWrapper>(new InterpreterWrapper(
+            data.ptr(), registerers_by_name, arena_size));
       }))
       .def("Invoke", &InterpreterWrapper::Invoke)
       .def(

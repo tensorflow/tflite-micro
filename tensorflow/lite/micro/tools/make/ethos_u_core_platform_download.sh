@@ -66,10 +66,6 @@ else
 
   LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
 
-  # Prepend #!cpp to scatter file.
-  SCATTER=${LINKER_PATH}/platform.scatter
-  echo -e "#!cpp\n$(cat ${SCATTER})" > ${SCATTER}
-
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
   if [ ! -f ${COMPILER} ]; then
@@ -79,21 +75,7 @@ else
       exit 1
     fi
   fi
-
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld
-
-  # Patch retarget.c so that g++ can find exit symbol.
-  cat <<EOT >> ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300/retarget.c
-
-#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
-#else
-void RETARGET(exit)(int return_code) {
-  RETARGET(_exit)(return_code);
-  while (1) {}
-}
-#endif
-
-EOT
 
 fi
 
