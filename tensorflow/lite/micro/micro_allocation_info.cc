@@ -324,7 +324,8 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
     for (size_t i = 0; i < model_->metadata()->size(); ++i) {
       auto metadata = model_->metadata()->Get(i);
       if (strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
-                  strlen(kOfflineMemAllocMetadata)) == 0) {
+                  std::min((size_t)metadata->name()->size(),
+                           strlen(kOfflineMemAllocMetadata))) == 0) {
         const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers =
             model_->buffers();
         auto* buffer = (*buffers)[metadata->buffer()];
