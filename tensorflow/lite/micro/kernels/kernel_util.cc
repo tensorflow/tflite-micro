@@ -40,9 +40,10 @@ int ValidateTensorIndexing(const TfLiteContext* context, int index,
 TfLiteRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
-    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node)) {
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
+    void (*free)(TfLiteContext* context, void* buffer)) {
   return {/*init=*/init,
-          /*free=*/nullptr,
+          /*free=*/free,
           /*prepare=*/prepare,
           /*invoke=*/invoke,
           /*profiling_string=*/nullptr,
