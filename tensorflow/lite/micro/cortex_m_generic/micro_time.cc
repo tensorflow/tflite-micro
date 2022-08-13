@@ -29,7 +29,8 @@ uint32_t GetCurrentTimeTicks() {
   static bool is_initialized = false;
 
   if (!is_initialized) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
+     !defined(ARMCM0plus))
 #ifdef ARM_MODEL_USE_PMU_COUNTERS
     ARM_PMU_Enable();
     DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
@@ -48,12 +49,13 @@ uint32_t GetCurrentTimeTicks() {
     DWT->CTRL |= 1UL;
 
 #endif
-#endif  // TF_LITE_STRIP_ERROR_STRINGS
+#endif
 
     is_initialized = true;
   }
 
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
+     !defined(ARMCM0plus))
 #ifdef ARM_MODEL_USE_PMU_COUNTERS
   return ARM_PMU_Get_CCNTR();
 #else
@@ -61,7 +63,7 @@ uint32_t GetCurrentTimeTicks() {
 #endif
 #else
   return 0;
-#endif  // TF_LITE_STRIP_ERROR_STRINGS
+#endif
 }
 
 }  // namespace tflite
