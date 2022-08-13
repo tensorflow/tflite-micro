@@ -483,7 +483,7 @@ LstmIntegerTestConfig lstm_integer_peephole_config = {
     .output = lstm_output_peephole,
     .expected_output =
         (int8_t[kLstmNumBatchIntegerPeephole * kLstmSeqLengthIntegerPeephole *
-                kLstmNumOutputIntegerPeephole]){127,127, -16, -21, 127, 127,
+                kLstmNumOutputIntegerPeephole]){127, 127, -16, -21, 127, 127,
                                                 -128, 127, 127, -128, 127, 127,
                                                 127, 127, 105, -128, 127, 127},
 

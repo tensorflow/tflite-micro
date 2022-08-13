@@ -13,8 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
 
 #include <cmath>
 #include <cstdint>
@@ -24,6 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -533,25 +533,19 @@ void CalculateLstmGateInteger8x8_16(
   switch (activation) {
     case kTfLiteActSigmoid:
 
-    reference_integer_ops::Logistic(
-                0/*data->input_multiplier*/, 0 /*data->input_left_shift */,
-                n_batch*n_cell/*NumElements(input->dims)*/,
-                gate /* tflite::micro::GetTensorData<int16_t>(input) */,
-                gate /*tflite::micro::GetTensorData<int16_t>(output) */ ) ;
+      reference_integer_ops::Logistic(
+          0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
+          n_batch * n_cell /*NumElements(input->dims)*/,
+          gate /* tflite::micro::GetTensorData<int16_t>(input) */,
+          gate /*tflite::micro::GetTensorData<int16_t>(output) */);
 
       break;
-    case kTfLiteActTanh:
-    {
-      int32_t dims_data = n_batch*n_cell;
+    case kTfLiteActTanh: {
+      int32_t dims_data = n_batch * n_cell;
       RuntimeShape tanh_inp_shape = RuntimeShape(1, &dims_data);
-      reference_integer_ops::Tanh(
-                0, 0,
-                tanh_inp_shape,
-                gate,
-                tanh_inp_shape,
-                gate);
-    }
-      break;
+      reference_integer_ops::Tanh(0, 0, tanh_inp_shape, gate, tanh_inp_shape,
+                                  gate);
+    } break;
     default:
       // Only Sigmoid or Tanh is used.
       TFLITE_ASSERT_FALSE;
@@ -625,27 +619,22 @@ void CalculateLstmOutputInteger8x8_16(
     int16_t* scratch0, int8_t* scratch1, int32_t* scratch2) {
   // Note: unlike float/hybrid, the activation is always Tanh.
 
+  {
+    int32_t tanh_input_left_shift = (15 + cell_state_scale) - 3;
+    int32_t dims_data = n_batch * n_cell;
+    if (tanh_input_left_shift < 0) /* handling negative shift value */
     {
-        int32_t tanh_input_left_shift = (15 + cell_state_scale) - 3;
-        int32_t dims_data = n_batch*n_cell;
-        if ( tanh_input_left_shift < 0 ) /* handling negative shift value */
-        {
-            int32_t i;
-            tanh_input_left_shift = -tanh_input_left_shift;
-            for(i=0; i < dims_data; i++ )
-            {
-                  cell_state[i] = cell_state[i] >> tanh_input_left_shift;
-            }
-            tanh_input_left_shift = 0;
-        }
-        RuntimeShape tanh_inp_shape = RuntimeShape(1, &dims_data);
-        reference_integer_ops::Tanh(
-                0, tanh_input_left_shift,
-                tanh_inp_shape,
-                cell_state,
-                tanh_inp_shape,
-                scratch0);
-     }
+      int32_t i;
+      tanh_input_left_shift = -tanh_input_left_shift;
+      for (i = 0; i < dims_data; i++) {
+        cell_state[i] = cell_state[i] >> tanh_input_left_shift;
+      }
+      tanh_input_left_shift = 0;
+    }
+    RuntimeShape tanh_inp_shape = RuntimeShape(1, &dims_data);
+    reference_integer_ops::Tanh(0, tanh_input_left_shift, tanh_inp_shape,
+                                cell_state, tanh_inp_shape, scratch0);
+  }
   micro_tensor_utils::CwiseMul(output_gate, scratch0, hidden_scale_a,
                                hidden_scale_b, n_batch, n_cell, hidden_zp,
                                scratch1);
