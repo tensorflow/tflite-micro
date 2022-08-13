@@ -328,8 +328,7 @@ TfLiteStatus EvalMliQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     // Assertion here to prevent usage non-contiguous buffer memory.
     if (data.mli_out.Shape()[out_tensor_dimension] !=
         out_slice.Sub()->shape[0]) {
-      TF_LITE_KERNEL_LOG(
-          context, "Slicing is not supported with real-time permutation.");
+      MicroPrintf("Slicing is not supported with real-time permutation.");
       return kTfLiteError;
     }
     mli_permute_cfg permute_cfg = {{1, 0, 2, 3}};
@@ -397,8 +396,7 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorData<int8_t>(output));
   return kTfLiteOk;
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
   return kTfLiteError;
 #endif
 }
@@ -426,9 +424,8 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorData<float>(output));
   return kTfLiteOk;
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
+  MicroPrintf("Type %s (%d) is not supported by ARC MLI Library.",
+              TfLiteTypeGetName(input->type), input->type);
   return kTfLiteError;
 #endif
 }
@@ -464,8 +461,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

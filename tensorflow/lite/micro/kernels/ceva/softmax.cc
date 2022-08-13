@@ -95,8 +95,8 @@ TfLiteStatus SoftmaxQuantizedCEVA(TfLiteContext* context,
       int depth_mcps = depth;
 
       if (depth > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-        TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
-                           CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, depth);
+        MicroPrintf("Scratch size (%d) less that required (%d)",
+                    CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, depth);
         return kTfLiteError;
       }
 
@@ -143,8 +143,8 @@ TfLiteStatus SoftmaxEvalCEVA(TfLiteContext* context, TfLiteNode* node) {
       return SoftmaxQuantizedCEVA(context, input, output, op_data);
     }
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
 }

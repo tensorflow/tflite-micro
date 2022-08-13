@@ -94,8 +94,8 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   if (sizeof_scratch < output_depth_Dims3) sizeof_scratch = output_depth_Dims3;
 
   if (sizeof_scratch > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-    TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
-                       CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, sizeof_scratch);
+    MicroPrintf("Scratch size (%d) less that required (%d)",
+                CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, sizeof_scratch);
   }
 
 #ifdef MCPS_MEASUREMENT
@@ -234,8 +234,8 @@ TfLiteStatus EvalCEVA(TfLiteContext* context, TfLiteNode* node) {
                               output, nullptr);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

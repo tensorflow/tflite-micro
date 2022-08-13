@@ -774,11 +774,11 @@ TF_LITE_MICRO_TEST(TestOneFullyQuantizedLSTM) {
       /*time_major=*/true, param, 50, activation, cell, output,
       one_parameter.GetScratch0(), one_parameter.GetScratch1(),
       one_parameter.GetScratch2(), one_parameter.GetScratch3(),
-      one_parameter.GetScratch4(), one_parameter.GetScratch5());
+      one_parameter.GetScratch4(), nullptr);
 
   // Verify results.
   const int16_t expected_cell[20] = {
-      7, 1, 3, 2, 0, 1, 0, 2, -2, 4, 1, 6, 4, 3, 0, 1, 0, 2, -2, 4,
+      7, 2, 3, 3, 0, 1, 0, 2, -2, 3, 1, 6, 3, 3, 0, 1, 0, 2, -2, 3,
   };
   const int8_t expected_activation[12] = {
       50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,

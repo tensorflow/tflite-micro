@@ -9,6 +9,5 @@ Therefore the flexbuffers::Builder data is pregenerated on X86.
 # How to generate new data:
 
 ~~~
-    ```g++ -I../../../micro/tools/make/downloads/flatbuffers/include generate_flexbuffers_data.cc && ./a.out > ../flexbuffers_generated_data.cc```
-
+    g++ -I ../../../micro/tools/make/downloads/flatbuffers/include generate_detection_postprocess_flexbuffers_data.cc && ./a.out > ../detection_postprocess_flexbuffers_generated_data.cc
 ~~~

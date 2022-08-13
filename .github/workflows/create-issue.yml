@@ -1,0 +1,43 @@
+name: create-issue
+on:
+  pull_request_target:
+#    types: [labeled, synchronize]
+    types: [labeled]
+      
+
+jobs:
+  make-issue:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ci:issue')
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: dump context
+        run: |
+          cat << OBJECT
+          ${{ toJson(github.event) }}
+          OBJECT
+      - name: callout PR user
+        run: echo ${{ github.event.pull_request.user.login }}
+      - name: create issue
+        uses: JasonEtco/create-an-issue@9e6213aec58987fa7d2f4deb8b256b99e63107a2
+        env:
+          GITHUB_TOKEN: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          PR_NUM: ${{ github.event.number }}
+          PR_LINK: ${{ github.event.pull_request._links.html.href }}
+        with:
+          assignees: ${{ github.event.pull_request.user.login }}
+          filename: .github/ci-error-template.md
+
+      - name: remove issue tag
+        uses: actions/github-script@a3e7071a34d7e1f219a8a4de9a5e0a34d1ee1293
+        with:
+          github-token: ${{secrets.TFLM_BOT_REPO_TOKEN}}
+          script: |
+            github.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:issue'
+            })

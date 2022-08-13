@@ -17,9 +17,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #ifdef TF_LITE_TENSORFLOW_PROFILER
-#include <string>
-
-#include "tensorflow/lite/core/macros.h"
 #include "tensorflow/lite/tensorflow_profiler_logger.h"
 #endif
 
@@ -27,19 +24,6 @@ limitations under the License.
 #include <stdlib.h>
 #include <string.h>
 #endif  // TF_LITE_STATIC_MEMORY
-
-#ifdef TF_LITE_TENSORFLOW_PROFILER
-namespace tflite {
-// Use weak symbols here (even though they are guarded by macros) to avoid
-// build breakage when building a benchmark requires TFLite runs. The main
-// benchmark library should have tensor_profiler_logger dependency.
-TFLITE_ATTRIBUTE_WEAK void OnTfLiteTensorAlloc(TfLiteTensor* tensor,
-                                               size_t num_bytes);
-
-TFLITE_ATTRIBUTE_WEAK void OnTfLiteTensorDealloc(TfLiteTensor* tensor);
-}  // namespace tflite
-
-#endif  // TF_LITE_TENSORFLOW_PROFILER
 
 extern "C" {
 
@@ -119,10 +103,12 @@ void TfLiteFloatArrayFree(TfLiteFloatArray* a) { free(a); }
 void TfLiteTensorDataFree(TfLiteTensor* t) {
   if (t->allocation_type == kTfLiteDynamic ||
       t->allocation_type == kTfLitePersistentRo) {
+    if (t->data.raw) {
 #ifdef TF_LITE_TENSORFLOW_PROFILER
-    tflite::OnTfLiteTensorDealloc(t);
+      tflite::OnTfLiteTensorDealloc(t);
 #endif
-    free(t->data.raw);
+      free(t->data.raw);
+    }
   }
   t->data.raw = nullptr;
 }
