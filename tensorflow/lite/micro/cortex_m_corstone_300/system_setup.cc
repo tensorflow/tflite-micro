@@ -35,7 +35,7 @@ constexpr uint32_t kClocksPerSecond = 25e6;
 uint32_t ticks_per_second() { return kClocksPerSecond; }
 
 uint32_t GetCurrentTimeTicks() {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0))
 #ifdef ARMCM55
   return ARM_PMU_Get_CCNTR();
 #else
@@ -43,7 +43,7 @@ uint32_t GetCurrentTimeTicks() {
 #endif
 #else
   return 0;
-#endif  // TF_LITE_STRIP_ERROR_STRINGS
+#endif
 }
 
 #ifdef ETHOS_U
@@ -67,7 +67,7 @@ void uart_init(void);
 void InitializeTarget() {
   uart_init();
 
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0))
 #ifdef ARMCM55
   ARM_PMU_Enable();
   DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
@@ -83,7 +83,7 @@ void InitializeTarget() {
   DWT->CTRL |= 1UL;
 
 #endif
-#endif  // TF_LITE_STRIP_ERROR_STRINGS
+#endif
 
 #ifdef ETHOS_U
   constexpr int ethosu_base_address = 0x48102000;
