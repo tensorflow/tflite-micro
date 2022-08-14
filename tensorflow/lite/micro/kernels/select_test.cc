@@ -1,9 +1,22 @@
-#include <cstdint>
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
-#include "third_party/tflite_micro/tensorflow/lite/micro/all_ops_resolver.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/kernels/kernel_runner.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/test_helpers.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/testing/micro_test.h"
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/test_helpers.h"
+#include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
 namespace testing {
@@ -157,86 +170,87 @@ TF_LITE_MICRO_TEST(SelectInt32) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithSingleValue) {
-  int input1_shape[] = {1, 1};
-  int input2_shape[] = {5, 1, 2, 2, 2, 1};
-  int input3_shape[] = {4, 1, 2, 2, 1};
+// TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithSingleValue)
+// {
+//   int input1_shape[] = {1, 1};
+//   int input2_shape[] = {5, 1, 2, 2, 2, 1};
+//   int input3_shape[] = {4, 1, 2, 2, 1};
 
-  const bool input1_data[] = {false};
-  const int32_t input2_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
-  const int32_t input3_data[] = {9, 10, 11, 12};
-  const int32_t expected_output[] = {9, 10, 11, 12, 9, 10, 11, 12};
+//   const bool input1_data[] = {false};
+//   const int32_t input2_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+//   const int32_t input3_data[] = {9, 10, 11, 12};
+//   const int32_t expected_output[] = {9, 10, 11, 12, 9, 10, 11, 12};
 
-  int32_t output_data[8];
-  tflite::testing::TestSelect(input1_shape, input1_data, input2_shape,
-                              input2_data, input3_shape, input3_data,
-                              input2_shape, output_data);
-  tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
-}
+//   int32_t output_data[8];
+//   tflite::testing::TestSelect(input1_shape, input1_data, input2_shape,
+//                               input2_data, input3_shape, input3_data,
+//                               input2_shape, output_data);
+//   tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
+// }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt32LesserThan4D) {
-  int input1_shape[] = {2, 1, 2};
-  int inout_shape[] = {3, 1, 2, 2};
+// TF_LITE_MICRO_TEST(BroadcastSelectInt32LesserThan4D) {
+//   int input1_shape[] = {2, 1, 2};
+//   int inout_shape[] = {3, 1, 2, 2};
 
-  const bool input1_data[] = {false, true};
-  const int32_t input2_data[] = {1, 2, 3, 4};
-  const int32_t input3_data[] = {5, 6, 7, 8};
-  const int32_t expected_output[] = {5, 2, 7, 4};
+//   const bool input1_data[] = {false, true};
+//   const int32_t input2_data[] = {1, 2, 3, 4};
+//   const int32_t input3_data[] = {5, 6, 7, 8};
+//   const int32_t expected_output[] = {5, 2, 7, 4};
 
-  int32_t output_data[4];
-  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
-                              input2_data, inout_shape, input3_data,
-                              inout_shape, output_data);
-  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
-}
+//   int32_t output_data[4];
+//   tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+//                               input2_data, inout_shape, input3_data,
+//                               inout_shape, output_data);
+//   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+// }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt32OnFalseValue) {
-  int input1_shape[] = {1, 1};
-  int inout_shape[] = {3, 1, 2, 2};
+// TF_LITE_MICRO_TEST(BroadcastSelectInt32OnFalseValue) {
+//   int input1_shape[] = {1, 1};
+//   int inout_shape[] = {3, 1, 2, 2};
 
-  const bool input1_data[] = {false};
-  const int32_t input2_data[] = {1, 2, 3, 4};
-  const int32_t input3_data[] = {5, 6, 7, 8};
-  const int32_t expected_output[] = {5, 6, 7, 8};
+//   const bool input1_data[] = {false};
+//   const int32_t input2_data[] = {1, 2, 3, 4};
+//   const int32_t input3_data[] = {5, 6, 7, 8};
+//   const int32_t expected_output[] = {5, 6, 7, 8};
 
-  int32_t output_data[4];
-  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
-                              input2_data, inout_shape, input3_data,
-                              inout_shape, output_data);
-  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
-}
+//   int32_t output_data[4];
+//   tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+//                               input2_data, inout_shape, input3_data,
+//                               inout_shape, output_data);
+//   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+// }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt32) {
-  int input1_shape[] = {2, 1, 2};
-  int inout_shape[] = {3, 1, 2, 2};
+// TF_LITE_MICRO_TEST(BroadcastSelectInt32) {
+//   int input1_shape[] = {2, 1, 2};
+//   int inout_shape[] = {3, 1, 2, 2};
 
-  const bool input1_data[] = {false, true};
-  const int32_t input2_data[] = {1, 2, 3, 4};
-  const int32_t input3_data[] = {5, 6, 7, 7};
-  const int32_t expected_output[] = {5, 2, 7, 4};
+//   const bool input1_data[] = {false, true};
+//   const int32_t input2_data[] = {1, 2, 3, 4};
+//   const int32_t input3_data[] = {5, 6, 7, 7};
+//   const int32_t expected_output[] = {5, 2, 7, 4};
 
-  int32_t output_data[4];
-  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
-                              input2_data, inout_shape, input3_data,
-                              inout_shape, output_data);
-  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
-}
+//   int32_t output_data[4];
+//   tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+//                               input2_data, inout_shape, input3_data,
+//                               inout_shape, output_data);
+//   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+// }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithTwoValues) {
-  int input1_shape[] = {1, 2};
-  int input_shape[] = {4, 2, 1, 2, 1};
-  int output_shape[] = {4, 2, 1, 2, 2};
+// TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithTwoValues) {
+//   int input1_shape[] = {1, 2};
+//   int input_shape[] = {4, 2, 1, 2, 1};
+//   int output_shape[] = {4, 2, 1, 2, 2};
 
-  const bool input1_data[] = {false, true};
-  const int32_t input2_data[] = {1, 2, 3, 4};
-  const int32_t input3_data[] = {5, 6, 7, 8};
-  const int32_t expected_output[] = {5, 1, 6, 2, 7, 3, 8, 4};
+//   const bool input1_data[] = {false, true};
+//   const int32_t input2_data[] = {1, 2, 3, 4};
+//   const int32_t input3_data[] = {5, 6, 7, 8};
+//   const int32_t expected_output[] = {5, 1, 6, 2, 7, 3, 8, 4};
 
-  int32_t output_data[8];
-  tflite::testing::TestSelect(input1_shape, input1_data, input_shape,
-                              input2_data, input_shape, input3_data,
-                              output_shape, output_data);
-  tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
-}
+//   int32_t output_data[8];
+//   tflite::testing::TestSelect(input1_shape, input1_data, input_shape,
+//                               input2_data, input_shape, input3_data,
+//                               output_shape, output_data);
+//   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
+// }
 
 TF_LITE_MICRO_TESTS_END
