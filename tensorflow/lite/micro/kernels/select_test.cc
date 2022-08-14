@@ -21,6 +21,10 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
+typedef struct {
+  EmptyStructPlaceholder placeholder;
+} TfLiteSelectParams;
+
 template <typename T>
 void TestSelect(int* input1_dims_data, const bool* input1_data,
                 int* input2_dims_data, const T* input2_data,
@@ -44,10 +48,7 @@ void TestSelect(int* input1_dims_data, const bool* input1_data,
   int outputs_array_data[] = {1, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  TfLiteConcatenationParams builtin_data = {
-      .activation = kTfLiteActNone  // Only activation supported in this impl
-  };
-
+  TfLiteSelectParams builtin_data;
   const TfLiteRegistration registration = tflite::Register_SELECT_V2();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
@@ -170,23 +171,23 @@ TF_LITE_MICRO_TEST(SelectInt32) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-// TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithSingleValue)
-// {
-//   int input1_shape[] = {1, 1};
-//   int input2_shape[] = {5, 1, 2, 2, 2, 1};
-//   int input3_shape[] = {4, 1, 2, 2, 1};
+TF_LITE_MICRO_TEST(BroadcastSelectInt32OneDimensionConditionWithSingleValue)
+{
+  int input1_shape[] = {1, 1};
+  int input2_shape[] = {5, 1, 2, 2, 2, 1};
+  int input3_shape[] = {4, 1, 2, 2, 1};
 
-//   const bool input1_data[] = {false};
-//   const int32_t input2_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
-//   const int32_t input3_data[] = {9, 10, 11, 12};
-//   const int32_t expected_output[] = {9, 10, 11, 12, 9, 10, 11, 12};
+  const bool input1_data[] = {false};
+  const int32_t input2_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int32_t input3_data[] = {9, 10, 11, 12};
+  const int32_t expected_output[] = {9, 10, 11, 12, 9, 10, 11, 12};
 
-//   int32_t output_data[8];
-//   tflite::testing::TestSelect(input1_shape, input1_data, input2_shape,
-//                               input2_data, input3_shape, input3_data,
-//                               input2_shape, output_data);
-//   tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
-// }
+  int32_t output_data[8];
+  tflite::testing::TestSelect(input1_shape, input1_data, input2_shape,
+                              input2_data, input3_shape, input3_data,
+                              input2_shape, output_data);
+  tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
+}
 
 // TF_LITE_MICRO_TEST(BroadcastSelectInt32LesserThan4D) {
 //   int input1_shape[] = {2, 1, 2};
