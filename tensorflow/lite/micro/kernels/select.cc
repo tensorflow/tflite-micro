@@ -23,9 +23,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace select {
 
 constexpr int kInputTensorCondition = 0;
 constexpr int kInputTensorX = 1;
@@ -159,10 +156,6 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
-
-}  // namespace select
-}  // namespace micro
-}  // namespace ops
 
 // SelectV2 op selects values of 'x' if the corresponding value of 'condition'
 // is true or the value of 'y' if false. There are valid condition input sizes:
