@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,19 +65,19 @@ else
     # host architechture
     UNAME_M=`uname -m`
     if [ "${UNAME_M}" == "x86_64" ]; then
-      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2"
-      EXPECTED_MD5="8312c4c91799885f222f663fc81f9a31"
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2"
+      EXPECTED_MD5="2383e4eb4ea23f248d33adc70dc3227e"
     elif [ "${UNAME_M}" == "aarch64" ]; then
-      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.07/gcc-arm-none-eabi-10.3-2021.07-aarch64-linux.tar.bz2"
-      EXPECTED_MD5="c20b0535d01f8d4418341d893c62a782"
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-aarch64-linux.tar.bz2"
+      EXPECTED_MD5="3fe3d8bb693bd0a6e4615b6569443d0d"
     fi
-    
+
   elif [ "${HOST_OS}" == "osx" ]; then
-    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-mac.tar.bz2"
-    EXPECTED_MD5="e588d21be5a0cc9caa60938d2422b058"
+    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.tar.bz2"
+    EXPECTED_MD5="7f2a7b7b23797302a9d6182c6e482449"
   elif [ "${HOST_OS}" == "windows" ]; then
-    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-win32.zip"
-    EXPECTED_MD5="5ee6542a2af847934177bc8fa1294c0d"
+    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip"
+    EXPECTED_MD5="2bc8f0c4c4659f8259c8176223eeafc1"
   else
     echo "OS type ${HOST_OS} not supported."
     exit 1
