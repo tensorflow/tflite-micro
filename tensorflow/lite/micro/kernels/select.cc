@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,15 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include "tensorflow/lite/kernels/internal/reference/select.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
-#include "third_party/tensorflow/lite/c/common.h"
-#include "third_party/tensorflow/lite/kernels/internal/reference/reference_ops.h"
-#include "third_party/tensorflow/lite/kernels/internal/tensor.h"
-#include "third_party/tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "third_party/tensorflow/lite/kernels/kernel_util.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace ops {
@@ -32,11 +32,6 @@ constexpr int kInputTensorX = 1;
 constexpr int kInputTensorY = 2;
 constexpr int kOutputTensor = 0;
 
-enum KernelType {
-  kVersionOne,
-  kVersionTwo,
-};
-
 struct OpData {
   bool requires_broadcast;
   // True if input condition is scalar or input condition has rank one and
@@ -46,20 +41,15 @@ struct OpData {
 
 void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  auto* ptr = context->AllocatePersistentBuffer(context, sizeof(OpData));
-  OpData* data = reinterpret_cast<OpData*>(ptr);
+  auto* data = static_cast<OpData*>(
+      context->AllocatePersistentBuffer(context, sizeof(OpData)));
   data->requires_broadcast = false;
   data->has_low_rank_input_condition = false;
   return data;
 }
 
-void SelectFree(TfLiteContext* context, void* buffer) {
-  delete reinterpret_cast<OpData*>(buffer);
-}
-
-template <KernelType kernel_type>
 TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
-  OpData* data = reinterpret_cast<OpData*>(node->user_data);
+  OpData* data = static_cast<OpData*>(node->user_data);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
@@ -95,32 +85,11 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
                     HaveSameShapes(input_x, input_y);
   TfLiteIntArray* output_size;
   if (!same_shape) {
-    switch (kernel_type) {
-      case kVersionOne: {
-        bool is_input_condition_scalar = NumDimensions(input_condition) == 0;
-        bool has_rank_one_input_condition =
-            NumDimensions(input_condition) == 1 &&
-            SizeOfDimension(input_condition, 0) == SizeOfDimension(input_x, 0);
-        data->has_low_rank_input_condition =
-            is_input_condition_scalar || has_rank_one_input_condition;
-        TF_LITE_ENSURE(context, data->has_low_rank_input_condition);
+    TF_LITE_ENSURE_OK(
+        context, CalculateShapeForBroadcast(context, input_condition, input_x,
+                                            input_y, &output_size));
+    data->requires_broadcast = true;
 
-        output_size = TfLiteIntArrayCopy(input_x->dims);
-
-        // Input tensors must have the same type and size
-        TF_LITE_ENSURE(context, HaveSameShapes(input_x, input_y));
-        break;
-      }
-      case kVersionTwo: {
-        TF_LITE_ENSURE_OK(context, CalculateShapeForBroadcast(
-                                       context, input_condition, input_x,
-                                       input_y, &output_size));
-        data->requires_broadcast = true;
-        break;
-      }
-      default:
-        return kTfLiteError;
-    }
   } else {
     output_size = TfLiteIntArrayCopy(input_x->dims);
   }
@@ -134,7 +103,7 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
-  OpData* data = reinterpret_cast<OpData*>(node->user_data);
+  OpData* data = static_cast<OpData*>(node->user_data);
   MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* input_condition =
@@ -156,36 +125,21 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
                     GetTensorShape(input_y), GetTensorData<type>(input_y), \
                     GetTensorShape(output), GetTensorData<type>(output));
 
-#define TF_LITE_SWITCH(type, op)                                             \
-  switch (type) {                                                            \
-    break;                                                                   \
-    case kTfLiteBool:                                                        \
-      TF_LITE_SELECT(bool, op);                                              \
-      break;                                                                 \
-    case kTfLiteFloat32:                                                     \
-      TF_LITE_SELECT(float, op);                                             \
-      break;                                                                 \
-    case kTfLiteUInt8:                                                       \
-      TF_LITE_SELECT(uint8_t, op);                                           \
-      break;                                                                 \
-    case kTfLiteInt8:                                                        \
-      TF_LITE_SELECT(int8_t, op);                                            \
-      break;                                                                 \
-    case kTfLiteInt16:                                                       \
-      TF_LITE_SELECT(int16_t, op);                                           \
-      break;                                                                 \
-    case kTfLiteInt32:                                                       \
-      TF_LITE_SELECT(int32_t, op);                                           \
-      break;                                                                 \
-    case kTfLiteInt64:                                                       \
-      TF_LITE_SELECT(int64_t, op);                                           \
-      break;                                                                 \
-    default:                                                                 \
-      TF_LITE_KERNEL_LOG(context,                                            \
-                         "Does not support type other than bool|float|int, " \
-                         "got %d",                                           \
-                         type);                                              \
-      return kTfLiteError;                                                   \
+#define TF_LITE_SWITCH(type, op)                                     \
+  switch (type) {                                                    \
+    case kTfLiteFloat32:                                             \
+      TF_LITE_SELECT(float, op);                                     \
+      break;                                                         \
+    case kTfLiteInt8:                                                \
+      TF_LITE_SELECT(int8_t, op);                                    \
+      break;                                                         \
+    case kTfLiteInt16:                                               \
+      TF_LITE_SELECT(int16_t, op);                                   \
+      break;                                                         \
+    default:                                                         \
+      MicroPrintf("Does not support type other than %s, but got %s", \
+                  "int8|int16|float32", TfLiteTypeGetName(type));    \
+      return kTfLiteError;                                           \
   }
 
   if (data->has_low_rank_input_condition) {
@@ -216,10 +170,9 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
 // 1. Either the same shape (in which case the select is elementwise), or
 // 2. Broadcastable shapes between 'condition', 'x' and 'y'.
 TfLiteRegistration Register_SELECT_V2() {
-  return tflite::micro::RegisterOp(
-      ops::micro::select::SelectInit,
-      ops::micro::select::SelectPrepare<ops::micro::select::kVersionTwo>,
-      ops::micro::select::SelectEval);
+  return tflite::micro::RegisterOp(ops::micro::select::SelectInit,
+                                   ops::micro::select::SelectPrepare,
+                                   ops::micro::select::SelectEval);
 }
 
 }  // namespace tflite
