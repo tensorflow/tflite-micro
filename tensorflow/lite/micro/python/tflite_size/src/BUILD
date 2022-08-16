@@ -20,7 +20,7 @@ pybind_library(
         "schema_generated_with_reflective_type.h",
     ],
     deps = [
-        "@flatbuffers",
+        "//third_party/flatbuffers",
     ],
 )
 
