@@ -128,10 +128,9 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteError;                                           \
   }
 
-  if (data->has_low_rank_input_condition) {
-    TF_LITE_SWITCH(input_x->type, RankOneSelect);
-  } else if (data->requires_broadcast) {
-    TF_LITE_SWITCH(input_x->type, BroadcastSelect5DSlow);
+  if (data->has_low_rank_input_condition || data->requires_broadcast) {
+    MicroPrintf("Not yet implemented.");
+    return kTfLiteError;
   } else {
     TF_LITE_SWITCH(input_x->type, Select);
   }
