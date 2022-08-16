@@ -126,4 +126,4 @@ TF_LITE_MICRO_TEST(SelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
- TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_END
