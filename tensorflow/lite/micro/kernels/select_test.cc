@@ -126,21 +126,6 @@ TF_LITE_MICRO_TEST(SelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(SelectInt16) {
-  int inout_shape[] = {4, 1, 1, 1, 4};
-
-  const bool input1_data[] = {false, true, false, false};
-  const int16_t input2_data[] = {1, 2, 3, 4};
-  const int16_t input3_data[] = {5, 6, 7, 8};
-  const int16_t expected_output[] = {5, 2, 7, 8};
-
-  int16_t output_data[4];
-  tflite::testing::TestSelect(inout_shape, input1_data, inout_shape,
-                              input2_data, inout_shape, input3_data,
-                              inout_shape, output_data);
-  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
-}
-
 TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue)
 {
   int input1_shape[] = {1, 1};

@@ -92,6 +92,7 @@ AllOpsResolver::AllOpsResolver() {
   AddResizeNearestNeighbor();
   AddRound();
   AddRsqrt();
+  AddSelectV2();
   AddShape();
   AddSin();
   AddSlice();
