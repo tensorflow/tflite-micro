@@ -126,8 +126,7 @@ TF_LITE_MICRO_TEST(SelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue)
-{
+TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue) {
   int input1_shape[] = {1, 1};
   int input2_shape[] = {5, 1, 2, 2, 2, 1};
   int input3_shape[] = {4, 1, 2, 2, 1};
