@@ -46,8 +46,6 @@ void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
-  OpData* data = static_cast<OpData*>(node->user_data);
-
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -80,16 +78,7 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   bool same_shape = HaveSameShapes(input_condition, input_x) &&
                     HaveSameShapes(input_x, input_y);
-  TfLiteIntArray* output_size;
-  if (!same_shape) {
-    TF_LITE_ENSURE_OK(
-        context, CalculateShapeForBroadcast(context, input_condition, input_x,
-                                            input_y, &output_size));
-    data->requires_broadcast = true;
-
-  } else {
-    output_size = TfLiteIntArrayCopy(input_x->dims);
-  }
+  TF_LITE_ENSURE(context, same_shape);
 
   micro_context->DeallocateTempTfLiteTensor(input_condition);
   micro_context->DeallocateTempTfLiteTensor(input_x);
