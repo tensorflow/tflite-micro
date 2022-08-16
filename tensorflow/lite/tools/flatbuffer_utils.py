@@ -97,7 +97,6 @@ def write_model(model_object, output_tflite_file):
   Raises:
     IOError: If output_tflite_file path is invalid or cannot be opened.
   """
-  print("Flatbuffer file :" + flatbuffers.__file__)
   model_bytearray = convert_object_to_bytearray(model_object)
   with gfile.GFile(output_tflite_file, 'wb') as output_file_handle:
     output_file_handle.write(model_bytearray)

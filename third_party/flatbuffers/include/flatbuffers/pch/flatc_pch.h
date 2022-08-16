@@ -18,22 +18,22 @@
 #define FLATBUFFERS_FLATC_PCH_H_
 
 // stl
-#include <cassert>
 #include <cmath>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <set>
 #include <sstream>
-#include <tuple>
-#include <unordered_map>
+#include <cassert>
 #include <unordered_set>
+#include <unordered_map>
+#include <iostream>
+#include <functional>
+#include <set>
+#include <iterator>
+#include <tuple>
 
 // flatbuffers
+#include "flatbuffers/pch/pch.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
-#include "flatbuffers/pch/pch.h"
 
-#endif  // FLATBUFFERS_FLATC_PCH_H_
+#endif // FLATBUFFERS_FLATC_PCH_H_

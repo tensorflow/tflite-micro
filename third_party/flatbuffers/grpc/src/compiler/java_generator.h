@@ -18,7 +18,6 @@
 #define NET_GRPC_COMPILER_JAVA_GENERATOR_H_
 
 #include <stdlib.h>  // for abort()
-
 #include <iostream>
 #include <map>
 #include <string>
@@ -30,18 +29,18 @@ class LogMessageVoidify {
   LogMessageVoidify() {}
   // This has to be an operator with a precedence lower than << but
   // higher than ?:
-  void operator&(std::ostream &) {}
+  void operator&(std::ostream&) {}
 };
 
 class LogHelper {
-  std::ostream *os_;
+  std::ostream* os_;
 
  public:
-  LogHelper(std::ostream *os) : os_(os) {}
+  LogHelper(std::ostream* os) : os_(os) {}
 #if defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning( \
-      disable : 4722)  // the flow of control terminates in a destructor
+#pragma warning(push)
+#pragma warning( \
+    disable : 4722)  // the flow of control terminates in a destructor
   // (needed to compile ~LogHelper where destructor emits abort intentionally -
   // inherited from grpc/java code generator).
 #endif
@@ -50,9 +49,9 @@ class LogHelper {
     ::abort();
   }
 #if defined(_MSC_VER)
-#  pragma warning(pop)
+#pragma warning(pop)
 #endif
-  std::ostream &get_os() const { return *os_; }
+  std::ostream& get_os() const { return *os_; }
 };
 
 // Abort the program after logging the mesage if the given condition is not
@@ -77,9 +76,9 @@ struct Parameters {
 };
 
 // Return the source of the generated service file.
-grpc::string GenerateServiceSource(grpc_generator::File *file,
-                                   const grpc_generator::Service *service,
-                                   grpc_java_generator::Parameters *parameters);
+grpc::string GenerateServiceSource(grpc_generator::File* file,
+                                   const grpc_generator::Service* service,
+                                   grpc_java_generator::Parameters* parameters);
 
 }  // namespace grpc_java_generator
 

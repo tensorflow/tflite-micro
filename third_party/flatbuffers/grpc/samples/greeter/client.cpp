@@ -1,16 +1,16 @@
+#include "greeter.grpc.fb.h"
+#include "greeter_generated.h"
+
 #include <grpcpp/grpcpp.h>
 
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "greeter.grpc.fb.h"
-#include "greeter_generated.h"
-
 class GreeterClient {
  public:
   GreeterClient(std::shared_ptr<grpc::Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+    : stub_(Greeter::NewStub(channel)) {}
 
   std::string SayHello(const std::string &name) {
     flatbuffers::grpc::MessageBuilder mb;

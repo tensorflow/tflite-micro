@@ -1,11 +1,11 @@
+#include "greeter.grpc.fb.h"
+#include "greeter_generated.h"
+
 #include <grpcpp/grpcpp.h>
 
 #include <iostream>
 #include <memory>
 #include <string>
-
-#include "greeter.grpc.fb.h"
-#include "greeter_generated.h"
 
 class GreeterServiceImpl final : public Greeter::Service {
   virtual grpc::Status SayHello(

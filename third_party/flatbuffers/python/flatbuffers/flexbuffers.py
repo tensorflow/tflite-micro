@@ -646,14 +646,12 @@ class Ref:
       Whether the value was mutated or not.
     """
     if self._type is Type.INT:
-      return _Mutate(I, self._buf, value, self._parent_width,
-                     BitWidth.I(value))
+      return _Mutate(I, self._buf, value, self._parent_width, BitWidth.I(value))
     elif self._type is Type.INDIRECT_INT:
       return _Mutate(I, self._Indirect(), value, self._byte_width,
                      BitWidth.I(value))
     elif self._type is Type.UINT:
-      return _Mutate(U, self._buf, value, self._parent_width,
-                     BitWidth.U(value))
+      return _Mutate(U, self._buf, value, self._parent_width, BitWidth.U(value))
     elif self._type is Type.INDIRECT_UINT:
       return _Mutate(U, self._Indirect(), value, self._byte_width,
                      BitWidth.U(value))
@@ -787,8 +785,7 @@ class Ref:
   def AsFixedTypedVector(self):
     if self.IsFixedTypedVector:
       element_type, size = Type.ToFixedTypedVectorElementType(self._type)
-      return TypedVector(self._Indirect(), self._byte_width, element_type,
-                         size)
+      return TypedVector(self._Indirect(), self._byte_width, element_type, size)
     else:
       raise self._ConvertError('FIXED_TYPED_VECTOR')
 
@@ -925,19 +922,16 @@ class Value:
 
 
 def InMap(func):
-
   def wrapper(self, *args, **kwargs):
     if isinstance(args[0], str):
       self.Key(args[0])
       func(self, *args[1:], **kwargs)
     else:
       func(self, *args, **kwargs)
-
   return wrapper
 
 
 def InMapForString(func):
-
   def wrapper(self, *args):
     if len(args) == 1:
       func(self, args[0])
@@ -946,7 +940,6 @@ def InMapForString(func):
       func(self, args[1])
     else:
       raise ValueError('invalid number of arguments')
-
   return wrapper
 
 
@@ -1052,11 +1045,7 @@ class Builder:
 
   def _WriteAny(self, value, byte_width):
     fmt = {
-        Type.NULL: U,
-        Type.BOOL: U,
-        Type.INT: I,
-        Type.UINT: U,
-        Type.FLOAT: F
+        Type.NULL: U, Type.BOOL: U, Type.INT: I, Type.UINT: U, Type.FLOAT: F
     }.get(value.Type)
     if fmt:
       self._Write(fmt, value.Value, byte_width)
@@ -1122,8 +1111,7 @@ class Builder:
           vector_type = e.Type
         else:
           if vector_type != e.Type:
-            raise RuntimeError(
-                'typed vector elements must be of the same type')
+            raise RuntimeError('typed vector elements must be of the same type')
 
     if fixed and not Type.IsFixedTypedVectorElementType(vector_type):
       raise RuntimeError('must be fixed typed vector element type')
@@ -1247,8 +1235,7 @@ class Builder:
       value: A signed integer value.
       byte_width: Number of bytes to use: 1, 2, 4, or 8.
     """
-    bit_width = BitWidth.I(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.I(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._stack.append(Value.Int(value, bit_width))
 
   @InMap
@@ -1259,8 +1246,7 @@ class Builder:
       value: A signed integer value.
       byte_width: Number of bytes to use: 1, 2, 4, or 8.
     """
-    bit_width = BitWidth.I(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.I(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._PushIndirect(value, Type.INDIRECT_INT, bit_width)
 
   @InMap
@@ -1271,8 +1257,7 @@ class Builder:
       value: An unsigned integer value.
       byte_width: Number of bytes to use: 1, 2, 4, or 8.
     """
-    bit_width = BitWidth.U(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.U(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._stack.append(Value.UInt(value, bit_width))
 
   @InMap
@@ -1283,8 +1268,7 @@ class Builder:
       value: An unsigned integer value.
       byte_width: Number of bytes to use: 1, 2, 4, or 8.
     """
-    bit_width = BitWidth.U(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.U(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._PushIndirect(value, Type.INDIRECT_UINT, bit_width)
 
   @InMap
@@ -1295,8 +1279,7 @@ class Builder:
       value: A floating point value.
       byte_width: Number of bytes to use: 4 or 8.
     """
-    bit_width = BitWidth.F(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.F(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._stack.append(Value.Float(value, bit_width))
 
   @InMap
@@ -1307,8 +1290,7 @@ class Builder:
       value: A floating point value.
       byte_width: Number of bytes to use: 4 or 8.
     """
-    bit_width = BitWidth.F(value) if byte_width == 0 else BitWidth.B(
-        byte_width)
+    bit_width = BitWidth.F(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._PushIndirect(value, Type.INDIRECT_FLOAT, bit_width)
 
   def _StartVector(self):
@@ -1370,15 +1352,11 @@ class Builder:
       elif elements.typecode == 'd':
         self._WriteScalarVector(Type.FLOAT, 8, elements, fixed=False)
       elif elements.typecode in ('b', 'h', 'i', 'l', 'q'):
-        self._WriteScalarVector(Type.INT,
-                                elements.itemsize,
-                                elements,
-                                fixed=False)
+        self._WriteScalarVector(
+            Type.INT, elements.itemsize, elements, fixed=False)
       elif elements.typecode in ('B', 'H', 'I', 'L', 'Q'):
-        self._WriteScalarVector(Type.UINT,
-                                elements.itemsize,
-                                elements,
-                                fixed=False)
+        self._WriteScalarVector(
+            Type.UINT, elements.itemsize, elements, fixed=False)
       else:
         raise ValueError('unsupported array typecode: %s' % elements.typecode)
     else:
@@ -1453,10 +1431,8 @@ class Builder:
       self._stack.extend(pair)
 
     keys = self._CreateVector(self._stack[start::2], typed=True, fixed=False)
-    values = self._CreateVector(self._stack[start + 1::2],
-                                typed=False,
-                                fixed=False,
-                                keys=keys)
+    values = self._CreateVector(
+        self._stack[start + 1::2], typed=False, fixed=False, keys=keys)
 
     del self._stack[start:]
     self._stack.append(values)
@@ -1535,9 +1511,8 @@ def GetRoot(buf):
   if len(buf) < 3:
     raise ValueError('buffer is too small')
   byte_width = buf[-1]
-  return Ref.PackedType(Buf(buf, -(2 + byte_width)),
-                        byte_width,
-                        packed_type=buf[-2])
+  return Ref.PackedType(
+      Buf(buf, -(2 + byte_width)), byte_width, packed_type=buf[-2])
 
 
 def Dumps(obj):

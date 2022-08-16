@@ -105,7 +105,7 @@ class FlatCompiler {
 
   void AnnotateBinaries(const uint8_t *binary_schema,
                         uint64_t binary_schema_size,
-                        const std::string &schema_filename,
+                        const std::string & schema_filename,
                         const std::vector<std::string> &binary_files);
 
   InitParams params_;
