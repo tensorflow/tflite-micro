@@ -165,7 +165,7 @@ class TestDataGenerator:
         interpreter.set_tensor(input_tensor_idx, generated_inputs[idx])
       interpreter.invoke()
 
-      self.write_golden(generated_inputs, model_path, output_tensor)
+      self._write_golden(generated_inputs, model_path, output_tensor)
 
   def _write_golden(self, generated_inputs, model_path, output_tensor):
     """ Generates input and ouputs in CSV format for given model. """
