@@ -72,7 +72,7 @@ void ExpectNear(int* dims, const T* expected_data, const T* output_data) {
   TfLiteIntArray* dims_array = IntArrayFromInts(dims);
   const int element_count = ElementCount(*dims_array);
   for (int i = 0; i < element_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 1e-5);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -85,9 +85,9 @@ TF_LITE_MICRO_TEST(SelectFloat) {
   int inout_shape[] = {4, 1, 1, 1, 4};
 
   const bool input1_data[] = {true, false, true, false};
-  const float input2_data[] = {0.1, 0.2, 0.3, 0.4};
-  const float input3_data[] = {0.5, 0.6, 0.7, 0.8};
-  const float expected_output[] = {0.1, 0.6, 0.3, 0.8};
+  const float input2_data[] = {0.1f, 0.2f, 0.3f, 0.4f};
+  const float input3_data[] = {0.5f, 0.6f, 0.7f, 0.8f};
+  const float expected_output[] = {0.1f, 0.6f, 0.3, 0.8f};
 
   float output_data[4];
   tflite::testing::TestSelect(inout_shape, input1_data, inout_shape,
