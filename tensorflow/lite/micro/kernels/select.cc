@@ -163,9 +163,9 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
 // 1. Either the same shape (in which case the select is elementwise), or
 // 2. Broadcastable shapes between 'condition', 'x' and 'y'.
 TfLiteRegistration Register_SELECT_V2() {
-  return tflite::micro::RegisterOp(ops::micro::select::SelectInit,
-                                   ops::micro::select::SelectPrepare,
-                                   ops::micro::select::SelectEval);
+  return tflite::micro::RegisterOp(tflite::SelectInit,
+                                   tflite::SelectPrepare,
+                                   tflite::SelectEval);
 }
 
 }  // namespace tflite
