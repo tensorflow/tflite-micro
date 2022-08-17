@@ -86,6 +86,7 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M7
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
+  CMSIS_ARM_FEATURES := _DP
 
 else ifeq ($(TARGET_ARCH), cortex-m85)
   CORE=M85
