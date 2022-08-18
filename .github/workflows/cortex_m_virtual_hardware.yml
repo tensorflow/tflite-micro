@@ -21,6 +21,8 @@ env:
     AWS_IAM_PROFILE:       ${{ secrets.ARM_AWS_IAM_PROFILE }}
     AWS_SECURITY_GROUP_ID: ${{ secrets.ARM_AWS_EC2_SECURITY_GROUP_ID }}
     AWS_SUBNET_ID:         ${{ secrets.ARM_AWS_SUBNET_ID }}
+    AWS_KEEP_EC2_INSTANCES: true
+    AWS_KEY_NAME: samuel
 
 jobs:
   cortex_m_generic:
