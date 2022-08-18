@@ -21,8 +21,6 @@ env:
     AWS_IAM_PROFILE:       ${{ secrets.ARM_AWS_IAM_PROFILE }}
     AWS_SECURITY_GROUP_ID: ${{ secrets.ARM_AWS_EC2_SECURITY_GROUP_ID }}
     AWS_SUBNET_ID:         ${{ secrets.ARM_AWS_SUBNET_ID }}
-    AWS_KEEP_EC2_INSTANCES: true
-    AWS_KEY_NAME: samuel
 
 jobs:
   cortex_m_generic:
@@ -42,7 +40,7 @@ jobs:
           python-version: '3.10'
       - name: Install AVH Client for Python
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@set_higher_ssm_timeout
+          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -73,7 +71,7 @@ jobs:
           python-version: '3.10'
       - name: Install AVH Client for Python
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@set_higher_ssm_timeout
+          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
