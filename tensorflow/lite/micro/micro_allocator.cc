@@ -510,13 +510,14 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
   }
 
   // Allocate scratch buffer metadata and buffers for variable tensors.
+  TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
+      scratch_buffer_handles, scratch_buffer_request_count_));
+
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
 
-    TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
-        scratch_buffer_handles, scratch_buffer_request_count_));
     TF_LITE_ENSURE_STATUS(AllocateVariables(
         subgraph, subgraph_allocations[subgraph_idx].tensors));
   }
