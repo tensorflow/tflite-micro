@@ -42,7 +42,7 @@ jobs:
           python-version: '3.10'
       - name: Install AVH Client for Python
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
+          pip install git+https://github.com/ARM-software/avhclient.git@set_higher_ssm_timeout
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -73,7 +73,7 @@ jobs:
           python-version: '3.10'
       - name: Install AVH Client for Python
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
+          pip install git+https://github.com/ARM-software/avhclient.git@set_higher_ssm_timeout
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
