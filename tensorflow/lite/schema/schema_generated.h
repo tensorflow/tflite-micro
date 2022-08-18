@@ -36,6 +36,10 @@ struct SparsityParameters;
 struct SparsityParametersBuilder;
 struct SparsityParametersT;
 
+struct VariantSubType;
+struct VariantSubTypeBuilder;
+struct VariantSubTypeT;
+
 struct Tensor;
 struct TensorBuilder;
 struct TensorT;
@@ -4207,6 +4211,99 @@ inline flatbuffers::Offset<SparsityParameters> CreateSparsityParametersDirect(
 
 flatbuffers::Offset<SparsityParameters> CreateSparsityParameters(flatbuffers::FlatBufferBuilder &_fbb, const SparsityParametersT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct VariantSubTypeT : public flatbuffers::NativeTable {
+  typedef VariantSubType TableType;
+  std::vector<int32_t> shape;
+  tflite::TensorType type;
+  bool has_rank;
+  VariantSubTypeT()
+      : type(tflite::TensorType_FLOAT32),
+        has_rank(false) {
+  }
+};
+
+struct VariantSubType FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VariantSubTypeT NativeTableType;
+  typedef VariantSubTypeBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SHAPE = 4,
+    VT_TYPE = 6,
+    VT_HAS_RANK = 8
+  };
+  const flatbuffers::Vector<int32_t> *shape() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SHAPE);
+  }
+  tflite::TensorType type() const {
+    return static_cast<tflite::TensorType>(GetField<int8_t>(VT_TYPE, 0));
+  }
+  bool has_rank() const {
+    return GetField<uint8_t>(VT_HAS_RANK, 0) != 0;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SHAPE) &&
+           verifier.VerifyVector(shape()) &&
+           VerifyField<int8_t>(verifier, VT_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_HAS_RANK) &&
+           verifier.EndTable();
+  }
+  VariantSubTypeT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(VariantSubTypeT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<VariantSubType> Pack(flatbuffers::FlatBufferBuilder &_fbb, const VariantSubTypeT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct VariantSubTypeBuilder {
+  typedef VariantSubType Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_shape(flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape) {
+    fbb_.AddOffset(VariantSubType::VT_SHAPE, shape);
+  }
+  void add_type(tflite::TensorType type) {
+    fbb_.AddElement<int8_t>(VariantSubType::VT_TYPE, static_cast<int8_t>(type), 0);
+  }
+  void add_has_rank(bool has_rank) {
+    fbb_.AddElement<uint8_t>(VariantSubType::VT_HAS_RANK, static_cast<uint8_t>(has_rank), 0);
+  }
+  explicit VariantSubTypeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  VariantSubTypeBuilder &operator=(const VariantSubTypeBuilder &);
+  flatbuffers::Offset<VariantSubType> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<VariantSubType>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<VariantSubType> CreateVariantSubType(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0,
+    tflite::TensorType type = tflite::TensorType_FLOAT32,
+    bool has_rank = false) {
+  VariantSubTypeBuilder builder_(_fbb);
+  builder_.add_shape(shape);
+  builder_.add_has_rank(has_rank);
+  builder_.add_type(type);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<VariantSubType> CreateVariantSubTypeDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<int32_t> *shape = nullptr,
+    tflite::TensorType type = tflite::TensorType_FLOAT32,
+    bool has_rank = false) {
+  auto shape__ = shape ? _fbb.CreateVector<int32_t>(*shape) : 0;
+  return tflite::CreateVariantSubType(
+      _fbb,
+      shape__,
+      type,
+      has_rank);
+}
+
+flatbuffers::Offset<VariantSubType> CreateVariantSubType(flatbuffers::FlatBufferBuilder &_fbb, const VariantSubTypeT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct TensorT : public flatbuffers::NativeTable {
   typedef Tensor TableType;
   std::vector<int32_t> shape;
@@ -4218,6 +4315,7 @@ struct TensorT : public flatbuffers::NativeTable {
   std::unique_ptr<tflite::SparsityParametersT> sparsity;
   std::vector<int32_t> shape_signature;
   bool has_rank;
+  std::vector<std::unique_ptr<tflite::VariantSubTypeT>> variant_tensors;
   TensorT()
       : type(tflite::TensorType_FLOAT32),
         buffer(0),
@@ -4238,7 +4336,8 @@ struct Tensor FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_IS_VARIABLE = 14,
     VT_SPARSITY = 16,
     VT_SHAPE_SIGNATURE = 18,
-    VT_HAS_RANK = 20
+    VT_HAS_RANK = 20,
+    VT_VARIANT_TENSORS = 22
   };
   const flatbuffers::Vector<int32_t> *shape() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SHAPE);
@@ -4267,6 +4366,9 @@ struct Tensor FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool has_rank() const {
     return GetField<uint8_t>(VT_HAS_RANK, 0) != 0;
   }
+  const flatbuffers::Vector<flatbuffers::Offset<tflite::VariantSubType>> *variant_tensors() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<tflite::VariantSubType>> *>(VT_VARIANT_TENSORS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_SHAPE) &&
@@ -4283,6 +4385,9 @@ struct Tensor FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_SHAPE_SIGNATURE) &&
            verifier.VerifyVector(shape_signature()) &&
            VerifyField<uint8_t>(verifier, VT_HAS_RANK) &&
+           VerifyOffset(verifier, VT_VARIANT_TENSORS) &&
+           verifier.VerifyVector(variant_tensors()) &&
+           verifier.VerifyVectorOfTables(variant_tensors()) &&
            verifier.EndTable();
   }
   TensorT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -4321,6 +4426,9 @@ struct TensorBuilder {
   void add_has_rank(bool has_rank) {
     fbb_.AddElement<uint8_t>(Tensor::VT_HAS_RANK, static_cast<uint8_t>(has_rank), 0);
   }
+  void add_variant_tensors(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<tflite::VariantSubType>>> variant_tensors) {
+    fbb_.AddOffset(Tensor::VT_VARIANT_TENSORS, variant_tensors);
+  }
   explicit TensorBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -4343,8 +4451,10 @@ inline flatbuffers::Offset<Tensor> CreateTensor(
     bool is_variable = false,
     flatbuffers::Offset<tflite::SparsityParameters> sparsity = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape_signature = 0,
-    bool has_rank = false) {
+    bool has_rank = false,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<tflite::VariantSubType>>> variant_tensors = 0) {
   TensorBuilder builder_(_fbb);
+  builder_.add_variant_tensors(variant_tensors);
   builder_.add_shape_signature(shape_signature);
   builder_.add_sparsity(sparsity);
   builder_.add_quantization(quantization);
@@ -4367,10 +4477,12 @@ inline flatbuffers::Offset<Tensor> CreateTensorDirect(
     bool is_variable = false,
     flatbuffers::Offset<tflite::SparsityParameters> sparsity = 0,
     const std::vector<int32_t> *shape_signature = nullptr,
-    bool has_rank = false) {
+    bool has_rank = false,
+    const std::vector<flatbuffers::Offset<tflite::VariantSubType>> *variant_tensors = nullptr) {
   auto shape__ = shape ? _fbb.CreateVector<int32_t>(*shape) : 0;
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto shape_signature__ = shape_signature ? _fbb.CreateVector<int32_t>(*shape_signature) : 0;
+  auto variant_tensors__ = variant_tensors ? _fbb.CreateVector<flatbuffers::Offset<tflite::VariantSubType>>(*variant_tensors) : 0;
   return tflite::CreateTensor(
       _fbb,
       shape__,
@@ -4381,7 +4493,8 @@ inline flatbuffers::Offset<Tensor> CreateTensorDirect(
       is_variable,
       sparsity,
       shape_signature__,
-      has_rank);
+      has_rank,
+      variant_tensors__);
 }
 
 flatbuffers::Offset<Tensor> CreateTensor(flatbuffers::FlatBufferBuilder &_fbb, const TensorT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -13437,6 +13550,38 @@ inline flatbuffers::Offset<SparsityParameters> CreateSparsityParameters(flatbuff
       _dim_metadata);
 }
 
+inline VariantSubTypeT *VariantSubType::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  std::unique_ptr<tflite::VariantSubTypeT> _o = std::unique_ptr<tflite::VariantSubTypeT>(new VariantSubTypeT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void VariantSubType::UnPackTo(VariantSubTypeT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = shape(); if (_e) { _o->shape.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->shape[_i] = _e->Get(_i); } } }
+  { auto _e = type(); _o->type = _e; }
+  { auto _e = has_rank(); _o->has_rank = _e; }
+}
+
+inline flatbuffers::Offset<VariantSubType> VariantSubType::Pack(flatbuffers::FlatBufferBuilder &_fbb, const VariantSubTypeT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateVariantSubType(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<VariantSubType> CreateVariantSubType(flatbuffers::FlatBufferBuilder &_fbb, const VariantSubTypeT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const VariantSubTypeT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _shape = _o->shape.size() ? _fbb.CreateVector(_o->shape) : 0;
+  auto _type = _o->type;
+  auto _has_rank = _o->has_rank;
+  return tflite::CreateVariantSubType(
+      _fbb,
+      _shape,
+      _type,
+      _has_rank);
+}
+
 inline TensorT *Tensor::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   std::unique_ptr<tflite::TensorT> _o = std::unique_ptr<tflite::TensorT>(new TensorT());
   UnPackTo(_o.get(), _resolver);
@@ -13455,6 +13600,7 @@ inline void Tensor::UnPackTo(TensorT *_o, const flatbuffers::resolver_function_t
   { auto _e = sparsity(); if (_e) _o->sparsity = std::unique_ptr<tflite::SparsityParametersT>(_e->UnPack(_resolver)); }
   { auto _e = shape_signature(); if (_e) { _o->shape_signature.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->shape_signature[_i] = _e->Get(_i); } } }
   { auto _e = has_rank(); _o->has_rank = _e; }
+  { auto _e = variant_tensors(); if (_e) { _o->variant_tensors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->variant_tensors[_i] = std::unique_ptr<tflite::VariantSubTypeT>(_e->Get(_i)->UnPack(_resolver)); } } }
 }
 
 inline flatbuffers::Offset<Tensor> Tensor::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TensorT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -13474,6 +13620,7 @@ inline flatbuffers::Offset<Tensor> CreateTensor(flatbuffers::FlatBufferBuilder &
   auto _sparsity = _o->sparsity ? CreateSparsityParameters(_fbb, _o->sparsity.get(), _rehasher) : 0;
   auto _shape_signature = _o->shape_signature.size() ? _fbb.CreateVector(_o->shape_signature) : 0;
   auto _has_rank = _o->has_rank;
+  auto _variant_tensors = _o->variant_tensors.size() ? _fbb.CreateVector<flatbuffers::Offset<tflite::VariantSubType>> (_o->variant_tensors.size(), [](size_t i, _VectorArgs *__va) { return CreateVariantSubType(*__va->__fbb, __va->__o->variant_tensors[i].get(), __va->__rehasher); }, &_va ) : 0;
   return tflite::CreateTensor(
       _fbb,
       _shape,
@@ -13484,7 +13631,8 @@ inline flatbuffers::Offset<Tensor> CreateTensor(flatbuffers::FlatBufferBuilder &
       _is_variable,
       _sparsity,
       _shape_signature,
-      _has_rank);
+      _has_rank,
+      _variant_tensors);
 }
 
 inline Conv2DOptionsT *Conv2DOptions::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
