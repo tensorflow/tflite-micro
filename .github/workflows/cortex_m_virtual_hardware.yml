@@ -48,7 +48,7 @@ jobs:
           aws-region: eu-west-1
       - name: Execute test suite on Arm Virtual Hardware at AWS
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
+          avhclient -b aws -v DEBUG execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
       - name: Fetch results from Arm Virtual Hardware
         run: |
           cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic.log
@@ -79,7 +79,7 @@ jobs:
           aws-region: eu-west-1
       - name: Execute test suite on Arm Virtual Hardware at AWS
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
+          avhclient -b aws -v DEBUG execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
       - name: Fetch results from Arm Virtual Hardware
         run: |
           cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/corstone300.log
