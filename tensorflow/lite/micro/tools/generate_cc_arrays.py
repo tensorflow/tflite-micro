@@ -34,7 +34,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
     out_cc_file.write('#include <cstdint>\n\n')
     out_cc_file.write('#include "{}"\n\n'.format(
         out_fname.split('genfiles/')[-1].replace('.cc', '.h')))
-    out_cc_file.write('const unsigned int {}_size = {};'.format(
+    out_cc_file.write('const unsigned int {}_size = {};\n'.format(
         array_name, str(size)))
     out_cc_file.write('alignas(16) const {} {}[] = {{'.format(
         array_type, array_name))
@@ -44,7 +44,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
   elif out_fname.endswith('.h'):
     out_hdr_file = open(out_fname, 'w')
     out_hdr_file.write('#include <cstdint>\n\n')
-    out_hdr_file.write('extern const unsigned int {}_size;'.format(array_name))
+    out_hdr_file.write('extern const unsigned int {}_size;\n'.format(array_name))
     out_hdr_file.write('extern const {} {}[];\n'.format(
         array_type, array_name))
     out_hdr_file.close()
@@ -129,7 +129,7 @@ def main():
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
-      output_base_fname = os.path.join(args.output, input_file.split('.')[0])
+      output_base_fname = os.path.join(args.output, os.path.splitext(input_file)[0])
       if input_file.endswith('.tflite'):
         output_base_fname = output_base_fname + '_model_data'
       elif input_file.endswith('.bmp'):
