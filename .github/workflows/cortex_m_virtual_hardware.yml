@@ -68,7 +68,12 @@ jobs:
           python-version: '3.10'
       - name: Install AVH Client for Python
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
+          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::720528183931:role/Proj-vht-assume-role
+          aws-region: eu-west-1
       - name: Execute test suite on Arm Virtual Hardware at AWS
         run: |
           avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
