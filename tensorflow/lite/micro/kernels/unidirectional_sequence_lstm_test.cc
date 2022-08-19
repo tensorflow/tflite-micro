@@ -18,10 +18,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
-#include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils"
 #include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc"
 
 namespace tflite {
 namespace testing {
@@ -46,7 +47,7 @@ TfLiteTensor CreateQuantizedWeightTensor(const float* weights,
   float min;
   float max;
   float scaling_factor;
-  micro_tensor_utils::SymmetricQuantizeFloats(
+  portable_tensor_utils::SymmetricQuantizeFloats(
       weights, size, reinterpret_cast<int8_t*>(quantized_weights), &min, &max,
       &scaling_factor);
   tensor.dims = dims;
