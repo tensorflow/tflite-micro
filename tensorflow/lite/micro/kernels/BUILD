@@ -300,7 +300,7 @@ tflm_kernel_cc_library(
     deps = [
         ":activation_utils",
         ":kernel_util",
-        ":micro_tensor_utils",
+        "//tensorflow/lite/kernels/internal:portable_tensor_utils",
         ":micro_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
