@@ -27,6 +27,6 @@ steps:
   - run: |
       git clone https://github.com/tensorflow/tflite-micro.git 
       mv ./tflite-micro/tensorflow/ .
-      tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh > ./corstone300.log
+      tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang &> ./corstone300.log
 download:
   - corstone300.log
