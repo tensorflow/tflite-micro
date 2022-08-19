@@ -43,7 +43,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       FLATBUFFERS_ASSERT(ok);
     #endif
@@ -57,7 +57,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(const size_t elem, const size_t elem_len) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound)
@@ -193,7 +193,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     const auto o = VerifyOffset(start);
     return Check(o != 0) &&
            reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
            && GetComputedSize()
     #endif
@@ -208,7 +208,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!buf) return true;
 
     // If there is a nested buffer, it must be greater than the min size.
-    if(!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
     Verifier nested_verifier(buf->data(), buf->size());
     return nested_verifier.VerifyBuffer<T>(identifier);
@@ -264,7 +264,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t

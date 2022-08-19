@@ -114,10 +114,9 @@ class Namer {
     return Method(s.name);
   }
 
-  virtual std::string Method(const std::string &pre,
-                             const std::string &mid,
+  virtual std::string Method(const std::string &pre, const std::string &mid,
                              const std::string &suf) const {
-    return Format(pre + "_" +  mid + "_" + suf, config_.methods);
+    return Format(pre + "_" + mid + "_" + suf, config_.methods);
   }
   virtual std::string Method(const std::string &pre,
                              const std::string &suf) const {

@@ -3,7 +3,7 @@ if (UNIX)
     set(CPACK_SOURCE_TGZ "ON")
 
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FlatBuffers serialization library and schema compiler.")
-    
+
     set(CPACK_RPM_PACKAGE_HOMEPAGE "https://github.com/google/flatbuffers")
     set(CPACK_RPM_PACKAGE_MAINTAINER "Marc Butler <mockbutler@gmail.com>")
 
@@ -27,7 +27,7 @@ if (UNIX)
 
     # This may reduce rpm compatiblity with very old systems.
     set(CPACK_RPM_COMPRESSION_TYPE lzma)
-    
+
     set(CPACK_RPM_PACKAGE_NAME "flatbuffers")
     set(CPACK_PACKAGE_FILE_NAME
         "${CPACK_RPM_PACKAGE_NAME}_${CPACK_RPM_PACKAGE_VERSION}_${CPACK_RPM_PACKAGE_ARCHITECTURE}")

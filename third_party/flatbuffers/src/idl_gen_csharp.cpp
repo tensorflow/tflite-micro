@@ -1307,9 +1307,9 @@ class CSharpGenerator : public BaseGenerator {
       code += "Offset<" + struct_def.name + ">";
       code += "[] offsets) {\n";
       code += "    Array.Sort(offsets,\n";
-      code += "      (Offset<" + struct_def.name +
-              "> o1, Offset<" + struct_def.name + "> o2) =>\n";
-      code += "        "+ GenKeyGetter(struct_def, key_field);
+      code += "      (Offset<" + struct_def.name + "> o1, Offset<" +
+              struct_def.name + "> o2) =>\n";
+      code += "        " + GenKeyGetter(struct_def, key_field);
       code += ");\n";
       code += "    return builder.CreateVectorOfTables(offsets);\n  }\n";
 

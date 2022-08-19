@@ -28,7 +28,7 @@
 
 // Stringify helpers used solely to cast GRPC_VERSION
 #ifndef STR
-#  define STR(s) #  s
+#  define STR(s) #s
 #endif
 
 #ifndef XSTR

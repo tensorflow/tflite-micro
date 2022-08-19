@@ -702,7 +702,7 @@ class RustGenerator : public BaseGenerator {
   // and an enum array of values
   void GenEnum(const EnumDef &enum_def) {
     const bool is_private = parser_.opts.no_leak_private_annotations &&
-        (enum_def.attributes.Lookup("private") != nullptr);
+                            (enum_def.attributes.Lookup("private") != nullptr);
     code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     code_.SetValue("ENUM_TY", namer_.Type(enum_def));
     code_.SetValue("BASE_TYPE", GetEnumTypeForDecl(enum_def.underlying_type));
@@ -1626,8 +1626,8 @@ class RustGenerator : public BaseGenerator {
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef &struct_def) {
-
-    const bool is_private = parser_.opts.no_leak_private_annotations &&
+    const bool is_private =
+        parser_.opts.no_leak_private_annotations &&
         (struct_def.attributes.Lookup("private") != nullptr);
     code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
@@ -2593,7 +2593,8 @@ class RustGenerator : public BaseGenerator {
   }
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const StructDef &struct_def) {
-    const bool is_private = parser_.opts.no_leak_private_annotations &&
+    const bool is_private =
+        parser_.opts.no_leak_private_annotations &&
         (struct_def.attributes.Lookup("private") != nullptr);
     code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
     // Generates manual padding and alignment.

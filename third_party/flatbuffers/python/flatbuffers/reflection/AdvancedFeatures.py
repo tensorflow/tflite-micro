@@ -2,9 +2,10 @@
 
 # namespace: reflection
 
+
 # New schema language features that are not supported by old code generators.
 class AdvancedFeatures(object):
-    AdvancedArrayFeatures = 1
-    AdvancedUnionFeatures = 2
-    OptionalScalars = 4
-    DefaultVectorsAndStrings = 8
+  AdvancedArrayFeatures = 1
+  AdvancedUnionFeatures = 2
+  OptionalScalars = 4
+  DefaultVectorsAndStrings = 8

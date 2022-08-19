@@ -4,74 +4,107 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+
 np = import_numpy()
+
 
 # File specific information.
 # Symbols declared within a file may be recovered by iterating over all
 # symbols and examining the `declaration_file` field.
 class SchemaFile(object):
-    __slots__ = ['_tab']
+  __slots__ = ['_tab']
 
-    @classmethod
-    def GetRootAs(cls, buf, offset=0):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = SchemaFile()
-        x.Init(buf, n + offset)
-        return x
+  @classmethod
+  def GetRootAs(cls, buf, offset=0):
+    n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+    x = SchemaFile()
+    x.Init(buf, n + offset)
+    return x
 
-    @classmethod
-    def GetRootAsSchemaFile(cls, buf, offset=0):
-        """This method is deprecated. Please switch to GetRootAs."""
-        return cls.GetRootAs(buf, offset)
-    @classmethod
-    def SchemaFileBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
-        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x42\x46\x42\x53", size_prefixed=size_prefixed)
+  @classmethod
+  def GetRootAsSchemaFile(cls, buf, offset=0):
+    """This method is deprecated. Please switch to GetRootAs."""
+    return cls.GetRootAs(buf, offset)
 
-    # SchemaFile
-    def Init(self, buf, pos):
-        self._tab = flatbuffers.table.Table(buf, pos)
+  @classmethod
+  def SchemaFileBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+    return flatbuffers.util.BufferHasIdentifier(buf,
+                                                offset,
+                                                b"\x42\x46\x42\x53",
+                                                size_prefixed=size_prefixed)
 
-    # Filename, relative to project root.
-    # SchemaFile
-    def Filename(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
+  # SchemaFile
+  def Init(self, buf, pos):
+    self._tab = flatbuffers.table.Table(buf, pos)
 
-    # Names of included files, relative to project root.
-    # SchemaFile
-    def IncludedFilenames(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            a = self._tab.Vector(o)
-            return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
-        return ""
+  # Filename, relative to project root.
+  # SchemaFile
+  def Filename(self):
+    o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+    if o != 0:
+      return self._tab.String(o + self._tab.Pos)
+    return None
 
-    # SchemaFile
-    def IncludedFilenamesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.VectorLen(o)
-        return 0
+  # Names of included files, relative to project root.
+  # SchemaFile
+  def IncludedFilenames(self, j):
+    o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+    if o != 0:
+      a = self._tab.Vector(o)
+      return self._tab.String(
+          a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+    return ""
 
-    # SchemaFile
-    def IncludedFilenamesIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        return o == 0
+  # SchemaFile
+  def IncludedFilenamesLength(self):
+    o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+    if o != 0:
+      return self._tab.VectorLen(o)
+    return 0
 
-def SchemaFileStart(builder): builder.StartObject(2)
+  # SchemaFile
+  def IncludedFilenamesIsNone(self):
+    o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+    return o == 0
+
+
+def SchemaFileStart(builder):
+  builder.StartObject(2)
+
+
 def Start(builder):
-    return SchemaFileStart(builder)
-def SchemaFileAddFilename(builder, filename): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(filename), 0)
+  return SchemaFileStart(builder)
+
+
+def SchemaFileAddFilename(builder, filename):
+  builder.PrependUOffsetTRelativeSlot(
+      0, flatbuffers.number_types.UOffsetTFlags.py_type(filename), 0)
+
+
 def AddFilename(builder, filename):
-    return SchemaFileAddFilename(builder, filename)
-def SchemaFileAddIncludedFilenames(builder, includedFilenames): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(includedFilenames), 0)
+  return SchemaFileAddFilename(builder, filename)
+
+
+def SchemaFileAddIncludedFilenames(builder, includedFilenames):
+  builder.PrependUOffsetTRelativeSlot(
+      1, flatbuffers.number_types.UOffsetTFlags.py_type(includedFilenames), 0)
+
+
 def AddIncludedFilenames(builder, includedFilenames):
-    return SchemaFileAddIncludedFilenames(builder, includedFilenames)
-def SchemaFileStartIncludedFilenamesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
+  return SchemaFileAddIncludedFilenames(builder, includedFilenames)
+
+
+def SchemaFileStartIncludedFilenamesVector(builder, numElems):
+  return builder.StartVector(4, numElems, 4)
+
+
 def StartIncludedFilenamesVector(builder, numElems):
-    return SchemaFileStartIncludedFilenamesVector(builder, numElems)
-def SchemaFileEnd(builder): return builder.EndObject()
+  return SchemaFileStartIncludedFilenamesVector(builder, numElems)
+
+
+def SchemaFileEnd(builder):
+  return builder.EndObject()
+
+
 def End(builder):
-    return SchemaFileEnd(builder)
+  return SchemaFileEnd(builder)

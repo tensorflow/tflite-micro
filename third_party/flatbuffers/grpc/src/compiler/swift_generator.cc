@@ -20,12 +20,13 @@
  * please open an issue in the flatbuffers repository. This file should always
  * be maintained according to the Swift-grpc repository
  */
+#include "src/compiler/swift_generator.h"
+
 #include <map>
 #include <sstream>
 
 #include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
-#include "src/compiler/swift_generator.h"
 
 namespace grpc_swift_generator {
 
