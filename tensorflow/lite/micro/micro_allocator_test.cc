@@ -1258,9 +1258,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
                                                        /*num_subgraphs=*/1);
 }
 
-// This tests for the bug fixed in
-// https://github.com/tensorflow/tflite-micro/pull/1363/
-TF_LITE_MICRO_TEST(TestMultisubgraphNumScratchAllocations) {
+TF_LITE_MICRO_TEST(TestMultiSubgraphNumScratchAllocations) {
   // Any test model with multiple subgraphs will suffice
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
@@ -1299,11 +1297,11 @@ TF_LITE_MICRO_TEST(TestMultisubgraphNumScratchAllocations) {
   const int scratch_subgraph_idx = 0;
   const int scratch_node_idx = 0;
   const size_t scratch_size = 0;
-  int buffer_idx1;
+  int buffer_idx1 = -1;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->RequestScratchBufferInArena(
                      scratch_size, scratch_subgraph_idx, &buffer_idx1));
-  int buffer_idx2;
+  int buffer_idx2 = -1;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, allocator->RequestScratchBufferInArena(
                      scratch_size, scratch_subgraph_idx, &buffer_idx2));
