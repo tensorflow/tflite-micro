@@ -27,23 +27,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/..
 cd "${ROOT_DIR}"
 
-rm -rf /tmp/tensorflow
-
-git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
-
 # As part of the import from upstream TF, we generate the Python bindings for
 # the TfLite flatbuffer schema.
 
-
-cd /tmp/tensorflow
-bazel build tensorflow/lite/python:schema_py
-/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
+bazel build tensorflow/lite/python:schema_py_generate
+rm -rf tensorflow/lite/python/schema_py_generated.py
+/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generate_generated.py tensorflow/lite/python/schema_py_generated.py
 
 # Also generate C++ bindings with flatc 1.12.0
-bazel build tensorflow/lite/schema:schema_fbs_srcs
+bazel build tensorflow/lite/schema:schema_fbs_generate_srcs
+rm -rf tensorflow/lite/schema/schema_generated.h
 /bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
 
-cd -
+rm -rf /tmp/tensorflow
+
+git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
