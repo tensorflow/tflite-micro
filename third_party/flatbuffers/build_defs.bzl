@@ -1,6 +1,5 @@
 """BUILD rules for generating flatbuffer files."""
 
-
 flatc_path = "@flatbuffers//:flatc"
 zip_files = "//tensorflow/lite/tools:zip_files"
 

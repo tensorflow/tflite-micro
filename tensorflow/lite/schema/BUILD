@@ -6,7 +6,6 @@ load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 # Its usage should be rare, and is often abused by tools that are doing
 # Flatbuffer creation/manipulation in unofficially supported ways.
 
-
 package(
     default_visibility = [
         "//visibility:public",
@@ -26,7 +25,6 @@ flatbuffer_cc_library(
     name = "schema_fbs_generate",
     srcs = ["schema.fbs"],
 )
-
 
 cc_library(
     name = "schema_utils",

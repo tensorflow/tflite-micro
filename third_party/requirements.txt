@@ -1,4 +1,3 @@
-#flatbuffers==2.0
 tensorflow-cpu
 mako
 pillow

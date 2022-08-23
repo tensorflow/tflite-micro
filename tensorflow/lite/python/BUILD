@@ -1,7 +1,6 @@
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
-
 flatbuffer_py_library(
     name = "schema_py_generate",
     srcs = ["//tensorflow/lite/schema:schema.fbs"],
@@ -16,7 +15,6 @@ py_library(
         requirement("flatbuffers"),
     ],
 )
-
 
 py_library(
     name = "schema_util",
