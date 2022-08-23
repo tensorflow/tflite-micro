@@ -6,7 +6,7 @@ py_library(
     srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("flatbuffers"),
+        "@flatbuffers//:runtime_py",
         requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
     ],
@@ -17,7 +17,7 @@ py_library(
     srcs = ["test_utils.py"],
     srcs_version = "PY3",
     deps = [
-        requirement("flatbuffers"),
+        "@flatbuffers//:runtime_py",
         requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
     ],

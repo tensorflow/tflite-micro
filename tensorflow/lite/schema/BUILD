@@ -1,3 +1,12 @@
+load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
+
+# This is the package group declaration to which targets for TensorFlow Lite
+# Flatbuffer schema utilities.
+#
+# Its usage should be rare, and is often abused by tools that are doing
+# Flatbuffer creation/manipulation in unofficially supported ways.
+
+
 package(
     default_visibility = [
         "//visibility:public",
@@ -5,10 +14,6 @@ package(
     licenses = ["notice"],
 )
 
-# The name schema_fbs is unchanged from upstream TF so that sync'ing shared
-# TfLite/TFLM code does not require a change in the name for this BUILD target.
-# For upstream TFL code, schema_fbs is a flatbuffer_cc_library whereas it is a
-# standard cc_library (with the generated schems header) in the TFLM code.
 cc_library(
     name = "schema_fbs",
     hdrs = ["schema_generated.h"],
@@ -16,6 +21,12 @@ cc_library(
         "@flatbuffers//:runtime_cc",
     ],
 )
+
+flatbuffer_cc_library(
+    name = "schema_fbs_generate",
+    srcs = ["schema.fbs"],
+)
+
 
 cc_library(
     name = "schema_utils",
