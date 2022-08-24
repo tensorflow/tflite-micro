@@ -1,11 +1,5 @@
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 
-# This is the package group declaration to which targets for TensorFlow Lite
-# Flatbuffer schema utilities.
-#
-# Its usage should be rare, and is often abused by tools that are doing
-# Flatbuffer creation/manipulation in unofficially supported ways.
-
 package(
     default_visibility = [
         "//visibility:public",
@@ -22,9 +16,8 @@ package(
 # its own version of the bindings from schema.fbs. This is mostly used as part
 # of the nightly sync from upstream TF.
 
-# b/243587789
-# Update so we only need one schema_fbs target (which will generate
-# the schemas). May need to update some dependencies in BUILD files.
+# TODO(b/243587789): Update so we only need one schema_fbs target (which will
+# generate the schemas). May need to update some dependencies in BUILD files.
 
 cc_library(
     name = "schema_fbs",

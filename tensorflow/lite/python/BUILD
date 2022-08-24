@@ -10,9 +10,8 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 # its own version of the bindings from schema.fbs. This is mostly used as part
 # of the nightly sync from upstream TF.
 
-# b/243587789
-# Update so we only need one schema_py target (which will generate
-# the schemas). May need to update some dependencies in BUILD files.
+# TODO(b/243587789): Update so we only need one schema_py target (which will
+# generate the schemas). May need to update some dependencies in BUILD files.
 
 flatbuffer_py_library(
     name = "schema_py_generate",

@@ -19,6 +19,9 @@ pybind_library(
         "flatbuffer_size_wrapper.h",
         "schema_generated_with_reflective_type.h",
     ],
+    tags = [
+        "no_oss",  # TODO(b/238643065): re-enable once we are using the correct bindings.
+    ],
     deps = [
         "@flatbuffers",
     ],
@@ -30,6 +33,9 @@ pybind_extension(
     name = "flatbuffer_size_wrapper_pybind",
     srcs = [
         "flatbuffer_size_wrapper_pybind.cc",
+    ],
+    tags = [
+        "no_oss",  # TODO(b/238643065): re-enable once we are using the correct bindings.
     ],
     deps = [
         ":flatbuffer_size_wrapper_lib",
@@ -46,6 +52,9 @@ py_library(
         ":flatbuffer_size_wrapper_pybind.so",
     ],
     srcs_version = "PY3",
+    tags = [
+        "no_oss",  # TODO(b/238643065): re-enable once we are using the correct bindings.
+    ],
 )
 
 py_binary(
@@ -54,6 +63,9 @@ py_binary(
         "flatbuffer_size.py",
     ],
     srcs_version = "PY3",
+    tags = [
+        "no_oss",  # TODO(b/238643065): re-enable once we are using the correct bindings.
+    ],
     deps = [
         ":flatbuffer_size_lib",
     ],
