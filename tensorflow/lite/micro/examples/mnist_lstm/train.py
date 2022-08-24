@@ -57,8 +57,11 @@ def get_train_data():
     return (x_train, y_train)
 
 
-def train_lstm_model():
+def train_lstm_model(epochs):
     """Train keras LSTM model on MNIST dataset
+
+    Args:
+        epochs (int) : number of epochs to train the model
 
     Returns:
         tf.keras.Model: A trained keras LSTM model
@@ -70,8 +73,8 @@ def train_lstm_model():
         patience=1)  #early stop if validation loss does not drop anymore
     model.fit(x_train,
               y_train,
-              epochs=1,
-              validation_split=0.92,
+              epochs=epochs,
+              validation_split=0.2,
               batch_size=32,
               callbacks=[callback])
     return model
@@ -93,22 +96,26 @@ def save_tf_model(model, save_path):
     print(f'TF model saved to {save_path}')
 
 
-def save_tflite_model(model, saved_path):
+def save_tflite_model(model, saved_path, optimize):
     """Convert the saved TF model to tflite model, then save it as .tflite flatbuffer format
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
         save_path (str): path to save the model
+        optimize (bool): enable model conversion optimization (dynamic range quantization)
     """
     fixed_input = tf.keras.layers.Input(shape=[28, 28],
                                         batch_size=1,
-                                        dtype = model.inputs[0].dtype,
+                                        dtype=model.inputs[0].dtype,
                                         name='fixed_input')
     fixed_output = model(fixed_input)
     run_model = tf.keras.models.Model(
         fixed_input, fixed_output
     )  #converter requires fixed shape input to work, alternative: b/225231544
     converter = tf.lite.TFLiteConverter.from_keras_model(run_model)
+    if optimize:
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        print('Model conversion with dynamic range quantization')
     tflite_model = converter.convert()
     if not os.path.exists(saved_path):
         os.makedirs(saved_path)
@@ -117,21 +124,26 @@ def save_tflite_model(model, saved_path):
     print(f"Tflite model saved to {saved_path}")
 
 
-def main(save_path, save_raw_model):
+def main(epochs, save_path, save_raw_model, optimize_conversion):
     """train and save LSTM model using keras
 
     Args:
         save_path (string): save path for the trained model
     """
-    trained_model = train_lstm_model()
+    trained_model = train_lstm_model(epochs)
     if save_raw_model:
         save_tf_model(trained_model, save_path)
-    save_tflite_model(trained_model, save_path)
+    save_tflite_model(trained_model, save_path, optimize_conversion)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Train and convert a LSTM model')
+
+    parser.add_argument('--epochs',
+                        type=int,
+                        default=1,
+                        help='number of epochs to train the model')
     parser.add_argument('--save_path',
                         metavar='p',
                         default='/tmp/trained_model',
@@ -140,6 +152,13 @@ if __name__ == '__main__':
                         default=False,
                         help='store the original unconverted tf model',
                         action='store_true')
+    parser.add_argument(
+        '--optimize_conversion',
+        default=False,
+        help=
+        'enable model conversion optimization (dynamic range quantization)',
+        action='store_true')
 
     args = parser.parse_args()
-    main(args.save_path, args.save_tf_model)
+    main(args.epochs, args.save_path, args.save_tf_model,
+         args.optimize_conversion)
