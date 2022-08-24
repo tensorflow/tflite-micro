@@ -113,13 +113,16 @@ def save_tflite_model(model, saved_path, optimize):
       fixed_input, fixed_output
   )  #converter requires fixed shape input to work, alternative: b/225231544
   converter = tf.lite.TFLiteConverter.from_keras_model(run_model)
+  save_name = 'lstm.tflite'
   if optimize:
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    save_name = 'quantized_' + save_name
     print('Model conversion with dynamic range quantization')
   tflite_model = converter.convert()
+
   if not os.path.exists(saved_path):
     os.makedirs(saved_path)
-  with open(saved_path + '/lstm.tflite', 'wb') as f:
+  with open(saved_path + '/' + save_name, 'wb') as f:
     f.write(tflite_model)
   print(f"Tflite model saved to {saved_path}")
 
