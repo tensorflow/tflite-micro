@@ -32,6 +32,19 @@ flatbuffer_cc_library(
     srcs = ["schema.fbs"],
 )
 
+# Generic schema for inference on device (but with reflections makes bigger).
+flatbuffer_cc_library(
+    name = "schema_fbs_with_reflection",
+    srcs = ["schema.fbs"],
+    flatc_args = [
+        "--reflect-types",
+        "--reflect-names",
+        "--no-union-value-namespacing",
+        "--gen-object-api",
+    ],
+    out_prefix = "reflection/",
+)
+
 cc_library(
     name = "schema_utils",
     srcs = ["schema_utils.cc"],
