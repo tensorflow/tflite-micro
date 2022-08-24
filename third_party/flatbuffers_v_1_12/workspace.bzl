@@ -11,9 +11,9 @@ def repo():
             "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/flatbuffers/archive/v1.12.0.tar.gz",
             "https://github.com/google/flatbuffers/archive/v1.12.0.tar.gz",
         ],
-        build_file = "//third_party/flatbuffers:BUILD.bazel",
-        system_build_file = "//third_party/flatbuffers:BUILD.system",
+        build_file = "//third_party/flatbuffers_v_1_12:BUILD.bazel",
+        system_build_file = "//third_party/flatbuffers_v_1_12:BUILD.system",
         link_files = {
-            "//third_party/flatbuffers:build_defs.bzl": "build_defs.bzl",
+            "//third_party/flatbuffers_v_1_12:build_defs.bzl": "build_defs.bzl",
         },
     )
