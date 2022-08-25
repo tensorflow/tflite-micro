@@ -25,7 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
-#include "tensorflow/lite/kernels/internal/reference/portable_tensor_util.h"
+#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
@@ -983,7 +983,7 @@ TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
   }
   if (zero_point != 0) {
     const int8_t* weight = GetTensorData<int8_t>(weight_tensor);
-    micro_tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point, row,
+    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point, row,
                                                        col, *output);
   }
   return kTfLiteOk;
