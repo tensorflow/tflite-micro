@@ -7,7 +7,7 @@ package(
     licenses = ["notice"],
 )
 
-# We are still generating and checking in the C++ bindings in the 
+# We are still generating and checking in the C++ bindings in the
 # nightly sync to keep it working with the Makefiles.
 
 flatbuffer_cc_library(
