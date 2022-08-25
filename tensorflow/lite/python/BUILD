@@ -8,9 +8,6 @@ package(
     licenses = ["notice"],
 )
 
-# We are still generating and checking in the python bindings in the
-# nightly sync to keep it working with the Makefiles.
-
 flatbuffer_py_library(
     name = "schema_py",
     srcs = ["//tensorflow/lite/schema:schema.fbs"],

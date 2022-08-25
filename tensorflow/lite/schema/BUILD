@@ -7,9 +7,8 @@ package(
     licenses = ["notice"],
 )
 
-# We are still generating and checking in the C++ bindings in the
-# nightly sync to keep it working with the Makefiles.
-
+# Note: when wanting to generate the schema_generated.h, you must build as:
+# bazel build schema_fbs_srcs.
 flatbuffer_cc_library(
     name = "schema_fbs",
     srcs = ["schema.fbs"],
