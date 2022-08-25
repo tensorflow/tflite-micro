@@ -115,7 +115,7 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 5);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 5);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 5);
 }
