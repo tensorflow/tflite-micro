@@ -76,9 +76,9 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteOk;
       }
       default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteInt8) {
@@ -114,15 +114,15 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteOk;
       }
       default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else {
-    TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                       TfLiteTypeGetName(input->type),
-                       TfLiteTypeGetName(output->type));
+    MicroPrintf("Input %s, output %s not supported.",
+                TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
   return kTfLiteOk;

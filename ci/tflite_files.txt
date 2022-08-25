@@ -37,6 +37,7 @@ tensorflow/lite/kernels/internal/reference/depth_to_space.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h
 tensorflow/lite/kernels/internal/reference/dequantize.h
+tensorflow/lite/kernels/internal/reference/div.h
 tensorflow/lite/kernels/internal/reference/elu.h
 tensorflow/lite/kernels/internal/reference/exp.h
 tensorflow/lite/kernels/internal/reference/fill.h
@@ -81,6 +82,7 @@ tensorflow/lite/kernels/internal/reference/space_to_depth.h
 tensorflow/lite/kernels/internal/reference/sub.h
 tensorflow/lite/kernels/internal/reference/logistic.h
 tensorflow/lite/kernels/internal/reference/lstm_cell.h
+tensorflow/lite/kernels/internal/reference/select.h
 tensorflow/lite/kernels/internal/reference/slice.h
 tensorflow/lite/kernels/internal/reference/strided_slice.h
 tensorflow/lite/kernels/internal/reference/tanh.h

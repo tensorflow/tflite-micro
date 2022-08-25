@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
@@ -54,7 +54,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 // of a sequential, array of ScratchBufferHandle allocations in the tail
 // section. These allocations are indexed by the request API defined in the
 // TfLiteContext struct.
-typedef struct {
+struct ScratchBufferRequest {
   // Number of bytes required by the buffer. The actual allocated size might be
   // greater than `bytes` due to buffer alignment.
   size_t bytes;
@@ -63,29 +63,29 @@ typedef struct {
   // have `before` = node_idx and `after` = node_idx.
   int node_idx;
   int subgraph_idx;
-} ScratchBufferRequest;
+};
 
 }  // namespace internal
 
-typedef struct {
+struct NodeAndRegistration {
   TfLiteNode node;
   const TfLiteRegistration* registration;
-} NodeAndRegistration;
+};
 
 // Holds a pointer to a buffer for a scratch buffer requested by a kernel during
 // the model prepare stage. This struct is allocated in-place and allows for
 // quick pointer-indexed lookup for speed during model inference.
-typedef struct {
+struct ScratchBufferHandle {
   // Pointer to location of the scratch buffer:
   uint8_t* data;
-} ScratchBufferHandle;
+};
 
 // Stores all per-subgraph allocations. This includes the node and registration
 // array, tensor list and scratch buffer handles for each subgraph.
-typedef struct {
+struct SubgraphAllocations {
   NodeAndRegistration* node_and_registrations;
   TfLiteEvalTensor* tensors;
-} SubgraphAllocations;
+};
 
 // Allocator responsible for allocating memory for all intermediate tensors
 // necessary to invoke a model.
@@ -96,9 +96,9 @@ typedef struct {
 //
 // The MicroAllocator simply plans out additional allocations that are required
 // to standup a model for inference in TF Micro. This class currently relies on
-// an additional allocator - SimpleMemoryAllocator - for all allocations from an
-// arena. These allocations are divided into head (non-persistent) and tail
-// (persistent) regions:
+// an additional allocator - SingleArenaBufferAllocator - for all allocations
+// from an arena. These allocations are divided into head (non-persistent) and
+// tail (persistent) regions:
 //
 // Memory layout to help understand how it works
 // This information could change in the future version.
@@ -129,11 +129,22 @@ class MicroAllocator {
                                 MicroMemoryPlanner* memory_planner,
                                 ErrorReporter* error_reporter);
 
-  // Creates a MicroAllocator instance using the provided SimpleMemoryAllocator
-  // instance and the MemoryPlanner. This allocator instance will use the
-  // SimpleMemoryAllocator instance to manage allocations internally.
-  static MicroAllocator* Create(SimpleMemoryAllocator* memory_allocator,
+  // Creates a MicroAllocator instance using the provided
+  // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
+  // instance will use the SingleArenaBufferAllocator instance to manage
+  // allocations internally.
+  static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
                                 MicroMemoryPlanner* memory_planner,
+                                ErrorReporter* error_reporter);
+
+  // Creates a MicroAllocator instance using the provided
+  // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
+  // instance will use the SingleArenaBufferAllocator instance to manage
+  // allocations internally.
+  static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
+                                size_t persistent_arena_size,
+                                uint8_t* non_persistent_tensor_arena,
+                                size_t non_persistent_arena_size,
                                 ErrorReporter* error_reporter);
 
   // Returns the fixed amount of memory overhead of MicroAllocator.
@@ -223,7 +234,11 @@ class MicroAllocator {
   BuiltinDataAllocator* GetBuiltinDataAllocator();
 
  protected:
-  MicroAllocator(SimpleMemoryAllocator* memory_allocator,
+  MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
+                 MicroMemoryPlanner* memory_planner,
+                 ErrorReporter* error_reporter);
+  MicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator,
+                 INonPersistentBufferAllocator* non_persistent_buffer_allocator,
                  MicroMemoryPlanner* memory_planner,
                  ErrorReporter* error_reporter);
   virtual ~MicroAllocator();

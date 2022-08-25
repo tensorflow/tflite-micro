@@ -26,8 +26,8 @@ namespace {
 template <typename ParamType, typename IndexType>
 void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
                   const IndexType* index_data, int* output_dims,
-                  ParamType* output_data,
-                  const ParamType* expected_output_data) {
+                  ParamType* output_data, const ParamType* expected_output_data,
+                  const TfLiteStatus expected_status = kTfLiteOk) {
   TfLiteIntArray* pdims = IntArrayFromInts(param_dims);
   TfLiteIntArray* idims = IntArrayFromInts(index_dims);
   TfLiteIntArray* odims = IntArrayFromInts(output_dims);
@@ -49,14 +49,16 @@ void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  TF_LITE_MICRO_EXPECT_EQ(expected_status, runner.Invoke());
 
-  // The output tensor's data and shape have been updated by the kernel.
-  TfLiteTensor* actual_output_tensor = &tensors[2];
-  TfLiteIntArray* actual_output_dims = actual_output_tensor->dims;
-  const int output_size = ElementCount(*actual_output_dims);
-  for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+  if (expected_status == kTfLiteOk) {
+    // The output tensor's data and shape have been updated by the kernel.
+    TfLiteTensor* actual_output_tensor = &tensors[2];
+    TfLiteIntArray* actual_output_dims = actual_output_tensor->dims;
+    const int output_size = ElementCount(*actual_output_dims);
+    for (int i = 0; i < output_size; ++i) {
+      TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    }
   }
 }
 
@@ -296,6 +298,34 @@ TF_LITE_MICRO_TEST(GatherNd_Int8Int32) {
   tflite::testing::TestGatherNd<int8_t, int32_t>(
       input_dims, input_data, index_dims, index_data, output_dims, output_data,
       golden_data);
+}
+
+TF_LITE_MICRO_TEST(GatherNd_ReadOOB) {
+  // For input_dims[], index_dims[], or output_dims[], element 0 is the
+  // number of dimensions in that array, not the actual dimension data.
+  int input_dims[] = {2, 2, 2};
+  int index_dims[] = {2, 2, 2};
+  const int32_t index_data[] = {0, 1, 2, 0};
+  const int8_t input_data[] = {1, -1, 1, -2};
+  int8_t output_data;
+  int output_dims[] = {1, 0, 0};
+  tflite::testing::TestGatherNd<int8_t, int32_t>(
+      input_dims, input_data, index_dims, index_data, output_dims, &output_data,
+      nullptr, kTfLiteError);
+}
+
+TF_LITE_MICRO_TEST(GatherNd_ReadOOBNegative) {
+  // For input_dims[], index_dims[], or output_dims[], element 0 is the
+  // number of dimensions in that array, not the actual dimension data.
+  int input_dims[] = {2, 2, 2};
+  int index_dims[] = {2, 2, 2};
+  const int32_t index_data[] = {0, -1, 1, 0};
+  const int8_t input_data[] = {1, -1, 1, -2};
+  int8_t output_data;
+  int output_dims[] = {1, 0, 0};
+  tflite::testing::TestGatherNd<int8_t, int32_t>(
+      input_dims, input_data, index_dims, index_data, output_dims, &output_data,
+      nullptr, kTfLiteError);
 }
 
 TF_LITE_MICRO_TESTS_END

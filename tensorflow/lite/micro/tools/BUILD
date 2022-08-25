@@ -8,6 +8,15 @@ py_library(
     srcs = ["generate_cc_arrays.py"],
 )
 
+py_library(
+    name = "generate_test_for_model",
+    srcs = ["generate_test_for_model.py"],
+    srcs_version = "PY3",
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
 py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],

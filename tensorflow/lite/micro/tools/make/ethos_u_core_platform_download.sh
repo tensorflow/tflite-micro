@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,61 +49,33 @@ if [ -d ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} ]; then
   echo >&2 "${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} already exists, skipping the download."
 else
   UNAME_S=`uname -s`
-  if [ ${UNAME_S} == Linux ]; then
-    ETHOS_U_CORE_PLATFORM_URL=https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git/snapshot/ethos-u-core-platform-e25a89dec1cf990f3168dbd6c565e3b0d51cb151.tar.gz
-    EXPECTED_MD5=0fcba2579f11c4a55ed8c49a2a8a1faa
-  else
+  if [ ${UNAME_S} != Linux ]; then
     echo "OS type ${UNAME_S} not supported."
     exit 1
   fi
 
-  TEMPFILE=$(mktemp -d)/temp_file
-  wget ${ETHOS_U_CORE_PLATFORM_URL} -O ${TEMPFILE} >&2
-  check_md5 ${TEMPFILE} ${EXPECTED_MD5}
+  git clone https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
+  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
+  git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
+  rm -rf .git
+  create_git_repo ./
 
-  mkdir ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
-  tar xzf ${TEMPFILE} --strip-components=1 -C ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
+  apply_patch_to_folder ./ ../../increase-stack-size-and-switch-DTCM-SRAM.patch "TFLM patch"
+
+  cd "${ROOT_DIR}"
 
   LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
-
-  # Prepend #!cpp to scatter file.
-  SCATTER=${LINKER_PATH}/platform.scatter
-  echo -e "#!cpp\n$(cat ${SCATTER})" > ${SCATTER}
 
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
   if [ ! -f ${COMPILER} ]; then
-      RETURN_VALUE=`./tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR}`
-      if [ "SUCCESS" != "${RETURN_VALUE}" ]; then
-        echo "The script ./tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
-        exit 1
-      fi
+    RETURN_VALUE=`./tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR}`
+    if [ "SUCCESS" != "${RETURN_VALUE}" ]; then
+      echo "The script ./tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
+      exit 1
+    fi
   fi
-
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld
-
-  # Move rodata from ITCM to DDR in order to support a bigger model without a specified section.
-  sed -i '/rodata/d' ${LINKER_PATH}/platform_parsed.ld
-  sed -i 's/network_model_sec/\.rodata\*/' ${LINKER_PATH}/platform_parsed.ld
-
-  # Allow tensor_arena in namespace. This will put tensor arena in SRAM intended by linker file.
-  sed -i 's/tensor_arena/\*tensor_arena\*/' ${LINKER_PATH}/platform_parsed.ld
-
-  # Increase stack size - needed for some tests.
-  sed -i 's/__STACK_SIZE = 0x00008000/__STACK_SIZE = 0x00030000/' ${LINKER_PATH}/platform_parsed.ld
-
-  # Patch retarget.c so that g++ can find exit symbol.
-  cat <<EOT >> ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300/retarget.c
-
-#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
-#else
-void RETARGET(exit)(int return_code) {
-  RETARGET(_exit)(return_code);
-  while (1) {}
-}
-#endif
-
-EOT
 
 fi
 
