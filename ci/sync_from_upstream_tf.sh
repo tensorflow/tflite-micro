@@ -29,16 +29,11 @@ cd "${ROOT_DIR}"
 
 # As part of the import from upstream TF, we generate the Python bindings for
 # the TfLite flatbuffer schema.
-
-bazel build tensorflow/lite/python:schema_py_generate
-# TODO(b/243588297): Copy will not let you replace the existing generated file.
-rm -rf tensorflow/lite/python/schema_py_generated.py
-/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generate_generated.py tensorflow/lite/python/schema_py_generated.py
+bazel build tensorflow/lite/python:schema_py
+/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python/schema_py_generated.py
 
 # Also generate C++ bindings with flatc 1.12.0
-bazel build tensorflow/lite/schema:schema_fbs_generate_srcs
-# TODO(b/243588297): Copy will not let you replace the existing generated file.
-rm -rf tensorflow/lite/schema/schema_generated.h
+bazel build tensorflow/lite/schema:schema_fbs_srcs
 /bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
 
 rm -rf /tmp/tensorflow
