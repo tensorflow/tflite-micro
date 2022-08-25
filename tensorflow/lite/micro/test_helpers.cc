@@ -854,6 +854,7 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   const int32_t if_outputs[outputs_size] = {3};
   constexpr size_t operator_inputs_size = 2;
   const int32_t operator_inputs[operator_inputs_size] = {0, 1};
+  const int32_t operator_input_0_twice[operator_inputs_size] = {0, 0};
   const int32_t operator_outputs[outputs_size] = {2};
   constexpr size_t operators_size = 1;
   const Offset<Operator> subgraph1_operators[operators_size] = {
@@ -872,7 +873,7 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   const Offset<Operator> subgraph3_operators[operators_size] = {
       CreateOperator(
           *builder, 2,
-          builder->CreateVector(operator_inputs, operator_inputs_size),
+          builder->CreateVector(operator_input_0_twice, operator_inputs_size),
           builder->CreateVector(operator_outputs, outputs_size),
           BuiltinOptions_NONE),
   };
