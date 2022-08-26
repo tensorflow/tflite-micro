@@ -49,7 +49,7 @@ TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
                                  const TfLiteTensor* input1,
                                  const TfLiteTensor* input2,
                                  const TfLiteTensor* input3,
-                                 TfLiteIntArray* output_shape) {
+                                 const TfLiteIntArray* output_shape) {
   const int dims1 = NumDimensions(input1);
   const int dims2 = NumDimensions(input2);
   const int dims3 = NumDimensions(input3);
