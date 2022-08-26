@@ -56,9 +56,7 @@ def main(model_path, num_test):
       model_path (str): path to the .tflite model
       num_test (int) : number of test to run
   """
-  with open(model_path, 'rb') as f:
-    model = f.read()
-  tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model)
+  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
   x_test, y_test = get_test_data()
   for _ in range(num_test):
     data, label = random_sample_data(x_test, y_test)
