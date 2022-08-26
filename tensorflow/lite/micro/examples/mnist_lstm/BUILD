@@ -9,3 +9,14 @@ py_binary(
         requirement("tensorflow-cpu"),
     ],
 )
+
+py_binary(
+    name = "evaluate",
+    srcs = ["evaluate.py"],
+    srcs_version = "PY3",
+    deps = [
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+    ],
+)

@@ -116,6 +116,7 @@ AllOpsResolver::AllOpsResolver() {
   AddVarHandle();
   AddWhile();
   AddZerosLike();
+  AddUnidirectionalSequenceLSTM();
 }
 
 }  // namespace tflite
