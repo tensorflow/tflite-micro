@@ -46,6 +46,8 @@ void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
+  OpData* data = reinterpret_cast<OpData*>(node->user_data);
+
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -78,7 +80,15 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   bool same_shape = HaveSameShapes(input_condition, input_x) &&
                     HaveSameShapes(input_x, input_y);
-  TF_LITE_ENSURE(context, same_shape);
+  if (!same_shape) {
+    TfLiteIntArray* output_size;
+    TF_LITE_ENSURE_OK(context, CalculateShapeForBroadcast(
+        context, input_condition, input_x,
+        input_y, &output_size));
+    // Can only broadcast when the output shape doesn't change.
+    TF_LITE_ENSURE(context, TfLiteIntArrayEqual(output_size, output->dims));
+    data->requires_broadcast = true;
+  }
 
   micro_context->DeallocateTempTfLiteTensor(input_condition);
   micro_context->DeallocateTempTfLiteTensor(input_x);
@@ -128,9 +138,11 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteError;                                           \
   }
 
-  if (data->has_low_rank_input_condition || data->requires_broadcast) {
+  if (data->has_low_rank_input_condition) {
     MicroPrintf("Not yet implemented.");
     return kTfLiteError;
+  } else if (data->requires_broadcast) {
+    TF_LITE_SWITCH(input_x->type, BroadcastSelect5DSlow);
   } else {
     TF_LITE_SWITCH(input_x->type, Select);
   }

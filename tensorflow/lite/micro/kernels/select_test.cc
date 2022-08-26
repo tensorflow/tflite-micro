@@ -126,4 +126,87 @@ TF_LITE_MICRO_TEST(SelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
+
+TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue) {
+  int input1_shape[] = {1, 1};
+  int input2_shape[] = {5, 1, 2, 2, 2, 1};
+  int input3_shape[] = {4, 1, 2, 2, 1};
+
+  const bool input1_data[] = {false};
+  const int16_t input2_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const int16_t input3_data[] = {9, 10, 11, 12};
+  const int16_t expected_output[] = {9, 10, 11, 12, 9, 10, 11, 12};
+
+  int16_t output_data[8];
+  tflite::testing::TestSelect(input1_shape, input1_data, input2_shape,
+                              input2_data, input3_shape, input3_data,
+                              input2_shape, output_data);
+  tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(BroadcastSelectInt16LesserThan4D) {
+  int input1_shape[] = {2, 1, 2};
+  int inout_shape[] = {3, 1, 2, 2};
+
+  const bool input1_data[] = {false, true};
+  const int16_t input2_data[] = {1, 2, 3, 4};
+  const int16_t input3_data[] = {5, 6, 7, 8};
+  const int16_t expected_output[] = {5, 2, 7, 4};
+
+  int16_t output_data[4];
+  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+                              input2_data, inout_shape, input3_data,
+                              inout_shape, output_data);
+  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(BroadcastSelectInt16OnFalseValue) {
+  int input1_shape[] = {1, 1};
+  int inout_shape[] = {3, 1, 2, 2};
+
+  const bool input1_data[] = {false};
+  const int16_t input2_data[] = {1, 2, 3, 4};
+  const int16_t input3_data[] = {5, 6, 7, 8};
+  const int16_t expected_output[] = {5, 6, 7, 8};
+
+  int16_t output_data[4];
+  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+                              input2_data, inout_shape, input3_data,
+                              inout_shape, output_data);
+  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(BroadcastSelectInt16) {
+  int input1_shape[] = {2, 1, 2};
+  int inout_shape[] = {3, 1, 2, 2};
+
+  const bool input1_data[] = {false, true};
+  const int16_t input2_data[] = {1, 2, 3, 4};
+  const int16_t input3_data[] = {5, 6, 7, 7};
+  const int16_t expected_output[] = {5, 2, 7, 4};
+
+  int16_t output_data[4];
+  tflite::testing::TestSelect(input1_shape, input1_data, inout_shape,
+                              input2_data, inout_shape, input3_data,
+                              inout_shape, output_data);
+  tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithTwoValues) {
+  int input1_shape[] = {1, 2};
+  int input_shape[] = {4, 2, 1, 2, 1};
+  int output_shape[] = {4, 2, 1, 2, 2};
+
+  const bool input1_data[] = {false, true};
+  const int16_t input2_data[] = {1, 2, 3, 4};
+  const int16_t input3_data[] = {5, 6, 7, 8};
+  const int16_t expected_output[] = {5, 1, 6, 2, 7, 3, 8, 4};
+
+  int16_t output_data[8];
+  tflite::testing::TestSelect(input1_shape, input1_data, input_shape,
+                              input2_data, input_shape, input3_data,
+                              output_shape, output_data);
+  tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
+}
+
 TF_LITE_MICRO_TESTS_END
