@@ -56,8 +56,6 @@ TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
   const int out_dims = std::max(std::max(dims1, dims2), dims3);
   TF_LITE_ENSURE_EQ(context, out_dims, output_shape->size);
 
-  std::unique_ptr<TfLiteIntArray, void (*)(TfLiteIntArray*)> shape(
-      TfLiteIntArrayCreate(out_dims), TfLiteIntArrayFree);
   for (int i = 0; i < out_dims; ++i) {
     const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
     const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
@@ -74,7 +72,7 @@ TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
                   GetShapeDebugString(input3->dims).c_str());
       return kTfLiteError;
     }
-    TF_LITE_ENSURE_EQ(context, output_shape->data[out_dims -i - 1], max_value);
+    TF_LITE_ENSURE_EQ(context, output_shape->data[out_dims - i - 1], max_value);
   }
   return kTfLiteOk;
 }
