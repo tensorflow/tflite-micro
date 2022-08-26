@@ -27,9 +27,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/..
 cd "${ROOT_DIR}"
 
-#rm -rf /tmp/tensorflow
+rm -rf /tmp/tensorflow
 
-#git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
+git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
