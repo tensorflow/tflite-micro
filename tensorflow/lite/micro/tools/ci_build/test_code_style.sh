@@ -37,8 +37,6 @@ FIX_FORMAT_FLAG=${1}
 ############################################################
 # License Check
 ############################################################
-# TODO(b/243716132): schema_generated_with_reflective_type.h has been removed. 
-# No longer need this here, but removing it fails formatting (copyright_notice).
 tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py \
   tensorflow/lite/kernels/internal/reference/ \
   tensorflow/lite/micro/ \
@@ -46,7 +44,6 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -p copyright_notice \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
-  -e tensorflow/lite/micro/python/tflite_size/src/schema_generated_with_reflective_type.h \
   -e python/schema_py_generated.py \
   -e tools/make/downloads \
   -e tools/make/targets/ecm3531 \
@@ -95,7 +92,6 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e experimental \
   -e schema/schema_generated.h \
   -e schema/schema_utils.h \
-  -e tensorflow/lite/micro/python/tflite_size/src/schema_generated_with_reflective_type.h \
   -e "\.inc" \
   -e "\.md"
 
