@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-# pylint: disable=line-too-long
 """
 LSTM model training for MNIST recognition
+
+Using python3:
+`python3 tensorflow/lite/micro/examples/mnist_lstm/train.py `
+
+Using bazel:
+`bazel build tensorflow/lite/micro/examples/mnist_lstm:train`
+`bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/train`
 """
 import argparse
 import os
@@ -80,29 +86,29 @@ def train_lstm_model(epochs):
   return model
 
 
-def save_tf_model(model, save_path):
+def save_tf_model(model, save_dir):
   """Save the trained LSTM model in tensorflow format
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
-        save_path (str): path to save the model
+        save_dir (str): directory to save the model
     """
 
   batch_size, steps, input_size = 1, 28, 28
   run_model = tf.function(lambda x: model(x))
   concrete_func = run_model.get_concrete_function(
       tf.TensorSpec([batch_size, steps, input_size], model.inputs[0].dtype))
-  model.save(save_path, save_format="tf", signatures=concrete_func)
-  print(f'TF model saved to {save_path}')
+  model.save(save_dir, save_format="tf", signatures=concrete_func)
+  print(f'TF model saved to {save_dir}')
 
 
-def save_tflite_model(model, saved_path, optimize):
+def save_tflite_model(model, save_dir, optimize):
   """Convert the saved TF model to tflite model, then save it as .tflite flatbuffer format
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
-        save_path (str): path to save the model
-        optimize (bool): enable model conversion optimization (dynamic range quantization)
+        save_dir (str): directory to save the model
+        optimize (bool): enable model conversion optimization
     """
   fixed_input = tf.keras.layers.Input(shape=[28, 28],
                                       batch_size=1,
@@ -117,26 +123,26 @@ def save_tflite_model(model, saved_path, optimize):
   if optimize:
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     save_name = 'quantized_' + save_name
-    print('Model conversion with dynamic range quantization')
+    print('Model conversion using tf.lite.Optimize.DEFAULT')
   tflite_model = converter.convert()
 
-  if not os.path.exists(saved_path):
-    os.makedirs(saved_path)
-  with open(saved_path + '/' + save_name, 'wb') as f:
+  if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+  with open(save_dir + '/' + save_name, 'wb') as f:
     f.write(tflite_model)
-  print(f"Tflite model saved to {saved_path}")
+  print(f"Tflite model saved to {save_dir}")
 
 
-def main(epochs, save_path, save_raw_model, optimize_conversion):
+def main(epochs, save_dir, save_raw_model, optimize_conversion):
   """train and save LSTM model using keras
 
     Args:
-        save_path (string): save path for the trained model
+        save_dir (string): save directory for the trained model
     """
   trained_model = train_lstm_model(epochs)
   if save_raw_model:
-    save_tf_model(trained_model, save_path)
-  save_tflite_model(trained_model, save_path, optimize_conversion)
+    save_tf_model(trained_model, save_dir)
+  save_tflite_model(trained_model, save_dir, optimize_conversion)
 
 
 if __name__ == '__main__':
@@ -147,20 +153,19 @@ if __name__ == '__main__':
                       type=int,
                       default=1,
                       help='number of epochs to train the model')
-  parser.add_argument('--save_path',
+  parser.add_argument('--save_dir',
                       metavar='p',
                       default='/tmp/trained_model',
-                      help='the path to save the trained model')
+                      help='the directory to save the trained model')
   parser.add_argument('--save_tf_model',
                       default=False,
                       help='store the original unconverted tf model',
                       action='store_true')
-  parser.add_argument(
-      '--optimize_conversion',
-      default=False,
-      help='enable model conversion optimization (dynamic range quantization)',
-      action='store_true')
+  parser.add_argument('--optimize_conversion',
+                      default=False,
+                      help='enable model conversion optimization',
+                      action='store_true')
 
   args = parser.parse_args()
-  main(args.epochs, args.save_path, args.save_tf_model,
+  main(args.epochs, args.save_dir, args.save_tf_model,
        args.optimize_conversion)
