@@ -86,22 +86,6 @@ def train_lstm_model(epochs):
   return model
 
 
-def save_tf_model(model, save_dir):
-  """Save the trained LSTM model in tensorflow format
-
-    Args:
-        model (tf.keras.Model): the trained LSTM Model
-        save_dir (str): directory to save the model
-    """
-
-  batch_size, steps, input_size = 1, 28, 28
-  run_model = tf.function(lambda x: model(x))
-  concrete_func = run_model.get_concrete_function(
-      tf.TensorSpec([batch_size, steps, input_size], model.inputs[0].dtype))
-  model.save(save_dir, save_format="tf", signatures=concrete_func)
-  print(f'TF model saved to {save_dir}')
-
-
 def save_tflite_model(model, save_dir, optimize):
   """Convert the saved TF model to tflite model, then save it as .tflite flatbuffer format
 
@@ -110,15 +94,7 @@ def save_tflite_model(model, save_dir, optimize):
         save_dir (str): directory to save the model
         optimize (bool): enable model conversion optimization
     """
-  fixed_input = tf.keras.layers.Input(shape=[28, 28],
-                                      batch_size=1,
-                                      dtype=model.inputs[0].dtype,
-                                      name='fixed_input')
-  fixed_output = model(fixed_input)
-  run_model = tf.keras.models.Model(
-      fixed_input, fixed_output
-  )  #converter requires fixed shape input to work, alternative: b/225231544
-  converter = tf.lite.TFLiteConverter.from_keras_model(run_model)
+  converter = tf.lite.TFLiteConverter.from_keras_model(model)
   save_name = 'lstm.tflite'
   if optimize:
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -140,9 +116,19 @@ def main(epochs, save_dir, save_raw_model, optimize_conversion):
         save_dir (string): save directory for the trained model
     """
   trained_model = train_lstm_model(epochs)
+
+  # converter requires fixed shape input to work, alternative: b/225231544
+  fixed_input = tf.keras.layers.Input(shape=[28, 28],
+                                      batch_size=1,
+                                      dtype=trained_model.inputs[0].dtype,
+                                      name='fixed_input')
+  fixed_output = trained_model(fixed_input)
+  run_model = tf.keras.models.Model(fixed_input, fixed_output)
+
   if save_raw_model:
-    save_tf_model(trained_model, save_dir)
-  save_tflite_model(trained_model, save_dir, optimize_conversion)
+    run_model.save(save_dir, save_format="tf")
+    print(f"TF model saved to {save_dir}")
+  save_tflite_model(run_model, save_dir, optimize_conversion)
 
 
 if __name__ == '__main__':
