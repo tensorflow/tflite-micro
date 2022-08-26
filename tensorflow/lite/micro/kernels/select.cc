@@ -66,10 +66,7 @@ TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
     if (min_value == 0) max_value = 0;
     if (!(d1 == 1 || d1 == max_value) || !(d2 == 1 || d2 == max_value) ||
         !(d3 == 1 || d3 == max_value)) {
-      MicroPrintf("Given shapes, %s, %s and %s, are not broadcastable.",
-                  GetShapeDebugString(input1->dims).c_str(),
-                  GetShapeDebugString(input2->dims).c_str(),
-                  GetShapeDebugString(input3->dims).c_str());
+      MicroPrintf("Given shapes are not broadcastable.");
       return kTfLiteError;
     }
     TF_LITE_ENSURE_EQ(context, output_shape->data[out_dims - i - 1], max_value);
