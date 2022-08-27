@@ -1,0 +1,63 @@
+name: Binary Size Log PR
+
+# Submits a PR with all the size profiling logs from $LOG_BRANCH
+# This is intended to be used with the logs stored by log_binary_size.yml
+#
+# Points that can be confusing: 
+# * git checkout --track <remote>/<branch> creates a local tracking branch from a remote
+#   branch reference and changes to that branch.
+# * git checkout <branch> -- <path> checks out files from <branch> into the current branch.
+#   It does not switch branches.
+#
+# The provided token must be able to submit a PR
+
+on:
+  workflow_dispatch: {}
+
+# uncomment this section to run on schedule
+  schedule:
+    # 6am PT 15 and 30th of month
+#    - cron: '0 13 15,30 * *'
+    # 6am PT every sunday
+    - cron: '0 13 * * 0'
+
+# uncomment this section to run on a tag
+#  pull_request:
+#    types: [labeled]
+#    branches:
+#      - main
+
+env:
+  LOG_BRANCH: profiling-logs
+  
+jobs:
+  binary-size-log:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
+      github.event_name == 'schedule'
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+    - name: prepare files for logging
+      run: |
+        git checkout --track origin/$LOG_BRANCH
+        git checkout main
+        git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
+    - name: Create Logs PR Request
+      id: create-pr
+      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
+      with:
+         branch: binary_size_profiling_update
+         delete-branch: true
+         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+         title: Automated binary size log update
+         commit-message: Automated binary size log update
+         committer: TFLM-bot <tflm-github-bot@google.com>
+         author: TFLM-bot <tflm-github-bot@google.com>
+         body: "BUG=automated binary size log update"
+         labels: ci:run
+         reviewers: advaitjain

@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,12 +130,12 @@ CC_WARNINGS := \
   -Wdouble-promotion \
   -Wshadow \
   -Wunused-variable \
-  -Wmissing-field-initializers \
   -Wunused-function \
   -Wswitch \
   -Wvla \
   -Wall \
   -Wextra \
+  -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
 
@@ -257,10 +257,15 @@ PRJDIR := $(GENDIR)prj/
 # to bypass this check and allow for deeper directory structures.
 MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
 # Internal examples are copied outside the TFLM repo in ../google.
+ifneq ($(wildcard ../google),)
 MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
+endif
 
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
+
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
+tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
 
@@ -284,8 +289,10 @@ tensorflow/lite/micro/micro_string_test.cc \
 tensorflow/lite/micro/micro_time_test.cc \
 tensorflow/lite/micro/micro_utils_test.cc \
 tensorflow/lite/micro/recording_micro_allocator_test.cc \
-tensorflow/lite/micro/recording_simple_memory_allocator_test.cc \
-tensorflow/lite/micro/simple_memory_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
+tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator_test.cc \
 tensorflow/lite/micro/testing_helpers_test.cc \
 tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
 tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
@@ -318,6 +325,7 @@ tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 tensorflow/lite/micro/kernels/dequantize.cc \
 tensorflow/lite/micro/kernels/dequantize_common.cc \
 tensorflow/lite/micro/kernels/detection_postprocess.cc \
+tensorflow/lite/micro/kernels/div.cc \
 tensorflow/lite/micro/kernels/elementwise.cc \
 tensorflow/lite/micro/kernels/elu.cc \
 tensorflow/lite/micro/kernels/ethosu.cc \
@@ -345,7 +353,9 @@ tensorflow/lite/micro/kernels/logical_common.cc \
 tensorflow/lite/micro/kernels/logistic.cc \
 tensorflow/lite/micro/kernels/logistic_common.cc \
 tensorflow/lite/micro/kernels/log_softmax.cc \
+tensorflow/lite/micro/kernels/lstm_eval.cc \
 tensorflow/lite/micro/kernels/maximum_minimum.cc \
+tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 tensorflow/lite/micro/kernels/mirror_pad.cc \
 tensorflow/lite/micro/kernels/mul.cc \
 tensorflow/lite/micro/kernels/mul_common.cc \
@@ -360,10 +370,12 @@ tensorflow/lite/micro/kernels/quantize.cc \
 tensorflow/lite/micro/kernels/quantize_common.cc \
 tensorflow/lite/micro/kernels/read_variable.cc \
 tensorflow/lite/micro/kernels/reduce.cc \
+tensorflow/lite/micro/kernels/reduce_common.cc \
 tensorflow/lite/micro/kernels/reshape.cc \
 tensorflow/lite/micro/kernels/resize_bilinear.cc \
 tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 tensorflow/lite/micro/kernels/round.cc \
+tensorflow/lite/micro/kernels/select.cc \
 tensorflow/lite/micro/kernels/shape.cc \
 tensorflow/lite/micro/kernels/slice.cc \
 tensorflow/lite/micro/kernels/softmax.cc \
@@ -372,6 +384,7 @@ tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
 tensorflow/lite/micro/kernels/space_to_depth.cc \
 tensorflow/lite/micro/kernels/split.cc \
 tensorflow/lite/micro/kernels/split_v.cc \
+tensorflow/lite/micro/kernels/squared_difference.cc \
 tensorflow/lite/micro/kernels/squeeze.cc \
 tensorflow/lite/micro/kernels/strided_slice.cc \
 tensorflow/lite/micro/kernels/sub.cc \
@@ -381,6 +394,7 @@ tensorflow/lite/micro/kernels/svdf_common.cc \
 tensorflow/lite/micro/kernels/tanh.cc \
 tensorflow/lite/micro/kernels/transpose.cc \
 tensorflow/lite/micro/kernels/transpose_conv.cc \
+tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 tensorflow/lite/micro/kernels/unpack.cc \
 tensorflow/lite/micro/kernels/var_handle.cc \
 tensorflow/lite/micro/kernels/while.cc \
@@ -399,6 +413,7 @@ $(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -p
 
 MICROLITE_CC_BASE_SRCS := \
 $(wildcard tensorflow/lite/micro/*.cc) \
+$(wildcard tensorflow/lite/micro/arena_allocator/*.cc) \
 $(wildcard tensorflow/lite/micro/memory_planner/*.cc) \
 $(TFL_CC_SRCS)
 
@@ -406,6 +421,7 @@ MICROLITE_CC_HDRS := \
 $(wildcard tensorflow/lite/micro/*.h) \
 $(wildcard tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard tensorflow/lite/micro/kernels/*.h) \
+$(wildcard tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
@@ -598,6 +614,9 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
 
+# Load generated micro mutable op resolver test.
+include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
+
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
 
@@ -760,6 +779,7 @@ $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET)
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
+generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
 
 # Just build the test targets

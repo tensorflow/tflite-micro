@@ -74,11 +74,12 @@ void setup() {
   // tflite::AllOpsResolver resolver;
   // NOLINTNEXTLINE(runtime-global-variables)
   static tflite::MicroMutableOpResolver<5> micro_op_resolver;
-  micro_op_resolver.AddAveragePool2D();
+  micro_op_resolver.AddAveragePool2D(tflite::Register_AVERAGE_POOL_2D_INT8());
   micro_op_resolver.AddConv2D(tflite::Register_CONV_2D_INT8());
-  micro_op_resolver.AddDepthwiseConv2D();
+  micro_op_resolver.AddDepthwiseConv2D(
+      tflite::Register_DEPTHWISE_CONV_2D_INT8());
   micro_op_resolver.AddReshape();
-  micro_op_resolver.AddSoftmax();
+  micro_op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());
 
   // Build an interpreter to run the model with.
   // NOLINTNEXTLINE(runtime-global-variables)

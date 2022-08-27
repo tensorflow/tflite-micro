@@ -95,7 +95,7 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
+      MicroPrintf( "Type %s not currently supported.",
                          TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
@@ -103,14 +103,8 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_SVDF() {
-  return {/*init=*/HexagonSvdfInit,
-          /*free=*/nullptr,
-          /*prepare=*/HexagonSvdfPrepare,
-          /*invoke=*/SvdfEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare,
+                                   SvdfEval);
 }
 
 }  // namespace tflite

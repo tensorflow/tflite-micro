@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,14 +24,21 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
+if [ $1 = "armclang" ]; then
+    TOOLCHAIN=armclang
+else
+    TOOLCHAIN=gcc
+fi
+
 TARGET=cortex_m_corstone_300
 TARGET_ARCH=cortex-m55
 OPTIMIZED_KERNEL_DIR=cmsis_nn
+TOOLCHAINS=(gcc armclang)
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} third_party_downloads
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} third_party_downloads
 
 # Avoid running tests in parallel.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} build
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} test
+readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} build
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} test

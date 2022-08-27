@@ -85,14 +85,15 @@ TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
         context, node, input, weights_feature, weights_time, bias, params,
         activation_state, output, node->user_data);
   } else {
-    EvalInt16SvdfReference(context, node, input, weights_feature,
-                           weights_time, bias, params, activation_state,
-                           output, data.reference_op_data);
+    EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
+                           bias, params, activation_state, output,
+                           data.reference_op_data);
   }
   return kTfLiteOk;
 }
 
-void* HexagonSvdfInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,
+                      size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
 
@@ -118,20 +119,14 @@ TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
   if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
     TF_LITE_ENSURE_OK(context,
                       tflite::hexagon_svdf::HexagonPrepare(context, node));
-  } 
+  }
 
   return kTfLiteOk;
 }
 
 TfLiteRegistration Register_SVDF_INT8() {
-  return {/*init=*/HexagonSvdfInit,
-          /*free=*/nullptr,
-          /*prepare=*/HexagonSvdfPrepare,
-          /*invoke=*/HexagonSvdfEvalInt8,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare,
+                                   HexagonSvdfEvalInt8);
 }
 
 }  // namespace tflite

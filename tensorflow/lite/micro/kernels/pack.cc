@@ -95,8 +95,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                data->axis);
     }
     default: {
-      TF_LITE_KERNEL_LOG(context, "Type '%s' is not supported by pack.",
-                         TfLiteTypeGetName(output->type));
+      MicroPrintf("Type '%s' is not supported by pack.",
+                  TfLiteTypeGetName(output->type));
       return kTfLiteError;
     }
   }
@@ -108,14 +108,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace pack
 
 TfLiteRegistration Register_PACK() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/nullptr,
-          /*invoke=*/pack::Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(nullptr, nullptr, pack::Eval);
 }
 
 }  // namespace micro

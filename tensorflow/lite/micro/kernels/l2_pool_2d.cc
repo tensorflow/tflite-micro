@@ -125,9 +125,8 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
       L2EvalFloat(*params, *input, &op_params, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context,
-                         "L2_POOL_2D only supports float32 currently, got %s.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("L2_POOL_2D only supports float32 currently, got %s.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -136,14 +135,7 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_L2_POOL_2D() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/L2Prepare,
-          /*invoke=*/L2Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(nullptr, L2Prepare, L2Eval);
 }
 
 }  // namespace tflite

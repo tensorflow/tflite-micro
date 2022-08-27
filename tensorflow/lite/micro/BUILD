@@ -123,33 +123,18 @@ cc_library(
 )
 
 cc_library(
-    name = "ibuffer_allocator",
-    hdrs = [
-        "ibuffer_allocator.h",
-    ],
-    copts = micro_copts(),
-    deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
-    ],
-)
-
-cc_library(
     name = "micro_allocator",
     srcs = [
         "micro_allocation_info.cc",
         "micro_allocator.cc",
-        "simple_memory_allocator.cc",
     ],
     hdrs = [
         "micro_allocation_info.h",
         "micro_allocator.h",
-        "simple_memory_allocator.h",
     ],
     copts = micro_copts(),
     deps = [
         ":flatbuffer_utils",
-        ":ibuffer_allocator",
         ":memory_helpers",
         ":micro_arena_constants",
         ":micro_compatibility",
@@ -158,7 +143,12 @@ cc_library(
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/core/api:op_resolver",
+        "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/arena_allocator:ibuffer_allocator",
+        "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator",
+        "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator",
+        "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
         "//tensorflow/lite/schema:schema_fbs",
@@ -327,6 +317,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":micro_compatibility",
         ":micro_error_reporter",
         ":micro_time",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -354,12 +345,10 @@ cc_library(
     name = "recording_allocators",
     srcs = [
         "recording_micro_allocator.cc",
-        "recording_simple_memory_allocator.cc",
     ],
     hdrs = [
         "recording_micro_allocator.h",
         "recording_micro_interpreter.h",
-        "recording_simple_memory_allocator.h",
     ],
     copts = micro_copts(),
     deps = [
@@ -368,6 +357,7 @@ cc_library(
         ":micro_framework",
         "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator",
     ],
 )
 
@@ -450,31 +440,6 @@ cc_test(
         ":recording_allocators",
         ":test_helpers",
         "//tensorflow/lite/core/api",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-cc_test(
-    name = "simple_memory_allocator_test",
-    srcs = [
-        "simple_memory_allocator_test.cc",
-    ],
-    deps = [
-        ":micro_framework",
-        ":test_helpers",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-cc_test(
-    name = "recording_simple_memory_allocator_test",
-    srcs = [
-        "recording_simple_memory_allocator_test.cc",
-    ],
-    deps = [
-        ":micro_framework",
-        ":recording_allocators",
-        ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

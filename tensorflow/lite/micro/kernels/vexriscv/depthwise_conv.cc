@@ -461,8 +461,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -471,14 +471,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace depthwise_conv
 
 TfLiteRegistration Register_DEPTHWISE_CONV_2D() {
-  return {/*init=*/depthwise_conv::Init,
-          /*free=*/nullptr,
-          /*prepare=*/depthwise_conv::Prepare,
-          /*invoke=*/depthwise_conv::Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(
+      depthwise_conv::Init, depthwise_conv::Prepare, depthwise_conv::Eval);
 }
 
 }  // namespace micro

@@ -37,8 +37,10 @@ ifndef HEXAGON_CPU_VER
   $(error HEXAGON_CPU_VER is undefined)
 endif
 
-ifeq ($(HEXAGON_TFLM_LIB), )
-  $(error HEXAGON_TFLM_LIB is undefined)
+ifneq ($(OPTIMIZED_KERNEL_DIR), )
+  ifeq ($(HEXAGON_TFLM_LIB), )
+    $(error HEXAGON_TFLM_LIB is undefined)
+  endif
 endif
 
 HEXAGON_LPI_BUILD :=

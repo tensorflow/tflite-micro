@@ -193,8 +193,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
   return kTfLiteError;
 #endif
 }
@@ -264,15 +263,14 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(output->type), output->type);
+      MicroPrintf("Type %s (%d) not supported.",
+                  TfLiteTypeGetName(output->type), output->type);
       return kTfLiteError;
   }
 
   return kTfLiteOk;
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
   return kTfLiteError;
 #endif
 }
@@ -410,8 +408,8 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
     ret_val =
         EvalAddQuantized(context, node, params, data, input1, input2, output);
   } else {
-    TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                       TfLiteTypeGetName(output->type), output->type);
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
+                output->type);
     ret_val = kTfLiteError;
   }
 
@@ -419,14 +417,7 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteRegistration Register_ADD() {
-  return {/*init=*/AddInit,
-          /*free=*/nullptr,
-          /*prepare=*/AddPrepare,
-          /*invoke=*/AddEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(AddInit, AddPrepare, AddEval);
 }
 
 }  // namespace tflite

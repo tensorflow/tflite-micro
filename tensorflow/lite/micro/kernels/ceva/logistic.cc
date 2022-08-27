@@ -76,9 +76,9 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteOk;
       }
       default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else if (input->type == kTfLiteInt8) {
@@ -114,15 +114,15 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteOk;
       }
       default:
-        TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                           TfLiteTypeGetName(input->type),
-                           TfLiteTypeGetName(output->type));
+        MicroPrintf("Input %s, output %s not supported.",
+                    TfLiteTypeGetName(input->type),
+                    TfLiteTypeGetName(output->type));
         return kTfLiteError;
     }
   } else {
-    TF_LITE_KERNEL_LOG(context, "Input %s, output %s not supported.",
-                       TfLiteTypeGetName(input->type),
-                       TfLiteTypeGetName(output->type));
+    MicroPrintf("Input %s, output %s not supported.",
+                TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
   return kTfLiteOk;
@@ -131,13 +131,6 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_LOGISTIC() {
-  return {/*init=*/LogisticInit,
-          /*free=*/nullptr,
-          /*prepare=*/LogisticPrepare,
-          /*invoke=*/LogisticEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(LogisticInit, LogisticPrepare, LogisticEval);
 }
 }  // namespace tflite

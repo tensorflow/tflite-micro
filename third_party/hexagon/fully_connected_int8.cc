@@ -53,7 +53,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-
 #include "third_party/hexagon/hexagon_fully_connected.h"
 #include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
 
@@ -86,8 +85,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorData<int8_t>(input),
       tflite::micro::GetTensorShape(filter),
       tflite::micro::GetTensorData<int8_t>(filter),
-      tflite::micro::GetTensorShape(bias),
-      bias_data,
+      tflite::micro::GetTensorShape(bias), bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 
@@ -97,7 +95,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 }  // namespace
 
 void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
-                         size_t length) {
+                                size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = nullptr;
   data = context->AllocatePersistentBuffer(context,
@@ -114,7 +112,8 @@ void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
   return data;
 }
 
-TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context,
+                                          TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -123,23 +122,24 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* no
   const auto params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
-  MicroContext * micro_context = GetMicroContext(context);
+  MicroContext* micro_context = GetMicroContext(context);
 
-   TfLiteTensor* input = micro_context->
-      AllocateTempInputTensor(node, kFullyConnectedInputTensor);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-   TfLiteTensor* filter = micro_context->
-      AllocateTempInputTensor(node, kFullyConnectedWeightsTensor);
+  TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
+      node, kFullyConnectedWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-   TfLiteTensor* bias = micro_context->
-      AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
-  TfLiteTensor* output = micro_context->
-      AllocateTempOutputTensor(node, kFullyConnectedOutputTensor);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
-                                 context, params->activation, input->type,
-                                 input, filter, bias, output, &data->reference_op_data));
+  TF_LITE_ENSURE_OK(
+      context, CalculateOpDataFullyConnected(context, params->activation,
+                                             input->type, input, filter, bias,
+                                             output, &data->reference_op_data));
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   TF_LITE_ENSURE_MSG(context, input->type == filter->type,
@@ -164,7 +164,8 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context, TfLiteNode* no
   return kTfLiteOk;
 }
 
-TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
+                                           TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   const TfLiteEvalTensor* input =
@@ -198,14 +199,9 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context, TfLiteNode* n
 }
 
 TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
-  return {/*init=*/HexagonFullyConnectedInit,
-          /*free=*/nullptr,
-          /*prepare=*/HexagonFullyConnectedPrepare,
-          /*invoke=*/HexagonFullyConnectedEvalInt8,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(HexagonFullyConnectedInit,
+                                   HexagonFullyConnectedPrepare,
+                                   HexagonFullyConnectedEvalInt8);
 }
 
 }  // namespace tflite

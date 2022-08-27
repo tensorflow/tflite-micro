@@ -106,8 +106,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     GetBeginAndSizeVectors<int64_t>(input->dims->size, begin, size,
                                     op_params.begin, op_params.size);
   } else {
-    TF_LITE_KERNEL_LOG(context, "Begin tensor type %s (%d) not supported.",
-                       TfLiteTypeGetName(input->type), input->type);
+    MicroPrintf("Begin tensor type %s (%d) not supported.",
+                TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
   }
 
@@ -151,14 +151,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SLICE() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
 }  // namespace tflite

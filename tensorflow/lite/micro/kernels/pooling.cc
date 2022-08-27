@@ -45,8 +45,8 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       AveragePoolingEvalQuantized(context, node, params, data, input, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Input type %s is not currently supported",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Input type %s is not currently supported",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -73,8 +73,8 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       MaxPoolingEvalQuantized(context, node, params, data, input, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -88,25 +88,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }  // namespace
 
 TfLiteRegistration Register_AVERAGE_POOL_2D() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/PoolingPrepare,
-          /*invoke=*/AverageEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, PoolingPrepare, AverageEval);
 }
 
 TfLiteRegistration Register_MAX_POOL_2D() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/PoolingPrepare,
-          /*invoke=*/MaxEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, PoolingPrepare, MaxEval);
 }
 
 }  // namespace tflite

@@ -41,8 +41,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                             tflite::micro::GetTensorData<float>(output));
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -51,14 +51,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace neg
 
 TfLiteRegistration Register_NEG() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/nullptr,
-          /*invoke=*/neg::Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(nullptr, nullptr, neg::Eval);
 }
 
 }  // namespace micro

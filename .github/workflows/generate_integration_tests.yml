@@ -31,3 +31,14 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_generate_integration_tests.sh
+      - name: error trapping
+        if: ${{ failure() }}
+        env:
+          WORKFLOW: ${{ github.workflow }}
+          RUN_NUMBER: ${{ github.run_number }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          FLAG_LABEL: ci:bot_issue
+        run: |
+          pip3 install PyGithub
+          python3 ci/issue_on_error.py

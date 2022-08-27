@@ -161,8 +161,8 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   const int dilation_height_factor = params->dilation_height_factor;
 
   if ((input_depth * 4) > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-    TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
-                       CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, (input_depth * 4));
+    MicroPrintf("Scratch size (%d) less that required (%d)",
+                CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, (input_depth * 4));
   }
 
 #ifdef MCPS_MEASUREMENT
@@ -223,8 +223,8 @@ TfLiteStatus EvalCEVA(TfLiteContext* context, TfLiteNode* node) {
                               output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -241,14 +241,8 @@ TfLiteStatus DepthWiseConvEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_DEPTHWISE_CONV_2D() {
-  return {/*init=*/Init,
-          /*free=*/nullptr,
-          /*prepare=*/DepthwiseConvPrepare,
-          /*invoke=*/DepthWiseConvEval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(Init, DepthwiseConvPrepare,
+                                   DepthWiseConvEval);
 }
 
 }  // namespace tflite

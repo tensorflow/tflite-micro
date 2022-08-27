@@ -239,8 +239,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int32_t>(output));
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;
@@ -248,14 +248,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace strided_slice
 
 TfLiteRegistration Register_STRIDED_SLICE() {
-  return {/*init=*/strided_slice::Init,
-          /*free=*/nullptr,
-          /*prepare=*/strided_slice::Prepare,
-          /*invoke=*/strided_slice::Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(strided_slice::Init, strided_slice::Prepare,
+                                   strided_slice::Eval);
 }
 
 }  // namespace micro

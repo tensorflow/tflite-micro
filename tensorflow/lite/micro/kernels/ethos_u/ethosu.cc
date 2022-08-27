@@ -36,8 +36,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-void Free(TfLiteContext* context, void* buffer) {}
-
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(context != nullptr);
   TF_LITE_ENSURE(context, node->inputs->size > 0);
@@ -47,13 +45,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* data = static_cast<OpData*>(node->user_data);
   int num_base_addr = node->inputs->size + node->outputs->size;
 
-  // Request arrays for the base address pointers and sizes
+  // Request arrays for the base address pointers and sizes.
   TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
       context, num_base_addr * sizeof(uint64_t), &data->base_addr_idx));
   TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
       context, num_base_addr * sizeof(size_t), &data->base_addr_size_idx));
 
-  // Get command stream data size
+  // Get command stream data size.
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* tensor = micro_context->AllocateTempInputTensor(node, 0);
   data->cms_data_size = tensor->bytes;
@@ -66,7 +64,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(context != nullptr);
   TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
-  // Get base addresses
+  // Get base addresses.
   TfLiteEvalTensor* tensor;
   int i = 0;
   int num_tensors = 0;
@@ -84,15 +82,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto root = flexbuffers::GetRoot(custom_data, node->custom_initial_data_size);
   co_type = root.AsInt8();
   if (co_type != CO_TYPE_ETHOSU) {
-    TF_LITE_KERNEL_LOG(context, "CO_TYPE != ETHOSU");
+    MicroPrintf("CO_TYPE != ETHOSU");
     return kTfLiteError;
   }
 
-  // Get command stream data address
+  // Get command stream data address.
   tensor = context->GetEvalTensor(context, node->inputs->data[0]);
   cms_data = reinterpret_cast<void*>(tensor->data.uint8);
 
-  // Get addresses to weights/scratch/input data
+  // Get addresses to weights/scratch/input data.
   for (i = 1; i < node->inputs->size; ++i) {
     tensor = context->GetEvalTensor(context, node->inputs->data[i]);
     base_addrs[num_tensors] =
@@ -105,7 +103,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     num_tensors++;
   }
 
-  // Get addresses to output data
+  // Get addresses to output data.
   for (i = 0; i < node->outputs->size; ++i) {
     tensor = context->GetEvalTensor(context, node->outputs->data[i]);
     base_addrs[num_tensors] =
@@ -118,8 +116,35 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     num_tensors++;
   }
 
-  // Ethos-U guarantees that the tensors that require a base pointer are among
-  // the 8 first tensors
+  // When Vela optimizes a tflite file it will assign the tensors like this:
+  //
+  // +-------+------------------------+  +--------+-------------+
+  // | INPUT | Description            |  | OUTPUT | Description |
+  // +-------+------------------------+  +--------+-------------+
+  // |     0 | Ethos-U command stream |  |   0..m | Outputs     |
+  // |     1 | TFLM model             |  +--------+-------------+
+  // |     2 | TFLM arena             |
+  // |     3 | Ethos-U fast scratch   |
+  // |  4..n | Inputs                 |
+  // +-------+------------------------+
+  //
+  // This code will assign the NPU base addresses like this:
+  //
+  // +--------------+----------------------+
+  // | Base address | Description          |
+  // +--------------+----------------------+
+  // |            0 | TFLM model           |
+  // |            1 | TFLM arena           |
+  // |            2 | Ethos-U fast scratch |
+  // |         3..n | Input tensors        |
+  // |         n..m | Output tensors       |
+  // +--------------+----------------------+
+  //
+  // The number of base address will be limited to 8.
+  //
+  // NOTE! The command stream produced by Vela will access the IFM and OFM
+  // buffers using base address 1. This means that it is not possible to point
+  // the input and output tensors outside of the TFLM arena.
   num_tensors = std::min(num_tensors, 8);
 
   struct ethosu_driver* drv = ethosu_reserve_driver();
@@ -138,14 +163,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration* Register_ETHOSU() {
-  static TfLiteRegistration r = {Init,
-                                 Free,
-                                 Prepare,
-                                 Eval,
-                                 /*profiling_string=*/nullptr,
-                                 /*builtin_code=*/0,
-                                 /*custom_name=*/nullptr,
-                                 /*version=*/0};
+  static TfLiteRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
   return &r;
 }
 

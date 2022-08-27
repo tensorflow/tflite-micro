@@ -109,9 +109,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   micro::GetTensorData<int8_t>(output));
       break;
     default:
-      TF_LITE_KERNEL_LOG(
-          context, "SPACE_TO_DEPTH only supports FLOAT32 and INT8, got %s.",
-          TfLiteTypeGetName(input->type));
+      MicroPrintf("SPACE_TO_DEPTH only supports FLOAT32 and INT8, got %s.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 
@@ -121,14 +120,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TfLiteRegistration Register_SPACE_TO_DEPTH() {
-  return {/*init=*/nullptr,
-          /*free=*/nullptr,
-          /*prepare=*/Prepare,
-          /*invoke=*/Eval,
-          /*profiling_string=*/nullptr,
-          /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
 }  // namespace tflite
