@@ -58,6 +58,7 @@ import math
 import textwrap
 import traceback
 from typing import NamedTuple, Optional
+from pathlib import Path
 
 ## Shell command utility method
 
@@ -288,7 +289,7 @@ def create_model() -> tf.keras.Model:
 
   # First layer takes a scalar input and feeds it through 16 "neurons". The
   # neurons decide whether to activate based on the 'relu' activation function.
-  model.add(keras.layers.Dense(16, activation='relu', input_shape=(1, )))
+  model.add(keras.layers.Dense(16, activation='relu', input_shape=(1,)))
 
   # The new second and third layer will help the network learn more complex
   # representations
@@ -304,8 +305,7 @@ def create_model() -> tf.keras.Model:
   return model
 
 
-def train_model(config: ConfigData, model: tf.keras.Model,
-                ds: Dataset) -> None:
+def train_model(config: ConfigData, model: tf.keras.Model, ds: Dataset) -> None:
   """
   ### 2. Train the Model ###
   We'll now train and save the new model.
@@ -545,8 +545,7 @@ def compare_predictions(model: tf.keras.Model, model_no_quant_tflite: bytes,
 
   # Calculate predictions
   y_test_pred_tf = model.predict(ds.x_test)
-  y_test_pred_no_quant_tflite = predict_tflite(model_no_quant_tflite,
-                                               ds.x_test)
+  y_test_pred_no_quant_tflite = predict_tflite(model_no_quant_tflite, ds.x_test)
   y_test_pred_quant_tflite = predict_tflite(model_quant_tflite, ds.x_test)
 
   # Compare predictions
@@ -606,7 +605,10 @@ def compare_sizes(config: ConfigData) -> None:
   """
 
   # Calculate size
-  size_tf = os.path.getsize(config.MODEL_TF)
+  size_tf = sum(
+      map(lambda p: p.stat().st_size,
+          filter(Path.is_file,
+                 Path(config.MODEL_TF).rglob('*'))))
   size_no_quant_tflite = os.path.getsize(config.MODEL_NO_QUANT_TFLITE)
   size_quant_tflite = os.path.getsize(config.MODEL_QUANT_TFLITE)
 
