@@ -24,9 +24,10 @@ Run:
 `bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/train`
 """
 import os
-from absl import logging
-from absl import flags
+
 from absl import app
+from absl import flags
+from absl import logging
 import numpy as np
 import tensorflow as tf
 
