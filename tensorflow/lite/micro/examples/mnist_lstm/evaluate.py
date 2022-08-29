@@ -14,86 +14,70 @@
 # =============================================================================
 """
 LSTM model evaluation for MNIST recognition
+
+Run:
+bazel build tensorflow/lite/micro/examples/mnist_lstm:evaluate
+bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate --model_path='.tflite file path' --img_path='MNIST image path'
+
 """
-import argparse
 import numpy as np
-import tensorflow as tf
 from PIL import Image
+
+from absl import app
+from absl import flags
+from absl import logging
+
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
+FLAGS = flags.FLAGS
 
-def get_test_data():
-  """Get the total MNIST test data
+flags.DEFINE_string('model_path', None, 'the trained model path.')
+flags.DEFINE_string('img_path', None, 'path for the image to be predicted.')
 
-  Returns:
-      tuple: a tuple of test data and label
-  """
-  _, (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-  x_test = x_test / 255.  # normalize pixel values to 0-1
-  x_test = x_test.astype(np.float32)
-  return (x_test, y_test)
+flags.mark_flag_as_required('model_path')
+flags.mark_flag_as_required('img_path')
 
-
-def random_sample_data(tot_data, labels):
-  """Select a random data sample for testing
-
-  Args:
-      tot_data (numpy.array): the total MNIST testing dataset in shape: [batch,28,28]
-      labels (numpy.array): the corresponding label
-
-  Returns:
-      tuple: selected data and label
-  """
-  idx = np.random.randint(0, len(tot_data))
-  sample_data = tot_data[idx:idx+1,:,:]
-  sample_label = labels[idx]
-  return (sample_data, sample_label)
 
 def read_img(img_path):
-
-
-def predict_image(interpreter,img_path):
-  data = read_img()
-
-    tflm_interpreter.set_input(data, 0)
-    tflm_interpreter.invoke()
-    tflm_output = tflm_interpreter.get_output(0)[0]
-    pred = np.argmax(tflm_output)
-
-
-
-
-def main(model_path, num_test):
-  """Run MNIST LSTM model inference using TFLM interpreter
+  """Read MNIST image
 
   Args:
-      model_path (str): path to the .tflite model
-      num_test (int) : number of test to run
+      img_path (str): path to a MNIST image
+
+  Returns:
+      np.array : image in the correct np.array format
   """
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
-  x_test, y_test = get_test_data()
-  for _ in range(num_test):
-    data, label = random_sample_data(x_test, y_test)
-    tflm_interpreter.set_input(data, 0)
-    tflm_interpreter.invoke()
-    tflm_output = tflm_interpreter.get_output(0)[0]
-    pred = np.argmax(tflm_output)
-    print(
-        f'Model predict {pred} with probability {tflm_output[pred]:.2f}, label : {label}'
-    )
+  image = Image.open(img_path)
+  data = np.asarray(image, dtype=np.float32)
+  data = data / 255.0
+  data = data.reshape((1, 28, 28))  #batch size one
+  return data
+
+
+def predict_image(interpreter, img_path):
+  """Use TFLM interpreter to predict a MNIST image
+
+  Args:
+      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      img_path (str): path to the image that need to be predicted
+
+  Returns:
+      np.array : predicted probability for each class (digit 0-9)
+  """
+  data = read_img(img_path)
+  interpreter.set_input(data, 0)
+  interpreter.invoke()
+  tflm_output = interpreter.get_output(0)
+  return tflm_output[0]  # one image per time
+
+
+def main(_):
+  tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
+  probs = predict_image(tflm_interpreter, FLAGS.img_path)
+  pred = np.argmax(probs)
+  logging.info("Model predicts the image as %i with probability %.2f", pred,
+               probs[pred])
+
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(
-      description='Run LSTM model using TFLM Python Interpreter')
-
-  parser.add_argument('--model_path',
-                      required=True,
-                      type=str,
-                      help='path to the .tflite model')
-
-  parser.add_argument('--rounds',
-                      type=int,
-                      default=5,
-                      help='number of inference to run')
-  args = parser.parse_args()
-  main(args.model_path, args.rounds)
+  app.run(main)
