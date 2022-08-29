@@ -20,3 +20,21 @@ py_binary(
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
+
+py_test(
+    name = "lstm_test",
+    srcs = ["lstm_test.py"],
+    main = "lstm_test.py",
+    python_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "noubsan",
+    ],
+    deps = [
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+        ":train",
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+    ],
+)

@@ -18,6 +18,7 @@ LSTM model evaluation for MNIST recognition
 import argparse
 import numpy as np
 import tensorflow as tf
+from PIL import Image
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
 
@@ -47,6 +48,19 @@ def random_sample_data(tot_data, labels):
   sample_data = tot_data[idx:idx+1,:,:]
   sample_label = labels[idx]
   return (sample_data, sample_label)
+
+def read_img(img_path):
+
+
+def predict_image(interpreter,img_path):
+  data = read_img()
+
+    tflm_interpreter.set_input(data, 0)
+    tflm_interpreter.invoke()
+    tflm_output = tflm_interpreter.get_output(0)[0]
+    pred = np.argmax(tflm_output)
+
+
 
 
 def main(model_path, num_test):
