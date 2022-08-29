@@ -47,6 +47,8 @@ bazel build tensorflow/lite/python:schema_py
 bazel build tensorflow/lite/schema:schema_fbs_srcs
 /bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
 
+# Must clean the bazel directories out after building as we don't check these in.
+bazel clean
 
 # The shared TFL/TFLM python code uses a different bazel workspace in the two
 # repositories (TF and tflite-micro) which needs the import statements to be
