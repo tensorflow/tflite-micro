@@ -15,17 +15,28 @@
 """
 LSTM model training for MNIST recognition
 
-Using python3:
-`python3 tensorflow/lite/micro/examples/mnist_lstm/train.py `
+This script is based on:
+https://www.tensorflow.org/lite/models/convert/rnn
+https://colab.research.google.com/github/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/experimental_new_converter/Keras_LSTM_fusion_Codelab.ipynb
 
-Using bazel:
+Run:
 `bazel build tensorflow/lite/micro/examples/mnist_lstm:train`
 `bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/train`
 """
-import argparse
 import os
+from absl import logging
+from absl import flags
+from absl import app
 import numpy as np
 import tensorflow as tf
+
+FLAGS = flags.FLAGS
+
+flags.DEFINE_integer('epochs', 1, 'number of epochs to train the model.')
+flags.DEFINE_string('save_dir', '/tmp/lstm_trained_model',
+                    'the directory to save the trained model.')
+flags.DEFINE_boolean('save_tf_model', False,
+                     'store the original unconverted tf model.')
 
 
 def create_model(units=20):
@@ -86,34 +97,31 @@ def train_lstm_model(epochs):
   return model
 
 
-def save_tflite_model(model, save_dir, optimize):
+def save_tflite_model(model, save_dir):
   """Convert the saved TF model to tflite model, then save it as .tflite flatbuffer format
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
         save_dir (str): directory to save the model
-        optimize (bool): enable model conversion optimization
     """
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
   save_name = 'lstm.tflite'
-  if optimize:
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    save_name = 'quantized_' + save_name
-    print('Model conversion using tf.lite.Optimize.DEFAULT')
   tflite_model = converter.convert()
 
   if not os.path.exists(save_dir):
     os.makedirs(save_dir)
   with open(save_dir + '/' + save_name, 'wb') as f:
     f.write(tflite_model)
-  print(f"Tflite model saved to {save_dir}")
+  logging.info("Tflite model saved to %s", save_dir)
 
 
-def main(epochs, save_dir, save_raw_model, optimize_conversion):
+def train_save_model(save_dir, epochs=3, save_raw_model=False):
   """train and save LSTM model using keras
 
     Args:
         save_dir (string): save directory for the trained model
+        epochs (int, optional): number of epochs to train the model. Defaults to 3
+        save_raw_model (bool): store the original unconverted tf model. Defaults to False
     """
   trained_model = train_lstm_model(epochs)
 
@@ -127,31 +135,13 @@ def main(epochs, save_dir, save_raw_model, optimize_conversion):
 
   if save_raw_model:
     run_model.save(save_dir, save_format="tf")
-    print(f"TF model saved to {save_dir}")
-  save_tflite_model(run_model, save_dir, optimize_conversion)
+    logging.info("TF model saved to %s", save_dir)
+  save_tflite_model(run_model, save_dir)
+
+
+def main(_):
+  train_save_model(FLAGS.save_dir, FLAGS.epochs, FLAGS.save_tf_model)
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(
-      description='Train and convert a LSTM model')
-
-  parser.add_argument('--epochs',
-                      type=int,
-                      default=1,
-                      help='number of epochs to train the model')
-  parser.add_argument('--save_dir',
-                      metavar='p',
-                      default='/tmp/trained_model',
-                      help='the directory to save the trained model')
-  parser.add_argument('--save_tf_model',
-                      default=False,
-                      help='store the original unconverted tf model',
-                      action='store_true')
-  parser.add_argument('--optimize_conversion',
-                      default=False,
-                      help='enable model conversion optimization',
-                      action='store_true')
-
-  args = parser.parse_args()
-  main(args.epochs, args.save_dir, args.save_tf_model,
-       args.optimize_conversion)
+  app.run(main)
