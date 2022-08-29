@@ -144,6 +144,7 @@ cc_library(
         "reference/portable_tensor_utils.cc",
     ],
     hdrs = [
+        "portable_tensor_utils.h",
         "reference/portable_tensor_utils.h",
         "reference/portable_tensor_utils_impl.h",
     ],
