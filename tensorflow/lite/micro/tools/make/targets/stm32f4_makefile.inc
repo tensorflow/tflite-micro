@@ -62,7 +62,7 @@ CCFLAGS += $(PLATFORM_FLAGS)
 LDFLAGS += \
   --specs=nosys.specs \
   -T ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/targets/stm32f4/stm32f4.lds \
-  -Wl,-Map=${TENSORFLOW_ROOT}/gen/$(TARGET).map,--cref \
+  -Wl,-Map=${TENSORFLOW_ROOT}gen/$(TARGET).map,--cref \
   -Wl,--gc-sections
 BUILD_TYPE := micro
 MICROLITE_LIBS := \
