@@ -86,6 +86,19 @@ class Interpreter(object):
     """
     return self._interpreter.Invoke()
 
+  def reset(self):
+    """Reset the model state to be what you would expect when the interpreter is first
+    created. i.e. after Init and Prepare is called for the very first time.
+
+    This should be called after invoke stateful model like LSTM.
+
+    Returns:
+      Status code of the C++ invoke function. A RuntimeError will be raised as
+      well upon any error.
+    """
+
+    return self._interpreter.Reset()
+
   def set_input(self, input_data, index):
     """Set input data into input tensor.
 
