@@ -22,9 +22,9 @@ py_binary(
 )
 
 py_test(
-    name = "lstm_test",
-    srcs = ["lstm_test.py"],
-    main = "lstm_test.py",
+    name = "evaluate_test",
+    srcs = ["evaluate_test.py"],
+    main = "evaluate_test.py",
     python_version = "PY3",
     tags = [
         "noasan",
@@ -34,7 +34,7 @@ py_test(
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),
+        ":evaluate",
         ":train",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )

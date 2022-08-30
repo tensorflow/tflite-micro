@@ -31,11 +31,10 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runti
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('model_path', None, 'the trained model path.')
-flags.DEFINE_string('img_path', None, 'path for the image to be predicted.')
-
-flags.mark_flag_as_required('model_path')
-flags.mark_flag_as_required('img_path')
+flags.DEFINE_string('model_path', '/tmp/lstm_trained_model/lstm.tflite',
+                    'the trained model path.')
+flags.DEFINE_string('img_path', "/tmp/samples/sample0.jpg",
+                    'path for the image to be predicted.')
 
 
 def read_img(img_path):
