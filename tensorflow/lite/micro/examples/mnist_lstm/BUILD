@@ -25,7 +25,7 @@ py_binary(
 py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
-    data = glob(["samples/*.jpeg"]),
+    data = glob(["samples/*.png"]),
     main = "evaluate_test.py",
     python_version = "PY3",
     deps = [
