@@ -17,6 +17,7 @@ py_binary(
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),
+        requirement("pillow"),
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
@@ -24,13 +25,9 @@ py_binary(
 py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
+    data = glob(["samples/*.jpeg"]),
     main = "evaluate_test.py",
     python_version = "PY3",
-    tags = [
-        "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
-        "noubsan",
-    ],
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),

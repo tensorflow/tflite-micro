@@ -20,9 +20,10 @@ bazel build tensorflow/lite/micro/examples/mnist_lstm:evaluate
 bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate --model_path='.tflite file path' --img_path='MNIST image path'
 
 """
+import os
+
 import numpy as np
 from PIL import Image
-
 from absl import app
 from absl import flags
 from absl import logging
@@ -35,7 +36,6 @@ flags.DEFINE_string('model_path', '/tmp/lstm_trained_model/lstm.tflite',
                     'the trained model path.')
 flags.DEFINE_string('img_path', "/tmp/samples/sample0.jpg",
                     'path for the image to be predicted.')
-
 
 def read_img(img_path):
   """Read MNIST image
@@ -71,6 +71,11 @@ def predict_image(interpreter, img_path):
 
 
 def main(_):
+  if not os.path.exists(FLAGS.model_path):
+    logging.error('Model file does not exist. Please check the .tflite model path.')
+  if not os.path.exists(FLAGS.img_path):
+    logging.error('Image file does not exist. Please check the image path.')
+    
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
   probs = predict_image(tflm_interpreter, FLAGS.img_path)
   pred = np.argmax(probs)
