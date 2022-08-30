@@ -57,9 +57,8 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       tflite_interpreter.reset_all_variables()
 
       # Run inference on TFLM
-      tflm_interpreter = tflm_runtime.Interpreter.from_file(
-          self.model_path
-      )  # initialize the interpreter everytime to refresh model states, b/244330968
+      # TODO(b/244330968): reset interpreter states instead of initialzing everytime
+      tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
       tflm_interpreter.set_input(data_x, 0)
       tflm_interpreter.invoke()
       tflm_output = tflm_interpreter.get_output(0)
@@ -75,9 +74,8 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     img_lables = [7, 1, 4, 4, 5]
 
     for img_id, label in zip(img_idx, img_lables):
-      tflm_interpreter = tflm_runtime.Interpreter.from_file(
-          self.model_path
-      )  # initialize the interpreter everytime to refresh model states, b/244330968
+      # TODO(b/244330968): reset interpreter states instead of initialzing everytime
+      tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
       img_path = sample_img_dir + f"sample{img_id}.jpeg"
       probs = evaluate.predict_image(tflm_interpreter, img_path)
       pred = np.argmax(probs)
