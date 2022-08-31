@@ -1258,4 +1258,66 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
                                                        /*num_subgraphs=*/1);
 }
 
+TF_LITE_MICRO_TEST(TestMultiSubgraphNumScratchAllocations) {
+  // Any test model with multiple subgraphs will suffice
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
+
+  constexpr size_t arena_size = 2048 * 2;
+  uint8_t arena[arena_size];
+
+  tflite::MicroAllocator* allocator = nullptr;
+  tflite::SubgraphAllocations* subgraph_allocations = nullptr;
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+
+  // First iteration: no scratch buffers
+  allocator = tflite::MicroAllocator::Create(arena, arena_size,
+                                             tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+
+  subgraph_allocations = allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
+                                                  &scratch_buffer_handles));
+
+  size_t used_bytes = allocator->used_bytes();
+
+  // Second iteration: the same but request two scratch buffers
+  tflite::MicroAllocator::Create(arena, arena_size,
+                                 tflite::GetMicroErrorReporter());
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+
+  subgraph_allocations = allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+
+  // Request two scratch buffers.
+  // They have size 0 because we do not want to affect the memory plan
+  const int scratch_subgraph_idx = 0;
+  const int scratch_node_idx = 0;
+  const size_t scratch_size = 0;
+  int buffer_idx1 = -1;
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->RequestScratchBufferInArena(
+                     scratch_size, scratch_subgraph_idx, &buffer_idx1));
+  int buffer_idx2 = -1;
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->RequestScratchBufferInArena(
+                     scratch_size, scratch_subgraph_idx, &buffer_idx2));
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishPrepareNodeAllocations(scratch_node_idx));
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
+                                                  &scratch_buffer_handles));
+
+  // Check that AllocateScratchBufferHandles was only called once, i.e. only two
+  // tflite::ScratchBufferHandle should have been allocated.
+  size_t used_bytes_with_scratch = allocator->used_bytes();
+
+  TF_LITE_MICRO_EXPECT_EQ(used_bytes_with_scratch,
+                          used_bytes + sizeof(tflite::ScratchBufferHandle) * 2);
+}
+
 TF_LITE_MICRO_TESTS_END

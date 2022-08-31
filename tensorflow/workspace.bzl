@@ -1,4 +1,4 @@
-load("//third_party/flatbuffers_v_1_12:workspace.bzl", flatbuffers = "repo")
+load("//third_party/flatbuffers:workspace.bzl", flatbuffers = "repo")
 load("//third_party/kissfft:workspace.bzl", kissfft = "repo")
 load("//third_party/ruy:workspace.bzl", ruy = "repo")
 load("//third_party:repo.bzl", "tf_http_archive")
