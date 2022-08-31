@@ -77,7 +77,11 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       # TODO(b/244330968): reset interpreter states instead of initialzing everytime
       tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
       img_path = sample_img_dir + f"sample{img_id}.png"
+
+      # Run inference on the sample image
       probs = evaluate.predict_image(tflm_interpreter, img_path)
+
+      # Check the prediction result
       pred = np.argmax(probs)
       self.assertEqual(pred, label)
 
