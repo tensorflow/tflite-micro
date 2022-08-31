@@ -73,10 +73,6 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       # TODO: Remove tolerance when the bug is fixed.
       self.assertAllLessEqual((tflite_output - tflm_output), 1)
 
-      # Reset the model state
-      tflm_interpreter.reset()
-      tflite_interpreter.reset_all_variables()
-
   def testModelFromFileAndBufferEqual(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
