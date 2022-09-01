@@ -68,8 +68,6 @@ rm -rf "${TEST_OUTPUT_DIR}"
 # Remove existing state prior to testing project generation for cortex-m target.
 make -f tensorflow/lite/micro/tools/make/Makefile clean clean_downloads
 
-ARM_CPU=55
-
 TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
 
 readable_run \
