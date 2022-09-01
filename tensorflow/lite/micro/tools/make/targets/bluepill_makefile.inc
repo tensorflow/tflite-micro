@@ -43,7 +43,7 @@ CCFLAGS += $(PLATFORM_FLAGS)
 
 LDFLAGS += \
   -T $(MAKEFILE_DIR)/targets/bluepill/bluepill.lds \
-  -Wl,-Map=$(MAKEFILE_DIR)/gen/$(TARGET).map,--cref
+  -Wl,-Map=gen/$(TARGET).map,--cref
 
 # Additional include paths needed for the stm_32_bare_lib only.
 INCLUDES += \
