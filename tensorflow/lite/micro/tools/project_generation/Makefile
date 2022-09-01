@@ -53,7 +53,7 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 
   COMMON_FLAGS += \
     -DTF_LITE_MCU_DEBUG_LOG \
-		-DPROJECT_GENERATION \
+    -DPROJECT_GENERATION \
     -mthumb \
     -mlittle-endian \
     -funsigned-char \
