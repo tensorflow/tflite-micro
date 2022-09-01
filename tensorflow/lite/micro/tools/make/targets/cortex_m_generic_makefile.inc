@@ -95,6 +95,12 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
   # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
   GCC_TARGET_ARCH := cortex-m55
 
+else ifeq ($(TARGET_ARCH), project_generation)
+  # No flags needed here as project_generation does not build anything.
+  # Make explicit there is to be no gcc download as project_generation does
+  # not build anything.
+  SKIP_ARM_GCC_DOWNLOAD = yes
+
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif

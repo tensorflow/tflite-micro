@@ -236,7 +236,7 @@ endif
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+GENDIR := gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
