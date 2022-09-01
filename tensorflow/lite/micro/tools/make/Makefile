@@ -139,6 +139,11 @@ CC_WARNINGS := \
   -Wstrict-aliasing \
   -Wno-unused-parameter
 
+# Create a cflag based on the specified TARGET_ARCH. For example:
+#   TARGET_ARCH=cortex-m0 --> -DCORTEX-M0
+#   TARGET_ARCH=hifi4 --> -DHIFI4
+TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
+
 COMMON_FLAGS := \
   -Werror \
   -fno-unwind-tables \
@@ -148,6 +153,7 @@ COMMON_FLAGS := \
   -DTF_LITE_STATIC_MEMORY \
   -DTF_LITE_DISABLE_X86_NEON \
   $(CC_WARNINGS) \
+  $(TARGET_ARCH_DEFINES) \
   $(ADDITIONAL_DEFINES)
 
 ifeq ($(TARGET), $(HOST_OS))

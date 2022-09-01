@@ -74,32 +74,23 @@ TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
 
 readable_run \
   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=cortex-m${ARM_CPU}" \
+  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
   "${TEST_OUTPUT_DIR_CMSIS}" \
   ${EXAMPLES}
 
 readable_run \
   cp tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR_CMSIS}"
 
-readable_run \
-  cp tensorflow/lite/micro/tools/make/targets/cortex_m_generic_makefile.inc "${TEST_OUTPUT_DIR_CMSIS}"
-
-readable_run \
-  mkdir -p "${TEST_OUTPUT_DIR_CMSIS}/third_party/cmsis/Device/ARM/ARMCM${ARM_CPU}"
-
-readable_run \
-  cp -r tensorflow/lite/micro/tools/make/downloads/cmsis/Device/ARM/ARMCM${ARM_CPU}/Include \
-    "${TEST_OUTPUT_DIR_CMSIS}/third_party/cmsis/Device/ARM/ARMCM${ARM_CPU}/"
-
 pushd "${TEST_OUTPUT_DIR_CMSIS}" > /dev/null
 
 PATH="${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
   readable_run \
-  make -j8 BUILD_TYPE=cmsis_nn TARGET_ARCH=cortex-m${ARM_CPU}
+  make -j8 BUILD_TYPE=cmsis_nn
 
 popd > /dev/null
 
 rm -rf "${TEST_OUTPUT_DIR_CMSIS}"
+
 
 # Test that C++ files are renamed to .cpp
 
