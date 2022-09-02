@@ -19,10 +19,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-// #if !defined(XTENSA)
-
 // test configuration for integer no peephole test
 constexpr int kLstmNumBatchIntegerNoPeephole = 2;
 constexpr int kLstmNumInputIntegerNoPeephole = 5;
@@ -2596,6 +2592,5 @@ LstmFloatTestConfig cifg_peephole_no_proj_config_layer_norm = {
     .expected_output = golden_output_cifg_peephole_no_proj_layer_norm,
 };
 
-// #endif  // !defined(XTENSA)
 }  // namespace testing
 }  // namespace tflite
