@@ -68,7 +68,7 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
        ${CONVERTED_PERSON_MODEL_INT8}
   echo -n "const " >> ${CONVERTED_PERSON_MODEL_INT8}
   xxd -i ${MODEL_DIR}/person_detect_vela.tflite >> ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/tensorflow_lite_micro_tools_make_gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
+  sed -i 's/gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
       ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/'  ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/g_person_detect_model_data_len/g_person_detect_model_data_size/'  ${CONVERTED_PERSON_MODEL_INT8}
