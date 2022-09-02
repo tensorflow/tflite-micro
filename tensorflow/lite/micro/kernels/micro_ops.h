@@ -84,7 +84,6 @@ TfLiteRegistration Register_SUM();
 TfLiteRegistration Register_SVDF();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
-// TODO(b/230666079): resolve conflict with xtensa implementation
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_WHILE();

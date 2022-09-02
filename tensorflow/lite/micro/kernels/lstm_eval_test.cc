@@ -750,10 +750,6 @@ class HybridLstmParam : public BaseLstmParam {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-#if !defined(XTENSA)
-
 // Ensures that a regular set and get pair works ok.
 TF_LITE_MICRO_TEST(TestOneFullyQuantizedLSTM) {
   tflite::testing::QuantizedLstmParam one_parameter;
@@ -864,6 +860,5 @@ TF_LITE_MICRO_TEST(TestOneHybridAsymmLSTM) {
     TF_LITE_MICRO_EXPECT_NEAR(expected_activation[i], output->data.f[i], 1e-4f);
   }
 }
-#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_END
