@@ -29,7 +29,7 @@ namespace {
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+// #if !defined(XTENSA)
 
 constexpr int kLstmMaxNumInputTensors = 24;
 constexpr int kLstmOutputTensorIndex = kLstmMaxNumInputTensors;
@@ -1268,7 +1268,7 @@ void TestUnidirectionalSequenceLstmInteger(LstmIntegerTestConfig* config) {
   }
 }
 
-#endif  // !defined(XTENSA)
+// #endif  // !defined(XTENSA)
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -1277,7 +1277,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+// #if !defined(XTENSA)
 
 TF_LITE_MICRO_TEST(UnidirectionalSequenceLstmIntegerNoPeepholeTest) {
   tflite::testing::TestUnidirectionalSequenceLstmInteger(
@@ -1428,6 +1428,6 @@ TF_LITE_MICRO_TEST(UndrctnlSqncLstmFloatCifgPphlNoPrjLayerNormTest) {
       /*input_output_batch_major=*/false);
 }
 
-#endif  // !defined(XTENSA)
+// #endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_END

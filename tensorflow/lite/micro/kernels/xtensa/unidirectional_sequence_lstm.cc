@@ -1108,11 +1108,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 //}  // namespace unidirectional_sequence_lstm
-
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
-}
-
 }  // namespace micro
 }  // namespace ops
+
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+  return tflite::micro::RegisterOp(ops::micro::Init, ops::micro::Prepare,
+                                   ops::micro::Eval);
+}
 }  // namespace tflite

@@ -22,7 +22,7 @@ namespace testing {
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+// #if !defined(XTENSA)
 
 struct LstmIntegerTestConfig {
   const int n_batch;
@@ -237,7 +237,7 @@ extern LstmWeightQuantizationBuffers lstm_no_cifg_peephole_proj_buffers;
 
 extern LstmFloatTestConfig cifg_peephole_no_proj_config_layer_norm;
 
-#endif  // !defined(XTENSA)
+// #endif  // !defined(XTENSA)
 }  // namespace testing
 }  // namespace tflite
 
