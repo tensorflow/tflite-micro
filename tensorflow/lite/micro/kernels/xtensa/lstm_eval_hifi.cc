@@ -18,9 +18,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace lstm_eval {
 
 #if defined(HIFI5)
 void calc_cell_state_without_cifg(int16_t* cell_state,
@@ -456,7 +453,4 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
 }
 #endif  // defined(HIFI5)
 
-}  // namespace lstm_eval
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

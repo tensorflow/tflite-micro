@@ -31,9 +31,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace lstm_eval {
 namespace {
 
 // Calculates a single LSTM gate, int8x8_16 version.
@@ -804,7 +801,7 @@ inline void LstmStepInteger8x8_8(
 }  // namespace
 
 // LINT.ThenChange(//tensorflow/lite/tools/optimize/calibration/builtin_logging_ops/lstm.cc)
-TfLiteStatus EvalInteger8x8_16(
+TfLiteStatus EvalInteger8x8_16Lstm(
     TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -828,7 +825,7 @@ TfLiteStatus EvalInteger8x8_16(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     bool forward_sequence, bool time_major,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param,
+    const IntegerLstmParameter* integer_lstm_param,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
     TfLiteEvalTensor* output, TfLiteEvalTensor* scratch0,
     TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
@@ -1054,7 +1051,7 @@ TfLiteStatus EvalInteger8x8_16(
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalInteger8x8_8(
+TfLiteStatus EvalInteger8x8_8Lstm(
     const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -1078,8 +1075,7 @@ TfLiteStatus EvalInteger8x8_8(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
-    TfLiteEvalTensor* output,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param,
+    TfLiteEvalTensor* output, const IntegerLstmParameter* integer_lstm_param,
     TfLiteEvalTensor* scratch0, TfLiteEvalTensor* scratch1,
     TfLiteEvalTensor* scratch2, TfLiteEvalTensor* scratch3,
     TfLiteEvalTensor* scratch4, TfLiteEvalTensor* scratch5,
@@ -1117,7 +1113,7 @@ TfLiteStatus EvalInteger8x8_8(
     // Input can be int8 asymmetric or int16 symmetric.
     const int8_t* input_ptr =
         tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
-    lstm_eval::LstmStepInteger8x8_8(
+    LstmStepInteger8x8_8(
         input_ptr, input_zp,
 
         tflite::micro::GetTensorData<int8_t>(input_to_input_weights),
@@ -1210,8 +1206,4 @@ TfLiteStatus EvalInteger8x8_8(
 
   return kTfLiteOk;
 }
-
-}  // namespace lstm_eval
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

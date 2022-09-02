@@ -16,63 +16,51 @@ limitations under the License.
 #define TENSORFLOW_LITE_KERNELS_LSTM_SHARED_H_
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace lstm {
-// For full inputs kernel (24-inputs).
-// Please note the 20-input full kernel is deprecated and only kept
-// here for backward compatibility.
-namespace full {
 
 // Input Tensors of size {n_batch, n_input}
-constexpr int kInputTensor = 0;
+constexpr int kLstmInputTensor = 0;
 
 // Input weight tensors of size: {n_cell, n_input}
-constexpr int kInputToInputWeightsTensor = 1;  // Optional
-constexpr int kInputToForgetWeightsTensor = 2;
-constexpr int kInputToCellWeightsTensor = 3;
-constexpr int kInputToOutputWeightsTensor = 4;
+constexpr int kLstmInputToInputWeightsTensor = 1;  // Optional
+constexpr int kLstmInputToForgetWeightsTensor = 2;
+constexpr int kLstmInputToCellWeightsTensor = 3;
+constexpr int kLstmInputToOutputWeightsTensor = 4;
 
 // Recurrent weight tensors of size {n_cell, n_output}
-constexpr int kRecurrentToInputWeightsTensor = 5;  // Optional
-constexpr int kRecurrentToForgetWeightsTensor = 6;
-constexpr int kRecurrentToCellWeightsTensor = 7;
-constexpr int kRecurrentToOutputWeightsTensor = 8;
+constexpr int kLstmRecurrentToInputWeightsTensor = 5;  // Optional
+constexpr int kLstmRecurrentToForgetWeightsTensor = 6;
+constexpr int kLstmRecurrentToCellWeightsTensor = 7;
+constexpr int kLstmRecurrentToOutputWeightsTensor = 8;
 
 // Peephole weights tensors of size {n_cell}, representing a diagonal matrix.
-constexpr int kCellToInputWeightsTensor = 9;    // Optional
-constexpr int kCellToForgetWeightsTensor = 10;  // Optional
-constexpr int kCellToOutputWeightsTensor = 11;  // Optional
+constexpr int kLstmCellToInputWeightsTensor = 9;    // Optional
+constexpr int kLstmCellToForgetWeightsTensor = 10;  // Optional
+constexpr int kLstmCellToOutputWeightsTensor = 11;  // Optional
 
 // Gates bias tensors of size {n_cell}
-constexpr int kInputGateBiasTensor = 12;  // Optional
-constexpr int kForgetGateBiasTensor = 13;
-constexpr int kCellGateBiasTensor = 14;
-constexpr int kOutputGateBiasTensor = 15;
+constexpr int kLstmInputGateBiasTensor = 12;  // Optional
+constexpr int kLstmForgetGateBiasTensor = 13;
+constexpr int kLstmCellGateBiasTensor = 14;
+constexpr int kLstmOutputGateBiasTensor = 15;
 
 // Projection weight tensor of size {n_output, n_cell}
-constexpr int kProjectionWeightsTensor = 16;  // Optional
+constexpr int kLstmProjectionWeightsTensor = 16;  // Optional
 // Projection bias tensor of size {n_output}
-constexpr int kProjectionBiasTensor = 17;  // Optional
+constexpr int kLstmProjectionBiasTensor = 17;  // Optional
 
 // These state tensors are defined as variable tensors, and will be modified by
 // this op.
-constexpr int kOutputStateTensor = 18;
-constexpr int kCellStateTensor = 19;
+constexpr int kLstmOutputStateTensor = 18;
+constexpr int kLstmCellStateTensor = 19;
 
 // Layer norm coefficient tensors of size {n_cell}, representing a diagonal
 // matrix.
-constexpr int kInputLayerNormCoefficientsTensor = 20;   // Optional
-constexpr int kForgetLayerNormCoefficientsTensor = 21;  // Optional
-constexpr int kCellLayerNormCoefficientsTensor = 22;    // Optional
-constexpr int kOutputLayerNormCoefficientsTensor = 23;  // Optional
+constexpr int kLstmInputLayerNormCoefficientsTensor = 20;   // Optional
+constexpr int kLstmForgetLayerNormCoefficientsTensor = 21;  // Optional
+constexpr int kLstmCellLayerNormCoefficientsTensor = 22;    // Optional
+constexpr int kLstmOutputLayerNormCoefficientsTensor = 23;  // Optional
 
 // Output tensors.
-constexpr int kOutputTensor = 0;
-}  // namespace full
-
-}  // namespace lstm
-}  // namespace micro
-}  // namespace ops
+constexpr int kLstmOutputTensor = 0;
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_KERNELS_LSTM_SHARED_H_

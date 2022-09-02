@@ -25,10 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace lstm_eval {
-
 #if defined(HIFI5)
 void calc_cell_state_without_cifg(int16_t* cell_state,
                                   const int16_t* forget_gate,
@@ -114,40 +110,39 @@ struct IntegerLstmParameter {
   int32_t intermediate_zp[12];
 };
 
-TfLiteStatus EvalFloat(const TfLiteEvalTensor* input,
-                       const TfLiteEvalTensor* input_to_input_weights,
-                       const TfLiteEvalTensor* input_to_forget_weights,
-                       const TfLiteEvalTensor* input_to_cell_weights,
-                       const TfLiteEvalTensor* input_to_output_weights,
-                       const TfLiteEvalTensor* recurrent_to_input_weights,
-                       const TfLiteEvalTensor* recurrent_to_forget_weights,
-                       const TfLiteEvalTensor* recurrent_to_cell_weights,
-                       const TfLiteEvalTensor* recurrent_to_output_weights,
-                       const TfLiteEvalTensor* cell_to_input_weights,
-                       const TfLiteEvalTensor* cell_to_forget_weights,
-                       const TfLiteEvalTensor* cell_to_output_weights,
-                       const TfLiteEvalTensor* input_layer_norm_coefficients,
-                       const TfLiteEvalTensor* forget_layer_norm_coefficients,
-                       const TfLiteEvalTensor* cell_layer_norm_coefficients,
-                       const TfLiteEvalTensor* output_layer_norm_coefficients,
-                       const TfLiteEvalTensor* aux_input,
-                       const TfLiteEvalTensor* aux_input_to_input_weights,
-                       const TfLiteEvalTensor* aux_input_to_forget_weights,
-                       const TfLiteEvalTensor* aux_input_to_cell_weights,
-                       const TfLiteEvalTensor* aux_input_to_output_weights,
-                       const TfLiteEvalTensor* input_gate_bias,
-                       const TfLiteEvalTensor* forget_gate_bias,
-                       const TfLiteEvalTensor* cell_gate_bias,
-                       const TfLiteEvalTensor* output_gate_bias,
-                       const TfLiteEvalTensor* projection_weights,
-                       const TfLiteEvalTensor* projection_bias,
-                       const TfLiteLSTMParams* params, bool forward_sequence,
-                       bool time_major, int output_offset,
-                       TfLiteEvalTensor* scratch_buffer,
-                       TfLiteEvalTensor* output_state,
-                       TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output);
+TfLiteStatus EvalFloatLstm(
+    const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* input_to_input_weights,
+    const TfLiteEvalTensor* input_to_forget_weights,
+    const TfLiteEvalTensor* input_to_cell_weights,
+    const TfLiteEvalTensor* input_to_output_weights,
+    const TfLiteEvalTensor* recurrent_to_input_weights,
+    const TfLiteEvalTensor* recurrent_to_forget_weights,
+    const TfLiteEvalTensor* recurrent_to_cell_weights,
+    const TfLiteEvalTensor* recurrent_to_output_weights,
+    const TfLiteEvalTensor* cell_to_input_weights,
+    const TfLiteEvalTensor* cell_to_forget_weights,
+    const TfLiteEvalTensor* cell_to_output_weights,
+    const TfLiteEvalTensor* input_layer_norm_coefficients,
+    const TfLiteEvalTensor* forget_layer_norm_coefficients,
+    const TfLiteEvalTensor* cell_layer_norm_coefficients,
+    const TfLiteEvalTensor* output_layer_norm_coefficients,
+    const TfLiteEvalTensor* aux_input,
+    const TfLiteEvalTensor* aux_input_to_input_weights,
+    const TfLiteEvalTensor* aux_input_to_forget_weights,
+    const TfLiteEvalTensor* aux_input_to_cell_weights,
+    const TfLiteEvalTensor* aux_input_to_output_weights,
+    const TfLiteEvalTensor* input_gate_bias,
+    const TfLiteEvalTensor* forget_gate_bias,
+    const TfLiteEvalTensor* cell_gate_bias,
+    const TfLiteEvalTensor* output_gate_bias,
+    const TfLiteEvalTensor* projection_weights,
+    const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
+    bool forward_sequence, bool time_major, int output_offset,
+    TfLiteEvalTensor* scratch_buffer, TfLiteEvalTensor* output_state,
+    TfLiteEvalTensor* cell_state, TfLiteEvalTensor* output);
 
-TfLiteStatus EvalInteger8x8_16(
+TfLiteStatus EvalInteger8x8_16Lstm(
     TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -171,14 +166,14 @@ TfLiteStatus EvalInteger8x8_16(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     bool forward_sequence, bool time_major,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param,
+    const IntegerLstmParameter* integer_lstm_param,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
     TfLiteEvalTensor* output, TfLiteEvalTensor* scratch0,
     TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
     TfLiteEvalTensor* scratch3, TfLiteEvalTensor* scratch4,
     TfLiteEvalTensor* scratch5);
 
-TfLiteStatus EvalInteger8x8_8(
+TfLiteStatus EvalInteger8x8_8Lstm(
     const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
@@ -202,15 +197,11 @@ TfLiteStatus EvalInteger8x8_8(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
-    TfLiteEvalTensor* output,
-    const lstm_eval::IntegerLstmParameter* integer_lstm_param,
+    TfLiteEvalTensor* output, const IntegerLstmParameter* integer_lstm_param,
     TfLiteEvalTensor* scratch0, TfLiteEvalTensor* scratch1,
     TfLiteEvalTensor* scratch2, TfLiteEvalTensor* scratch3,
     TfLiteEvalTensor* scratch4, TfLiteEvalTensor* scratch5,
     TfLiteEvalTensor* scratch6, TfLiteEvalTensor* scratch7);
 
-}  // namespace lstm_eval
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_KERNELS_LSTM_EVAL_H_
