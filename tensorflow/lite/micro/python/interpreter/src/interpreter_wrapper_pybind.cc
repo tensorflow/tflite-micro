@@ -32,6 +32,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
             data.ptr(), registerers_by_name, arena_size));
       }))
       .def("Invoke", &InterpreterWrapper::Invoke)
+      .def("Reset", &InterpreterWrapper::Reset)
       .def(
           "SetInputTensor",
           [](InterpreterWrapper& self, py::handle& x, size_t index) {

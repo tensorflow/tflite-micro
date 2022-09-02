@@ -53,7 +53,7 @@ Usage: `[GDB] -x [GDB_SCRIPT] [TFLM_BINARY]`
 
 Example: `/opt/zephyr-sdk/riscv64-zephyr-elf/bin/riscv64-zephyr-elf-gdb \ -x
 profiling.gdb \
-../tensorflow/tensorflow/lite/micro/tools/make/gen/zephyr_vexriscv_x86_64/magic_wand/build/zephyr/zephyr.elf`
+../gen/zephyr_vexriscv_x86_64/magic_wand/build/zephyr/zephyr.elf`
 
 ### Connect GDB to Renode's gdbserver on the same port
 
