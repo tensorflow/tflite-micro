@@ -112,11 +112,11 @@ AllOpsResolver::AllOpsResolver() {
   AddTanh();
   AddTranspose();
   AddTransposeConv();
+  AddUnidirectionalSequenceLSTM();
   AddUnpack();
   AddVarHandle();
   AddWhile();
   AddZerosLike();
-  AddUnidirectionalSequenceLSTM();
 }
 
 }  // namespace tflite
