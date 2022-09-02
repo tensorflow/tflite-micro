@@ -24,6 +24,7 @@ import os
 
 import numpy as np
 from PIL import Image
+
 from absl import app
 from absl import flags
 from absl import logging
@@ -54,6 +55,22 @@ def read_img(img_path):
   return data
 
 
+def predict(interpreter, data):
+  """Use TFLM interpreter for single batch prediction
+
+  Args:
+      interpreter (tflm_runtime.Interpreter)): the TFLM python interpreter
+      data (np.array): normalized data (float32, range 0-1) in shape (1,28,28)
+
+  Returns:
+      np.array : predicted probability; shape (batch, 10)
+  """
+  interpreter.set_input(data, 0)
+  interpreter.invoke()
+  tflm_output = interpreter.get_output(0)
+  return tflm_output
+
+
 def predict_image(interpreter, img_path):
   """Use TFLM interpreter to predict a MNIST image
 
@@ -65,18 +82,19 @@ def predict_image(interpreter, img_path):
       np.array : predicted probability for each class (digit 0-9)
   """
   data = read_img(img_path)
-  interpreter.set_input(data, 0)
-  interpreter.invoke()
-  tflm_output = interpreter.get_output(0)
-  return tflm_output[0]  # one image per time
+  return predict(
+      interpreter,
+      data)[0]  # one image per time (i.e., remove the batch dimention)
 
 
 def main(_):
   if not os.path.exists(FLAGS.model_path):
     logging.error(
         'Model file does not exist. Please check the .tflite model path.')
+    return
   if not os.path.exists(FLAGS.img_path):
     logging.error('Image file does not exist. Please check the image path.')
+    return
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
   probs = predict_image(tflm_interpreter, FLAGS.img_path)

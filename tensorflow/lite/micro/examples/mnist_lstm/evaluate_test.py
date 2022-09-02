@@ -15,9 +15,9 @@
 import os
 
 import numpy as np
-from PIL import Image
 import tensorflow as tf
 
+from absl import logging
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
@@ -30,10 +30,13 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
   model_dir = "/tmp/lstm_trained_model/"
   model_path = model_dir + 'lstm.tflite'
   if not os.path.exists(model_path):
+    logging.info("No trained LSTM model. Training in Keras now (3 epoches)")
     train.train_save_model(model_dir, epochs=3)
 
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
+
+  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
 
   def testCompareWithTFLite(self):
     tflite_interpreter = tf.lite.Interpreter(model_path=self.model_path)
@@ -57,29 +60,24 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       tflite_interpreter.reset_all_variables()
 
       # Run inference on TFLM
-      # TODO(b/244330968): reset interpreter states instead of initialzing everytime
-      tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
-      tflm_interpreter.set_input(data_x, 0)
-      tflm_interpreter.invoke()
-      tflm_output = tflm_interpreter.get_output(0)
+      tflm_output = evaluate.predict(self.tflm_interpreter, data_x)
+      self.tflm_interpreter.reset()
 
       # Check that TFLM has correct output
       self.assertDTypeEqual(tflm_output, np.float32)
       self.assertEqual(tflm_output.shape, self.output_shape)
-      self.assertAllLessEqual((tflite_output - tflm_output), 1e-5)
+      self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
   def testModelAccuracy(self):
     sample_img_dir = "tensorflow/lite/micro/examples/mnist_lstm/samples/"
-    img_idx = [0, 2, 4, 6, 8]
-    img_lables = [7, 1, 4, 4, 5]
+    img_lables = [7, 2, 1, 0, 4, 1, 4, 9, 5, 9]
 
-    for img_id, label in zip(img_idx, img_lables):
-      # TODO(b/244330968): reset interpreter states instead of initialzing everytime
-      tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
-      img_path = sample_img_dir + f"sample{img_id}.png"
+    for i, label in enumerate(img_lables):
+      img_path = sample_img_dir + f"sample{i}.png"
 
       # Run inference on the sample image
-      probs = evaluate.predict_image(tflm_interpreter, img_path)
+      probs = evaluate.predict_image(self.tflm_interpreter, img_path)
+      self.tflm_interpreter.reset()
 
       # Check the prediction result
       pred = np.argmax(probs)
