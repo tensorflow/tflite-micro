@@ -1004,6 +1004,8 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
         return kTfLiteError;
 
       } else {
+        // TODO(b/230666079): Clean up the mess below on initializing scratch
+        // tensors. Try to follow the builtin kernel implementation.
         TfLiteEvalTensor* scratch[6];
         // Allocate scratch buffer. Need 6 16bit buffer with size n_batch *
         // n_cell
@@ -1024,6 +1026,10 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
                   context, op_data->scratch_tensor_index + scratch_index));
           scratch[scratch_index] = (TfLiteEvalTensor*)scratch_tensor;
         }
+
+        // TODO(b/230666079): Asymmetrical quantization support? Try to follow
+        // the builtin kernel implementation.
+        int output_state_zp = 0;
         /*
                                 TF_LITE_ENSURE_OK(context,
                                                 GetScratchSafe(context, node, 0,
@@ -1050,19 +1056,20 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
            &scratch5));
         */
         return EvalInteger8x8_16Lstm(
-            context, node, input, input_to_input_weights,
-            input_to_forget_weights, input_to_cell_weights,
-            input_to_output_weights, recurrent_to_input_weights,
-            recurrent_to_forget_weights, recurrent_to_cell_weights,
-            recurrent_to_output_weights, cell_to_input_weights,
-            cell_to_forget_weights, cell_to_output_weights,
-            input_layer_norm_coefficients, forget_layer_norm_coefficients,
-            cell_layer_norm_coefficients, output_layer_norm_coefficients,
-            input_gate_bias, forget_gate_bias, cell_gate_bias, output_gate_bias,
-            projection_weights, projection_bias, &lstm_params,
+            input, input_to_input_weights, input_to_forget_weights,
+            input_to_cell_weights, input_to_output_weights,
+            recurrent_to_input_weights, recurrent_to_forget_weights,
+            recurrent_to_cell_weights, recurrent_to_output_weights,
+            cell_to_input_weights, cell_to_forget_weights,
+            cell_to_output_weights, input_layer_norm_coefficients,
+            forget_layer_norm_coefficients, cell_layer_norm_coefficients,
+            output_layer_norm_coefficients, input_gate_bias, forget_gate_bias,
+            cell_gate_bias, output_gate_bias, projection_weights,
+            projection_bias, &lstm_params,
             /*forward_sequence=*/true, time_major, &op_data->integer_lstm_param,
-            output_state, cell_state, output, scratch[0], scratch[1],
-            scratch[2], scratch[3], scratch[4], scratch[5]);
+            output_state_zp, output_state, cell_state, output,
+            (int16_t*)scratch[0], (int16_t*)scratch[1], (int16_t*)scratch[2],
+            (int16_t*)scratch[3], (int8_t*)scratch[4], (int32_t*)scratch[5]);
       }
     }
 

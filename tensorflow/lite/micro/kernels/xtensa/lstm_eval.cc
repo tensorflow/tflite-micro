@@ -802,7 +802,7 @@ inline void LstmStepInteger8x8_8(
 
 // LINT.ThenChange(//tensorflow/lite/tools/optimize/calibration/builtin_logging_ops/lstm.cc)
 TfLiteStatus EvalInteger8x8_16Lstm(
-    TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
     const TfLiteEvalTensor* input_to_forget_weights,
     const TfLiteEvalTensor* input_to_cell_weights,
@@ -825,12 +825,10 @@ TfLiteStatus EvalInteger8x8_16Lstm(
     const TfLiteEvalTensor* projection_weights,
     const TfLiteEvalTensor* projection_bias, const TfLiteLSTMParams* params,
     bool forward_sequence, bool time_major,
-    const IntegerLstmParameter* integer_lstm_param,
+    const IntegerLstmParameter* integer_lstm_param, int32_t output_state_zp,
     TfLiteEvalTensor* output_state, TfLiteEvalTensor* cell_state,
-    TfLiteEvalTensor* output, TfLiteEvalTensor* scratch0,
-    TfLiteEvalTensor* scratch1, TfLiteEvalTensor* scratch2,
-    TfLiteEvalTensor* scratch3, TfLiteEvalTensor* scratch4,
-    TfLiteEvalTensor* scratch5) {
+    TfLiteEvalTensor* output, int16_t* scratch0, int16_t* scratch1,
+    int16_t* scratch2, int16_t* scratch3, int8_t* scratch4, int32_t* scratch5) {
   TFLITE_DCHECK(input->dims->size >= 2 && input->dims->size <= 3);
   const int n_input = input->dims->data[input->dims->size - 1];
   int max_time, n_batch;
@@ -845,11 +843,6 @@ TfLiteStatus EvalInteger8x8_16Lstm(
   // n_cell and n_output will be the same size when there is no projection.
   const int n_cell = input_to_output_weights->dims->data[0];
   const int n_output = recurrent_to_output_weights->dims->data[1];
-
-  // Activation zero point
-  //  TODO@is data.output_zero_point equal to output_state->params.zero_point
-  // int output_state_zp = output_state->params.zero_point;
-  int output_state_zp = 0;
 
   // Get params for time/batch/sequence.
   const int output_batch_leading_dim =
@@ -1041,9 +1034,8 @@ TfLiteStatus EvalInteger8x8_16Lstm(
             integer_lstm_param->recurrent_to_input_effective_bias.get(),
             integer_lstm_param->projection_effective_bias.get(), /*n_batch=*/1,
             n_cell, n_input, n_output, output_state_ptr, output_state_zp,
-            cell_state_ptr, output_ptr, (int16_t*)(scratch0),
-            (int16_t*)(scratch1), (int16_t*)(scratch2), (int16_t*)(scratch3),
-            (int8_t*)(scratch4), (int32_t*)(scratch5));
+            cell_state_ptr, output_ptr, scratch0, scratch1, scratch2, scratch3,
+            scratch4, scratch5);
       }
     }
   }
