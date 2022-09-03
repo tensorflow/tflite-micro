@@ -43,6 +43,7 @@ AllOpsResolver::AllOpsResolver() {
   AddDepthwiseConv2D();
   AddDequantize();
   AddDetectionPostprocess();
+  AddDiv();
   AddElu();
   AddEqual();
   AddEthosU();
@@ -91,6 +92,7 @@ AllOpsResolver::AllOpsResolver() {
   AddResizeNearestNeighbor();
   AddRound();
   AddRsqrt();
+  AddSelectV2();
   AddShape();
   AddSin();
   AddSlice();
@@ -101,9 +103,11 @@ AllOpsResolver::AllOpsResolver() {
   AddSplitV();
   AddSqrt();
   AddSquare();
+  AddSquaredDifference();
   AddSqueeze();
   AddStridedSlice();
   AddSub();
+  AddSum();
   AddSvdf();
   AddTanh();
   AddTranspose();

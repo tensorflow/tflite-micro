@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ void ReverseSortInPlace(int* values, int* ids, int size);
 
 namespace {
 constexpr int kScratchBufferSize = 4096;
-unsigned char g_scratch_buffer[kScratchBufferSize];
+alignas(4) unsigned char g_scratch_buffer[kScratchBufferSize];
 }  // namespace
 
 TF_LITE_MICRO_TESTS_BEGIN

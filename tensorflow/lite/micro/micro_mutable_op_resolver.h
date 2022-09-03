@@ -24,13 +24,16 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -85,22 +88,16 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // kTfLiteError.
   TfLiteStatus AddCustom(const char* name, TfLiteRegistration* registration) {
     if (registrations_len_ >= tOpCount) {
-      if (error_reporter_) {
-        TF_LITE_REPORT_ERROR(
-            error_reporter_,
-            "Couldn't register custom op '%s', resolver size is too small (%d)",
-            name, tOpCount);
-      }
+      MicroPrintf(
+          "Couldn't register custom op '%s', resolver size is too"
+          "small (%d)",
+          name, tOpCount);
       return kTfLiteError;
     }
 
     if (FindOp(name) != nullptr) {
-      if (error_reporter_ != nullptr) {
-        TF_LITE_REPORT_ERROR(error_reporter_,
-                             "Calling AddCustom for the same op more than once "
-                             "is not supported (Op: %s).",
-                             name);
-      }
+      MicroPrintf("Calling AddCustom for the same op more than once ");
+      MicroPrintf("is not supported (Op: %s).", name);
       return kTfLiteError;
     }
 
@@ -145,9 +142,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::Register_ASSIGN_VARIABLE(), ParseAssignVariable);
   }
 
-  TfLiteStatus AddAveragePool2D() {
-    return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D,
-                      tflite::Register_AVERAGE_POOL_2D(), ParsePool);
+  TfLiteStatus AddAveragePool2D(
+      const TfLiteRegistration& registration = Register_AVERAGE_POOL_2D()) {
+    return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D, registration, ParsePool);
   }
 
   TfLiteStatus AddBatchToSpaceNd() {
@@ -223,6 +220,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddDetectionPostprocess() {
     return AddCustom("TFLite_Detection_PostProcess",
                      tflite::Register_DETECTION_POSTPROCESS());
+  }
+
+  TfLiteStatus AddDiv() {
+    return AddBuiltin(BuiltinOperator_DIV, tflite::Register_DIV(), ParseDiv);
   }
 
   TfLiteStatus AddElu() {
@@ -364,9 +365,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
   }
 
-  TfLiteStatus AddMaxPool2D() {
-    return AddBuiltin(BuiltinOperator_MAX_POOL_2D,
-                      tflite::Register_MAX_POOL_2D(), ParsePool);
+  TfLiteStatus AddMaxPool2D(
+      const TfLiteRegistration& registration = Register_MAX_POOL_2D()) {
+    return AddBuiltin(BuiltinOperator_MAX_POOL_2D, registration, ParsePool);
   }
 
   TfLiteStatus AddMirrorPad() {
@@ -383,8 +384,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_MINIMUM(), ParseMinimum);
   }
 
-  TfLiteStatus AddMul() {
-    return AddBuiltin(BuiltinOperator_MUL, tflite::Register_MUL(), ParseMul);
+  TfLiteStatus AddMul(const TfLiteRegistration& registration = Register_MUL()) {
+    return AddBuiltin(BuiltinOperator_MUL, registration, ParseMul);
   }
 
   TfLiteStatus AddNeg() {
@@ -467,6 +468,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_RSQRT(), ParseRsqrt);
   }
 
+  TfLiteStatus AddSelectV2() {
+    return AddBuiltin(BuiltinOperator_SELECT_V2, Register_SELECT_V2(),
+                      ParseSelectV2);
+  }
+
   TfLiteStatus AddShape() {
     return AddBuiltin(BuiltinOperator_SHAPE, Register_SHAPE(), ParseShape);
   }
@@ -520,6 +526,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::ops::micro::Register_SQUARE(), ParseSquare);
   }
 
+  TfLiteStatus AddSquaredDifference() {
+    return AddBuiltin(BuiltinOperator_SQUARED_DIFFERENCE,
+                      tflite::Register_SQUARED_DIFFERENCE(),
+                      ParseSquaredDifference);
+  }
+
   TfLiteStatus AddStridedSlice() {
     return AddBuiltin(BuiltinOperator_STRIDED_SLICE,
                       tflite::ops::micro::Register_STRIDED_SLICE(),
@@ -528,6 +540,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddSub() {
     return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
+  }
+
+  TfLiteStatus AddSum() {
+    return AddBuiltin(BuiltinOperator_SUM, Register_SUM(), ParseReducer);
   }
 
   TfLiteStatus AddSvdf(
@@ -582,31 +598,20 @@ class MicroMutableOpResolver : public MicroOpResolver {
                           const TfLiteRegistration& registration,
                           MicroOpResolver::BuiltinParseFunction parser) {
     if (op == BuiltinOperator_CUSTOM) {
-      if (error_reporter_ != nullptr) {
-        TF_LITE_REPORT_ERROR(error_reporter_,
-                             "Invalid parameter BuiltinOperator_CUSTOM to the "
-                             "AddBuiltin function.");
-      }
+      MicroPrintf("Invalid parameter BuiltinOperator_CUSTOM to the ");
+      MicroPrintf("AddBuiltin function.");
       return kTfLiteError;
     }
 
     if (FindOp(op) != nullptr) {
-      if (error_reporter_ != nullptr) {
-        TF_LITE_REPORT_ERROR(error_reporter_,
-                             "Calling AddBuiltin with the same op more than "
-                             "once is not supported (Op: #%d).",
-                             op);
-      }
+      MicroPrintf("Calling AddBuiltin with the same op more than ");
+      MicroPrintf("once is not supported (Op: #%d).", op);
       return kTfLiteError;
     }
 
     if (registrations_len_ >= tOpCount) {
-      if (error_reporter_) {
-        TF_LITE_REPORT_ERROR(error_reporter_,
-                             "Couldn't register builtin op #%d, resolver size "
-                             "is too small (%d).",
-                             op, tOpCount);
-      }
+      MicroPrintf("Couldn't register builtin op #%d, resolver size ", op);
+      MicroPrintf("is too small (%d).", tOpCount);
       return kTfLiteError;
     }
 

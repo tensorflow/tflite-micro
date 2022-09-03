@@ -55,19 +55,16 @@ else
   fi
 
   git clone https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
-  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
+  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
   git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
+  rm -rf .git
+  create_git_repo ./
 
-  # Change memory allocation
   apply_patch_to_folder ./ ../../increase-stack-size-and-switch-DTCM-SRAM.patch "TFLM patch"
 
   cd "${ROOT_DIR}"
 
   LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
-
-  # Prepend #!cpp to scatter file.
-  SCATTER=${LINKER_PATH}/platform.scatter
-  echo -e "#!cpp\n$(cat ${SCATTER})" > ${SCATTER}
 
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
@@ -78,21 +75,7 @@ else
       exit 1
     fi
   fi
-
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld
-
-  # Patch retarget.c so that g++ can find exit symbol.
-  cat <<EOT >> ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300/retarget.c
-
-#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
-#else
-void RETARGET(exit)(int return_code) {
-  RETARGET(_exit)(return_code);
-  while (1) {}
-}
-#endif
-
-EOT
 
 fi
 

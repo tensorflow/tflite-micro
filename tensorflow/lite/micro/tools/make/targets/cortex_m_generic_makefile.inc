@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,11 +26,9 @@ ifeq ($(TARGET_ARCH), cortex-m0)
   CORE=M0
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0
 
-
 else ifeq ($(TARGET_ARCH), cortex-m0plus)
   CORE=M0plus
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0plus
-
 
 else ifeq ($(TARGET_ARCH), cortex-m3)
   CORE=M3
@@ -39,7 +37,7 @@ else ifeq ($(TARGET_ARCH), cortex-m3)
 else ifeq ($(TARGET_ARCH), cortex-m33)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33
-  TARGET_SPECIFIC_FLAGS += -D__DSP_PRESENT=1 -D__FPU_PRESENT=1 -D__VTOR_PRESENT=1 -D__FPU_USED=1
+  CMSIS_ARM_FEATURES := _DSP_FP
   FLOAT=hard
 
 else ifeq ($(TARGET_ARCH), cortex-m33+nodsp)
@@ -54,21 +52,20 @@ else ifeq ($(TARGET_ARCH), cortex-m4)
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
-  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
+  CMSIS_ARM_FEATURES := _FP
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
-  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1
+  CMSIS_ARM_FEATURES := _FP
   FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
-  TARGET_SPECIFIC_FLAGS += -D__DSP_PRESENT=1 -D__FPU_PRESENT=1
   FLOAT=hard
 
 else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
@@ -78,7 +75,6 @@ else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
 else ifeq ($(TARGET_ARCH), cortex-m55+nofp)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.no_fp
-  TARGET_SPECIFIC_FLAGS += -D__DSP_PRESENT=1
 
 else ifeq ($(TARGET_ARCH), cortex-m7)
   CORE=M7
@@ -90,12 +86,28 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M7
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
+  CMSIS_ARM_FEATURES := _DP
+
+else ifeq ($(TARGET_ARCH), cortex-m85)
+  CORE=M85
+  ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
+  FLOAT=hard
+  # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
+  GCC_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), project_generation)
- # None of the parameters matter since we are not going to build any code.
+  # No flags needed here as project_generation does not build anything.
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
+
+# Dependency to CMSIS-Device for DWT/PMU counters.
+ARM_CPU := "ARMC$(CORE)"
+CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
+CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
+INCLUDES += \
+  -I$(CMSIS_PATH)/Device/ARM/$(ARM_CPU)/Include \
+  -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 ifneq ($(filter cortex-m55%,$(TARGET_ARCH)),)
   # soft-abi=soft disables MVE - use softfp instead for M55.
@@ -164,8 +176,16 @@ PLATFORM_FLAGS = \
   -Wno-unused-private-field \
   -fomit-frame-pointer \
   -MD \
-  -DCPU_$(CORE)=1 \
-  $(TARGET_SPECIFIC_FLAGS)
+  -DCPU_$(CORE)=1
+
+# For DWT/PMU counters. Header file name is depending on target architecture.
+PLATFORM_FLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU)$(CMSIS_ARM_FEATURES).h\"
+PLATFORM_FLAGS += -D$(ARM_CPU)
+
+# Arm Cortex-M55 and Cortex-M85 use PMU counters.
+ifneq ($(filter "ARMCM55" "ARMCM85",$(ARM_CPU)),)
+  PLATFORM_FLAGS += -DARM_MODEL_USE_PMU_COUNTERS
+endif
 
 # Common + C/C++ flags
 CXXFLAGS += $(PLATFORM_FLAGS)

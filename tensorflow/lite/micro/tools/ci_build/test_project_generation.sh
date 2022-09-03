@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ PATH="${PATH}:${ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/gcc_embedde
 popd > /dev/null
 
 rm -rf "${TEST_OUTPUT_DIR_CMSIS}"
+
 
 # Test that C++ files are renamed to .cpp
 

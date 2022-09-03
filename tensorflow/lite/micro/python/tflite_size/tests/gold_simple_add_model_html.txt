@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+<!-- reference: https://www.w3schools.com/howto/howto_js_treeview.asp -->
+<html>
+<head>
+<style>
+/* Remove default bullets */
+ul {
+  list-style-type: none;
+}
+
+
+/* Style the caret/arrow */
+.caret {
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+  content: "\25B6";
+  color: black;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+  transform: rotate(90deg);
+}
+
+/* Hide the nested list */
+.nested {
+  display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+  display: block;
+}
+</style>
+
+
+
+</head>
+<body>
+<ul id="root">
+<li> <span class = "caret"> ROOT (size: 345) </span>
+<ul class="nested">
+<li> version: 3 (size: 4) </li>
+<li> <span class = "caret"> operator_codes (size: 4) </span>
+<ul class="nested">
+<li> <span class = "caret"> operator_codes[0] (size: 4) </span>
+<ul class="nested">
+<li> version: 2 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> subgraphs (size: 243) </span>
+<ul class="nested">
+<li> <span class = "caret"> subgraphs[0] (size: 243) </span>
+<ul class="nested">
+<li> <span class = "caret"> tensors (size: 214) </span>
+<ul class="nested">
+<li> <span class = "caret"> tensors[0] (size: 74) </span>
+<ul class="nested">
+<li> <span class = "caret"> shape (size: 16) </span>
+<ul class="nested">
+<li> shape[0]: 1 (size: 4) </li>
+<li> shape[1]: 128 (size: 4) </li>
+<li> shape[2]: 128 (size: 4) </li>
+<li> shape[3]: 1 (size: 4) </li>
+</ul>
+</li>
+<li> type: INT8 (size: 1) </li>
+<li> buffer: 1 (size: 4) </li>
+<li> name: serving_default_input_1:0 (size: 25) </li>
+<li> <span class = "caret"> quantization (size: 12) </span>
+<ul class="nested">
+<li> <span class = "caret"> scale (size: 4) </span>
+<ul class="nested">
+<li> scale[0]: 0.040725 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> zero_point (size: 8) </span>
+<ul class="nested">
+<li> zero_point[0]: -2 (size: 8) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
+<ul class="nested">
+<li> shape_signature[0]: -1 (size: 4) </li>
+<li> shape_signature[1]: 128 (size: 4) </li>
+<li> shape_signature[2]: 128 (size: 4) </li>
+<li> shape_signature[3]: 1 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> tensors[1] (size: 74) </span>
+<ul class="nested">
+<li> <span class = "caret"> shape (size: 16) </span>
+<ul class="nested">
+<li> shape[0]: 1 (size: 4) </li>
+<li> shape[1]: 128 (size: 4) </li>
+<li> shape[2]: 128 (size: 4) </li>
+<li> shape[3]: 1 (size: 4) </li>
+</ul>
+</li>
+<li> type: INT8 (size: 1) </li>
+<li> buffer: 2 (size: 4) </li>
+<li> name: serving_default_input_2:0 (size: 25) </li>
+<li> <span class = "caret"> quantization (size: 12) </span>
+<ul class="nested">
+<li> <span class = "caret"> scale (size: 4) </span>
+<ul class="nested">
+<li> scale[0]: 0.041246 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> zero_point (size: 8) </span>
+<ul class="nested">
+<li> zero_point[0]: -1 (size: 8) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
+<ul class="nested">
+<li> shape_signature[0]: -1 (size: 4) </li>
+<li> shape_signature[1]: 128 (size: 4) </li>
+<li> shape_signature[2]: 128 (size: 4) </li>
+<li> shape_signature[3]: 1 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> tensors[2] (size: 66) </span>
+<ul class="nested">
+<li> <span class = "caret"> shape (size: 16) </span>
+<ul class="nested">
+<li> shape[0]: 1 (size: 4) </li>
+<li> shape[1]: 128 (size: 4) </li>
+<li> shape[2]: 128 (size: 4) </li>
+<li> shape[3]: 1 (size: 4) </li>
+</ul>
+</li>
+<li> type: INT8 (size: 1) </li>
+<li> buffer: 3 (size: 4) </li>
+<li> name: PartitionedCall:0 (size: 17) </li>
+<li> <span class = "caret"> quantization (size: 12) </span>
+<ul class="nested">
+<li> <span class = "caret"> scale (size: 4) </span>
+<ul class="nested">
+<li> scale[0]: 0.058377 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> zero_point (size: 8) </span>
+<ul class="nested">
+<li> zero_point[0]: -3 (size: 8) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> shape_signature (size: 16) </span>
+<ul class="nested">
+<li> shape_signature[0]: -1 (size: 4) </li>
+<li> shape_signature[1]: 128 (size: 4) </li>
+<li> shape_signature[2]: 128 (size: 4) </li>
+<li> shape_signature[3]: 1 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> inputs (size: 8) </span>
+<ul class="nested">
+<li> inputs[0]: 0 (size: 4) </li>
+<li> inputs[1]: 1 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> outputs (size: 4) </span>
+<ul class="nested">
+<li> outputs[0]: 2 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> operators (size: 13) </span>
+<ul class="nested">
+<li> <span class = "caret"> operators[0] (size: 13) </span>
+<ul class="nested">
+<li> <span class = "caret"> inputs (size: 8) </span>
+<ul class="nested">
+<li> inputs[0]: 0 (size: 4) </li>
+<li> inputs[1]: 1 (size: 4) </li>
+</ul>
+</li>
+<li> <span class = "caret"> outputs (size: 4) </span>
+<ul class="nested">
+<li> outputs[0]: 2 (size: 4) </li>
+</ul>
+</li>
+<li> builtin_options_type: AddOptions (size: 1) </li>
+<li> builtin_options: 0 (size: 0) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> name: main (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> description: MLIR Converted. (size: 15) </li>
+<li> <span class = "caret"> buffers (size: 16) </span>
+<ul class="nested">
+<li> buffers[0]: 0 (size: 0) </li>
+<li> buffers[1]: 0 (size: 0) </li>
+<li> buffers[2]: 0 (size: 0) </li>
+<li> buffers[3]: 0 (size: 0) </li>
+<li> <span class = "caret"> buffers[4] (size: 16) </span>
+<ul class="nested">
+<li> <span class = "caret"> data (size: 16) </span>
+<ul class="nested">
+<li> data[0]: 49 (size: 1) </li>
+<li> data[1]: 46 (size: 1) </li>
+<li> data[2]: 49 (size: 1) </li>
+<li> data[3]: 52 (size: 1) </li>
+<li> data[4]: 46 (size: 1) </li>
+<li> data[5]: 48 (size: 1) </li>
+<li> data[6]: 0 (size: 1) </li>
+<li> data[7]: 0 (size: 1) </li>
+<li> data[8]: 0 (size: 1) </li>
+<li> data[9]: 0 (size: 1) </li>
+<li> data[10]: 0 (size: 1) </li>
+<li> data[11]: 0 (size: 1) </li>
+<li> data[12]: 0 (size: 1) </li>
+<li> data[13]: 0 (size: 1) </li>
+<li> data[14]: 0 (size: 1) </li>
+<li> data[15]: 0 (size: 1) </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> metadata (size: 23) </span>
+<ul class="nested">
+<li> <span class = "caret"> metadata[0] (size: 23) </span>
+<ul class="nested">
+<li> name: min_runtime_version (size: 19) </li>
+<li> buffer: 4 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> signature_defs (size: 40) </span>
+<ul class="nested">
+<li> <span class = "caret"> signature_defs[0] (size: 40) </span>
+<ul class="nested">
+<li> <span class = "caret"> inputs (size: 18) </span>
+<ul class="nested">
+<li> <span class = "caret"> inputs[0] (size: 7) </span>
+<ul class="nested">
+<li> name: input_1 (size: 7) </li>
+</ul>
+</li>
+<li> <span class = "caret"> inputs[1] (size: 11) </span>
+<ul class="nested">
+<li> name: input_2 (size: 7) </li>
+<li> tensor_index: 1 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> <span class = "caret"> outputs (size: 7) </span>
+<ul class="nested">
+<li> <span class = "caret"> outputs[0] (size: 7) </span>
+<ul class="nested">
+<li> name: add (size: 3) </li>
+<li> tensor_index: 2 (size: 4) </li>
+</ul>
+</li>
+</ul>
+</li>
+<li> signature_key: serving_default (size: 15) </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+
+<script>
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+      toggler[i].addEventListener("click", function() {
+        this.parentElement.querySelector(".nested").classList.toggle("active");
+        this.classList.toggle("caret-down");
+        });
+    }    
+</script>
+
+</body>
+</html>
+

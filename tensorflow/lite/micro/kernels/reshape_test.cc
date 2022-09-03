@@ -173,6 +173,8 @@ TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
       golden_output, golden_output_len, golden_dims, golden_dims_len, true);
 }
 
+// TODO(b/237407410): Re-enable for Vision P6 when the issue is resolved
+#if !defined(VISION_P6)
 TF_LITE_MICRO_TEST(ReshapeWithTooManyDimensionsShouldFail) {
   float output_data[32];
   int input_dims[] = {9, 1, 1, 2, 1, 1, 1, 1, 1, 1};
@@ -188,6 +190,7 @@ TF_LITE_MICRO_TEST(ReshapeWithTooManyDimensionsShouldFail) {
       input_dims, input, shape_dims, shape_int32, output_dims, output_data,
       golden_output, golden_output_len, golden_dims, golden_dims_len, false);
 }
+#endif
 
 TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
   float output_data[32];
