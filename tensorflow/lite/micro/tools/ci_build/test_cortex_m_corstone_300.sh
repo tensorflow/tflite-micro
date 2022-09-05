@@ -24,7 +24,7 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-if [ $1 = "armclang" ]; then
+if [[ $1 = "armclang" ]]; then
     TOOLCHAIN=armclang
 else
     TOOLCHAIN=gcc

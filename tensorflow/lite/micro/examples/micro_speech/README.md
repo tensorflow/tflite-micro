@@ -49,7 +49,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile TARGET=disco_f746ng OPTIMIZED_
 Running the make command will result in the creation of a new folder:
 
 ```
-tensorflow/lite/micro/tools/make/gen/disco_f746ng_cortex-m4_default/prj/micro_speech/mbed
+gen/disco_f746ng_cortex-m4_default/prj/micro_speech/mbed
 ```
 
 This folder contains all of the example's dependencies structured in the correct
@@ -153,7 +153,7 @@ using [ARM Mbed](https://github.com/ARMmbed/mbed-cli).
     ```
 
 4.  Change into the following directory that has been generated:
-    `tensorflow/lite/micro/tools/make/gen/mbed_cortex-m4/prj/micro_speech/mbed`
+    `gen/mbed_cortex-m4/prj/micro_speech/mbed`
 
 5.  Create an Mbed project using the generated files, run ensuring your
     environment is using Python 2.7: `mbed config root .`
@@ -233,7 +233,7 @@ The following instructions will help you build and deploy the sample to the
     tensorflow/lite/micro/tools/make/Makefile TARGET=ceva TARGET_ARCH=CEVA_SP500
     generate_micro_speech_make_project 	
 5.  Build the project:
-    /tensorflow/lite/micro/tools/make/gen/ceva_bx1/prj/micro_speech/make$ make
+    /gen/ceva_bx1/prj/micro_speech/make$ make
 6.  This should build the project and create a file called micro_speech.elf.
 7.  The supplied configuration reads input from a files and expects a file
     called input.wav (easily changed in audio_provider.cc) to be placed in the
@@ -260,7 +260,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile micro_speech
 Once the build completes, you can run the example with the following command:
 
 ```
-tensorflow/lite/micro/tools/make/gen/osx_x86_64/bin/micro_speech
+gen/osx_x86_64/bin/micro_speech
 ```
 
 You might see a pop-up asking for microphone access. If so, grant it, and the
