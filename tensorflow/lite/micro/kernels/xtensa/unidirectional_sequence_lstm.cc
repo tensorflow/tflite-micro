@@ -1116,6 +1116,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
   return tflite::micro::RegisterOp(ops::micro::Init, ops::micro::Prepare,
-              ∏∏ ops::micro::Eval);
+                                   ops::micro::Eval);
 }
 }  // namespace tflite
