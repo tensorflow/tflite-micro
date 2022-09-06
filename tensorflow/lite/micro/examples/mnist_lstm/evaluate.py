@@ -50,25 +50,16 @@ def read_img(img_path):
   """
   image = Image.open(img_path)
   data = np.asarray(image, dtype=np.float32)
-  data = data / 255.0
-  data = data.reshape((1, 28, 28))  #batch size one
+  if data.shape not in [(28, 28), (28, 28, 1)]:
+    raise RuntimeError(
+        "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"
+    )
+  # Normalize the image if necessary
+  if data.max() > 1:
+    data = data / 255.0
+  # Model inference requires batch size one
+  data = data.reshape((1, 28, 28))
   return data
-
-
-def predict(interpreter, data):
-  """Use TFLM interpreter for single batch prediction
-
-  Args:
-      interpreter (tflm_runtime.Interpreter)): the TFLM python interpreter
-      data (np.array): normalized data (float32, range 0-1) in shape (1,28,28)
-
-  Returns:
-      np.array : predicted probability; shape (batch, 10)
-  """
-  interpreter.set_input(data, 0)
-  interpreter.invoke()
-  tflm_output = interpreter.get_output(0)
-  return tflm_output
 
 
 def predict_image(interpreter, img_path):
@@ -82,25 +73,25 @@ def predict_image(interpreter, img_path):
       np.array : predicted probability for each class (digit 0-9)
   """
   data = read_img(img_path)
-  return predict(
-      interpreter,
-      data)[0]  # one image per time (i.e., remove the batch dimention)
+  interpreter.set_input(data, 0)
+  interpreter.invoke()
+  tflm_output = interpreter.get_output(0)
+  return tflm_output[
+      0]  # one image per time (i.e., remove the batch dimention)
 
 
 def main(_):
   if not os.path.exists(FLAGS.model_path):
-    logging.error(
+    raise ValueError(
         'Model file does not exist. Please check the .tflite model path.')
-    return
   if not os.path.exists(FLAGS.img_path):
-    logging.error('Image file does not exist. Please check the image path.')
-    return
+    raise ValueError('Image file does not exist. Please check the image path.')
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
-  probs = predict_image(tflm_interpreter, FLAGS.img_path)
-  pred = np.argmax(probs)
-  logging.info("Model predicts the image as %i with probability %.2f", pred,
-               probs[pred])
+  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
+  predicted_category = np.argmax(category_probabilities)
+  logging.info("Model predicts the image as %i with probability %.2f",
+               predicted_category, category_probabilities[predicted_category])
 
 
 if __name__ == '__main__':

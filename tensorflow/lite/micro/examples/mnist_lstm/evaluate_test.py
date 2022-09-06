@@ -33,6 +33,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     logging.info("No trained LSTM model. Training in Keras now (3 epoches)")
     train.train_save_model(model_dir, epochs=3)
 
+  sample_image_dir = "tensorflow/lite/micro/examples/mnist_lstm/samples/"
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
@@ -44,45 +45,52 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
 
+    np.random.seed(42)  #Seed the random number generator
     num_steps = 100
     for _ in range(0, num_steps):
-      # Create random input
+      # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times.
+      tflite_interpreter.reset_all_variables()
+      self.tflm_interpreter.reset()
+
+      # Give the same (random) input to both interpreters can confirm that the output is identical.
       data_x = np.random.random(self.input_shape)
       data_x = data_x.astype('float32')
+
+      # Run inference on TFLite
       tflite_interpreter.set_tensor(tflite_input_details["index"], data_x)
       tflite_interpreter.invoke()
       tflite_output = tflite_interpreter.get_tensor(
           tflite_output_details["index"])
 
-      # Please note: TfLite fused Lstm kernel is stateful, so we need to reset
-      # the states.
-      # Clean up internal states.
-      tflite_interpreter.reset_all_variables()
-
       # Run inference on TFLM
-      tflm_output = evaluate.predict(self.tflm_interpreter, data_x)
-      self.tflm_interpreter.reset()
+      self.tflm_interpreter.set_input(data_x, 0)
+      self.tflm_interpreter.invoke()
+      tflm_output = self.tflm_interpreter.get_output(0)
 
       # Check that TFLM has correct output
       self.assertDTypeEqual(tflm_output, np.float32)
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
-  def testModelAccuracy(self):
-    sample_img_dir = "tensorflow/lite/micro/examples/mnist_lstm/samples/"
-    img_lables = [7, 2, 1, 0, 4, 1, 4, 9, 5, 9]
-    num_match = 0
+  def testInputErrHandling(self):
+    wrong_size_image_path = self.sample_image_dir + 'resized9.png'
+    with self.assertRaises(RuntimeError):
+      evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
-    for i, label in enumerate(img_lables):
-      img_path = sample_img_dir + f"sample{i}.png"
+  def testModelAccuracy(self):
+    # Test prediction accuracy on digits 0-9 using sample images
+    num_match = 0
+    for label in range(10):
+      image_path = self.sample_image_dir + f"sample{label}.png"
 
       # Run inference on the sample image
-      probs = evaluate.predict_image(self.tflm_interpreter, img_path)
+      category_probabilities = evaluate.predict_image(self.tflm_interpreter,
+                                                      image_path)
       self.tflm_interpreter.reset()
 
       # Check the prediction result
-      pred = np.argmax(probs)
-      if pred == label:
+      predicted_category = np.argmax(category_probabilities)
+      if predicted_category == label:
         num_match += 1
 
     self.assertGreater(num_match, 7)  #at least 70% accuracy
