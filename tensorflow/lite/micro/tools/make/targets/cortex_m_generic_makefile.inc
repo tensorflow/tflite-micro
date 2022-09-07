@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M7
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
+  CMSIS_ARM_FEATURES := _DP
 
 else ifeq ($(TARGET_ARCH), cortex-m85)
   CORE=M85
@@ -94,6 +95,8 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
   # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
   GCC_TARGET_ARCH := cortex-m55
 
+else ifeq ($(TARGET_ARCH), project_generation)
+  # No flags needed here as project_generation does not build anything.
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -137,17 +140,12 @@ ifeq ($(TOOLCHAIN), armclang)
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
 
 else ifeq ($(TOOLCHAIN), gcc)
-  # Download may be skipped in some cases, for example project generation.
-  SKIP_ARM_GCC_DOWNLOAD ?= no
-
   TARGET_DEFAULT_TOOLCHAIN_ROOT := ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
   TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-  ifeq ($(SKIP_ARM_GCC_DOWNLOAD), no)
-    ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
-      DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
-      ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-        $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
-      endif
+  ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
+    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
+    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+      $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
     endif
   endif
 

@@ -225,6 +225,7 @@ tflm_kernel_cc_library(
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
         "round.cc",
+        "select.cc",
         "shape.cc",
         "slice.cc",
         "softmax.cc",
@@ -1105,6 +1106,20 @@ cc_test(
     name = "round_test",
     srcs = [
         "round_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "select_test",
+    srcs = [
+        "select_test.cc",
     ],
     deps = [
         ":kernel_runner",

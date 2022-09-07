@@ -17,9 +17,9 @@ pybind_library(
     hdrs = [
         "flatbuffer_size.h",
         "flatbuffer_size_wrapper.h",
-        "schema_generated_with_reflective_type.h",
     ],
     deps = [
+        "//tensorflow/lite/schema:schema_fbs_with_reflection",
         "@flatbuffers",
     ],
 )
