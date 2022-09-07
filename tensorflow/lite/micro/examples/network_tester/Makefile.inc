@@ -8,7 +8,7 @@ ifeq ($(CO_PROCESSOR),ethos_u)
     $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
 
   NETWORK_TESTER_GENERATOR_INPUTS := \
-    tensorflow/lite/micro/examples/person_detection/testdata/person.bmp
+    $(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/testdata/person.bmp
 endif
 
 NETWORK_TESTER_TEST_HDRS := \

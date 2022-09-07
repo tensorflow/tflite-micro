@@ -198,11 +198,11 @@ tensorflow/lite/micro/examples/micro_speech/main_functions.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 MICRO_SPEECH_GENERATOR_INPUTS := \
-tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite \
-tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms.wav
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms.wav \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms.wav \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms.wav \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms.wav
 
 MICRO_SPEECH_GENERATED_SRCS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.cc \

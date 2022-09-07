@@ -41,9 +41,9 @@ tensorflow/lite/micro/examples/person_detection/main_functions.h \
 $(person_detection_MODEL_HDRS)
 
 person_detection_GENERATOR_INPUTS := \
-tensorflow/lite/micro/models/person_detect.tflite \
-tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
-tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/models/person_detect.tflite \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/testdata/no_person.bmp
 
 person_detection_GENERATED_SRCS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data.cc
@@ -52,7 +52,7 @@ person_detection_GENERATED_HDRS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data.h
 
 #Find any platform - specific rules for this example.
-include $(wildcard tensorflow/lite/micro/examples/person_detection/*/Makefile.inc)
+include $(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/*/Makefile.inc)
 
 # Tests loading and running a vision model.
 $(eval $(call microlite_test,person_detection_test,\

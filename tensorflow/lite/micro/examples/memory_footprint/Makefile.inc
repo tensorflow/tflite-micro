@@ -10,7 +10,7 @@ INTERPRETER_MEMORY_FOOTPRINT_HDRS := \
 tensorflow/lite/micro/benchmarks/micro_benchmark.h
 
 MEMORY_FOOTPRINT_GENERATOR_INPUTS := \
-tensorflow/lite/micro/examples/memory_footprint/models/simple_add_model.tflite
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/memory_footprint/models/simple_add_model.tflite
 
 MEMORY_FOOTPRINT_GENERATED_SRCS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/memory_footprint/models/simple_add_model_data.cc

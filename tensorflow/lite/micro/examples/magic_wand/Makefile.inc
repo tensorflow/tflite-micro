@@ -44,7 +44,7 @@ tensorflow/lite/micro/examples/magic_wand/gesture_predictor.h \
 tensorflow/lite/micro/examples/magic_wand/output_handler.h
 
 magic_wand_GENERATOR_INPUTS := \
-tensorflow/lite/micro/examples/magic_wand/magic_wand.tflite
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/magic_wand/magic_wand.tflite
 
 magic_wand_GENERATED_SRCS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.cc
@@ -53,7 +53,7 @@ magic_wand_GENERATED_HDRS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h
 
 #Find any platform - specific rules for this example.
-include $(wildcard tensorflow/lite/micro/examples/magic_wand/*/Makefile.inc)
+include $(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/magic_wand/*/Makefile.inc)
 
 # Tests the accelerometer handler
 $(eval $(call microlite_test,gesture_accelerometer_handler_test,\

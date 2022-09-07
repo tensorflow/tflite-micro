@@ -18,8 +18,9 @@ ifneq (3.82,$(firstword $(sort $(MAKE_VERSION) 3.82)))
 endif
 
 # root directory of tensorflow
-TENSORFLOW_ROOT :=
-MAKEFILE_DIR := tensorflow/lite/micro/tools/make
+TENSORFLOW_ROOT := ./
+RELATIVE_MAKEFILE_DIR := tensorflow/lite/micro/tools/make
+MAKEFILE_DIR := $(TENSORFLOW_ROOT)/$(RELATIVE_MAKEFILE_DIR)
 
 # Pull in some convenience functions.
 include $(MAKEFILE_DIR)/helper_functions.inc
@@ -61,7 +62,7 @@ OPTIMIZED_KERNEL_DIR :=
 
 # Override this variable from the command line in case the optimized kernels are
 # in a different directory.
-OPTIMIZED_KERNEL_DIR_PREFIX := tensorflow/lite/micro/kernels
+OPTIMIZED_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels
 
 # Specify which co-processor's kernel implementation should be pulled in.
 # If the same kernel is implemented in both kernels/OPTIMIZED_KERNEL_DIR and
@@ -72,7 +73,8 @@ CO_PROCESSOR :=
 # This is obviously horrible.  We need to generate these 3 versions of the
 # include directories from one source.
 INCLUDES := \
--I. \
+-I$(TENSORFLOW_ROOT) \
+-Igoogle \
 -I$(MAKEFILE_DIR)/downloads/gemmlowp \
 -I$(MAKEFILE_DIR)/downloads/flatbuffers/include \
 -I$(MAKEFILE_DIR)/downloads/ruy
@@ -236,8 +238,7 @@ endif
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
-BASE_GENDIR := gen
-GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+GENDIR := gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
@@ -256,174 +257,174 @@ PRJDIR := $(GENDIR)prj/
 # examples/micro_speech/Makefile.inc for an example. At the same time, we
 # search till an arbitrary depth for files named Makefile_internal.inc as a way
 # to bypass this check and allow for deeper directory structures.
-MICRO_LITE_EXAMPLE_TESTS := $(shell find tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
-# Internal examples are copied outside the TFLM repo in ../google.
-ifneq ($(wildcard ../google),)
-MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
+MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
+# Internal examples are copied outside the TFLM repo in google.
+ifneq ($(wildcard google),)
+MICRO_LITE_EXAMPLE_TESTS += $(shell find google/ -name Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
-MICRO_LITE_INTEGRATION_TESTS += $(shell find tensorflow/lite/micro/integration_tests -name Makefile.inc)
+MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)/tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
 MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
-tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
 
-MICRO_LITE_BENCHMARKS := $(wildcard tensorflow/lite/micro/benchmarks/Makefile.inc)
+MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/benchmarks/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
 MICROLITE_BENCHMARK_SRCS := \
-$(wildcard tensorflow/lite/micro/benchmarks/*benchmark.cc)
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/benchmarks/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
-tensorflow/lite/micro/fake_micro_context_test.cc \
-tensorflow/lite/micro/flatbuffer_utils_test.cc \
-tensorflow/lite/micro/memory_arena_threshold_test.cc \
-tensorflow/lite/micro/memory_helpers_test.cc \
-tensorflow/lite/micro/micro_allocator_test.cc \
-tensorflow/lite/micro/micro_allocation_info_test.cc \
-tensorflow/lite/micro/micro_context_test.cc \
-tensorflow/lite/micro/micro_error_reporter_test.cc \
-tensorflow/lite/micro/micro_interpreter_test.cc \
-tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
-tensorflow/lite/micro/micro_resource_variable_test.cc \
-tensorflow/lite/micro/micro_string_test.cc \
-tensorflow/lite/micro/micro_time_test.cc \
-tensorflow/lite/micro/micro_utils_test.cc \
-tensorflow/lite/micro/recording_micro_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator_test.cc \
-tensorflow/lite/micro/testing_helpers_test.cc \
-tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
-tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
-tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/fake_micro_context_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/flatbuffer_utils_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_arena_threshold_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_helpers_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_allocation_info_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_context_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_error_reporter_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_interpreter_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_resource_variable_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_string_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_time_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/micro_utils_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/recording_micro_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/testing_helpers_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
-tensorflow/lite/micro/kernels/activations.cc \
-tensorflow/lite/micro/kernels/activations_common.cc \
-tensorflow/lite/micro/kernels/add.cc \
-tensorflow/lite/micro/kernels/add_common.cc \
-tensorflow/lite/micro/kernels/add_n.cc \
-tensorflow/lite/micro/kernels/arg_min_max.cc \
-tensorflow/lite/micro/kernels/assign_variable.cc \
-tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
-tensorflow/lite/micro/kernels/broadcast_args.cc \
-tensorflow/lite/micro/kernels/broadcast_to.cc \
-tensorflow/lite/micro/kernels/call_once.cc \
-tensorflow/lite/micro/kernels/cast.cc \
-tensorflow/lite/micro/kernels/ceil.cc \
-tensorflow/lite/micro/kernels/circular_buffer.cc \
-tensorflow/lite/micro/kernels/circular_buffer_common.cc \
-tensorflow/lite/micro/kernels/comparisons.cc \
-tensorflow/lite/micro/kernels/concatenation.cc \
-tensorflow/lite/micro/kernels/conv.cc \
-tensorflow/lite/micro/kernels/conv_common.cc \
-tensorflow/lite/micro/kernels/cumsum.cc \
-tensorflow/lite/micro/kernels/depth_to_space.cc \
-tensorflow/lite/micro/kernels/depthwise_conv.cc \
-tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
-tensorflow/lite/micro/kernels/dequantize.cc \
-tensorflow/lite/micro/kernels/dequantize_common.cc \
-tensorflow/lite/micro/kernels/detection_postprocess.cc \
-tensorflow/lite/micro/kernels/div.cc \
-tensorflow/lite/micro/kernels/elementwise.cc \
-tensorflow/lite/micro/kernels/elu.cc \
-tensorflow/lite/micro/kernels/ethosu.cc \
-tensorflow/lite/micro/kernels/exp.cc \
-tensorflow/lite/micro/kernels/expand_dims.cc \
-tensorflow/lite/micro/kernels/fill.cc \
-tensorflow/lite/micro/kernels/floor.cc \
-tensorflow/lite/micro/kernels/floor_div.cc \
-tensorflow/lite/micro/kernels/floor_mod.cc \
-tensorflow/lite/micro/kernels/fully_connected.cc \
-tensorflow/lite/micro/kernels/fully_connected_common.cc \
-tensorflow/lite/micro/kernels/gather.cc \
-tensorflow/lite/micro/kernels/gather_nd.cc \
-tensorflow/lite/micro/kernels/hard_swish.cc \
-tensorflow/lite/micro/kernels/hard_swish_common.cc \
-tensorflow/lite/micro/kernels/if.cc \
-tensorflow/lite/micro/kernels/kernel_runner.cc \
-tensorflow/lite/micro/kernels/kernel_util.cc \
-tensorflow/lite/micro/kernels/l2norm.cc \
-tensorflow/lite/micro/kernels/l2_pool_2d.cc \
-tensorflow/lite/micro/kernels/leaky_relu.cc \
-tensorflow/lite/micro/kernels/leaky_relu_common.cc \
-tensorflow/lite/micro/kernels/logical.cc \
-tensorflow/lite/micro/kernels/logical_common.cc \
-tensorflow/lite/micro/kernels/logistic.cc \
-tensorflow/lite/micro/kernels/logistic_common.cc \
-tensorflow/lite/micro/kernels/log_softmax.cc \
-tensorflow/lite/micro/kernels/lstm_eval.cc \
-tensorflow/lite/micro/kernels/maximum_minimum.cc \
-tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
-tensorflow/lite/micro/kernels/mirror_pad.cc \
-tensorflow/lite/micro/kernels/mul.cc \
-tensorflow/lite/micro/kernels/mul_common.cc \
-tensorflow/lite/micro/kernels/neg.cc \
-tensorflow/lite/micro/kernels/pack.cc \
-tensorflow/lite/micro/kernels/pad.cc \
-tensorflow/lite/micro/kernels/pooling.cc \
-tensorflow/lite/micro/kernels/pooling_common.cc \
-tensorflow/lite/micro/kernels/prelu.cc \
-tensorflow/lite/micro/kernels/prelu_common.cc \
-tensorflow/lite/micro/kernels/quantize.cc \
-tensorflow/lite/micro/kernels/quantize_common.cc \
-tensorflow/lite/micro/kernels/read_variable.cc \
-tensorflow/lite/micro/kernels/reduce.cc \
-tensorflow/lite/micro/kernels/reduce_common.cc \
-tensorflow/lite/micro/kernels/reshape.cc \
-tensorflow/lite/micro/kernels/resize_bilinear.cc \
-tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
-tensorflow/lite/micro/kernels/round.cc \
-tensorflow/lite/micro/kernels/select.cc \
-tensorflow/lite/micro/kernels/shape.cc \
-tensorflow/lite/micro/kernels/slice.cc \
-tensorflow/lite/micro/kernels/softmax.cc \
-tensorflow/lite/micro/kernels/softmax_common.cc \
-tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
-tensorflow/lite/micro/kernels/space_to_depth.cc \
-tensorflow/lite/micro/kernels/split.cc \
-tensorflow/lite/micro/kernels/split_v.cc \
-tensorflow/lite/micro/kernels/squared_difference.cc \
-tensorflow/lite/micro/kernels/squeeze.cc \
-tensorflow/lite/micro/kernels/strided_slice.cc \
-tensorflow/lite/micro/kernels/sub.cc \
-tensorflow/lite/micro/kernels/sub_common.cc \
-tensorflow/lite/micro/kernels/svdf.cc \
-tensorflow/lite/micro/kernels/svdf_common.cc \
-tensorflow/lite/micro/kernels/tanh.cc \
-tensorflow/lite/micro/kernels/transpose.cc \
-tensorflow/lite/micro/kernels/transpose_conv.cc \
-tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
-tensorflow/lite/micro/kernels/unpack.cc \
-tensorflow/lite/micro/kernels/var_handle.cc \
-tensorflow/lite/micro/kernels/while.cc \
-tensorflow/lite/micro/kernels/zeros_like.cc
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/activations.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/activations_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/add.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/add_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/add_n.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/arg_min_max.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/assign_variable.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/broadcast_args.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/broadcast_to.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/call_once.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/cast.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/ceil.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/circular_buffer.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/circular_buffer_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/comparisons.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/concatenation.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/cumsum.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/depth_to_space.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/depthwise_conv.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/dequantize.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/dequantize_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/detection_postprocess.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/div.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/elementwise.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/elu.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/ethosu.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/exp.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/expand_dims.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/fill.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/floor.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/floor_div.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/floor_mod.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/fully_connected.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/fully_connected_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/gather.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/gather_nd.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/hard_swish.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/hard_swish_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/if.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/kernel_runner.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/kernel_util.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/l2norm.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/l2_pool_2d.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/leaky_relu.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/leaky_relu_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/logical.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/logical_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/logistic.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/logistic_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/log_softmax.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/lstm_eval.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/maximum_minimum.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/mirror_pad.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/mul.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/mul_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/neg.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/pack.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/pad.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/pooling.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/pooling_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/prelu.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/prelu_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/quantize.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/quantize_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/read_variable.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/reduce.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/reduce_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/reshape.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/resize_bilinear.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/round.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/select.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/shape.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/slice.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/softmax.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/softmax_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/space_to_depth.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/split.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/split_v.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/squared_difference.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/squeeze.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/strided_slice.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/sub.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/sub_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/svdf.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/svdf_common.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/tanh.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/transpose.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/transpose_conv.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/unpack.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/var_handle.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/while.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/zeros_like.cc
 
 MICROLITE_TEST_HDRS := \
-$(wildcard tensorflow/lite/micro/testing/*.h)
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/testing/*.h)
 
 # The explicitly specified list of sources and headers that are shared between
 # TfLite and TFLM are in the ci/sync_from_upstream_tf.sh script.
 TFL_CC_SRCS := \
-$(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
+$(shell find $(TENSORFLOW_ROOT)/tensorflow/lite -type d \( -path $(TENSORFLOW_ROOT)/tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)/tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
 
 TFL_CC_HDRS := \
-$(shell find tensorflow/lite -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.h")
+$(shell find $(TENSORFLOW_ROOT)/tensorflow/lite -type d \( -path $(TENSORFLOW_ROOT)/tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)/tensorflow/lite/micro \) -prune -false -o -name "*.h")
 
 MICROLITE_CC_BASE_SRCS := \
-$(wildcard tensorflow/lite/micro/*.cc) \
-$(wildcard tensorflow/lite/micro/arena_allocator/*.cc) \
-$(wildcard tensorflow/lite/micro/memory_planner/*.cc) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/*.cc) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/*.cc) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_planner/*.cc) \
 $(TFL_CC_SRCS)
 
 MICROLITE_CC_HDRS := \
-$(wildcard tensorflow/lite/micro/*.h) \
-$(wildcard tensorflow/lite/micro/benchmarks/*model_data.h) \
-$(wildcard tensorflow/lite/micro/kernels/*.h) \
-$(wildcard tensorflow/lite/micro/arena_allocator/*.h) \
-$(wildcard tensorflow/lite/micro/memory_planner/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/benchmarks/*model_data.h) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/arena_allocator/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)/tensorflow/lite/micro/memory_planner/*.h) \
 LICENSE \
 $(TFL_CC_HDRS)
 
@@ -482,17 +483,17 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 $(shell mkdir -p ${MAKEFILE_DIR}/downloads)
 
 # Directly download the flatbuffers library.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
 endif
@@ -561,7 +562,7 @@ endif
 ifneq ($(CO_PROCESSOR),)
   include $(MAKEFILE_DIR)/ext_libs/$(CO_PROCESSOR).inc
   # Specialize for the coprocessor kernels.
-  PATH_TO_COPROCESSOR_KERNELS := tensorflow/lite/micro/kernels/$(CO_PROCESSOR)
+  PATH_TO_COPROCESSOR_KERNELS := $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/$(CO_PROCESSOR)
   MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
     --base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
     --specialize_directory $(PATH_TO_COPROCESSOR_KERNELS))
@@ -577,7 +578,7 @@ ifneq ($(CO_PROCESSOR),)
 endif
 
 # Specialize for debug_log. micro_time etc.
-PATH_TO_TARGET_SRCS := tensorflow/lite/micro/$(TARGET)
+PATH_TO_TARGET_SRCS := $(TENSORFLOW_ROOT)/tensorflow/lite/micro/$(TARGET)
 MICROLITE_CC_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
   --base_files "$(MICROLITE_CC_SRCS)" \
   --specialize_directory $(PATH_TO_TARGET_SRCS))
@@ -723,10 +724,10 @@ else
 endif
 
 # Create kernel test targets.
-include tensorflow/lite/micro/kernels/Makefile.inc
+include $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/Makefile.inc
 
 # Create binary size test target.
-include tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
+include $(TENSORFLOW_ROOT)/tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
 
 # Some tests have additional dependencies (beyond libtensorflow-microlite.a) and
 # those need to be explicitly specified with their own individual call to the
@@ -742,7 +743,7 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
   tensorflow/lite/micro/testing/test_conv_model.h
   EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS := \
-  tensorflow/lite/micro/models/keyword_scrambled.tflite
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/models/keyword_scrambled.tflite
   $(eval $(call microlite_test,memory_arena_threshold_test,\
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS), \
   $(EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS)))
@@ -774,7 +775,7 @@ endif
 
 # For all the tests that do not have any additional dependencies, we can
 # add a make target in a common way.
-$(foreach TEST_TARGET,$(filter-out tensorflow/lite/micro/kernels/%,$(MICROLITE_TEST_SRCS)),\
+$(foreach TEST_TARGET,$(filter-out $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/%,$(MICROLITE_TEST_SRCS)),\
 $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET))))
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
@@ -803,7 +804,7 @@ list_generator_dir:
 
 # Gets rid of all generated files.
 clean:
-	rm -rf $(BASE_GENDIR)
+	rm -rf gen
 
 # Removes third-party downloads.
 clean_downloads:
