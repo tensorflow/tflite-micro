@@ -22,15 +22,23 @@ py_binary(
     ],
 )
 
+filegroup(
+    name = "sample_images",
+    srcs = glob(["samples/*.png"]),
+)
+
 py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
-    data = glob(["samples/*.png"]),
+    data = [
+        "trained_lstm.tflite",
+        ":sample_images",
+    ],
     main = "evaluate_test.py",
     python_version = "PY3",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "nomsan",  #   Python doesn't like these symbols from interpreter_wrapper_pybind.so
         "noubsan",
     ],
     deps = [

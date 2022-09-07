@@ -27,12 +27,7 @@ from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 
 class LSTMModelTest(test_util.TensorFlowTestCase):
 
-  model_dir = "/tmp/lstm_trained_model/"
-  model_path = model_dir + 'lstm.tflite'
-  if not os.path.exists(model_path):
-    logging.info("No trained LSTM model. Training in Keras now (3 epoches)")
-    train.train_save_model(model_dir, epochs=3)
-
+  model_path = "tensorflow/lite/micro/examples/mnist_lstm/trained_lstm.tflite"
   sample_image_dir = "tensorflow/lite/micro/examples/mnist_lstm/samples/"
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
@@ -48,7 +43,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     np.random.seed(42)  #Seed the random number generator
     num_steps = 100
     for _ in range(0, num_steps):
-      # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times.
+      # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times (LSTM is stateful).
       tflite_interpreter.reset_all_variables()
       self.tflm_interpreter.reset()
 
@@ -82,18 +77,14 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     num_match = 0
     for label in range(10):
       image_path = self.sample_image_dir + f"sample{label}.png"
-
       # Run inference on the sample image
+      # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities = evaluate.predict_image(self.tflm_interpreter,
                                                       image_path)
-      self.tflm_interpreter.reset()
 
       # Check the prediction result
       predicted_category = np.argmax(category_probabilities)
-      if predicted_category == label:
-        num_match += 1
-
-    self.assertGreater(num_match, 7)  #at least 70% accuracy
+      self.assertEqual(predicted_category, label)
 
 
 if __name__ == "__main__":
