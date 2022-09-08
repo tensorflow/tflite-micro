@@ -17,6 +17,14 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
 
+namespace tflite {
+
+// Not all backends support CpuBackendContext usage, so forward declare to avoid
+// pulling in its implementation. Use of CpuBackendContext in method
+// implementations is purely optional.
+class CpuBackendContext;
+
+namespace tensor_utils {
 // Apply sigmoid to elements of a vector.
 void ApplySigmoidToVector(const float* vector, int v_size, float* result) {
   for (int v = 0; v < v_size; v++) {
@@ -42,10 +50,13 @@ void ApplyActivationToVector(const float* vector, int v_size,
     case kTfLiteActRelu6:
       return tflite::tensor_utils::ApplyRelu6ToVector(vector, v_size, result);
     case kTfLiteActTanh:
-      return tflite::tensor_utils::ApplyTanhToVector(vector, v_size, result);
+      return ApplyTanhToVector(vector, v_size, result);
     case kTfLiteActSignBit:
       return tflite::tensor_utils::ApplySignbitToVector(vector, v_size, result);
     case kTfLiteActSigmoid:
       return ApplySigmoidToVector(vector, v_size, result);
   }
 }
+
+}  // namespace tensor_utils
+}  // namespace tflite

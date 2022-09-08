@@ -1339,6 +1339,8 @@ cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels/internal:portable_tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
