@@ -1,15 +1,15 @@
 EXAMPLE_NAME:=hello_world
 
 HELLO_WORLD_TEST_SRCS := \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/$(EXAMPLE_NAME)_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/$(EXAMPLE_NAME)_test.cc
 
 OUTPUT_HANDLER_TEST_SRCS := \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler_test.cc \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler.cc
 
 OUTPUT_HANDLER_TEST_HDRS := \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler.h \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h
 
 HELLO_WORLD_SRCS := \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/main.cc \
@@ -23,7 +23,7 @@ tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h \
 tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/main_functions.h
 
 HELLO_WORLD_GENERATOR_INPUTS := \
-$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/hello_world/hello_world.tflite
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world.tflite
 
 HELLO_WORLD_GENERATED_SRCS := \
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/hello_world/hello_world_model_data.cc

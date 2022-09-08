@@ -31,7 +31,7 @@ $(1)_LOCAL_SRCS := $(2)
 
 ifneq ($(4),)
   # Generate cc files and headers for all models and bitmaps in the test.
-  GEN_RESULT := $$(shell python3 $(TENSORFLOW_ROOT)/tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+  GEN_RESULT := $$(shell python3 $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
 
   # The first ifneq is needed to be compatible with make versions prior to 4.2
   # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
