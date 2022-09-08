@@ -35,20 +35,15 @@ class CpuBackendContext;
 
 namespace tensor_utils {
 
-// Apply tanh to elements of a vector
-inline void ApplyTanhToVector(const float* vector, int v_size, float* result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = std::tanh(vector[v]);
-  }
-}
+
 
 // Apply sigmoid to elements of a vector.
-inline void ApplySigmoidToVector(const float* vector, int v_size,
-                                 float* result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = 1.0f / (1.0f + std::exp(-vector[v]));
-  }
-}
+ void ApplySigmoidToVector(const float* vector, int v_size,
+                                 float* result);
+// Apply tanh to elements of a vector
+ void ApplyTanhToVector(const float* vector, int v_size, float* result);
+
+
 
 // Apply appropriate activation function to elements of a vector.
  void ApplyActivationToVector(const float* vector, int v_size,

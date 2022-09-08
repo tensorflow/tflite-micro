@@ -22,13 +22,13 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/kernels/internal/tensor_utils.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/tensor_utils.h"
 
 namespace tflite {
 namespace {
@@ -71,33 +71,33 @@ void ComputeRowSums(
   if (aux_input_ptr) {
     if (!use_cifg) {
       tflite::tensor_utils::ReductionSumVector(aux_input_to_input_weights_ptr,
-                                             aux_input_to_input_row_sums,
-                                             n_cell, n_aux_input);
+                                               aux_input_to_input_row_sums,
+                                               n_cell, n_aux_input);
     }
     tflite::tensor_utils::ReductionSumVector(aux_input_to_forget_weights_ptr,
-                                           aux_input_to_forget_row_sums, n_cell,
-                                           n_aux_input);
+                                             aux_input_to_forget_row_sums,
+                                             n_cell, n_aux_input);
     tflite::tensor_utils::ReductionSumVector(aux_input_to_cell_weights_ptr,
-                                           aux_input_to_cell_row_sums, n_cell,
-                                           n_aux_input);
+                                             aux_input_to_cell_row_sums, n_cell,
+                                             n_aux_input);
     tflite::tensor_utils::ReductionSumVector(aux_input_to_output_weights_ptr,
-                                           aux_input_to_output_row_sums, n_cell,
-                                           n_aux_input);
+                                             aux_input_to_output_row_sums,
+                                             n_cell, n_aux_input);
   }
   if (!use_cifg) {
     tflite::tensor_utils::ReductionSumVector(recurrent_to_input_weights_ptr,
-                                           recurrent_to_input_row_sums, n_cell,
-                                           n_output);
+                                             recurrent_to_input_row_sums,
+                                             n_cell, n_output);
   }
   tflite::tensor_utils::ReductionSumVector(recurrent_to_forget_weights_ptr,
-                                         recurrent_to_forget_row_sums, n_cell,
-                                         n_output);
+                                           recurrent_to_forget_row_sums, n_cell,
+                                           n_output);
   tflite::tensor_utils::ReductionSumVector(recurrent_to_cell_weights_ptr,
-                                         recurrent_to_cell_row_sums, n_cell,
-                                         n_output);
+                                           recurrent_to_cell_row_sums, n_cell,
+                                           n_output);
   tflite::tensor_utils::ReductionSumVector(recurrent_to_output_weights_ptr,
-                                         recurrent_to_output_row_sums, n_cell,
-                                         n_output);
+                                           recurrent_to_output_row_sums, n_cell,
+                                           n_output);
 
   if (projection_weights_ptr != nullptr) {
     tflite::tensor_utils::ReductionSumVector(
@@ -156,7 +156,7 @@ inline void CalculateLstmGateFloat(
     memset(gate, 0, n_cell * n_batch * sizeof(float));
   } else {
     tflite::tensor_utils::VectorBatchVectorAssign(gate_bias, n_cell, n_batch,
-                                                gate);
+                                                  gate);
   }
   // For each batch and cell: compute input_weight * input.
   // Skip if input is all zeros.
@@ -184,11 +184,12 @@ inline void CalculateLstmGateFloat(
     tflite::tensor_utils::MeanStddevNormalization(gate, gate, n_cell, n_batch);
     tflite::tensor_utils::VectorBatchVectorCwiseProduct(
         layer_norm_coefficients, n_cell, gate, n_batch, gate);
-    tflite::tensor_utils::VectorBatchVectorAdd(gate_bias, n_cell, n_batch, gate);
+    tflite::tensor_utils::VectorBatchVectorAdd(gate_bias, n_cell, n_batch,
+                                               gate);
   }
   // Apply activation
- tflite::tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell,
-                                              activation, gate);
+  tflite::tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell,
+                                                activation, gate);
 }
 
 // Updates the LSTM cell state, used by both float and hybrid LSTM versions.
@@ -210,7 +211,7 @@ void UpdateLstmCellFloat(int n_batch, int n_cell, float* cell_state,
                          const float* input_gate, float* forget_gate,
                          const float* cell_gate, bool use_cifg, float clip) {
   tflite::tensor_utils::VectorVectorCwiseProduct(forget_gate, cell_state,
-                                               n_batch * n_cell, cell_state);
+                                                 n_batch * n_cell, cell_state);
 
   if (use_cifg) {
     // With CIFG, input_gate = 1-forget_gate. Use the forget_gate array as
@@ -258,9 +259,9 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
                               const float proj_clip, float* output_state,
                               float* scratch) {
   tflite::tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
-                                              activation, scratch);
+                                                activation, scratch);
   tflite::tensor_utils::VectorVectorCwiseProduct(output_gate, scratch,
-                                               n_batch * n_cell, scratch);
+                                                 n_batch * n_cell, scratch);
 
   const bool use_projection = (projection_weights != nullptr);
   const bool use_projection_bias = (projection_bias != nullptr);
@@ -268,7 +269,7 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
   if (use_projection) {
     if (use_projection_bias) {
       tflite::tensor_utils::VectorBatchVectorAssign(projection_bias, n_output,
-                                                  n_batch, output_state);
+                                                    n_batch, output_state);
     } else {
       memset(output_state, 0, n_batch * n_output * sizeof(float));
     }
@@ -276,7 +277,7 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
         projection_weights, n_output, n_cell, scratch, n_batch, output_state);
     if (proj_clip > 0.0f) {
       tflite::tensor_utils::CwiseClipping(output_state, n_batch * n_output,
-                                        proj_clip);
+                                          proj_clip);
     }
   } else {
     std::memcpy(output_state, scratch, n_batch * n_output * sizeof(float));
@@ -331,7 +332,7 @@ void CalculateLstmGateHybrid(
     memset(gate, 0, n_cell * n_batch * sizeof(float));
   } else {
     tflite::tensor_utils::VectorBatchVectorAssign(gate_bias, n_cell, n_batch,
-                                                gate);
+                                                  gate);
   }
   // For each batch and cell: compute input_weight * input.
   // Skip if input is all zeros.
@@ -383,8 +384,8 @@ void CalculateLstmGateHybrid(
   if (use_peephole) {
     float* recovered_cell_weights = scratch1;
     tflite::tensor_utils::VectorScalarMultiply(cell_to_gate_weights, n_cell,
-                                             cell_to_gate_weights_scale,
-                                             recovered_cell_weights);
+                                               cell_to_gate_weights_scale,
+                                               recovered_cell_weights);
     tflite::tensor_utils::VectorBatchVectorCwiseProductAccumulate(
         recovered_cell_weights, n_cell, cell_state, n_batch, gate);
   }
@@ -393,11 +394,12 @@ void CalculateLstmGateHybrid(
     tflite::tensor_utils::MeanStddevNormalization(gate, gate, n_cell, n_batch);
     tflite::tensor_utils::VectorBatchVectorCwiseProduct(
         layer_norm_coefficients, n_cell, gate, n_batch, gate);
-    tflite::tensor_utils::VectorBatchVectorAdd(gate_bias, n_cell, n_batch, gate);
+    tflite::tensor_utils::VectorBatchVectorAdd(gate_bias, n_cell, n_batch,
+                                               gate);
   }
   // Apply activation
   tflite::tensor_utils::ApplyActivationToVector(gate, n_cell * n_batch,
-                                              activation, gate);
+                                                activation, gate);
 }
 
 // Calculates the output state tensor of an LSTM step. See Float version too.
@@ -429,9 +431,9 @@ void CalculateLstmOutputHybrid(
     float* scratch0, int8_t* scratch1, float* scratch2, int32_t* scratch3,
     int32_t* scratch4, float* scales) {
   tflite::tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
-                                              activation, scratch0);
+                                                activation, scratch0);
   tflite::tensor_utils::VectorVectorCwiseProduct(output_gate, scratch0,
-                                               n_batch * n_cell, scratch0);
+                                                 n_batch * n_cell, scratch0);
 
   const bool use_projection = (projection_weights != nullptr);
   const bool use_projection_bias = (projection_bias != nullptr);
@@ -439,15 +441,15 @@ void CalculateLstmOutputHybrid(
   if (use_projection) {
     if (use_projection_bias) {
       tflite::tensor_utils::VectorBatchVectorAssign(projection_bias, n_output,
-                                                  n_batch, output_state);
+                                                    n_batch, output_state);
     } else {
       memset(output_state, 0, n_batch * n_output * sizeof(float));
     }
     if (!tflite::tensor_utils::IsZeroVector(scratch0, n_batch * n_cell)) {
       // Save quantization and matmul computation for all zero output.
       tflite::tensor_utils::BatchQuantizeFloats(scratch0, n_batch, n_cell,
-                                              scratch1, scratch2, scratch3,
-                                              asymmetric_quantize_inputs);
+                                                scratch1, scratch2, scratch3,
+                                                asymmetric_quantize_inputs);
       if (projection_weights_ledger != nullptr) {
         for (int i = 0; i < n_batch; i++) {
           scales[i] = projection_weights_scale * scratch2[i];
@@ -465,7 +467,7 @@ void CalculateLstmOutputHybrid(
     }
     if (proj_clip > 0.0f) {
       tflite::tensor_utils::CwiseClipping(output_state, n_batch * n_output,
-                                        proj_clip);
+                                          proj_clip);
     }
   } else {
     std::memcpy(output_state, scratch0, n_batch * n_output * sizeof(float));
@@ -576,17 +578,17 @@ void UpdateLstmCellInteger(int n_batch, int n_cell, int16_t* cell_state,
   int16_t* scratch = forget_gate;
 
   tflite::tensor_utils::CwiseMul(forget_gate, cell_state, n_batch, n_cell, 15,
-                               cell_state);
+                                 cell_state);
   if (use_cifg) {
     tflite::tensor_utils::Sub1Vector(forget_gate, n_batch * n_cell, scratch);
     tflite::tensor_utils::CwiseMul(scratch, cell_gate, n_batch, n_cell,
-                                 30 + cell_state_scale, scratch);
+                                   30 + cell_state_scale, scratch);
   } else {
     tflite::tensor_utils::CwiseMul(input_gate, cell_gate, n_batch, n_cell,
-                                 30 + cell_state_scale, scratch);
+                                   30 + cell_state_scale, scratch);
   }
   tflite::tensor_utils::CwiseAdd(cell_state, scratch, n_batch, n_cell,
-                               cell_state);
+                                 cell_state);
 
   if (clip > 0) {
     tflite::tensor_utils::CwiseClipping(cell_state, n_batch * n_cell, clip);
@@ -638,8 +640,8 @@ void CalculateLstmOutputInteger8x8_16(
                                 cell_state, tanh_inp_shape, scratch0);
   }
   tflite::tensor_utils::CwiseMul(output_gate, scratch0, hidden_scale_a,
-                               hidden_scale_b, n_batch, n_cell, hidden_zp,
-                               scratch1);
+                                 hidden_scale_b, n_batch, n_cell, hidden_zp,
+                                 scratch1);
 
   const bool use_projection = (projection_weights != nullptr);
 
@@ -652,7 +654,7 @@ void CalculateLstmOutputInteger8x8_16(
         output_state, nullptr);
     if (quantized_proj_clip > 0) {
       tflite::tensor_utils::CwiseClipping(output_state, n_batch * n_output,
-                                        quantized_proj_clip);
+                                          quantized_proj_clip);
     }
   } else {
     std::memcpy(output_state, scratch1, n_batch * n_output * sizeof(int8_t));
@@ -741,16 +743,17 @@ void CalculateLstmOutputInteger8x8_8(
     int32_t output_state_zp, int32_t quantized_proj_clip, int8_t* output_state,
     int16_t* scratch) {
   // Note: unlike float/hybrid, the activation is always Tanh.
-  tflite::tensor_utils::ApplyTanhFloat(cell_state, n_batch, n_cell, -15, scratch);
+  tflite::tensor_utils::ApplyTanhFloat(cell_state, n_batch, n_cell, -15,
+                                       scratch);
   tflite::tensor_utils::CwiseMul(output_gate, scratch, n_batch, n_cell,
-                               15 + 15 - 15, scratch);
+                                 15 + 15 - 15, scratch);
   // Note: no bias like in float/hybrid
   tflite::tensor_utils::MatrixBatchVectorMultiply(
       scratch, projection_weights, proj_scale_a, proj_scale_b, projection_bias,
       n_batch, n_cell, n_output, output_state_zp, output_state);
   if (quantized_proj_clip > 0) {
     tflite::tensor_utils::CwiseClipping(output_state, n_batch * n_output,
-                                      quantized_proj_clip);
+                                        quantized_proj_clip);
   }
 }
 
@@ -858,8 +861,8 @@ inline void LstmStepFloat(
   const bool is_input_all_zeros =
       tflite::tensor_utils::IsZeroVector(input_ptr, n_batch * n_input);
   const bool is_aux_input_all_zeros =
-      (aux_input_ptr == nullptr ||
-       tflite::tensor_utils::IsZeroVector(aux_input_ptr, n_batch * n_aux_input));
+      (aux_input_ptr == nullptr || tflite::tensor_utils::IsZeroVector(
+                                       aux_input_ptr, n_batch * n_aux_input));
   if (!use_cifg) {
     // Calculate the input gate. (If not CIFG.)
     CalculateLstmGateFloat(
@@ -1121,8 +1124,8 @@ inline void LstmStepHybrid(
   const bool is_input_all_zeros =
       tflite::tensor_utils::IsZeroVector(input_ptr, n_batch * n_input);
   const bool is_aux_input_all_zeros =
-      (aux_input_ptr == nullptr ||
-       tflite::tensor_utils::IsZeroVector(aux_input_ptr, n_batch * n_aux_input));
+      (aux_input_ptr == nullptr || tflite::tensor_utils::IsZeroVector(
+                                       aux_input_ptr, n_batch * n_aux_input));
   const bool is_output_state_all_zeros =
       tflite::tensor_utils::IsZeroVector(output_state_ptr, n_batch * n_output);
   // Quantize inputs.

@@ -480,38 +480,20 @@ void TwoGateSaturatingAdd(const int8_t* input, int8_t input_zp,
                           int32_t n_cell, int16_t* output);
 
 // Apply Rectified Linear to elements of a vector.
-inline void ApplyReluToVector(const float* __restrict__ vector, int v_size,
-                              float* __restrict__ result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = std::max(0.0f, vector[v]);
-  }
-}
+void ApplyReluToVector(const float* __restrict__ vector, int v_size,
+                              float* __restrict__ result);
 
 // Apply Rectified Linear 1 (cap to [-1;1]) to elements of a vector
-inline void ApplyRelu1ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = std::max(-1.0f, std::min(vector[v], 1.0f));
-  }
-}
+void ApplyRelu1ToVector(const float* __restrict__ vector, int v_size,
+                               float* __restrict__ result);
 
 // Apply Rectified Linear 6 (cap to [0;6]) to elements of a vector
-inline void ApplyRelu6ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = std::max(0.0f, std::min(vector[v], 6.0f));
-  }
-}
-
+void ApplyRelu6ToVector(const float* __restrict__ vector, int v_size,
+                               float* __restrict__ result);
 
 // Apply signbit to elements of a vector
-inline void ApplySignbitToVector(const float* __restrict__ vector, int v_size,
-                                 float* __restrict__ result) {
-  for (int v = 0; v < v_size; v++) {
-    result[v] = std::signbit(vector[v]);
-  }
-}
-
+void ApplySignbitToVector(const float* __restrict__ vector, int v_size,
+                                 float* __restrict__ result);
 
 // Same as the function above, but provide a scratch buffer for the
 // int8 x int8 -> int32 and a CpuBackendContext for the accumulator
@@ -531,26 +513,6 @@ void MatrixBatchVectorMultiplyAccumulate(
     const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
     bool* compute_row_sums, CpuBackendContext* context);
 
-// Same as the function above, but provides separate scaling factor for the
-// matrix and the vectors. The scaling factors are multiplied in the
-// scaling_factor_scratch buffer.
-inline void MatrixBatchVectorMultiplyAccumulate(
-    const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
-    const int8_t* __restrict__ vectors, const float matrix_scaling_factor,
-    const float* vector_scaling_factors, int n_batch,
-    float* __restrict__ result, const float* per_channel_scale,
-    const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
-    bool* compute_row_sums, float* scaling_factor_scratch,
-    CpuBackendContext* context) {
-  for (int b = 0; b < n_batch; ++b) {
-    scaling_factor_scratch[b] =
-        vector_scaling_factors[b] * matrix_scaling_factor;
-  }
-  MatrixBatchVectorMultiplyAccumulate(matrix, m_rows, m_cols, vectors,
-                                      scaling_factor_scratch, n_batch, result,
-                                      per_channel_scale, input_offset, scratch,
-                                      row_sums, compute_row_sums, context);
-}
 
 // Multiplies a matrix by a "batched" vector (i.e. a matrix with a batch
 // dimension composed by input vectors independent from each other). The result
@@ -616,6 +578,26 @@ void MatrixBatchVectorMultiplyAccumulate(
     int32_t* scratch, int8_t* output, CpuBackendContext* context);
 
 
+// Same as the function above, but provides separate scaling factor for the
+// matrix and the vectors. The scaling factors are multiplied in the
+// scaling_factor_scratch buffer.
+void MatrixBatchVectorMultiplyAccumulate(
+    const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
+    const int8_t* __restrict__ vectors, const float matrix_scaling_factor,
+    const float* vector_scaling_factors, int n_batch,
+    float* __restrict__ result, const float* per_channel_scale,
+    const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
+    bool* compute_row_sums, float* scaling_factor_scratch,
+    CpuBackendContext* context) {
+  for (int b = 0; b < n_batch; ++b) {
+    scaling_factor_scratch[b] =
+        vector_scaling_factors[b] * matrix_scaling_factor;
+  }
+  MatrixBatchVectorMultiplyAccumulate(matrix, m_rows, m_cols, vectors,
+                                      scaling_factor_scratch, n_batch, result,
+                                      per_channel_scale, input_offset, scratch,
+                                      row_sums, compute_row_sums, context);
+}
 
 }  // namespace tensor_utils
 

@@ -327,7 +327,6 @@ void TwoGateSaturatingAdd(const int8_t* input, int8_t input_zp,
       recurrent_effective_scale_b, n_batch, n_cell, output);
 }
 
-
 }  // namespace tensor_utils
 }  // namespace tflite
 

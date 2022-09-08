@@ -157,10 +157,10 @@ cc_library(
 )
 
 cc_library(
-   name = "tensor_utils",
+    name = "tensor_utils",
     srcs = [
-        "tensor_utils.cc",
         "portable_tensor_utils.cc",
+        "tensor_utils.cc",
     ],
     hdrs = [
         "portable_tensor_utils.h",
@@ -168,11 +168,11 @@ cc_library(
     ],
     copts = tflite_copts(),
     deps = [
-        ":portable_tensor_utils",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels:op_macros",
         ":common",
         ":compatibility",
         ":cppmath",
+        ":portable_tensor_utils",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:op_macros",
     ],
 )

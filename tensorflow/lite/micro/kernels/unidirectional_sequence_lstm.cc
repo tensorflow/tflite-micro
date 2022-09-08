@@ -20,12 +20,12 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
-#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
 namespace tflite {
@@ -983,8 +983,8 @@ TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
   }
   if (zero_point != 0) {
     const int8_t* weight = GetTensorData<int8_t>(weight_tensor);
-    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point, row,
-                                                       col, *output);
+    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point,
+                                                         row, col, *output);
   }
   return kTfLiteOk;
 }

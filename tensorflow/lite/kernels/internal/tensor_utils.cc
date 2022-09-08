@@ -16,6 +16,22 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
 
+
+// Apply sigmoid to elements of a vector.
+ void ApplySigmoidToVector(const float* vector, int v_size,
+                                 float* result) {
+  for (int v = 0; v < v_size; v++) {
+    result[v] = 1.0f / (1.0f + std::exp(-vector[v]));
+  }
+}
+
+ void ApplyTanhToVector(const float* vector, int v_size, float* result) {
+  for (int v = 0; v < v_size; v++) {
+    result[v] = std::tanh(vector[v]);
+  }
+}
+
+
  void ApplyActivationToVector(const float* vector, int v_size,
                                     TfLiteFusedActivation activation,
                                     float* result) {
@@ -33,7 +49,7 @@ limitations under the License.
     case kTfLiteActSignBit:
       return tflite::tensor_utils::ApplySignbitToVector(vector, v_size, result);
     case kTfLiteActSigmoid:
-      return tflite::tensor_utils::ApplySigmoidToVector(vector, v_size, result);
+      return ApplySigmoidToVector(vector, v_size, result);
   }
 }
 
