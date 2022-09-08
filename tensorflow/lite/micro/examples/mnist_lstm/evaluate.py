@@ -78,8 +78,8 @@ def predict_image(interpreter, img_path):
   tflm_output = interpreter.get_output(0)
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
-  return tflm_output[
-      0]  # one image per time (i.e., remove the batch dimention)
+  # One image per time (i.e., remove the batch dimention)
+  return tflm_output[0]
 
 
 def main(_):

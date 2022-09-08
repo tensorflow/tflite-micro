@@ -19,16 +19,18 @@ import tensorflow as tf
 
 from absl import logging
 from tensorflow.python.framework import test_util
+from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import train
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 
+PREFIX_PATH = resource_loader.get_path_to_datafile("")
+
 
 class LSTMModelTest(test_util.TensorFlowTestCase):
 
-  model_path = "tensorflow/lite/micro/examples/mnist_lstm/trained_lstm.tflite"
-  sample_image_dir = "tensorflow/lite/micro/examples/mnist_lstm/samples/"
+  model_path = PREFIX_PATH + "trained_lstm.tflite"
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
@@ -68,15 +70,15 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
   def testInputErrHandling(self):
-    wrong_size_image_path = self.sample_image_dir + 'resized9.png'
+    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples",
+                                         'resized9.png')
     with self.assertRaises(RuntimeError):
       evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testModelAccuracy(self):
     # Test prediction accuracy on digits 0-9 using sample images
-    num_match = 0
     for label in range(10):
-      image_path = self.sample_image_dir + f"sample{label}.png"
+      image_path = os.path.join(PREFIX_PATH, "samples", f"sample{label}.png")
       # Run inference on the sample image
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities = evaluate.predict_image(self.tflm_interpreter,
