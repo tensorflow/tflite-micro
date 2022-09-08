@@ -31,10 +31,13 @@ PREFIX_PATH = resource_loader.get_path_to_datafile("")
 class LSTMModelTest(test_util.TensorFlowTestCase):
 
   model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
+  quant_model_path = os.path.join(PREFIX_PATH, "trained_lstm_quant.tflite")
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
+  tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(quant_model_path)
+  np.random.seed(42)  #Seed the random number generator
 
   def testCompareWithTFLite(self):
     tflite_interpreter = tf.lite.Interpreter(model_path=self.model_path)
@@ -42,7 +45,6 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
 
-    np.random.seed(42)  #Seed the random number generator
     num_steps = 100
     for _ in range(0, num_steps):
       # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times (LSTM is stateful).
@@ -68,6 +70,40 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       self.assertDTypeEqual(tflm_output, np.float32)
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
+
+  def testQuantCompareWithTFLite(self):
+    tflite_interpreter_quant = tf.lite.Interpreter(
+        model_path=self.quant_model_path)
+    tflite_interpreter_quant.allocate_tensors()
+    tflite_output_details = tflite_interpreter_quant.get_output_details()[0]
+    tflite_input_details = tflite_interpreter_quant.get_input_details()[0]
+
+    num_steps = 100
+    for _ in range(0, num_steps):
+      # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times (LSTM is stateful).
+      tflite_interpreter_quant.reset_all_variables()
+      self.tflm_interpreter_quant.reset()
+
+      # Give the same (random) integer input to both interpreters can confirm that the output is identical.
+      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+
+      # Run inference on TFLite
+      tflite_interpreter_quant.set_tensor(tflite_input_details["index"],
+                                          data_x)
+      tflite_interpreter_quant.invoke()
+      tflite_output = tflite_interpreter_quant.get_tensor(
+          tflite_output_details["index"])
+
+      # Run inference on TFLM
+      self.tflm_interpreter_quant.set_input(data_x, 0)
+      self.tflm_interpreter_quant.invoke()
+      tflm_output = self.tflm_interpreter_quant.get_output(0)
+
+      # Check that TFLM has correct output
+      self.assertDTypeEqual(tflm_output, np.int8)
+      self.assertEqual(tflm_output.shape, self.output_shape)
+      # print(abs(tflite_output - tflm_output).max())
+      self.assertAllLess((tflite_output - tflm_output), 1)
 
   def testInputErrHandling(self):
     wrong_size_image_path = os.path.join(PREFIX_PATH, 'samples/resized9.png')
