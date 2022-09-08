@@ -156,7 +156,7 @@ OPTIMIZED_KERNEL_DIR=arc_mli \
 microlite
 ```
 
-Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
+Generated library *libtensorflow-microlite.a* can be found in *gen/{target}/lib*.
 
 ### Example Applications for ARC EM SDP
 
@@ -255,7 +255,7 @@ TCF_FILE=<path_to_tcf_file> \
 microlite
 ```
 
-Generated library *libtensorflow-microlite.a* can be found in *tensorflow/lite/micro/tools/make/gen/{target}/lib*.
+Generated library *libtensorflow-microlite.a* can be found in *gen/{target}/lib*.
 
 ### Example Applications for ARC EM/HS/VPX custom configuration.
 

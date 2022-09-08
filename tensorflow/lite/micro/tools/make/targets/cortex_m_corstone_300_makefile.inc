@@ -104,7 +104,7 @@ ifeq ($(TOOLCHAIN), armclang)
   ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
   ARMC6_LDFLAGS += -Wl,--load_addr_map_info,--xref,--callgraph,--symbols
   ARMC6_LDFLAGS += -Wl,--info,sizes,--info,totals,--info,unused,--info,veneers
-  ARMC6_LDFLAGS += -Wl,--list=${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/gen/$(TARGET).map
+  ARMC6_LDFLAGS += -Wl,--list=${TENSORFLOW_ROOT}gen/$(TARGET).map
   ARMC6_LDFLAGS += -Wl,--entry=Reset_Handler  --verbose
   ARMC6_LDFLAGS += -Wl,--scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
 
@@ -148,7 +148,7 @@ else ifeq ($(TOOLCHAIN), gcc)
   LDFLAGS += \
     --specs=nosys.specs \
     -T $(ETHOS_U_CORE_PLATFORM)/platform_parsed.ld \
-    -Wl,-Map=${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/gen/$(TARGET).map,--cref \
+    -Wl,-Map=${TENSORFLOW_ROOT}gen/$(TARGET).map,--cref \
     -Wl,--gc-sections \
     --entry Reset_Handler
 

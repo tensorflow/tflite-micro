@@ -133,6 +133,8 @@ InterpreterWrapper::InterpreterWrapper(
 
 int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 
+int InterpreterWrapper::Reset() { return interpreter_->Reset(); }
+
 // 1. Check that tensor and input array are safe to access
 // 2. Verify that input array metadata matches tensor metadata
 // 3. Copy input buffer into target input tensor

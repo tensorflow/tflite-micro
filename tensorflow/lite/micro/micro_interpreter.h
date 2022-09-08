@@ -120,7 +120,7 @@ class MicroInterpreter {
   // created. i.e. after Init and Prepare is called for the very first time.
   TfLiteStatus Reset();
 
-  // TODO: remove this in favor of Reset()
+  // TODO(b/244457206): remove this in favor of Reset()
   // Reset all variable tensors to the default value.
   TfLiteStatus ResetVariableTensors();
 

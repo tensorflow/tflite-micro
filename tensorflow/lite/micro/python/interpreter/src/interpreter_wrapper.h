@@ -31,6 +31,7 @@ class InterpreterWrapper {
   ~InterpreterWrapper();
 
   int Invoke();
+  int Reset();
   void SetInputTensor(PyObject* data, size_t index);
   PyObject* GetOutputTensor(size_t index);
 
