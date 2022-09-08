@@ -15,23 +15,20 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/magic_wand/output_handler.h"
 
-void HandleOutput(tflite::ErrorReporter* error_reporter, int kind) {
+void HandleOutput(int kind) {
   // light (red: wing, blue: ring, green: slope)
   if (kind == 0) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter,
+    MicroPrintf(
         "WING:\n\r*         *         *\n\r *       * *       "
         "*\n\r  *     *   *     *\n\r   *   *     *   *\n\r    * *       "
         "* *\n\r     *         *\n\r");
   } else if (kind == 1) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter,
+    MicroPrintf(
         "RING:\n\r          *\n\r       *     *\n\r     *         *\n\r "
         "   *           *\n\r     *         *\n\r       *     *\n\r      "
         "    *\n\r");
   } else if (kind == 2) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter,
+    MicroPrintf(
         "SLOPE:\n\r        *\n\r       *\n\r      *\n\r     *\n\r    "
         "*\n\r   *\n\r  *\n\r * * * * * * * *\n\r");
   }

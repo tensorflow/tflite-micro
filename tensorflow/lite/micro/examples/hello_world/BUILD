@@ -43,6 +43,7 @@ cc_test(
     ],
     deps = [
         ":model",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
@@ -62,7 +63,7 @@ cc_library(
     copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 

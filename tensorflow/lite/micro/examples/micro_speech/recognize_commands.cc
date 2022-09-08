@@ -17,17 +17,15 @@ limitations under the License.
 
 #include <limits>
 
-RecognizeCommands::RecognizeCommands(tflite::ErrorReporter* error_reporter,
-                                     int32_t average_window_duration_ms,
+RecognizeCommands::RecognizeCommands(int32_t average_window_duration_ms,
                                      uint8_t detection_threshold,
                                      int32_t suppression_ms,
                                      int32_t minimum_count)
-    : error_reporter_(error_reporter),
-      average_window_duration_ms_(average_window_duration_ms),
+    : average_window_duration_ms_(average_window_duration_ms),
       detection_threshold_(detection_threshold),
       suppression_ms_(suppression_ms),
       minimum_count_(minimum_count),
-      previous_results_(error_reporter) {
+      previous_results_() {
   previous_top_label_ = "silence";
   previous_top_label_time_ = std::numeric_limits<int32_t>::min();
 }
@@ -38,8 +36,7 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(
   if ((latest_results->dims->size != 2) ||
       (latest_results->dims->data[0] != 1) ||
       (latest_results->dims->data[1] != kCategoryCount)) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "The results for recognition should contain %d elements, but there are "
         "%d in an %d-dimensional shape",
         kCategoryCount, latest_results->dims->data[1],
@@ -48,8 +45,7 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(
   }
 
   if (latest_results->type != kTfLiteInt8) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "The results for recognition should be int8_t elements, but are %d",
         latest_results->type);
     return kTfLiteError;
@@ -57,8 +53,7 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(
 
   if ((!previous_results_.empty()) &&
       (current_time_ms < previous_results_.front().time_)) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Results must be fed in increasing time order, but received a "
         "timestamp of %d that was earlier than the previous one of %d",
         current_time_ms, previous_results_.front().time_);

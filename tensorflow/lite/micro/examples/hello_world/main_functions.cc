@@ -41,20 +41,14 @@ uint8_t tensor_arena[kTensorArenaSize];
 void setup() {
   tflite::InitializeTarget();
 
-  // Set up logging. Google style is to avoid globals or statics because of
-  // lifetime uncertainty, but since this has a trivial destructor it's okay.
-  // NOLINTNEXTLINE(runtime-global-variables)
-  static tflite::MicroErrorReporter micro_error_reporter;
-  error_reporter = &micro_error_reporter;
-
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_hello_world_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.",
+        model->version(), TFLITE_SCHEMA_VERSION);
     return;
   }
 
@@ -70,7 +64,7 @@ void setup() {
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
   if (allocate_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
+    MicroPrintf("AllocateTensors() failed");
     return;
   }
 
@@ -100,8 +94,7 @@ void loop() {
   // Run inference, and report any error
   TfLiteStatus invoke_status = interpreter->Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed on x: %f\n",
-                         static_cast<double>(x));
+    MicroPrintf("Invoke failed on x: %f\n", static_cast<double>(x));
     return;
   }
 
@@ -112,7 +105,7 @@ void loop() {
 
   // Output the results. A custom HandleOutput function can be implemented
   // for each supported hardware target.
-  HandleOutput(error_reporter, x, y);
+  HandleOutput(x, y);
 
   // Increment the inference_counter, and reset it if we have reached
   // the total number per cycle

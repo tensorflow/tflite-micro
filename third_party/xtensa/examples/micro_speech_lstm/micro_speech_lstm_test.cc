@@ -55,10 +55,10 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   const tflite::Model* model =
       ::tflite::GetModel(g_micro_speech_lstm_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.\n",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.\n",
+        model->version(), TFLITE_SCHEMA_VERSION);
   }
 
   // Pull in only the operation implementations we need.
@@ -105,7 +105,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // Run the model on this input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter.Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
+    MicroPrintf("Invoke failed\n");
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
 
@@ -138,7 +138,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // Run the model on this "No" input.
   invoke_status = interpreter.Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
+    MicroPrintf("Invoke failed\n");
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
 
@@ -156,7 +156,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   unknown_score = output->data.int8[kUnknownIndex] + 128;
   TF_LITE_MICRO_EXPECT_GT(no_score, unknown_score);
   TF_LITE_MICRO_EXPECT_GT(no_score, yes_score);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter, "Ran successfully\n");
+  MicroPrintf("Ran successfully\n");
 }
 
 TF_LITE_MICRO_TESTS_END

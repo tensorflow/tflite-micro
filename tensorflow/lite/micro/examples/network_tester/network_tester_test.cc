@@ -88,10 +88,10 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   const tflite::Model* model = ::tflite::GetModel(network_model);
 #endif
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.\n",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.\n",
+        model->version(), TFLITE_SCHEMA_VERSION);
     return kTfLiteError;
   }
 
@@ -102,7 +102,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   TfLiteStatus allocate_status = interpreter.AllocateTensors();
   if (allocate_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Tensor allocation failed\n");
+    MicroPrintf("Tensor allocation failed\n");
     return kTfLiteError;
   }
 
@@ -117,7 +117,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     }
     TfLiteStatus invoke_status = interpreter.Invoke();
     if (invoke_status != kTfLiteOk) {
-      TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
+      MicroPrintf("Invoke failed\n");
       return kTfLiteError;
     }
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
@@ -148,7 +148,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     }
 #endif
   }
-  TF_LITE_REPORT_ERROR(&micro_error_reporter, "Ran successfully\n");
+  MicroPrintf("Ran successfully\n");
 }
 
 TF_LITE_MICRO_TESTS_END

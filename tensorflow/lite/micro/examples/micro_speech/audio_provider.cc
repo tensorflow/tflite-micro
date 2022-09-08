@@ -22,8 +22,7 @@ int16_t g_dummy_audio_data[kMaxAudioSampleSize];
 int32_t g_latest_audio_timestamp = 0;
 }  // namespace
 
-TfLiteStatus GetAudioSamples(tflite::ErrorReporter* error_reporter,
-                             int start_ms, int duration_ms,
+TfLiteStatus GetAudioSamples(int start_ms, int duration_ms,
                              int* audio_samples_size, int16_t** audio_samples) {
   for (int i = 0; i < kMaxAudioSampleSize; ++i) {
     g_dummy_audio_data[i] = 0;

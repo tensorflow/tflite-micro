@@ -95,7 +95,6 @@ cc_library(
     deps = [
         ":model_settings",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
     ],
 )
 
@@ -108,7 +107,6 @@ cc_test(
         ":image_provider",
         ":model_settings",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -123,7 +121,7 @@ cc_library(
     ],
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 

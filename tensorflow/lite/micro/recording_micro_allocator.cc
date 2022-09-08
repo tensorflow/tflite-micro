@@ -91,8 +91,7 @@ RecordedAllocation RecordingMicroAllocator::GetRecordedAllocation(
     case RecordedAllocationType::kOpData:
       return recorded_op_data_;
   }
-  TF_LITE_REPORT_ERROR(error_reporter(), "Invalid allocation type supplied: %d",
-                       allocation_type);
+  MicroPrintf("Invalid allocation type supplied: %d", allocation_type);
   return RecordedAllocation();
 }
 
@@ -102,18 +101,12 @@ RecordingMicroAllocator::GetSimpleMemoryAllocator() const {
 }
 
 void RecordingMicroAllocator::PrintAllocations() const {
-  TF_LITE_REPORT_ERROR(
-      error_reporter(),
-      "[RecordingMicroAllocator] Arena allocation total %d bytes",
-      recording_memory_allocator_->GetUsedBytes());
-  TF_LITE_REPORT_ERROR(
-      error_reporter(),
-      "[RecordingMicroAllocator] Arena allocation head %d bytes",
-      recording_memory_allocator_->GetNonPersistentUsedBytes());
-  TF_LITE_REPORT_ERROR(
-      error_reporter(),
-      "[RecordingMicroAllocator] Arena allocation tail %d bytes",
-      recording_memory_allocator_->GetPersistentUsedBytes());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation total %d bytes",
+              recording_memory_allocator_->GetUsedBytes());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation head %d bytes",
+              recording_memory_allocator_->GetNonPersistentUsedBytes());
+  MicroPrintf("[RecordingMicroAllocator] Arena allocation tail %d bytes",
+              recording_memory_allocator_->GetPersistentUsedBytes());
   PrintRecordedAllocation(RecordedAllocationType::kTfLiteEvalTensorData,
                           "TfLiteEvalTensor data", "allocations");
   PrintRecordedAllocation(RecordedAllocationType::kPersistentTfLiteTensorData,
@@ -147,8 +140,7 @@ void RecordingMicroAllocator::PrintRecordedAllocation(
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
   RecordedAllocation allocation = GetRecordedAllocation(allocation_type);
   if (allocation.used_bytes > 0 || allocation.requested_bytes > 0) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter(),
+    MicroPrintf(
         "[RecordingMicroAllocator] '%s' used %d bytes with alignment overhead "
         "(requested %d bytes for %d %s)",
         allocation_name, allocation.used_bytes, allocation.requested_bytes,

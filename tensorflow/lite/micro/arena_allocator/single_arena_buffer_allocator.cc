@@ -93,8 +93,7 @@ TfLiteStatus SingleArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_buf,
   // Only supports one resizable buffer, which starts at the buffer head.
   uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
   if (head_ != temp_ || resizable_buf != expect_resizable_buf) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Internal error: either buffer is not resizable or "
         "ResetTempAllocations() is not called before ResizeBuffer().");
     return kTfLiteError;
@@ -103,8 +102,7 @@ TfLiteStatus SingleArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_buf,
   uint8_t* const aligned_result = AlignPointerUp(buffer_head_, alignment);
   const size_t available_memory = tail_ - aligned_result;
   if (available_memory < size) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Failed to resize buffer. Requested: %u, available %u, missing: %u",
         size, available_memory, size - available_memory);
     return kTfLiteError;
@@ -121,10 +119,10 @@ uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
     const size_t missing_memory = head_ - aligned_result;
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed to allocate tail memory. Requested: %u, "
-                         "available %u, missing: %u",
-                         size, size - missing_memory, missing_memory);
+    MicroPrintf(
+        "Failed to allocate tail memory. Requested: %u, "
+        "available %u, missing: %u",
+        size, size - missing_memory, missing_memory);
 #endif
     return nullptr;
   }
@@ -137,10 +135,10 @@ uint8_t* SingleArenaBufferAllocator::AllocateTemp(size_t size,
   uint8_t* const aligned_result = AlignPointerUp(temp_, alignment);
   const size_t available_memory = tail_ - aligned_result;
   if (available_memory < size) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed to allocate temp memory. Requested: %u, "
-                         "available %u, missing: %u",
-                         size, available_memory, size - available_memory);
+    MicroPrintf(
+        "Failed to allocate temp memory. Requested: %u, "
+        "available %u, missing: %u",
+        size, available_memory, size - available_memory);
     return nullptr;
   }
   temp_ = aligned_result + size;

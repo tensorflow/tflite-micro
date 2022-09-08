@@ -60,10 +60,10 @@ void setup() {
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_micro_speech_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.",
+        model->version(), TFLITE_SCHEMA_VERSION);
     return;
   }
 
@@ -97,7 +97,7 @@ void setup() {
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
   if (allocate_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
+    MicroPrintf("AllocateTensors() failed");
     return;
   }
 
@@ -107,8 +107,7 @@ void setup() {
       (model_input->dims->data[1] !=
        (kFeatureSliceCount * kFeatureSliceSize)) ||
       (model_input->type != kTfLiteInt8)) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Bad input tensor parameters in model");
+    MicroPrintf("Bad input tensor parameters in model");
     return;
   }
   model_input_buffer = model_input->data.int8;
@@ -120,7 +119,7 @@ void setup() {
                                                  feature_buffer);
   feature_provider = &static_feature_provider;
 
-  static RecognizeCommands static_recognizer(error_reporter);
+  static RecognizeCommands static_recognizer;
   recognizer = &static_recognizer;
 
   previous_time = 0;
@@ -132,9 +131,9 @@ void loop() {
   const int32_t current_time = LatestAudioTimestamp();
   int how_many_new_slices = 0;
   TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
-      error_reporter, previous_time, current_time, &how_many_new_slices);
+      previous_time, current_time, &how_many_new_slices);
   if (feature_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Feature generation failed");
+    MicroPrintf("Feature generation failed");
     return;
   }
   previous_time = current_time;
@@ -152,7 +151,7 @@ void loop() {
   // Run the model on the spectrogram input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter->Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed");
+    MicroPrintf("Invoke failed");
     return;
   }
 
@@ -165,13 +164,11 @@ void loop() {
   TfLiteStatus process_status = recognizer->ProcessLatestResults(
       output, current_time, &found_command, &score, &is_new_command);
   if (process_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "RecognizeCommands::ProcessLatestResults() failed");
+    MicroPrintf("RecognizeCommands::ProcessLatestResults() failed");
     return;
   }
   // Do something based on the recognized command. The default implementation
   // just prints to the error console, but you should replace this with your
   // own function for a real application.
-  RespondToCommand(error_reporter, current_time, found_command, score,
-                   is_new_command);
+  RespondToCommand(current_time, found_command, score, is_new_command);
 }

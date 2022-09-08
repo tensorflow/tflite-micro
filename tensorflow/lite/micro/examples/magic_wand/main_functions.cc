@@ -54,10 +54,10 @@ void setup() {
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_magic_wand_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.",
+        model->version(), TFLITE_SCHEMA_VERSION);
     return;
   }
 
@@ -87,8 +87,7 @@ void setup() {
       (model_input->dims->data[1] != 128) ||
       (model_input->dims->data[2] != kChannelNumber) ||
       (model_input->type != kTfLiteFloat32)) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Bad input tensor parameters in model");
+    MicroPrintf("Bad input tensor parameters in model");
     return;
   }
 
@@ -96,7 +95,7 @@ void setup() {
 
   TfLiteStatus setup_status = SetupAccelerometer(error_reporter);
   if (setup_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Set up failed\n");
+    MicroPrintf("Set up failed\n");
   }
 }
 
@@ -110,13 +109,12 @@ void loop() {
   // Run inference, and report any error.
   TfLiteStatus invoke_status = interpreter->Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed on index: %d\n",
-                         begin_index);
+    MicroPrintf("Invoke failed on index: %d\n", begin_index);
     return;
   }
   // Analyze the results to obtain a prediction
   int gesture_index = PredictGesture(interpreter->output(0)->data.f);
 
   // Produce an output
-  HandleOutput(error_reporter, gesture_index);
+  HandleOutput(gesture_index);
 }

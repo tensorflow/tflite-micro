@@ -137,9 +137,8 @@ void EnsureAllocatedSizeThreshold(const char* allocation_type, size_t actual,
     TF_LITE_MICRO_EXPECT_NEAR(actual, expected,
                               expected * kAllocationThreshold);
     if (actual != expected) {
-      TF_LITE_REPORT_ERROR(tflite::GetMicroErrorReporter(),
-                           "%s threshold failed: %d != %d", allocation_type,
-                           actual, expected);
+      MicroPrintf("%s threshold failed: %d != %d", allocation_type, actual,
+                  expected);
     }
   } else {
     // Non-64 bit systems should just expect allocation does not exceed the

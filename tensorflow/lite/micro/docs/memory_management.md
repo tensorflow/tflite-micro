@@ -141,7 +141,7 @@ tflite::MicroInterpreter interpreter(
 
 // Invoke one time which will allocate internals:
 if (interpreter.Invoke() != kTfLiteOk) {
-  TF_LITE_REPORT_ERROR(error_reporter, "Exception during invoke()!");
+  MicroPrintf("Exception during invoke()!");
 }
 ```
 
@@ -162,7 +162,7 @@ tflite::RecordingMicroInterpreter interpreter(
 
 // Invoke one time which will allocate internals:
 if (interpreter.Invoke() != kTfLiteOk) {
-  TF_LITE_REPORT_ERROR(error_reporter, "Exception during invoke()!");
+  MicroPrintf("Exception during invoke()!");
 }
 
 // Print out detailed allocation information:

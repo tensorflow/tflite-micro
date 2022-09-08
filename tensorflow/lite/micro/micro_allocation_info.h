@@ -16,11 +16,11 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_ALLOCATION_INFO_H_
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -64,16 +64,8 @@ struct GraphAllocationInfo {
 class AllocationInfoBuilder {
  public:
   AllocationInfoBuilder(const Model* model,
-                        INonPersistentBufferAllocator* non_persistent_allocator,
-                        ErrorReporter* reporter)
-      : model_(model),
-        non_persistent_allocator_(non_persistent_allocator)
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-        ,
-        reporter_(reporter)
-#endif
-  {
-  }
+                        INonPersistentBufferAllocator* non_persistent_allocator)
+      : model_(model), non_persistent_allocator_(non_persistent_allocator) {}
 
   // Check if model contains offline planned buffer offsets.
   //  - If there's no metadata available, offline_planner_offsets is not set
@@ -139,10 +131,6 @@ class AllocationInfoBuilder {
 
   const tflite::Model* model_ = nullptr;
   INonPersistentBufferAllocator* non_persistent_allocator_ = nullptr;
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-  ErrorReporter* reporter_ = nullptr;
-#endif
-
   GraphAllocationInfo info_;
   int allocation_scope_count_ = 0;
 };
