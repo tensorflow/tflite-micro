@@ -112,6 +112,7 @@ AllOpsResolver::AllOpsResolver() {
   AddTanh();
   AddTranspose();
   AddTransposeConv();
+  AddUnidirectionalSequenceLSTM();
   AddUnpack();
   AddVarHandle();
   AddWhile();
