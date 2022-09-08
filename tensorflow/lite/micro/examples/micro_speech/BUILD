@@ -179,8 +179,8 @@ cc_test(
         ":simple_features_generator_test_data",
         ":simple_model_settings",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -211,8 +211,8 @@ cc_test(
         ":simple_features_generator_test_data",
         ":simple_model_settings",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -369,8 +369,8 @@ cc_test(
     deps = [
         ":recognize_commands",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],

@@ -43,9 +43,9 @@ cc_test(
     ],
     deps = [
         ":model",
-        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
