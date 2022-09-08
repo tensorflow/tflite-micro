@@ -19,29 +19,11 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/compatibility.h"
-
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-// This function can be used independent of the MicroErrorReporter to get
-// printf-like functionalitys and are common to all target platforms.
-void MicroPrintf(const char* format, ...);
-#else
-// We use a #define to ensure that the strings are completely stripped, to
-// prevent an unnecessary increase in the binary size.
-#define MicroPrintf(...) tflite::Unused(__VA_ARGS__)
-#endif
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
-// From
-// https://stackoverflow.com/questions/23235910/variadic-unused-function-macro
-template <typename... Args>
-void Unused(Args&&... args) {
-  (void)(sizeof...(args));
-}
-
 // Get a pointer to a singleton global error reporter.
 ErrorReporter* GetMicroErrorReporter();
-
 class MicroErrorReporter : public ErrorReporter {
  public:
   ~MicroErrorReporter() override {}
