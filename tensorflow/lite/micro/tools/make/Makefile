@@ -73,6 +73,7 @@ CO_PROCESSOR :=
 # This is obviously horrible.  We need to generate these 3 versions of the
 # include directories from one source.
 INCLUDES := \
+-I. \
 -I$(TENSORFLOW_ROOT) \
 -Igoogle \
 -I$(MAKEFILE_DIR)/downloads/gemmlowp \
