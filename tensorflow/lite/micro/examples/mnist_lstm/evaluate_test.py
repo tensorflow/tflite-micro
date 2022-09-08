@@ -30,7 +30,7 @@ PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
 class LSTMModelTest(test_util.TensorFlowTestCase):
 
-  model_path = PREFIX_PATH + "trained_lstm.tflite"
+  model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
@@ -70,15 +70,14 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
   def testInputErrHandling(self):
-    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples",
-                                         'resized9.png')
+    wrong_size_image_path = os.path.join(PREFIX_PATH, 'samples/resized9.png')
     with self.assertRaises(RuntimeError):
       evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testModelAccuracy(self):
     # Test prediction accuracy on digits 0-9 using sample images
     for label in range(10):
-      image_path = os.path.join(PREFIX_PATH, "samples", f"sample{label}.png")
+      image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
       # Run inference on the sample image
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities = evaluate.predict_image(self.tflm_interpreter,
