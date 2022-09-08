@@ -43,8 +43,8 @@ additional documentation.
 Platform      |    Status     |
 -----------     | --------------|
 Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
-ESP32           | [![ESP32](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/build.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/build.yml) |
-Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/tflite-micro-renesas) 
+Espressif Systems Dev Boards  | [![ESP Dev Boards](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml) |
+Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/tflite-micro-renesas) |
 Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabs/tflite-micro-efr32-examples)
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
