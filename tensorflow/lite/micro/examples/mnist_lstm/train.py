@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""
-LSTM model training for MNIST recognition
+"""LSTM model training for MNIST recognition
 
 This script is based on:
 https://www.tensorflow.org/lite/models/convert/rnn
@@ -33,32 +32,34 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('epochs', 1, 'number of epochs to train the model.')
-flags.DEFINE_string('save_dir', '/tmp/lstm_trained_model',
-                    'the directory to save the trained model.')
-flags.DEFINE_boolean('save_tf_model', False,
-                     'store the original unconverted tf model.')
+flags.DEFINE_integer("epochs", 1, "number of epochs to train the model.")
+flags.DEFINE_string("save_dir", "/tmp/lstm_trained_model",
+                    "the directory to save the trained model.")
+flags.DEFINE_boolean("save_tf_model", False,
+                     "store the original unconverted tf model.")
 
 
 def create_model(units=20):
   """Create a keras LSTM model for MNIST recognition
 
     Args:
-        units (int, optional): dimensionality of the output space for the model. Defaults to 20.
+        units (int, optional): dimensionality of the output space for the model.
+          Defaults to 20.
 
     Returns:
         tf.keras.Model: A Keras LSTM model
     """
 
   model = tf.keras.models.Sequential([
-      tf.keras.layers.Input(shape=(28, 28), name='input'),
+      tf.keras.layers.Input(shape=(28, 28), name="input"),
       tf.keras.layers.LSTM(units, return_sequences=True),
       tf.keras.layers.Flatten(),
-      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name='output')
+      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output")
   ])
-  model.compile(optimizer='adam',
-                loss='sparse_categorical_crossentropy',
-                metrics=['accuracy'])
+  model.compile(
+      optimizer="adam",
+      loss="sparse_categorical_crossentropy",
+      metrics=["accuracy"])
   model.summary()
   return model
 
@@ -78,8 +79,7 @@ def get_train_data():
 def train_lstm_model(epochs):
   """Train keras LSTM model on MNIST dataset
 
-    Args:
-        epochs (int) : number of epochs to train the model
+    Args:  epochs (int) : number of epochs to train the model
 
     Returns:
         tf.keras.Model: A trained keras LSTM model
@@ -87,14 +87,15 @@ def train_lstm_model(epochs):
   model = create_model()
   x_train, y_train = get_train_data()
   callback = tf.keras.callbacks.EarlyStopping(
-      monitor='val_loss',
+      monitor="val_loss",
       patience=1)  #early stop if validation loss does not drop anymore
-  model.fit(x_train,
-            y_train,
-            epochs=epochs,
-            validation_split=0.2,
-            batch_size=32,
-            callbacks=[callback])
+  model.fit(
+      x_train,
+      y_train,
+      epochs=epochs,
+      validation_split=0.2,
+      batch_size=32,
+      callbacks=[callback])
   return model
 
 
@@ -104,14 +105,14 @@ def save_tflite_model(model, save_dir):
     Args:
         model (tf.keras.Model): the trained LSTM Model
         save_dir (str): directory to save the model
-    """
+  """
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
-  save_name = 'lstm.tflite'
+  save_name = "lstm.tflite"
   tflite_model = converter.convert()
 
   if not os.path.exists(save_dir):
     os.makedirs(save_dir)
-  with open(save_dir + '/' + save_name, 'wb') as f:
+  with open(save_dir + "/" + save_name, "wb") as f:
     f.write(tflite_model)
   logging.info("Tflite model saved to %s", save_dir)
 
@@ -121,16 +122,19 @@ def train_save_model(save_dir, epochs=3, save_raw_model=False):
 
     Args:
         save_dir (string): save directory for the trained model
-        epochs (int, optional): number of epochs to train the model. Defaults to 3
-        save_raw_model (bool): store the original unconverted tf model. Defaults to False
-    """
+        epochs (int, optional): number of epochs to train the model. Defaults to
+          3
+        save_raw_model (bool): store the original unconverted tf model. Defaults
+          to False
+  """
   trained_model = train_lstm_model(epochs)
 
   # converter requires fixed shape input to work, alternative: b/225231544
-  fixed_input = tf.keras.layers.Input(shape=[28, 28],
-                                      batch_size=1,
-                                      dtype=trained_model.inputs[0].dtype,
-                                      name='fixed_input')
+  fixed_input = tf.keras.layers.Input(
+      shape=[28, 28],
+      batch_size=1,
+      dtype=trained_model.inputs[0].dtype,
+      name="fixed_input")
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
 
@@ -144,5 +148,5 @@ def main(_):
   train_save_model(FLAGS.save_dir, FLAGS.epochs, FLAGS.save_tf_model)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   app.run(main)
