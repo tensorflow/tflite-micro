@@ -387,12 +387,12 @@ cc_library(
 )
 
 cc_test(
-    name = "micro_error_reporter_test",
+    name = "micro_log_test",
     srcs = [
-        "micro_error_reporter_test.cc",
+        "micro_log_test.cc",
     ],
     deps = [
-        ":micro_error_reporter",
+        ":micro_log",
         ":system_setup",
     ],
 )
