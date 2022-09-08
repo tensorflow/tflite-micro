@@ -481,19 +481,19 @@ void TwoGateSaturatingAdd(const int8_t* input, int8_t input_zp,
 
 // Apply Rectified Linear to elements of a vector.
 void ApplyReluToVector(const float* __restrict__ vector, int v_size,
-                              float* __restrict__ result);
+                       float* __restrict__ result);
 
 // Apply Rectified Linear 1 (cap to [-1;1]) to elements of a vector
 void ApplyRelu1ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result);
+                        float* __restrict__ result);
 
 // Apply Rectified Linear 6 (cap to [0;6]) to elements of a vector
 void ApplyRelu6ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result);
+                        float* __restrict__ result);
 
 // Apply signbit to elements of a vector
 void ApplySignbitToVector(const float* __restrict__ vector, int v_size,
-                                 float* __restrict__ result);
+                          float* __restrict__ result);
 
 // Same as the function above, but provide a scratch buffer for the
 // int8 x int8 -> int32 and a CpuBackendContext for the accumulator
@@ -512,7 +512,6 @@ void MatrixBatchVectorMultiplyAccumulate(
     int n_batch, float* __restrict__ result, const float* per_channel_scale,
     const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
     bool* compute_row_sums, CpuBackendContext* context);
-
 
 // Multiplies a matrix by a "batched" vector (i.e. a matrix with a batch
 // dimension composed by input vectors independent from each other). The result
@@ -576,7 +575,6 @@ void MatrixBatchVectorMultiplyAccumulate(
     const int8_t* input_to_gate_weights, int32_t multiplier, int32_t shift,
     int32_t n_batch, int32_t n_input, int32_t n_output, int32_t output_zp,
     int32_t* scratch, int8_t* output, CpuBackendContext* context);
-
 
 // Same as the function above, but provides separate scaling factor for the
 // matrix and the vectors. The scaling factors are multiplied in the

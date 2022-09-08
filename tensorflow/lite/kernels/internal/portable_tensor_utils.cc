@@ -15,14 +15,13 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
 
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 
-
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/tensor_utils.h"
-
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict
@@ -39,7 +38,7 @@ namespace tensor_utils {
 
 // Apply Rectified Linear to elements of a vector.
 void ApplyReluToVector(const float* __restrict__ vector, int v_size,
-                              float* __restrict__ result) {
+                       float* __restrict__ result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = std::max(0.0f, vector[v]);
   }
@@ -47,7 +46,7 @@ void ApplyReluToVector(const float* __restrict__ vector, int v_size,
 
 // Apply Rectified Linear 1 (cap to [-1;1]) to elements of a vector
 void ApplyRelu1ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result) {
+                        float* __restrict__ result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = std::max(-1.0f, std::min(vector[v], 1.0f));
   }
@@ -55,7 +54,7 @@ void ApplyRelu1ToVector(const float* __restrict__ vector, int v_size,
 
 // Apply Rectified Linear 6 (cap to [0;6]) to elements of a vector
 void ApplyRelu6ToVector(const float* __restrict__ vector, int v_size,
-                               float* __restrict__ result) {
+                        float* __restrict__ result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = std::max(0.0f, std::min(vector[v], 6.0f));
   }
@@ -63,13 +62,11 @@ void ApplyRelu6ToVector(const float* __restrict__ vector, int v_size,
 
 // Apply signbit to elements of a vector
 void ApplySignbitToVector(const float* __restrict__ vector, int v_size,
-                                 float* __restrict__ result) {
+                          float* __restrict__ result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = std::signbit(vector[v]);
   }
 }
-
-
 
 }  // namespace tensor_utils
 }  // namespace tflite
