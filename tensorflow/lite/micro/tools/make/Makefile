@@ -236,7 +236,8 @@ endif
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
-GENDIR := $(MAKEFILE_DIR)/gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+BASE_GENDIR := gen
+GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
@@ -802,7 +803,7 @@ list_generator_dir:
 
 # Gets rid of all generated files.
 clean:
-	rm -rf $(MAKEFILE_DIR)/gen
+	rm -rf $(BASE_GENDIR)
 
 # Removes third-party downloads.
 clean_downloads:
