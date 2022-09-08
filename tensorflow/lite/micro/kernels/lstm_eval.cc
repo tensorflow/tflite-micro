@@ -27,7 +27,9 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/tensor_utils.h"
+
 namespace tflite {
 namespace {
 
@@ -185,7 +187,7 @@ inline void CalculateLstmGateFloat(
     tflite::tensor_utils::VectorBatchVectorAdd(gate_bias, n_cell, n_batch, gate);
   }
   // Apply activation
-  tflite::tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell,
+ tflite::tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell,
                                               activation, gate);
 }
 

@@ -1,0 +1,63 @@
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+
+
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+
+#if defined(_MSC_VER)
+#define __restrict__ __restrict
+#endif
+
+namespace tflite {
+
+// Not all backends support CpuBackendContext usage, so forward declare to avoid
+// pulling in its implementation. Use of CpuBackendContext in method
+// implementations is purely optional.
+class CpuBackendContext;
+
+namespace tensor_utils {
+
+// Apply tanh to elements of a vector
+inline void ApplyTanhToVector(const float* vector, int v_size, float* result) {
+  for (int v = 0; v < v_size; v++) {
+    result[v] = std::tanh(vector[v]);
+  }
+}
+
+// Apply sigmoid to elements of a vector.
+inline void ApplySigmoidToVector(const float* vector, int v_size,
+                                 float* result) {
+  for (int v = 0; v < v_size; v++) {
+    result[v] = 1.0f / (1.0f + std::exp(-vector[v]));
+  }
+}
+
+// Apply appropriate activation function to elements of a vector.
+ void ApplyActivationToVector(const float* vector, int v_size,
+                                    TfLiteFusedActivation activation,
+                                    float* result);
+
+
+
+}  // namespace tensor_utils
+}  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_

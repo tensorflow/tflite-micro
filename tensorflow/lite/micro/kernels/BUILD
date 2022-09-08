@@ -299,6 +299,7 @@ tflm_kernel_cc_library(
         "//visibility:public",
     ],
     deps = [
+        "//tensorflow/lite/kernels/internal:tensor_utils",
         ":activation_utils",
         ":kernel_util",
         "//tensorflow/lite/kernels/internal:portable_tensor_utils",
