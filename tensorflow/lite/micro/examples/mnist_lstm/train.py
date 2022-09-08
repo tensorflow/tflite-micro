@@ -80,7 +80,7 @@ def get_train_data():
 
 def train_lstm_model(epochs, x_train, y_train):
   """Train keras LSTM model on MNIST dataset
-  
+
     Args:
         epochs (int) : number of epochs to train the model
         x_train (numpy.array): list of the training data
@@ -110,6 +110,9 @@ def convert_quantized_tflite_model(model, x_train):
     Args:
         model (tf.keras.Model): the trained LSTM Model
         x_train (numpy.array): list of the training data
+
+    Returns:
+        The converted model in serialized format.
   """
 
   def representative_dataset_gen(num_samples=100):
@@ -131,6 +134,9 @@ def convert_tflite_model(model):
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
+
+    Returns:
+        The converted model in serialized format.
   """
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
   tflite_model = converter.convert()
@@ -138,6 +144,13 @@ def convert_tflite_model(model):
 
 
 def save_tflite_model(tflite_model, save_dir, model_name):
+  """save the converted tflite model
+
+  Args:
+      tflite_model (binary): the converted model in serialized format.
+      save_dir (str): the save directory
+      model_name (str): model name to be saved
+  """
   if not os.path.exists(save_dir):
     os.makedirs(save_dir)
   save_path = os.path.join(save_dir, model_name)
