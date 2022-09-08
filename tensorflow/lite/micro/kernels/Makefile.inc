@@ -17,31 +17,31 @@
 
 # These tests needs additional dependencies beyond libtensorflow-microlite.a.
 $(eval $(call microlite_test,kernel_detection_postprocess_test,\
-  tensorflow/lite/micro/kernels/detection_postprocess_test.cc \
-  tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.cc,\
-  tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h))
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/detection_postprocess_test.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.cc,\
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h))
 
 $(eval $(call microlite_test,kernel_circular_buffer_test,\
-  tensorflow/lite/micro/kernels/circular_buffer_test.cc \
-  tensorflow/lite/micro/kernels/circular_buffer_flexbuffers_generated_data.cc,\
-  tensorflow/lite/micro/kernels/circular_buffer_flexbuffers_generated_data.h))
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/circular_buffer_test.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/circular_buffer_flexbuffers_generated_data.cc,\
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/circular_buffer_flexbuffers_generated_data.h))
 
 $(eval $(call microlite_test,kernel_conv_test,\
-  tensorflow/lite/micro/kernels/conv_test.cc \
-  tensorflow/lite/micro/kernels/conv_test_common.cc \
-  tensorflow/lite/micro/kernels/testdata/conv_test_data.cc,\
-  tensorflow/lite/micro/kernels/conv_test.h \
-  tensorflow/lite/micro/kernels/testdata/conv_test_data.h))
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_test.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_test_common.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/testdata/conv_test_data.cc,\
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_test.h \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/testdata/conv_test_data.h))
 
 $(eval $(call microlite_test,kernel_transpose_conv_test,\
-  tensorflow/lite/micro/kernels/transpose_conv_test.cc \
-  tensorflow/lite/micro/kernels/conv_test_common.cc,\
-  tensorflow/lite/micro/kernels/conv_test.h))
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/transpose_conv_test.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_test_common.cc,\
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/conv_test.h))
 
 $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
-  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc \
-  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.cc,\
-  tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h))
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc \
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.cc,\
+  $(TENSORFLOW_ROOT)/tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h))
 
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),
 # use simple for loop to generate their make targets in a common way.

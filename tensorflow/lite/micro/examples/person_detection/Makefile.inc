@@ -5,27 +5,27 @@ person_detection_MODEL_HDRS := \
 tensorflow/lite/micro/examples/person_detection/model_settings.h
 
 person_detection_TEST_SRCS := \
-tensorflow/lite/micro/examples/person_detection/person_detection_test.cc \
-$(person_detection_MODEL_SRCS)
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/person_detection_test.cc \
+$(TENSORFLOW_ROOT)/$(person_detection_MODEL_SRCS)
 
 person_detection_TEST_HDRS := \
-$(person_detection_MODEL_HDRS)
+$(TENSORFLOW_ROOT)/$(person_detection_MODEL_HDRS)
 
 IMAGE_PROVIDER_TEST_SRCS := \
-tensorflow/lite/micro/examples/person_detection/image_provider.cc \
-tensorflow/lite/micro/examples/person_detection/image_provider_test.cc \
-tensorflow/lite/micro/examples/person_detection/model_settings.cc
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/image_provider.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/image_provider_test.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/model_settings.cc
 
 IMAGE_PROVIDER_TEST_HDRS := \
-tensorflow/lite/micro/examples/person_detection/image_provider.h \
-tensorflow/lite/micro/examples/person_detection/model_settings.h
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/image_provider.h \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/model_settings.h
 
 DETECTION_RESPONDER_TEST_SRCS := \
-tensorflow/lite/micro/examples/person_detection/detection_responder.cc \
-tensorflow/lite/micro/examples/person_detection/detection_responder_test.cc
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/detection_responder.cc \
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/detection_responder_test.cc
 
 DETECTION_RESPONDER_TEST_HDRS := \
-tensorflow/lite/micro/examples/person_detection/detection_responder.h
+$(TENSORFLOW_ROOT)/tensorflow/lite/micro/examples/person_detection/detection_responder.h
 
 person_detection_SRCS := \
 tensorflow/lite/micro/examples/person_detection/detection_responder.cc \
