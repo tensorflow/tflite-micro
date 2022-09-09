@@ -17,12 +17,10 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from absl import logging
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
-from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import train
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
@@ -51,7 +49,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
 
       # Give the same (random) input to both interpreters can confirm that the output is identical.
       data_x = np.random.random(self.input_shape)
-      data_x = data_x.astype('float32')
+      data_x = data_x.astype("float32")
 
       # Run inference on TFLite
       tflite_interpreter.set_tensor(tflite_input_details["index"], data_x)
@@ -70,7 +68,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
   def testInputErrHandling(self):
-    wrong_size_image_path = os.path.join(PREFIX_PATH, 'samples/resized9.png')
+    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
     with self.assertRaises(RuntimeError):
       evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
