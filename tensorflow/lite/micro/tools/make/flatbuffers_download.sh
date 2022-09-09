@@ -32,7 +32,13 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${2}
+if [ ! -z ${2} ]
+then
+  ROOT_DIR=${2}
+else
+  ROOT_DIR=${SCRIPT_DIR}/../../../../..
+fi
+
 cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/make/bash_helpers.sh
