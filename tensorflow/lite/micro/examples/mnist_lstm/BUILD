@@ -15,9 +15,6 @@ py_binary(
     srcs = ["evaluate.py"],
     srcs_version = "PY3",
     deps = [
-        requirement("numpy"),
-        requirement("tensorflow-cpu"),
-        requirement("pillow"),
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
@@ -42,8 +39,6 @@ py_test(
         "noubsan",
     ],
     deps = [
-        requirement("numpy"),
-        requirement("tensorflow-cpu"),
         ":evaluate",
         ":train",
     ],
