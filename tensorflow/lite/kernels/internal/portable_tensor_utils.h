@@ -448,6 +448,23 @@ void Sub1Vector(const float* vector, int v_size, float* result);
 // "vector" has range [0, 32767] because it is the output of sigmoid function.
 void Sub1Vector(const int16_t* vector, int v_size, int16_t* result);
 
+// Reduce-sum on a float input vector:
+// input_vector: float pointer to input vector.
+// output_vector: float pointer to vector.
+// output_size: output vector size.
+// reduction_size: number of consecutive elements from input vector which are
+// added to get one element of output.
+void ReductionSumVector(const float* input_vector, float* output_vector,
+                        int output_size, int reduction_size);
+
+// Same as above but input/output is 32 bit integer.
+void ReductionSumVector(const int32_t* input_vector, int32_t* output_vector,
+                        int output_size, int reduction_size);
+
+// Same as above but input is 8 bit integer.
+void ReductionSumVector(const int8_t* input_vector, int32_t* output_vector,
+                        int output_size, int reduction_size);
+
 // Multiply all elements of vector with a scalar.
 void VectorScalarMultiply(const int8_t* vector, int v_size, float scale,
                           float* result);
