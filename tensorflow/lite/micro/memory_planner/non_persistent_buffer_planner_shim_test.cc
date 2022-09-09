@@ -52,12 +52,12 @@ TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
 
   int offset0 = -1;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(nullptr, 0, &offset0));
+                          planner.GetOffsetForBuffer(0, &offset0));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer0Offset, offset0);
 
   int offset1 = -1;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(nullptr, 1, &offset1));
+                          planner.GetOffsetForBuffer(1, &offset1));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer1Offset, offset1);
 }
 
@@ -66,7 +66,7 @@ TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
 
   int offset = -1;
   TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteError, planner.GetOffsetForBuffer(nullptr, kBufferCnt, &offset));
+      kTfLiteError, planner.GetOffsetForBuffer(kBufferCnt, &offset));
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferSuccess) {

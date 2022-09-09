@@ -40,6 +40,8 @@ SingleArenaBufferAllocator::SingleArenaBufferAllocator(
       head_(buffer_head),
       tail_(buffer_tail),
       temp_(buffer_head_) {
+
+  (void)error_reporter_;
 }
 
 SingleArenaBufferAllocator::SingleArenaBufferAllocator(
