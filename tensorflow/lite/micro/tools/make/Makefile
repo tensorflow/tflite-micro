@@ -282,7 +282,7 @@ tensorflow/lite/micro/memory_helpers_test.cc \
 tensorflow/lite/micro/micro_allocator_test.cc \
 tensorflow/lite/micro/micro_allocation_info_test.cc \
 tensorflow/lite/micro/micro_context_test.cc \
-tensorflow/lite/micro/micro_error_reporter_test.cc \
+tensorflow/lite/micro/micro_log_test.cc \
 tensorflow/lite/micro/micro_interpreter_test.cc \
 tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
 tensorflow/lite/micro/micro_resource_variable_test.cc \
