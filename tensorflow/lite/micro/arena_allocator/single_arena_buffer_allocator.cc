@@ -42,7 +42,7 @@ SingleArenaBufferAllocator::SingleArenaBufferAllocator(
       temp_(buffer_head_) {
 
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-      (void)error_reporter_;
+  (void)error_reporter_;
 #endif
 }
 

@@ -51,13 +51,11 @@ TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset0 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(0, &offset0));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset0));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer0Offset, offset0);
 
   int offset1 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(1, &offset1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset1));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer1Offset, offset1);
 }
 
@@ -65,8 +63,8 @@ TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset = -1;
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteError, planner.GetOffsetForBuffer(kBufferCnt, &offset));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          planner.GetOffsetForBuffer(kBufferCnt, &offset));
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
