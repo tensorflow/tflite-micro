@@ -17,7 +17,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/examples/hello_world/hello_world_model_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -28,9 +27,6 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
   // Define the input and the expected output
   float x = 0.0f;
   float y_true = sin(x);
-
-  // Set up logging
-  tflite::MicroErrorReporter micro_error_reporter;
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
@@ -50,7 +46,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
 
   // Build an interpreter to run the model with
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
-                                       kTensorArenaSize, &micro_error_reporter);
+                                       kTensorArenaSize);
   // Allocate memory from the tensor_arena for the model's tensors
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 

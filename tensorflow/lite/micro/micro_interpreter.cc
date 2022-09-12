@@ -21,12 +21,12 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -38,14 +38,11 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
-                                   ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
                                    MicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
-      error_reporter_(error_reporter),
-      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size,
-                                         error_reporter)),
+      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size)),
 
       graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
@@ -59,12 +56,10 @@ MicroInterpreter::MicroInterpreter(const Model* model,
 MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    MicroAllocator* allocator,
-                                   ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
                                    MicroProfiler* profiler)
     : model_(model),
       op_resolver_(op_resolver),
-      error_reporter_(error_reporter),
       allocator_(*allocator),
       graph_(&context_, model, allocator, resource_variables),
       tensors_allocated_(false),
@@ -109,11 +104,11 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
         return kTfLiteError;
       }
       const auto* opcode = opcodes->Get(index);
-      TfLiteStatus status =
-          GetRegistrationFromOpCode(opcode, op_resolver_, error_reporter_,
-                                    &(graph_.GetAllocations()[subgraph_idx]
-                                          .node_and_registrations[i]
-                                          .registration));
+      TfLiteStatus status = GetRegistrationFromOpCode(
+          opcode, op_resolver_, tflite::GetMicroErrorReporter(),
+          &(graph_.GetAllocations()[subgraph_idx]
+                .node_and_registrations[i]
+                .registration));
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to get registration from op code %s\n ",
                     EnumNameBuiltinOperator(GetBuiltinCode(opcode)));
@@ -157,7 +152,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
 
           return kTfLiteError;
         }
-        TF_LITE_ENSURE_STATUS(parser(op, error_reporter_,
+        TF_LITE_ENSURE_STATUS(parser(op, tflite::GetMicroErrorReporter(),
                                      builtin_data_allocator,
                                      (void**)(&builtin_data)));
       }

@@ -17,7 +17,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/network_tester/expected_output_data.h"
 #include "tensorflow/lite/micro/examples/network_tester/input_data.h"
 #include "tensorflow/lite/micro/examples/network_tester/network_model.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -80,8 +79,6 @@ void check_output_elem(TfLiteTensor* output, const T* expected_output,
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestInvoke) {
-  tflite::MicroErrorReporter micro_error_reporter;
-
 #ifdef ETHOS_U
   const tflite::Model* model = ::tflite::GetModel(g_person_detect_model_data);
 #else
@@ -97,8 +94,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   tflite::AllOpsResolver resolver;
 
-  tflite::MicroInterpreter interpreter(
-      model, resolver, tensor_arena, TENSOR_ARENA_SIZE, &micro_error_reporter);
+  tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
+                                       TENSOR_ARENA_SIZE);
 
   TfLiteStatus allocate_status = interpreter.AllocateTensors();
   if (allocate_status != kTfLiteOk) {

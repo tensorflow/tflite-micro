@@ -114,7 +114,6 @@ cc_test(
     copts = micro_copts(),
     deps = [
         ":models_and_testdata",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",

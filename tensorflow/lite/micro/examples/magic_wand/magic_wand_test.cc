@@ -16,7 +16,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h"
 #include "tensorflow/lite/micro/examples/magic_wand/ring_micro_features_data.h"
 #include "tensorflow/lite/micro/examples/magic_wand/slope_micro_features_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -26,9 +25,6 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
-  // Set up logging
-  tflite::MicroErrorReporter micro_error_reporter;
-
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model = ::tflite::GetModel(g_magic_wand_model_data);
@@ -58,8 +54,7 @@ TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
 
   // Build an interpreter to run the model with
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
-                                       tensor_arena_size,
-                                       &micro_error_reporter);
+                                       tensor_arena_size);
 
   // Allocate memory from the tensor_arena for the model's tensors
   interpreter.AllocateTensors();

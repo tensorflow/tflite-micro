@@ -15,14 +15,13 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -45,18 +44,14 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
 
 RecordingMicroAllocator::RecordingMicroAllocator(
     RecordingSingleArenaBufferAllocator* recording_memory_allocator,
-    MicroMemoryPlanner* memory_planner, ErrorReporter* error_reporter)
-    : MicroAllocator(recording_memory_allocator, memory_planner,
-                     error_reporter),
+    MicroMemoryPlanner* memory_planner)
+    : MicroAllocator(recording_memory_allocator, memory_planner),
       recording_memory_allocator_(recording_memory_allocator) {}
 
-RecordingMicroAllocator* RecordingMicroAllocator::Create(
-    uint8_t* tensor_arena, size_t arena_size, ErrorReporter* error_reporter) {
-  TFLITE_DCHECK(error_reporter != nullptr);
-
+RecordingMicroAllocator* RecordingMicroAllocator::Create(uint8_t* tensor_arena,
+                                                         size_t arena_size) {
   RecordingSingleArenaBufferAllocator* simple_memory_allocator =
-      RecordingSingleArenaBufferAllocator::Create(error_reporter, tensor_arena,
-                                                  arena_size);
+      RecordingSingleArenaBufferAllocator::Create(tensor_arena, arena_size);
   TFLITE_DCHECK(simple_memory_allocator != nullptr);
 
   uint8_t* memory_planner_buffer =
@@ -67,9 +62,8 @@ RecordingMicroAllocator* RecordingMicroAllocator::Create(
 
   uint8_t* allocator_buffer = simple_memory_allocator->AllocatePersistentBuffer(
       sizeof(RecordingMicroAllocator), alignof(RecordingMicroAllocator));
-  RecordingMicroAllocator* allocator =
-      new (allocator_buffer) RecordingMicroAllocator(
-          simple_memory_allocator, memory_planner, error_reporter);
+  RecordingMicroAllocator* allocator = new (allocator_buffer)
+      RecordingMicroAllocator(simple_memory_allocator, memory_planner);
   return allocator;
 }
 

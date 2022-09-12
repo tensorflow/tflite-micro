@@ -21,7 +21,6 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
@@ -49,7 +48,6 @@ class MicroInterpreter {
   // caller.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    uint8_t* tensor_arena, size_t tensor_arena_size,
-                   ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
@@ -59,7 +57,7 @@ class MicroInterpreter {
   // allocations inside the interpreter. The lifetime of the allocator must be
   // as long as that of the interpreter object.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
-                   MicroAllocator* allocator, ErrorReporter* error_reporter,
+                   MicroAllocator* allocator,
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
@@ -154,7 +152,6 @@ class MicroInterpreter {
 
   const Model* model_;
   const MicroOpResolver& op_resolver_;
-  ErrorReporter* error_reporter_;
   TfLiteContext context_ = {};
   MicroAllocator& allocator_;
   MicroGraph graph_;

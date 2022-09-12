@@ -24,9 +24,7 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
@@ -103,7 +101,6 @@ InterpreterWrapper::InterpreterWrapper(
 
   const Model* model = GetModel(buf);
   model_ = model_data;
-  error_reporter_ = std::unique_ptr<ErrorReporter>(new MicroErrorReporter());
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
 
   for (const auto& registerer : registerers_by_name) {
@@ -116,9 +113,8 @@ InterpreterWrapper::InterpreterWrapper(
     }
   }
 
-  interpreter_ =
-      new MicroInterpreter(model, all_ops_resolver_, memory_arena_.get(),
-                           arena_size, error_reporter_.get());
+  interpreter_ = new MicroInterpreter(model, all_ops_resolver_,
+                                      memory_arena_.get(), arena_size);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {

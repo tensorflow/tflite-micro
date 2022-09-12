@@ -20,7 +20,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/magic_wand/gesture_predictor.h"
 #include "tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h"
 #include "tensorflow/lite/micro/examples/magic_wand/output_handler.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -28,7 +27,6 @@ limitations under the License.
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
-tflite::ErrorReporter* error_reporter = nullptr;
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* model_input = nullptr;
@@ -44,11 +42,6 @@ uint8_t tensor_arena[kTensorArenaSize];
 // The name of this function is important for Arduino compatibility.
 void setup() {
   tflite::InitializeTarget();
-
-  // Set up logging. Google style is to avoid globals or statics because of
-  // lifetime uncertainty, but since this has a trivial destructor it's okay.
-  static tflite::MicroErrorReporter micro_error_reporter;  // NOLINT
-  error_reporter = &micro_error_reporter;
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
@@ -75,7 +68,7 @@ void setup() {
 
   // Build an interpreter to run the model with.
   static tflite::MicroInterpreter static_interpreter(
-      model, micro_op_resolver, tensor_arena, kTensorArenaSize, error_reporter);
+      model, micro_op_resolver, tensor_arena, kTensorArenaSize);
   interpreter = &static_interpreter;
 
   // Allocate memory from the tensor_arena for the model's tensors.
@@ -93,7 +86,7 @@ void setup() {
 
   input_length = model_input->bytes / sizeof(float);
 
-  TfLiteStatus setup_status = SetupAccelerometer(error_reporter);
+  TfLiteStatus setup_status = SetupAccelerometer();
   if (setup_status != kTfLiteOk) {
     MicroPrintf("Set up failed\n");
   }
@@ -101,8 +94,7 @@ void setup() {
 
 void loop() {
   // Attempt to read new data from the accelerometer.
-  bool got_data =
-      ReadAccelerometer(error_reporter, model_input->data.f, input_length);
+  bool got_data = ReadAccelerometer(model_input->data.f, input_length);
   // If there was no new data, wait until next time.
   if (!got_data) return;
 

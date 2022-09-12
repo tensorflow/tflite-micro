@@ -108,7 +108,6 @@ cc_test(
     ],
     deps = [
         ":micro_speech_model_data",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/examples/micro_speech/micro_features:micro_features_test_data",
@@ -416,7 +415,6 @@ cc_binary(
         ":feature_provider",
         ":micro_speech_model_data",
         ":recognize_commands",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
@@ -438,7 +436,6 @@ cc_binary(
         ":feature_provider",
         ":micro_speech_model_data",
         ":recognize_commands",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",

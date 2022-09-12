@@ -21,43 +21,31 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, uint8_t* buffer_tail)
-    :
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-      error_reporter_(error_reporter),
-#endif
-      buffer_head_(buffer_head),
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(uint8_t* buffer_head,
+                                                       uint8_t* buffer_tail)
+    : buffer_head_(buffer_head),
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {
+      temp_(buffer_head_) {}
 
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-  (void)error_reporter_;
-#endif
-}
-
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(
-    ErrorReporter* error_reporter, uint8_t* buffer, size_t buffer_size)
-    : SingleArenaBufferAllocator(error_reporter, buffer, buffer + buffer_size) {
-}
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(uint8_t* buffer,
+                                                       size_t buffer_size)
+    : SingleArenaBufferAllocator(buffer, buffer + buffer_size) {}
 
 /* static */
 SingleArenaBufferAllocator* SingleArenaBufferAllocator::Create(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
-  TFLITE_DCHECK(error_reporter != nullptr);
+    uint8_t* buffer_head, size_t buffer_size) {
   TFLITE_DCHECK(buffer_head != nullptr);
   SingleArenaBufferAllocator tmp =
-      SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size);
+      SingleArenaBufferAllocator(buffer_head, buffer_size);
 
   // Allocate enough bytes from the buffer to create a
   // SingleArenaBufferAllocator. The new instance will use the current adjusted

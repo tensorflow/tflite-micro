@@ -22,7 +22,6 @@ pybind_library(
         "shared_library.h",
     ],
     deps = [
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
     ],

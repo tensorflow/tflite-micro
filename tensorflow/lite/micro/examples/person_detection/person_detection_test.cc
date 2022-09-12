@@ -17,7 +17,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
@@ -35,9 +34,6 @@ uint8_t tensor_arena[tensor_arena_size];
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestInvoke) {
-  // Set up logging.
-  tflite::MicroErrorReporter micro_error_reporter;
-
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model = ::tflite::GetModel(g_person_detect_model_data);
@@ -63,8 +59,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   // Build an interpreter to run the model with.
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
-                                       tensor_arena_size,
-                                       &micro_error_reporter);
+                                       tensor_arena_size);
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.

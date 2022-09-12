@@ -55,8 +55,7 @@ struct RecordedAllocation {
 class RecordingMicroAllocator : public MicroAllocator {
  public:
   static RecordingMicroAllocator* Create(uint8_t* tensor_arena,
-                                         size_t arena_size,
-                                         ErrorReporter* error_reporter);
+                                         size_t arena_size);
 
   // Returns the fixed amount of memory overhead of RecordingMicroAllocator.
   static size_t GetDefaultTailUsage();
@@ -95,8 +94,7 @@ class RecordingMicroAllocator : public MicroAllocator {
 
  private:
   RecordingMicroAllocator(RecordingSingleArenaBufferAllocator* memory_allocator,
-                          MicroMemoryPlanner* memory_planner,
-                          ErrorReporter* error_reporter);
+                          MicroMemoryPlanner* memory_planner);
 
   void PrintRecordedAllocation(RecordedAllocationType allocation_type,
                                const char* allocation_name,
