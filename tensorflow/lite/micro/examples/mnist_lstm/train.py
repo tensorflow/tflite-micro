@@ -39,7 +39,7 @@ flags.DEFINE_string('save_dir', '/tmp/lstm_trained_model',
 flags.DEFINE_boolean('save_tf_model', False,
                      'store the original unconverted tf model.')
 flags.DEFINE_boolean(
-    'quantization', False,
+    'quantize', False,
     'convert and save the full integer (int8) quantized model.')
 
 
@@ -159,17 +159,14 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def train_save_model(save_dir,
-                     epochs=3,
-                     save_raw_model=False,
-                     quantization=False):
+def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
   """train and save LSTM model using keras
 
     Args:
         save_dir (string): save directory for the trained model
         epochs (int, optional): number of epochs to train the model. Defaults to 3
         save_raw_model (bool): store the original unconverted tf model. Defaults to False
-        quantization (bool): convert tflite model using full integer (int8) quantization.
+        quantize (bool): convert tflite model using full integer (int8) quantization.
 
   """
   x_train, y_train = get_train_data()
@@ -193,7 +190,7 @@ def train_save_model(save_dir,
   save_tflite_model(tflite_model, save_dir, save_name)
 
   # Convert and save the quantized model
-  if quantization:
+  if quantize:
     quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
     save_name = "mnist_lstm_quant.tflite"
     save_tflite_model(quantized_tflite_model, save_dir, save_name)
@@ -201,7 +198,7 @@ def train_save_model(save_dir,
 
 def main(_):
   train_save_model(FLAGS.save_dir, FLAGS.epochs, FLAGS.save_tf_model,
-                   FLAGS.quantization)
+                   FLAGS.quantize)
 
 
 if __name__ == '__main__':
