@@ -469,7 +469,6 @@ void ReductionSumVector(const int8_t* input_vector, int32_t* output_vector,
 void VectorScalarMultiply(const int8_t* vector, int v_size, float scale,
                           float* result);
 
-
 // Layer norm for each batch.
 void MeanStddevNormalization(const float* input_vector, float* output_vector,
                              int v_size, int n_batch);
