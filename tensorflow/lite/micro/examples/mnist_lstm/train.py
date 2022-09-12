@@ -40,7 +40,7 @@ flags.DEFINE_boolean('save_tf_model', False,
                      'store the original unconverted tf model.')
 flags.DEFINE_boolean(
     'quantization', False,
-    'convert tflite model using full integer (int8) quantization.')
+    'convert and save the full integer (int8) quantized model.')
 
 
 def create_model(units=20):
@@ -92,7 +92,7 @@ def train_lstm_model(epochs, x_train, y_train):
   model = create_model()
   callback = tf.keras.callbacks.EarlyStopping(
       monitor='val_loss',
-      patience=1)  #early stop if validation loss does not drop anymore
+      patience=3)  #early stop if validation loss does not drop anymore
   model.fit(x_train,
             y_train,
             epochs=epochs,
@@ -189,12 +189,14 @@ def train_save_model(save_dir,
 
   # Convert and save the model
   save_name = "mnist_lstm.tflite"
-  if quantization:
-    tflite_model = convert_quantized_tflite_model(run_model, x_train)
-    save_name = "mnist_lstm_quant.tflite"
-  else:
-    tflite_model = convert_tflite_model(run_model)
+  tflite_model = convert_tflite_model(run_model)
   save_tflite_model(tflite_model, save_dir, save_name)
+
+  # Convert and save the quantized model
+  if quantization:
+    quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
+    save_name = "mnist_lstm_quant.tflite"
+    save_tflite_model(quantized_tflite_model, save_dir, save_name)
 
 
 def main(_):
