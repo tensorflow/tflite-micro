@@ -28,16 +28,19 @@ from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
 
-class LSTMModelTest(test_util.TensorFlowTestCase):
+class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
   model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
-  quant_model_path = os.path.join(PREFIX_PATH, "trained_lstm_quant.tflite")
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
-  tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(quant_model_path)
   np.random.seed(42)  #Seed the random number generator
+
+  def testInputErrHandling(self):
+    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
+    with self.assertRaises(RuntimeError):
+      evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testCompareWithTFLite(self):
     tflite_interpreter = tf.lite.Interpreter(model_path=self.model_path)
@@ -71,7 +74,35 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
-  def testQuant(self):
+  def testModelAccuracy(self):
+    # Test prediction accuracy on digits 0-9 using sample images
+    for label in range(10):
+      image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
+      # Run inference on the sample image
+      # Note that the TFLM state is reset inside the predict_image function.
+      category_probabilities = evaluate.predict_image(self.tflm_interpreter,
+                                                      image_path)
+
+      # Check the prediction result
+      predicted_category = np.argmax(category_probabilities)
+      self.assertEqual(predicted_category, label)
+
+
+class LSTMQuantModelTest(test_util.TensorFlowTestCase):
+
+  quant_model_path = os.path.join(PREFIX_PATH, "trained_lstm_quant.tflite")
+  input_shape = (1, 28, 28)
+  output_shape = (1, 10)
+
+  tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(quant_model_path)
+  np.random.seed(42)  #Seed the random number generator
+
+  def testQuantOutputs(self):
+
+    float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
+    tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
+        float_model_path)
+
     tflite_interpreter_quant = tf.lite.Interpreter(
         model_path=self.quant_model_path)
     tflite_interpreter_quant.allocate_tensors()
@@ -83,29 +114,34 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
 
     num_test = 100
     for _ in range(num_test):
-      # Give the same (random) integer input to both interpreters can confirm that the output is identical.
+      self.tflm_interpreter_quant.reset()
+      tflm_interpreter_float.reset()
+
       data_x = np.random.random(self.input_shape)
       data_x = data_x.astype("float32")
 
+      # Run float inference on TFLM
+      tflm_interpreter_float.set_input(data_x, 0)
+      tflm_interpreter_float.invoke()
+      tflm_output_float = tflm_interpreter_float.get_output(0)
+
+      # Quantized the input data into int8
       data_x_quant = data_x / input_scale + input_zero_point
       data_x_quant = data_x_quant.astype('int8')
 
-      # Run quant inference on TFLM
+      # Run integer inference on the quantilzed TFLM model
       self.tflm_interpreter_quant.set_input(data_x_quant, 0)
       self.tflm_interpreter_quant.invoke()
       tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
+      # Convert the integer output back to float for comparison
       tflm_output_quant_float = output_scale * (tflm_output_quant +
                                                 (-output_zero_point))
 
-      # Run float inference on TFLM
-      self.tflm_interpreter.set_input(data_x, 0)
-      self.tflm_interpreter.invoke()
-      tflm_output_float = self.tflm_interpreter.get_output(0)
-
       # print(data_x, data_x_quant)
       # print(abs(tflm_output_float - tflm_output_quant_float).max())
+      # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
-                         1e-1)
+                         1e-2)
 
   # def testQuantCompareWithTFLite(self):
   #   tflite_interpreter_quant = tf.lite.Interpreter(
@@ -143,24 +179,6 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
   #     # print(abs(tflite_output - tflm_output).max())
   #     self.assertAllLess((tflite_output - tflm_output), 1)
 
-  def testInputErrHandling(self):
-    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
-    with self.assertRaises(RuntimeError):
-      evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
-
-  def testModelAccuracy(self):
-    # Test prediction accuracy on digits 0-9 using sample images
-    for label in range(10):
-      image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
-      # Run inference on the sample image
-      # Note that the TFLM state is reset inside the predict_image function.
-      category_probabilities = evaluate.predict_image(self.tflm_interpreter,
-                                                      image_path)
-
-      # Check the prediction result
-      predicted_category = np.argmax(category_probabilities)
-      self.assertEqual(predicted_category, label)
-
   def testQuantModelAccuracy(self):
     # Need tflite interpreter to access the quant parameters
     tflite_interpreter_quant = tf.lite.Interpreter(
@@ -172,7 +190,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
 
     for label in range(10):
       image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
-      # Run inference on the sample image
+      # Run integer inference (quantized) on the sample image
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities_quant = evaluate.predict_image(
           self.tflm_interpreter_quant, image_path, input_scale,
@@ -182,6 +200,7 @@ class LSTMModelTest(test_util.TensorFlowTestCase):
       #                           (-output_zero_point)) * output_scale
 
       predicted_category = np.argmax(category_probabilities_quant)
+      # Check the prediction
       self.assertEqual(predicted_category, label)
 
 
