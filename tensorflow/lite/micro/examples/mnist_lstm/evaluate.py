@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""
-LSTM model evaluation for MNIST recognition
+"""LSTM model evaluation for MNIST recognition
 
 Run:
 bazel build tensorflow/lite/micro/examples/mnist_lstm:evaluate
-bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate --model_path='.tflite file path' --img_path='MNIST image path'
+bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
+--model_path='.tflite file path' --img_path='MNIST image path'
 
 """
 import os
@@ -35,7 +35,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('model_path', '/tmp/lstm_trained_model/lstm.tflite',
                     'the trained model path.')
-flags.DEFINE_string('img_path', "/tmp/samples/sample0.jpg",
+flags.DEFINE_string('img_path', '/tmp/samples/sample0.jpg',
                     'path for the image to be predicted.')
 
 
@@ -52,7 +52,7 @@ def read_img(img_path):
   data = np.asarray(image, dtype=np.float32)
   if data.shape not in [(28, 28), (28, 28, 1)]:
     raise RuntimeError(
-        "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"
+        'Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)'
     )
   # Normalize the image if necessary
   if data.max() > 1:
@@ -62,20 +62,42 @@ def read_img(img_path):
   return data
 
 
-def predict_image(interpreter, img_path):
+def predict_image(interpreter, img_path, input_scale=1, input_zero_point=0):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
       interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
       img_path (str): path to the image that need to be predicted
+      input_scale (float): quantization scale for the input tensor. Defaults to 1 (no quantization)
+      input_zero_point (int): quantization zero point for the input tensor. Defaults to 0 (no quantization)
 
   Returns:
       np.array : predicted probability for each class (digit 0-9)
   """
   data = read_img(img_path)
+  # Quantize the input if necessary
+  data = data / input_scale + input_zero_point
+  if input_scale != 1:
+    data = data.astype('int8')
+
   interpreter.set_input(data, 0)
   interpreter.invoke()
   tflm_output = interpreter.get_output(0)
+  # LSTM is stateful, reset the state after the usage since each image is independent
+  interpreter.reset()
+  # One image per time (i.e., remove the batch dimention)
+  return tflm_output[0]
+
+
+def predict_image_quant(interpreter, img_path, input_scale, input_zero_point):
+  data = read_img(img_path)
+  quant_data = data / input_scale + input_zero_point
+  quant_data = quant_data.astype('int8')
+
+  interpreter.set_input(quant_data, 0)
+  interpreter.invoke()
+  tflm_output = interpreter.get_output(0)
+
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
   # One image per time (i.e., remove the batch dimention)
@@ -92,7 +114,7 @@ def main(_):
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
   category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
   predicted_category = np.argmax(category_probabilities)
-  logging.info("Model predicts the image as %i with probability %.2f",
+  logging.info('Model predicts the image as %i with probability %.2f',
                predicted_category, category_probabilities[predicted_category])
 
 
