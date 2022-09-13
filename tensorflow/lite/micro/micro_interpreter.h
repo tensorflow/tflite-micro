@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -51,7 +51,7 @@ class MicroInterpreter {
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   IMicroProfiler* profiler = nullptr);
+                   MicroProfilerInterface* profiler = nullptr);
 
   // Create an interpreter instance using an existing MicroAllocator instance.
   // This constructor should be used when creating an allocator that needs to
@@ -61,7 +61,7 @@ class MicroInterpreter {
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   IMicroProfiler* profiler = nullptr);
+                   MicroProfilerInterface* profiler = nullptr);
 
   ~MicroInterpreter();
 
@@ -147,7 +147,7 @@ class MicroInterpreter {
  private:
   // TODO(b/158263161): Consider switching to Create() function to enable better
   // error reporting during initialization.
-  void Init(IMicroProfiler* profiler);
+  void Init(MicroProfilerInterface* profiler);
 
   // Gets the current subgraph index used from within context methods.
   int get_subgraph_index() { return graph_.GetCurrentSubgraphIndex(); }

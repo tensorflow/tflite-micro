@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/imicro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 namespace tflite {
 
@@ -25,7 +25,7 @@ namespace tflite {
 // performance. Bottleck operators can be identified along with slow code
 // sections. This can be used in conjunction with running the relevant micro
 // benchmark to evaluate end-to-end performance.
-class MicroProfiler : public IMicroProfiler {
+class MicroProfiler : public MicroProfilerInterface {
  public:
   MicroProfiler() = default;
   virtual ~MicroProfiler() = default;

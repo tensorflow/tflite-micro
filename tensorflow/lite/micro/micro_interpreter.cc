@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/schema/schema_utils.h"
 
@@ -40,7 +40,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    size_t tensor_arena_size,
                                    ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
-                                   IMicroProfiler* profiler)
+                                   MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       error_reporter_(error_reporter),
@@ -61,7 +61,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    MicroAllocator* allocator,
                                    ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
-                                   IMicroProfiler* profiler)
+                                   MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       error_reporter_(error_reporter),
@@ -81,7 +81,7 @@ MicroInterpreter::~MicroInterpreter() {
   }
 }
 
-void MicroInterpreter::Init(IMicroProfiler* profiler) {
+void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;

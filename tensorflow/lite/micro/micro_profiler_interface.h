@@ -13,15 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_IMICRO_PROFILER_H_
-#define TENSORFLOW_LITE_MICRO_IMICRO_PROFILER_H_
+#ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_INTERFACE_H_
+#define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_INTERFACE_H_
 
 #include <cstdint>
 
 namespace tflite {
 
 // Interface class that the TFLM framework relies on for profiling.
-class IMicroProfiler {
+class MicroProfilerInterface {
  public:
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent.
@@ -33,4 +33,4 @@ class IMicroProfiler {
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_IMICRO_PROFILER_H_
+#endif  // TENSORFLOW_LITE_MICRO_MICRO_PROFILER_INTERFACE_H_

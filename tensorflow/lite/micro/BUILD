@@ -40,7 +40,7 @@ cc_library(
         ":micro_context",
         ":micro_error_reporter",
         ":micro_graph",
-        ":micro_profiler",
+        ":micro_profiler_interface",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
         "//tensorflow/lite/c:common",
@@ -67,7 +67,7 @@ cc_library(
         ":micro_allocator",
         ":micro_error_reporter",
         ":micro_graph",
-        ":micro_profiler",
+        ":micro_profiler_interface",
         "//tensorflow/lite/c:common",
     ],
 )
@@ -100,7 +100,7 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_error_reporter",
-        ":micro_profiler",
+        ":micro_profiler_interface",
         ":micro_resource_variable",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -308,9 +308,9 @@ cc_library(
 )
 
 cc_library(
-    name = "imicro_profiler",
+    name = "micro_profiler_interface",
     hdrs = [
-        "imicro_profiler.h",
+        "micro_profiler_interface.h",
     ],
     copts = micro_copts(),
 )
@@ -325,7 +325,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":imicro_profiler",
+        ":micro_profiler_interface",
         ":micro_compatibility",
         ":micro_error_reporter",
         ":micro_time",
