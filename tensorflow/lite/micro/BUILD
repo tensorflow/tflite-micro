@@ -325,9 +325,9 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":micro_profiler_interface",
         ":micro_compatibility",
         ":micro_error_reporter",
+        ":micro_profiler_interface",
         ":micro_time",
         "//tensorflow/lite/kernels/internal:compatibility",
     ],
