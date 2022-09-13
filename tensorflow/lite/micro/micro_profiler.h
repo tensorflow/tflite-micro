@@ -33,7 +33,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent. The lifetime of the tag
   // parameter must exceed that of the MicroProfiler.
-  virtual uint32_t BeginEvent(const char* tag);
+  virtual uint32_t BeginEvent(const char* tag) override;
 
   // Marks the end of an event associated with event_handle. It is the
   // responsibility of the caller to ensure than EndEvent is called once and
@@ -42,7 +42,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // If EndEvent is called more than once for the same event_handle, the last
   // call will be used as the end of event marker.If EndEvent is called 0 times
   // for a particular event_handle, the duration of that event will be 0 ticks.
-  virtual void EndEvent(uint32_t event_handle);
+  virtual void EndEvent(uint32_t event_handle) override;
 
   // Clears all the events that have been currently profiled.
   void ClearEvents() { num_events_ = 0; }
