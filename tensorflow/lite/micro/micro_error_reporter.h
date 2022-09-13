@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/compatibility.h"
+// TODO(vamsimanchala): Move this include statement to the cc file.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {

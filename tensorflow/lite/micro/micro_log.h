@@ -17,6 +17,8 @@ limitations under the License.
 
 #include <cstdarg>
 
+// This is a free function used to perform the actual logging.
+// This function will be used by MicroPrintf and MicroErrorReporter::Report()
 void Log(const char* format, va_list args);
 
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
