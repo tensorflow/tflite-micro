@@ -29,6 +29,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/lstm_shared.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 
+// TODO(b/230666079): Flatten the namespace to match the builtin kernel
+// implementation
 namespace tflite {
 namespace ops {
 namespace micro {
@@ -1109,10 +1111,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 //}  // namespace unidirectional_sequence_lstm
 
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
-}
-
 }  // namespace micro
 }  // namespace ops
+
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+  return tflite::micro::RegisterOp(ops::micro::Init, ops::micro::Prepare,
+                                   ops::micro::Eval);
+}
 }  // namespace tflite
