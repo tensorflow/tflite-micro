@@ -274,8 +274,8 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro
 # Internal examples are copied outside the TFLM repo in google.
 ifneq ($(EXTERNAL_DIR),)
   MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
-#else
-  # MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
+else
+  MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
