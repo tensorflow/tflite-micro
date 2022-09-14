@@ -31,7 +31,17 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
+
+# If the TENSORFLOW_ROOT command line flag is mentioned during the build,
+# like $TENSORFLOW_ROOT=tflite-micro/, then we can simply jump to that
+# particular directory and run the process. If that is not mentioned, then
+# we following the old path of moving up from the SCRIPT_DIR.
+if [ ! -z ${2} ]
+then
+  ROOT_DIR=${2}
+else
+  ROOT_DIR=${SCRIPT_DIR}/../../../../..
+fi
 cd "${ROOT_DIR}"
 
 OPTIMIZED_KERNEL_PATH=${1}

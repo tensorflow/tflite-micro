@@ -74,8 +74,14 @@ MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 EXCLUDED_EXAMPLE_TESTS := \
   tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-  $(shell find google/ -name Makefile_internal.inc)
+  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+
+ifneq ($(EXTERNAL_DIR),)
+  EXCLUDED_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
+else
+  EXCLUDED_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
+endif
+
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh

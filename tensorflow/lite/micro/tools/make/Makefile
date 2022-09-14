@@ -70,15 +70,25 @@ OPTIMIZED_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels
 # be used.
 CO_PROCESSOR :=
 
+# This is the way to specify any code path that we want to Include in the build
+# process. This will help us to include external code (code that is not part of
+# github repo) be tested.
+EXTERNAL_DIR :=
 # This is obviously horrible.  We need to generate these 3 versions of the
 # include directories from one source.
 INCLUDES := \
 -I. \
--I$(TENSORFLOW_ROOT) \
--Igoogle \
 -I$(MAKEFILE_DIR)/downloads/gemmlowp \
 -I$(MAKEFILE_DIR)/downloads/flatbuffers/include \
 -I$(MAKEFILE_DIR)/downloads/ruy
+
+ifneq ($(TENSORFLOW_ROOT),)
+  INCLUDES += -I$(TENSORFLOW_ROOT)
+endif
+
+ifneq ($(EXTERNAL_DIR),)
+  INCLUDES += -I$(EXTERNAL_DIR)
+endif
 
 # Same list of paths, but now relative to the generated project files.
 GENERATED_PROJECT_INCLUDES := \
@@ -239,7 +249,8 @@ endif
 MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
-GENDIR := gen/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+BASE_GENDIR := gen
+GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
@@ -261,10 +272,10 @@ PRJDIR := $(GENDIR)prj/
 MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
 
 # Internal examples are copied outside the TFLM repo in google.
-ifeq ($(TENSORFLOW_ROOT),)
-  MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
-else
-  MICRO_LITE_EXAMPLE_TESTS += $(shell find google/ -name Makefile_internal.inc)
+ifneq ($(EXTERNAL_DIR),)
+  MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
+#else
+  # MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
@@ -530,7 +541,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
-  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS) $(TENSORFLOW_ROOT))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
   endif
@@ -809,7 +820,7 @@ list_generator_dir:
 
 # Gets rid of all generated files.
 clean:
-	rm -rf gen
+	rm -rf $(BASE_GENDIR)
 
 # Removes third-party downloads.
 clean_downloads:
