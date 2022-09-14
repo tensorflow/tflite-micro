@@ -45,7 +45,8 @@ class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
   static RecordingSingleArenaBufferAllocator* Create(
       ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
     (void)error_reporter;
-    return RecordingSingleArenaBufferAllocator::Create(buffer_head, buffer_size);
+    return RecordingSingleArenaBufferAllocator::Create(buffer_head,
+                                                       buffer_size);
   }
 
   // Returns the number of bytes requested from the head or tail.

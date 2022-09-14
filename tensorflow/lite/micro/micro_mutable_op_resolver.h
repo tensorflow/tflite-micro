@@ -50,7 +50,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     (void)error_reporter;
   }
 
-  //explicit MicroMutableOpResolver() {}
+  // explicit MicroMutableOpResolver() {}
 
   const TfLiteRegistration* FindOp(tflite::BuiltinOperator op) const override {
     if (op == BuiltinOperator_CUSTOM) return nullptr;
