@@ -85,7 +85,7 @@ PyObject* PyArrayFromIntVector(const int* data, npy_intp size) {
 
 PyObject* GetTensorSize(TfLiteTensor* tensor) {
   if (tensor->dims == nullptr) {
-    PyErr_Format(PyExc_ValueError, "Tensor with no shape found.");
+    MicroPrintf("Tensor with no shape found.");
     return nullptr;
   }
   PyObject* np_array =
@@ -96,17 +96,17 @@ PyObject* GetTensorSize(TfLiteTensor* tensor) {
 
 PyObject* GetTensorType(TfLiteTensor* tensor) {
   if (tensor == nullptr) {
-    PyErr_SetString(PyExc_IndexError, "Tensor is out of bound.");
+    MicroPrintf("Tensor is out of bound.");
     return nullptr;
   }
   if (tensor->type == kTfLiteNoType) {
-    PyErr_Format(PyExc_ValueError, "Tensor with no type found.");
+    MicroPrintf("Tensor with no type found.");
     return nullptr;
   }
 
   int code = TfLiteTypeToPyArrayType(tensor->type);
   if (code == -1) {
-    PyErr_Format(PyExc_ValueError, "Invalid tflite type code %d", code);
+    MicroPrintf("Invalid tflite type code %d", code);
     return nullptr;
   }
   return PyArray_TypeObjectFromType(code);
@@ -147,11 +147,20 @@ PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
 }
 
 PyObject* GetTensorDetails(TfLiteTensor* tensor) {
+  PyObject* tensor_type = GetTensorType(tensor);
+  PyObject* tensor_size = GetTensorSize(tensor);
+  PyObject* tensor_quantization_parameters =
+      GetTensorQuantizationParameters(tensor);
+  if (tensor_type == nullptr || tensor_size == nullptr ||
+      tensor_quantization_parameters == nullptr) {
+    return nullptr;
+  }
+
   PyObject* result = PyDict_New();
-  PyDict_SetItemString(result, "dtype", GetTensorType(tensor));
-  PyDict_SetItemString(result, "shape", GetTensorSize(tensor));
+  PyDict_SetItemString(result, "dtype", tensor_type);
+  PyDict_SetItemString(result, "shape", tensor_size);
   PyDict_SetItemString(result, "quantization_parameters",
-                       GetTensorQuantizationParameters(tensor));
+                       tensor_quantization_parameters);
 
   return result;
 }
@@ -360,11 +369,23 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
 }
 
 PyObject* InterpreterWrapper::GetInputTensorDetails(size_t index) const {
-  return GetTensorDetails(interpreter_->input(index));
+  PyObject* input_details = GetTensorDetails(interpreter_->input(index));
+  if (input_details == nullptr) {
+    PyErr_Format(PyExc_ValueError,
+                 "Unable to acquire input tensor information.");
+  }
+
+  return input_details;
 }
 
 PyObject* InterpreterWrapper::GetOutputTensorDetails(size_t index) const {
-  return GetTensorDetails(interpreter_->output(index));
+  PyObject* output_details = GetTensorDetails(interpreter_->output(index));
+  if (output_details == nullptr) {
+    PyErr_Format(PyExc_ValueError,
+                 "Unable to acquire input tensor information.");
+  }
+
+  return output_details;
 }
 
 }  // namespace tflite

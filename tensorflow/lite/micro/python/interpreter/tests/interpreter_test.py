@@ -70,138 +70,138 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertEqual(
         output_details["quantization_parameters"]["zero_points"][0], -13)
 
-  def testCompareWithTFLite(self):
-    model_data = generate_test_models.generate_conv_model(True, self.filename)
+  # def testCompareWithTFLite(self):
+  #   model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    # TFLM interpreter
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+  #   # TFLM interpreter
+  #   tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
-    # TFLite interpreter
-    tflite_interpreter = tf.lite.Interpreter(model_content=model_data)
-    tflite_interpreter.allocate_tensors()
-    tflite_output_details = tflite_interpreter.get_output_details()[0]
-    tflite_input_details = tflite_interpreter.get_input_details()[0]
+  #   # TFLite interpreter
+  #   tflite_interpreter = tf.lite.Interpreter(model_content=model_data)
+  #   tflite_interpreter.allocate_tensors()
+  #   tflite_output_details = tflite_interpreter.get_output_details()[0]
+  #   tflite_input_details = tflite_interpreter.get_input_details()[0]
 
-    num_steps = 100
-    for i in range(0, num_steps):
-      # Create random input
-      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+  #   num_steps = 100
+  #   for i in range(0, num_steps):
+  #     # Create random input
+  #     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
-      # Run inference on TFLite
-      tflite_interpreter.set_tensor(tflite_input_details["index"], data_x)
-      tflite_interpreter.invoke()
-      tflite_output = tflite_interpreter.get_tensor(
-          tflite_output_details["index"])
+  #     # Run inference on TFLite
+  #     tflite_interpreter.set_tensor(tflite_input_details["index"], data_x)
+  #     tflite_interpreter.invoke()
+  #     tflite_output = tflite_interpreter.get_tensor(
+  #         tflite_output_details["index"])
 
-      # Run inference on TFLM
-      tflm_interpreter.set_input(data_x, 0)
-      tflm_interpreter.invoke()
-      tflm_output = tflm_interpreter.get_output(0)
+  #     # Run inference on TFLM
+  #     tflm_interpreter.set_input(data_x, 0)
+  #     tflm_interpreter.invoke()
+  #     tflm_output = tflm_interpreter.get_output(0)
 
-      # Check that TFLM output has correct metadata
-      self.assertDTypeEqual(tflm_output, np.int8)
-      self.assertEqual(tflm_output.shape, self.output_shape)
-      # Check that result differences are less than tolerance (b/205046520).
-      # TODO: Remove tolerance when the bug is fixed.
-      self.assertAllLessEqual((tflite_output - tflm_output), 1)
+  #     # Check that TFLM output has correct metadata
+  #     self.assertDTypeEqual(tflm_output, np.int8)
+  #     self.assertEqual(tflm_output.shape, self.output_shape)
+  #     # Check that result differences are less than tolerance (b/205046520).
+  #     # TODO: Remove tolerance when the bug is fixed.
+  #     self.assertAllLessEqual((tflite_output - tflm_output), 1)
 
-  def testModelFromFileAndBufferEqual(self):
-    model_data = generate_test_models.generate_conv_model(True, self.filename)
+  # def testModelFromFileAndBufferEqual(self):
+  #   model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+  #   file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
+  #   bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
-    num_steps = 100
-    for i in range(0, num_steps):
-      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+  #   num_steps = 100
+  #   for i in range(0, num_steps):
+  #     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
-      file_interpreter.set_input(data_x, 0)
-      file_interpreter.invoke()
-      file_output = file_interpreter.get_output(0)
+  #     file_interpreter.set_input(data_x, 0)
+  #     file_interpreter.invoke()
+  #     file_output = file_interpreter.get_output(0)
 
-      bytes_interpreter.set_input(data_x, 0)
-      bytes_interpreter.invoke()
-      bytes_output = bytes_interpreter.get_output(0)
+  #     bytes_interpreter.set_input(data_x, 0)
+  #     bytes_interpreter.invoke()
+  #     bytes_output = bytes_interpreter.get_output(0)
 
-      self.assertDTypeEqual(file_output, np.int8)
-      self.assertEqual(file_output.shape, self.output_shape)
-      self.assertDTypeEqual(bytes_output, np.int8)
-      self.assertEqual(bytes_output.shape, self.output_shape)
-      # Same interpreter and model, should expect all equal
-      self.assertAllEqual(file_output, bytes_output)
+  #     self.assertDTypeEqual(file_output, np.int8)
+  #     self.assertEqual(file_output.shape, self.output_shape)
+  #     self.assertDTypeEqual(bytes_output, np.int8)
+  #     self.assertEqual(bytes_output.shape, self.output_shape)
+  #     # Same interpreter and model, should expect all equal
+  #     self.assertAllEqual(file_output, bytes_output)
 
-  def testMultipleInterpreters(self):
-    model_data = generate_test_models.generate_conv_model(False)
+  # def testMultipleInterpreters(self):
+  #   model_data = generate_test_models.generate_conv_model(False)
 
-    interpreters = [
-        tflm_runtime.Interpreter.from_bytes(model_data) for i in range(10)
-    ]
+  #   interpreters = [
+  #       tflm_runtime.Interpreter.from_bytes(model_data) for i in range(10)
+  #   ]
 
-    num_steps = 100
-    for i in range(0, num_steps):
-      data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+  #   num_steps = 100
+  #   for i in range(0, num_steps):
+  #     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
-      prev_output = None
-      for interpreter in interpreters:
-        interpreter.set_input(data_x, 0)
-        interpreter.invoke()
-        output = interpreter.get_output(0)
-        if prev_output is None:
-          prev_output = output
+  #     prev_output = None
+  #     for interpreter in interpreters:
+  #       interpreter.set_input(data_x, 0)
+  #       interpreter.invoke()
+  #       output = interpreter.get_output(0)
+  #       if prev_output is None:
+  #         prev_output = output
 
-        self.assertDTypeEqual(output, np.int8)
-        self.assertEqual(output.shape, self.output_shape)
-        self.assertAllEqual(output, prev_output)
+  #       self.assertDTypeEqual(output, np.int8)
+  #       self.assertEqual(output.shape, self.output_shape)
+  #       self.assertAllEqual(output, prev_output)
 
-  def _helperNoop(self):
-    pass
+  # def _helperNoop(self):
+  #   pass
 
-  def _helperOutputTensorMemoryLeak(self):
-    interpreter = tflm_runtime.Interpreter.from_file(self.filename)
-    int_ref = weakref.finalize(interpreter, self._helperNoop)
-    some_output = interpreter.get_output(0)
-    output_ref = weakref.finalize(some_output, self._helperNoop)
-    return (int_ref, output_ref)
+  # def _helperOutputTensorMemoryLeak(self):
+  #   interpreter = tflm_runtime.Interpreter.from_file(self.filename)
+  #   int_ref = weakref.finalize(interpreter, self._helperNoop)
+  #   some_output = interpreter.get_output(0)
+  #   output_ref = weakref.finalize(some_output, self._helperNoop)
+  #   return (int_ref, output_ref)
 
-  def testOutputTensorMemoryLeak(self):
-    generate_test_models.generate_conv_model(True, self.filename)
+  # def testOutputTensorMemoryLeak(self):
+  #   generate_test_models.generate_conv_model(True, self.filename)
 
-    int_ref, output_ref = self._helperOutputTensorMemoryLeak()
-    # Output obtained in the helper function should be out of scope now, perform
-    # garbage collection and check that the weakref is dead. If it's still
-    # alive, it means that the output's reference count isn't 0 by garbage
-    # collection. Since it's already out of scope, this means a memory leak.
-    #
-    # An example of how this could be true is if there's an additional
-    # reference increment (e.g. `Py_INCREF` or `py::cast`` instead of
-    # `py::reinterpret_steal``) somewhere in the C++ code.
-    gc.collect()
-    self.assertFalse(int_ref.alive)
-    self.assertFalse(output_ref.alive)
+  #   int_ref, output_ref = self._helperOutputTensorMemoryLeak()
+  #   # Output obtained in the helper function should be out of scope now, perform
+  #   # garbage collection and check that the weakref is dead. If it's still
+  #   # alive, it means that the output's reference count isn't 0 by garbage
+  #   # collection. Since it's already out of scope, this means a memory leak.
+  #   #
+  #   # An example of how this could be true is if there's an additional
+  #   # reference increment (e.g. `Py_INCREF` or `py::cast`` instead of
+  #   # `py::reinterpret_steal``) somewhere in the C++ code.
+  #   gc.collect()
+  #   self.assertFalse(int_ref.alive)
+  #   self.assertFalse(output_ref.alive)
 
-  # TODO (b/240162715): Add a test case to register a custom OP
+  # # TODO (b/240162715): Add a test case to register a custom OP
 
-  def testMalformedCustomOps(self):
-    model_data = generate_test_models.generate_conv_model(False)
-    custom_op_registerers = [("wrong", "format")]
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+  # def testMalformedCustomOps(self):
+  #   model_data = generate_test_models.generate_conv_model(False)
+  #   custom_op_registerers = [("wrong", "format")]
+  #   with self.assertRaisesWithPredicateMatch(ValueError,
+  #                                            "must be a list of strings"):
+  #     interpreter = tflm_runtime.Interpreter.from_bytes(
+  #         model_data, custom_op_registerers)
 
-    custom_op_registerers = "WrongFormat"
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+  #   custom_op_registerers = "WrongFormat"
+  #   with self.assertRaisesWithPredicateMatch(ValueError,
+  #                                            "must be a list of strings"):
+  #     interpreter = tflm_runtime.Interpreter.from_bytes(
+  #         model_data, custom_op_registerers)
 
-  def testNonExistentCustomOps(self):
-    model_data = generate_test_models.generate_conv_model(False)
-    custom_op_registerers = ["SomeRandomOp"]
-    with self.assertRaisesWithPredicateMatch(
-        SystemError, "returned a result with an error set"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+  # def testNonExistentCustomOps(self):
+  #   model_data = generate_test_models.generate_conv_model(False)
+  #   custom_op_registerers = ["SomeRandomOp"]
+  #   with self.assertRaisesWithPredicateMatch(
+  #       SystemError, "returned a result with an error set"):
+  #     interpreter = tflm_runtime.Interpreter.from_bytes(
+  #         model_data, custom_op_registerers)
 
 
 if __name__ == "__main__":
