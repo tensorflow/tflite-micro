@@ -291,7 +291,6 @@ MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
-<<<<<<< HEAD
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
