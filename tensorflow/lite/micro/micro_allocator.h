@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -42,7 +41,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     INonPersistentBufferAllocator* non_persistent_buffer_allocator,
     bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    ErrorReporter* error_reporter, TfLiteTensor* result);
+    TfLiteTensor* result);
 
 // Holds placeholder information for a scratch buffer request from a kernel.
 // This struct is only used during the model prepare stage. Each request from a
@@ -118,24 +117,21 @@ class MicroAllocator {
   // Note: Please use alignas(16) to make sure tensor_arena is 16
   // bytes aligned, otherwise some head room will be wasted.
   // TODO(b/157615197): Cleanup constructor + factory usage.
-  static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size,
-                                ErrorReporter* error_reporter);
+  static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size);
 
   // Creates a MicroAllocator instance from a given tensor arena and a given
   // MemoryPlanner. This arena will be managed by the created instance. Note:
   // Please use alignas(16) to make sure tensor_arena is 16 bytes
   // aligned, otherwise some head room will be wasted.
   static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size,
-                                MicroMemoryPlanner* memory_planner,
-                                ErrorReporter* error_reporter);
+                                MicroMemoryPlanner* memory_planner);
 
   // Creates a MicroAllocator instance using the provided
   // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
   // instance will use the SingleArenaBufferAllocator instance to manage
   // allocations internally.
   static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
-                                MicroMemoryPlanner* memory_planner,
-                                ErrorReporter* error_reporter);
+                                MicroMemoryPlanner* memory_planner);
 
   // Creates a MicroAllocator instance using the provided
   // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
@@ -144,8 +140,7 @@ class MicroAllocator {
   static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
                                 size_t persistent_arena_size,
                                 uint8_t* non_persistent_tensor_arena,
-                                size_t non_persistent_arena_size,
-                                ErrorReporter* error_reporter);
+                                size_t non_persistent_arena_size);
 
   // Returns the fixed amount of memory overhead of MicroAllocator.
   static size_t GetDefaultTailUsage(bool is_memory_planner_given);
@@ -235,12 +230,10 @@ class MicroAllocator {
 
  protected:
   MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
-                 MicroMemoryPlanner* memory_planner,
-                 ErrorReporter* error_reporter);
+                 MicroMemoryPlanner* memory_planner);
   MicroAllocator(IPersistentBufferAllocator* persistent_buffer_allocator,
                  INonPersistentBufferAllocator* non_persistent_buffer_allocator,
-                 MicroMemoryPlanner* memory_planner,
-                 ErrorReporter* error_reporter);
+                 MicroMemoryPlanner* memory_planner);
   virtual ~MicroAllocator();
 
   // Allocates an array in the arena to hold pointers to the node and
@@ -271,8 +264,6 @@ class MicroAllocator {
                                                           int tensor_index,
                                                           int subgraph_idx,
                                                           bool allocate_temp);
-
-  ErrorReporter* error_reporter() const;
 
  private:
   // Commits a memory plan for all non-persistent buffer allocations in the
@@ -310,7 +301,6 @@ class MicroAllocator {
   // Activation buffer memory planner.
   MicroMemoryPlanner* memory_planner_;
 
-  ErrorReporter* error_reporter_;
   bool model_is_allocating_;
 
   // Holds the number of ScratchBufferRequest instances stored in the head

@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace {
@@ -52,13 +51,11 @@ TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset0 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(nullptr, 0, &offset0));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset0));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer0Offset, offset0);
 
   int offset1 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          planner.GetOffsetForBuffer(nullptr, 1, &offset1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset1));
   TF_LITE_MICRO_EXPECT_EQ(kBuffer1Offset, offset1);
 }
 
@@ -66,37 +63,33 @@ TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset = -1;
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteError, planner.GetOffsetForBuffer(nullptr, kBufferCnt, &offset));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          planner.GetOffsetForBuffer(kBufferCnt, &offset));
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/20,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
+                                                       /*first_time_used=*/0,
+                                                       /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
+                                                       /*first_time_used=*/0,
+                                                       /*last_time_used=*/1));
 }
 
 TF_LITE_MICRO_TEST(TestAddBufferFailWhenExceedRange) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/20,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
+                                                       /*first_time_used=*/0,
+                                                       /*last_time_used=*/1));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
+                                                       /*first_time_used=*/0,
+                                                       /*last_time_used=*/1));
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteError,
-      planner.AddBuffer(/*error_reporter=*/nullptr, /*size=*/10,
+      planner.AddBuffer(/*size=*/10,
                         /*first_time_used=*/0, /*last_time_used=*/1));
 }
 

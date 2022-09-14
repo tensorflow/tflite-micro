@@ -46,8 +46,7 @@ TF_LITE_MICRO_TEST(CreateVariables) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
-                                         tflite::kMaxBufferSize,
-                                         tflite::GetMicroErrorReporter()),
+                                         tflite::kMaxBufferSize),
           4);
   int id1 = resource_variables->CreateIdIfNoneFound("", "var1");
   TF_LITE_MICRO_EXPECT_GE(id1, 0);
@@ -78,8 +77,7 @@ TF_LITE_MICRO_TEST(AllocateResourceBuffers) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
-                                         tflite::kMaxBufferSize,
-                                         tflite::GetMicroErrorReporter()),
+                                         tflite::kMaxBufferSize),
           2);
   int id1 = resource_variables->CreateIdIfNoneFound("", "var1");
   TF_LITE_MICRO_EXPECT_GE(id1, 0);
@@ -101,8 +99,7 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
-                                         tflite::kMaxBufferSize,
-                                         tflite::GetMicroErrorReporter()),
+                                         tflite::kMaxBufferSize),
           1);
   int id = resource_variables->CreateIdIfNoneFound("", "var1");
   TF_LITE_MICRO_EXPECT_GE(id, 0);
@@ -141,8 +138,7 @@ TF_LITE_MICRO_TEST(CreateVariablesNullContainer) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
-                                         tflite::kMaxBufferSize,
-                                         tflite::GetMicroErrorReporter()),
+                                         tflite::kMaxBufferSize),
           4);
   int id1 = resource_variables->CreateIdIfNoneFound(nullptr, "var1");
   TF_LITE_MICRO_EXPECT_GE(id1, 0);

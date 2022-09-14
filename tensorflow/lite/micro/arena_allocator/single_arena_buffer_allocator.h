@@ -20,7 +20,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
@@ -34,15 +33,12 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
  public:
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
-  SingleArenaBufferAllocator(ErrorReporter* error_reporter,
-                             uint8_t* buffer_head, uint8_t* buffer_tail);
-  SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer,
-                             size_t buffer_size);
+  SingleArenaBufferAllocator(uint8_t* buffer_head, uint8_t* buffer_tail);
+  SingleArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
   virtual ~SingleArenaBufferAllocator();
 
   // Creates a new SingleArenaBufferAllocator from a given buffer head and size.
-  static SingleArenaBufferAllocator* Create(ErrorReporter* error_reporter,
-                                            uint8_t* buffer_head,
+  static SingleArenaBufferAllocator* Create(uint8_t* buffer_head,
                                             size_t buffer_size);
 
   // Resizes a buffer that is previously returned by the
@@ -125,10 +121,6 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
 
  private:
   size_t GetBufferSize() const;
-
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-  ErrorReporter* error_reporter_;
-#endif
   uint8_t* buffer_head_;
   uint8_t* buffer_tail_;
   uint8_t* head_;
