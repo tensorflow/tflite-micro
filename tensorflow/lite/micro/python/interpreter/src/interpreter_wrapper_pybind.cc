@@ -47,38 +47,17 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
           },
           py::arg("index"))
       .def(
-          "GetInputTensorType",
+          "GetInputTensorDetails",
           [](InterpreterWrapper& self, size_t index) {
             return py::reinterpret_steal<py::object>(
-                self.InputTensorType(index));
+                self.GetInputTensorDetails(index));
           },
           py::arg("index"))
       .def(
-          "GetOutputTensorType",
+          "GetOutputTensorDetails",
           [](InterpreterWrapper& self, size_t index) {
             return py::reinterpret_steal<py::object>(
-                self.OutputTensorType(index));
-          },
-          py::arg("index"))
-      .def(
-          "GetInputTensorSize",
-          [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.InputTensorSize(index));
-          },
-          py::arg("index"))
-      .def(
-          "GetOutputTensorSize",
-          [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.OutputTensorSize(index));
-          },
-          py::arg("index"))
-      .def(
-          "GetInputTensorParam",
-          [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.InputTensorQuantizationParameters(index));
+                self.GetOutputTensorDetails(index));
           },
           py::arg("index"));
 }

@@ -112,6 +112,8 @@ PyObject* GetTensorType(TfLiteTensor* tensor) {
   return PyArray_TypeObjectFromType(code);
 }
 
+// Create a python dictionary object that contains the general (can be
+// channel-wise quantized) affiene quantization information about the tensor.
 PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
   const TfLiteQuantization quantization = tensor->quantization;
   float* scales_data = nullptr;
@@ -136,12 +138,24 @@ PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
   PyObject* zero_points_array =
       PyArrayFromIntVector(zero_points_data, zero_points_size);
 
-  PyObject* result = PyTuple_New(3);
-  PyTuple_SET_ITEM(result, 0, scales_array);
-  PyTuple_SET_ITEM(result, 1, zero_points_array);
-  PyTuple_SET_ITEM(result, 2, PyLong_FromLong(quantized_dimension));
+  PyObject* result = PyDict_New();
+  PyDict_SetItemString(result, "scales", scales_array);
+  PyDict_SetItemString(result, "zero_points", zero_points_array);
+  PyDict_SetItemString(result, "quantized_dimension",
+                       PyLong_FromLong(quantized_dimension));
   return result;
 }
+
+PyObject* GetTensorDetails(TfLiteTensor* tensor) {
+  PyObject* result = PyDict_New();
+  PyDict_SetItemString(result, "dtype", GetTensorType(tensor));
+  PyDict_SetItemString(result, "shape", GetTensorSize(tensor));
+  PyDict_SetItemString(result, "quantization_parameters",
+                       GetTensorQuantizationParameters(tensor));
+
+  return result;
+}
+
 }  // namespace
 
 InterpreterWrapper::~InterpreterWrapper() {
@@ -345,25 +359,12 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-PyObject* InterpreterWrapper::InputTensorType(size_t index) const {
-  return GetTensorType(interpreter_->input(index));
+PyObject* InterpreterWrapper::GetInputTensorDetails(size_t index) const {
+  return GetTensorDetails(interpreter_->input(index));
 }
 
-PyObject* InterpreterWrapper::OutputTensorType(size_t index) const {
-  return GetTensorType(interpreter_->output(index));
-}
-
-PyObject* InterpreterWrapper::InputTensorSize(size_t index) const {
-  return GetTensorSize(interpreter_->input(index));
-}
-
-PyObject* InterpreterWrapper::OutputTensorSize(size_t index) const {
-  return GetTensorSize(interpreter_->output(index));
-}
-
-PyObject* InterpreterWrapper::InputTensorQuantizationParameters(
-    size_t index) const {
-  return GetTensorQuantizationParameters(interpreter_->input(index));
+PyObject* InterpreterWrapper::GetOutputTensorDetails(size_t index) const {
+  return GetTensorDetails(interpreter_->output(index));
 }
 
 }  // namespace tflite

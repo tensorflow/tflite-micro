@@ -34,12 +34,8 @@ class InterpreterWrapper {
   int Reset();
   void SetInputTensor(PyObject* data, size_t index);
   PyObject* GetOutputTensor(size_t index);
-  PyObject* InputTensorType(size_t index) const;
-  PyObject* OutputTensorType(size_t index) const;
-  PyObject* InputTensorSize(size_t index) const;
-  PyObject* OutputTensorSize(size_t index) const;
-  PyObject* InputTensorQuantizationParameters(size_t index) const;
-  // PyObject* OutputTensorQuantizationParameters(size_t index) const;
+  PyObject* GetInputTensorDetails(size_t index) const;
+  PyObject* GetOutputTensorDetails(size_t index) const;
 
  private:
   const PyObject* model_;
