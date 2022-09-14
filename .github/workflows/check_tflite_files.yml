@@ -23,7 +23,7 @@ jobs:
           echo "${PR_FILES}" >> tmp_pull_request_files.txt
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --rm -v `pwd`:/working -w /working ghcr.io/tflm-bot/tflm-ci:latest python3 ci/check_tflite_files.py tmp_pull_request_files.txt
+          docker run --rm -v `pwd`:/tflite-micro -w /tflite-micro ghcr.io/tflm-bot/tflm-ci:latest python3 ci/check_tflite_files.py tmp_pull_request_files.txt
           TFLITE_FILE_TEST_STATUS=$?
-          rm -f /tmp/pull_request_files.txt
+          rm -f tmp_pull_request_files.txt
           exit ${TFLITE_FILE_TEST_STATUS}
