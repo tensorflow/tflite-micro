@@ -136,3 +136,15 @@ class Interpreter(object):
       raise ValueError("Index must be a non-negative integer")
 
     return self._interpreter.GetOutputTensor(index)
+
+  def get_input_type(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetInputTensorType(index)
+
+  def get_output_type(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetOutputTensorType(index)

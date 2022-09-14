@@ -269,4 +269,44 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
+PyObject* InterpreterWrapper::InputTensorType(size_t index) const {
+  TfLiteTensor* tensor = interpreter_->input(index);
+  if (tensor == nullptr) {
+    PyErr_SetString(PyExc_IndexError, "Tensor is out of bound.");
+    return nullptr;
+  }
+
+  if (tensor->type == kTfLiteNoType) {
+    PyErr_Format(PyExc_ValueError, "Tensor with no type found.");
+    return nullptr;
+  }
+
+  int code = TfLiteTypeToPyArrayType(tensor->type);
+  if (code == -1) {
+    PyErr_Format(PyExc_ValueError, "Invalid tflite type code %d", code);
+    return nullptr;
+  }
+  return PyArray_TypeObjectFromType(code);
+}
+
+PyObject* InterpreterWrapper::OutputTensorType(size_t index) const {
+  TfLiteTensor* tensor = interpreter_->output(index);
+  if (tensor == nullptr) {
+    PyErr_SetString(PyExc_IndexError, "Tensor is out of bound.");
+    return nullptr;
+  }
+
+  if (tensor->type == kTfLiteNoType) {
+    PyErr_Format(PyExc_ValueError, "Tensor with no type found.");
+    return nullptr;
+  }
+
+  int code = TfLiteTypeToPyArrayType(tensor->type);
+  if (code == -1) {
+    PyErr_Format(PyExc_ValueError, "Invalid tflite type code %d", code);
+    return nullptr;
+  }
+  return PyArray_TypeObjectFromType(code);
+}
+
 }  // namespace tflite
