@@ -250,6 +250,21 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_log",
+    srcs = [
+        "micro_log.cc",
+    ],
+    hdrs = [
+        "micro_log.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":debug_log",
+        ":micro_string",
+    ],
+)
+
+cc_library(
     name = "micro_error_reporter",
     srcs = [
         "micro_error_reporter.cc",
@@ -259,9 +274,8 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        ":debug_log",
         ":micro_compatibility",
-        ":micro_string",
+        ":micro_log",
         "//tensorflow/lite/core/api",
     ],
 )
@@ -373,12 +387,12 @@ cc_library(
 )
 
 cc_test(
-    name = "micro_error_reporter_test",
+    name = "micro_log_test",
     srcs = [
-        "micro_error_reporter_test.cc",
+        "micro_log_test.cc",
     ],
     deps = [
-        ":micro_error_reporter",
+        ":micro_log",
         ":system_setup",
     ],
 )

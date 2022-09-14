@@ -51,7 +51,7 @@ cc_library(
     deps = [
         ":micro_memory_planner",
         "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_string",
     ],
 )
