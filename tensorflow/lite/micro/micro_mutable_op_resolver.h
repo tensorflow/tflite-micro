@@ -32,6 +32,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -44,7 +45,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
  public:
   TF_LITE_REMOVE_VIRTUAL_DELETE
 
-  explicit MicroMutableOpResolver() {}
+  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  explicit MicroMutableOpResolver(ErrorReporter* error_reporter = nullptr) {
+    (void)error_reporter;
+  }
+
+  //explicit MicroMutableOpResolver() {}
 
   const TfLiteRegistration* FindOp(tflite::BuiltinOperator op) const override {
     if (op == BuiltinOperator_CUSTOM) return nullptr;

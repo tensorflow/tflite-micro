@@ -20,6 +20,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
@@ -31,11 +32,31 @@ namespace tflite {
 class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
                                    public IPersistentBufferAllocator {
  public:
+  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  SingleArenaBufferAllocator(ErrorReporter* error_reporter,
+                             uint8_t* buffer_head, uint8_t* buffer_tail)
+      : SingleArenaBufferAllocator(buffer_head, buffer_tail) {
+    (void)error_reporter;
+  }
+  SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer,
+                             size_t buffer_size)
+      : SingleArenaBufferAllocator(buffer, buffer_size) {
+    (void)error_reporter;
+  }
+
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
   SingleArenaBufferAllocator(uint8_t* buffer_head, uint8_t* buffer_tail);
   SingleArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
   virtual ~SingleArenaBufferAllocator();
+
+  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  static SingleArenaBufferAllocator* Create(ErrorReporter* error_reporter,
+                                            uint8_t* buffer_head,
+                                            size_t buffer_size) {
+    (void)error_reporter;
+    return SingleArenaBufferAllocator::Create(buffer_head, buffer_size);
+  }
 
   // Creates a new SingleArenaBufferAllocator from a given buffer head and size.
   static SingleArenaBufferAllocator* Create(uint8_t* buffer_head,

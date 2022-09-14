@@ -20,6 +20,7 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
@@ -38,6 +39,17 @@ namespace tflite {
 
 class MicroInterpreter {
  public:
+  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
+                   uint8_t* tensor_arena, size_t tensor_arena_size,
+                   ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
+                   MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, tensor_arena, tensor_arena_size,
+                         resource_variables, profiler) {
+    (void)error_reporter;
+  }
+
   // The lifetime of the model, op resolver, tensor arena, error reporter,
   // resource variables, and profiler must be at least as long as that of the
   // interpreter object, since the interpreter may need to access them at any
@@ -50,6 +62,16 @@ class MicroInterpreter {
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
+
+  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
+                   MicroAllocator* allocator, ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
+                   MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, allocator, resource_variables,
+                         profiler) {
+    (void)error_reporter;
+  }
 
   // Create an interpreter instance using an existing MicroAllocator instance.
   // This constructor should be used when creating an allocator that needs to
