@@ -148,3 +148,21 @@ class Interpreter(object):
       raise ValueError("Index must be a non-negative integer")
 
     return self._interpreter.GetOutputTensorType(index)
+
+  def get_input_size(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetInputTensorSize(index)
+
+  def get_output_size(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetOutputTensorSize(index)
+
+  def get_input_quantization_param(self, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetInputTensorParam(index)

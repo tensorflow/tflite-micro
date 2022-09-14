@@ -44,9 +44,16 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
     input_type = tflm_interpreter.get_input_type(0)
     self.assertEqual(input_type, np.int8)
+    input_size = tflm_interpreter.get_input_size(0)
+    self.assertAllEqual(input_size, self.input_shape)
+
+    input_quant = tflm_interpreter.get_input_quantization_param(0)
+    print(input_quant)
 
     output_type = tflm_interpreter.get_output_type(0)
     self.assertEqual(output_type, np.int8)
+    output_size = tflm_interpreter.get_output_size(0)
+    self.assertAllEqual(output_size, self.output_shape)
 
   # def testCompareWithTFLite(self):
   #   model_data = generate_test_models.generate_conv_model(True, self.filename)
