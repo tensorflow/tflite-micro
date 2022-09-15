@@ -38,37 +38,45 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   input_shape = (1, 16, 16, 1)
   output_shape = (1, 10)
 
-  def testModelIODetails(self):
+  def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(False)
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    data_x = np.random.rand(*self.input_shape)
+    data_x = data_x.astype(np.float32)
+    with self.assertRaises(ValueError):
+      tflm_interpreter.set_input(data_x, 0)
 
-    # Test input tensor details
-    input_details = tflm_interpreter.get_input_details(0)
-    self.assertAllEqual(input_details["shape"], self.input_shape)
-    # Single channel int8 quantization
-    self.assertEqual(input_details["dtype"], np.int8)
-    self.assertEqual(len(input_details["quantization_parameters"]["scales"]),
-                     1)
-    self.assertEqual(
-        input_details["quantization_parameters"]["quantized_dimension"], 0)
-    self.assertAlmostEqual(
-        input_details["quantization_parameters"]["scales"][0], 0.0039186)
-    self.assertEqual(
-        input_details["quantization_parameters"]["zero_points"][0], -128)
+  # def testModelIODetails(self):
+  #   model_data = generate_test_models.generate_conv_model(False)
+  #   tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
-    # Test output tensor details
-    output_details = tflm_interpreter.get_output_details(0)
-    self.assertAllEqual(output_details["shape"], self.output_shape)
-    # Single channel int8 quantization
-    self.assertEqual(output_details["dtype"], np.int8)
-    self.assertEqual(len(output_details["quantization_parameters"]["scales"]),
-                     1)
-    self.assertEqual(
-        output_details["quantization_parameters"]["quantized_dimension"], 0)
-    self.assertAlmostEqual(
-        output_details["quantization_parameters"]["scales"][0], 0.00299517)
-    self.assertEqual(
-        output_details["quantization_parameters"]["zero_points"][0], -13)
+  #   # Test input tensor details
+  #   input_details = tflm_interpreter.get_input_details(0)
+  #   self.assertAllEqual(input_details["shape"], self.input_shape)
+  #   # Single channel int8 quantization
+  #   self.assertEqual(input_details["dtype"], np.int8)
+  #   self.assertEqual(len(input_details["quantization_parameters"]["scales"]),
+  #                    1)
+  #   self.assertEqual(
+  #       input_details["quantization_parameters"]["quantized_dimension"], 0)
+  #   self.assertAlmostEqual(
+  #       input_details["quantization_parameters"]["scales"][0], 0.0039186)
+  #   self.assertEqual(
+  #       input_details["quantization_parameters"]["zero_points"][0], -128)
+
+  #   # Test output tensor details
+  #   output_details = tflm_interpreter.get_output_details(0)
+  #   self.assertAllEqual(output_details["shape"], self.output_shape)
+  #   # Single channel int8 quantization
+  #   self.assertEqual(output_details["dtype"], np.int8)
+  #   self.assertEqual(len(output_details["quantization_parameters"]["scales"]),
+  #                    1)
+  #   self.assertEqual(
+  #       output_details["quantization_parameters"]["quantized_dimension"], 0)
+  #   self.assertAlmostEqual(
+  #       output_details["quantization_parameters"]["scales"][0], 0.00299517)
+  #   self.assertEqual(
+  #       output_details["quantization_parameters"]["zero_points"][0], -13)
 
   # def testCompareWithTFLite(self):
   #   model_data = generate_test_models.generate_conv_model(True, self.filename)

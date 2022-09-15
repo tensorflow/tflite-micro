@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
+#include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
 
@@ -267,10 +268,10 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
   if (TfLiteTypeFromPyArray(array) != tensor->type) {
     PyErr_Format(PyExc_ValueError,
                  "Cannot set tensor: Got value of type %s but expected type %s "
-                 "for input %zu, name: %s ",
+                 "for input %zu ",
                  TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
-                 TfLiteTypeGetName(tensor->type), index, tensor->name);
-    return;
+                 TfLiteTypeGetName(tensor->type), index);
+    ThrowValueError("aaaa");
   }
 
   if (PyArray_NDIM(array) != tensor->dims->size) {
