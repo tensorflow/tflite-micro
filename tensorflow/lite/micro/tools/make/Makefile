@@ -633,9 +633,6 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
 
-# Load generated micro mutable op resolver test.
-include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
-
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
 
