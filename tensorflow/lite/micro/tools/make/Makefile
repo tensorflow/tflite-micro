@@ -275,6 +275,7 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro
 ifneq ($(EXTERNAL_DIR),)
   MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
 else
+  # TODO(b/246833632): remove this once the internal examples are modified to make use of EXTERNAL_DIR instead of replying on google being hard-coded.
   MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
 endif
 
@@ -498,17 +499,17 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 $(shell mkdir -p ${MAKEFILE_DIR}/downloads)
 
 # Directly download the flatbuffers library.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
 endif
@@ -541,7 +542,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
-  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS) $(TENSORFLOW_ROOT))
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(TENSORFLOW_ROOT)$(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
   endif

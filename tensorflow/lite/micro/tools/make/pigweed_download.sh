@@ -17,6 +17,7 @@
 # Called with following arguments:
 # 1 - Path to the downloads folder which is typically
 #     tensorflow/lite/micro/tools/make/downloads
+# 2 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:
@@ -31,22 +32,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# If the TENSORFLOW_ROOT command line flag is mentioned during the build,
-# like $TENSORFLOW_ROOT=tflite-micro/, then we can simply jump to that
-# particular directory and run the process. If that is not mentioned, then
-# we following the old path of moving up from the SCRIPT_DIR.
-if [ ! -z ${2} ]
-then
-  ROOT_DIR=${2}
-else
-  ROOT_DIR=${SCRIPT_DIR}/../../../../..
-fi
-
-cd "${ROOT_DIR}"
-
-source tensorflow/lite/micro/tools/make/bash_helpers.sh
+source ${2}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
