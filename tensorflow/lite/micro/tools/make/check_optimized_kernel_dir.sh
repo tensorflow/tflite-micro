@@ -15,7 +15,8 @@
 # ==============================================================================
 #
 # Called with following arguments:
-# 1 - OPTIMIZED_KERNEL_PATH (relative to TF root) to the optimized kernel implementations.
+# 1 - OPTIMIZED_KERNEL_PATH (relative to the location from which the script is invoked)
+#     to the optimized kernel implementations.
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:

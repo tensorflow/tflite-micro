@@ -74,13 +74,17 @@ CO_PROCESSOR :=
 # process. This will help us to include external code (code that is not part of
 # github repo) be tested.
 EXTERNAL_DIR :=
+
+# This is the downloads directory inside the makefiles directory
+DOWNLOADS_DIR := $(MAKEFILE_DIR)/downloads
+
 # This is obviously horrible.  We need to generate these 3 versions of the
 # include directories from one source.
 INCLUDES := \
 -I. \
--I$(MAKEFILE_DIR)/downloads/gemmlowp \
--I$(MAKEFILE_DIR)/downloads/flatbuffers/include \
--I$(MAKEFILE_DIR)/downloads/ruy
+-I$(DOWNLOADS_DIR)/gemmlowp \
+-I$(DOWNLOADS_DIR)/flatbuffers/include \
+-I$(DOWNLOADS_DIR)/ruy
 
 ifneq ($(TENSORFLOW_ROOT),)
   INCLUDES += -I$(TENSORFLOW_ROOT)
@@ -450,37 +454,37 @@ $(TFL_CC_HDRS)
 # the implemenation of three different resolution fft from one single c file.
 # See http://b/201319430 for additional context.
 THIRD_PARTY_CC_HDRS := \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/allocator.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/array.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/base.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/buffer.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/buffer_ref.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/default_allocator.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/detached_buffer.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flatbuffer_builder.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flatbuffers.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/flexbuffers.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/stl_emulation.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/string.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/struct.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/table.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/vector.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/vector_downward.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/verifier.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/include/flatbuffers/util.h \
-$(MAKEFILE_DIR)/downloads/flatbuffers/LICENSE.txt \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_neon.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/fixedpoint/fixedpoint_sse.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/internal/detect_platform.h \
-$(MAKEFILE_DIR)/downloads/gemmlowp/LICENSE \
-$(MAKEFILE_DIR)/downloads/kissfft/COPYING \
-$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.c \
-$(MAKEFILE_DIR)/downloads/kissfft/kiss_fft.h \
-$(MAKEFILE_DIR)/downloads/kissfft/_kiss_fft_guts.h \
-$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
-$(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h \
-$(MAKEFILE_DIR)/downloads/ruy/ruy/profiler/instrumentation.h
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/allocator.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/array.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/base.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/buffer.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/buffer_ref.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/default_allocator.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/detached_buffer.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flatbuffer_builder.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flatbuffers.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flexbuffers.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/stl_emulation.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/string.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/struct.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/table.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector_downward.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/verifier.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/util.h \
+$(DOWNLOADS_DIR)/flatbuffers/LICENSE.txt \
+$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint.h \
+$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_neon.h \
+$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_sse.h \
+$(DOWNLOADS_DIR)/gemmlowp/internal/detect_platform.h \
+$(DOWNLOADS_DIR)/gemmlowp/LICENSE \
+$(DOWNLOADS_DIR)/kissfft/COPYING \
+$(DOWNLOADS_DIR)/kissfft/kiss_fft.c \
+$(DOWNLOADS_DIR)/kissfft/kiss_fft.h \
+$(DOWNLOADS_DIR)/kissfft/_kiss_fft_guts.h \
+$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
+$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
+$(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
 THIRD_PARTY_CC_SRCS :=
 THIRD_PARTY_KERNEL_CC_SRCS :=
@@ -496,20 +500,20 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
 # directory.
-$(shell mkdir -p ${MAKEFILE_DIR}/downloads)
+$(shell mkdir -p ${DOWNLOADS_DIR})
 
 # Directly download the flatbuffers library.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh $(TENSORFLOW_ROOT)${RELATIVE_MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
 endif
@@ -822,7 +826,7 @@ clean:
 
 # Removes third-party downloads.
 clean_downloads:
-	rm -rf $(MAKEFILE_DIR)/downloads
+	rm -rf $(DOWNLOADS_DIR)
 
 $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
