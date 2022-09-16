@@ -65,6 +65,16 @@ inline py::object PyoOrThrow(PyObject* ptr) {
   throw pybind11::error_already_set();
 }
 
+[[noreturn]] inline void ThrowIndexError(const char* error_message) {
+  PyErr_SetString(PyExc_IndexError, error_message);
+  throw pybind11::error_already_set();
+}
+
+[[noreturn]] inline void ThrowRuntimeError(const char* error_message) {
+  PyErr_SetString(PyExc_RuntimeError, error_message);
+  throw pybind11::error_already_set();
+}
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_PYTHON_INTERPRETER_SRC_PYBIND11_LIB_H_

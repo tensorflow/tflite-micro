@@ -84,11 +84,46 @@ PyObject* PyArrayFromIntVector(const int* data, npy_intp size) {
   return obj;
 }
 
-PyObject* GetTensorSize(TfLiteTensor* tensor) {
-  if (tensor->dims == nullptr) {
-    MicroPrintf("Tensor with no shape found.");
-    return nullptr;
+// Check if the tensor is valid for TFLM
+bool CheckTensor(TfLiteTensor* tensor) {
+  if (tensor == nullptr) {
+    PyErr_SetString(PyExc_IndexError,
+                    "Tensor is out of bound, please check tensor index.");
+    return false;
   }
+
+  if (tensor->type == kTfLiteString || tensor->type == kTfLiteResource ||
+      tensor->type == kTfLiteVariant) {
+    PyErr_SetString(PyExc_ValueError,
+                    "TFLM doesn't support strings, resource variables, or "
+                    "variants as outputs.");
+    return false;
+  }
+
+  if (tensor->sparsity != nullptr) {
+    PyErr_SetString(PyExc_ValueError, "TFLM doesn't support sparse tensors");
+    return false;
+  }
+
+  int py_type_num = TfLiteTypeToPyArrayType(tensor->type);
+  if (py_type_num == NPY_NOTYPE) {
+    PyErr_SetString(PyExc_ValueError, "Unknown tensor type.");
+    return false;
+  }
+
+  if (tensor->bytes == 0 && tensor->data.data != nullptr) {
+    PyErr_SetString(PyExc_ValueError, "Invalid tensor size of 0.");
+    return false;
+  }
+
+  if (tensor->bytes > 0 && tensor->data.data == nullptr) {
+    PyErr_SetString(PyExc_ValueError, "Null tensor pointer.");
+    return false;
+  }
+  return true;
+}
+
+PyObject* GetTensorSize(TfLiteTensor* tensor) {
   PyObject* np_array =
       PyArrayFromIntVector(tensor->dims->data, tensor->dims->size);
 
@@ -96,20 +131,7 @@ PyObject* GetTensorSize(TfLiteTensor* tensor) {
 }
 
 PyObject* GetTensorType(TfLiteTensor* tensor) {
-  if (tensor == nullptr) {
-    MicroPrintf("Tensor is out of bound.");
-    return nullptr;
-  }
-  if (tensor->type == kTfLiteNoType) {
-    MicroPrintf("Tensor with no type found.");
-    return nullptr;
-  }
-
   int code = TfLiteTypeToPyArrayType(tensor->type);
-  if (code == -1) {
-    MicroPrintf("Invalid tflite type code %d", code);
-    return nullptr;
-  }
   return PyArray_TypeObjectFromType(code);
 }
 
@@ -148,14 +170,14 @@ PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
 }
 
 PyObject* GetTensorDetails(TfLiteTensor* tensor) {
+  if (!CheckTensor(tensor)) {
+    return nullptr;
+  }
+
   PyObject* tensor_type = GetTensorType(tensor);
   PyObject* tensor_size = GetTensorSize(tensor);
   PyObject* tensor_quantization_parameters =
       GetTensorQuantizationParameters(tensor);
-  if (tensor_type == nullptr || tensor_size == nullptr ||
-      tensor_quantization_parameters == nullptr) {
-    return nullptr;
-  }
 
   PyObject* result = PyDict_New();
   PyDict_SetItemString(result, "dtype", tensor_type);
@@ -195,10 +217,8 @@ InterpreterWrapper::InterpreterWrapper(
   char* buf = nullptr;
   Py_ssize_t length;
   if (ConvertFromPyString(model_data, &buf, &length) == -1 || buf == nullptr) {
-    PyErr_SetString(
-        PyExc_ValueError,
+    ThrowValueError(
         "TFLM cannot convert model data from Python object to char *");
-    return;
   }
 
   const Model* model = GetModel(buf);
@@ -211,8 +231,7 @@ InterpreterWrapper::InterpreterWrapper(
       char strbuf[128];
       snprintf(strbuf, sizeof(strbuf),
                "TFLM could not register custom op via %s", registerer.c_str());
-      PyErr_SetString(PyExc_RuntimeError, strbuf);
-      return;
+      ThrowRuntimeError(strbuf);
     }
   }
 
@@ -222,8 +241,7 @@ InterpreterWrapper::InterpreterWrapper(
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
-    PyErr_SetString(PyExc_RuntimeError, "TFLM failed to allocate tensors");
-    return;
+    ThrowRuntimeError("TFLM failed to allocate tensors");
   }
 
   // This must be called before using any PyArray_* APIs. It essentially sets
@@ -247,63 +265,56 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
       /*requirements=*/NPY_ARRAY_CARRAY,
       /*context=*/nullptr));
   if (!array_safe) {
-    PyErr_SetString(PyExc_ValueError, "TFLM cannot convert input to PyArray");
-    return;
+    ThrowValueError("TFLM cannot convert input to PyArray");
   }
 
   PyArrayObject* array = reinterpret_cast<PyArrayObject*>(array_safe.get());
 
   TfLiteTensor* tensor = interpreter_->input(index);
-  if (tensor == nullptr) {
-    PyErr_SetString(PyExc_IndexError,
-                    "Tensor is out of bound, please check tensor index.");
-    return;
+  if (!CheckTensor(tensor)) {
+    throw pybind11::error_already_set();
   }
 
-  if (tensor->type == kTfLiteString) {
-    PyErr_SetString(PyExc_ValueError, "TFLM does not support string input.");
-    return;
-  }
-
+  char err_strbuf[128];  // buffer for error message since we can not use
+                         // absl
   if (TfLiteTypeFromPyArray(array) != tensor->type) {
-    PyErr_Format(PyExc_ValueError,
-                 "Cannot set tensor: Got value of type %s but expected type %s "
-                 "for input %zu ",
-                 TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
-                 TfLiteTypeGetName(tensor->type), index);
-    ThrowValueError("aaaa");
+    snprintf(err_strbuf, sizeof(err_strbuf),
+             "Cannot set tensor: Got value of type %s but expected type %s "
+             "for input %zu ",
+             TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
+             TfLiteTypeGetName(tensor->type), index);
+
+    ThrowValueError(err_strbuf);
   }
 
   if (PyArray_NDIM(array) != tensor->dims->size) {
-    PyErr_Format(PyExc_ValueError,
-                 "Cannot set tensor: Dimension mismatch. Got %d but expected "
-                 "%d for input %zu.",
-                 PyArray_NDIM(array), tensor->dims->size, index);
-    return;
+    snprintf(err_strbuf, sizeof(err_strbuf),
+             "Cannot set tensor: Dimension mismatch. Got %d but expected "
+             "%d for input %zu.",
+             PyArray_NDIM(array), tensor->dims->size, index);
+    ThrowValueError(err_strbuf);
   }
 
   for (int j = 0; j < PyArray_NDIM(array); j++) {
     if (tensor->dims->data[j] != PyArray_SHAPE(array)[j]) {
-      PyErr_Format(PyExc_ValueError,
-                   "Cannot set tensor: Dimension mismatch. Got %ld but "
-                   "expected %d for dimension %d of input %zu.",
-                   PyArray_SHAPE(array)[j], tensor->dims->data[j], j, index);
-      return;
+      snprintf(err_strbuf, sizeof(err_strbuf),
+               "Cannot set tensor: Dimension mismatch. Got %ld but "
+               "expected %d for dimension %d of input %zu.",
+               PyArray_SHAPE(array)[j], tensor->dims->data[j], j, index);
+      ThrowValueError(err_strbuf);
     }
   }
 
   if (tensor->data.data == nullptr && tensor->bytes) {
-    PyErr_Format(PyExc_RuntimeError,
-                 "Cannot set tensor: Tensor is non-empty but has nullptr.");
-    return;
+    ThrowValueError("Cannot set tensor: Tensor is non-empty but has nullptr.");
   }
 
   size_t size = PyArray_NBYTES(array);
   if (size != tensor->bytes) {
-    PyErr_Format(PyExc_ValueError,
-                 "numpy array had %zu bytes but expected %zu bytes.", size,
-                 tensor->bytes);
-    return;
+    snprintf(err_strbuf, sizeof(err_strbuf),
+             "numpy array had %zu bytes but expected %zu bytes.", size,
+             tensor->bytes);
+    ThrowValueError(err_strbuf);
   }
 
   memcpy(tensor->data.data, PyArray_DATA(array), size);
@@ -314,40 +325,9 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
 // 3. Set PyArray metadata and transfer ownership to caller
 PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
   TfLiteTensor* tensor = interpreter_->output(index);
-  if (tensor == nullptr) {
-    PyErr_SetString(PyExc_IndexError, "Tensor is out of bound.");
+  if (!CheckTensor(tensor)) {
     return nullptr;
   }
-
-  if (tensor->type == kTfLiteString || tensor->type == kTfLiteResource ||
-      tensor->type == kTfLiteVariant) {
-    PyErr_SetString(PyExc_ValueError,
-                    "TFLM doesn't support strings, resource variables, or "
-                    "variants as outputs.");
-    return nullptr;
-  }
-
-  if (tensor->sparsity != nullptr) {
-    PyErr_SetString(PyExc_ValueError, "TFLM doesn't support sparse tensors");
-    return nullptr;
-  }
-
-  int py_type_num = TfLiteTypeToPyArrayType(tensor->type);
-  if (py_type_num == NPY_NOTYPE) {
-    PyErr_SetString(PyExc_ValueError, "Unknown tensor type.");
-    return nullptr;
-  }
-
-  if (tensor->bytes == 0 && tensor->data.data != nullptr) {
-    PyErr_SetString(PyExc_ValueError, "Invalid tensor size of 0.");
-    return nullptr;
-  }
-
-  if (tensor->bytes > 0 && tensor->data.data == nullptr) {
-    PyErr_SetString(PyExc_ValueError, "Null tensor pointer.");
-    return nullptr;
-  }
-
   // Allocate a new buffer with output data to be returned to Python. New memory
   // is allocated here to prevent hard to debug issues in Python, like data
   // potentially changing under the hood, which imposes an implicit requirement
@@ -358,6 +338,7 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
   PyObject* np_array;
   std::vector<npy_intp> dims(tensor->dims->data,
                              tensor->dims->data + tensor->dims->size);
+  int py_type_num = TfLiteTypeToPyArrayType(tensor->type);
   np_array =
       PyArray_SimpleNewFromData(dims.size(), dims.data(), py_type_num, data);
 
@@ -370,23 +351,11 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
 }
 
 PyObject* InterpreterWrapper::GetInputTensorDetails(size_t index) const {
-  PyObject* input_details = GetTensorDetails(interpreter_->input(index));
-  if (input_details == nullptr) {
-    PyErr_Format(PyExc_ValueError,
-                 "Unable to acquire input tensor information.");
-  }
-
-  return input_details;
+  return GetTensorDetails(interpreter_->input(index));
 }
 
 PyObject* InterpreterWrapper::GetOutputTensorDetails(size_t index) const {
-  PyObject* output_details = GetTensorDetails(interpreter_->output(index));
-  if (output_details == nullptr) {
-    PyErr_Format(PyExc_ValueError,
-                 "Unable to acquire input tensor information.");
-  }
-
-  return output_details;
+  return GetTensorDetails(interpreter_->output(index));
 }
 
 }  // namespace tflite
