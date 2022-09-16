@@ -32,14 +32,14 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('epochs', 1, 'number of epochs to train the model.')
-flags.DEFINE_string('save_dir', '/tmp/lstm_trained_model',
-                    'the directory to save the trained model.')
-flags.DEFINE_boolean('save_tf_model', False,
-                     'store the original unconverted tf model.')
+flags.DEFINE_integer("epochs", 1, "number of epochs to train the model.")
+flags.DEFINE_string("save_dir", "/tmp/lstm_trained_model",
+                    "the directory to save the trained model.")
+flags.DEFINE_boolean("save_tf_model", False,
+                     "store the original unconverted tf model.")
 flags.DEFINE_boolean(
-    'quantize', False,
-    'convert and save the full integer (int8) quantized model.')
+    "quantize", False,
+    "convert and save the full integer (int8) quantized model.")
 
 
 def create_model(units=20):
@@ -91,7 +91,7 @@ def train_lstm_model(epochs, x_train, y_train):
   """
   model = create_model()
   callback = tf.keras.callbacks.EarlyStopping(
-      monitor='val_loss',
+      monitor="val_loss",
       patience=3)  #early stop if validation loss does not drop anymore
   model.fit(x_train,
             y_train,
@@ -154,7 +154,7 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   if not os.path.exists(save_dir):
     os.makedirs(save_dir)
   save_path = os.path.join(save_dir, model_name)
-  with open(save_path, 'wb') as f:
+  with open(save_path, "wb") as f:
     f.write(tflite_model)
   logging.info("Tflite model saved to %s", save_dir)
 
