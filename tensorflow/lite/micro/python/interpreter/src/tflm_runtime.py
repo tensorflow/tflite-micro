@@ -88,6 +88,7 @@ class Interpreter(object):
 
   def reset(self):
     """Reset the model state to be what you would expect when the interpreter is first
+
     created. i.e. after Init and Prepare is called for the very first time.
 
     This should be called after invoke stateful model like LSTM.
@@ -141,9 +142,9 @@ class Interpreter(object):
     """Get input tensor information
 
     Args:
-        index (int): An integer between 0 and the number of output tensors (exclusive)
-        consistent with the order defined in the list of outputs in the .tflite
-        model
+        index (int): An integer between 0 and the number of output tensors
+          (exclusive) consistent with the order defined in the list of outputs
+          in the .tflite model
 
     Returns:
         A dictionary from input index to tensor details where each item is a
@@ -168,9 +169,9 @@ class Interpreter(object):
     """Get output tensor information
 
     Args:
-        index (int): An integer between 0 and the number of output tensors (exclusive)
-        consistent with the order defined in the list of outputs in the .tflite
-        model
+        index (int): An integer between 0 and the number of output tensors
+          (exclusive) consistent with the order defined in the list of outputs
+          in the .tflite model
 
     Returns:
         A dictionary from input index to tensor details where each item is a
