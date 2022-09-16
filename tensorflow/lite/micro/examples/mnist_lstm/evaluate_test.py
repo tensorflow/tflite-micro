@@ -97,9 +97,9 @@ class LSTMQuantModelTest(test_util.TensorFlowTestCase):
 
   def testQuantOutputs(self):
     # Get input/output quantization parameters
-    input_quantization_parameters = tflm_interpreter_quant.get_input_details(
+    input_quantization_parameters = self.tflm_interpreter_quant.get_input_details(
         0)["quantization_parameters"]
-    output_quantization_parameters = tflm_interpreter_quant.get_output_details(
+    output_quantization_parameters = self.tflm_interpreter_quant.get_output_details(
         0)["quantization_parameters"]
     input_scale, input_zero_point = input_quantization_parameters["scales"][
         0], input_quantization_parameters["zero_points"][0]
