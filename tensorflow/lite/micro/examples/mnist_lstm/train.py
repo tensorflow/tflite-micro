@@ -59,9 +59,10 @@ def create_model(units=20):
       tf.keras.layers.Flatten(),
       tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output")
   ])
-  model.compile(optimizer="adam",
-                loss="sparse_categorical_crossentropy",
-                metrics=["accuracy"])
+  model.compile(
+      optimizer="adam",
+      loss="sparse_categorical_crossentropy",
+      metrics=["accuracy"])
   model.summary()
   return model
 
@@ -81,8 +82,7 @@ def get_train_data():
 def train_lstm_model(epochs, x_train, y_train):
   """Train keras LSTM model on MNIST dataset
 
-    Args:
-        epochs (int) : number of epochs to train the model
+    Args: epochs (int) : number of epochs to train the model
         x_train (numpy.array): list of the training data
         y_train (numpy.array): list of the corresponding array
 
@@ -93,19 +93,21 @@ def train_lstm_model(epochs, x_train, y_train):
   callback = tf.keras.callbacks.EarlyStopping(
       monitor="val_loss",
       patience=3)  #early stop if validation loss does not drop anymore
-  model.fit(x_train,
-            y_train,
-            epochs=epochs,
-            validation_split=0.2,
-            batch_size=32,
-            callbacks=[callback])
+  model.fit(
+      x_train,
+      y_train,
+      epochs=epochs,
+      validation_split=0.2,
+      batch_size=32,
+      callbacks=[callback])
   return model
 
 
 def convert_quantized_tflite_model(model, x_train):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
 
-    See https://www.tensorflow.org/lite/performance/post_training_integer_quant#convert_using_integer-only_quantization
+    See
+    https://www.tensorflow.org/lite/performance/post_training_integer_quant#convert_using_integer-only_quantization
 
     Args:
         model (tf.keras.Model): the trained LSTM Model
@@ -164,19 +166,22 @@ def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
 
     Args:
         save_dir (string): save directory for the trained model
-        epochs (int, optional): number of epochs to train the model. Defaults to 3
-        save_raw_model (bool): store the original unconverted tf model. Defaults to False
-        quantize (bool): convert tflite model using full integer (int8) quantization.
-
+        epochs (int, optional): number of epochs to train the model. Defaults to
+          3
+        save_raw_model (bool): store the original unconverted tf model. Defaults
+          to False
+        quantize (bool): convert tflite model using full integer (int8)
+          quantization.
   """
   x_train, y_train = get_train_data()
   trained_model = train_lstm_model(epochs, x_train, y_train)
 
   # TFLite converter requires fixed shape input to work, alternative: b/225231544
-  fixed_input = tf.keras.layers.Input(shape=[28, 28],
-                                      batch_size=1,
-                                      dtype=trained_model.inputs[0].dtype,
-                                      name="fixed_input")
+  fixed_input = tf.keras.layers.Input(
+      shape=[28, 28],
+      batch_size=1,
+      dtype=trained_model.inputs[0].dtype,
+      name="fixed_input")
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
 

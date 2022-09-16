@@ -67,8 +67,10 @@ def predict_image(interpreter, img_path, input_scale=1, input_zero_point=0):
   Args:
       interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
       img_path (str): path to the image that need to be predicted
-      input_scale (float): quantization scale for the input tensor. Defaults to 1 (no quantization)
-      input_zero_point (int): quantization zero point for the input tensor. Defaults to 0 (no quantization)
+      input_scale (float): quantization scale for the input tensor. Defaults to
+        1 (no quantization)
+      input_zero_point (int): quantization zero point for the input tensor.
+        Defaults to 0 (no quantization)
 
   Returns:
       np.array : predicted probability for each class (digit 0-9)

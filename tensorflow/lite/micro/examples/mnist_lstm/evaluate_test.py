@@ -130,21 +130,20 @@ class LSTMQuantModelTest(test_util.TensorFlowTestCase):
 
       # Quantized the input data into int8
       data_x_quant = data_x / input_scale + input_zero_point
-      data_x_quant = data_x_quant.astype('int8')
+      data_x_quant = data_x_quant.astype("int8")
 
       # Run integer inference on the quantilzed TFLM model
       self.tflm_interpreter_quant.set_input(data_x_quant, 0)
       self.tflm_interpreter_quant.invoke()
       tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
       # Convert the integer output back to float for comparison
-      tflm_output_quant_float = output_scale * (tflm_output_quant +
-                                                (-output_zero_point))
+      tflm_output_quant_float = output_scale * (
+          tflm_output_quant + (-output_zero_point))
 
       # print(data_x, data_x_quant)
       # print(abs(tflm_output_float - tflm_output_quant_float).max())
       # Make sure the difference is within the error margin
-      self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
-                         1e-2)
+      self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float), 1e-2)
 
   # def testQuantCompareWithTFLite(self):
   #   tflite_interpreter_quant = tf.lite.Interpreter(
