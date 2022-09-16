@@ -32,7 +32,7 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer("epochs", 1, "number of epochs to train the model.")
+flags.DEFINE_integer("epochs", 20, "number of epochs to train the model.")
 flags.DEFINE_string("save_dir", "/tmp/lstm_trained_model",
                     "the directory to save the trained model.")
 flags.DEFINE_boolean("save_tf_model", False,
@@ -159,21 +159,20 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
-  """train and save LSTM model using keras
+def convert_save_model(trained_model,
+                       save_dir,
+                       save_raw_model=False,
+                       quantize=False):
+  """convert and save the trained LSTM model
 
     Args:
+        trained_model (tf.keras.Model): trained LSTM model
         save_dir (string): save directory for the trained model
-        epochs (int, optional): number of epochs to train the model. Defaults to
-          3
         save_raw_model (bool): store the original unconverted tf model. Defaults
           to False
         quantize (bool): convert tflite model using full integer (int8)
           quantization.
   """
-  x_train, y_train = get_train_data()
-  trained_model = train_lstm_model(epochs, x_train, y_train)
-
   # TFLite converter requires fixed shape input to work, alternative: b/225231544
   fixed_input = tf.keras.layers.Input(shape=[28, 28],
                                       batch_size=1,
@@ -199,8 +198,10 @@ def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
 
 
 def main(_):
-  train_save_model(FLAGS.save_dir, FLAGS.epochs, FLAGS.save_tf_model,
-                   FLAGS.quantize)
+  x_train, y_train = get_train_data()
+  trained_model = train_lstm_model(FLAGS.epochs, x_train, y_train)
+  convert_save_model(trained_model, FLAGS.save_dir, FLAGS.save_tf_model,
+                     FLAGS.quantize)
 
 
 if __name__ == "__main__":
