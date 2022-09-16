@@ -17,12 +17,10 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from absl import logging
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
-from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import train
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
@@ -73,6 +71,11 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
       self.assertDTypeEqual(tflm_output, np.float32)
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
+
+  def testInputErrHandling(self):
+    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
+    with self.assertRaises(RuntimeError):
+      evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testModelAccuracy(self):
     # Test prediction accuracy on digits 0-9 using sample images

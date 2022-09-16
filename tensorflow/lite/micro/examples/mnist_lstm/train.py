@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""
-LSTM model training for MNIST recognition
+"""LSTM model training for MNIST recognition
 
 This script is based on:
 https://www.tensorflow.org/lite/models/convert/rnn
@@ -47,21 +46,22 @@ def create_model(units=20):
   """Create a keras LSTM model for MNIST recognition
 
     Args:
-        units (int, optional): dimensionality of the output space for the model. Defaults to 20.
+        units (int, optional): dimensionality of the output space for the model.
+          Defaults to 20.
 
     Returns:
         tf.keras.Model: A Keras LSTM model
     """
 
   model = tf.keras.models.Sequential([
-      tf.keras.layers.Input(shape=(28, 28), name='input'),
+      tf.keras.layers.Input(shape=(28, 28), name="input"),
       tf.keras.layers.LSTM(units, return_sequences=True),
       tf.keras.layers.Flatten(),
-      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name='output')
+      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output")
   ])
-  model.compile(optimizer='adam',
-                loss='sparse_categorical_crossentropy',
-                metrics=['accuracy'])
+  model.compile(optimizer="adam",
+                loss="sparse_categorical_crossentropy",
+                metrics=["accuracy"])
   model.summary()
   return model
 
@@ -176,7 +176,7 @@ def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
   fixed_input = tf.keras.layers.Input(shape=[28, 28],
                                       batch_size=1,
                                       dtype=trained_model.inputs[0].dtype,
-                                      name='fixed_input')
+                                      name="fixed_input")
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
 
@@ -201,5 +201,5 @@ def main(_):
                    FLAGS.quantize)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   app.run(main)

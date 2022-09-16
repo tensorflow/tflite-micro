@@ -17,26 +17,25 @@
 Run:
 bazel build tensorflow/lite/micro/examples/mnist_lstm:evaluate
 bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
---model_path='.tflite file path' --img_path='MNIST image path'
+--model_path=".tflite file path" --img_path="MNIST image path"
 
 """
 import os
 
-import numpy as np
-from PIL import Image
-
 from absl import app
 from absl import flags
 from absl import logging
+import numpy as np
+from PIL import Image
 
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('model_path', '/tmp/lstm_trained_model/lstm.tflite',
-                    'the trained model path.')
-flags.DEFINE_string('img_path', '/tmp/samples/sample0.jpg',
-                    'path for the image to be predicted.')
+flags.DEFINE_string("model_path", "/tmp/lstm_trained_model/lstm.tflite",
+                    "the trained model path.")
+flags.DEFINE_string("img_path", "/tmp/samples/sample0.jpg",
+                    "path for the image to be predicted.")
 
 
 def read_img(img_path):
@@ -107,9 +106,9 @@ def predict_image_quant(interpreter, img_path, input_scale, input_zero_point):
 def main(_):
   if not os.path.exists(FLAGS.model_path):
     raise ValueError(
-        'Model file does not exist. Please check the .tflite model path.')
+        "Model file does not exist. Please check the .tflite model path.")
   if not os.path.exists(FLAGS.img_path):
-    raise ValueError('Image file does not exist. Please check the image path.')
+    raise ValueError("Image file does not exist. Please check the image path.")
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
   category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
@@ -118,5 +117,5 @@ def main(_):
                predicted_category, category_probabilities[predicted_category])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   app.run(main)
