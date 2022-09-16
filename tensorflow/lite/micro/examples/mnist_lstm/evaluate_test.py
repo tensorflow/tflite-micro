@@ -37,7 +37,8 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
   def testInputErrHandling(self):
     wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
-    with self.assertRaises(RuntimeError):
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "Invalid input image shape"):
       evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testCompareWithTFLite(self):
@@ -72,11 +73,6 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllLess((tflite_output - tflm_output), 1e-5)
 
-  def testInputErrHandling(self):
-    wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
-    with self.assertRaises(RuntimeError):
-      evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
-
   def testModelAccuracy(self):
     # Test prediction accuracy on digits 0-9 using sample images
     for label in range(10):
@@ -85,7 +81,6 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities = evaluate.predict_image(self.tflm_interpreter,
                                                       image_path)
-
       # Check the prediction result
       predicted_category = np.argmax(category_probabilities)
       self.assertEqual(predicted_category, label)
@@ -101,22 +96,23 @@ class LSTMQuantModelTest(test_util.TensorFlowTestCase):
   np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
-
+    # Get input/output quantization parameters
+    input_quantization_parameters = tflm_interpreter_quant.get_input_details(
+        0)["quantization_parameters"]
+    output_quantization_parameters = tflm_interpreter_quant.get_output_details(
+        0)["quantization_parameters"]
+    input_scale, input_zero_point = input_quantization_parameters["scales"][
+        0], input_quantization_parameters["zero_points"][0]
+    output_scale, output_zero_point = output_quantization_parameters["scales"][
+        0], output_quantization_parameters["zero_points"][0]
+    # Create a float model for results comparison
     float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
     tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
         float_model_path)
 
-    tflite_interpreter_quant = tf.lite.Interpreter(
-        model_path=self.quant_model_path)
-    tflite_interpreter_quant.allocate_tensors()
-    tflite_output_details = tflite_interpreter_quant.get_output_details()[0]
-    tflite_input_details = tflite_interpreter_quant.get_input_details()[0]
-
-    input_scale, input_zero_point = tflite_input_details["quantization"]
-    output_scale, output_zero_point = tflite_output_details["quantization"]
-
     num_test = 100
     for _ in range(num_test):
+      # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times (LSTM is stateful).
       self.tflm_interpreter_quant.reset()
       tflm_interpreter_float.reset()
 
@@ -137,70 +133,22 @@ class LSTMQuantModelTest(test_util.TensorFlowTestCase):
       self.tflm_interpreter_quant.invoke()
       tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
       # Convert the integer output back to float for comparison
-      tflm_output_quant_float = output_scale * (
-          tflm_output_quant + (-output_zero_point))
+      # TODO(rewu): (tflm_output_quant -output_zero_point) produces wrong result
+      tflm_output_quant_float = output_scale * (tflm_output_quant +
+                                                (-output_zero_point))
 
-      # print(data_x, data_x_quant)
-      # print(abs(tflm_output_float - tflm_output_quant_float).max())
       # Make sure the difference is within the error margin
-      self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float), 1e-2)
-
-  # def testQuantCompareWithTFLite(self):
-  #   tflite_interpreter_quant = tf.lite.Interpreter(
-  #       model_path=self.quant_model_path)
-  #   tflite_interpreter_quant.allocate_tensors()
-  #   tflite_output_details = tflite_interpreter_quant.get_output_details()[0]
-  #   tflite_input_details = tflite_interpreter_quant.get_input_details()[0]
-
-  #   num_steps = 100
-  #   for _ in range(0, num_steps):
-  #     # Clear the internal states of the TfLite and TFLM interpreters so that we can call invoke multiple times (LSTM is stateful).
-  #     tflite_interpreter_quant.reset_all_variables()
-  #     self.tflm_interpreter_quant.reset()
-
-  #     # Give the same (random) integer input to both interpreters can confirm that the output is identical.
-  #     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
-
-  #     # Run inference on TFLite
-  #     tflite_interpreter_quant.set_tensor(tflite_input_details["index"],
-  #                                         data_x)
-  #     tflite_interpreter_quant.invoke()
-  #     tflite_output = tflite_interpreter_quant.get_tensor(
-  #         tflite_output_details["index"])
-
-  #     # Run inference on TFLM
-  #     self.tflm_interpreter_quant.set_input(data_x, 0)
-  #     self.tflm_interpreter_quant.invoke()
-  #     tflm_output = self.tflm_interpreter_quant.get_output(0)
-
-  #     # Check that TFLM has correct output
-  #     self.assertDTypeEqual(tflm_output, np.int8)
-  #     self.assertEqual(tflm_output.shape, self.output_shape)
-  #     if abs(tflite_output - tflm_output).max() > 5:
-  #       print(tflite_output, tflm_output)
-  #     # print(abs(tflite_output - tflm_output).max())
-  #     self.assertAllLess((tflite_output - tflm_output), 1)
+      self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
+                         1e-2)
 
   def testQuantModelAccuracy(self):
-    # Need tflite interpreter to access the quant parameters
-    tflite_interpreter_quant = tf.lite.Interpreter(
-        model_path=self.quant_model_path)
-    tflite_interpreter_quant.allocate_tensors()
-
-    tflite_input_details = tflite_interpreter_quant.get_input_details()[0]
-    input_scale, input_zero_point = tflite_input_details["quantization"]
-
     for label in range(10):
       image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
       # Run integer inference (quantized) on the sample image
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities_quant = evaluate.predict_image(
-          self.tflm_interpreter_quant, image_path, input_scale,
-          input_zero_point)
+          self.tflm_interpreter_quant, image_path, quantized=True)
       # Check the prediction result
-      # category_probabilities = (category_probabilities_quant +
-      #                           (-output_zero_point)) * output_scale
-
       predicted_category = np.argmax(category_probabilities_quant)
       # Check the prediction
       self.assertEqual(predicted_category, label)

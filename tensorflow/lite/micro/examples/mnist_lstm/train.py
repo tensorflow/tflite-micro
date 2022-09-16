@@ -59,10 +59,9 @@ def create_model(units=20):
       tf.keras.layers.Flatten(),
       tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output")
   ])
-  model.compile(
-      optimizer="adam",
-      loss="sparse_categorical_crossentropy",
-      metrics=["accuracy"])
+  model.compile(optimizer="adam",
+                loss="sparse_categorical_crossentropy",
+                metrics=["accuracy"])
   model.summary()
   return model
 
@@ -93,13 +92,12 @@ def train_lstm_model(epochs, x_train, y_train):
   callback = tf.keras.callbacks.EarlyStopping(
       monitor="val_loss",
       patience=3)  #early stop if validation loss does not drop anymore
-  model.fit(
-      x_train,
-      y_train,
-      epochs=epochs,
-      validation_split=0.2,
-      batch_size=32,
-      callbacks=[callback])
+  model.fit(x_train,
+            y_train,
+            epochs=epochs,
+            validation_split=0.2,
+            batch_size=32,
+            callbacks=[callback])
   return model
 
 
@@ -177,11 +175,10 @@ def train_save_model(save_dir, epochs=3, save_raw_model=False, quantize=False):
   trained_model = train_lstm_model(epochs, x_train, y_train)
 
   # TFLite converter requires fixed shape input to work, alternative: b/225231544
-  fixed_input = tf.keras.layers.Input(
-      shape=[28, 28],
-      batch_size=1,
-      dtype=trained_model.inputs[0].dtype,
-      name="fixed_input")
+  fixed_input = tf.keras.layers.Input(shape=[28, 28],
+                                      batch_size=1,
+                                      dtype=trained_model.inputs[0].dtype,
+                                      name="fixed_input")
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
 

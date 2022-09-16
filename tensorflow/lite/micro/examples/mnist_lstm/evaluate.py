@@ -36,6 +36,7 @@ flags.DEFINE_string("model_path", "/tmp/lstm_trained_model/lstm.tflite",
                     "the trained model path.")
 flags.DEFINE_string("img_path", "/tmp/samples/sample0.jpg",
                     "path for the image to be predicted.")
+flags.DEFINE_bool("quantized", False, "if the model is quantized")
 
 
 def read_img(img_path):
@@ -50,7 +51,7 @@ def read_img(img_path):
   image = Image.open(img_path)
   data = np.asarray(image, dtype=np.float32)
   if data.shape not in [(28, 28), (28, 28, 1)]:
-    raise RuntimeError(
+    raise ValueError(
         "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"
     )
   # Normalize the image if necessary
@@ -61,7 +62,7 @@ def read_img(img_path):
   return data
 
 
-def predict_image(interpreter, img_path, input_scale=1, input_zero_point=0):
+def predict_image(interpreter, img_path, quantized=False):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
@@ -69,36 +70,26 @@ def predict_image(interpreter, img_path, input_scale=1, input_zero_point=0):
       img_path (str): path to the image that need to be predicted
       input_scale (float): quantization scale for the input tensor. Defaults to
         1 (no quantization)
-      input_zero_point (int): quantization zero point for the input tensor.
-        Defaults to 0 (no quantization)
+      quantized (bool): if the model is quantized
 
   Returns:
       np.array : predicted probability for each class (digit 0-9)
   """
   data = read_img(img_path)
   # Quantize the input if necessary
-  data = data / input_scale + input_zero_point
-  if input_scale != 1:
+  if quantized:
+    # Get input quantization parameters (0 since input data has only one channel)
+    input_quantization_parameters = interpreter.get_input_details(
+        0)["quantization_parameters"]
+    input_scale, input_zero_point = input_quantization_parameters["scales"][
+        0], input_quantization_parameters["zero_points"][0]
+    # quantize the input data
+    data = data / input_scale + input_zero_point
     data = data.astype("int8")
 
   interpreter.set_input(data, 0)
   interpreter.invoke()
   tflm_output = interpreter.get_output(0)
-  # LSTM is stateful, reset the state after the usage since each image is independent
-  interpreter.reset()
-  # One image per time (i.e., remove the batch dimention)
-  return tflm_output[0]
-
-
-def predict_image_quant(interpreter, img_path, input_scale, input_zero_point):
-  data = read_img(img_path)
-  quant_data = data / input_scale + input_zero_point
-  quant_data = quant_data.astype("int8")
-
-  interpreter.set_input(quant_data, 0)
-  interpreter.invoke()
-  tflm_output = interpreter.get_output(0)
-
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
   # One image per time (i.e., remove the batch dimention)
@@ -113,7 +104,8 @@ def main(_):
     raise ValueError("Image file does not exist. Please check the image path.")
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
-  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
+  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path,
+                                         FLAGS.quantized)
   predicted_category = np.argmax(category_probabilities)
   logging.info("Model predicts the image as %i with probability %.2f",
                predicted_category, category_probabilities[predicted_category])
