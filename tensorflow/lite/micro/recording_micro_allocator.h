@@ -54,7 +54,7 @@ struct RecordedAllocation {
 // for auditing memory usage or integration testing.
 class RecordingMicroAllocator : public MicroAllocator {
  public:
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   static RecordingMicroAllocator* Create(uint8_t* tensor_arena,
                                          size_t arena_size,
                                          ErrorReporter* error_reporter) {

@@ -32,7 +32,7 @@ namespace tflite {
 class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
                                    public IPersistentBufferAllocator {
  public:
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   SingleArenaBufferAllocator(ErrorReporter* error_reporter,
                              uint8_t* buffer_head, uint8_t* buffer_tail)
       : SingleArenaBufferAllocator(buffer_head, buffer_tail) {
@@ -50,7 +50,7 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   SingleArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
   virtual ~SingleArenaBufferAllocator();
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   static SingleArenaBufferAllocator* Create(ErrorReporter* error_reporter,
                                             uint8_t* buffer_head,
                                             size_t buffer_size) {

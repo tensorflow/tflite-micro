@@ -39,7 +39,7 @@ namespace tflite {
 
 class MicroInterpreter {
  public:
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
@@ -63,7 +63,7 @@ class MicroInterpreter {
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,

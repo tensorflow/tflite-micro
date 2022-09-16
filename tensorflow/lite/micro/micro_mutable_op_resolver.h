@@ -45,7 +45,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
  public:
   TF_LITE_REMOVE_VIRTUAL_DELETE
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   explicit MicroMutableOpResolver(ErrorReporter* error_reporter = nullptr) {
     (void)error_reporter;
   }

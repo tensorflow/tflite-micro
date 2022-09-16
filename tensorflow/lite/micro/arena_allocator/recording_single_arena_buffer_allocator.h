@@ -26,7 +26,7 @@ namespace tflite {
 // allocation usage.
 class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
  public:
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   RecordingSingleArenaBufferAllocator(ErrorReporter* error_reporter,
                                       uint8_t* buffer_head, size_t buffer_size)
       : RecordingSingleArenaBufferAllocator(buffer_head, buffer_size) {
@@ -41,7 +41,7 @@ class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
   static RecordingSingleArenaBufferAllocator* Create(uint8_t* buffer_head,
                                                      size_t buffer_size);
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   static RecordingSingleArenaBufferAllocator* Create(
       ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
     (void)error_reporter;

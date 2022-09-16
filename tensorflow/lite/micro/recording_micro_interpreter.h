@@ -55,7 +55,7 @@ class RecordingMicroInterpreter : public MicroInterpreter {
                          profiler),
         recording_micro_allocator_(*allocator) {}
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   RecordingMicroInterpreter(const Model* model,
                             const MicroOpResolver& op_resolver,
                             uint8_t* tensor_arena, size_t tensor_arena_size,
@@ -69,7 +69,7 @@ class RecordingMicroInterpreter : public MicroInterpreter {
         recording_micro_allocator_(
             static_cast<const RecordingMicroAllocator&>(allocator())) {}
 
-  // TODO(vamsimanchala): Will be removed with http://b/246776144
+  // TODO(b/246776144): Will be removed with http://b/246776144
   RecordingMicroInterpreter(const Model* model,
                             const MicroOpResolver& op_resolver,
                             RecordingMicroAllocator* allocator,
