@@ -132,11 +132,16 @@ class LSTMQuantModelTest(test_util.TensorFlowTestCase):
       self.tflm_interpreter_quant.set_input(data_x_quant, 0)
       self.tflm_interpreter_quant.invoke()
       tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
-      # Convert the integer output back to float for comparison
-      # TODO(rewu): (tflm_output_quant -output_zero_point) produces wrong result
-      tflm_output_quant_float = output_scale * (tflm_output_quant +
-                                                (-output_zero_point))
+      # Check shape and type
+      self.assertDTypeEqual(tflm_output_quant, np.int8)
+      self.assertEqual(tflm_output_quant.shape, self.output_shape)
 
+      # Convert the integer output back to float for comparison
+      # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
+      # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
+      # can produce different results (int8 calculation)
+      tflm_output_quant_float = output_scale * (
+          tflm_output_quant.astype("float") - output_zero_point)
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-2)

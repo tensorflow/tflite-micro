@@ -93,7 +93,8 @@ def predict_image(interpreter, img_path, quantized=False):
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
   # One image per time (i.e., remove the batch dimention)
-  return tflm_output[0]
+  # Note: quantized output (dtpe int8) is converted to float to avoid integer overflow during dequantization
+  return tflm_output[0].astype("float")
 
 
 def main(_):
