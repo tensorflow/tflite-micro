@@ -85,7 +85,7 @@ PyObject* PyArrayFromIntVector(const int* data, npy_intp size) {
 }
 
 // Check if the tensor is valid for TFLM
-bool CheckTensor(TfLiteTensor* tensor) {
+bool CheckTensor(const TfLiteTensor* tensor) {
   if (tensor == nullptr) {
     PyErr_SetString(PyExc_IndexError,
                     "Tensor is out of bound, please check tensor index.");
@@ -123,21 +123,21 @@ bool CheckTensor(TfLiteTensor* tensor) {
   return true;
 }
 
-PyObject* GetTensorSize(TfLiteTensor* tensor) {
+PyObject* GetTensorSize(const TfLiteTensor* tensor) {
   PyObject* np_array =
       PyArrayFromIntVector(tensor->dims->data, tensor->dims->size);
 
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
 }
 
-PyObject* GetTensorType(TfLiteTensor* tensor) {
+PyObject* GetTensorType(const TfLiteTensor* tensor) {
   int code = TfLiteTypeToPyArrayType(tensor->type);
   return PyArray_TypeObjectFromType(code);
 }
 
 // Create a python dictionary object that contains the general (can be
 // channel-wise quantized) affiene quantization information about the tensor.
-PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
+PyObject* GetTensorQuantizationParameters(const TfLiteTensor* tensor) {
   const TfLiteQuantization quantization = tensor->quantization;
   float* scales_data = nullptr;
   int32_t* zero_points_data = nullptr;
@@ -169,7 +169,7 @@ PyObject* GetTensorQuantizationParameters(TfLiteTensor* tensor) {
   return result;
 }
 
-PyObject* GetTensorDetails(TfLiteTensor* tensor) {
+PyObject* GetTensorDetails(const TfLiteTensor* tensor) {
   if (!CheckTensor(tensor)) {
     return nullptr;
   }
@@ -323,8 +323,8 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
 // 1. Check that output tensor is supported and safe to access
 // 2. Allocate a buffer and copy output tensor data into it
 // 3. Set PyArray metadata and transfer ownership to caller
-PyObject* InterpreterWrapper::GetOutputTensor(size_t index) {
-  TfLiteTensor* tensor = interpreter_->output(index);
+PyObject* InterpreterWrapper::GetOutputTensor(size_t index) const {
+  const TfLiteTensor* tensor = interpreter_->output(index);
   if (!CheckTensor(tensor)) {
     return nullptr;
   }
