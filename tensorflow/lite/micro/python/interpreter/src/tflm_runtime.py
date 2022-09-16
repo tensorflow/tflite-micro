@@ -136,3 +136,57 @@ class Interpreter(object):
       raise ValueError("Index must be a non-negative integer")
 
     return self._interpreter.GetOutputTensor(index)
+
+  def get_input_details(self, index):
+    """Get input tensor information
+
+    Args:
+        index (int): An integer between 0 and the number of output tensors (exclusive)
+        consistent with the order defined in the list of outputs in the .tflite
+        model
+
+    Returns:
+        A dictionary from input index to tensor details where each item is a
+        dictionary with details about an input tensor. Each dictionary contains
+        the following fields that describe the tensor:
+        + `shape`: The shape of the tensor.
+        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
+        + `quantization_parameters`: A dictionary of parameters used to quantize
+          the tensor:
+          ~ `scales`: List of scales (one if per-tensor quantization).
+          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
+          ~ `quantized_dimension`: Specifies the dimension of per-axis
+          quantization, in the case of multiple scales/zero_points.
+
+    """
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetInputTensorDetails(index)
+
+  def get_output_details(self, index):
+    """Get output tensor information
+
+    Args:
+        index (int): An integer between 0 and the number of output tensors (exclusive)
+        consistent with the order defined in the list of outputs in the .tflite
+        model
+
+    Returns:
+        A dictionary from input index to tensor details where each item is a
+        dictionary with details about an input tensor. Each dictionary contains
+        the following fields that describe the tensor:
+        + `shape`: The shape of the tensor.
+        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
+        + `quantization_parameters`: A dictionary of parameters used to quantize
+          the tensor:
+          ~ `scales`: List of scales (one if per-tensor quantization).
+          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
+          ~ `quantized_dimension`: Specifies the dimension of per-axis
+          quantization, in the case of multiple scales/zero_points.
+
+    """
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetOutputTensorDetails(index)

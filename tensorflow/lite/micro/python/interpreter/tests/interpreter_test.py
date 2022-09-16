@@ -23,6 +23,7 @@
 # 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/python/interpreter/tests/interpreter_test
 
 import gc
+from multiprocessing.sharedctypes import Value
 import numpy as np
 import tensorflow as tf
 import weakref
@@ -38,8 +39,96 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   input_shape = (1, 16, 16, 1)
   output_shape = (1, 10)
 
-  def testCompareWithTFLite(self):
+  def testInitErrorHandling(self):
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "Invalid model file path"):
+      tflm_runtime.Interpreter.from_file("wrong.tflite")
+
+  def testInput(self):
     model_data = generate_test_models.generate_conv_model(False)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+
+    data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+    tflm_interpreter.set_input(data_x, 0)
+
+    # Test input tensor details
+    input_details = tflm_interpreter.get_input_details(0)
+    self.assertAllEqual(input_details["shape"], self.input_shape)
+    # Single channel int8 quantization
+    self.assertEqual(input_details["dtype"], np.int8)
+    self.assertEqual(len(input_details["quantization_parameters"]["scales"]),
+                     1)
+    self.assertEqual(
+        input_details["quantization_parameters"]["quantized_dimension"], 0)
+    self.assertAlmostEqual(
+        input_details["quantization_parameters"]["scales"][0], 0.0039186)
+    self.assertEqual(
+        input_details["quantization_parameters"]["zero_points"][0], -128)
+
+  def testInputErrorHandling(self):
+    model_data = generate_test_models.generate_conv_model(True, self.filename)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+
+    data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
+    # Try to access out of bound data
+    with self.assertRaisesWithPredicateMatch(IndexError,
+                                             "Tensor is out of bound"):
+      tflm_interpreter.set_input(data_x, 1)
+    # Pass data with wrong dimension
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "Dimension mismatch."):
+      reshaped_data = data_x.reshape((1, 16, 16, 1, 1))
+      tflm_interpreter.set_input(reshaped_data, 0)
+    # Pass data with wrong dimension in one axis
+    with self.assertRaisesWithPredicateMatch(ValueError,
+                                             "Dimension mismatch."):
+      reshaped_data = data_x.reshape((1, 2, 128, 1))
+      tflm_interpreter.set_input(reshaped_data, 0)
+    # Pass data with wrong type
+    with self.assertRaisesWithPredicateMatch(ValueError, "Got value of type"):
+      float_data = data_x.astype(np.float32)
+      tflm_interpreter.set_input(float_data, 0)
+    # Reach wrong details
+    with self.assertRaisesWithPredicateMatch(IndexError,
+                                             "Tensor is out of bound"):
+      tflm_interpreter.get_input_details(1)
+
+  def testOutput(self):
+    model_data = generate_test_models.generate_conv_model(True, self.filename)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+
+    # Initial output values are all 0
+    output = tflm_interpreter.get_output(0)
+    init_output = np.zeros(self.output_shape)
+    self.assertAllEqual(output, init_output)
+
+    # Test the output tensor details
+    output_details = tflm_interpreter.get_output_details(0)
+    self.assertAllEqual(output_details["shape"], self.output_shape)
+    # Single channel int8 quantization
+    self.assertEqual(output_details["dtype"], np.int8)
+    self.assertEqual(len(output_details["quantization_parameters"]["scales"]),
+                     1)
+    self.assertEqual(
+        output_details["quantization_parameters"]["quantized_dimension"], 0)
+    self.assertAlmostEqual(
+        output_details["quantization_parameters"]["scales"][0], 0.00299517)
+    self.assertEqual(
+        output_details["quantization_parameters"]["zero_points"][0], -13)
+
+  def testOutputErrorHandling(self):
+    model_data = generate_test_models.generate_conv_model(True, self.filename)
+    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    # Try to access out of bound data
+    with self.assertRaisesWithPredicateMatch(IndexError,
+                                             "Tensor is out of bound"):
+      tflm_interpreter.get_output(1)
+    with self.assertRaisesWithPredicateMatch(IndexError,
+                                             "Tensor is out of bound"):
+      tflm_interpreter.get_output_details(1)
+
+  def testCompareWithTFLite(self):
+    model_data = generate_test_models.generate_conv_model(True, self.filename)
 
     # TFLM interpreter
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
@@ -167,7 +256,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = ["SomeRandomOp"]
     with self.assertRaisesWithPredicateMatch(
-        SystemError, "returned a result with an error set"):
+        RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
       interpreter = tflm_runtime.Interpreter.from_bytes(
           model_data, custom_op_registerers)
 
