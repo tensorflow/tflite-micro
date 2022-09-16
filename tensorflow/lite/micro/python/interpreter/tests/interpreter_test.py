@@ -56,14 +56,13 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertAllEqual(input_details["shape"], self.input_shape)
     # Single channel int8 quantization
     self.assertEqual(input_details["dtype"], np.int8)
-    self.assertEqual(len(input_details["quantization_parameters"]["scales"]),
-                     1)
+    self.assertEqual(len(input_details["quantization_parameters"]["scales"]), 1)
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
     self.assertAlmostEqual(
         input_details["quantization_parameters"]["scales"][0], 0.0039186)
-    self.assertEqual(
-        input_details["quantization_parameters"]["zero_points"][0], -128)
+    self.assertEqual(input_details["quantization_parameters"]["zero_points"][0],
+                     -128)
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -75,13 +74,11 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                                              "Tensor is out of bound"):
       tflm_interpreter.set_input(data_x, 1)
     # Pass data with wrong dimension
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "Dimension mismatch."):
+    with self.assertRaisesWithPredicateMatch(ValueError, "Dimension mismatch."):
       reshaped_data = data_x.reshape((1, 16, 16, 1, 1))
       tflm_interpreter.set_input(reshaped_data, 0)
     # Pass data with wrong dimension in one axis
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "Dimension mismatch."):
+    with self.assertRaisesWithPredicateMatch(ValueError, "Dimension mismatch."):
       reshaped_data = data_x.reshape((1, 2, 128, 1))
       tflm_interpreter.set_input(reshaped_data, 0)
     # Pass data with wrong type
@@ -107,8 +104,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertAllEqual(output_details["shape"], self.output_shape)
     # Single channel int8 quantization
     self.assertEqual(output_details["dtype"], np.int8)
-    self.assertEqual(len(output_details["quantization_parameters"]["scales"]),
-                     1)
+    self.assertEqual(
+        len(output_details["quantization_parameters"]["scales"]), 1)
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
     self.assertAlmostEqual(
@@ -243,22 +240,22 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     custom_op_registerers = [("wrong", "format")]
     with self.assertRaisesWithPredicateMatch(ValueError,
                                              "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
+                                                        custom_op_registerers)
 
     custom_op_registerers = "WrongFormat"
     with self.assertRaisesWithPredicateMatch(ValueError,
                                              "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
+                                                        custom_op_registerers)
 
   def testNonExistentCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = ["SomeRandomOp"]
     with self.assertRaisesWithPredicateMatch(
         RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = tflm_runtime.Interpreter.from_bytes(model_data,
+                                                        custom_op_registerers)
 
 
 if __name__ == "__main__":
