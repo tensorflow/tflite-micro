@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -111,6 +112,13 @@ struct SubgraphAllocations {
 // ************** .memory_allocator->GetBuffer() + ->GetMaxBufferSize()
 class MicroAllocator {
  public:
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size,
+                                ErrorReporter* error_reporter) {
+    (void)error_reporter;
+    return MicroAllocator::Create(tensor_arena, arena_size);
+  }
+
   // Creates a MicroAllocator instance from a given tensor arena. This arena
   // will be managed by the created instance. The GreedyMemoryPlanner will
   // by default be used and created on the arena.
@@ -119,6 +127,14 @@ class MicroAllocator {
   // TODO(b/157615197): Cleanup constructor + factory usage.
   static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size);
 
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size,
+                                MicroMemoryPlanner* memory_planner,
+                                ErrorReporter* error_reporter) {
+    (void)error_reporter;
+    return MicroAllocator::Create(tensor_arena, arena_size, memory_planner);
+  }
+
   // Creates a MicroAllocator instance from a given tensor arena and a given
   // MemoryPlanner. This arena will be managed by the created instance. Note:
   // Please use alignas(16) to make sure tensor_arena is 16 bytes
@@ -126,12 +142,32 @@ class MicroAllocator {
   static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size,
                                 MicroMemoryPlanner* memory_planner);
 
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
+                                MicroMemoryPlanner* memory_planner,
+                                ErrorReporter* error_reporter) {
+    (void)error_reporter;
+    return MicroAllocator::Create(memory_allocator, memory_planner);
+  }
+
   // Creates a MicroAllocator instance using the provided
   // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
   // instance will use the SingleArenaBufferAllocator instance to manage
   // allocations internally.
   static MicroAllocator* Create(SingleArenaBufferAllocator* memory_allocator,
                                 MicroMemoryPlanner* memory_planner);
+
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
+                                size_t persistent_arena_size,
+                                uint8_t* non_persistent_tensor_arena,
+                                size_t non_persistent_arena_size,
+                                ErrorReporter* error_reporter) {
+    (void)error_reporter;
+    return MicroAllocator::Create(
+        persistent_tensor_arena, persistent_arena_size,
+        non_persistent_tensor_arena, non_persistent_arena_size);
+  }
 
   // Creates a MicroAllocator instance using the provided
   // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
