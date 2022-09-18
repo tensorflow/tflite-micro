@@ -131,6 +131,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:cppmath",
+        "//tensorflow/lite/kernels/internal:tensor_utils",
     ],
 )
 
@@ -299,6 +300,7 @@ tflm_kernel_cc_library(
         "//visibility:public",
     ],
     deps = [
+        ":micro_tensor_utils",
         "//tensorflow/lite/kernels/internal:tensor_utils",
         ":activation_utils",
         ":kernel_util",
