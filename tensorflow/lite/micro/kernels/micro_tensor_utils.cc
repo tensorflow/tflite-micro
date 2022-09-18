@@ -30,10 +30,6 @@ limitations under the License.
 namespace tflite {
 namespace micro_tensor_utils {
 
-namespace {
-const int32_t kInt16Max = std::numeric_limits<int16_t>::max();
-const int32_t kInt16Min = std::numeric_limits<int16_t>::min();
-}  // namespace
 // Apply sigmoid to elements of a vector.
 void ApplySigmoidToVector(const float* vector, int v_size, float* result) {
   for (int v = 0; v < v_size; v++) {
