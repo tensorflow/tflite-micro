@@ -23,10 +23,9 @@
 # 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/python/interpreter/tests/interpreter_test
 
 import gc
-from multiprocessing.sharedctypes import Value
+import weakref
 import numpy as np
 import tensorflow as tf
-import weakref
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
