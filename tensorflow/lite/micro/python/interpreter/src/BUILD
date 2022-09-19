@@ -18,6 +18,7 @@ pybind_library(
     hdrs = [
         "interpreter_wrapper.h",
         "numpy_utils.h",
+        "pybind11_lib.h",
         "python_utils.h",
         "shared_library.h",
     ],
