@@ -21,22 +21,6 @@ limitations under the License.
 
 namespace py = pybind11;
 
-// SWIG struct so pybind11 can handle SWIG objects returned by tf_session
-// until that is converted over to pybind11.
-// This type is intended to be layout-compatible with an initial sequence of
-// certain objects pointed to by a PyObject pointer. The intended use is to
-// first check dynamically that a given PyObject* py has the correct type,
-// and then use `reinterpret_cast<SwigPyObject*>(py)` to retrieve the member
-// `ptr` for further, custom use. SWIG wrapped objects' layout is documented
-// here: http://www.swig.org/Doc4.0/Python.html#Python_nn28
-typedef struct {
-  PyObject_HEAD void* ptr;  // This is the pointer to the actual C++ obj.
-  void* ty;
-  int own;
-  PyObject* next;
-  PyObject* dict;
-} SwigPyObject;
-
 namespace tflite {
 
 // Convert PyObject* to py::object with no error handling.

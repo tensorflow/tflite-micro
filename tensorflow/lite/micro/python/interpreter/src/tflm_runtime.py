@@ -97,7 +97,6 @@ class Interpreter(object):
       Status code of the C++ invoke function. A RuntimeError will be raised as
       well upon any error.
     """
-
     return self._interpreter.Reset()
 
   def set_input(self, input_data, index):
