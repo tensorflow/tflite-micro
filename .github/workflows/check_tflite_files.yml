@@ -19,10 +19,11 @@ jobs:
         run: |
           URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
           PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.TFLM_BOT_REPO_TOKEN }}" $URL | jq -r '.[] | .filename')
-          rm -rf /tmp/pull_request_files.txt
-          echo "${PR_FILES}" >> /tmp/pull_request_files.txt
-
-          python3 ci/check_tflite_files.py /tmp/pull_request_files.txt
+          rm -rf tmp_pull_request_files.txt
+          echo "${PR_FILES}" >> tmp_pull_request_files.txt
+          rm -rf .git
+          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/tflite-micro -w /tflite-micro ghcr.io/tflm-bot/tflm-ci:latest python3 ci/check_tflite_files.py tmp_pull_request_files.txt
           TFLITE_FILE_TEST_STATUS=$?
-          rm -f /tmp/pull_request_files.txt
+          rm -f tmp_pull_request_files.txt
           exit ${TFLITE_FILE_TEST_STATUS}

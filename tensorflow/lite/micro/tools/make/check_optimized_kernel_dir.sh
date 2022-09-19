@@ -15,7 +15,8 @@
 # ==============================================================================
 #
 # Called with following arguments:
-# 1 - OPTIMIZED_KERNEL_PATH (relative to TF root) to the optimized kernel implementations.
+# 1 - OPTIMIZED_KERNEL_PATH (relative to the location from which the script is invoked)
+#     to the optimized kernel implementations.
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:
@@ -29,10 +30,6 @@
 #   - Any other informational prints should be on stderr.
 
 set -e
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
 
 OPTIMIZED_KERNEL_PATH=${1}
 if [ ! -d ${OPTIMIZED_KERNEL_PATH} ]; then
