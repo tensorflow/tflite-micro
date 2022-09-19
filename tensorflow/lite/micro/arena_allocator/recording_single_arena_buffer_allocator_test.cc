@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -26,8 +25,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/1);
@@ -50,8 +48,7 @@ TF_LITE_MICRO_TEST(TestRecordsTailAllocations) {
 TF_LITE_MICRO_TEST(TestRecordsMisalignedTailAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/10, /*alignment=*/12);
@@ -68,8 +65,7 @@ TF_LITE_MICRO_TEST(TestRecordsMisalignedTailAllocations) {
 TF_LITE_MICRO_TEST(TestDoesNotRecordFailedTailAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result =
       allocator.AllocatePersistentBuffer(/*size=*/2048, /*alignment=*/1);
@@ -84,8 +80,7 @@ TF_LITE_MICRO_TEST(TestDoesNotRecordFailedTailAllocations) {
 TF_LITE_MICRO_TEST(TestRecordsHeadSizeAdjustment) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -113,8 +108,7 @@ TF_LITE_MICRO_TEST(TestRecordsHeadSizeAdjustment) {
 TF_LITE_MICRO_TEST(TestRecordsMisalignedHeadSizeAdjustments) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 12);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
@@ -134,8 +128,7 @@ TF_LITE_MICRO_TEST(TestRecordsMisalignedHeadSizeAdjustments) {
 TF_LITE_MICRO_TEST(TestDoesNotRecordFailedTailAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::RecordingSingleArenaBufferAllocator allocator(
-      tflite::GetMicroErrorReporter(), arena, arena_size);
+  tflite::RecordingSingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
