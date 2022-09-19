@@ -3,10 +3,11 @@
 #      it so that a review approval is sufficient to get all the CI machinery
 #      going and have the PR be merged (if all the tests pass).
 #
-#   2. PR is updated and ci:ready_to_merge is already a label on the PR. This
+#   2. PR is updated by mergify[bot] and ci:ready_to_merge is already a label on the PR. This
 #      allows mergify to update the PR and keep the merging process moving
 #      along.
-
+#
+# And removes ci:ready_to_merge if the pr is updated by anyone other than mergify[bot].
 on:
   pull_request_target:
     types: [labeled, synchronize]
