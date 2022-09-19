@@ -12,8 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
-#define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
+
 
 #include <algorithm>
 #include <cmath>
