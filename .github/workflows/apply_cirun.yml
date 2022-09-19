@@ -16,7 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
     steps:
-      - uses: actions/github-script@v5
+      - name: add ci run
+        uses: actions/github-script@v5
+        if: ${{ (github.event.sender.login == 'mergify[bot]') }}
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
@@ -25,4 +27,16 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: ['ci:run']
+            })
+      - name: remove ci ready_to_merge
+        uses: actions/github-script@v5
+        if: ${{ !(github.event.sender.login == 'mergify[bot]') }}
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:ready_to_merge'
             })
