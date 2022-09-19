@@ -20,30 +20,3 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-
-#if defined(_MSC_VER)
-#define __restrict__ __restrict
-#endif
-
-namespace tflite {
-
-// Not all backends support CpuBackendContext usage, so forward declare to avoid
-// pulling in its implementation. Use of CpuBackendContext in method
-// implementations is purely optional.
-class CpuBackendContext;
-
-namespace tensor_utils {
-
-// Apply sigmoid to elements of a vector.
-void ApplySigmoidToVector(const float* vector, int v_size, float* result);
-// Apply tanh to elements of a vector
-void ApplyTanhToVector(const float* vector, int v_size, float* result);
-
-// Apply appropriate activation function to elements of a vector.
-void ApplyActivationToVector(const float* vector, int v_size,
-                             TfLiteFusedActivation activation, float* result);
-
-}  // namespace tensor_utils
-}  // namespace tflite
-
-#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
