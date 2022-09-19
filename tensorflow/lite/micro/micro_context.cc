@@ -20,6 +20,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
