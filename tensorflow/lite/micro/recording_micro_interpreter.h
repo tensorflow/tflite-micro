@@ -37,6 +37,28 @@ class RecordingMicroInterpreter : public MicroInterpreter {
   RecordingMicroInterpreter(const Model* model,
                             const MicroOpResolver& op_resolver,
                             uint8_t* tensor_arena, size_t tensor_arena_size,
+                            MicroResourceVariables* resource_variable = nullptr,
+                            MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(
+            model, op_resolver,
+            RecordingMicroAllocator::Create(tensor_arena, tensor_arena_size),
+            resource_variable, profiler),
+        recording_micro_allocator_(
+            static_cast<const RecordingMicroAllocator&>(allocator())) {}
+
+  RecordingMicroInterpreter(const Model* model,
+                            const MicroOpResolver& op_resolver,
+                            RecordingMicroAllocator* allocator,
+                            MicroResourceVariables* resource_variable = nullptr,
+                            MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, allocator, resource_variable,
+                         profiler),
+        recording_micro_allocator_(*allocator) {}
+
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  RecordingMicroInterpreter(const Model* model,
+                            const MicroOpResolver& op_resolver,
+                            uint8_t* tensor_arena, size_t tensor_arena_size,
                             ErrorReporter* error_reporter,
                             MicroResourceVariables* resource_variable = nullptr,
                             MicroProfiler* profiler = nullptr)
@@ -47,6 +69,7 @@ class RecordingMicroInterpreter : public MicroInterpreter {
         recording_micro_allocator_(
             static_cast<const RecordingMicroAllocator&>(allocator())) {}
 
+  // TODO(b/246776144): Will be removed with http://b/246776144
   RecordingMicroInterpreter(const Model* model,
                             const MicroOpResolver& op_resolver,
                             RecordingMicroAllocator* allocator,

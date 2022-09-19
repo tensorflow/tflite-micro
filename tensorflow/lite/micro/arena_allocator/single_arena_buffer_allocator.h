@@ -32,17 +32,34 @@ namespace tflite {
 class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
                                    public IPersistentBufferAllocator {
  public:
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  SingleArenaBufferAllocator(ErrorReporter* error_reporter,
+                             uint8_t* buffer_head, uint8_t* buffer_tail)
+      : SingleArenaBufferAllocator(buffer_head, buffer_tail) {
+    (void)error_reporter;
+  }
+  SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer,
+                             size_t buffer_size)
+      : SingleArenaBufferAllocator(buffer, buffer_size) {
+    (void)error_reporter;
+  }
+
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
-  SingleArenaBufferAllocator(ErrorReporter* error_reporter,
-                             uint8_t* buffer_head, uint8_t* buffer_tail);
-  SingleArenaBufferAllocator(ErrorReporter* error_reporter, uint8_t* buffer,
-                             size_t buffer_size);
+  SingleArenaBufferAllocator(uint8_t* buffer_head, uint8_t* buffer_tail);
+  SingleArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
   virtual ~SingleArenaBufferAllocator();
 
-  // Creates a new SingleArenaBufferAllocator from a given buffer head and size.
+  // TODO(b/246776144): Will be removed with http://b/246776144
   static SingleArenaBufferAllocator* Create(ErrorReporter* error_reporter,
                                             uint8_t* buffer_head,
+                                            size_t buffer_size) {
+    (void)error_reporter;
+    return SingleArenaBufferAllocator::Create(buffer_head, buffer_size);
+  }
+
+  // Creates a new SingleArenaBufferAllocator from a given buffer head and size.
+  static SingleArenaBufferAllocator* Create(uint8_t* buffer_head,
                                             size_t buffer_size);
 
   // Resizes a buffer that is previously returned by the
@@ -125,10 +142,6 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
 
  private:
   size_t GetBufferSize() const;
-
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-  ErrorReporter* error_reporter_;
-#endif
   uint8_t* buffer_head_;
   uint8_t* buffer_tail_;
   uint8_t* head_;
