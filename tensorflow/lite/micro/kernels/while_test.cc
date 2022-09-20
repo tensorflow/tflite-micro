@@ -33,12 +33,10 @@ TF_LITE_MICRO_TEST(WhileShouldNeverInvokeConditionFalse) {
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithSubgraphsAndWhile();
   tflite::MicroMutableOpResolver<3> resolver;
-  tflite::MicroErrorReporter reporter;
   resolver.AddWhile();
   resolver.AddAdd();
   resolver.AddLess();
-  tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize,
-                                       &reporter);
+  tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* input0 = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
@@ -60,12 +58,10 @@ TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithSubgraphsAndWhile();
   tflite::MicroMutableOpResolver<3> resolver;
-  tflite::MicroErrorReporter reporter;
   resolver.AddWhile();
   resolver.AddAdd();
   resolver.AddLess();
-  tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize,
-                                       &reporter);
+  tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* input0 = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
