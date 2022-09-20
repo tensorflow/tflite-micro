@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h"
 
+#include "tensorflow/lite/micro/micro_log.h"
+
 extern "C" {
 #define IFFT_FLAG_R 0
 #define BIT_REVERSE_FLAG 1
@@ -42,18 +44,15 @@ constexpr int kOutputSize =
     ((kInputSize / 2) + (kAverageWindowSize - 1)) / kAverageWindowSize;
 }  // namespace
 
-TfLiteStatus GenerateSimpleFeatures(tflite::ErrorReporter* error_reporter,
-                                    const int16_t* input, int input_size,
+TfLiteStatus GenerateSimpleFeatures(const int16_t* input, int input_size,
                                     int output_size, uint8_t* output) {
   if (input_size > kInputSize) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Input size %d larger than %d",
-                         input_size, kInputSize);
+    MicroPrintf("Input size %d larger than %d", input_size, kInputSize);
     return kTfLiteError;
   }
   if (output_size != kOutputSize) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Requested output size %d doesn't match %d",
-                         output_size, kOutputSize);
+    MicroPrintf("Requested output size %d doesn't match %d", output_size,
+                kOutputSize);
     return kTfLiteError;
   }
 
