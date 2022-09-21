@@ -16,6 +16,17 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ ! -z ${2} ]; then
+  ROOT_DIR=${SCRIPT_DIR}/../../../../../..
+else
+  ROOT_DIR=${SCRIPT_DIR}/../../../../..
+fi
+
+cd "${ROOT_DIR}"
+pwd
+
 source ${2}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 readable_run make -f ${2}tensorflow/lite/micro/tools/make/Makefile clean
