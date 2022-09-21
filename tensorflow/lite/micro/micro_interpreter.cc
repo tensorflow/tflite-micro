@@ -21,12 +21,12 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -38,14 +38,11 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
-                                   ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
                                    MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
-      error_reporter_(error_reporter),
-      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size,
-                                         error_reporter)),
+      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size)),
 
       graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
@@ -59,12 +56,10 @@ MicroInterpreter::MicroInterpreter(const Model* model,
 MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    MicroAllocator* allocator,
-                                   ErrorReporter* error_reporter,
                                    MicroResourceVariables* resource_variables,
                                    MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
-      error_reporter_(error_reporter),
       allocator_(*allocator),
       graph_(&context_, model, allocator, resource_variables),
       tensors_allocated_(false),
@@ -109,11 +104,11 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
         return kTfLiteError;
       }
       const auto* opcode = opcodes->Get(index);
-      TfLiteStatus status =
-          GetRegistrationFromOpCode(opcode, op_resolver_, error_reporter_,
-                                    &(graph_.GetAllocations()[subgraph_idx]
-                                          .node_and_registrations[i]
-                                          .registration));
+      TfLiteStatus status = GetRegistrationFromOpCode(
+          opcode, op_resolver_, tflite::GetMicroErrorReporter(),
+          &(graph_.GetAllocations()[subgraph_idx]
+                .node_and_registrations[i]
+                .registration));
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to get registration from op code %s\n ",
                     EnumNameBuiltinOperator(GetBuiltinCode(opcode)));
@@ -157,7 +152,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
 
           return kTfLiteError;
         }
-        TF_LITE_ENSURE_STATUS(parser(op, error_reporter_,
+        TF_LITE_ENSURE_STATUS(parser(op, tflite::GetMicroErrorReporter(),
                                      builtin_data_allocator,
                                      (void**)(&builtin_data)));
       }
@@ -189,8 +184,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   SubgraphAllocations* allocations = allocator_.StartModelAllocation(model_);
 
   if (allocations == nullptr) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed starting model allocation.\n");
+    MicroPrintf("Failed starting model allocation.\n");
     initialization_status_ = kTfLiteError;
     return kTfLiteError;
   }
@@ -233,8 +227,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
       reinterpret_cast<TfLiteTensor**>(allocator_.AllocatePersistentBuffer(
           sizeof(TfLiteTensor*) * inputs_size()));
   if (input_tensors_ == nullptr) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Failed to allocate memory for context->input_tensors_, "
         "%d bytes required",
         sizeof(TfLiteTensor*) * inputs_size());
@@ -245,8 +238,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     input_tensors_[i] = allocator_.AllocatePersistentTfLiteTensor(
         model_, graph_.GetAllocations(), inputs().Get(i), 0);
     if (input_tensors_[i] == nullptr) {
-      TF_LITE_REPORT_ERROR(error_reporter_,
-                           "Failed to initialize input tensor %d", i);
+      MicroPrintf("Failed to initialize input tensor %d", i);
       return kTfLiteError;
     }
   }
@@ -257,8 +249,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
       reinterpret_cast<TfLiteTensor**>(allocator_.AllocatePersistentBuffer(
           sizeof(TfLiteTensor*) * outputs_size()));
   if (output_tensors_ == nullptr) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Failed to allocate memory for context->output_tensors_, "
         "%d bytes required",
         sizeof(TfLiteTensor*) * outputs_size());
@@ -269,8 +260,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     output_tensors_[i] = allocator_.AllocatePersistentTfLiteTensor(
         model_, graph_.GetAllocations(), outputs().Get(i), 0);
     if (output_tensors_[i] == nullptr) {
-      TF_LITE_REPORT_ERROR(error_reporter_,
-                           "Failed to initialize output tensor %d", i);
+      MicroPrintf("Failed to initialize output tensor %d", i);
       return kTfLiteError;
     }
   }
@@ -283,8 +273,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
 TfLiteStatus MicroInterpreter::Invoke() {
   if (initialization_status_ != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Invoke() called after initialization failed\n");
+    MicroPrintf("Invoke() called after initialization failed\n");
     return kTfLiteError;
   }
 
@@ -299,9 +288,7 @@ TfLiteStatus MicroInterpreter::Invoke() {
 TfLiteTensor* MicroInterpreter::input(size_t index) {
   const size_t length = inputs_size();
   if (index >= length) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Input index %d out of range (length is %d)", index,
-                         length);
+    MicroPrintf("Input index %d out of range (length is %d)", index, length);
     return nullptr;
   }
   return input_tensors_[index];
@@ -310,9 +297,7 @@ TfLiteTensor* MicroInterpreter::input(size_t index) {
 TfLiteTensor* MicroInterpreter::output(size_t index) {
   const size_t length = outputs_size();
   if (index >= length) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Output index %d out of range (length is %d)", index,
-                         length);
+    MicroPrintf("Output index %d out of range (length is %d)", index, length);
     return nullptr;
   }
   return output_tensors_[index];

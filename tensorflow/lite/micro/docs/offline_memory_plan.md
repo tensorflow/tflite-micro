@@ -68,8 +68,8 @@ uint8_t tensor_arena[kArenaSize];
 tflite::NonPersistentMemoryPlannerShim planner(&kOfflineNonPersistentBufferPlan);
 
 tflite::MicroAllocator * allocator = tflite::MicroAllocator::Create(
-  tensor_arena, arena_size, &planner, error_reporter);
+  tensor_arena, arena_size, &planner);
 
-tflite::MicroInterpreter interpreter(model, op_resolver, allocator, error_reporter);
+tflite::MicroInterpreter interpreter(model, op_resolver, allocator);
 ```
 
