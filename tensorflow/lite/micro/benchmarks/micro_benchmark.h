@@ -35,7 +35,8 @@ class MicroBenchmarkRunner {
   MicroBenchmarkRunner(const uint8_t* model,
                        const tflite::MicroOpResolver* op_resolver,
                        uint8_t* tensor_arena, int tensor_arena_size,
-                       MicroProfilerInterface* profiler, int num_resource_variables = 0)
+                       MicroProfilerInterface* profiler,
+                       int num_resource_variables = 0)
       : allocator_(
             RecordingMicroAllocator::Create(tensor_arena, tensor_arena_size)),
         interpreter_(
