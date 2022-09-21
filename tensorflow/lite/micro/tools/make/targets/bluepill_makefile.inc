@@ -2,22 +2,22 @@ export PATH := $(MAKEFILE_DIR)/downloads/gcc_embedded/bin/:$(PATH)
 TARGET_ARCH := cortex-m3
 TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR})
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${DOWNLOADS_DIR})
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the renode download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/stm32_bare_lib_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/stm32_bare_lib_download.sh ${DOWNLOADS_DIR})
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the STM32 Bare Lib download: $(DOWNLOAD_RESULT))
 endif

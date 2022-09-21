@@ -546,7 +546,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
-  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(TENSORFLOW_ROOT)$(PATH_TO_OPTIMIZED_KERNELS))
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
   endif
