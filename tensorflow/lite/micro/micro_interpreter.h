@@ -44,7 +44,7 @@ class MicroInterpreter {
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr)
+                   MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(model, op_resolver, tensor_arena, tensor_arena_size,
                          resource_variables, profiler) {
     (void)error_reporter;
@@ -67,7 +67,7 @@ class MicroInterpreter {
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr)
+                   MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(model, op_resolver, allocator, resource_variables,
                          profiler) {
     (void)error_reporter;

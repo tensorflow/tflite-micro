@@ -39,7 +39,7 @@ class RecordingMicroInterpreter : public MicroInterpreter {
                             const MicroOpResolver& op_resolver,
                             uint8_t* tensor_arena, size_t tensor_arena_size,
                             MicroResourceVariables* resource_variable = nullptr,
-                            MicroProfiler* profiler = nullptr)
+                            MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(
             model, op_resolver,
             RecordingMicroAllocator::Create(tensor_arena, tensor_arena_size),
@@ -51,7 +51,7 @@ class RecordingMicroInterpreter : public MicroInterpreter {
                             const MicroOpResolver& op_resolver,
                             RecordingMicroAllocator* allocator,
                             MicroResourceVariables* resource_variable = nullptr,
-                            MicroProfiler* profiler = nullptr)
+                            MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(model, op_resolver, allocator, resource_variable,
                          profiler),
         recording_micro_allocator_(*allocator) {}
