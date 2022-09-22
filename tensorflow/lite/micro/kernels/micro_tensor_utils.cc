@@ -30,7 +30,8 @@ limitations under the License.
 namespace tflite {
 
 // Apply sigmoid to elements of a vector.
-void PortableApplySigmoidToVector(const float* vector, int v_size, float* result) {
+void PortableApplySigmoidToVector(const float* vector, int v_size,
+                                  float* result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = 1.0f / (1.0f + std::exp(-vector[v]));
   }
@@ -43,7 +44,8 @@ void PortableApplyTanhToVector(const float* vector, int v_size, float* result) {
 }
 
 void PortableApplyActivationToVector(const float* vector, int v_size,
-                             TfLiteFusedActivation activation, float* result) {
+                                     TfLiteFusedActivation activation,
+                                     float* result) {
   switch (activation) {
     case kTfLiteActNone:
       return;

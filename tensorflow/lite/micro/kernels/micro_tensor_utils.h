@@ -41,15 +41,15 @@ namespace tflite {
 // TODO(b/230666277): consider removing this since micro does not utilize it
 class CpuBackendContext;
 
-
 // Apply sigmoid to elements of a vector.
-void PortableApplySigmoidToVector(const float* vector, int v_size, float* result);
+void PortableApplySigmoidToVector(const float* vector, int v_size,
+                                  float* result);
 // Apply tanh to elements of a vector
 void PortableApplyTanhToVector(const float* vector, int v_size, float* result);
 // Apply appropriate activation function to elements of a vector.
 void PortableApplyActivationToVector(const float* vector, int v_size,
-                             TfLiteFusedActivation activation, float* result);
-
+                                     TfLiteFusedActivation activation,
+                                     float* result);
 
 }  // namespace tflite
 
