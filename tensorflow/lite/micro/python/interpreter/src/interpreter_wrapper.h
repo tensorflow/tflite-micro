@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <Python.h>
 
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 
@@ -39,7 +38,6 @@ class InterpreterWrapper {
 
  private:
   const PyObject* model_;
-  std::unique_ptr<tflite::ErrorReporter> error_reporter_;
   std::unique_ptr<uint8_t[]> memory_arena_;
   tflite::AllOpsResolver all_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
