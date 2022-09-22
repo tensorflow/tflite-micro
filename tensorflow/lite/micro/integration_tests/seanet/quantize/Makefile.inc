@@ -7,7 +7,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/quantize/quanti
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/quantize/quantize1_golden_int32.csv
 
 integration_tests_seanet_quantize_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/quantize/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/quantize/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_quantize_test,\
 $(integration_tests_seanet_quantize_SRCS),,$(integration_tests_seanet_quantize_GENERATOR_INPUTS)))
