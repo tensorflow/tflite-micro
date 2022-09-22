@@ -32,7 +32,7 @@
 
 set -e
 
-source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
+source ${2}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
