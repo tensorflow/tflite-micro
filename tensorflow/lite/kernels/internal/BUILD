@@ -141,9 +141,26 @@ cc_library(
 cc_library(
     name = "portable_tensor_utils",
     srcs = [
-        "reference/portable_tensor_utils.cc",
     ],
     hdrs = [
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":common",
+        ":compatibility",
+        ":cppmath",
+    ],
+)
+
+cc_library(
+    name = "tensor_utils",
+    srcs = [
+        "portable_tensor_utils.cc",
+        "reference/portable_tensor_utils.cc",
+        "tensor_utils.cc",
+    ],
+    hdrs = [
+        "portable_tensor_utils.h",
         "reference/portable_tensor_utils.h",
         "reference/portable_tensor_utils_impl.h",
     ],
@@ -152,26 +169,8 @@ cc_library(
         ":common",
         ":compatibility",
         ":cppmath",
-        "@gemmlowp",
-    ],
-)
-
-cc_library(
-    name = "tensor_utils",
-    srcs = [
-        "portable_tensor_utils.cc",
-        "tensor_utils.cc",
-    ],
-    hdrs = [
-        "portable_tensor_utils.h",
-    ],
-    copts = tflite_copts(),
-    deps = [
-        ":common",
-        ":compatibility",
-        ":cppmath",
-        ":portable_tensor_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:op_macros",
+        "@gemmlowp",
     ],
 )
