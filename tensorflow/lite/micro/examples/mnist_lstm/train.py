@@ -159,19 +159,14 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def convert_save_model(trained_model,
-                       save_dir,
-                       save_raw_model=False,
-                       quantize=False):
-  """convert and save the trained LSTM model
+def prepare_trained_model(trained_model):
+  """Fix the input of the trained model for inference
 
     Args:
-        trained_model (tf.keras.Model): trained LSTM model
-        save_dir (string): save directory for the trained model
-        save_raw_model (bool): store the original unconverted tf model. Defaults
-          to False
-        quantize (bool): convert tflite model using full integer (int8)
-          quantization.
+        trained_model (tf.keras.Model): the trained LSTM model
+
+    Returns:
+        run_model (tf.keras.Model): the trained model with fixed input tensor size for inference
   """
   # TFLite converter requires fixed shape input to work, alternative: b/225231544
   fixed_input = tf.keras.layers.Input(shape=[28, 28],
@@ -180,28 +175,30 @@ def convert_save_model(trained_model,
                                       name="fixed_input")
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
-
-  if save_raw_model:
-    run_model.save(save_dir, save_format="tf")
-    logging.info("TF model saved to %s", save_dir)
-
-  # Convert and save the model
-  save_name = "mnist_lstm.tflite"
-  tflite_model = convert_tflite_model(run_model)
-  save_tflite_model(tflite_model, save_dir, save_name)
-
-  # Convert and save the quantized model
-  if quantize:
-    quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
-    save_name = "mnist_lstm_quant.tflite"
-    save_tflite_model(quantized_tflite_model, save_dir, save_name)
+  return run_model
 
 
 def main(_):
   x_train, y_train = get_train_data()
   trained_model = train_lstm_model(FLAGS.epochs, x_train, y_train)
-  convert_save_model(trained_model, FLAGS.save_dir, FLAGS.save_tf_model,
-                     FLAGS.quantize)
+  run_model = prepare_trained_model(trained_model)
+  # Save the tf model
+  if FLAGS.save_tf_model:
+    run_model.save(FLAGS.save_dir, save_format="tf")
+    logging.info("TF model saved to %s", FLAGS.save_dir)
+
+  # Convert and save the model to .tflite
+  tflite_model = convert_tflite_model(run_model)
+  save_tflite_model(tflite_model,
+                    FLAGS.save_dir,
+                    model_name="mnist_lstm.tflite")
+
+  # Convert and save the quantized model
+  if FLAGS.quantize:
+    quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
+    save_tflite_model(quantized_tflite_model,
+                      FLAGS.save_dir,
+                      model_name="mnist_lstm_quant.tflite")
 
 
 if __name__ == "__main__":
