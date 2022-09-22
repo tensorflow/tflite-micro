@@ -19,50 +19,52 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
+if [ ! -z ${1} ]; then
+  ROOT_DIR="${SCRIPT_DIR}/../../../../../.."
+else
+  ROOT_DIR="${SCRIPT_DIR}/../../../../.."
+fi
 cd "${ROOT_DIR}"
 
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
+source ${1}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # Next, build w/o TF_LITE_STATIC_MEMORY to catch additional errors.
 # TODO(b/160955687): We run the tests w/o TF_LITE_STATIC_MEMORY to make the
 # internal and open source CI consistent. See b/160955687#comment7 for more
 # details.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=no_tf_lite_static_memory test
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=no_tf_lite_static_memory test TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # Next, make sure that the release build succeeds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release build
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release build TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # Next, build wit release and logs so that we can run the tests and get
 # additional debugging info on failures.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs build
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs test
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs integration_tests
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs build TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs test TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=release_with_logs integration_tests TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # Next, build w/o release so that we can run the tests and get additional
 # debugging info on failures.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile build
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile test
-readable_run make -s -j8 -f tensorflow/lite/micro/tools/make/Makefile integration_tests
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile build TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile test TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile integration_tests TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 
 # At last test the hello_world as an example outside of the github repo.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-pushd "../"
-cp -r tflite-micro/tensorflow/lite/micro/examples/hello_world ./
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+cp -r ${1}tensorflow/lite/micro/examples/hello_world ./
 sed -i 's/tensorflow\/lite\/micro\/examples\///g' hello_world/Makefile.inc
 sed -i 's/$(TENSORFLOW_ROOT)//g' hello_world/Makefile.inc
 mv hello_world/Makefile.inc hello_world/Makefile_internal.inc
 sed -i 's/tensorflow\/lite\/micro\/examples\///g' hello_world/hello_world_test.cc
-readable_run make -s -j8 -f tflite-micro/tensorflow/lite/micro/tools/make/Makefile test_hello_world_test TENSORFLOW_ROOT=tflite-micro/ EXTERNAL_DIR=hello_world/
-readable_run make -f tflite-micro/tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=tflite-micro/ EXTERNAL_DIR=hello_world/
+readable_run make -s -j8 -f ${1}tensorflow/lite/micro/tools/make/Makefile test_hello_world_test TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
+readable_run make -f ${1}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${1} EXTERNAL_DIR=${2}
 rm -rf hello_world
-popd
