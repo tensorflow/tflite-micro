@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstring>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
@@ -34,6 +33,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -45,8 +45,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
  public:
   TF_LITE_REMOVE_VIRTUAL_DELETE
 
-  explicit MicroMutableOpResolver(ErrorReporter* error_reporter = nullptr)
-      : error_reporter_(error_reporter) {}
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  explicit MicroMutableOpResolver(ErrorReporter* error_reporter = nullptr) {
+    (void)error_reporter;
+  }
+
+  // explicit MicroMutableOpResolver() {}
 
   const TfLiteRegistration* FindOp(tflite::BuiltinOperator op) const override {
     if (op == BuiltinOperator_CUSTOM) return nullptr;
@@ -636,8 +640,6 @@ class MicroMutableOpResolver : public MicroOpResolver {
   BuiltinOperator builtin_codes_[tOpCount];
   MicroOpResolver::BuiltinParseFunction builtin_parsers_[tOpCount];
   unsigned int num_buitin_ops_ = 0;
-
-  ErrorReporter* error_reporter_;
 };
 
 };  // namespace tflite

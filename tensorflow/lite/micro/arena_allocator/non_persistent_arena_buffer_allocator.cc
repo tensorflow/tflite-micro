@@ -15,7 +15,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator.h"
 
 #include "tensorflow/lite/micro/memory_helpers.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 

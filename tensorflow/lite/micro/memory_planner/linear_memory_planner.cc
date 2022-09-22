@@ -15,18 +15,18 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_planner/linear_memory_planner.h"
 
+#include "tensorflow/lite/micro/micro_log.h"
+
 namespace tflite {
 
 LinearMemoryPlanner::LinearMemoryPlanner()
     : current_buffer_count_(0), next_free_offset_(0) {}
 LinearMemoryPlanner::~LinearMemoryPlanner() {}
 
-TfLiteStatus LinearMemoryPlanner::AddBuffer(
-    tflite::ErrorReporter* error_reporter, int size, int first_time_used,
-    int last_time_used) {
+TfLiteStatus LinearMemoryPlanner::AddBuffer(int size, int first_time_used,
+                                            int last_time_used) {
   if (current_buffer_count_ >= kMaxBufferCount) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Too many buffers (max is %d)",
-                         kMaxBufferCount);
+    MicroPrintf("Too many buffers (max is %d)", kMaxBufferCount);
     return kTfLiteError;
   }
   buffer_offsets_[current_buffer_count_] = next_free_offset_;
@@ -39,12 +39,11 @@ size_t LinearMemoryPlanner::GetMaximumMemorySize() { return next_free_offset_; }
 
 int LinearMemoryPlanner::GetBufferCount() { return current_buffer_count_; }
 
-TfLiteStatus LinearMemoryPlanner::GetOffsetForBuffer(
-    tflite::ErrorReporter* error_reporter, int buffer_index, int* offset) {
+TfLiteStatus LinearMemoryPlanner::GetOffsetForBuffer(int buffer_index,
+                                                     int* offset) {
   if ((buffer_index < 0) || (buffer_index >= current_buffer_count_)) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "buffer index %d is outside range 0 to %d",
-                         buffer_index, current_buffer_count_);
+    MicroPrintf("buffer index %d is outside range 0 to %d", buffer_index,
+                current_buffer_count_);
     return kTfLiteError;
   }
   *offset = buffer_offsets_[buffer_index];

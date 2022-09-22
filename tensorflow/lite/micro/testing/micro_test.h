@@ -14,8 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 // An ultra-lightweight testing framework designed for use with microcontroller
-// applications. Its only dependency is on TensorFlow Lite's ErrorReporter
-// interface, where log messages are output. This is designed to be usable even
+// applications. This is designed to be usable even
 // when no standard C or C++ libraries are available, and without any dynamic
 // memory allocation or reliance on global constructors.
 //
@@ -35,8 +34,7 @@ limitations under the License.
 // ----------------------------------------------------------------------------
 // If you compile this for your platform, you'll get a normal binary that you
 // should be able to run. Executing it will output logging information like this
-// to stderr (or whatever equivalent is available and written to by
-// ErrorReporter):
+// to stderr:
 // ----------------------------------------------------------------------------
 // Testing SomeTest
 // 1/1 tests passed
@@ -57,7 +55,7 @@ limitations under the License.
 #include <type_traits>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
 namespace micro_test {

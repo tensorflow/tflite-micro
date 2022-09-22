@@ -119,7 +119,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice9_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice9_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice9_model_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -140,8 +140,7 @@ void RunModel(const uint8_t* model, const int16_t* input0,
   MicroProfiler profiler;
 
   MicroInterpreter interpreter(GetModel(model), AllOpsResolver(), tensor_arena,
-                               kTensorArenaSize, GetMicroErrorReporter(),
-                               nullptr, &profiler);
+                               kTensorArenaSize, nullptr, &profiler);
   interpreter.AllocateTensors();
   TfLiteTensor* input0_tensor = interpreter.input(0);
   TF_LITE_MICRO_EXPECT_EQ(input0_tensor->bytes, input0_size * sizeof(int16_t));

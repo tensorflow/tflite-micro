@@ -18,7 +18,7 @@ limitations under the License.
 
 #include <climits>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
@@ -36,10 +36,10 @@ class MicroBenchmarkRunner {
                        const tflite::MicroOpResolver* op_resolver,
                        uint8_t* tensor_arena, int tensor_arena_size,
                        MicroProfiler* profiler, int num_resource_variables = 0)
-      : allocator_(RecordingMicroAllocator::Create(
-            tensor_arena, tensor_arena_size, GetMicroErrorReporter())),
+      : allocator_(
+            RecordingMicroAllocator::Create(tensor_arena, tensor_arena_size)),
         interpreter_(
-            GetModel(model), *op_resolver, allocator_, GetMicroErrorReporter(),
+            GetModel(model), *op_resolver, allocator_,
             MicroResourceVariables::Create(allocator_, num_resource_variables),
             profiler) {
     interpreter_.AllocateTensors();

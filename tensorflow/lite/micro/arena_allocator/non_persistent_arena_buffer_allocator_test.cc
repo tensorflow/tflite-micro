@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 

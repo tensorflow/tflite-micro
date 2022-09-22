@@ -18,11 +18,11 @@ pybind_library(
     hdrs = [
         "interpreter_wrapper.h",
         "numpy_utils.h",
+        "pybind11_lib.h",
         "python_utils.h",
         "shared_library.h",
     ],
     deps = [
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
     ],
