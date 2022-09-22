@@ -16,7 +16,5 @@ limitations under the License.
 This is a fork from Tensorflow Lite for TensorflowLite Micro usage
 */
 
-#include "tensorflow/lite/kernels/internal/tensor_utils.h"
-
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils.h"

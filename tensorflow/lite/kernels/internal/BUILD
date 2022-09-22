@@ -164,7 +164,6 @@ cc_library(
     ],
     hdrs = [
         "portable_tensor_utils.h",
-        "tensor_utils.h",
     ],
     copts = tflite_copts(),
     deps = [
