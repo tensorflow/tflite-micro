@@ -28,22 +28,21 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 
 namespace tflite {
-namespace micro_tensor_utils {
 
 // Apply sigmoid to elements of a vector.
-void ApplySigmoidToVector(const float* vector, int v_size, float* result) {
+void PortableApplySigmoidToVector(const float* vector, int v_size, float* result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = 1.0f / (1.0f + std::exp(-vector[v]));
   }
 }
 
-void ApplyTanhToVector(const float* vector, int v_size, float* result) {
+void PortableApplyTanhToVector(const float* vector, int v_size, float* result) {
   for (int v = 0; v < v_size; v++) {
     result[v] = std::tanh(vector[v]);
   }
 }
 
-void ApplyActivationToVector(const float* vector, int v_size,
+void PortableApplyActivationToVector(const float* vector, int v_size,
                              TfLiteFusedActivation activation, float* result) {
   switch (activation) {
     case kTfLiteActNone:
@@ -55,13 +54,12 @@ void ApplyActivationToVector(const float* vector, int v_size,
     case kTfLiteActRelu6:
       return tflite::tensor_utils::ApplyRelu6ToVector(vector, v_size, result);
     case kTfLiteActTanh:
-      return ApplyTanhToVector(vector, v_size, result);
+      return PortableApplyTanhToVector(vector, v_size, result);
     case kTfLiteActSignBit:
       return tflite::tensor_utils::ApplySignbitToVector(vector, v_size, result);
     case kTfLiteActSigmoid:
-      return ApplySigmoidToVector(vector, v_size, result);
+      return PortableApplySigmoidToVector(vector, v_size, result);
   }
 }
 
-}  // namespace micro_tensor_utils
 }  // namespace tflite

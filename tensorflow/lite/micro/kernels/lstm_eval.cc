@@ -25,7 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h" 
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
@@ -188,7 +188,7 @@ inline void CalculateLstmGateFloat(
                                                gate);
   }
   // Apply activation
-  micro_tensor_utils::ApplyActivationToVector(gate, n_batch * n_cell,
+  tflite::PortableApplyActivationToVector(gate, n_batch * n_cell,
                                               activation, gate);
 }
 
@@ -258,7 +258,7 @@ void CalculateLstmOutputFloat(int n_batch, int n_cell, int n_output,
                               const float* projection_bias,
                               const float proj_clip, float* output_state,
                               float* scratch) {
-  micro_tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
+  tflite::PortableApplyActivationToVector(cell_state, n_batch * n_cell,
                                               activation, scratch);
   tflite::tensor_utils::VectorVectorCwiseProduct(output_gate, scratch,
                                                  n_batch * n_cell, scratch);
@@ -398,7 +398,7 @@ void CalculateLstmGateHybrid(
                                                gate);
   }
   // Apply activation
-  micro_tensor_utils::ApplyActivationToVector(gate, n_cell * n_batch,
+  tflite::PortableApplyActivationToVector(gate, n_cell * n_batch,
                                               activation, gate);
 }
 
@@ -430,7 +430,7 @@ void CalculateLstmOutputHybrid(
     int32_t* projection_weights_row_sums, bool* compute_row_sums,
     float* scratch0, int8_t* scratch1, float* scratch2, int32_t* scratch3,
     int32_t* scratch4, float* scales) {
-  micro_tensor_utils::ApplyActivationToVector(cell_state, n_batch * n_cell,
+  tflite::PortableApplyActivationToVector(cell_state, n_batch * n_cell,
                                               activation, scratch0);
   tflite::tensor_utils::VectorVectorCwiseProduct(output_gate, scratch0,
                                                  n_batch * n_cell, scratch0);
