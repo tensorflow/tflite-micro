@@ -3,10 +3,11 @@
 #      it so that a review approval is sufficient to get all the CI machinery
 #      going and have the PR be merged (if all the tests pass).
 #
-#   2. PR is updated and ci:ready_to_merge is already a label on the PR. This
+#   2. PR is updated by mergify[bot] and ci:ready_to_merge is already a label on the PR. This
 #      allows mergify to update the PR and keep the merging process moving
 #      along.
-
+#
+# And removes ci:ready_to_merge if the pr is updated by anyone other than mergify[bot].
 on:
   pull_request_target:
     types: [labeled, synchronize]
@@ -16,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
     steps:
-      - uses: actions/github-script@v5
+      - name: add ci run
+        uses: actions/github-script@v5
+        if: ${{ (github.event.sender.login == 'mergify[bot]') }}
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
@@ -25,4 +28,16 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: ['ci:run']
+            })
+      - name: remove ci ready_to_merge
+        uses: actions/github-script@v5
+        if: ${{ !(github.event.sender.login == 'mergify[bot]') }}
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:ready_to_merge'
             })
