@@ -17,6 +17,7 @@ limitations under the License.
 #include <pybind11/stl.h>
 
 #include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
+#include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 
 namespace py = pybind11;
 using tflite::InterpreterWrapper;
@@ -32,6 +33,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
             data.ptr(), registerers_by_name, arena_size));
       }))
       .def("Invoke", &InterpreterWrapper::Invoke)
+      .def("Reset", &InterpreterWrapper::Reset)
       .def(
           "SetInputTensor",
           [](InterpreterWrapper& self, py::handle& x, size_t index) {
@@ -41,8 +43,19 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
       .def(
           "GetOutputTensor",
           [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.GetOutputTensor(index));
+            return tflite::PyoOrThrow(self.GetOutputTensor(index));
+          },
+          py::arg("index"))
+      .def(
+          "GetInputTensorDetails",
+          [](InterpreterWrapper& self, size_t index) {
+            return tflite::PyoOrThrow(self.GetInputTensorDetails(index));
+          },
+          py::arg("index"))
+      .def(
+          "GetOutputTensorDetails",
+          [](InterpreterWrapper& self, size_t index) {
+            return tflite::PyoOrThrow(self.GetOutputTensorDetails(index));
           },
           py::arg("index"));
 }

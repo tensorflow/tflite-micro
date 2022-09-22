@@ -39,6 +39,17 @@ namespace tflite {
 
 class MicroInterpreter {
  public:
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
+                   uint8_t* tensor_arena, size_t tensor_arena_size,
+                   ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
+                   MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, tensor_arena, tensor_arena_size,
+                         resource_variables, profiler) {
+    (void)error_reporter;
+  }
+
   // The lifetime of the model, op resolver, tensor arena, error reporter,
   // resource variables, and profiler must be at least as long as that of the
   // interpreter object, since the interpreter may need to access them at any
@@ -49,9 +60,18 @@ class MicroInterpreter {
   // caller.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    uint8_t* tensor_arena, size_t tensor_arena_size,
-                   ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
+
+  // TODO(b/246776144): Will be removed with http://b/246776144
+  MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
+                   MicroAllocator* allocator, ErrorReporter* error_reporter,
+                   MicroResourceVariables* resource_variables = nullptr,
+                   MicroProfiler* profiler = nullptr)
+      : MicroInterpreter(model, op_resolver, allocator, resource_variables,
+                         profiler) {
+    (void)error_reporter;
+  }
 
   // Create an interpreter instance using an existing MicroAllocator instance.
   // This constructor should be used when creating an allocator that needs to
@@ -59,7 +79,7 @@ class MicroInterpreter {
   // allocations inside the interpreter. The lifetime of the allocator must be
   // as long as that of the interpreter object.
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
-                   MicroAllocator* allocator, ErrorReporter* error_reporter,
+                   MicroAllocator* allocator,
                    MicroResourceVariables* resource_variables = nullptr,
                    MicroProfiler* profiler = nullptr);
 
@@ -120,7 +140,7 @@ class MicroInterpreter {
   // created. i.e. after Init and Prepare is called for the very first time.
   TfLiteStatus Reset();
 
-  // TODO: remove this in favor of Reset()
+  // TODO(b/244457206): remove this in favor of Reset()
   // Reset all variable tensors to the default value.
   TfLiteStatus ResetVariableTensors();
 
@@ -154,7 +174,6 @@ class MicroInterpreter {
 
   const Model* model_;
   const MicroOpResolver& op_resolver_;
-  ErrorReporter* error_reporter_;
   TfLiteContext context_ = {};
   MicroAllocator& allocator_;
   MicroGraph graph_;

@@ -18,7 +18,7 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 
 #include "flatbuffer_size.h"
-#include "schema_generated_with_reflective_type.h"
+#include "tensorflow/lite/schema/reflection/schema_generated.h"
 
 namespace tflite {
 
