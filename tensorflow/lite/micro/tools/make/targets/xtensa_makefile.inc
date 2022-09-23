@@ -76,27 +76,27 @@ SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_xtensa_binar
 # TODO(b/158651472): Fix the memory_arena_threshold_test
 # TODO(b/174707181): Fix the micro_interpreter_test
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 # TODO(b/156962140): This manually maintained list of excluded examples is
 # quite error prone.
 EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/hello_world/Makefile.inc \
-  tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc \
-  tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
-  tensorflow/lite/micro/examples/network_tester/Makefile.inc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/image_recognition_experimental/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/Makefile.inc
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
-MICRO_LITE_EXAMPLE_TESTS += $(shell find third_party/xtensa/examples/ -name Makefile.inc)
+MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
 
 # Needed for LSTM support.
 MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-tensorflow/lite/kernels/kernel_util.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
 
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-  tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
-  tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
-  tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
 endif
