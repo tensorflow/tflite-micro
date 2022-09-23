@@ -46,9 +46,6 @@ RUN pip install matplotlib
 
 RUN pip install six
 
-# The following is necessary to build the Python interpreter
-RUN apt install -y python-numpy
-
 # Install Renode test dependencies
 RUN pip install pyyaml requests psutil robotframework==4.0.1
 
