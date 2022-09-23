@@ -5,7 +5,7 @@ NETWORK_TESTER_GENERATOR_INPUTS:=
 
 ifeq ($(CO_PROCESSOR),ethos_u)
   NETWORK_TESTER_TEST_SRCS += \
-    $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
+    $(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
 
   NETWORK_TESTER_GENERATOR_INPUTS := \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/testdata/person.bmp

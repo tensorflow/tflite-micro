@@ -123,5 +123,6 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          tensorflow/lite/micro/tools/ci_build/test_x86.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86.sh tflite-micro/
 
