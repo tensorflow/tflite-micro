@@ -29,6 +29,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Bazel (presubmit)
@@ -51,6 +52,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Cortex-M (presubmit)
@@ -71,6 +73,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Code Style (presubmit)
@@ -87,6 +90,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Project Generation (presubmit)
@@ -119,5 +123,6 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          tensorflow/lite/micro/tools/ci_build/test_x86.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86.sh tflite-micro/
 

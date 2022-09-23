@@ -445,7 +445,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
-LICENSE \
+$(TENSORFLOW_ROOT)LICENSE \
 $(TFL_CC_HDRS)
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
@@ -546,7 +546,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
-  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(TENSORFLOW_ROOT)$(PATH_TO_OPTIMIZED_KERNELS))
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
   endif
