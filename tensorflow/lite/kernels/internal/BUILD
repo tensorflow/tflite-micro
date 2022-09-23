@@ -139,20 +139,6 @@ cc_library(
 )
 
 cc_library(
-    name = "portable_tensor_utils",
-    srcs = [
-    ],
-    hdrs = [
-    ],
-    copts = tflite_copts(),
-    deps = [
-        ":common",
-        ":compatibility",
-        ":cppmath",
-    ],
-)
-
-cc_library(
     name = "tensor_utils",
     srcs = [
         "portable_tensor_utils.cc",
