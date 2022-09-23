@@ -17,7 +17,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/micro/testing/test_conv_model.h"
@@ -43,8 +42,7 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
   uint8_t arena[kTestConvArenaSize];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize);
   // TODO(b/158102673): ugly workaround for not having fatal assertions. Same
   // throughout this file.
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
@@ -84,8 +82,7 @@ TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
   uint8_t arena[kTestConvArenaSize];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
@@ -122,8 +119,7 @@ TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   TfLiteStatus status;
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize * 2,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize * 2);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
@@ -167,8 +163,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentTfLiteTensorData) {
   uint8_t arena[kTestConvArenaSize];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
@@ -193,8 +188,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentTfLiteTensorQuantizationData) {
   uint8_t arena[kTestConvArenaSize];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
@@ -239,8 +233,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentBufferData) {
   uint8_t arena[kTestConvArenaSize];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, kTestConvArenaSize);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 
@@ -282,8 +275,7 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphModel) {
   uint8_t arena[arena_size];
 
   tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, arena_size,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, arena_size);
   TF_LITE_MICRO_EXPECT(micro_allocator != nullptr);
   if (micro_allocator == nullptr) return 1;
 

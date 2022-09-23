@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstring>
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_time.h"
 
 namespace tflite {

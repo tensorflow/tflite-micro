@@ -54,9 +54,16 @@ struct RecordedAllocation {
 // for auditing memory usage or integration testing.
 class RecordingMicroAllocator : public MicroAllocator {
  public:
+  // TODO(b/246776144): Will be removed with http://b/246776144
   static RecordingMicroAllocator* Create(uint8_t* tensor_arena,
                                          size_t arena_size,
-                                         ErrorReporter* error_reporter);
+                                         ErrorReporter* error_reporter) {
+    (void)error_reporter;
+    return RecordingMicroAllocator::Create(tensor_arena, arena_size);
+  }
+
+  static RecordingMicroAllocator* Create(uint8_t* tensor_arena,
+                                         size_t arena_size);
 
   // Returns the fixed amount of memory overhead of RecordingMicroAllocator.
   static size_t GetDefaultTailUsage();
@@ -95,8 +102,7 @@ class RecordingMicroAllocator : public MicroAllocator {
 
  private:
   RecordingMicroAllocator(RecordingSingleArenaBufferAllocator* memory_allocator,
-                          MicroMemoryPlanner* memory_planner,
-                          ErrorReporter* error_reporter);
+                          MicroMemoryPlanner* memory_planner);
 
   void PrintRecordedAllocation(RecordedAllocationType allocation_type,
                                const char* allocation_name,
