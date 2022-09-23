@@ -13,69 +13,85 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Called with following arguments:
+# 1 - EXTERNAL or INTERNAL to signal how to run the script
+# 2 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
-pwd
+TENSORFLOW_ROOT=${2}
+EXTERNAL_DIR=${3}
 
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
+source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4_internal \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     build -j$(nproc)
 
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4_internal \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     test -j$(nproc)
 
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4_internal \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_conv -j$(nproc)
 
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4_internal \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_add_test -j$(nproc)
 
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4_internal \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_leaky_relu_test -j$(nproc)
 else
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     build -j$(nproc)
 
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
     TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
     test -j$(nproc)
 fi
