@@ -1,23 +1,23 @@
 KEYWORD_BENCHMARK_SRCS := \
-tensorflow/lite/micro/benchmarks/keyword_benchmark.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/keyword_benchmark.cc
 
 KEYWORD_BENCHMARK_GENERATOR_INPUTS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/models/keyword_scrambled.tflite
 
 KEYWORD_BENCHMARK_HDRS := \
-tensorflow/lite/micro/benchmarks/micro_benchmark.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/micro_benchmark.h
 
 KEYWORD_BENCHMARK_8BIT_SRCS := \
-tensorflow/lite/micro/benchmarks/keyword_benchmark_8bit.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/keyword_benchmark_8bit.cc
 
 KEYWORD_BENCHMARK_8BIT_GENERATOR_INPUTS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/models/keyword_scrambled_8bit.tflite
 
 KEYWORD_BENCHMARK_8BIT_HDRS := \
-tensorflow/lite/micro/benchmarks/micro_benchmark.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/micro_benchmark.h
 
 PERSON_DETECTION_BENCHMARK_SRCS := \
-tensorflow/lite/micro/benchmarks/person_detection_benchmark.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/person_detection_benchmark.cc
 
 PERSON_DETECTION_BENCHMARK_GENERATOR_INPUTS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/testdata/person.bmp \
@@ -29,12 +29,12 @@ ifneq ($(CO_PROCESSOR),ethos_u)
 else
   # Ethos-U use a Vela optimized version of the original model.
   PERSON_DETECTION_BENCHMARK_SRCS += \
-  $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
+  $(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
 endif
 
 PERSON_DETECTION_BENCHMARK_HDRS := \
-tensorflow/lite/micro/examples/person_detection/model_settings.h \
-tensorflow/lite/micro/benchmarks/micro_benchmark.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/micro_benchmark.h
 
 # Builds a standalone binary.
 $(eval $(call microlite_test,keyword_benchmark,\

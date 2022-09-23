@@ -59,10 +59,15 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
+    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
     self.assertAlmostEqual(
-        input_details["quantization_parameters"]["scales"][0], 0.0039186)
-    self.assertEqual(
-        input_details["quantization_parameters"]["zero_points"][0], -128)
+        input_details["quantization_parameters"]["scales"][0],
+        0.003,
+        delta=0.1)
+    self.assertAlmostEqual(
+        input_details["quantization_parameters"]["zero_points"][0],
+        -128,
+        delta=100)
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -110,10 +115,15 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
+    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
     self.assertAlmostEqual(
-        output_details["quantization_parameters"]["scales"][0], 0.00299517)
-    self.assertEqual(
-        output_details["quantization_parameters"]["zero_points"][0], -13)
+        output_details["quantization_parameters"]["scales"][0],
+        0.003,
+        delta=0.1)
+    self.assertAlmostEqual(
+        output_details["quantization_parameters"]["zero_points"][0],
+        -13,
+        delta=100)
 
   def testOutputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
