@@ -21,8 +21,10 @@
 
 set -e
 
-TENSORFLOW_ROOT=${1}
-EXTERNAL_DIR=${2}
+TENSORFLOW_ROOT=tflite-micro/
+EXTERNAL_DIR=
+#TENSORFLOW_ROOT=${1}
+#EXTERNAL_DIR=${2}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
