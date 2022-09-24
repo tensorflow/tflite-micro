@@ -19,16 +19,8 @@
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
 set -e
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-if [ ! -z ${2} ]; then
-  ROOT_DIR=${SCRIPT_DIR}/../../../../../..
-else
-  ROOT_DIR=${SCRIPT_DIR}/../../../../..
-fi
-
-cd "${ROOT_DIR}"
+echo "Inside test xtensa fusion f1 "
+echo "$@"
 
 TENSORFLOW_ROOT=${2}
 EXTERNAL_DIR=${3}
