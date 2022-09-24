@@ -154,6 +154,7 @@ CC_WARNINGS := \
   -Wextra \
   -Wmissing-field-initializers \
   -Wstrict-aliasing \
+  -Wnon-virtual-dtor \
   -Wno-unused-parameter
 
 COMMON_FLAGS := \
