@@ -20,6 +20,16 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ ! -z ${2} ]; then
+  ROOT_DIR=${SCRIPT_DIR}/../../../../../..
+else
+  ROOT_DIR=${SCRIPT_DIR}/../../../../..
+fi
+
+cd "${ROOT_DIR}"
+
 TENSORFLOW_ROOT=${2}
 EXTERNAL_DIR=${3}
 
