@@ -33,8 +33,6 @@ jobs:
     name: Fusion F1 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
