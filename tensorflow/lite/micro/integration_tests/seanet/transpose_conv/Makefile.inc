@@ -21,7 +21,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/transpose_conv/
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv4_golden_int16.csv \
 
 integration_tests_seanet_transpose_conv_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/transpose_conv/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/transpose_conv/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_transpose_conv_test,\
 $(integration_tests_seanet_transpose_conv_SRCS),,$(integration_tests_seanet_transpose_conv_GENERATOR_INPUTS)))
