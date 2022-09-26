@@ -39,7 +39,7 @@ jobs:
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
           cd ../
-          docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 "tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
+          docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 'cd ../ | tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/'
 
   hifi5_unit_tests:
     runs-on: ubuntu-latest
