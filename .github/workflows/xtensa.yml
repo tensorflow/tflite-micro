@@ -57,7 +57,6 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          cd ../
           docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 "tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/"
 
   vision_p6_presubmit:
@@ -76,7 +75,6 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          cd ../
           docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 "tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/"
 
   vision_p6_unit_tests:
@@ -94,7 +92,6 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          cd ../
           docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 "tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
   hifi_3z_unit_tests:
@@ -112,6 +109,5 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          cd ../
           docker run --rm -v `pwd`:/opt ghcr.io/tflm-bot/xtensa:0.1 "tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh EXTERNAL tflite-micro/""
 

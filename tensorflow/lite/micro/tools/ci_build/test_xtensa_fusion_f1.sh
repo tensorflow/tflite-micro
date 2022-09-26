@@ -22,6 +22,13 @@ set -e
 echo "Inside test xtensa fusion f1 "
 echo "$@"
 
+pwd
+
+echo "See the pwd above"
+echo $1
+echo $2
+echo $3
+
 TENSORFLOW_ROOT=tflite-micro/
 EXTERNAL_DIR=
 #TENSORFLOW_ROOT=${2}
