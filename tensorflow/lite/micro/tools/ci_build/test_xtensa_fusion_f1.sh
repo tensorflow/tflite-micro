@@ -23,6 +23,8 @@ echo "Inside test xtensa fusion f1 "
 echo "$@"
 
 pwd
+cd ../
+pwd
 
 echo "See the pwd above"
 echo $1
