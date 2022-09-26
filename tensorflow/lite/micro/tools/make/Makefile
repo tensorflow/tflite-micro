@@ -178,6 +178,7 @@ CXXFLAGS := \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
+  -Wnon-virtual-dtor \
   $(COMMON_FLAGS)
 
 CCFLAGS := \

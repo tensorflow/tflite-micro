@@ -23,6 +23,8 @@ namespace tflite {
 // Interface class that the TFLM framework relies on for profiling.
 class MicroProfilerInterface {
  public:
+  virtual ~MicroProfilerInterface() {}
+
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent.
   virtual uint32_t BeginEvent(const char* tag) = 0;
