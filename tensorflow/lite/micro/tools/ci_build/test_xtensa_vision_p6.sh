@@ -19,6 +19,8 @@
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
 set -e
+cd ../
+pwd
 
 TENSORFLOW_ROOT=tflite-micro/
 EXTERNAL_DIR=

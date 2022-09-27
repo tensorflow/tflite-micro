@@ -19,17 +19,8 @@
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
 set -e
-echo "Inside test xtensa fusion f1 "
-echo "$@"
-
+cd ../
 pwd
-#cd ../
-pwd
-
-echo "See the pwd above"
-echo $1
-echo $2
-echo $3
 
 TENSORFLOW_ROOT=tflite-micro/
 EXTERNAL_DIR=
