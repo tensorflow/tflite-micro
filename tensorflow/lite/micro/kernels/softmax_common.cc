@@ -83,6 +83,7 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
       TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
       TF_LITE_ENSURE_NEAR(context, output->params.scale, 1.f / 32768,
                           (0.001f * 1.f / 32768));
