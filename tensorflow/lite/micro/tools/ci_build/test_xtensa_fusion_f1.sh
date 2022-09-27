@@ -19,13 +19,10 @@
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
 set -e
-cd ../
 pwd
 
-TENSORFLOW_ROOT=tflite-micro/
-EXTERNAL_DIR=
-#TENSORFLOW_ROOT=${2}
-#EXTERNAL_DIR=${3}
+TENSORFLOW_ROOT=${2}
+EXTERNAL_DIR=${3}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
