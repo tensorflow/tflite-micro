@@ -16,7 +16,7 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/all_ops_p.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_input1_int16_test_data.h"
@@ -105,8 +105,9 @@ void RunModel(const uint8_t* model, const int16_t* input0,
               const uint32_t golden_size, const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
+  AllOpsResolver op_resolver;
 
-  MicroInterpreter interpreter(GetModel(model), AllOpsResolver(), tensor_arena,
+  MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
                                kTensorArenaSize, nullptr, &profiler);
   interpreter.AllocateTensors();
   TfLiteTensor* input0_tensor = interpreter.input(0);
