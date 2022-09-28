@@ -16,7 +16,7 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_p.h"
+#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/add/add0_input1_int16_test_data.h"
