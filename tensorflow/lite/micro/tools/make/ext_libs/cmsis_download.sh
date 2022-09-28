@@ -31,7 +31,6 @@
 #   - Any other informational prints should be on stderr.
 
 set -e
-pwd
 
 TENSORFLOW_ROOT=${2}
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/bash_helpers.sh
