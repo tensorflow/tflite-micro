@@ -64,7 +64,9 @@ jobs:
           pip3 install Wave
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bluepill.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill.sh tflite-micro/
+          cd tflite-micro/
           tensorflow/lite/micro/tools/ci_build/test_stm32f4.sh
 
   check_code_style:
