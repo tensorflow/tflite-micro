@@ -38,5 +38,6 @@ readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver
 
 readable_run bazel run ${GEN_TEST_OUTPUT_DIR_RELATIVE}:micro_mutable_op_resolver_test
 
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile \
-             test_generated_micro_mutable_op_resolver_person_detect_test
+# TODO: Resolve in MLBEDSW-6977
+#readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile \
+#             test_generated_micro_mutable_op_resolver_person_detect_test
