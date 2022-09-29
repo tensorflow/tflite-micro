@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -44,7 +44,7 @@ class MicroInterpreter {
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr)
+                   MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(model, op_resolver, tensor_arena, tensor_arena_size,
                          resource_variables, profiler) {
     (void)error_reporter;
@@ -61,13 +61,13 @@ class MicroInterpreter {
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    uint8_t* tensor_arena, size_t tensor_arena_size,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr);
+                   MicroProfilerInterface* profiler = nullptr);
 
   // TODO(b/246776144): Will be removed with http://b/246776144
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator, ErrorReporter* error_reporter,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr)
+                   MicroProfilerInterface* profiler = nullptr)
       : MicroInterpreter(model, op_resolver, allocator, resource_variables,
                          profiler) {
     (void)error_reporter;
@@ -81,7 +81,7 @@ class MicroInterpreter {
   MicroInterpreter(const Model* model, const MicroOpResolver& op_resolver,
                    MicroAllocator* allocator,
                    MicroResourceVariables* resource_variables = nullptr,
-                   MicroProfiler* profiler = nullptr);
+                   MicroProfilerInterface* profiler = nullptr);
 
   ~MicroInterpreter();
 
@@ -167,7 +167,7 @@ class MicroInterpreter {
  private:
   // TODO(b/158263161): Consider switching to Create() function to enable better
   // error reporting during initialization.
-  void Init(MicroProfiler* profiler);
+  void Init(MicroProfilerInterface* profiler);
 
   // Gets the current subgraph index used from within context methods.
   int get_subgraph_index() { return graph_.GetCurrentSubgraphIndex(); }

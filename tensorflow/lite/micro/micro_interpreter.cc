@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/schema/schema_utils.h"
 
@@ -39,7 +39,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfiler* profiler)
+                                   MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size)),
@@ -57,7 +57,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    MicroAllocator* allocator,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfiler* profiler)
+                                   MicroProfilerInterface* profiler)
     : model_(model),
       op_resolver_(op_resolver),
       allocator_(*allocator),
@@ -76,7 +76,7 @@ MicroInterpreter::~MicroInterpreter() {
   }
 }
 
-void MicroInterpreter::Init(MicroProfiler* profiler) {
+void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
