@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-## Called with following arguments:
- ## 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
- ## 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
+# Called with following arguments:
+# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # Tests the microcontroller code for bluepill platform
 
 set -e
