@@ -46,8 +46,8 @@ def _get_dirs(file_list):
 
 def _get_file_list(key, makefile_options, tensorflow_root):
   params_list = [
-      "make", "-f", tensorflow_root +
-      "tensorflow/lite/micro/tools/make/Makefile", key
+      "make", "-f",
+      tensorflow_root + "tensorflow/lite/micro/tools/make/Makefile", key
   ] + makefile_options.split()
   process = subprocess.Popen(params_list,
                              stdout=subprocess.PIPE,
@@ -61,12 +61,15 @@ def _get_file_list(key, makefile_options, tensorflow_root):
   return [bytepath.decode() for bytepath in stdout.split()]
 
 
-def _third_party_src_and_dest_files(prefix_dir, makefile_options, tensorflow_root):
+def _third_party_src_and_dest_files(prefix_dir, makefile_options,
+                                    tensorflow_root):
   src_files = []
   src_files.extend(
-      _get_file_list("list_third_party_sources", makefile_options, tensorflow_root))
+      _get_file_list("list_third_party_sources", makefile_options,
+                     tensorflow_root))
   src_files.extend(
-      _get_file_list("list_third_party_headers", makefile_options, tensorflow_root))
+      _get_file_list("list_third_party_headers", makefile_options,
+                     tensorflow_root))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a
@@ -93,9 +96,11 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options, tensorflow_roo
 def _tflm_src_and_dest_files(prefix_dir, makefile_options, tensorflow_root):
   src_files = []
   src_files.extend(
-      _get_file_list("list_library_sources", makefile_options, tensorflow_root))
+      _get_file_list("list_library_sources", makefile_options,
+                     tensorflow_root))
   src_files.extend(
-      _get_file_list("list_library_headers", makefile_options, tensorflow_root))
+      _get_file_list("list_library_headers", makefile_options,
+                     tensorflow_root))
   dest_files = [os.path.join(prefix_dir, src) for src in src_files]
   return src_files, dest_files
 
@@ -120,7 +125,9 @@ def _copy(src_files, dest_files):
 
 
 def _get_tflm_generator_path(tensorflow_root):
-  return _get_file_list("list_generator_dir", "TENSORFLOW_ROOT="+tensorflow_root, tensorflow_root)[0]
+  return _get_file_list("list_generator_dir",
+                        "TENSORFLOW_ROOT=" + tensorflow_root,
+                        tensorflow_root)[0]
 
 
 # For examples, we are explicitly making a deicision to not have any source
@@ -133,8 +140,12 @@ def _get_tflm_generator_path(tensorflow_root):
 def _create_examples_tree(prefix_dir, examples_list, tensorflow_root):
   files = []
   for e in examples_list:
-    files.extend(_get_file_list("list_%s_example_sources" % (e), "TENSORFLOW_ROOT="+tensorflow_root, tensorflow_root))
-    files.extend(_get_file_list("list_%s_example_headers" % (e), "TENSORFLOW_ROOT="+tensorflow_root, tensorflow_root))
+    files.extend(
+        _get_file_list("list_%s_example_sources" % (e),
+                       "TENSORFLOW_ROOT=" + tensorflow_root, tensorflow_root))
+    files.extend(
+        _get_file_list("list_%s_example_headers" % (e),
+                       "TENSORFLOW_ROOT=" + tensorflow_root, tensorflow_root))
 
   # The get_file_list gives path relative to the root of the git repo (where the
   # examples are in tensorflow/lite/micro/examples). However, in the output
@@ -257,9 +268,8 @@ def main():
   # no longer be needed once all the downloads are switched over to bash
   # scripts.
   params_list = [
-      "make", "-f",
-      tensorflow_root + "tensorflow/lite/micro/tools/make/Makefile",
-      "third_party_downloads"
+      "make", "-f", tensorflow_root +
+      "tensorflow/lite/micro/tools/make/Makefile", "third_party_downloads"
   ] + makefile_options.split()
   process = subprocess.Popen(params_list,
                              stdout=subprocess.PIPE,
@@ -270,7 +280,8 @@ def main():
                        (" ".join(params_list), stderr.decode()))
 
   src_files, dest_files = _get_src_and_dest_files(args.output_dir,
-                                                  makefile_options, tensorflow_root)
+                                                  makefile_options,
+                                                  tensorflow_root)
 
   if args.print_src_files:
     print(" ".join(src_files))
