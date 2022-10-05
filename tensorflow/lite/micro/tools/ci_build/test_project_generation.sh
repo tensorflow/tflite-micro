@@ -31,7 +31,7 @@ TEST_OUTPUT_DIR="$(mktemp -d)"
 
 readable_run \
   python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --tensorflow_root=${TENSORFLOW_ROOT} \
+  --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
   "${TEST_OUTPUT_DIR}"
 
 readable_run cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR}"
@@ -48,7 +48,7 @@ TEST_OUTPUT_DIR="$(mktemp -d)"
 
 readable_run \
   python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --tensorflow_root=${TENSORFLOW_ROOT} \
+  --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
   "${TEST_OUTPUT_DIR}" \
   ${EXAMPLES}
 
@@ -56,7 +56,7 @@ readable_run \
 # nothing else).
 set +x
 FILES="$(python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-           --tensorflow_root=${TENSORFLOW_ROOT} \
+           --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
            ${TEST_OUTPUT_DIR} \
            --print_src_files --print_dest_files --no_copy)"
 
@@ -78,8 +78,7 @@ TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
 
 readable_run \
   python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
-  --tensorflow_root=${TENSORFLOW_ROOT} \
+  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
   "${TEST_OUTPUT_DIR_CMSIS}" \
   ${EXAMPLES}
 
@@ -102,7 +101,7 @@ TEST_OUTPUT_DIR_RENAME_CC="$(mktemp -d)"
 readable_run \
   python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   --rename_cc_to_cpp \
-  --tensorflow_root=${TENSORFLOW_ROOT} \
+  --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
   "${TEST_OUTPUT_DIR_RENAME_CC}"
 
 CC_FILES="$(find ${TEST_OUTPUT_DIR_RENAME_CC} -name "*.cc" | head)"
