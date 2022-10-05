@@ -46,8 +46,8 @@ def _get_dirs(file_list):
 
 def _get_file_list(key, makefile_options, args):
   params_list = [
-      "make", "-f",
-      args.tensorflow_root + "tensorflow/lite/micro/tools/make/Makefile", key, "TENSORFLOW_ROOT=" +
+      "make", "-f", args.tensorflow_root +
+      "tensorflow/lite/micro/tools/make/Makefile", key, "TENSORFLOW_ROOT=" +
       args.tensorflow_root, "EXTERNAL_DIR=" + args.external_dir
   ] + makefile_options.split()
   process = subprocess.Popen(params_list,
@@ -64,10 +64,10 @@ def _get_file_list(key, makefile_options, args):
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options, args):
   src_files = []
-  src_files.extend(_get_file_list("list_third_party_sources",
-                                  makefile_options, args))
-  src_files.extend(_get_file_list("list_third_party_headers",
-                                  makefile_options, args))
+  src_files.extend(
+      _get_file_list("list_third_party_sources", makefile_options, args))
+  src_files.extend(
+      _get_file_list("list_third_party_headers", makefile_options, args))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a
@@ -77,7 +77,7 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options, args):
   # list of destination directories for each of the third party files.
   # The only exception are third party files outside the downloads folder
   # with absolute paths.
-  tflm_download_path =  args.tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
+  tflm_download_path = args.tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
   dest_files = []
   third_party_path = os.path.join(prefix_dir, "third_party")
   for f in src_files:
@@ -93,8 +93,10 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options, args):
 
 def _tflm_src_and_dest_files(prefix_dir, makefile_options, args):
   src_files = []
-  src_files.extend(_get_file_list("list_library_sources", makefile_options, args))
-  src_files.extend(_get_file_list("list_library_headers", makefile_options, args))
+  src_files.extend(
+      _get_file_list("list_library_sources", makefile_options, args))
+  src_files.extend(
+      _get_file_list("list_library_headers", makefile_options, args))
   dest_files = [os.path.join(prefix_dir, src) for src in src_files]
   return src_files, dest_files
 
@@ -138,8 +140,8 @@ def _create_examples_tree(prefix_dir, examples_list, args):
   # The get_file_list gives path relative to the root of the git repo (where the
   # examples are in tensorflow/lite/micro/examples). However, in the output
   # tree, we would like for the examples to be under prefix_dir/examples.
-  tflm_examples_path =  args.tensorflow_root + "tensorflow/lite/micro/examples"
-  tflm_downloads_path =  args.tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
+  tflm_examples_path = args.tensorflow_root + "tensorflow/lite/micro/examples"
+  tflm_downloads_path = args.tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
   tflm_generator_path = _get_tflm_generator_path(args)
 
   # Some non-example source and headers will be in the {files} list. They need
@@ -179,9 +181,11 @@ def _create_examples_tree(prefix_dir, examples_list, args):
     with fileinput.FileInput(filepath, inplace=True) as f:
       for line in f:
         include_match = re.match(
-            r'.*#include.*"' + tflm_examples_include_path + r'/([^/]+)/.*"', line)
+            r'.*#include.*"' + tflm_examples_include_path + r'/([^/]+)/.*"',
+            line)
         hello_world_gen_include_match = re.match(
-            r'.*#include.*"' + hello_world_gen_include_path + r'/([^/]+)/.*"', line)
+            r'.*#include.*"' + hello_world_gen_include_path + r'/([^/]+)/.*"',
+            line)
         if include_match:
           # We need a trailing forward slash because what we care about is
           # replacing the include paths.
@@ -191,8 +195,9 @@ def _create_examples_tree(prefix_dir, examples_list, args):
         elif hello_world_gen_include_match:
           # We need a trailing forward slash because what we care about is
           # replacing the include paths.
-          text_to_replace_1 = os.path.join(hello_world_gen_include_path,
-                                         hello_world_gen_include_match.group(1)) + "/"
+          text_to_replace_1 = os.path.join(
+              hello_world_gen_include_path,
+              hello_world_gen_include_match.group(1)) + "/"
           line = line.replace(text_to_replace_1, "")
         # end="" prevents an extra newline from getting added as part of the
         # in-place find and replace.
@@ -241,8 +246,9 @@ def main():
       "--tensorflow_root",
       default="",
       help="Root directory which contains all the tflite micro code.")
-  parser.add_argument(
-      "--external_dir", default="", help="External google example directory.")
+  parser.add_argument("--external_dir",
+                      default="",
+                      help="External google example directory.")
   args = parser.parse_args()
 
   makefile_options = args.makefile_options
@@ -265,8 +271,7 @@ def main():
                        (" ".join(params_list), stderr.decode()))
 
   src_files, dest_files = _get_src_and_dest_files(args.output_dir,
-                                                  makefile_options,
-                                                  args)
+                                                  makefile_options, args)
 
   if args.print_src_files:
     print(" ".join(src_files))
