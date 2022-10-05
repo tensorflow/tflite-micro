@@ -85,7 +85,7 @@ readable_run \
 
 pushd "${TEST_OUTPUT_DIR_CMSIS}" > /dev/null
 
-PATH="${PATH}:`pwd`/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
+PATH="${PATH}:`pwd`/${TENSORFLOW_ROOT}/tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
   readable_run \
   make -j8 BUILD_TYPE=cmsis_nn TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 
