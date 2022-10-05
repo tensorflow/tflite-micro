@@ -21,8 +21,7 @@ set -e
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="${SCRIPT_DIR}/../../../../../.."
+ROOT_DIR="$(pwd)/${TENSORFLOW_ROOT}"
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
@@ -89,7 +88,7 @@ readable_run \
 
 pushd "${TEST_OUTPUT_DIR_CMSIS}" > /dev/null
 
-PATH="${PATH}:${ROOT_DIR}/${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
+PATH="${PATH}:${ROOT_DIR}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
   readable_run \
   make -j8 BUILD_TYPE=cmsis_nn TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 
