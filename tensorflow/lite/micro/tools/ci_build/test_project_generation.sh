@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
+# Called with following arguments:
+# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 set -e
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="${SCRIPT_DIR}/../../../../../.."
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
@@ -87,7 +86,7 @@ readable_run \
 
 pushd "${TEST_OUTPUT_DIR_CMSIS}" > /dev/null
 
-PATH="${PATH}:${ROOT_DIR}/${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
+PATH="${PATH}:$(pwd)/${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
   readable_run \
   make -j8 BUILD_TYPE=cmsis_nn TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 

@@ -176,15 +176,15 @@ def _create_examples_tree(prefix_dir, examples_list, args):
   # Since we are changing the directory structure for the examples, we will also
   # need to modify the paths in the code.
   tflm_examples_include_path = "tensorflow/lite/micro/examples"
-  hello_world_gen_include_path = "tflite-micro/tensorflow/lite/micro/examples"
+  examples_gen_include_path = "tflite-micro/tensorflow/lite/micro/examples"
   for filepath in dest_file_list:
     with fileinput.FileInput(filepath, inplace=True) as f:
       for line in f:
         include_match = re.match(
             r'.*#include.*"' + tflm_examples_include_path + r'/([^/]+)/.*"',
             line)
-        hello_world_gen_include_match = re.match(
-            r'.*#include.*"' + hello_world_gen_include_path + r'/([^/]+)/.*"',
+        examples_gen_include_match = re.match(
+            r'.*#include.*"' + examples_gen_include_path + r'/([^/]+)/.*"',
             line)
         if include_match:
           # We need a trailing forward slash because what we care about is
@@ -192,12 +192,12 @@ def _create_examples_tree(prefix_dir, examples_list, args):
           text_to_replace = os.path.join(tflm_examples_include_path,
                                          include_match.group(1)) + "/"
           line = line.replace(text_to_replace, "")
-        elif hello_world_gen_include_match:
+        elif examples_gen_include_match:
           # We need a trailing forward slash because what we care about is
           # replacing the include paths.
           text_to_replace_1 = os.path.join(
-              hello_world_gen_include_path,
-              hello_world_gen_include_match.group(1)) + "/"
+              examples_gen_include_path,
+              examples_gen_include_match.group(1)) + "/"
           line = line.replace(text_to_replace_1, "")
         # end="" prevents an extra newline from getting added as part of the
         # in-place find and replace.
