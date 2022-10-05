@@ -42,10 +42,10 @@ else
 endif
 
 # Currently there is a dependency to CMSIS even without OPTIMIZED_KERNEL_DIR=cmsis_nn.
-CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
+CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT})
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
   endif
@@ -73,4 +73,4 @@ CXXFLAGS += ${ETHOSU_FLAGS}
 
 # Convert downloaded person detect int8 model.
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc:
-	$(info Result of person detect int8 model conversion: $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${MAKEFILE_DIR}/downloads $(GENERATED_SRCS_DIR)))
+	$(info Result of person detect int8 model conversion: $(shell $(MAKEFILE_DIR)/ext_libs/person_detection_int8_vela_convert.sh ${DOWNLOADS_DIR} $(GENERATED_SRCS_DIR) $(TENSORFLOW_ROOT)))
