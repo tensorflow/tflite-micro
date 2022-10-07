@@ -103,7 +103,8 @@ jobs:
           pip3 install Wave
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/
 
   x86_tests:
     runs-on: ubuntu-latest
