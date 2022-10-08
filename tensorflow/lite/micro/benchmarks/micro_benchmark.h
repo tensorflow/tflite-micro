@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ limitations under the License.
 
 #include <climits>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/micro/micro_time.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -35,11 +35,12 @@ class MicroBenchmarkRunner {
   MicroBenchmarkRunner(const uint8_t* model,
                        const tflite::MicroOpResolver* op_resolver,
                        uint8_t* tensor_arena, int tensor_arena_size,
-                       MicroProfiler* profiler, int num_resource_variables = 0)
-      : allocator_(RecordingMicroAllocator::Create(
-            tensor_arena, tensor_arena_size, GetMicroErrorReporter())),
+                       MicroProfilerInterface* profiler,
+                       int num_resource_variables = 0)
+      : allocator_(
+            RecordingMicroAllocator::Create(tensor_arena, tensor_arena_size)),
         interpreter_(
-            GetModel(model), *op_resolver, allocator_, GetMicroErrorReporter(),
+            GetModel(model), *op_resolver, allocator_,
             MicroResourceVariables::Create(allocator_, num_resource_variables),
             profiler) {
     interpreter_.AllocateTensors();

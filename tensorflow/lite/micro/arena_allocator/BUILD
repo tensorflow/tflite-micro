@@ -33,7 +33,7 @@ cc_library(
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 
@@ -58,7 +58,7 @@ cc_library(
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 
@@ -87,7 +87,7 @@ cc_library(
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 

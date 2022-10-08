@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -86,6 +87,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     TF_LITE_ENSURE_EQ(context, filter->quantization.type,
                       kTfLiteAffineQuantization);
+
+    if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+    }
 
     // All per-channel quantized tensors need valid zero point and scale arrays.
     const auto* affine_quantization =

@@ -29,6 +29,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Bazel (presubmit)
@@ -51,6 +52,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Cortex-M (presubmit)
@@ -62,8 +64,9 @@ jobs:
           pip3 install Wave
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bluepill.sh
-          tensorflow/lite/micro/tools/ci_build/test_stm32f4.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_stm32f4.sh tflite-micro/
 
   check_code_style:
     runs-on: ubuntu-latest
@@ -71,6 +74,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Code Style (presubmit)
@@ -87,6 +91,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Project Generation (presubmit)
@@ -98,7 +103,8 @@ jobs:
           pip3 install Wave
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_project_generation.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/
 
   x86_tests:
     runs-on: ubuntu-latest
@@ -119,5 +125,6 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          tensorflow/lite/micro/tools/ci_build/test_x86.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86.sh tflite-micro/
 

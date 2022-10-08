@@ -18,7 +18,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/models/keyword_scrambled_model_data.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -137,9 +136,8 @@ void EnsureAllocatedSizeThreshold(const char* allocation_type, size_t actual,
     TF_LITE_MICRO_EXPECT_NEAR(actual, expected,
                               expected * kAllocationThreshold);
     if (actual != expected) {
-      TF_LITE_REPORT_ERROR(tflite::GetMicroErrorReporter(),
-                           "%s threshold failed: %d != %d", allocation_type,
-                           actual, expected);
+      MicroPrintf("%s threshold failed: %d != %d", allocation_type, actual,
+                  expected);
     }
   } else {
     // Non-64 bit systems should just expect allocation does not exceed the
@@ -226,8 +224,7 @@ TF_LITE_MICRO_TEST(TestKeywordModelMemoryThreshold) {
   tflite::AllOpsResolver all_ops_resolver;
   tflite::RecordingMicroInterpreter interpreter(
       tflite::GetModel(g_keyword_scrambled_model_data), all_ops_resolver,
-      keyword_model_tensor_arena, kKeywordModelTensorArenaSize,
-      tflite::GetMicroErrorReporter());
+      keyword_model_tensor_arena, kKeywordModelTensorArenaSize);
 
   interpreter.AllocateTensors();
 
@@ -259,8 +256,7 @@ TF_LITE_MICRO_TEST(TestConvModelMemoryThreshold) {
   tflite::AllOpsResolver all_ops_resolver;
   tflite::RecordingMicroInterpreter interpreter(
       tflite::GetModel(kTestConvModelData), all_ops_resolver,
-      test_conv_tensor_arena, kTestConvModelArenaSize,
-      tflite::GetMicroErrorReporter());
+      test_conv_tensor_arena, kTestConvModelArenaSize);
 
   interpreter.AllocateTensors();
 

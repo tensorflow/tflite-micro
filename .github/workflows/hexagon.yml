@@ -27,6 +27,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Hexagon Build Test (presubmit)
@@ -35,7 +36,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: |
+          rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.2 /opt/tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.2 \
+          /bin/bash -c \
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/"
 
 

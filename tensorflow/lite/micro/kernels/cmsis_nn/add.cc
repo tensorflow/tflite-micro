@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -258,6 +259,12 @@ TfLiteStatus PrepareAdd(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+
+  if (input1->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, input1->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, input2->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+  }
 
   OpData* data = static_cast<OpData*>(node->user_data);
   auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);

@@ -1,4 +1,5 @@
 tensorflow-cpu
+numpy
 mako
 pillow
 yapf

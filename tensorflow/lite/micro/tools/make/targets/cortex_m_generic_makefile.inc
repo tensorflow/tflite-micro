@@ -97,10 +97,6 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
 
 else ifeq ($(TARGET_ARCH), project_generation)
   # No flags needed here as project_generation does not build anything.
-  # Make explicit there is to be no gcc download as project_generation does
-  # not build anything.
-  SKIP_ARM_GCC_DOWNLOAD = yes
-
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -144,17 +140,12 @@ ifeq ($(TOOLCHAIN), armclang)
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
 
 else ifeq ($(TOOLCHAIN), gcc)
-  # Download may be skipped in some cases, for example project generation.
-  SKIP_ARM_GCC_DOWNLOAD ?= no
-
-  TARGET_DEFAULT_TOOLCHAIN_ROOT := ${TENSORFLOW_ROOT}$(MAKEFILE_DIR)/downloads/gcc_embedded/bin/
+  TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
   TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-  ifeq ($(SKIP_ARM_GCC_DOWNLOAD), no)
-    ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
-      DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${MAKEFILE_DIR}/downloads)
-      ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-        $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
-      endif
+  ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
+    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT})
+    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+      $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
     endif
   endif
 
@@ -202,7 +193,7 @@ CCFLAGS += $(PLATFORM_FLAGS)
 
 # Needed for the project generation interface.
 MICROLITE_CC_HDRS += \
-  tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h
 
 # We only include micro_speech for project generation to allow for all the files
 # to be downloaded. We do not include it for an actual build with the
@@ -210,6 +201,6 @@ MICROLITE_CC_HDRS += \
 # libtensorflow-microlite.a which can result in symbol collision.
 ifneq ($(TARGET_ARCH), project_generation)
   EXCLUDED_EXAMPLE_TESTS := \
-    tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif

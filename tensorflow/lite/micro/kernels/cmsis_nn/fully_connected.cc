@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -96,6 +97,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   int32_t buf_size = 0;
 
   if (input->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
     buf_size = arm_fully_connected_s16_get_buffer_size(&filter_dims);
   } else if (input->type == kTfLiteInt8) {
     const RuntimeShape input_shape = GetTensorShape(input);

@@ -22,8 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -32,7 +31,7 @@ namespace tflite {
 namespace {
 constexpr size_t buffer_arena_size = 256 * 1024;
 uint8_t arena_buffer[buffer_arena_size];
-class MockProfiler : public MicroProfiler {
+class MockProfiler : public MicroProfilerInterface {
  public:
   MockProfiler() : event_starts_(0), event_ends_(0) {}
 
@@ -70,8 +69,7 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
   // Create a new scope so that we can test the destructor.
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
-                                         allocator_buffer_size,
-                                         tflite::GetMicroErrorReporter());
+                                         allocator_buffer_size);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_LE(interpreter.arena_used_bytes(), 928 + 100);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
@@ -120,11 +118,9 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   // Get simple_model_head_usage.
   {
     tflite::RecordingMicroAllocator* allocator =
-        tflite::RecordingMicroAllocator::Create(
-            arena, arena_size, tflite::GetMicroErrorReporter());
+        tflite::RecordingMicroAllocator::Create(arena, arena_size);
     const tflite::Model* model0 = tflite::testing::GetSimpleMockModel();
-    tflite::MicroInterpreter interpreter0(model0, op_resolver, allocator,
-                                          tflite::GetMicroErrorReporter());
+    tflite::MicroInterpreter interpreter0(model0, op_resolver, allocator);
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter0.AllocateTensors());
     simple_model_head_usage =
         allocator->GetSimpleMemoryAllocator()->GetNonPersistentUsedBytes();
@@ -138,14 +134,12 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
 
   // Shared allocator for various models.
   tflite::RecordingMicroAllocator* allocator =
-      tflite::RecordingMicroAllocator::Create(arena, arena_size,
-                                              tflite::GetMicroErrorReporter());
+      tflite::RecordingMicroAllocator::Create(arena, arena_size);
 
   // Get complex_model_head_usage. No head space reuse since it's the first
   // model allocated in the `allocator`.
   const tflite::Model* model1 = tflite::testing::GetComplexMockModel();
-  tflite::MicroInterpreter interpreter1(model1, op_resolver, allocator,
-                                        tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter1(model1, op_resolver, allocator);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter1.AllocateTensors());
   TfLiteTensor* input1 = interpreter1.input(0);
   TfLiteTensor* output1 = interpreter1.output(0);
@@ -156,8 +150,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   // be reused thanks to multi-tenant TFLM support. Also makes sure that
   // the output is correct.
   const tflite::Model* model2 = tflite::testing::GetSimpleMockModel();
-  tflite::MicroInterpreter interpreter2(model2, op_resolver, allocator,
-                                        tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter2(model2, op_resolver, allocator);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter2.AllocateTensors());
   TfLiteTensor* input2 = interpreter2.input(0);
   TfLiteTensor* output2 = interpreter2.output(0);
@@ -186,8 +179,7 @@ TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   // Allocate another complex model from the `allocator` will not increase
   // head space usage.
   const tflite::Model* model3 = tflite::testing::GetComplexMockModel();
-  tflite::MicroInterpreter interpreter3(model3, op_resolver, allocator,
-                                        tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter3(model3, op_resolver, allocator);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter3.AllocateTensors());
   TfLiteTensor* input3 = interpreter3.input(0);
   TfLiteTensor* output3 = interpreter3.output(0);
@@ -214,13 +206,11 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
 
   tflite::RecordingMicroAllocator* allocator =
       tflite::RecordingMicroAllocator::Create(allocator_buffer,
-                                              allocator_buffer_size,
-                                              tflite::GetMicroErrorReporter());
+                                              allocator_buffer_size);
 
   // Make sure kernel memory planning works in multi-tenant context.
   for (int i = 0; i < 3; i++) {
-    tflite::MicroInterpreter interpreter(model, op_resolver, allocator,
-                                         tflite::GetMicroErrorReporter());
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), interpreter.outputs_size());
@@ -266,8 +256,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
-                                       allocator_buffer_size,
-                                       tflite::GetMicroErrorReporter());
+                                       allocator_buffer_size);
 }
 
 // Test that an interpreter with a supplied profiler correctly calls the
@@ -281,9 +270,9 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   constexpr size_t allocator_buffer_size = 2048;
   uint8_t allocator_buffer[allocator_buffer_size];
   tflite::MockProfiler profiler;
-  tflite::MicroInterpreter interpreter(
-      model, op_resolver, allocator_buffer, allocator_buffer_size,
-      tflite::GetMicroErrorReporter(), nullptr, &profiler);
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                       allocator_buffer_size, nullptr,
+                                       &profiler);
 
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_starts(), 0);
   TF_LITE_MICRO_EXPECT_EQ(profiler.event_ends(), 0);
@@ -326,12 +315,10 @@ TF_LITE_MICRO_TEST(TestIncompleteInitializationAllocationsWithSmallArena) {
 
   tflite::RecordingMicroAllocator* allocator =
       tflite::RecordingMicroAllocator::Create(allocator_buffer,
-                                              allocator_buffer_size,
-                                              tflite::GetMicroErrorReporter());
+                                              allocator_buffer_size);
   TF_LITE_MICRO_EXPECT(nullptr != allocator);
 
-  tflite::MicroInterpreter interpreter(model, op_resolver, allocator,
-                                       tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator);
 
   // Interpreter fails because arena is too small:
   TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteError);
@@ -372,12 +359,10 @@ TF_LITE_MICRO_TEST(TestInterpreterDoesNotAllocateUntilInvoke) {
 
   tflite::RecordingMicroAllocator* allocator =
       tflite::RecordingMicroAllocator::Create(allocator_buffer,
-                                              allocator_buffer_size,
-                                              tflite::GetMicroErrorReporter());
+                                              allocator_buffer_size);
   TF_LITE_MICRO_EXPECT(nullptr != allocator);
 
-  tflite::MicroInterpreter interpreter(model, op_resolver, allocator,
-                                       tflite::GetMicroErrorReporter());
+  tflite::MicroInterpreter interpreter(model, op_resolver, allocator);
 
   // Ensure allocations are zero (ignore tail since some internal structs are
   // initialized with this space):
@@ -444,8 +429,7 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   // Create a new scope so that we can test the destructor.
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
-                                         allocator_buffer_size,
-                                         tflite::GetMicroErrorReporter());
+                                         allocator_buffer_size);
 
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_LE(interpreter.arena_used_bytes(), 928 + 100);
@@ -506,8 +490,7 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
-                                       allocator_buffer_size,
-                                       tflite::GetMicroErrorReporter());
+                                       allocator_buffer_size);
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
@@ -525,8 +508,7 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
 
   tflite::AllOpsResolver op_resolver = tflite::testing::GetOpResolver();
   tflite::MicroInterpreter interpreter(model, op_resolver, tflite::arena_buffer,
-                                       tflite::buffer_arena_size,
-                                       tflite::GetMicroErrorReporter());
+                                       tflite::buffer_arena_size);
   TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
 
   // Store the required arena size before Invoke() because this is what this
@@ -541,8 +523,7 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   size_t required_arena_size =
       used_arena_size + tflite::MicroArenaBufferAlignment();
   tflite::MicroInterpreter interpreter2(
-      model, op_resolver, tflite::arena_buffer, required_arena_size,
-      tflite::GetMicroErrorReporter());
+      model, op_resolver, tflite::arena_buffer, required_arena_size);
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.AllocateTensors(), kTfLiteOk);
 
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);

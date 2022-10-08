@@ -44,9 +44,10 @@ def _get_dirs(file_list):
   return dirs
 
 
-def _get_file_list(key, makefile_options):
+def _get_file_list(key, makefile_options, tensorflow_root):
   params_list = [
-      "make", "-f", "tensorflow/lite/micro/tools/make/Makefile", key
+      "make", "-f",
+      tensorflow_root + "tensorflow/lite/micro/tools/make/Makefile", key
   ] + makefile_options.split()
   process = subprocess.Popen(params_list,
                              stdout=subprocess.PIPE,
@@ -60,12 +61,15 @@ def _get_file_list(key, makefile_options):
   return [bytepath.decode() for bytepath in stdout.split()]
 
 
-def _third_party_src_and_dest_files(prefix_dir, makefile_options):
+def _third_party_src_and_dest_files(prefix_dir, makefile_options,
+                                    tensorflow_root):
   src_files = []
-  src_files.extend(_get_file_list("list_third_party_sources",
-                                  makefile_options))
-  src_files.extend(_get_file_list("list_third_party_headers",
-                                  makefile_options))
+  src_files.extend(
+      _get_file_list("list_third_party_sources", makefile_options,
+                     tensorflow_root))
+  src_files.extend(
+      _get_file_list("list_third_party_headers", makefile_options,
+                     tensorflow_root))
 
   # The list_third_party_* rules give path relative to the root of the git repo.
   # However, in the output tree, we would like for the third_party code to be a
@@ -75,7 +79,7 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   # list of destination directories for each of the third party files.
   # The only exception are third party files outside the downloads folder
   # with absolute paths.
-  tflm_download_path = "tensorflow/lite/micro/tools/make/downloads"
+  tflm_download_path = tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
   dest_files = []
   third_party_path = os.path.join(prefix_dir, "third_party")
   for f in src_files:
@@ -89,19 +93,23 @@ def _third_party_src_and_dest_files(prefix_dir, makefile_options):
   return src_files, dest_files
 
 
-def _tflm_src_and_dest_files(prefix_dir, makefile_options):
+def _tflm_src_and_dest_files(prefix_dir, makefile_options, tensorflow_root):
   src_files = []
-  src_files.extend(_get_file_list("list_library_sources", makefile_options))
-  src_files.extend(_get_file_list("list_library_headers", makefile_options))
+  src_files.extend(
+      _get_file_list("list_library_sources", makefile_options,
+                     tensorflow_root))
+  src_files.extend(
+      _get_file_list("list_library_headers", makefile_options,
+                     tensorflow_root))
   dest_files = [os.path.join(prefix_dir, src) for src in src_files]
   return src_files, dest_files
 
 
-def _get_src_and_dest_files(prefix_dir, makefile_options):
+def _get_src_and_dest_files(prefix_dir, makefile_options, tensorflow_root):
   tflm_src_files, tflm_dest_files = _tflm_src_and_dest_files(
-      prefix_dir, makefile_options)
+      prefix_dir, makefile_options, tensorflow_root)
   third_party_srcs, third_party_dests = _third_party_src_and_dest_files(
-      prefix_dir, makefile_options)
+      prefix_dir, makefile_options, tensorflow_root)
 
   all_src_files = tflm_src_files + third_party_srcs
   all_dest_files = tflm_dest_files + third_party_dests
@@ -116,8 +124,10 @@ def _copy(src_files, dest_files):
     shutil.copy(src, dst)
 
 
-def _get_tflm_generator_path():
-  return _get_file_list("list_generator_dir", "")[0]
+def _get_tflm_generator_path(tensorflow_root):
+  return _get_file_list("list_generator_dir",
+                        "TENSORFLOW_ROOT=" + tensorflow_root,
+                        tensorflow_root)[0]
 
 
 # For examples, we are explicitly making a deicision to not have any source
@@ -127,18 +137,22 @@ def _get_tflm_generator_path():
 # x86 and it will be the responsibility of the target-specific examples
 # repository to provide all the additional sources (and remove the unnecessary
 # sources) for the examples to run on that specific target.
-def _create_examples_tree(prefix_dir, examples_list):
+def _create_examples_tree(prefix_dir, examples_list, tensorflow_root):
   files = []
   for e in examples_list:
-    files.extend(_get_file_list("list_%s_example_sources" % (e), ""))
-    files.extend(_get_file_list("list_%s_example_headers" % (e), ""))
+    files.extend(
+        _get_file_list("list_%s_example_sources" % (e),
+                       "TENSORFLOW_ROOT=" + tensorflow_root, tensorflow_root))
+    files.extend(
+        _get_file_list("list_%s_example_headers" % (e),
+                       "TENSORFLOW_ROOT=" + tensorflow_root, tensorflow_root))
 
   # The get_file_list gives path relative to the root of the git repo (where the
   # examples are in tensorflow/lite/micro/examples). However, in the output
   # tree, we would like for the examples to be under prefix_dir/examples.
-  tflm_examples_path = "tensorflow/lite/micro/examples"
-  tflm_downloads_path = "tensorflow/lite/micro/tools/make/downloads"
-  tflm_generator_path = _get_tflm_generator_path()
+  tflm_examples_path = tensorflow_root + "tensorflow/lite/micro/examples"
+  tflm_downloads_path = tensorflow_root + "tensorflow/lite/micro/tools/make/downloads"
+  tflm_generator_path = _get_tflm_generator_path(tensorflow_root)
 
   # Some non-example source and headers will be in the {files} list. They need
   # special handling or they will end up outside the {prefix_dir} tree.
@@ -171,17 +185,30 @@ def _create_examples_tree(prefix_dir, examples_list):
 
   # Since we are changing the directory structure for the examples, we will also
   # need to modify the paths in the code.
+  tflm_examples_include_path = "tensorflow/lite/micro/examples"
+  examples_gen_include_path = tensorflow_root + "tensorflow/lite/micro/examples"
   for filepath in dest_file_list:
     with fileinput.FileInput(filepath, inplace=True) as f:
       for line in f:
         include_match = re.match(
-            r'.*#include.*"' + tflm_examples_path + r'/([^/]+)/.*"', line)
+            r'.*#include.*"' + tflm_examples_include_path + r'/([^/]+)/.*"',
+            line)
+        examples_gen_include_match = re.match(
+            r'.*#include.*"' + examples_gen_include_path + r'/([^/]+)/.*"',
+            line)
         if include_match:
           # We need a trailing forward slash because what we care about is
           # replacing the include paths.
-          text_to_replace = os.path.join(tflm_examples_path,
+          text_to_replace = os.path.join(tflm_examples_include_path,
                                          include_match.group(1)) + "/"
           line = line.replace(text_to_replace, "")
+        elif examples_gen_include_match:
+          # We need a trailing forward slash because what we care about is
+          # replacing the include paths.
+          text_to_replace_1 = os.path.join(
+              examples_gen_include_path,
+              examples_gen_include_match.group(1)) + "/"
+          line = line.replace(text_to_replace_1, "")
         # end="" prevents an extra newline from getting added as part of the
         # in-place find and replace.
         print(line, end="")
@@ -225,16 +252,24 @@ def main():
       "--rename_cc_to_cpp",
       action="store_true",
       help="Rename all .cc files to .cpp in the destination files location.")
+
   args = parser.parse_args()
 
   makefile_options = args.makefile_options
+
+  make_entries = makefile_options.split()
+  tensorflow_root = ""
+  for make_entry in make_entries:
+    key_value = make_entry.split("=")
+    if key_value[0] == "TENSORFLOW_ROOT":
+      tensorflow_root = key_value[1]
 
   # TODO(b/143904317): Explicitly call make third_party_downloads. This will
   # no longer be needed once all the downloads are switched over to bash
   # scripts.
   params_list = [
-      "make", "-f", "tensorflow/lite/micro/tools/make/Makefile",
-      "third_party_downloads"
+      "make", "-f", tensorflow_root +
+      "tensorflow/lite/micro/tools/make/Makefile", "third_party_downloads"
   ] + makefile_options.split()
   process = subprocess.Popen(params_list,
                              stdout=subprocess.PIPE,
@@ -245,7 +280,8 @@ def main():
                        (" ".join(params_list), stderr.decode()))
 
   src_files, dest_files = _get_src_and_dest_files(args.output_dir,
-                                                  makefile_options)
+                                                  makefile_options,
+                                                  tensorflow_root)
 
   if args.print_src_files:
     print(" ".join(src_files))
@@ -257,7 +293,7 @@ def main():
     _copy(src_files, dest_files)
 
   if args.examples is not None:
-    _create_examples_tree(args.output_dir, args.examples)
+    _create_examples_tree(args.output_dir, args.examples, tensorflow_root)
 
   if args.rename_cc_to_cpp:
     _rename_cc_to_cpp(args.output_dir)

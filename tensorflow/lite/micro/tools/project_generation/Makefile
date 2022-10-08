@@ -40,8 +40,13 @@ INCLUDES := \
   -I./third_party/kissfft/tools \
   -I./third_party/ruy
 
-CXXFLAGS :=
-CCFLAGS :=
+ifneq ($(TENSORFLOW_ROOT),)
+  INCLUDES += -I$(TENSORFLOW_ROOT)
+endif
+
+ifneq ($(EXTERNAL_DIR),)
+  INCLUDES += -I$(EXTERNAL_DIR)
+endif
 
 ifeq ($(BUILD_TYPE), cmsis_nn)
   CXX := arm-none-eabi-g++
@@ -56,6 +61,7 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 
   COMMON_FLAGS += \
     -DTF_LITE_MCU_DEBUG_LOG \
+    -DPROJECT_GENERATION \
     -mthumb \
     -mlittle-endian \
     -funsigned-char \
@@ -63,23 +69,16 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
     -MD \
     -DCMSIS_NN
 
-  # For this build type there is additional dependency to CMSIS.
-  TOOLCHAIN = gcc
-  SKIP_ARM_GCC_DOWNLOAD := "yes please"
-  include cortex_m_generic_makefile.inc
-  INCLUDES += \
-    -I./third_party/cmsis/Device/ARM/$(ARM_CPU)/Include
-
 endif
 
-CXXFLAGS += \
+CXXFLAGS := \
   -std=c++11 \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
   $(COMMON_FLAGS)
 
-CCFLAGS += \
+CCFLAGS := \
   -std=c11 \
   $(COMMON_FLAGS)
 
@@ -90,7 +89,7 @@ OBJDIR := $(GENDIR)/obj
 BINDIR := $(GENDIR)/bin
 LIB := $(GENDIR)/libtflm.a
 
-TFLM_CC_SRCS := $(shell find tensorflow -name "*.cc" -o -name "*.c")
+TFLM_CC_SRCS := $(shell find $(TENSORFLOW_ROOT)tensorflow -name "*.cc" -o -name "*.c")
 OBJS := $(addprefix $(OBJDIR)/, $(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(TFLM_CC_SRCS))))
 
 $(OBJDIR)/%.o: %.cc

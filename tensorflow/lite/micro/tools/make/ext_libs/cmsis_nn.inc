@@ -11,10 +11,10 @@ endif
 
 # Unless an external path is provided we force a download during the first
 # phase of make.
-CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
+CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${MAKEFILE_DIR}/downloads)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT})
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
   endif
