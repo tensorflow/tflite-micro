@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
@@ -65,6 +67,31 @@ class MicroProfiler : public MicroProfilerInterface {
   // total ticks summed across all events with that particular tag.
   void LogTicksPerTagCsv();
 
+  // Logging for models that process streaming data and want the log
+  // output of the cumulative stats only at the end of the data stream.
+  // Typical usage would be:
+  // 1) Invoke
+  // 2) UpdateTotalTicksPerTag
+  // 3) ClearEvents
+  // 4) Repeat from 1 until data stream exhausted
+  // 5) LogTicksPerTagCsvExtended
+  // 6) ClearTotalTicksPerTag
+  // 7) Repeat from 1 with new data stream
+
+  // For each unique tag, prints in CSV format:
+  //   tag, total ticks, event count, average ticks/tag, percent of total time
+  // Output will have one row for each unique tag along with the
+  // total ticks summed across all events with that particular tag.
+  void LogTicksPerTagCsvExtended();
+
+  // Updates the ticks and event count for each unique tag in the current
+  // list of events.
+  void UpdateTotalTicksPerTag();
+
+  // Clear the ticks and event count for each unique tag for which an
+  // event was generated.
+  void ClearTotalTicksPerTag();
+
  private:
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
@@ -79,11 +106,12 @@ class MicroProfiler : public MicroProfilerInterface {
   struct TicksPerTag {
     const char* tag;
     uint32_t ticks;
+    uint32_t total_events;
   };
   // In practice, the number of tags will be much lower than the number of
   // events. But it is theoretically possible that each event to be unique and
   // hence we allow total_ticks_per_tag to have kMaxEvents entries.
-  TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
+  TicksPerTag total_ticks_per_tag_[kMaxEvents] = {};
 
   int FindExistingOrNextPosition(const char* tag_name);
 

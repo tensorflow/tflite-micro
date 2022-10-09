@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -78,25 +78,69 @@ void MicroProfiler::LogTicksPerTagCsv() {
     TFLITE_DCHECK(tags_[i] != nullptr);
     int position = FindExistingOrNextPosition(tags_[i]);
     TFLITE_DCHECK(position >= 0);
-    total_ticks_per_tag[position].tag = tags_[i];
-    total_ticks_per_tag[position].ticks =
-        total_ticks_per_tag[position].ticks + ticks;
+    total_ticks_per_tag_[position].tag = tags_[i];
+    total_ticks_per_tag_[position].ticks =
+        total_ticks_per_tag_[position].ticks + ticks;
     total_ticks += ticks;
   }
 
   for (int i = 0; i < num_events_; ++i) {
-    TicksPerTag each_tag_entry = total_ticks_per_tag[i];
+    TicksPerTag each_tag_entry = total_ticks_per_tag_[i];
     if (each_tag_entry.tag == nullptr) {
       break;
     }
     MicroPrintf("%s, %d", each_tag_entry.tag, each_tag_entry.ticks);
   }
-  MicroPrintf("total number of ticks, %d", total_ticks);
+  MicroPrintf("Total number of ticks, %d", total_ticks);
 #endif
 }
 
-// This method finds a particular array element in the total_ticks_per_tag array
-// with the matching tag_name passed in the method. If it can find a
+void MicroProfiler::UpdateTotalTicksPerTag() {
+  for (int i = 0; i < num_events_; ++i) {
+    uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+    TFLITE_DCHECK(tags_[i] != nullptr);
+    int position = FindExistingOrNextPosition(tags_[i]);
+    TFLITE_DCHECK(position >= 0);
+    total_ticks_per_tag_[position].tag = tags_[i];
+    total_ticks_per_tag_[position].ticks += ticks;
+    total_ticks_per_tag_[position].total_events++;
+  }
+}
+
+void MicroProfiler::ClearTotalTicksPerTag() {
+  memset(total_ticks_per_tag_, 0, sizeof(total_ticks_per_tag_));
+}
+
+void MicroProfiler::LogTicksPerTagCsvExtended() {
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+  MicroPrintf("\"Tag\",\"Ticks\",\"Count\",\"Avg. (Ticks*1000)\",\"Percent\"");
+  uint32_t total_ticks = 0;
+  for (int i = 0; i < kMaxEvents; ++i) {
+    TicksPerTag each_tag_entry = total_ticks_per_tag_[i];
+    if (each_tag_entry.tag == nullptr) {
+      break;
+    }
+    total_ticks += each_tag_entry.ticks;
+  }
+
+  for (int i = 0; i < kMaxEvents; ++i) {
+    TicksPerTag each_tag_entry = total_ticks_per_tag_[i];
+    if (each_tag_entry.tag == nullptr || each_tag_entry.total_events == 0) {
+      break;
+    }
+    MicroPrintf(
+        "%s, %u, %u, %u, %u", each_tag_entry.tag, each_tag_entry.ticks,
+        each_tag_entry.total_events,
+        static_cast<uint32_t>((each_tag_entry.ticks * 1000.0f) /
+                              each_tag_entry.total_events),
+        static_cast<uint32_t>((each_tag_entry.ticks * 100.0f) / total_ticks));
+  }
+  MicroPrintf("Total number of ticks, %u", total_ticks);
+#endif
+}
+
+// This method finds a particular array element in the total_ticks_per_tag_
+// array with the matching tag_name passed in the method. If it can find a
 // matching array element that has the same tag_name, then it will return the
 // position of the matching element. But if it unable to find a matching element
 // with the given tag_name, it will return the next available empty position
@@ -104,7 +148,7 @@ void MicroProfiler::LogTicksPerTagCsv() {
 int MicroProfiler::FindExistingOrNextPosition(const char* tag_name) {
   int pos = 0;
   for (; pos < num_events_; pos++) {
-    TicksPerTag each_tag_entry = total_ticks_per_tag[pos];
+    TicksPerTag each_tag_entry = total_ticks_per_tag_[pos];
     if (each_tag_entry.tag == nullptr ||
         strcmp(each_tag_entry.tag, tag_name) == 0) {
       return pos;
