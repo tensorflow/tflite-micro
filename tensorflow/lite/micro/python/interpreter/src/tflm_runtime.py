@@ -21,7 +21,7 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interprete
 
 class Interpreter(object):
 
-  def __init__(self, model_data, custom_op_registerers, arena_size):
+  def __init__(self, model_data, custom_op_registerers, arena_size, num_resource_variables=0):
     if model_data is None:
       raise ValueError("Model must not be None")
 
@@ -34,10 +34,10 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size)
+        model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
+  def from_file(self, model_path, custom_op_registerers=[], arena_size=None, num_resource_variables=0):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -56,10 +56,10 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
+  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=Non, num_resource_variables=0):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -73,7 +73,7 @@ class Interpreter(object):
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.

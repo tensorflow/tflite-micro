@@ -26,7 +26,7 @@ class InterpreterWrapper {
  public:
   InterpreterWrapper(PyObject* model_data,
                      const std::vector<std::string>& registerers_by_name,
-                     size_t arena_size);
+                     size_t arena_size, const int num_resource_variables);
   ~InterpreterWrapper();
 
   int Invoke();
@@ -38,7 +38,8 @@ class InterpreterWrapper {
 
  private:
   const PyObject* model_;
-  std::unique_ptr<uint8_t[]> memory_arena_;
+  tflite::MicroAllocator* allocator_;
+  tflite::MicroResourceVariables* resource_variables_;
   tflite::AllOpsResolver all_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
 };
