@@ -312,11 +312,6 @@ TfLiteStatus MicroInterpreter::Reset() {
   return graph_.ResetVariableTensors();
 }
 
-// TODO: remove this API completely in favor of MicroInterpreter::Reset
-TfLiteStatus MicroInterpreter::ResetVariableTensors() {
-  return graph_.ResetVariableTensors();
-}
-
 TfLiteStatus MicroInterpreter::SetMicroExternalContext(
     void* external_context_payload) {
   return micro_context_.set_external_context(external_context_payload);
