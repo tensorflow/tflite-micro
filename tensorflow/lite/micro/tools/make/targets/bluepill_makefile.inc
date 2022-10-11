@@ -78,9 +78,6 @@ EXCLUDED_EXAMPLE_TESTS := \
 
 ifneq ($(EXTERNAL_DIR),)
   EXCLUDED_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
-else
-  # TODO(b/246833632): remove this once the internal examples are modified to make use of EXTERNAL_DIR instead of replying on google being hard-coded.
-  EXCLUDED_EXAMPLE_TESTS += $(shell find ../google/ -name Makefile_internal.inc)
 endif
 
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
