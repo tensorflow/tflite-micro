@@ -265,7 +265,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     }
   }
 
-  TF_LITE_ENSURE_STATUS(ResetVariableTensors());
+  TF_LITE_ENSURE_STATUS(Reset());
 
   tensors_allocated_ = true;
   return kTfLiteOk;
