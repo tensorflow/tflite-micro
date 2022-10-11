@@ -113,7 +113,10 @@ class InterpreterTests(test_util.TensorFlowTestCase):
   def testOutputDetails(self):
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(
         self.model_bytearray)
+
+    # Initial output result is undefined, but have values
     output = tflm_interpreter.get_output(0)
+    self.assertNotAllEqual(output, None)
 
     # Test the output tensor details
     output_details = tflm_interpreter.get_output_details(0)
