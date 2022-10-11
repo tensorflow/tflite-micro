@@ -8,8 +8,6 @@ py_library(
     deps = [
         "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
-        requirement("flatbuffers"),
     ],
 )
 
@@ -28,5 +26,6 @@ py_test(
         ":test_model_lib",
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
+        requirement("tensorflow-cpu"),
     ],
 )
