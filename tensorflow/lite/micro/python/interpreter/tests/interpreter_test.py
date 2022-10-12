@@ -174,8 +174,10 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   def _helperModelFromFileAndBufferEqual(self, number_resource_variables=0):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename, num_resource_variables=number_resource_variables)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data, num_resource_variables=number_resource_variables)
+    file_interpreter = tflm_runtime.Interpreter.from_file(
+        self.filename, num_resource_variables=number_resource_variables)
+    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(
+        model_data, num_resource_variables=number_resource_variables)
 
     num_steps = 100
     for i in range(0, num_steps):
