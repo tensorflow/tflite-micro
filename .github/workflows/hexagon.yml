@@ -8,10 +8,10 @@ name: Hexagon
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
-  pull_request_target:
-    types: [labeled]
-    branches:
-      - main
+  workflow_run:
+    workflows: [Tests Entry Point]
+    types:
+      - completed
 
   schedule:
     # 10am UTC is 3am or 4am PT depending on daylight savings.
@@ -25,16 +25,47 @@ jobs:
     runs-on: ubuntu-latest
 
     if: |
+      github.event.workflow_run.conclusion=='success' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     name: Hexagon Build Test (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - name: local-sha
+        if: ${{ !(github.event.workflow_run.conclusion=='success') }}
+        run: |
+          echo "JOB_SHA=$(echo $GITHUB_SHA)" >> $GITHUB_ENV
+      - name: archived-sha
+        if: github.event.workflow_run.conclusion=='success'
+        uses: actions/github-script@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          script: |
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "sha"
+            })[0];
+            var download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/sha.zip', Buffer.from(download.data));
+      - name: unzip-sha
+        if: github.event.workflow_run.conclusion=='success'
+        run: |
+          unzip sha.zip
+          echo "JOB_SHA=$(cat prsha)" >> $GITHUB_ENV
+      - name: checkout-repo
+        uses: actions/checkout@v3.1.0
+        with:
+          ref: ${{ env.JOB_SHA }}
+
       - run: |
           rm -rf .git
           echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin

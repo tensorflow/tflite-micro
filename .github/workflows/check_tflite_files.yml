@@ -1,22 +1,54 @@
 name: Check TfLite Files
 on:
-  pull_request_target:
-    types: [labeled]
+  workflow_run:
+    workflows: [Tests Entry Point]
+    types:
+      - completed
 
 jobs:
   check_tflite_files:
     runs-on: ubuntu-latest
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-      contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
+    if: github.event.workflow_run.conclusion=='success'
     name: Check PR Modifies TfLite Files
     steps:
-      - uses: actions/checkout@v2
+      - name: local-sha
+        if: ${{ !(github.event.workflow_run.conclusion=='success') }}
+        run: |
+          echo "JOB_SHA=$(echo $GITHUB_SHA)" >> $GITHUB_ENV
+      - name: archived-sha
+        if: github.event.workflow_run.conclusion=='success'
+        uses: actions/github-script@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          script: |
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "sha"
+            })[0];
+            var download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/sha.zip', Buffer.from(download.data));
+      - name: unzip-sha
+        if: github.event.workflow_run.conclusion=='success'
+        run: |
+          unzip sha.zip
+          echo "JOB_SHA=$(cat prsha)" >> $GITHUB_ENV
+          echo "CHECK_FILES_SKIP=$(cat tf_files)" >> $GITHUB_ENV
+      - name: checkout-repo
+        uses: actions/checkout@v3.1.0
+        with:
+          ref: ${{ env.JOB_SHA }}
 
       - name: Check Files
-        if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
+        if: env.CHECK_FILES_SKIP == 'FALSE'
         run: |
           URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
           PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.TFLM_BOT_REPO_TOKEN }}" $URL | jq -r '.[] | .filename')
