@@ -265,7 +265,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     }
   }
 
-  TF_LITE_ENSURE_STATUS(Reset());
+  TF_LITE_ENSURE_STATUS(ResetVariableTensors());
 
   tensors_allocated_ = true;
   return kTfLiteOk;
@@ -309,6 +309,11 @@ TfLiteStatus MicroInterpreter::Reset() {
   if (status != kTfLiteOk) {
     return status;
   }
+  return graph_.ResetVariableTensors();
+}
+
+// TODO: remove this API completely in favor of MicroInterpreter::Reset
+TfLiteStatus MicroInterpreter::ResetVariableTensors() {
   return graph_.ResetVariableTensors();
 }
 
