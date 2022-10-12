@@ -28,7 +28,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
       .def(py::init([](const py::bytes& data,
                        const std::vector<std::string>& registerers_by_name,
-                       size_t arena_size, const int num_resource_variables) {
+                       size_t arena_size, int num_resource_variables) {
         return std::unique_ptr<InterpreterWrapper>(
             new InterpreterWrapper(data.ptr(), registerers_by_name, arena_size,
                                    num_resource_variables));

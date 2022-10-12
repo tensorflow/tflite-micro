@@ -203,7 +203,7 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size, const int num_resource_variables) {
+    size_t arena_size, int num_resource_variables) {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
