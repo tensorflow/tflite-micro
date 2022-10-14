@@ -89,26 +89,6 @@ struct IntegerLstmParameter {
   int32_t intermediate_zp[12];
 };
 
-// Scales for hybrid op with integer inputs and float weights
-struct HybridLstmScales {
-  float input_to_input_weights_scale;
-  float input_to_forget_weights_scale;
-  float input_to_cell_weights_scale;
-  float input_to_output_weights_scale;
-  float aux_input_to_input_weights_scale;
-  float aux_input_to_forget_weights_scale;
-  float aux_input_to_cell_weights_scale;
-  float aux_input_to_output_weights_scale;
-  float recurrent_to_input_weights_scale;
-  float recurrent_to_forget_weights_scale;
-  float recurrent_to_cell_weights_scale;
-  float recurrent_to_output_weights_scale;
-  float cell_to_input_weights_scale;
-  float cell_to_forget_weights_scale;
-  float cell_to_output_weights_scale;
-  float projection_weights_scale;
-};
-
 TfLiteStatus EvalFloatLstm(
     const TfLiteEvalTensor* input,
     const TfLiteEvalTensor* input_to_input_weights,
