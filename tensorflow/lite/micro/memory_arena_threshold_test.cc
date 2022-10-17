@@ -98,7 +98,7 @@ constexpr int kTestConvModelOnlyTotalSize = 9488;
 // TODO(b/207157610): replace magic number that depends on OPs
 constexpr int kTestConvModelOnlyTailSize = 1744;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
-constexpr int kTestConvModelPersistentBufferDataSize = 680;
+constexpr int kTestConvModelPersistentBufferDataSize = 712;
 #else
 // Total size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
@@ -109,7 +109,7 @@ constexpr int kTestConvModelOnlyTotalSize = 9760;
 // TODO(b/207157610): replace magic number that depends on OPs
 constexpr int kTestConvModelOnlyTailSize = 2016;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
-constexpr int kTestConvModelPersistentBufferDataSize = 680;
+constexpr int kTestConvModelPersistentBufferDataSize = 704;
 #endif
 constexpr int kTestConvModelHeadSize = 7744;
 constexpr int kTestConvModelOpRuntimeDataSize = 136;
