@@ -43,6 +43,7 @@ additional documentation.
 Platform      |    Status     |
 -----------     | --------------|
 Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
+[Coral Dev Board Micro](https://coral.ai/products/dev-board-micro) | [TFLM + EdgeTPU Examples for Coral Dev Board Micro](https://github.com/google-coral/coralmicro) |
 Espressif Systems Dev Boards  | [![ESP Dev Boards](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml) |
 Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/tflite-micro-renesas) |
 Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabs/tflite-micro-efr32-examples)
