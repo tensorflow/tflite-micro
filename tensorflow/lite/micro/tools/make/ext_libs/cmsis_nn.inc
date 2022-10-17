@@ -7,6 +7,9 @@ ifneq (,$(CMSIS_NN_LIBS))
   ifeq (,$(CMSIS_PATH))
     $(error CMSIS_NN_LIBS provided but not CMSIS_PATH)
   endif
+  ifeq (,$(CMSIS_NN_PATH))
+    $(error CMSIS_NN_LIBS provided but not CMSIS_NN_PATH)
+  endif
 endif
 
 # Unless an external path is provided we force a download during the first
@@ -29,11 +32,11 @@ ifeq ($(CMSIS_NN_PATH), $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH))
 endif
 
 ifeq (,$(CMSIS_NN_LIBS))
-  THIRD_PARTY_KERNEL_CC_SRCS += $(call recursive_find,$(CMSIS_NN_PATH)/Source,*.c)
+  THIRD_PARTY_KERNEL_CC_SRCS += $(shell find $(CMSIS_NN_PATH)/Source -name "*.c")
 else
   MICROLITE_LIBS += $(CMSIS_NN_LIBS)
 endif
-THIRD_PARTY_CC_HDRS += $(call recursive_find,$(CMSIS_NN_PATH)/Include,*.h)
+THIRD_PARTY_CC_HDRS += $(shell find $(CMSIS_NN_PATH)/Include -name "*.h")
 
 # Note all the headers from CMSIS/Core/Include are needed to ensure that the
 # project generation scripts copy over the compiler specific implementations of

@@ -55,9 +55,9 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 
   INCLUDES += \
     -I./third_party/cmsis \
-    -I./third_party/cmsis/CMSIS/Core/Include \
-    -I./third_party/cmsis/CMSIS/DSP/Include \
-    -I./third_party/cmsis/CMSIS/NN/Include
+    -I./third_party/cmsis_nn \
+    -I./third_party/cmsis_nn/Include \
+    -I./third_party/cmsis/CMSIS/Core/Include
 
   COMMON_FLAGS += \
     -DTF_LITE_MCU_DEBUG_LOG \
