@@ -38,8 +38,7 @@ class InterpreterWrapper {
 
  private:
   const PyObject* model_;
-  tflite::MicroAllocator* allocator_;
-  tflite::MicroResourceVariables* resource_variables_;
+  std::unique_ptr<uint8_t[]> memory_arena_;
   tflite::AllOpsResolver all_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
 };
