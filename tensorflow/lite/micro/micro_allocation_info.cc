@@ -321,7 +321,7 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
   if (model_->metadata()) {
     for (size_t i = 0; i < model_->metadata()->size(); ++i) {
       auto metadata = model_->metadata()->Get(i);
-      const size_t metadata_name_size = (size_t)metadata->name()->size();
+      const size_t metadata_name_size = strlen(metadata->name()->c_str());
 
       if ((strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
                    std::min(metadata_name_size,
