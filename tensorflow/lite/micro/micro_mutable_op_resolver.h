@@ -364,6 +364,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseLogistic);
   }
 
+  TfLiteStatus AddLogSoftmax() {
+    return AddBuiltin(BuiltinOperator_LOG_SOFTMAX,
+                      tflite::Register_LOG_SOFTMAX(), ParseLogSoftmax);
+  }
+
   TfLiteStatus AddMaximum() {
     return AddBuiltin(BuiltinOperator_MAXIMUM,
                       tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
