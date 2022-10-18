@@ -221,8 +221,10 @@ InterpreterWrapper::InterpreterWrapper(
 
   const Model* model = GetModel(buf);
   model_ = model_data;
-  allocator_ = MicroAllocator::Create(new uint8_t[arena_size], arena_size);
-  resource_variables_ = nullptr;
+  memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
+  MicroAllocator* allocator_ =
+      MicroAllocator::Create(memory_arena_.get(), arena_size);
+  MicroResourceVariables* resource_variables_ = nullptr;
   if (num_resource_variables > 0)
     resource_variables_ =
         MicroResourceVariables::Create(allocator_, num_resource_variables);
