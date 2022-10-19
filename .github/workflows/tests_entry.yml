@@ -25,14 +25,15 @@ on:
 jobs:
   no-labels:
     runs-on: ubuntu-latest
-    if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-        contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
     steps:
-      - run: exit 1
-  some-labels:
+      - name: fail-without-labels
+        if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:run') ||
+          contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
+        run: exit 1
+
+  ci-ready-to-merge:
     runs-on: ubuntu-latest
-    if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-        contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
+    needs: no-labels
     steps:
       - name: remove-ready-to-merge
         if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') &&
@@ -49,10 +50,13 @@ jobs:
               name: 'ci:ready_to_merge'
             })
       - name: fail-on-bad-synch
-        if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') &&
-            (github.event.action == 'synchronize') &&
-            !(github.event.sender.login == 'mergify[bot]')) }}
+        if: ${{ (github.event.action == 'synchronize') && !(github.event.sender.login == 'mergify[bot]') }}
         run: exit 1
+
+  ci-run:
+    runs-on: ubuntu-latest
+    needs: ci-ready-to-merge
+    steps:
       - name: remove-cirun
         if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run') }}
         uses: actions/github-script@v5
@@ -67,11 +71,13 @@ jobs:
             })
   
   call-ci:
+    needs: ci-run
     uses: ./.github/workflows/ci.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-hexagon:
+    needs: ci-run
     uses: ./.github/workflows/hexagon.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -79,6 +85,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
+    needs: ci-run
     uses: ./.github/workflows/xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -86,6 +93,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-check-tflite-files:
+    needs: ci-run
     uses: ./.github/workflows/check_tflite_files.yml
     if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
     with: 
