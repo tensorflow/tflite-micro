@@ -78,8 +78,6 @@ EXTERNAL_DIR :=
 # This is the downloads directory inside the makefiles directory
 DOWNLOADS_DIR := $(MAKEFILE_DIR)/downloads
 
-# This is obviously horrible.  We need to generate these 3 versions of the
-# include directories from one source.
 INCLUDES := \
 -I. \
 -I$(DOWNLOADS_DIR)/gemmlowp \
@@ -93,21 +91,6 @@ endif
 ifneq ($(EXTERNAL_DIR),)
   INCLUDES += -I$(EXTERNAL_DIR)
 endif
-
-# Same list of paths, but now relative to the generated project files.
-GENERATED_PROJECT_INCLUDES := \
--I. \
--I./third_party/gemmlowp \
--I./third_party/flatbuffers/include \
--I./third_party/ruy
-
-# Same list of paths, but now in the format the generate_keil_project.py
-# script expects them.
-PROJECT_INCLUDES := \
-. \
-third_party/gemmlowp \
-third_party/flatbuffers/include \
-third_party/ruy
 
 TEST_SCRIPT :=
 
@@ -178,6 +161,7 @@ CXXFLAGS := \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
+  -Wnon-virtual-dtor \
   $(COMMON_FLAGS)
 
 CCFLAGS := \
@@ -278,9 +262,6 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro
 # Internal examples are copied outside the TFLM repo in google.
 ifneq ($(EXTERNAL_DIR),)
   MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
-else
-  # TODO(b/246833632): remove this once the internal examples are modified to make use of EXTERNAL_DIR instead of replying on google being hard-coded.
-  MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
@@ -445,7 +426,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
-LICENSE \
+$(TENSORFLOW_ROOT)LICENSE \
 $(TFL_CC_HDRS)
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
@@ -546,7 +527,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
-  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(TENSORFLOW_ROOT)$(PATH_TO_OPTIMIZED_KERNELS))
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
   ifneq ($(RESULT), SUCCESS)
     $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
   endif

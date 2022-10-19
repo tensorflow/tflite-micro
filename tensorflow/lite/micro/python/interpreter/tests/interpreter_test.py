@@ -59,10 +59,15 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
+    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
     self.assertAlmostEqual(
-        input_details["quantization_parameters"]["scales"][0], 0.0039186)
-    self.assertEqual(
-        input_details["quantization_parameters"]["zero_points"][0], -128)
+        input_details["quantization_parameters"]["scales"][0],
+        0.003,
+        delta=0.1)
+    self.assertAlmostEqual(
+        input_details["quantization_parameters"]["zero_points"][0],
+        -128,
+        delta=100)
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -110,10 +115,15 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
+    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
     self.assertAlmostEqual(
-        output_details["quantization_parameters"]["scales"][0], 0.00299517)
-    self.assertEqual(
-        output_details["quantization_parameters"]["zero_points"][0], -13)
+        output_details["quantization_parameters"]["scales"][0],
+        0.003,
+        delta=0.1)
+    self.assertAlmostEqual(
+        output_details["quantization_parameters"]["zero_points"][0],
+        -13,
+        delta=100)
 
   def testOutputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -161,11 +171,13 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       # TODO: Remove tolerance when the bug is fixed.
       self.assertAllLessEqual((tflite_output - tflm_output), 1)
 
-  def testModelFromFileAndBufferEqual(self):
+  def _helperModelFromFileAndBufferEqual(self, number_resource_variables=0):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    file_interpreter = tflm_runtime.Interpreter.from_file(
+        self.filename, num_resource_variables=number_resource_variables)
+    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(
+        model_data, num_resource_variables=number_resource_variables)
 
     num_steps = 100
     for i in range(0, num_steps):
@@ -185,6 +197,9 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       self.assertEqual(bytes_output.shape, self.output_shape)
       # Same interpreter and model, should expect all equal
       self.assertAllEqual(file_output, bytes_output)
+
+  def testModelFromFileAndBufferEqual(self):
+    self._helperModelFromFileAndBufferEqual()
 
   def testMultipleInterpreters(self):
     model_data = generate_test_models.generate_conv_model(False)
@@ -258,6 +273,13 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
       interpreter = tflm_runtime.Interpreter.from_bytes(
           model_data, custom_op_registerers)
+
+  def testResourceVariableFunctionCall(self):
+    # Both interpreter function call cases should be valid for various
+    # number of resource variables.
+    self._helperModelFromFileAndBufferEqual(-2)
+    self._helperModelFromFileAndBufferEqual(1)
+    self._helperModelFromFileAndBufferEqual(12)
 
 
 if __name__ == "__main__":

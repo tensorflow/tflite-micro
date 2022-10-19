@@ -88,6 +88,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_EQ(context, filter->quantization.type,
                       kTfLiteAffineQuantization);
 
+    if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+    }
+
     // All per-channel quantized tensors need valid zero point and scale arrays.
     const auto* affine_quantization =
         reinterpret_cast<TfLiteAffineQuantization*>(

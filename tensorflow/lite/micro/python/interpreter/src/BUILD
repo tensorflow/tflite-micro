@@ -25,6 +25,7 @@ pybind_library(
     deps = [
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
+        "@numpy_headers",
     ],
 )
 

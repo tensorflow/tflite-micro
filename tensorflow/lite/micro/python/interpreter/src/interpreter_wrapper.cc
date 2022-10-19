@@ -203,7 +203,7 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size) {
+    size_t arena_size, int num_resource_variables) {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
@@ -222,6 +222,12 @@ InterpreterWrapper::InterpreterWrapper(
   const Model* model = GetModel(buf);
   model_ = model_data;
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
+  MicroAllocator* allocator_ =
+      MicroAllocator::Create(memory_arena_.get(), arena_size);
+  MicroResourceVariables* resource_variables_ = nullptr;
+  if (num_resource_variables > 0)
+    resource_variables_ =
+        MicroResourceVariables::Create(allocator_, num_resource_variables);
 
   for (const auto& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(), &all_ops_resolver_)) {
@@ -232,8 +238,8 @@ InterpreterWrapper::InterpreterWrapper(
     }
   }
 
-  interpreter_ = new MicroInterpreter(model, all_ops_resolver_,
-                                      memory_arena_.get(), arena_size);
+  interpreter_ = new MicroInterpreter(model, all_ops_resolver_, allocator_,
+                                      resource_variables_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {

@@ -137,3 +137,26 @@ cc_library(
         ":compatibility",
     ],
 )
+
+cc_library(
+    name = "tensor_utils",
+    srcs = [
+        "portable_tensor_utils.cc",
+        "reference/portable_tensor_utils.cc",
+        "tensor_utils.cc",
+    ],
+    hdrs = [
+        "portable_tensor_utils.h",
+        "reference/portable_tensor_utils.h",
+        "reference/portable_tensor_utils_impl.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":common",
+        ":compatibility",
+        ":cppmath",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:op_macros",
+        "@gemmlowp",
+    ],
+)
