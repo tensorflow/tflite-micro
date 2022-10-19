@@ -3,41 +3,40 @@
 #
 # Helpful YAML parser to clarify YAML syntax:
 # https://yaml-online-parser.appspot.com/
+#
+# This file can not be run stand-alone. It is called from tests_entry.yml as part of
+# the ci automation or from run_extensa.yml for scheduled or manual dispatch.
 
 name: Xtensa
 
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
-  pull_request_target:
-    types: [labeled]
-    branches:
-      - main
-
-  schedule:
-    # 10am UTC is 3am or 4am PT depending on daylight savings.
-    - cron: '0 10 * * *'
-
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+      is-scheduled:
+        type: string
+        default: 'FALSE'
+      is-dispatched:
+        type: string
+        default: 'FALSE'
+    secrets:
+      tflm-bot-token:
+        required: true
 
 jobs:
   f1_unit_tests:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Fusion F1 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
       - run: |
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.1 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
@@ -45,79 +44,70 @@ jobs:
   hifi5_unit_tests:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Hifi5 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
       - run: |
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.1 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/"
 
   vision_p6_presubmit:
     runs-on: ubuntu-latest
-
+    #does not run scheduled
     if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'ci:run'))
-
+      ${{ (inputs.is-scheduled == 'FALSE') }}
+      
     name: Vision P6 Build (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
       - run: |
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.1 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/"
 
   vision_p6_unit_tests:
     runs-on: ubuntu-latest
-
+    # only runs scheduled or dispatched
     if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      ${{ !(inputs.is-scheduled == 'FALSE') }} ||
+      ${{ !(inputs.is-dispatched == 'FALSE') }}
 
     name: Vision P6 Unit Tests (nightly)
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
       - run: |
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.1 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
   hifi_3z_unit_tests:
     runs-on: ubuntu-latest
-
+    # only runs scheduled or dispatched
     if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      ${{ !(inputs.is-scheduled == 'FALSE') }} ||
+      ${{ !(inputs.is-dispatched == 'FALSE') }}
 
     name: Hifi3z Unit Tests (nightly regression)
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
       - run: |
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.1 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh EXTERNAL tflite-micro/"
-

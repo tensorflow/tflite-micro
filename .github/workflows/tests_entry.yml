@@ -1,0 +1,95 @@
+# tests_entry.yml
+# Entry point to the test suites
+#
+# - If neither ci:run or ci:ready_to_merge labels are on PR, fail and exit.
+# - If ci:run label is on PR, remove ci:run, run the test scripts.
+# - If ci:ready_to_merge is on the PR and the action is synchronize not triggered
+#   by the mergify[bot] user, remove label and fail job.
+# - If ci:ready_to_merge label is on PR and action is labeled, run the test scripts.
+# 
+# The end result is labeling ci:run or ci:ready_to_merge will run the test scripts,
+# If Mergify merges to the PR, the test scripts will run. If anyone else tries to add 
+# a commit to the PR or merge , the script will fail and ci:ready_to_merge will be
+# removed.
+#
+# This script runs the test scripts directly. Scheduled or manual runs use 
+# run_<scriptname>.yml as the entry point. 
+
+name: Tests Entry Point
+on:
+  pull_request_target:
+    types:
+      - synchronize
+      - labeled
+
+jobs:
+  no-labels:
+    runs-on: ubuntu-latest
+    if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:run') ||
+        contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
+    steps:
+      - run: exit 1
+  some-labels:
+    runs-on: ubuntu-latest
+    if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:run') ||
+        contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
+    steps:
+      - name: remove-ready-to-merge
+        if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') &&
+            (github.event.action == 'synchronize') &&
+            !(github.event.sender.login == 'mergify[bot]')) }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:ready_to_merge'
+            })
+      - name: fail-on-bad-synch
+        if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') &&
+            (github.event.action == 'synchronize') &&
+            !(github.event.sender.login == 'mergify[bot]')) }}
+        run: exit 1
+      - name: remove-cirun
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run') }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:run'
+            })
+  
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+
+  call-hexagon:
+    uses: ./.github/workflows/hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa:
+    uses: ./.github/workflows/xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    uses: ./.github/workflows/check_tflite_files.yml
+    if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
+    with: 
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      pr-number: ${{ github.event.pull_request.number }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}

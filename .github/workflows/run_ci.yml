@@ -1,0 +1,15 @@
+name: Run-CI
+
+on:
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: $GITHUB_SHA

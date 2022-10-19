@@ -5,36 +5,29 @@
 # https://yaml-online-parser.appspot.com/
 #
 #
-# This file contains the workflows that are run prior to merging a pull request.
+# This file contains jobs that are run prior to merging a pull request.
+#
+# This file can not be run stand-alone. It is called from tests_entry.yml as part of
+# the ci automation or from run-ci.yml for scheduled or dispatch triggering.
 
 name: CI
 
 on:
-  pull_request:
-    types: [labeled]
-    branches:
-      - main
-
-  schedule:
-    # 10am UTC is 3am or 4am PT depending on daylight savings.
-    - cron: '0 10 * * *'
-
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
 
 jobs:
   bazel_tests:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Bazel (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
           sudo ci/install_bazel.sh
@@ -49,15 +42,11 @@ jobs:
   cortex_m_tests:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Cortex-M (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
           pip3 install Pillow
@@ -71,15 +60,11 @@ jobs:
   check_code_style:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Code Style (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.trigger-sha }}
       - name: Check
         uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
         with:
@@ -88,15 +73,11 @@ jobs:
   project_generation:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Project Generation (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
           pip3 install Pillow
@@ -109,15 +90,11 @@ jobs:
   x86_tests:
     runs-on: ubuntu-latest
 
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:run')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
     name: Makefile x86 (presubmit)
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
           pip3 install Pillow

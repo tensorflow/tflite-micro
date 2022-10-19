@@ -1,0 +1,30 @@
+name: Run-Extensa
+
+on:
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  call-extensa-dispatched:
+    uses: ./.github/workflows/extensa.yml
+    if: |
+      github.event_name == 'workflow_dispatch' 
+    with:
+      trigger-sha: $GITHUB_SHA
+      is-dispatched: 'TRUE'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-extensa-scheduled:
+    uses: ./.github/workflows/extensa.yml
+    if: |
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    with:
+      trigger-sha: $GITHUB_SHA
+      is-scheduled: 'TRUE'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
