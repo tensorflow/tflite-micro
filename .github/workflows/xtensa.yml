@@ -78,8 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     # only runs scheduled or dispatched
     if: |
-      ${{ !(inputs.is-scheduled == 'FALSE') }} ||
-      ${{ !(inputs.is-dispatched == 'FALSE') }}
+      inputs.is-scheduled == 'TRUE' ||
+      inputs.is-dispatched == 'TRUE'
 
     name: Vision P6 Unit Tests (nightly)
     steps:
@@ -97,8 +97,8 @@ jobs:
     runs-on: ubuntu-latest
     # only runs scheduled or dispatched
     if: |
-      ${{ !(inputs.is-scheduled == 'FALSE') }} ||
-      ${{ !(inputs.is-dispatched == 'FALSE') }}
+      inputs.is-scheduled == 'TRUE' ||
+      inputs.is-dispatched == 'TRUE'
 
     name: Hifi3z Unit Tests (nightly regression)
     steps:

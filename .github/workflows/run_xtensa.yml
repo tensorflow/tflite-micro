@@ -1,4 +1,4 @@
-name: Run-Extensa
+name: Run-Xtensa
 
 on:
   schedule:
@@ -9,8 +9,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-extensa-dispatched:
-    uses: ./.github/workflows/extensa.yml
+  call-xtensa-dispatched:
+    uses: ./.github/workflows/xtensa.yml
     if: |
       github.event_name == 'workflow_dispatch' 
     with:
@@ -19,8 +19,8 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-extensa-scheduled:
-    uses: ./.github/workflows/extensa.yml
+  call-xtensa-scheduled:
+    uses: ./.github/workflows/xtensa.yml
     if: |
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:

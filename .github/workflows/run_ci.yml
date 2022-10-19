@@ -11,5 +11,8 @@ on:
 jobs:
   call-ci:
     uses: ./.github/workflows/ci.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:
       trigger-sha: $GITHUB_SHA

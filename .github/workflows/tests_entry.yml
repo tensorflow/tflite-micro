@@ -3,9 +3,9 @@
 #
 # - If neither ci:run or ci:ready_to_merge labels are on PR, fail and exit.
 # - If ci:run label is on PR, remove ci:run, run the test scripts.
-# - If ci:ready_to_merge is on the PR and the action is synchronize not triggered
+# - If ci:ready_to_merge is on the PR and the pull_request_target type is synchronize not triggered
 #   by the mergify[bot] user, remove label and fail job.
-# - If ci:ready_to_merge label is on PR and action is labeled, run the test scripts.
+# - If ci:ready_to_merge label is on PR and pull_request_target type is labeled, run the test scripts.
 # 
 # The end result is labeling ci:run or ci:ready_to_merge will run the test scripts,
 # If Mergify merges to the PR, the test scripts will run. If anyone else tries to add 
