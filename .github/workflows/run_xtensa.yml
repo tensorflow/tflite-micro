@@ -1,5 +1,10 @@
 name: Run-Xtensa
 
+# This is the entry point for xtensa.yml for scheduled and workflow_dispatch events. For normal
+# testing automation the entry point is tests_entry.yml
+#
+# The test suite changes depending on if the trigger event is scheduled or dispatch.
+
 on:
   schedule:
     # 10am UTC is 3am or 4am PT depending on daylight savings.
