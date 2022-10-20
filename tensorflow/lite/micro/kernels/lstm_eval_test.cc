@@ -124,6 +124,16 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kOutputGateParameters, kTfLiteActSigmoid, input_data,
       recurrent_data, expected_output_gate_output);
+
+  // Use the modulation(cell) gate parameters to tanh output
+  // output = tanh(W_i*i+W_h*h+b) = tanh([[1,1],[1,1]][0.2, 0.3]
+  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = tanh([0.6,0.6]) =
+  // [0.6456563062257954, 0.6456563062257954]
+  const float expected_modulation_gate_output[] = {0.5370495669980353,
+                                                   0.5370495669980353};
+  tflite::testing::TestGateOutputFloat(
+      tflite::testing::kModulationGateParameters, kTfLiteActTanh, input_data,
+      recurrent_data, expected_modulation_gate_output);
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
@@ -144,6 +154,28 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 
   tflite::testing::ValidateResultGoldens(expected_cell_vals, cell_data,
                                          cell_size, 1e-6f);
+}
+
+TF_LITE_MICRO_TEST(CheckOutputFloat) {
+  const float cell_data[] = {-1, 5};
+  const float output_gate[] = {0.2, 0.5};
+  const int output_size =
+      tflite::testing::kStateDimension * tflite::testing::kBatchSize;
+  float output[output_size];
+  float scratch[output_size];
+
+  tflite::lstm_internal::CalculateLstmOutputFloat(
+      tflite::testing::kBatchSize, tflite::testing::kStateDimension,
+      tflite::testing::kStateDimension, cell_data, output_gate, kTfLiteActTanh,
+      nullptr, nullptr, 0, output, scratch);
+
+  // Output state generate the output and copy it to the hidden state
+  // tanh(cell_state) * output_gate =
+  // [-0.7615941559557649,0.9999092042625951] * [0.2, 0.5] =
+  // [-0.15231883119115297, 0.49995460213129755]
+  float expected_output_vals[] = {-0.15231883119115297, 0.49995460213129755};
+  tflite::testing::ValidateResultGoldens(expected_output_vals, output,
+                                         output_size, 1e-6f);
 }
 
 TF_LITE_MICRO_TESTS_END
