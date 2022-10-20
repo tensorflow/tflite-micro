@@ -104,7 +104,7 @@ class Interpreter(object):
       This method does not return anything, but It dumps the arena
       usage to stderr.
     """
-    return self._interpreter.PrintAllocations()
+    self._interpreter.PrintAllocations()
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.
