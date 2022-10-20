@@ -31,7 +31,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
 
 namespace tflite {
-namespace {
+namespace lstm_internal {
 // Calculates a single LSTM gate.
 //
 // Implements the following formula: (* is matrix multiply)
@@ -64,7 +64,7 @@ namespace {
 //   activation                                 - activation to use.
 //   is_input_all_zeros, is_aux_input_all_zeros - if input vectors are all zero.
 //   use_layer_norm                             - if doing layer norm LSTM.
-inline void CalculateLstmGateFloat(
+void CalculateLstmGateFloat(
     const float* input, const float* input_to_gate_weights,
     const float* aux_input, const float* aux_input_to_gate_weights,
     const float* output_state, const float* recurrent_to_gate_weights,
@@ -461,7 +461,7 @@ void CalculateLstmOutputInteger8x8_16(
 // for bidirectional LSTMs with merge_outputs. In this case, the batched
 // operations cannot be used since they assume that the batched outputs are
 // contiguous, and we manually loop over the batched outputs.
-inline void LstmStepFloat(
+void LstmStepFloat(
     const float* input_ptr, const float* input_to_input_weights_ptr,
     const float* input_to_forget_weights_ptr,
     const float* input_to_cell_weights_ptr,
@@ -506,7 +506,7 @@ inline void LstmStepFloat(
                                        aux_input_ptr, n_batch * n_aux_input));
   if (!use_cifg) {
     // Calculate the input gate. (If not CIFG.)
-    CalculateLstmGateFloat(
+    lstm_internal::CalculateLstmGateFloat(
         input_ptr, input_to_input_weights_ptr, aux_input_ptr,
         aux_input_to_input_weights_ptr, output_state_ptr,
         recurrent_to_input_weights_ptr, cell_state_ptr,
@@ -516,7 +516,7 @@ inline void LstmStepFloat(
         is_input_all_zeros, is_aux_input_all_zeros);
   }
   // Calculate the forget gate.
-  CalculateLstmGateFloat(
+  lstm_internal::CalculateLstmGateFloat(
       input_ptr, input_to_forget_weights_ptr, aux_input_ptr,
       aux_input_to_forget_weights_ptr, output_state_ptr,
       recurrent_to_forget_weights_ptr, cell_state_ptr,
@@ -525,20 +525,20 @@ inline void LstmStepFloat(
       /*activation=*/kTfLiteActSigmoid, forget_gate_scratch, is_input_all_zeros,
       is_aux_input_all_zeros);
   // Calculate the cell update gate.
-  CalculateLstmGateFloat(input_ptr, input_to_cell_weights_ptr, aux_input_ptr,
-                         aux_input_to_cell_weights_ptr, output_state_ptr,
-                         recurrent_to_cell_weights_ptr, /*cell_state=*/nullptr,
-                         /*cell_to_gate_weights=*/nullptr,
-                         cell_layer_norm_coefficients_ptr, cell_gate_bias_ptr,
-                         n_batch, n_input, n_aux_input, n_output, n_cell,
-                         params->activation, cell_gate_scratch,
-                         is_input_all_zeros, is_aux_input_all_zeros);
+  lstm_internal::CalculateLstmGateFloat(
+      input_ptr, input_to_cell_weights_ptr, aux_input_ptr,
+      aux_input_to_cell_weights_ptr, output_state_ptr,
+      recurrent_to_cell_weights_ptr, /*cell_state=*/nullptr,
+      /*cell_to_gate_weights=*/nullptr, cell_layer_norm_coefficients_ptr,
+      cell_gate_bias_ptr, n_batch, n_input, n_aux_input, n_output, n_cell,
+      params->activation, cell_gate_scratch, is_input_all_zeros,
+      is_aux_input_all_zeros);
   // Update the cell state.
-  UpdateLstmCellFloat(n_batch, n_cell, cell_state_ptr, input_gate_scratch,
-                      forget_gate_scratch, cell_gate_scratch, use_cifg,
-                      params->cell_clip);
+  lstm_internal::UpdateLstmCellFloat(
+      n_batch, n_cell, cell_state_ptr, input_gate_scratch, forget_gate_scratch,
+      cell_gate_scratch, use_cifg, params->cell_clip);
   // Calculate output gate.
-  CalculateLstmGateFloat(
+  lstm_internal::CalculateLstmGateFloat(
       input_ptr, input_to_output_weights_ptr, aux_input_ptr,
       aux_input_to_output_weights_ptr, output_state_ptr,
       recurrent_to_output_weights_ptr, cell_state_ptr,
@@ -547,10 +547,10 @@ inline void LstmStepFloat(
       /*activation=*/kTfLiteActSigmoid, output_gate_scratch, is_input_all_zeros,
       is_aux_input_all_zeros);
   // Update the output state.
-  CalculateLstmOutputFloat(n_batch, n_cell, n_output, cell_state_ptr,
-                           output_gate_scratch, params->activation,
-                           projection_weights_ptr, projection_bias_ptr,
-                           params->proj_clip, output_state_ptr, scratch2);
+  lstm_internal::CalculateLstmOutputFloat(
+      n_batch, n_cell, n_output, cell_state_ptr, output_gate_scratch,
+      params->activation, projection_weights_ptr, projection_bias_ptr,
+      params->proj_clip, output_state_ptr, scratch2);
   // Copy output state to the output. Note that the output's rows may not be
   // contiguous (output_batch_leading_dim != n_output).
   for (int b = 0; b < n_batch; b++) {
@@ -742,7 +742,7 @@ inline void LstmStepInteger8x8_16(
   }
   if (!use_cifg) {
     // Calculate the input gate. (If not CIFG.)
-    CalculateLstmGateInteger8x8_16(
+    lstm_internal::CalculateLstmGateInteger8x8_16(
         input_ptr, input_to_input_weight_ptr, input_to_input_effective_bias,
         effective_input_to_input_scale_a, effective_input_to_input_scale_b,
         output_state_ptr, recurrent_to_input_weight_ptr,
@@ -755,7 +755,7 @@ inline void LstmStepInteger8x8_16(
         kTfLiteActSigmoid, input_gate_scratch, scratch5);
   }
   // Calculate the forget gate.
-  CalculateLstmGateInteger8x8_16(
+  lstm_internal::CalculateLstmGateInteger8x8_16(
       input_ptr, input_to_forget_weight_ptr, input_to_forget_effective_bias,
       effective_input_to_forget_scale_a, effective_input_to_forget_scale_b,
       output_state_ptr, recurrent_to_forget_weight_ptr,
@@ -767,7 +767,7 @@ inline void LstmStepInteger8x8_16(
       layer_norm_forget_scale_b, forget_variance_guard, n_batch, n_input,
       n_output, n_cell, kTfLiteActSigmoid, forget_gate_scratch, scratch5);
   // Calculate the cell update gate.
-  CalculateLstmGateInteger8x8_16(
+  lstm_internal::CalculateLstmGateInteger8x8_16(
       input_ptr, input_to_cell_weight_ptr, input_to_cell_effective_bias,
       effective_input_to_cell_scale_a, effective_input_to_cell_scale_b,
       output_state_ptr, recurrent_to_cell_weight_ptr,
@@ -779,11 +779,11 @@ inline void LstmStepInteger8x8_16(
       cell_variance_guard, n_batch, n_input, n_output, n_cell, kTfLiteActTanh,
       cell_gate_scratch, scratch5);
   // Update the cell state.
-  UpdateLstmCellInteger(n_batch, n_cell, cell_state_ptr, cell_state_scale,
-                        input_gate_scratch, forget_gate_scratch,
-                        cell_gate_scratch, use_cifg, quantized_cell_clip);
+  lstm_internal::UpdateLstmCellInteger(
+      n_batch, n_cell, cell_state_ptr, cell_state_scale, input_gate_scratch,
+      forget_gate_scratch, cell_gate_scratch, use_cifg, quantized_cell_clip);
   // Calculate the output gate.
-  CalculateLstmGateInteger8x8_16(
+  lstm_internal::CalculateLstmGateInteger8x8_16(
       input_ptr, input_to_output_weight_ptr, input_to_output_effective_bias,
       effective_input_to_output_scale_a, effective_input_to_output_scale_b,
       output_state_ptr, recurrent_to_output_weight_ptr,
@@ -795,7 +795,7 @@ inline void LstmStepInteger8x8_16(
       layer_norm_output_scale_b, output_variance_guard, n_batch, n_input,
       n_output, n_cell, kTfLiteActSigmoid, output_gate_scratch, scratch5);
   // Update the output state.
-  CalculateLstmOutputInteger8x8_16(
+  lstm_internal::CalculateLstmOutputInteger8x8_16(
       n_batch, n_cell, n_output, cell_state_ptr, cell_state_scale,
       output_gate_scratch, effective_hidden_scale_a, effective_hidden_scale_b,
       hidden_zp, projection_weight_ptr, effective_proj_scale_a,
@@ -807,7 +807,7 @@ inline void LstmStepInteger8x8_16(
               n_batch * n_output * sizeof(int8_t));
 }
 
-}  // namespace
+}  // namespace lstm_internal
 
 TfLiteStatus EvalFloatLstm(
     const TfLiteEvalTensor* input,
@@ -897,7 +897,7 @@ TfLiteStatus EvalFloatLstm(
       float* output_ptr = tflite::micro::GetTensorData<float>(output) +
                           t_rel * output_step + output_offset;
 
-      LstmStepFloat(
+      lstm_internal::LstmStepFloat(
           input_ptr,
           input_to_input_weights == nullptr
               ? nullptr
@@ -1022,7 +1022,7 @@ TfLiteStatus EvalFloatLstm(
         float* cell_gate_scratch_ptr = cell_gate_scratch + b * n_cell;
         float* output_gate_scratch_ptr = output_gate_scratch + b * n_cell;
 
-        LstmStepFloat(
+        lstm_internal::LstmStepFloat(
             input_ptr,
             input_to_input_weights == nullptr
                 ? nullptr
@@ -1179,7 +1179,7 @@ TfLiteStatus EvalInteger8x8_16Lstm(
           tflite::micro::GetTensorData<int8_t>(output) + t_rel * output_step;
       const int8_t* input_ptr =
           tflite::micro::GetTensorData<int8_t>(input) + t_rel * input_step;
-      LstmStepInteger8x8_16(
+      lstm_internal::LstmStepInteger8x8_16(
           input_ptr,
           input_to_input_weights == nullptr
               ? nullptr
@@ -1325,7 +1325,7 @@ TfLiteStatus EvalInteger8x8_16Lstm(
         int16_t* cell_state_ptr =
             tflite::micro::GetTensorData<int16_t>(cell_state) + b * n_cell;
 
-        LstmStepInteger8x8_16(
+        lstm_internal::LstmStepInteger8x8_16(
             input_ptr,
             input_to_input_weights == nullptr
                 ? nullptr
