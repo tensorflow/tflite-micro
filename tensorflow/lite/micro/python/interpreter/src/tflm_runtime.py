@@ -101,7 +101,8 @@ class Interpreter(object):
     This should be called after `invoke()`.
 
     Returns:
-      It dumps the arena usage in stderr.
+      This method does not return anything, but It dumps the arena
+      usage to stderr.
     """
     return self._interpreter.PrintAllocations()
 
