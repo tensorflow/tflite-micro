@@ -101,8 +101,7 @@ class Interpreter(object):
     This should be called after `invoke()`.
 
     Returns:
-      Status code of the C++ invoke function. A RuntimeError will be raised as
-      well upon any error.
+      It dumps the arena usage in stderr.
     """
     return self._interpreter.PrintAllocations()
 
