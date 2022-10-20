@@ -1,7 +1,6 @@
 name: Run-Hexagon
 
-# This is the entry point for hexagon.yml for scheduled and workflow_dispatch events. For normal
-# testing automation the entry point is tests_entry.yml
+# This is the entry point for hexagon.yml for scheduled and workflow_dispatch events. 
 
 on:
   schedule:
