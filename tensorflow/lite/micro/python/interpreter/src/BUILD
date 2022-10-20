@@ -23,9 +23,9 @@ pybind_library(
         "shared_library.h",
     ],
     deps = [
-        "//tensorflow/lite/micro:recording_allocators"
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:recording_allocators",
         "@numpy_headers",
     ],
 )
