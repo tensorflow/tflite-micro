@@ -1,29 +1,35 @@
 name: Check TfLite Files
+
 on:
-  pull_request_target:
-    types: [labeled]
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+      pr-number:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
 
 jobs:
   check_tflite_files:
     runs-on: ubuntu-latest
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-      contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')
     name: Check PR Modifies TfLite Files
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.trigger-sha }}
 
       - name: Check Files
-        if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
         run: |
-          URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
-          PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.TFLM_BOT_REPO_TOKEN }}" $URL | jq -r '.[] | .filename')
+          URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr-number }}/files"
+          PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.tflm-bot-token }}" $URL | jq -r '.[] | .filename')
           rm -rf tmp_pull_request_files.txt
           echo "${PR_FILES}" >> tmp_pull_request_files.txt
           rm -rf .git
-          echo ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }} | docker login ghcr.io -u tflm-bot --password-stdin
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
           docker run --rm -v `pwd`:/tflite-micro -w /tflite-micro ghcr.io/tflm-bot/tflm-ci:latest python3 ci/check_tflite_files.py tmp_pull_request_files.txt
           TFLITE_FILE_TEST_STATUS=$?
           rm -f tmp_pull_request_files.txt
