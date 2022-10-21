@@ -28,25 +28,98 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
+// Model Setting Constants
 constexpr int kInputDimension = 2;
 constexpr int kStateDimension = 2;
 constexpr int kBatchSize = 1;
 
 constexpr int kGateOutputSize = kBatchSize * kStateDimension;
 
+constexpr float kTestFloatTolerance = 1e-6f;
+
 constexpr TfLiteLSTMParams kModelSettings = {
     /*.activation=*/kTfLiteActTanh,
-    /*.cell_clip=*/10, /*.proj_clip=*/3, /*.kernel_type=*/kTfLiteLSTMFullKernel,
+    /*.cell_clip=*/10, /*.proj_clip=*/3,
+    /*.kernel_type=*/kTfLiteLSTMFullKernel,
     /*.asymmetric_quantize_inputs=*/true};
 
 // Struct that holds the weight/bias information for a standard gate (i.e. no
 // modification such as layer normalization, peephole, etc.)
 struct GateParameters {
-  const float activation_weight[kInputDimension * kStateDimension];
-  const float recurrent_weight[kInputDimension * kStateDimension];
+  const float activation_weight[kStateDimension * kInputDimension];
+  const float recurrent_weight[kStateDimension * kStateDimension];
   const float fused_bias[kStateDimension];
 };
 
+class ModelContents {
+ public:
+  ModelContents(const GateParameters forget_gate_params,
+                const GateParameters input_gate_params,
+                const GateParameters cell_gate_params,
+                const GateParameters output_gate_params)
+      : forget_gate_params_(forget_gate_params),
+        input_gate_params_(input_gate_params),
+        cell_gate_params_(cell_gate_params),
+        output_gate_params_(output_gate_params) {
+    // Forget Gate Tensors
+    SetTensor(0, forget_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(1, forget_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(2, forget_gate_params_.fused_bias, bias_size_);
+    // Input Gate Tensors
+    SetTensor(3, input_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(4, input_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(5, input_gate_params_.fused_bias, bias_size_);
+    // Cell Gate Tensors
+    SetTensor(6, cell_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(7, cell_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(8, cell_gate_params_.fused_bias, bias_size_);
+    // Output Gate Tensors
+    SetTensor(9, output_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(10, output_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(11, output_gate_params_.fused_bias, bias_size_);
+    // State Tensors
+    SetTensor(12, hidden_state_, bias_size_);
+    SetTensor(13, cell_state_, bias_size_);
+  }
+  const TfLiteEvalTensor* GetWeightTensor(int tensor_index) {
+    return tensors_ + tensor_index;
+  }
+
+  TfLiteEvalTensor* GetStateTensor(int tensor_index) {
+    return tensors_ + tensor_index;
+  }
+
+  float* ScratchBuffers() { return scratch_buffers_; }
+
+ private:
+  const GateParameters forget_gate_params_;
+  const GateParameters input_gate_params_;
+  const GateParameters cell_gate_params_;
+  const GateParameters output_gate_params_;
+
+  // states are initialized to zero
+  float hidden_state_[kStateDimension] = {0};
+  float cell_state_[kStateDimension] = {0};
+
+  // scratch buffers (4)
+  float scratch_buffers_[4 * kGateOutputSize];
+
+  // Not const since IntArrayFromInts takes int *
+  int activation_weight_size_[2] = {kStateDimension, kInputDimension};
+  int recurrent_weight_size_[2] = {kStateDimension, kStateDimension};
+  int bias_size_[2] = {1, kStateDimension};
+
+  TfLiteEvalTensor tensors_[14];
+
+  template <typename T>
+  void SetTensor(const int index, const T* data, int* dims) {
+    tensors_[index].data.data = const_cast<T*>(data);
+    tensors_[index].dims = IntArrayFromInts(dims);
+    tensors_[index].type = typeToTfLiteType<T>();
+  }
+};
 // Set parameters for different gates
 // negative large weights for forget gate to make it really forget
 constexpr GateParameters kForgetGateParameters = {
@@ -59,7 +132,7 @@ constexpr GateParameters kInputGateParameters = {
     /*.recurrent_weight=*/{10, 10, 20, 20},
     /*.fused_bias=*/{-1, -2}};
 // all ones to test the behavior of tanh at normal range (-1,1)
-constexpr GateParameters kModulationGateParameters = {
+constexpr GateParameters kCellGateParameters = {
     /*.activation_weight=*/{1, 1, 1, 1},
     /*.recurrent_weight=*/{1, 1, 1, 1},
     /*.fused_bias=*/{0, 0}};
@@ -79,20 +152,66 @@ void ValidateResultGoldens(const T* golden, const T* output_data,
 
 void TestGateOutputFloat(const GateParameters& gate_params,
                          TfLiteFusedActivation activation_type,
-                         const float* input_dats, const float* recurrent_state,
+                         const float* input_dats, const float* hidden_state,
                          const float* expected_vals) {
   float gate_output[kGateOutputSize];
   tflite::lstm_internal::CalculateLstmGateFloat(
       input_dats, gate_params.activation_weight,
       /*aux_input=*/nullptr, /*aux_input_to_gate_weights*/ nullptr,
-      recurrent_state, gate_params.recurrent_weight,
+      hidden_state, gate_params.recurrent_weight,
       /*cell_state=*/nullptr, /*cell_to_gate_weights=*/nullptr,
       /*layer_norm_coefficients=*/nullptr, gate_params.fused_bias, kBatchSize,
       kInputDimension, kInputDimension, kStateDimension, kStateDimension,
       /*activation=*/activation_type, gate_output,
       /*is_input_all_zeros=*/false,
       /*is_aux_input_all_zeros=*/true);
-  ValidateResultGoldens(expected_vals, gate_output, kGateOutputSize, 1e-8f);
+  ValidateResultGoldens(expected_vals, gate_output, kGateOutputSize,
+                        kTestFloatTolerance);
+}
+
+void TestOneStepLSTMFloat(const float* input_data,
+                          const float* expected_hidden_state,
+                          const float* expected_cell_state, float* hidden_state,
+                          float* cell_state, float* output) {
+  // scratch buffers
+  float forget_gate_scratch[kGateOutputSize];
+  float input_gate_scratch[kGateOutputSize];
+  float cell_gate_scratch[kGateOutputSize];
+  float output_gate_scratch[kGateOutputSize];
+
+  tflite::lstm_internal::LstmStepFloat(
+      input_data, kInputGateParameters.activation_weight,
+      kForgetGateParameters.activation_weight,
+      kCellGateParameters.activation_weight,
+      kOutputGateParameters.activation_weight,
+      /*aux_input_ptr=*/nullptr, /*aux_input_to_input_weights_ptr=*/nullptr,
+      /*aux_input_to_forget_weights_ptr=*/nullptr,
+      /*aux_input_to_cell_weights_ptr=*/nullptr,
+      /*aux_input_to_output_weights_ptr=*/nullptr,
+      kInputGateParameters.recurrent_weight,
+      kForgetGateParameters.recurrent_weight,
+      kCellGateParameters.recurrent_weight,
+      kOutputGateParameters.recurrent_weight,
+      /*cell_to_input_weights_ptr=*/nullptr,
+      /*cell_to_forget_weights_ptr=*/nullptr,
+      /*cell_to_output_weights_ptr=*/nullptr,
+      /*input_layer_norm_coefficients_ptr=*/nullptr,
+      /*forget_layer_norm_coefficients_ptr=*/nullptr,
+      /*cell_layer_norm_coefficients_ptr=*/nullptr,
+      /*output_layer_norm_coefficients_ptr=*/nullptr,
+      kInputGateParameters.fused_bias, kForgetGateParameters.fused_bias,
+      kCellGateParameters.fused_bias, kOutputGateParameters.fused_bias,
+      /*projection_weights_ptr=*/nullptr, /*projection_bias_ptr=*/nullptr,
+      &kModelSettings, kBatchSize, kStateDimension, kInputDimension,
+      kInputDimension, kStateDimension,
+      /*output_batch_leading_dim=*/0, hidden_state, cell_state,
+      input_gate_scratch, forget_gate_scratch, cell_gate_scratch,
+      output_gate_scratch, output);
+
+  ValidateResultGoldens(expected_hidden_state, hidden_state, kGateOutputSize,
+                        kTestFloatTolerance);
+  ValidateResultGoldens(expected_cell_state, cell_state, kGateOutputSize,
+                        kTestFloatTolerance);
 }
 
 }  // namespace
@@ -100,9 +219,9 @@ void TestGateOutputFloat(const GateParameters& gate_params,
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
-TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
+TF_LITE_MICRO_TEST(CheckGateOutput) {
   const float input_data[] = {0.2, 0.3};
-  const float recurrent_state[] = {-0.1, 0.2};
+  const float hidden_state[] = {-0.1, 0.2};
   // Use the forget gate parameters to test small gate outputs
   // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[-10,-10],[-20,-20]][0.2,
   // +[[-10,-10],[-20,-20]][-0.1, 0.2]+[1,2]) = sigmoid([-5,-10]) =
@@ -110,7 +229,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   const float expected_forget_gate_output[] = {6.69285092e-3f, 4.53978687e-5f};
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kForgetGateParameters, kTfLiteActSigmoid, input_data,
-      recurrent_state, expected_forget_gate_output);
+      hidden_state, expected_forget_gate_output);
 
   // Use the input gate parameters to test small gate outputs
   // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[10,10],[20,20]][0.2, 0.3]
@@ -119,7 +238,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   const float expected_input_gate_output[] = {0.99330715, 0.9999546};
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kInputGateParameters, kTfLiteActSigmoid, input_data,
-      recurrent_state, expected_input_gate_output);
+      hidden_state, expected_input_gate_output);
 
   // Use the output gate parameters to test normnal gate outputs
   // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[1,1],[1,1]][0.2, 0.3]
@@ -129,27 +248,27 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
                                                0.6456563062257954};
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kOutputGateParameters, kTfLiteActSigmoid, input_data,
-      recurrent_state, expected_output_gate_output);
+      hidden_state, expected_output_gate_output);
 
-  // Use the modulation(cell) gate parameters to tanh output
+  // Use the cell(modulation) gate parameters to tanh output
   // output = tanh(W_i*i+W_h*h+b) = tanh([[1,1],[1,1]][0.2, 0.3]
   // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = tanh([0.6,0.6]) =
   // [0.6456563062257954, 0.6456563062257954]
-  const float expected_modulation_gate_output[] = {0.5370495669980353,
-                                                   0.5370495669980353};
+  const float expected_cell_gate_output[] = {0.5370495669980353,
+                                             0.5370495669980353};
   tflite::testing::TestGateOutputFloat(
-      tflite::testing::kModulationGateParameters,
-      tflite::testing::kModelSettings.activation, input_data, recurrent_state,
-      expected_modulation_gate_output);
+      tflite::testing::kCellGateParameters,
+      tflite::testing::kModelSettings.activation, input_data, hidden_state,
+      expected_cell_gate_output);
 }
 
-TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
+TF_LITE_MICRO_TEST(CheckCellUpdate) {
   float cell_state[] = {0.1, 0.2};
   float forget_gate[] = {0.2, 0.5};
   const float input_gate[] = {0.8, 0.9};
-  const float cell_gate[] = {-0.3, 0.8};  // modulation gate
+  const float cell_gate[] = {-0.3, 0.8};
 
-  // Cell = forget_gate*cell + input_gate*modulation_gate
+  // Cell = forget_gate*cell + input_gate*cell_gate
   // = [0.02, 0.1] + [-0.24, 0.72] = [-0.22, 0.82]
   const float expected_cell_vals[] = {-0.22, 0.82};
 
@@ -158,11 +277,12 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
       input_gate, forget_gate, cell_gate, /*use_cifg=*/false,
       /*clip=*/tflite::testing::kModelSettings.cell_clip);
 
-  tflite::testing::ValidateResultGoldens(
-      expected_cell_vals, cell_state, tflite::testing::kGateOutputSize, 1e-6f);
+  tflite::testing::ValidateResultGoldens(expected_cell_vals, cell_state,
+                                         tflite::testing::kGateOutputSize,
+                                         tflite::testing::kTestFloatTolerance);
 }
 
-TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
+TF_LITE_MICRO_TEST(CheckOutputCalculation) {
   // -1 and 5 for different tanh behavior (normal, saturated)
   const float cell_state[] = {-1, 5};
   const float output_gate[] = {0.2, 0.5};
@@ -181,51 +301,106 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
   // [-0.7615941559557649,0.9999092042625951] * [0.2, 0.5] =
   // [-0.15231883119115297, 0.49995460213129755]
   float expected_output_vals[] = {-0.15231883119115297, 0.49995460213129755};
-  tflite::testing::ValidateResultGoldens(
-      expected_output_vals, output, tflite::testing::kGateOutputSize, 1e-6f);
+  tflite::testing::ValidateResultGoldens(expected_output_vals, output,
+                                         tflite::testing::kGateOutputSize,
+                                         tflite::testing::kTestFloatTolerance);
 }
 
-// TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
-//   const float input_data[] = {0.2, 0.3};
-//   float recurrent_state[tflite::testing::kGateOutputSize];
-//   float cell_state[tflite::testing::kGateOutputSize];
-//   float output[tflite::testing::kGateOutputSize];
+TF_LITE_MICRO_TEST(CheckOneStepLSTM) {
+  const float input_data[] = {0.2, 0.3};
+  // initialize as zero arrays
+  float hidden_state[] = {0, 0};
+  float cell_state[] = {0, 0};
+  float output[tflite::testing::kGateOutputSize];
 
-//   float cell_gate_scratch[tflite::testing::kGateOutputSize];
-//   float forget_gate_scratch[tflite::testing::kGateOutputSize];
-//   float input_gate_scratch[tflite::testing::kGateOutputSize];
-//   float output_gate_scratch[tflite::testing::kGateOutputSize];
+  // Previous hidden_state (h): [0. 0.]
+  // Previous cell_state (cell): [0. 0.]
+  // Forget gate output: [0.01798621 0.00033535]
+  // Long term state after forgetting: [0. 0.]
+  // Input gate output: [0.98201379 0.99966465]
+  // Modulation gate output: [0.46211716 0.46211716]
+  // Gated input: [0.45380542 0.46196219]
+  // Long term state after adding input: [0.45380542 0.46196219]
+  // Output_gate_output: [0.62245933 0.62245933]
+  // Gated output: [0.26455893 0.26870455]
+  // Current hidden_state (h): [0.26455893 0.26870455]
+  // Current cell_state (cell): [0.45380542 0.46196219]
+  const float step1_expected_hidden_state[] = {0.26455893, 0.26870455};
+  const float step1_expected_cell_state[] = {0.45380542, 0.46196219};
+  tflite::testing::TestOneStepLSTMFloat(input_data, step1_expected_hidden_state,
+                                        step1_expected_cell_state, hidden_state,
+                                        cell_state, output);
 
-//   LstmStepFloat(
-//       input_data, tflite::testing::kInputGateParameters.activation_weight,
-//       tflite::testing::kForgetGateParameters.activation_weight,
-//       tflite::testing::kModulationGateParameters.activation_weight,
-//       tflite::testing::kOutputGateParameters.activation_weight,
-//       /*aux_input_ptr=*/nullptr, /*aux_input_to_input_weights_ptr=*/nullptr,
-//       /*aux_input_to_forget_weights_ptr=*/nullptr,
-//       /*aux_input_to_cell_weights_ptr=*/nullptr,
-//       /*aux_input_to_output_weights_ptr=*/nullptr,
-//       tflite::testing::kInputGateParameters.recurrent_weight,
-//       tflite::testing::kForgetGateParameters.recurrent_weight,
-//       tflite::testing::kModulationGateParameters.recurrent_weight,
-//       tflite::testing::kOutputGateParameters.recurrent_weight,
-//       /*cell_to_input_weights_ptr=*/nullptr,
-//       /*cell_to_forget_weights_ptr=*/nullptr,
-//       /*cell_to_output_weights_ptr=*/nullptr,
-//       /*input_layer_norm_coefficients_ptr=*/nullptr,
-//       /*forget_layer_norm_coefficients_ptr=*/nullptr,
-//       /*cell_layer_norm_coefficients_ptr=*/nullptr,
-//       /*output_layer_norm_coefficients_ptr=*/nullptr,
-//       tflite::testing::kInputGateParameters.fused_bias,
-//       tflite::testing::kForgetGateParameters.fused_bias,
-//       tflite::testing::kModulationGateParameters.fused_bias,
-//       tflite::testing::kOutputGateParameters.fused_bias, ,
-//       /*projection_weights_ptr=*/nullptr, /*projection_bias_ptr=*/nullptr,
-//       const TfLiteLSTMParams* params, tflite::testing::kBatchSize,
-//       tflite::testing::kStateDimension, tflite::testing::kInputDimension,
-//       tflite::testing::kInputDimension, tflite::testing::kStateDimension,
-//       /*output_batch_leading_dim=*/0, recurrent_state, cell_state,
-//       input_gate_scratch forget_gate_scratch, cell_gate_scratch,
-//       output_gate_scratch, output)
-// }
+  // Previous hidden_state (h): [0.26455893 0.26870455]
+  // Previous cell_state (cell): [0.45380542 0.46196219]
+  // Forget gate output: [8.8480948e-05 7.8302637e-09]
+  // Long term state after forgetting: [4.01531339e-05 3.61728574e-09]
+  // Input gate output: [0.99991152 0.99999999]
+  // Modulation gate output: [0.77521391 0.77521391]
+  // Gated input: [0.77514532 0.7752139 ]
+  // Long term state after adding input: [0.77518547 0.77521391]
+  // Output_gate_output: [0.7375481 0.7375481]
+  // Gated output: [0.47935803 0.47937014]
+  // Current hidden_state (h): [0.47935803 0.47937014]
+  // Current cell_state (cell): [0.77518547 0.77521391]
+  const float step2_expected_hidden_state[] = {0.47935803, 0.47937014};
+  const float step2_expected_cell_state[] = {0.77518547, 0.77521391};
+  tflite::testing::TestOneStepLSTMFloat(input_data, step2_expected_hidden_state,
+                                        step2_expected_cell_state, hidden_state,
+                                        cell_state, output);
+
+  // Previous hidden_state (h): [0.47935803 0.47937014]
+  // Previous cell_state (cell): [0.77518547 0.77521391]
+  // Forget gate output: [1.25637118e-06 1.57847251e-12]
+  // Long term state after forgetting: [9.73920683e-07 1.22365384e-12]
+  // Input gate output: [0.99999874 1.        ]
+  // Modulation gate output: [0.8974053 0.8974053]
+  // Gated input: [0.89740417 0.8974053 ]
+  // Long term state after adding input: [0.89740515 0.8974053 ]
+  // Output_gate_output: [0.81133808 0.81133808]
+  // Gated output: [0.58013272 0.58013278]
+  // Current hidden_state (h): [0.58013272 0.58013278]
+  // Current cell_state (cell): [0.89740515 0.8974053 ]
+  const float step3_expected_hidden_state[] = {0.58013272, 0.58013278};
+  const float step3_expected_cell_state[] = {0.89740515, 0.8974053};
+  tflite::testing::TestOneStepLSTMFloat(input_data, step3_expected_hidden_state,
+                                        step3_expected_cell_state, hidden_state,
+                                        cell_state, output);
+}
+
+TF_LITE_MICRO_TEST(TestLSTMEval) {
+  tflite::testing::ModelContents model_contents(
+      tflite::testing::kForgetGateParameters,
+      tflite::testing::kInputGateParameters,
+      tflite::testing::kCellGateParameters,
+      tflite::testing::kOutputGateParameters);
+
+  //   EvalFloatLstm(
+  //       const TfLiteEvalTensor* input, model_contents.GetWeightTensor(3),
+  //       model_contents.GetWeightTensor(0), model_contents.GetWeightTensor(6),
+  //       model_contents.GetWeightTensor(9), model_contents.GetWeightTensor(4),
+  //       model_contents.GetWeightTensor(1), model_contents.GetWeightTensor(7),
+  //       model_contents.GetWeightTensor(10),
+  //       /*cell_to_input_weights=*/nullptr,
+  //       /*cell_to_forget_weights=*/nullptr,
+  //       /*cell_to_output_weights=*/nullptr,
+  //       /*input_layer_norm_coefficients=*/nullptr,
+  //       /*forget_layer_norm_coefficients=*/nullptr,
+  //       /*cell_layer_norm_coefficients=*/nullptr,
+  //       /*output_layer_norm_coefficients=*/nullptr,
+  //       /*aux_input=*/nullptr,
+  //       /*aux_input_to_input_weights=*/nullptr,
+  //       /*aux_input_to_forget_weights=*/nullptr,
+  //       /*aux_input_to_cell_weights=*/nullptr,
+  //       /*aux_input_to_output_weights=*/nullptr,
+  //       model_contents.GetWeightTensor(5), model_contents.GetWeightTensor(2),
+  //       model_contents.GetWeightTensor(8),
+  //       model_contents.GetWeightTensor(11),
+  //       /*projection_weights=*/nullptr,
+  //       /*projection_bias=*/nullptr, &tflite::testing::kModelSettings,
+  //       /*forward_sequence=*/true, /*time_major=*/false, int output_offset,
+  //       model_contents.ScratchBuffers(), model_contents.GetStateTensor(12),
+  //       model_contents.GetStateTensor(13), TfLiteEvalTensor* output);
+}
+
 TF_LITE_MICRO_TESTS_END
