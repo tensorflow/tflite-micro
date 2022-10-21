@@ -1,5 +1,7 @@
 name: Run-CI
 
+# This is the entry point for ci.yml for scheduled and workflow_dispatch events.
+
 on:
   schedule:
     # 10am UTC is 3am or 4am PT depending on daylight savings.
