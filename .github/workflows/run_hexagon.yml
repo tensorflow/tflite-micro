@@ -1,0 +1,22 @@
+name: Run-Hexagon
+
+# This is the entry point for hexagon.yml for scheduled and workflow_dispatch events. 
+
+on:
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  call-hexagon:
+    uses: ./.github/workflows/hexagon.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    with:
+      trigger-sha: $GITHUB_SHA
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
