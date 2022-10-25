@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -53,6 +54,79 @@ struct GateParameters {
   const float recurrent_weight[kStateDimension * kStateDimension];
   const float fused_bias[kStateDimension];
 };
+
+// A struct that holds quantization parameters for a LSTM Tensor
+struct TensorQuantizationParameters {
+  const float scale;
+  const float zero_point;
+  const std::pair<int32_t, int32_t> GetScaleMultiplierShift() const {
+    int32_t scale_multiplier;
+    int scale_shift;
+    tflite::QuantizeMultiplier(static_cast<double>(scale), &scale_multiplier,
+                               &scale_shift);
+    return {scale_multiplier, static_cast<int32_t>(scale_shift)};
+  }
+};
+
+// A class that converts floating point gate parameters to the corresponding
+// quantized version
+template <typename WeightType, typename BiasType>
+class QuantizedGateParameters {
+ public:
+  QuantizedGateParameters(
+      const GateParameters& gate_parameters,
+      const TensorQuantizationParameters& activation_weight_quantization_params,
+      const TensorQuantizationParameters& recurrence_weight_quantization_params,
+      const TensorQuantizationParameters& bias_quantization_params)
+      : activation_weight_quantization_params_(
+            activation_weight_quantization_params),
+        recurrence_weight_quantization_params_(
+            recurrence_weight_quantization_params),
+        bias_quantization_params_(bias_quantization_params) {
+    tflite::Quantize(gate_parameters.activation_weight,
+                     quantized_activation_weight_,
+                     kStateDimension * kInputDimension,
+                     activation_weight_quantization_params_.scale,
+                     activation_weight_quantization_params_.zero_point);
+    tflite::Quantize(gate_parameters.recurrent_weight,
+                     quantized_recurrent_weight_,
+                     kStateDimension * kStateDimension,
+                     recurrence_weight_quantization_params_.scale,
+                     recurrence_weight_quantization_params_.zero_point);
+    tflite::Quantize(gate_parameters.fused_bias, quantized_fused_bias_,
+                     kStateDimension, bias_quantization_params_.scale,
+                     bias_quantization_params_.zero_point);
+  }
+
+  const TensorQuantizationParameters GetActivationWeightQuantizationParams()
+      const {
+    return activation_weight_quantization_params_;
+  }
+  const WeightType* GetQuantizedActivationWeight() const {
+    return quantized_activation_weight_;
+  }
+  const TensorQuantizationParameters GetRecurrentWeightQuantizationParams()
+      const {
+    return recurrence_weight_quantization_params_;
+  }
+  const WeightType* GetQuantizedRecurrentWeight() const {
+    return quantized_recurrent_weight_;
+  }
+  const TensorQuantizationParameters GetBiasQuantizationParams() const {
+    return bias_quantization_params_;
+  }
+  const BiasType* GetQuantizedBias() const { return quantized_fused_bias_; }
+
+ private:
+  TensorQuantizationParameters activation_weight_quantization_params_;
+  WeightType* quantized_activation_weight_[kStateDimension * kInputDimension];
+  TensorQuantizationParameters recurrence_weight_quantization_params_;
+  WeightType* quantized_recurrent_weight_[kStateDimension * kStateDimension];
+  TensorQuantizationParameters bias_quantization_params_;
+  BiasType* quantized_fused_bias_[kStateDimension];
+};
+
+constexpr TensorQuantizationParameters kInput = {0.2, 3};
 
 // Parameters for different gates
 // negative large weights for forget gate to make it really forget
@@ -290,26 +364,31 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   std::unique_ptr<tflite::testing::GateOutputCheckData> gate_output_data(
       new tflite::testing::GateOutputCheckData);
 
+  // Forget gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kForgetGateParameters, kTfLiteActSigmoid,
       gate_output_data->input_data, gate_output_data->hidden_state,
       gate_output_data->expected_forget_gate_output);
-
+  // Input gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kInputGateParameters, kTfLiteActSigmoid,
       gate_output_data->input_data, gate_output_data->hidden_state,
       gate_output_data->expected_input_gate_output);
-
+  // output gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kOutputGateParameters, kTfLiteActSigmoid,
       gate_output_data->input_data, gate_output_data->hidden_state,
       gate_output_data->expected_output_gate_output);
-
+  // cell (modulation) gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kCellGateParameters,
       tflite::testing::kModelSettings.activation, gate_output_data->input_data,
       gate_output_data->hidden_state,
       gate_output_data->expected_cell_gate_output);
+}
+
+TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
+  tflite::testing::TensorQuantizationParameters x = {0.2, 3};
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdate) {
