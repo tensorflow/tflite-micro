@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -248,8 +248,9 @@ class MicroAllocator {
   virtual TfLiteStatus AllocateTfLiteEvalTensors(
       const Model* model, SubgraphAllocations* subgraph_allocations);
   // Allocates persistent tensor buffers for variable tensors in the subgraph.
-  virtual TfLiteStatus AllocateVariables(const SubGraph* subgraph,
-                                         TfLiteEvalTensor* eval_tensors);
+  virtual TfLiteStatus AllocateVariables(
+      const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors,
+      const int32_t* offline_planner_offsets = nullptr);
 
   // Allocate and return a persistent TfLiteTensor.
   // TODO(b/162311891): Drop this method when the interpreter has an API for
