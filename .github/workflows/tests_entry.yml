@@ -2,6 +2,7 @@
 # Entry point to the test suites
 #
 # - If neither ci:run or ci:ready_to_merge labels are on PR, fail and exit.
+# - If the PR comment body doesn't contain 'BUG=' fail and exit.
 # - If ci:run label is on PR, remove ci:run, run the test scripts.
 # - If ci:ready_to_merge is on the PR and the pull_request_target type is synchronize not triggered
 #   by the mergify[bot] user, remove label and fail job.
@@ -69,15 +70,27 @@ jobs:
               repo: context.repo.repo,
               name: 'ci:run'
             })
+
+  pr-has-bug:
+    runs-on: ubuntu-latest
+    needs: ci-run
+    name: PR has Bug
+    steps:
+      - name: Check for BUG=
+        if: ${{ !contains(github.event.pull_request.body, 'BUG=') }}
+        run: |
+          echo "PR description requires a BUG= line with issue number."
+          echo "See https://testing.googleblog.com/2017/09/code-health-providing-context-with.html for additional context"
+          exit 1
   
   call-ci:
-    needs: ci-run
+    needs: pr-has-bug
     uses: ./.github/workflows/ci.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-hexagon:
-    needs: ci-run
+    needs: pr-has-bug
     uses: ./.github/workflows/hexagon.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -85,7 +98,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
-    needs: ci-run
+    needs: pr-has-bug
     uses: ./.github/workflows/xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -93,7 +106,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-check-tflite-files:
-    needs: ci-run
+    needs: pr-has-bug
     uses: ./.github/workflows/check_tflite_files.yml
     if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
     with: 
