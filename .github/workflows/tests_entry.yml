@@ -84,13 +84,13 @@ jobs:
           exit 1
   
   call-ci:
-    needs: pr-has-bug
+    needs: ci-run
     uses: ./.github/workflows/ci.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-hexagon:
-    needs: pr-has-bug
+    needs: ci-run
     uses: ./.github/workflows/hexagon.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -98,7 +98,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
-    needs: pr-has-bug
+    needs: ci-run
     uses: ./.github/workflows/xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -106,7 +106,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-check-tflite-files:
-    needs: pr-has-bug
+    needs: ci-run
     uses: ./.github/workflows/check_tflite_files.yml
     if: ${{ !contains(github.event.pull_request.body, 'NO_CHECK_TFLITE_FILES=') }}
     with: 
