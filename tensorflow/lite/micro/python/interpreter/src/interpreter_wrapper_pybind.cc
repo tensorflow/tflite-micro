@@ -33,6 +33,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
             new InterpreterWrapper(data.ptr(), registerers_by_name, arena_size,
                                    num_resource_variables));
       }))
+      .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
       .def("Invoke", &InterpreterWrapper::Invoke)
       .def("Reset", &InterpreterWrapper::Reset)
       .def(
