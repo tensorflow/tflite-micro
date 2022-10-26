@@ -20088,6 +20088,12 @@ inline void BuiltinOptionsUnion::Reset() {
   type = BuiltinOptions_NONE;
 }
 
+// Creates a `Model` object with the given model data, which you need for the
+// `tflite::MicroInterpreter` constructor.
+// @param buf The model data, either loaded from a C array or from a
+//   `.tflite` file.
+// @return The model object to use with the `tflite::MicroInterpreter`
+//   constructor.
 inline const tflite::Model *GetModel(const void *buf) {
   return flatbuffers::GetRoot<tflite::Model>(buf);
 }

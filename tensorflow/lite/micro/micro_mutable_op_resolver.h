@@ -40,6 +40,12 @@ namespace tflite {
 TfLiteRegistration* Register_DETECTION_POSTPROCESS();
 
 template <unsigned int tOpCount>
+
+// Maps ops in the loaded model to executable functions on the device.
+//
+// You must use this object to specify each of the ops required by your model
+// (using the various `Add...` functions), and then pass this to the
+// `tflite::MicroInterpreter` constructor.
 class MicroMutableOpResolver : public MicroOpResolver {
  public:
   TF_LITE_REMOVE_VIRTUAL_DELETE
@@ -80,10 +86,14 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   // Registers a Custom Operator with the MicroOpResolver.
   //
-  // Only the first call for a given name will be successful. i.e. if this
+  // Only the first call for a given name will be successful. That is, if this
   // function is called again for a previously added Custom Operator, the
   // MicroOpResolver will be unchanged and this function will return
   // kTfLiteError.
+  //
+  // @param name Name of the custom op.
+  // @param registration Handler for the custom op.
+  // @returns `kTfLiteOk` if successful; `kTfLiteError` otherwise.
   TfLiteStatus AddCustom(const char* name, TfLiteRegistration* registration) {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf(

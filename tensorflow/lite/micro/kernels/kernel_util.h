@@ -59,7 +59,9 @@ const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
 TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
                                 const TfLiteNode* node, int index);
 
-// Returns data for a TfLiteEvalTensor struct that are expected to exist.
+// Gets the mutable data for a specified tensor.
+// @param tensor The tensor to read/write.
+// @return A pointer to the tensor data.
 template <typename T>
 T* GetTensorData(TfLiteEvalTensor* tensor) {
   TFLITE_DCHECK(tensor != nullptr);
@@ -67,6 +69,9 @@ T* GetTensorData(TfLiteEvalTensor* tensor) {
 }
 
 // Returns const data for a TfLiteEvalTensor struct that are expected to exist.
+//
+// For example, use this to access the allocated input tensor data by passing
+// it the result from `MicroInterpreter::input_tensor`.
 template <typename T>
 const T* GetTensorData(const TfLiteEvalTensor* tensor) {
   TFLITE_DCHECK(tensor != nullptr);
