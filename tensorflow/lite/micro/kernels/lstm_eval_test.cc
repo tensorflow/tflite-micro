@@ -74,6 +74,10 @@ struct GateParameters {
   WeightType activation_weight[kStateDimension * kInputDimension];
   WeightType recurrent_weight[kStateDimension * kStateDimension];
   BiasType fused_bias[kStateDimension];
+  // Quantized model folded the zero point of activations into biases:
+  // bias + zero_point * weight.
+  BiasType activation_zp_folded_bias[kStateDimension];
+  BiasType recurrent_zp_folded_bias[kStateDimension];
 };
 
 // Parameters for different gates
@@ -81,22 +85,30 @@ struct GateParameters {
 constexpr GateParameters<float, float> kForgetGateParameters = {
     /*.activation_weight=*/{-10, -10, -20, -20},
     /*.recurrent_weight=*/{-10, -10, -20, -20},
-    /*.fused_bias=*/{1, 2}};
+    /*.fused_bias=*/{1, 2},
+    /*activation_zp_folded_bias=*/{1, 2},
+    /*recurrent_zp_folded_bias=*/{1, 2}};
 // positive large weights for input gate to make it really remember
 constexpr GateParameters<float, float> kInputGateParameters = {
     /*.activation_weight=*/{10, 10, 20, 20},
     /*.recurrent_weight=*/{10, 10, 20, 20},
-    /*.fused_bias=*/{-1, -2}};
+    /*.fused_bias=*/{-1, -2},
+    /*activation_zp_folded_bias=*/{-1, -2},
+    /*recurrent_zp_folded_bias=*/{-1, -2}};
 // all ones to test the behavior of tanh at normal range (-1,1)
 constexpr GateParameters<float, float> kCellGateParameters = {
     /*.activation_weight=*/{1, 1, 1, 1},
     /*.recurrent_weight=*/{1, 1, 1, 1},
-    /*.fused_bias=*/{0, 0}};
+    /*.fused_bias=*/{0, 0},
+    /*activation_zp_folded_bias=*/{0, 0},
+    /*recurrent_zp_folded_bias=*/{0, 0}};
 // all ones to test the behavior of sigmoid at normal range (-1. 1)
 constexpr GateParameters<float, float> kOutputGateParameters = {
     /*.activation_weight=*/{1, 1, 1, 1},
     /*.recurrent_weight=*/{1, 1, 1, 1},
-    /*.fused_bias=*/{0, 0}};
+    /*.fused_bias=*/{0, 0},
+    /*activation_zp_folded_bias=*/{0, 0},
+    /*recurrent_zp_folded_bias=*/{0, 0}};
 
 // Class that holds all the tensors for evaluation
 template <typename ActivationType, typename WeightType, typename BiasType,
@@ -260,6 +272,15 @@ GateParameters<WeightType, BiasType> QuantizeGateParameters(
                             quantized_gate_params.fused_bias, kStateDimension,
                             bias_quantization_params.scale);
 
+  // Copy the bias values to prepare zero_point folded bias precomputation
+  std::memcpy(quantized_gate_params.activation_zp_folded_bias,
+              quantized_gate_params.fused_bias,
+              kStateDimension * sizeof(BiasType));
+
+  std::memcpy(quantized_gate_params.activation_zp_folded_bias,
+              quantized_gate_params.fused_bias,
+              kStateDimension * sizeof(BiasType));
+
   return quantized_gate_params;
 }
 
@@ -332,22 +353,39 @@ class QuantizedModelContents
 
   void AssembleEvalualtionParams() {
     double effective_scale;
+    float input_tensor_scale =
+        quantization_settings_.tensor_quantization_parameters[0].scale;
+    float input_tensor_zp =
+        quantization_settings_.tensor_quantization_parameters[0].zero_point;
+    float recurrent_tensor_scale =
+        quantization_settings_.tensor_quantization_parameters[15].scale;
+    float recurrent_tensor_zp =
+        quantization_settings_.tensor_quantization_parameters[15].zero_point;
+
     // Forget Gate
     effective_scale =
-        quantization_settings_.tensor_quantization_parameters[0].scale *
+        input_tensor_scale *
         quantization_settings_.tensor_quantization_parameters[1].scale /
         quantization_settings_.activation_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_input_to_forget_scale_a,
                        &evaluation_params_.effective_input_to_forget_scale_b);
     effective_scale =
-        quantization_settings_.tensor_quantization_parameters[15].scale *
+        recurrent_tensor_scale *
         quantization_settings_.tensor_quantization_parameters[2].scale /
         quantization_settings_.activation_scale;
     QuantizeMultiplier(
         effective_scale,
         &evaluation_params_.effective_recurrent_to_forget_scale_a,
         &evaluation_params_.effective_recurrent_to_forget_scale_b);
+    // Pre-calculate bias + zero_point * weight.
+    auto test = ModelContents<ActivationType, WeightType, BiasType,
+                              CellType>::forget_gate_params_.activation_weight;
+
+    // tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+    //     &forget_gate_params_.activation_weight, input_tensor_zp,
+    //     kStateDimension, kInputDimension,
+    //     &forget_gate_params_.activation_zp_folded_bias);
 
     // input gate
     effective_scale =
