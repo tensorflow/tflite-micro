@@ -348,8 +348,9 @@ inline void Mean(const tflite::MeanParams& op_params,
   float temp = input_zero_point * input_scale / output_scale;
   temp = temp > 0 ? temp + 0.5f : temp - 0.5f;
   int32_t bias = output_zero_point - static_cast<int32_t>(temp);
-  double real_scale =
-      static_cast<double>(input_scale / (num_elements_in_axis * output_scale));
+  double real_scale = static_cast<double>(input_scale) /
+                      (static_cast<double>(num_elements_in_axis) *
+                       static_cast<double>(output_scale));
 
   int32_t multiplier;
   int shift;

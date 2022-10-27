@@ -65,15 +65,16 @@ bool IsRsqrtSupportedType(const TfLiteType type) {
 inline void SetAbsOutputMultiplier(const float input_scale,
                                    const float output_scale,
                                    int32_t* multiplier, int* shift) {
-  QuantizeMultiplier(static_cast<double>(input_scale / output_scale),
-                     multiplier, shift);
+  QuantizeMultiplier(
+      (static_cast<double>(input_scale) / static_cast<double>(output_scale)),
+      multiplier, shift);
 }
 
 inline void SetRsqrtOutputMultiplier(const float input_scale,
                                      const float output_scale,
                                      int32_t* multiplier, int* shift) {
-  const double scale =
-      1. / static_cast<double>((std::sqrt(input_scale) * output_scale));
+  const double scale = 1. / (static_cast<double>(std::sqrt(input_scale)) *
+                             static_cast<double>(output_scale));
   QuantizeMultiplier(scale, multiplier, shift);
 }
 
