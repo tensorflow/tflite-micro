@@ -10,8 +10,9 @@ For more information about the optimizations, check out
 
 By default CMSIS-NN is built by code that is downloaded to the TFLM tree.
 It also possible to build CMSIS-NN code from an external path by specifying
-CMSIS_PATH=<../path>. As a third option CMSIS-NN can be provided manually as an
-external library. The examples below will illustrate this.
+CMSIS_PATH=<../path> and CMSIS_NN_PATH=<../path>. Note that both CMSIS_PATH and CMSIS_NN_PATH is needed
+since CMSIS-NN has a dependency to CMSIS-Core. As a third option CMSIS-NN can be provided manually as an external library.
+The examples below will illustrate this.
 
 # Example - FVP based on Arm Corstone-300 software.
 In this example, the kernel conv unit test is built. For more information about
@@ -24,7 +25,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn 
 
 External CMSIS-NN code is built:
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn CMSIS_PATH=<external/path/to/cmsis/> TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 kernel_conv_test
+make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn CMSIS_PATH=<external/path/to/cmsis/> CMSIS_NN_PATH=<external/path/to/cmsis-nn/>  TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 kernel_conv_test
 ```
 
 External CMSIS-NN library is linked in:
@@ -35,7 +36,6 @@ make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=cmsis_nn 
 Please note that performance and/or size might be affected when using an
 external CMSIS-NN library as different compiler options may have been used.
 
-Also note that if specifying CMSIS_NN_LIBS but not CMSIS_PATH, headers and
-system/startup code from the default downloaded path of CMSIS would be used. So
-CMSIS_NN_LIBS and CMSIS_PATH should have the same base path and if not there
-will be a build error.
+Also note that if specifying CMSIS_NN_LIBS but not CMSIS_PATH and or CMSIS_NN_PATH, headers and
+system/startup code from the default downloaded path of CMSIS would be used.
+So CMSIS_NN_LIBS, CMSIS_NN_PATH and CMSIS_PATH should have the same base path and if not there will be a build error.
