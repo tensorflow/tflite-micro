@@ -213,7 +213,7 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   float output_state_scale = default_scale;
   int cell_scale = 1;
 
-  // Effective scales.
+  // Effective scales in double to maintain the precision.
   double effective_input_to_input_scale = default_scale;
   double effective_recurrent_to_input_scale = default_scale;
   double effective_cell_to_input_scale = default_scale;
