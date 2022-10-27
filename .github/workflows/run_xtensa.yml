@@ -17,7 +17,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' 
     with:
-      trigger-sha: $GITHUB_SHA
+      trigger-sha: ${{ github.sha }}
       is-dispatched: 'TRUE'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
@@ -27,7 +27,7 @@ jobs:
     if: |
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:
-      trigger-sha: $GITHUB_SHA
+      trigger-sha: ${{ github.sha }}
       is-scheduled: 'TRUE'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
