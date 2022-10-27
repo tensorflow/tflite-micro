@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/reference/add.h"
 
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/add.h"
@@ -103,19 +103,20 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
   return kTfLiteOk;
 }
 
-void UpdateOpParams(tflite::ArithmeticParams& op_params, const OpData* data) {
-  op_params.left_shift = data->left_shift;
-  op_params.input1_offset = data->input1_offset;
-  op_params.input1_multiplier = data->input1_multiplier;
-  op_params.input1_shift = data->input1_shift;
-  op_params.input2_offset = data->input2_offset;
-  op_params.input2_multiplier = data->input2_multiplier;
-  op_params.input2_shift = data->input2_shift;
-  op_params.output_offset = data->output_offset;
-  op_params.output_multiplier = data->output_multiplier;
-  op_params.output_shift = data->output_shift;
+void UpdateOpParams(tflite::ArithmeticParams* const op_params,
+                    const OpData* data) {
+  op_params->left_shift = data->left_shift;
+  op_params->input1_offset = data->input1_offset;
+  op_params->input1_multiplier = data->input1_multiplier;
+  op_params->input1_shift = data->input1_shift;
+  op_params->input2_offset = data->input2_offset;
+  op_params->input2_multiplier = data->input2_multiplier;
+  op_params->input2_shift = data->input2_shift;
+  op_params->output_offset = data->output_offset;
+  op_params->output_multiplier = data->output_multiplier;
+  op_params->output_shift = data->output_shift;
   SetActivationParams(data->output_activation_min, data->output_activation_max,
-                      &op_params);
+                      op_params);
 }
 
 TfLiteStatus EvalAddQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
@@ -124,7 +125,7 @@ TfLiteStatus EvalAddQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                   const TfLiteEvalTensor* input2,
                                   TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params;
-  UpdateOpParams(op_params, data);
+  UpdateOpParams(&op_params, data);
 
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
@@ -141,6 +142,7 @@ TfLiteStatus EvalAddQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   } else {
     arm_elementwise_add_s8(
         tflite::micro::GetTensorData<int8_t>(input1),
+
         tflite::micro::GetTensorData<int8_t>(input2), op_params.input1_offset,
         op_params.input1_multiplier, op_params.input1_shift,
         op_params.input2_offset, op_params.input2_multiplier,
@@ -162,7 +164,7 @@ TfLiteStatus EvalAddQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
                                    const TfLiteEvalTensor* input2,
                                    TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params;
-  UpdateOpParams(op_params, data);
+  UpdateOpParams(&op_params, data);
 
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
