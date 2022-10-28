@@ -238,8 +238,8 @@ constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
     /*activation_type=*/kTfLiteInt8,
     /*cell_type=*/kTfLiteInt16,
     /*bias_type=*/kTfLiteInt32,
-    /*nonlinear_activation_input_scale=*/std::pow(2.0f, -12.0f),
-    /*nonlinear_activation_output_scale=*/std::pow(2.0f, -15.0f),
+    /*nonlinear_input_scale=*/0.00024414062,   // std::pow(2.0f, -12.0f)
+    /*nonlinear_output_scale=*/0.00003051757,  // std::pow(2.0f, -15.0f)
     /*Input=*/{/*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false},
     /*output=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
     /*hidden=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
