@@ -691,6 +691,9 @@ const std::unique_ptr<QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>>
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
+// TODO(b/230666079) enable below tests for xtensa when the xtensa
+// kernel is reconciled with reference kernel
+#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   // Forget gate
   tflite::testing::TestGateOutputFloat(
@@ -980,5 +983,5 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
       tflite::testing::kExpectedOutput, float_model_contents->GetOutput(),
       tflite::testing::kOutputSize, tflite::testing::kTestFloatTolerance);
 }
-
+#endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
