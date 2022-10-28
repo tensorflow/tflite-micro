@@ -26,6 +26,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/micro_log.h"
+
 #ifdef MCPS_MEASUREMENT
 #include "tensorflow/lite/micro/kernels/ceva/mcps_macros.h"
 #endif
@@ -95,8 +97,8 @@ TfLiteStatus SoftmaxQuantizedCEVA(TfLiteContext* context,
       int depth_mcps = depth;
 
       if (depth > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-        TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
-                           CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, depth);
+        MicroPrintf("Scratch size (%d) less that required (%d)",
+                    CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, depth);
         return kTfLiteError;
       }
 
@@ -143,8 +145,8 @@ TfLiteStatus SoftmaxEvalCEVA(TfLiteContext* context, TfLiteNode* node) {
       return SoftmaxQuantizedCEVA(context, input, output, op_data);
     }
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
 }

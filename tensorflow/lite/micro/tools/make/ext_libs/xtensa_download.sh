@@ -18,8 +18,9 @@
 #
 # Called with four arguments:
 # 1 - Path to the downloads folder which is typically
-#     tensorflow/lite/micro/tools/make/downloads
+#     ${TENSORFLOW_ROOT}/tensorflow/lite/micro/tools/make/downloads
 # 2 - Xtensa variant to download for (e.g. hifi4)
+# 3 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:
@@ -34,11 +35,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../../..
-cd "${ROOT_DIR}"
-
-source tensorflow/lite/micro/tools/make/bash_helpers.sh
+source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
@@ -47,17 +44,17 @@ if [ ! -d ${DOWNLOADS_DIR} ]; then
 fi
 
 if [[ ${2} == "hifi4" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_11_09_2021.zip"
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_05_11_2022.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
-  LIBRARY_MD5="fd6445b3d281220e2f584e2adc10165d"
+  LIBRARY_MD5="fd04b31f3d07adee5eab7c3c07db3602"
 elif [[ ${2} == "hifi5" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_06_30.zip"
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_02_01_2022.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
-  LIBRARY_MD5="0c832b15d27ac557fa5453c902c5662a"
+  LIBRARY_MD5="52b55bc4ad473eeebc3dc49792c527bd"
 elif [[ ${2} == "vision_p6" ]]; then
-  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_03.zip"
+  LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_29.zip"
   LIBRARY_DIRNAME="xi_tflmlib_vision_p6"
-  LIBRARY_MD5="cfa38ebc7d44e050708d984347a46b20"
+  LIBRARY_MD5="fea3720d76fdb3a5a337ace7b6081b56"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1

@@ -1,0 +1,20 @@
+name: Run-CI
+
+# This is the entry point for ci.yml for scheduled and workflow_dispatch events.
+
+on:
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    with:
+      trigger-sha: ${{ github.sha }}

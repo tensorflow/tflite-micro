@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_add.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -174,11 +174,14 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
 
 void* AddInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataAdd));
+  void* data;
 #if defined(VISION_P6)
+  data = context->AllocatePersistentBuffer(context, sizeof(XtensaAddOpData));
   if (InitXtensaContext()) {
     return nullptr;
   }
+#else
+  data = context->AllocatePersistentBuffer(context, sizeof(OpDataAdd));
 #endif  // defined(VISION_P6)
   return data;
 }

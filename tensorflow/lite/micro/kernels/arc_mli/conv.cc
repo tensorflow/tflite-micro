@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -495,8 +496,7 @@ TfLiteStatus EvalMliQuantizedPerChannel(
               out_slice.Sub()->shape[FMAP_C_DIM_HWC] ||
           data.mli_out.Shape()[height_dimension] !=
               out_slice.Sub()->shape[FMAP_H_DIM_HWC]) {
-        TF_LITE_KERNEL_LOG(
-            context, "Slicing is not supported with real-time permutation.");
+        MicroPrintf("Slicing is not supported with real-time permutation.");
         return kTfLiteError;
       }
       mli_permute_cfg permute_cfg = {{1, 2, 3, 0}};
@@ -580,8 +580,7 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
 #endif
 }
 
@@ -615,8 +614,7 @@ void EvalQuantizedPerChannelInt16(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int16_t>(output));
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
 #endif
 }
 
@@ -651,9 +649,8 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
                       tflite::micro::GetTensorShape(im2col),
                       tflite::micro::GetTensorData<float>(im2col));
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
+  MicroPrintf("Type %s (%d) is not supported by ARC MLI Library.",
+              TfLiteTypeGetName(input->type), input->type);
 #endif
 }
 
@@ -698,8 +695,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                    bias, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

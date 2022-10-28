@@ -15,8 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/conv.h"
 
-#include "CMSIS/NN/Include/arm_nn_types.h"
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nn_types.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -121,6 +122,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       buf_size = arm_convolve_wrapper_s8_get_buffer_size(
           &conv_params, &input_dims, &filter_dims, &output_dims);
     } else if (input->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
       buf_size = arm_convolve_wrapper_s16_get_buffer_size(
           &conv_params, &input_dims, &filter_dims, &output_dims);
     }
@@ -181,7 +184,7 @@ TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
   const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
   const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
-  if (tflite::micro::GetTensorData<int8_t>(bias)) {
+  if (tflite::micro::GetOptionalTensorData<int8_t>(bias)) {
     TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
   }
 
@@ -233,7 +236,7 @@ TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
           &ctx, &conv_params, &quant_params, &input_dims,
           tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
           tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
-          tflite::micro::GetTensorData<int32_t>(bias), &output_dims,
+          tflite::micro::GetOptionalTensorData<int32_t>(bias), &output_dims,
           tflite::micro::GetTensorData<int8_t>(output)),
       ARM_CMSIS_NN_SUCCESS);
 
@@ -279,7 +282,7 @@ TfLiteStatus EvalQuantizedPerChannel16x8(
   const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
   const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
   const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
-  if (tflite::micro::GetTensorData<int8_t>(bias)) {
+  if (tflite::micro::GetOptionalTensorData<int8_t>(bias)) {
     TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
   }
 
@@ -329,7 +332,7 @@ TfLiteStatus EvalQuantizedPerChannel16x8(
           &ctx, &conv_params, &quant_params, &input_dims,
           tflite::micro::GetTensorData<int16_t>(input), &filter_dims,
           tflite::micro::GetTensorData<int8_t>(filter), &bias_dims,
-          tflite::micro::GetTensorData<int64_t>(bias), &output_dims,
+          tflite::micro::GetOptionalTensorData<int64_t>(bias), &output_dims,
           tflite::micro::GetTensorData<int16_t>(output)),
       ARM_CMSIS_NN_SUCCESS);
 
@@ -414,7 +417,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(filter),
           tflite::micro::GetTensorData<float>(filter),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<float>(bias),
+          tflite::micro::GetOptionalTensorData<float>(bias),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output),
           tflite::micro::GetTensorShape(nullptr), nullptr);
@@ -429,8 +432,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                          filter, bias, output);
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

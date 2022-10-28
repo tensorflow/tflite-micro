@@ -23,12 +23,12 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 
-const int kMaxNumberOfAxis = 4;
+const int kMaxNumberOfAxis = 5;
 const int kMaxNumberOfReducedAxis = 2;
 
 TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
@@ -248,7 +248,7 @@ TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
     } break;
     default:
       TF_LITE_ENSURE_MSG(context, false,
-                         "Currently, only float32, int8 or uint8 input type "
+                         "Currently, only float32, int8 or int16 input type "
                          "is supported.");
   }
   return kTfLiteOk;
@@ -303,6 +303,69 @@ TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
       break;
     default:
       MicroPrintf("Only float32 and int8 types are supported.");
+      return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
+TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
+                           OpDataReduce* op_data) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  const TfLiteEvalTensor* axis = tflite::micro::GetEvalInput(context, node, 1);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TfLiteReducerParams* params =
+      static_cast<TfLiteReducerParams*>(node->builtin_data);
+
+  // Interpret an axis tensor with null dimensions as a scalar.
+  int num_axis = static_cast<int>(ElementCount(*axis->dims));
+  int temp_index[kMaxNumberOfAxis];
+  int resolved_axis[kMaxNumberOfReducedAxis];
+
+  switch (input->type) {
+    case kTfLiteFloat32: {
+      TF_LITE_ENSURE(
+          context,
+          reference_ops::ReduceGeneric<float>(
+              tflite::micro::GetTensorData<float>(input), input->dims->data,
+              input->dims->size, tflite::micro::GetTensorData<float>(output),
+              output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, /*init_value=*/0.f,
+              [](const float current, const float in) -> float {
+                return in + current;
+              }));
+    } break;
+    case kTfLiteInt8: {
+      int32_t* temp_buffer = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, op_data->temp_buffer_idx));
+      TF_LITE_ENSURE(
+          context,
+          reference_ops::QuantizedMeanOrSum(
+              tflite::micro::GetTensorData<int8_t>(input), op_data->input_zp,
+              op_data->input_scale, input->dims->data, input->dims->size,
+              tflite::micro::GetTensorData<int8_t>(output), op_data->output_zp,
+              op_data->output_scale, output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, temp_buffer,
+              /*compute_sum=*/true));
+    } break;
+    case kTfLiteInt16: {
+      int32_t* temp_buffer = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, op_data->temp_buffer_idx));
+      TF_LITE_ENSURE(
+          context,
+          reference_ops::QuantizedMeanOrSum(
+              tflite::micro::GetTensorData<int16_t>(input), op_data->input_zp,
+              op_data->input_scale, input->dims->data, input->dims->size,
+              tflite::micro::GetTensorData<int16_t>(output), op_data->output_zp,
+              op_data->output_scale, output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_index, resolved_axis, temp_buffer,
+              /*compute_sum=*/true));
+    } break;
+    default:
+      MicroPrintf("Only float32, int8, and int16 types are supported.");
       return kTfLiteError;
   }
   return kTfLiteOk;

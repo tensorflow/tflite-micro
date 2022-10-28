@@ -25,6 +25,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
+
 // #define MCPS_MEASUREMENT
 #ifdef MCPS_MEASUREMENT
 #include "tensorflow/lite/micro/kernels/ceva/mcps_macros.h"
@@ -111,9 +113,8 @@ __attribute__((optnone)) TfLiteStatus EvalQuantizedInt8CEVA(
   int sizeof_scratch_required = output_shape_dims_data[1];
 
   if (sizeof_scratch_required > CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL) {
-    TF_LITE_KERNEL_LOG(context, "Scratch size (%d) less that required (%d)",
-                       CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL,
-                       sizeof_scratch_required);
+    MicroPrintf("Scratch size (%d) less that required (%d)",
+                CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL, sizeof_scratch_required);
     return kTfLiteError;
   }
 
@@ -226,8 +227,8 @@ TfLiteStatus EvalCEVA(TfLiteContext* context, TfLiteNode* node) {
                                    output);
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

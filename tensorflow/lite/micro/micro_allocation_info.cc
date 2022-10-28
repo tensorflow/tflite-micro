@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -104,8 +104,7 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
       reinterpret_cast<size_t*>(non_persistent_allocator_->AllocateTemp(
           subgraph_offsets_length, alignof(size_t)));
   if (info_.subgraph_offsets == nullptr) {
-    TF_LITE_REPORT_ERROR(
-        reporter_,
+    MicroPrintf(
         "Failed to allocate memory for memory planning, %d bytes required",
         subgraph_offsets_length);
     return kTfLiteError;
@@ -133,8 +132,7 @@ TfLiteStatus AllocationInfoBuilder::CreateAllocationInfo(
   info_.allocation_info = reinterpret_cast<AllocationInfo*>(
       non_persistent_allocator_->AllocateTemp(bytes, alignof(AllocationInfo)));
   if (info_.allocation_info == nullptr) {
-    TF_LITE_REPORT_ERROR(
-        reporter_,
+    MicroPrintf(
         "Failed to allocate memory for memory planning, %d bytes required",
         bytes);
     return kTfLiteError;
@@ -325,8 +323,12 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
   if (model_->metadata()) {
     for (size_t i = 0; i < model_->metadata()->size(); ++i) {
       auto metadata = model_->metadata()->Get(i);
-      if (strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
-                  strlen(kOfflineMemAllocMetadata)) == 0) {
+      const size_t metadata_name_size = strlen(metadata->name()->c_str());
+
+      if ((strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
+                   std::min(metadata_name_size,
+                            strlen(kOfflineMemAllocMetadata))) == 0) &&
+          metadata_name_size == strlen(kOfflineMemAllocMetadata)) {
         const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers =
             model_->buffers();
         auto* buffer = (*buffers)[metadata->buffer()];
@@ -340,10 +342,10 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
             reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
 
         if (info_.tensor_count != nbr_tensors) {
-          TF_LITE_REPORT_ERROR(reporter_,
-                               "Nbr of offline buffer offsets (%d) in metadata "
-                               "not equal nbr tensors (%d)\n",
-                               nbr_tensors, info_.tensor_count);
+          MicroPrintf(
+              "Nbr of offline buffer offsets (%d) in metadata "
+              "not equal nbr tensors (%d)\n",
+              nbr_tensors, info_.tensor_count);
           return kTfLiteError;
         }
       }

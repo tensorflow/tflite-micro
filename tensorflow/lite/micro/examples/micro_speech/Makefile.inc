@@ -13,213 +13,213 @@ $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.c \
 $(MAKEFILE_DIR)/downloads/kissfft/tools/kiss_fftr.h
 
 MICRO_SPEECH_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc
 
 MICRO_SPEECH_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
 
 SIMPLE_FEATURES_GENERATOR_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.cc \
-tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator_test.cc \
-tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.cc \
-tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.cc
 
 SIMPLE_FEATURES_GENERATOR_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/simple_features/simple_model_settings.h \
-tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h \
-tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.h \
-tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/simple_model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.h
 
 MICRO_FEATURES_LIB_SRCS := \
-tensorflow/lite/experimental/microfrontend/lib/fft.cc \
-tensorflow/lite/experimental/microfrontend/lib/fft_util.cc \
-tensorflow/lite/experimental/microfrontend/lib/filterbank.c \
-tensorflow/lite/experimental/microfrontend/lib/filterbank_util.c \
-tensorflow/lite/experimental/microfrontend/lib/frontend.c \
-tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
-tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.cc \
-tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
-tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
-tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
-tensorflow/lite/experimental/microfrontend/lib/noise_reduction.c \
-tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.c \
-tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.c \
-tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control_util.c \
-tensorflow/lite/experimental/microfrontend/lib/window.c \
-tensorflow/lite/experimental/microfrontend/lib/window_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/fft.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/fft_util.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/filterbank.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/filterbank_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/frontend.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/frontend_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_lut.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_scale.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_scale_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/noise_reduction.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control_util.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/window.c \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/window_util.c \
 $(KISSFFT_LIB_SRCS)
 
 MICRO_FEATURES_LIB_HDRS := \
-tensorflow/lite/experimental/microfrontend/lib/bits.h \
-tensorflow/lite/experimental/microfrontend/lib/fft.h \
-tensorflow/lite/experimental/microfrontend/lib/fft_util.h \
-tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
-tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
-tensorflow/lite/experimental/microfrontend/lib/frontend.h \
-tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
-tensorflow/lite/experimental/microfrontend/lib/kiss_fft_common.h \
-tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h \
-tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
-tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
-tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
-tensorflow/lite/experimental/microfrontend/lib/noise_reduction.h \
-tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.h \
-tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.h \
-tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control_util.h \
-tensorflow/lite/experimental/microfrontend/lib/window.h \
-tensorflow/lite/experimental/microfrontend/lib/window_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/bits.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/fft.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/fft_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/filterbank.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/frontend.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/frontend_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/kiss_fft_common.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_lut.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_scale.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/log_scale_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/noise_reduction.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/pcan_gain_control_util.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/window.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/experimental/microfrontend/lib/window_util.h \
 $(KISSFFT_LIB_HDRS)
 
 MICRO_FEATURES_GENERATOR_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
 $(MICRO_FEATURES_LIB_SRCS)
 
 MICRO_FEATURES_GENERATOR_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
 $(MICRO_FEATURES_LIB_HDRS)
 
 MICRO_FEATURES_GENERATOR_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_FEATURES_GENERATOR_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_feature_data_slice.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 AUDIO_PROVIDER_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.cc
 
 AUDIO_PROVIDER_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 
 AUDIO_PROVIDER_MOCK_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider_mock_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider_mock_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc
 
 AUDIO_PROVIDER_MOCK_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
 
 FEATURE_PROVIDER_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/feature_provider_test.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 FEATURE_PROVIDER_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 FEATURE_PROVIDER_MOCK_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/feature_provider_test.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 FEATURE_PROVIDER_MOCK_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 RECOGNIZE_COMMANDS_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands_test.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc
 
 RECOGNIZE_COMMANDS_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.h
 
 COMMAND_RESPONDER_TEST_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/command_responder_test.cc \
-tensorflow/lite/micro/examples/micro_speech/command_responder.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.cc
 
 COMMAND_RESPONDER_TEST_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/command_responder.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.h
 
 MICRO_SPEECH_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/main.cc \
-tensorflow/lite/micro/examples/micro_speech/main_functions.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
-tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main_functions.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_SPEECH_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
-tensorflow/lite/micro/examples/micro_speech/command_responder.h \
-tensorflow/lite/micro/examples/micro_speech/main_functions.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main_functions.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 MICRO_SPEECH_MOCK_SRCS := \
-tensorflow/lite/micro/examples/micro_speech/main.cc \
-tensorflow/lite/micro/examples/micro_speech/main_functions.cc \
-tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
-tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main_functions.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider_mock.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.cc \
 $(MICRO_FEATURES_GENERATOR_SRCS)
 
 MICRO_SPEECH_MOCK_HDRS := \
-tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
-tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
-tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
-tensorflow/lite/micro/examples/micro_speech/command_responder.h \
-tensorflow/lite/micro/examples/micro_speech/main_functions.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/audio_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/feature_provider.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/no_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_features/yes_micro_features_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/recognize_commands.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/command_responder.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/main_functions.h \
 $(MICRO_FEATURES_GENERATOR_HDRS)
 
 MICRO_SPEECH_GENERATOR_INPUTS := \
-tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite \
-tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms.wav \
-tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms.wav
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech.tflite \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms.wav \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms.wav \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms.wav \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms.wav
 
 MICRO_SPEECH_GENERATED_SRCS := \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.cc \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.cc \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.cc \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.cc \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.cc
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.cc \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.cc \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.cc
 
 MICRO_SPEECH_GENERATED_HDRS := \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.h \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.h \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.h \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_model_data.h \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_1000ms_audio_data.h \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.h \
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h
 
 #Find any platform - specific rules for this example.
-include $(wildcard tensorflow/lite/micro/examples/micro_speech/*/Makefile.inc)
+include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/*/Makefile.inc)
 
 # TODO(b/161489252): Disabling warnings for this example until we have a better
 # way to build third_party code with a reduced list of CFLAGS.

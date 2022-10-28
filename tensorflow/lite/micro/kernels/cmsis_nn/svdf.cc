@@ -15,8 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
-#include "CMSIS/NN/Include/arm_nn_types.h"
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nn_types.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -26,7 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -106,17 +106,14 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
       arm_svdf_s8(
           &scratch_ctx, &scratch_output_ctx, &svdf_params, &in_quant_params,
           &out_quant_params, &input_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(input_tensor),
-          &state_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(
-              activation_state_tensor),
+          tflite::micro::GetTensorData<int8_t>(input_tensor), &state_dims,
+          tflite::micro::GetTensorData<int8_t>(activation_state_tensor),
           &weights_feature_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
+          tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
           &weights_time_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_time_tensor),
-          &bias_dims,
-          (int32_t*)tflite::micro::GetTensorData<int32_t>(bias_tensor),
-          &output_dims, output_data);
+          tflite::micro::GetTensorData<int8_t>(weights_time_tensor), &bias_dims,
+          tflite::micro::GetTensorData<int32_t>(bias_tensor), &output_dims,
+          output_data);
       return kTfLiteOk;
     }
 
@@ -124,24 +121,20 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
       arm_svdf_state_s16_s8(
           &scratch_ctx, &scratch_output_ctx, &svdf_params, &in_quant_params,
           &out_quant_params, &input_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(input_tensor),
-          &state_dims,
-          (int16_t*)tflite::micro::GetTensorData<int16_t>(
-              activation_state_tensor),
+          tflite::micro::GetTensorData<int8_t>(input_tensor), &state_dims,
+          tflite::micro::GetTensorData<int16_t>(activation_state_tensor),
           &weights_feature_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
+          tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
           &weights_time_dims,
-          (int16_t*)tflite::micro::GetTensorData<int16_t>(weights_time_tensor),
-          &bias_dims,
-          (int32_t*)tflite::micro::GetTensorData<int32_t>(bias_tensor),
+          tflite::micro::GetTensorData<int16_t>(weights_time_tensor),
+          &bias_dims, tflite::micro::GetTensorData<int32_t>(bias_tensor),
           &output_dims, output_data);
       return kTfLiteOk;
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context,
-                         "Could not find matching function for type %s.",
-                         TfLiteTypeGetName(weights_time_tensor->type));
+      MicroPrintf("Could not find matching function for type %s.",
+                  TfLiteTypeGetName(weights_time_tensor->type));
       return kTfLiteError;
   }
 }
@@ -182,17 +175,50 @@ TfLiteStatus EvalSvdf(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
+}
+
+TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
+  auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
+
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteEvalTensor* weights_time =
+      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
+  const TfLiteEvalTensor* bias =
+      (NumInputs(node) == 5)
+          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
+          : nullptr;
+  TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
+      context, node, kSvdfInputActivationStateTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
+
+  TFLITE_DCHECK((weights_time->type == kTfLiteInt8) ||
+                (weights_time->type == kTfLiteInt16));
+  // Because of the TODO mentioned below, the int16 weight data type is not
+  // split into a seperate registration.
+  // TODO(#523): remove 16-bit code when no longer needed.
+  return EvalIntegerSVDF(context, node, input, weights_feature, weights_time,
+                         bias, params, activation_state, output, data);
 }
 
 }  // namespace
 
 TfLiteRegistration Register_SVDF() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdf);
+}
+
+TfLiteRegistration Register_SVDF_INT8() {
+  return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdfInt8);
 }
 
 }  // namespace tflite

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -31,13 +30,14 @@ tflite::MicroContext CreateMicroContext() {
   // the test need to place non-transient memories in static variables. This is
   // safe because tests are guaranteed to run serially.
   constexpr size_t kMicroGraphPlacementBufferSize = 1024;
-  static uint8_t micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
+  alignas(4) static uint8_t
+      micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
   constexpr size_t kArenaSize = 1024;
   static uint8_t tensor_arena[kArenaSize];
 
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  MicroAllocator* micro_allocator = MicroAllocator::Create(
-      tensor_arena, kArenaSize, tflite::GetMicroErrorReporter());
+  MicroAllocator* micro_allocator =
+      MicroAllocator::Create(tensor_arena, kArenaSize);
   MicroGraph* micro_graph = new (micro_graph_placement_buffer)
       MicroGraph(nullptr, nullptr, nullptr, nullptr);
 
@@ -48,7 +48,7 @@ tflite::MicroContext CreateMicroContext() {
 // Test structure for external context payload.
 struct TestExternalContextPayloadData {
   // Opaque blob
-  uint8_t blob_data[128];
+  alignas(4) uint8_t blob_data[128];
 };
 }  // namespace
 }  // namespace tflite

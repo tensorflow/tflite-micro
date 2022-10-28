@@ -142,11 +142,11 @@ uint8_t tensor_arena[tensor_arena_size];
 // Interpreter using the shared tensor arena above:
 tflite::MicroInterpreter interpreter(
   tflite::GetModel(my_model_data), ops_resolver,
-  tensor_arena, tensor_arena_size, error_reporter);
+  tensor_arena, tensor_arena_size);
 
 // Invoke one time which will allocate internals:
 if (interpreter.Invoke() != kTfLiteOk) {
-  TF_LITE_REPORT_ERROR(error_reporter, "Exception during invoke()!");
+  MicroPrintf("Exception during invoke()!");
 }
 ```
 
@@ -163,11 +163,11 @@ detailed allocation logging:
 // Simply change the class name from 'MicroInterpreter' to 'RecordingMicroInterpreter':
 tflite::RecordingMicroInterpreter interpreter(
   tflite::GetModel(my_model_data), ops_resolver,
-  tensor_arena, tensor_arena_size, error_reporter);
+  tensor_arena, tensor_arena_size);
 
 // Invoke one time which will allocate internals:
 if (interpreter.Invoke() != kTfLiteOk) {
-  TF_LITE_REPORT_ERROR(error_reporter, "Exception during invoke()!");
+  MicroPrintf("Exception during invoke()!");
 }
 
 // Print out detailed allocation information:

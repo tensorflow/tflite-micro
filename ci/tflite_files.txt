@@ -19,6 +19,7 @@ tensorflow/lite/core/api/tensor_utils.h
 tensorflow/lite/kernels/internal/common.h
 tensorflow/lite/kernels/internal/compatibility.h
 tensorflow/lite/kernels/internal/portable_tensor_utils.h
+tensorflow/lite/kernels/internal/portable_tensor_utils.cc
 tensorflow/lite/kernels/internal/quantization_util.h
 tensorflow/lite/kernels/internal/reference/add.h
 tensorflow/lite/kernels/internal/reference/add_n.h
@@ -37,6 +38,7 @@ tensorflow/lite/kernels/internal/reference/depth_to_space.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h
 tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h
 tensorflow/lite/kernels/internal/reference/dequantize.h
+tensorflow/lite/kernels/internal/reference/div.h
 tensorflow/lite/kernels/internal/reference/elu.h
 tensorflow/lite/kernels/internal/reference/exp.h
 tensorflow/lite/kernels/internal/reference/fill.h
@@ -81,6 +83,7 @@ tensorflow/lite/kernels/internal/reference/space_to_depth.h
 tensorflow/lite/kernels/internal/reference/sub.h
 tensorflow/lite/kernels/internal/reference/logistic.h
 tensorflow/lite/kernels/internal/reference/lstm_cell.h
+tensorflow/lite/kernels/internal/reference/select.h
 tensorflow/lite/kernels/internal/reference/slice.h
 tensorflow/lite/kernels/internal/reference/strided_slice.h
 tensorflow/lite/kernels/internal/reference/tanh.h
@@ -96,9 +99,7 @@ tensorflow/lite/kernels/internal/types.h
 tensorflow/lite/kernels/kernel_util.h
 tensorflow/lite/kernels/padding.h
 tensorflow/lite/portable_type_to_tflitetype.h
-tensorflow/lite/python/schema_py_generated.py
 tensorflow/lite/python/schema_util.py
-tensorflow/lite/schema/schema_generated.h
 tensorflow/lite/schema/schema_utils.h
 tensorflow/lite/schema/schema.fbs
 tensorflow/lite/tools/flatbuffer_utils.py

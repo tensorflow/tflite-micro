@@ -302,7 +302,7 @@ typedef struct {
   // If set to true then the first dimension is time, otherwise batch.
   bool time_major;
 
-  // Parameters supported by version 4:
+  // Parameters supported by version 3:
   // If set to true, then hybrid ops use asymmetric quantization for inputs.
   bool asymmetric_quantize_inputs;
 } TfLiteBidirectionalSequenceLSTMParams;
@@ -518,9 +518,6 @@ typedef struct {
   bool approximate;
 } TfLiteGeluParams;
 
-typedef struct {
-  int num_segments;
-} TfLiteUnsortedSegmentProdParams;
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

@@ -1,3 +1,5 @@
+load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
+
 package(
     default_visibility = [
         "//visibility:public",
@@ -5,16 +7,24 @@ package(
     licenses = ["notice"],
 )
 
-# The name schema_fbs is unchanged from upstream TF so that sync'ing shared
-# TfLite/TFLM code does not require a change in the name for this BUILD target.
-# For upstream TFL code, schema_fbs is a flatbuffer_cc_library whereas it is a
-# standard cc_library (with the generated schems header) in the TFLM code.
-cc_library(
+# Note: when wanting to generate the schema_generated.h, you must build as:
+# bazel build schema_fbs_srcs.
+flatbuffer_cc_library(
     name = "schema_fbs",
-    hdrs = ["schema_generated.h"],
-    deps = [
-        "@flatbuffers//:runtime_cc",
+    srcs = ["schema.fbs"],
+)
+
+# Generic schema for inference on device (but with reflections makes bigger).
+flatbuffer_cc_library(
+    name = "schema_fbs_with_reflection",
+    srcs = ["schema.fbs"],
+    flatc_args = [
+        "--reflect-types",
+        "--reflect-names",
+        "--no-union-value-namespacing",
+        "--gen-object-api",
     ],
+    out_prefix = "reflection/",
 )
 
 cc_library(

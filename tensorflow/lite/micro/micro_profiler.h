@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
-#include <cstdint>
-
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 namespace tflite {
 
@@ -26,7 +25,7 @@ namespace tflite {
 // performance. Bottleck operators can be identified along with slow code
 // sections. This can be used in conjunction with running the relevant micro
 // benchmark to evaluate end-to-end performance.
-class MicroProfiler {
+class MicroProfiler : public MicroProfilerInterface {
  public:
   MicroProfiler() = default;
   virtual ~MicroProfiler() = default;
@@ -34,7 +33,7 @@ class MicroProfiler {
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent. The lifetime of the tag
   // parameter must exceed that of the MicroProfiler.
-  virtual uint32_t BeginEvent(const char* tag);
+  virtual uint32_t BeginEvent(const char* tag) override;
 
   // Marks the end of an event associated with event_handle. It is the
   // responsibility of the caller to ensure than EndEvent is called once and
@@ -43,7 +42,7 @@ class MicroProfiler {
   // If EndEvent is called more than once for the same event_handle, the last
   // call will be used as the end of event marker.If EndEvent is called 0 times
   // for a particular event_handle, the duration of that event will be 0 ticks.
-  virtual void EndEvent(uint32_t event_handle);
+  virtual void EndEvent(uint32_t event_handle) override;
 
   // Clears all the events that have been currently profiled.
   void ClearEvents() { num_events_ = 0; }
@@ -51,7 +50,7 @@ class MicroProfiler {
   // Returns the sum of the ticks taken across all the events. This number
   // is only meaningful if all of the events are disjoint (the end time of
   // event[i] <= start time of event[i+1]).
-  int32_t GetTotalTicks() const;
+  uint32_t GetTotalTicks() const;
 
   // Prints the profiling information of each of the events in human readable
   // form.
@@ -61,6 +60,11 @@ class MicroProfiler {
   // Separated Value) form.
   void LogCsv() const;
 
+  // Prints  total ticks for each unique tag in CSV format.
+  // Output will have one row for each unique tag along with the
+  // total ticks summed across all events with that particular tag.
+  void LogTicksPerTagCsv();
+
  private:
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
@@ -68,9 +72,20 @@ class MicroProfiler {
   static constexpr int kMaxEvents = 1024;
 
   const char* tags_[kMaxEvents];
-  int32_t start_ticks_[kMaxEvents];
-  int32_t end_ticks_[kMaxEvents];
+  uint32_t start_ticks_[kMaxEvents];
+  uint32_t end_ticks_[kMaxEvents];
   int num_events_ = 0;
+
+  struct TicksPerTag {
+    const char* tag;
+    uint32_t ticks;
+  };
+  // In practice, the number of tags will be much lower than the number of
+  // events. But it is theoretically possible that each event to be unique and
+  // hence we allow total_ticks_per_tag to have kMaxEvents entries.
+  TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
+
+  int FindExistingOrNextPosition(const char* tag_name);
 
   TF_LITE_REMOVE_VIRTUAL_DELETE;
 };

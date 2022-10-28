@@ -21,12 +21,13 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/core/api/op_resolver.h"
 #include "tensorflow/lite/core/api/tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/micro/arena_allocator/simple_memory_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
@@ -35,6 +36,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_allocation_info.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/schema/schema_utils.h"
 
@@ -73,8 +75,7 @@ class MicroBuiltinDataAllocator : public BuiltinDataAllocator {
   IPersistentBufferAllocator* persistent_allocator_;
 };
 
-TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
-                        MicroMemoryPlanner* planner,
+TfLiteStatus CreatePlan(MicroMemoryPlanner* planner,
                         const AllocationInfo* allocation_info,
                         size_t allocation_info_size) {
   // Add the tensors to our allocation plan.
@@ -84,21 +85,20 @@ TfLiteStatus CreatePlan(ErrorReporter* error_reporter,
       size_t aligned_bytes_required =
           AlignSizeUp(current->bytes, MicroArenaBufferAlignment());
       if (current->offline_offset == kOnlinePlannedBuffer) {
-        TF_LITE_ENSURE_STATUS(
-            planner->AddBuffer(error_reporter, aligned_bytes_required,
-                               current->first_created, current->last_used));
+        TF_LITE_ENSURE_STATUS(planner->AddBuffer(aligned_bytes_required,
+                                                 current->first_created,
+                                                 current->last_used));
       } else {
-        TF_LITE_ENSURE_STATUS(planner->AddBuffer(
-            error_reporter, aligned_bytes_required, current->first_created,
-            current->last_used, current->offline_offset));
+        TF_LITE_ENSURE_STATUS(
+            planner->AddBuffer(aligned_bytes_required, current->first_created,
+                               current->last_used, current->offline_offset));
       }
     }
   }
   return kTfLiteOk;
 }
 
-TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
-                        MicroMemoryPlanner* planner, uint8_t* starting_point,
+TfLiteStatus CommitPlan(MicroMemoryPlanner* planner, uint8_t* starting_point,
                         const AllocationInfo* allocation_info,
                         size_t allocation_info_size) {
   // Figure out the actual memory addresses for each buffer, based on the plan.
@@ -108,12 +108,54 @@ TfLiteStatus CommitPlan(ErrorReporter* error_reporter,
     if (current->needs_allocating) {
       int offset = -1;
       TF_LITE_ENSURE_STATUS(
-          planner->GetOffsetForBuffer(error_reporter, planner_index, &offset));
+          planner->GetOffsetForBuffer(planner_index, &offset));
       *current->output_ptr = reinterpret_cast<void*>(starting_point + offset);
       ++planner_index;
     }
   }
   return kTfLiteOk;
+}
+
+IPersistentBufferAllocator* CreatePersistentArenaAllocator(uint8_t* buffer_head,
+                                                           size_t buffer_size) {
+  // Align the actually used area by the tail because persistent buffer grows
+  // from the bottom to top.
+  uint8_t* aligned_buffer_tail =
+      AlignPointerDown(buffer_head + buffer_size, MicroArenaBufferAlignment());
+  size_t aligned_buffer_size = aligned_buffer_tail - buffer_head;
+  PersistentArenaBufferAllocator tmp =
+      PersistentArenaBufferAllocator(buffer_head, aligned_buffer_size);
+
+  // Allocate enough bytes from the buffer to create a
+  // SingleArenaBufferAllocator. The new instance will use the current adjusted
+  // tail buffer from the tmp allocator instance.
+  uint8_t* allocator_buffer =
+      tmp.AllocatePersistentBuffer(sizeof(PersistentArenaBufferAllocator),
+                                   alignof(PersistentArenaBufferAllocator));
+  // Use the default copy constructor to populate internal states.
+  return new (allocator_buffer) PersistentArenaBufferAllocator(tmp);
+}
+
+// NonPersistentBufferAllocator instance is created in the persistent buffer
+// because it has to be persistent to keep track of the non-persistent buffer
+// information.
+INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
+    uint8_t* buffer_head, size_t buffer_size,
+    IPersistentBufferAllocator* persistent_buffer_allocator) {
+  uint8_t* allocator_buffer =
+      persistent_buffer_allocator->AllocatePersistentBuffer(
+          sizeof(NonPersistentArenaBufferAllocator),
+          alignof(NonPersistentArenaBufferAllocator));
+  // Align the actually used area by the head because persistent buffer grows
+  // from the head to bottom.
+  uint8_t* aligned_buffer_head =
+      AlignPointerUp(buffer_head, MicroArenaBufferAlignment());
+  size_t aligned_buffer_size = buffer_head + buffer_size - aligned_buffer_head;
+
+  INonPersistentBufferAllocator* non_persistent_buffer_allocator =
+      new (allocator_buffer) NonPersistentArenaBufferAllocator(
+          aligned_buffer_head, aligned_buffer_size);
+  return non_persistent_buffer_allocator;
 }
 
 }  // namespace
@@ -157,14 +199,15 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     INonPersistentBufferAllocator* non_persistent_buffer_allocator,
     bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    ErrorReporter* error_reporter, TfLiteTensor* result) {
+    TfLiteTensor* result) {
   TFLITE_DCHECK(result != nullptr);
 
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
   TF_LITE_ENSURE_STATUS(ConvertTensorType(flatbuffer_tensor.type(),
-                                          &result->type, error_reporter));
+                                          &result->type,
+                                          tflite::GetMicroErrorReporter()));
   // Make sure we remember if the serialized tensor is designated as a variable.
   result->is_variable = flatbuffer_tensor.is_variable();
 
@@ -184,8 +227,8 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 
   // Figure out what the size in bytes of the buffer is and store it.
   size_t type_size;
-  TF_LITE_ENSURE_STATUS(BytesRequiredForTensor(
-      flatbuffer_tensor, &result->bytes, &type_size, error_reporter));
+  TF_LITE_ENSURE_STATUS(
+      BytesRequiredForTensor(flatbuffer_tensor, &result->bytes, &type_size));
 
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
@@ -228,8 +271,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
                       sizeof(TfLiteAffineQuantization),
                       alignof(TfLiteAffineQuantization)));
     if (quantization == nullptr) {
-      TF_LITE_REPORT_ERROR(error_reporter,
-                           "Unable to allocate TfLiteAffineQuantization.\n");
+      MicroPrintf("Unable to allocate TfLiteAffineQuantization.\n");
       return kTfLiteError;
     }
 
@@ -247,8 +289,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
                       TfLiteIntArrayGetSizeInBytes(channels),
                       alignof(TfLiteIntArray)));
     if (quantization->zero_point == nullptr) {
-      TF_LITE_REPORT_ERROR(error_reporter,
-                           "Unable to allocate quantization->zero_point.\n");
+      MicroPrintf("Unable to allocate quantization->zero_point.\n");
       return kTfLiteError;
     }
 
@@ -277,12 +318,13 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
     const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    ErrorReporter* error_reporter, TfLiteEvalTensor* result) {
+    TfLiteEvalTensor* result) {
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
   TF_LITE_ENSURE_STATUS(ConvertTensorType(flatbuffer_tensor.type(),
-                                          &result->type, error_reporter));
+                                          &result->type,
+                                          tflite::GetMicroErrorReporter()));
 
   result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
 
@@ -302,8 +344,8 @@ size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   // TODO(b/208703041): a template version of AlignSizeUp to make expression
   // shorter.
   size_t total_size =
-      AlignSizeUp(sizeof(SimpleMemoryAllocator),
-                  alignof(SimpleMemoryAllocator)) +
+      AlignSizeUp(sizeof(SingleArenaBufferAllocator),
+                  alignof(SingleArenaBufferAllocator)) +
       AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator)) +
       AlignSizeUp(sizeof(MicroBuiltinDataAllocator),
                   alignof(MicroBuiltinDataAllocator)) +
@@ -315,36 +357,42 @@ size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   return total_size;
 }
 
-MicroAllocator::MicroAllocator(SimpleMemoryAllocator* memory_allocator,
-                               MicroMemoryPlanner* memory_planner,
-                               ErrorReporter* error_reporter)
+MicroAllocator::MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
+                               MicroMemoryPlanner* memory_planner)
     : non_persistent_buffer_allocator_(memory_allocator),
       persistent_buffer_allocator_(memory_allocator),
       memory_planner_(memory_planner),
-      error_reporter_(error_reporter),
+      model_is_allocating_(false) {}
+
+MicroAllocator::MicroAllocator(
+    IPersistentBufferAllocator* persistent_buffer_allocator,
+    INonPersistentBufferAllocator* non_persistent_buffer_allocator,
+    MicroMemoryPlanner* memory_planner)
+    : non_persistent_buffer_allocator_(non_persistent_buffer_allocator),
+      persistent_buffer_allocator_(persistent_buffer_allocator),
+      memory_planner_(memory_planner),
       model_is_allocating_(false) {}
 
 MicroAllocator::~MicroAllocator() {}
 
 MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
-                                       MicroMemoryPlanner* memory_planner,
-                                       ErrorReporter* error_reporter) {
+                                       MicroMemoryPlanner* memory_planner) {
   uint8_t* aligned_arena =
       AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
-  SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
-      error_reporter, aligned_arena, aligned_arena_size);
+  SingleArenaBufferAllocator* memory_allocator =
+      SingleArenaBufferAllocator::Create(aligned_arena, aligned_arena_size);
 
-  return Create(memory_allocator, memory_planner, error_reporter);
+  return Create(memory_allocator, memory_planner);
 }
 
-MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
-                                       ErrorReporter* error_reporter) {
+MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena,
+                                       size_t arena_size) {
   uint8_t* aligned_arena =
       AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
-  SimpleMemoryAllocator* memory_allocator = SimpleMemoryAllocator::Create(
-      error_reporter, aligned_arena, aligned_arena_size);
+  SingleArenaBufferAllocator* memory_allocator =
+      SingleArenaBufferAllocator::Create(aligned_arena, aligned_arena_size);
 
   // By default create GreedyMemoryPlanner.
   // If a different MemoryPlanner is needed, use the other api.
@@ -353,20 +401,50 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
   GreedyMemoryPlanner* memory_planner =
       new (memory_planner_buffer) GreedyMemoryPlanner();
 
-  return Create(memory_allocator, memory_planner, error_reporter);
+  return Create(memory_allocator, memory_planner);
 }
 
-MicroAllocator* MicroAllocator::Create(SimpleMemoryAllocator* memory_allocator,
-                                       MicroMemoryPlanner* memory_planner,
-                                       ErrorReporter* error_reporter) {
+MicroAllocator* MicroAllocator::Create(
+    SingleArenaBufferAllocator* memory_allocator,
+    MicroMemoryPlanner* memory_planner) {
   TFLITE_DCHECK(memory_allocator != nullptr);
-  TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(memory_planner != nullptr);
 
   uint8_t* allocator_buffer = memory_allocator->AllocatePersistentBuffer(
       sizeof(MicroAllocator), alignof(MicroAllocator));
   MicroAllocator* allocator = new (allocator_buffer)
-      MicroAllocator(memory_allocator, memory_planner, error_reporter);
+      MicroAllocator(memory_allocator, memory_allocator, memory_planner);
+  return allocator;
+}
+
+MicroAllocator* MicroAllocator::Create(uint8_t* persistent_tensor_arena,
+                                       size_t persistent_arena_size,
+                                       uint8_t* non_persistent_tensor_arena,
+                                       size_t non_persistent_arena_size) {
+  TFLITE_DCHECK(persistent_tensor_arena != nullptr);
+  TFLITE_DCHECK(non_persistent_tensor_arena != nullptr);
+  TFLITE_DCHECK(persistent_tensor_arena != non_persistent_tensor_arena);
+
+  IPersistentBufferAllocator* persistent_buffer_allocator =
+      CreatePersistentArenaAllocator(persistent_tensor_arena,
+                                     persistent_arena_size);
+  INonPersistentBufferAllocator* non_persistent_buffer_allocator =
+      CreateNonPersistentArenaAllocator(non_persistent_tensor_arena,
+                                        non_persistent_arena_size,
+                                        persistent_buffer_allocator);
+
+  uint8_t* memory_planner_buffer =
+      persistent_buffer_allocator->AllocatePersistentBuffer(
+          sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+  GreedyMemoryPlanner* memory_planner =
+      new (memory_planner_buffer) GreedyMemoryPlanner();
+
+  uint8_t* micro_allocator_buffer =
+      persistent_buffer_allocator->AllocatePersistentBuffer(
+          sizeof(MicroAllocator), alignof(MicroAllocator));
+  MicroAllocator* allocator = new (micro_allocator_buffer)
+      MicroAllocator(persistent_buffer_allocator,
+                     non_persistent_buffer_allocator, memory_planner);
   return allocator;
 }
 
@@ -374,9 +452,9 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
   TFLITE_DCHECK(model != nullptr);
 
   if (model_is_allocating_) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "MicroAllocator: Model allocation started before "
-                         "finishing previously allocated model");
+    MicroPrintf(
+        "MicroAllocator: Model allocation started before "
+        "finishing previously allocated model");
     return nullptr;
   }
 
@@ -414,20 +492,21 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
     const Model* model, SubgraphAllocations* subgraph_allocations,
     ScratchBufferHandle** scratch_buffer_handles) {
   if (!model_is_allocating_) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "MicroAllocator: Model allocation finished before "
-                         "starting allocating model");
+    MicroPrintf(
+        "MicroAllocator: Model allocation finished before "
+        "starting allocating model");
     return kTfLiteError;
   }
 
-  // Allocate scratch buffer metadata and buffers for variable tensors.
+  // Allocate scratch buffer metadata.
+  TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
+      scratch_buffer_handles, scratch_buffer_request_count_));
+
+  // Allocate buffers for variable tensors.
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
-
-    TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
-        scratch_buffer_handles, scratch_buffer_request_count_));
     TF_LITE_ENSURE_STATUS(AllocateVariables(
         subgraph, subgraph_allocations[subgraph_idx].tensors));
   }
@@ -462,10 +541,8 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
 
   // First, ensure that the per-kernel request has not exceeded the limit:
   if (current_node_request_count >= kMaxScratchBuffersPerOp) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
-        "Scratch buffer request exeeds limit per operator (%d)",
-        kMaxScratchBuffersPerOp);
+    MicroPrintf("Scratch buffer request exeeds limit per operator (%d)",
+                kMaxScratchBuffersPerOp);
     return kTfLiteError;
   }
 
@@ -539,9 +616,7 @@ TfLiteStatus MicroAllocator::AllocateNodeAndRegistrations(
             sizeof(NodeAndRegistration) * operators_size,
             alignof(NodeAndRegistration)));
     if (output == nullptr) {
-      TF_LITE_REPORT_ERROR(
-          error_reporter_,
-          "Failed to allocate memory for node_and_registrations.");
+      MicroPrintf("Failed to allocate memory for node_and_registrations.");
       return kTfLiteError;
     }
     subgraph_allocations[subgraph_idx].node_and_registrations = output;
@@ -565,9 +640,9 @@ TfLiteTensor* MicroAllocator::AllocatePersistentTfLiteTensor(
   if (PopulateTfLiteTensorFromFlatbuffer(
           model, tensor, tensor_index, subgraph_index,
           /*allocate_temp=*/false) != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed to populate a persistent TfLiteTensor struct "
-                         "from flatbuffer data!");
+    MicroPrintf(
+        "Failed to populate a persistent TfLiteTensor struct "
+        "from flatbuffer data!");
     return nullptr;
   }
 
@@ -629,8 +704,7 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
   if (PopulateTfLiteTensorFromFlatbuffer(model, tensor, tensor_index,
                                          subgraph_index,
                                          /*allocate_temp=*/true) != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Failed to populate a temp TfLiteTensor struct from flatbuffer data!");
     return nullptr;
   }
@@ -672,8 +746,7 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
         persistent_buffer_allocator_->AllocatePersistentBuffer(
             sizeof(TfLiteEvalTensor) * alloc_count, alignof(TfLiteEvalTensor)));
     if (tensors == nullptr) {
-      TF_LITE_REPORT_ERROR(
-          error_reporter_,
+      MicroPrintf(
           "Failed to allocate memory for context->eval_tensors, "
           "%d bytes required",
           sizeof(TfLiteEvalTensor) * alloc_count);
@@ -682,11 +755,9 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
 
     for (size_t i = 0; i < alloc_count; ++i) {
       TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(
-          *subgraph->tensors()->Get(i), model->buffers(), error_reporter_,
-          &tensors[i]);
+          *subgraph->tensors()->Get(i), model->buffers(), &tensors[i]);
       if (status != kTfLiteOk) {
-        TF_LITE_REPORT_ERROR(error_reporter_, "Failed to initialize tensor %d",
-                             i);
+        MicroPrintf("Failed to initialize tensor %d", i);
         return kTfLiteError;
       }
     }
@@ -709,9 +780,8 @@ TfLiteStatus MicroAllocator::AllocateVariables(const SubGraph* subgraph,
               buffer_size, MicroArenaBufferAlignment());
 
       if (eval_tensors[i].data.data == nullptr) {
-        TF_LITE_REPORT_ERROR(error_reporter_,
-                             "Failed to allocate variable tensor of size %d",
-                             buffer_size);
+        MicroPrintf("Failed to allocate variable tensor of size %d",
+                    buffer_size);
         return kTfLiteError;
       }
     }
@@ -735,11 +805,7 @@ TfLiteStatus MicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
       persistent_buffer_allocator_, non_persistent_buffer_allocator_,
       allocate_temp,
       *model->subgraphs()->Get(subgraph_idx)->tensors()->Get(tensor_index),
-      model->buffers(), error_reporter_, tensor);
-}
-
-ErrorReporter* MicroAllocator::error_reporter() const {
-  return error_reporter_;
+      model->buffers(), tensor);
 }
 
 TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
@@ -758,8 +824,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
 
   // Use the AllocationInfoBuilder class to help determine where buffers are
   // used in the subgraph.
-  AllocationInfoBuilder builder(model, non_persistent_buffer_allocator_,
-                                error_reporter_);
+  AllocationInfoBuilder builder(model, non_persistent_buffer_allocator_);
   TF_LITE_ENSURE_STATUS(
       builder.CreateAllocationInfo(scratch_buffer_request_count_));
 
@@ -782,14 +847,14 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
           MicroArenaBufferAlignment());
   uint8_t* planner_arena = non_persistent_buffer_allocator_->AllocateTemp(
       remaining_arena_size, MicroArenaBufferAlignment());
-  TF_LITE_ENSURE(error_reporter_, planner_arena != nullptr);
+  TF_LITE_ENSURE(tflite::GetMicroErrorReporter(), planner_arena != nullptr);
   memory_planner_->Init(planner_arena, remaining_arena_size);
-  TF_LITE_ENSURE_STATUS(CreatePlan(error_reporter_, memory_planner_,
-                                   allocation_info, allocation_info_count));
+  TF_LITE_ENSURE_STATUS(
+      CreatePlan(memory_planner_, allocation_info, allocation_info_count));
 
   // Commit the plan.
   TF_LITE_ENSURE_STATUS(
-      CommitPlan(error_reporter_, memory_planner_,
+      CommitPlan(memory_planner_,
                  non_persistent_buffer_allocator_->GetOverlayMemoryAddress(),
                  allocation_info, allocation_info_count));
 

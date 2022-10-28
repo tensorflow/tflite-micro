@@ -14,8 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
+#include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 
 namespace py = pybind11;
 using tflite::InterpreterWrapper;
@@ -24,11 +26,16 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
   m.doc() = "TFLM interpreter";
 
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
-      .def(py::init([](const py::bytes& data, size_t arena_size) {
+      .def(py::init([](const py::bytes& data,
+                       const std::vector<std::string>& registerers_by_name,
+                       size_t arena_size, int num_resource_variables) {
         return std::unique_ptr<InterpreterWrapper>(
-            new InterpreterWrapper(data.ptr(), arena_size));
+            new InterpreterWrapper(data.ptr(), registerers_by_name, arena_size,
+                                   num_resource_variables));
       }))
+      .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
       .def("Invoke", &InterpreterWrapper::Invoke)
+      .def("Reset", &InterpreterWrapper::Reset)
       .def(
           "SetInputTensor",
           [](InterpreterWrapper& self, py::handle& x, size_t index) {
@@ -38,8 +45,19 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
       .def(
           "GetOutputTensor",
           [](InterpreterWrapper& self, size_t index) {
-            return py::reinterpret_steal<py::object>(
-                self.GetOutputTensor(index));
+            return tflite::PyoOrThrow(self.GetOutputTensor(index));
+          },
+          py::arg("index"))
+      .def(
+          "GetInputTensorDetails",
+          [](InterpreterWrapper& self, size_t index) {
+            return tflite::PyoOrThrow(self.GetInputTensorDetails(index));
+          },
+          py::arg("index"))
+      .def(
+          "GetOutputTensorDetails",
+          [](InterpreterWrapper& self, size_t index) {
+            return tflite::PyoOrThrow(self.GetOutputTensorDetails(index));
           },
           py::arg("index"));
 }

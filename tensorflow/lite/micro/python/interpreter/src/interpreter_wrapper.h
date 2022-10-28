@@ -17,27 +17,33 @@ limitations under the License.
 
 #include <Python.h>
 
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
 
 class InterpreterWrapper {
  public:
-  InterpreterWrapper(PyObject* model_data, size_t arena_size);
+  InterpreterWrapper(PyObject* model_data,
+                     const std::vector<std::string>& registerers_by_name,
+                     size_t arena_size, int num_resource_variables);
   ~InterpreterWrapper();
 
+  void PrintAllocations();
   int Invoke();
+  int Reset();
   void SetInputTensor(PyObject* data, size_t index);
-  PyObject* GetOutputTensor(size_t index);
+  PyObject* GetOutputTensor(size_t index) const;
+  PyObject* GetInputTensorDetails(size_t index) const;
+  PyObject* GetOutputTensorDetails(size_t index) const;
 
  private:
+  tflite::RecordingMicroAllocator* allocator_;
   const PyObject* model_;
-  std::unique_ptr<tflite::ErrorReporter> error_reporter_;
-  std::unique_ptr<tflite::MicroInterpreter> interpreter_;
   std::unique_ptr<uint8_t[]> memory_arena_;
-  const tflite::AllOpsResolver all_ops_resolver_;
+  tflite::AllOpsResolver all_ops_resolver_;
+  tflite::MicroInterpreter* interpreter_;
 };
 
 }  // namespace tflite

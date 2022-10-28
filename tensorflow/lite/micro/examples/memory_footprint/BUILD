@@ -46,7 +46,6 @@ cc_binary(
     deps = [
         ":simple_add_model_data",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",

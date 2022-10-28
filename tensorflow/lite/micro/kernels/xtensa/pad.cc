@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pad.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace ops {
@@ -255,8 +256,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     } break;
     default:
 
-      TF_LITE_KERNEL_LOG(context, "Type %s not currently supported by Pad.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("Type %s not currently supported by Pad.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
   return kTfLiteOk;

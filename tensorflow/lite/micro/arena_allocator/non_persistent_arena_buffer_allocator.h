@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
@@ -97,6 +96,7 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   intptr_t temp_buffer_ptr_check_sum_ = 0;
   // Count of outstanding temp buffers.
   int temp_buffer_count_ = 0;
+  bool resizable_buffer_allocated_ = false;
 };
 
 }  // namespace tflite

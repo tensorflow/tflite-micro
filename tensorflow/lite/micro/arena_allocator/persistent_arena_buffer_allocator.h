@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 
@@ -50,7 +49,7 @@ class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
   // tail_temp_ to buffer_tail_ contains allocated buffers;
   // buffer_head_ to tail_temp_ - 1 belongs to still available spaces.
   // So in essence, the allocated region grows from the bottom and emulates
-  // SimpleMemoryAllocator's persistent part.
+  // SingleArenaBufferAllocator's persistent part.
   uint8_t* tail_temp_;
 };
 

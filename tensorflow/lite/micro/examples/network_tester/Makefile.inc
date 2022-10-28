@@ -1,20 +1,20 @@
 NETWORK_TESTER_TEST_SRCS := \
-tensorflow/lite/micro/examples/network_tester/network_tester_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/network_tester_test.cc
 
 NETWORK_TESTER_GENERATOR_INPUTS:=
 
 ifeq ($(CO_PROCESSOR),ethos_u)
   NETWORK_TESTER_TEST_SRCS += \
-    $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
+    $(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/models/person_detect_model_data_vela.cc
 
   NETWORK_TESTER_GENERATOR_INPUTS := \
-    tensorflow/lite/micro/examples/person_detection/testdata/person.bmp
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/testdata/person.bmp
 endif
 
 NETWORK_TESTER_TEST_HDRS := \
-tensorflow/lite/micro/examples/network_tester/network_model.h \
-tensorflow/lite/micro/examples/network_tester/input_data.h \
-tensorflow/lite/micro/examples/network_tester/expected_output_data.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/network_model.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/input_data.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/expected_output_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard tensorflow/lite/micro/examples/network_tester/*/Makefile.inc)

@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -132,9 +133,8 @@ TfLiteStatus LogSoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default:
-      TF_LITE_KERNEL_LOG(context,
-                         "LOG_SOFTMAX only supports float32, int8, got %s.",
-                         TfLiteTypeGetName(input->type));
+      MicroPrintf("LOG_SOFTMAX only supports float32, int8, got %s.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 }

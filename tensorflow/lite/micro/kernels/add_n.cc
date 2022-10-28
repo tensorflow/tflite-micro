@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -121,8 +122,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
         context, kTfLiteActNone, output, &data->output_activation_min,
         &data->output_activation_max));
   } else {
-    TF_LITE_KERNEL_LOG(context, "ADD_N only supports FLOAT32 and INT8, got %s.",
-                       TfLiteTypeGetName(output->type));
+    MicroPrintf("ADD_N only supports FLOAT32 and INT8, got %s.",
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
 
@@ -198,8 +199,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   } else if (output->type == kTfLiteInt8) {
     EvalAddNQuantized<int8_t>(context, node, output);
   } else {
-    TF_LITE_KERNEL_LOG(context, "ADD_N only supports FLOAT32 and INT8, got %s.",
-                       TfLiteTypeGetName(output->type));
+    MicroPrintf("ADD_N only supports FLOAT32 and INT8, got %s.",
+                TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
   return kTfLiteOk;

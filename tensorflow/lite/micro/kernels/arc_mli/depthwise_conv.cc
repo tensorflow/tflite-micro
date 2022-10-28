@@ -31,6 +31,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -385,9 +386,8 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<float>(output));
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Type %s (%d) is not supported by ARC MLI Library.",
-                     TfLiteTypeGetName(input->type), input->type);
+  MicroPrintf("Type %s (%d) is not supported by ARC MLI Library.",
+              TfLiteTypeGetName(input->type), input->type);
 #endif
 }
 TfLiteStatus EvalMliQuantizedPerChannel(
@@ -556,8 +556,7 @@ TfLiteStatus EvalMliQuantizedPerChannel(
         // memory.
         if (mli_weights_shape[weight_out_ch_dimension] !=
             w_slice.Sub()->shape[3]) {
-          TF_LITE_KERNEL_LOG(
-              context, "Slicing is not supported with real-time permutation.");
+          MicroPrintf("Slicing is not supported with real-time permutation.");
           return kTfLiteError;
         }
         uint8_t dim_order[] = {1, 2, 0, 3};
@@ -625,8 +624,7 @@ void EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 #else
-  TF_LITE_KERNEL_LOG(context,
-                     "Node configuration is not supported by ARC MLI Library.");
+  MicroPrintf("Node configuration is not supported by ARC MLI Library.");
 #endif
 }
 
@@ -663,8 +661,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       }
       break;
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;

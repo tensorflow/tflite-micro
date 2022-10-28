@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 // OLD-TODO(b/117523611): We should factor out a binary_op and put binary ops
@@ -111,8 +112,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                  output);
     }
     default: {
-      TF_LITE_KERNEL_LOG(context, "Type '%s' is not supported by FLOOR_MOD.",
-                         TfLiteTypeGetName(input1->type));
+      MicroPrintf("Type '%s' is not supported by FLOOR_MOD.",
+                  TfLiteTypeGetName(input1->type));
       return kTfLiteError;
     }
   }

@@ -27,8 +27,10 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/xtensa/lstm_shared.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
+// TODO(b/230666079): Flatten the namespace to match the builtin kernel
+// implementation
 namespace tflite {
 namespace ops {
 namespace micro {
@@ -846,9 +848,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     // This is deprecated and is only kept here for backward compatibility.
     use_layer_norm = false;
   } else {
-    TF_LITE_KERNEL_LOG(
-        context, "The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
-        node->inputs->size);
+    MicroPrintf("The LSTM Full kernel expects 20 or 24 inputs. Got %d inputs",
+                node->inputs->size);
     return kTfLiteError;
   }
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
@@ -1035,7 +1036,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       const bool is_hybrid = input->type == kTfLiteFloat32;
       if (is_hybrid) {
-        TF_LITE_KERNEL_LOG(context, " hybrid type is not supported.");
+        MicroPrintf(" hybrid type is not supported.");
         return kTfLiteError;
 
       } else {
@@ -1102,18 +1103,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      TF_LITE_KERNEL_LOG(context, "Type %s is not currently supported.",
-                         TfLiteTypeGetName(input_to_output_weights->type));
+      MicroPrintf("Type %s is not currently supported.",
+                  TfLiteTypeGetName(input_to_output_weights->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
 }
 //}  // namespace unidirectional_sequence_lstm
 
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
-}
-
 }  // namespace micro
 }  // namespace ops
+
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+  return tflite::micro::RegisterOp(ops::micro::Init, ops::micro::Prepare,
+                                   ops::micro::Eval);
+}
 }  // namespace tflite
