@@ -336,7 +336,7 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
         const uint32_t* metadata_buffer =
             reinterpret_cast<const uint32_t*>(array->data());
         // Note that metadata_buffer[0] and metadata_buffer[1] are placeholders
-        // for the version and subgraph ID but currently aren't used.
+        // for the version and number of subgraphs but currently aren't used.
         const size_t nbr_tensors = static_cast<size_t>(metadata_buffer[2]);
         *offline_planner_offsets =
             reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
