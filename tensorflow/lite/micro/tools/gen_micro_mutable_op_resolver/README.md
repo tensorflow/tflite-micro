@@ -7,20 +7,28 @@ This script will automatically generate a MicroMutableOpResolver with only the u
 ## How to run
 
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_file=<path to tflite file> --output_dir=<output directory>
+             --input_tflite_files=<path to tflite file> --output_dir=<output directory>
 
-Note that final output directory will be <output directory>/<base name of model>.
+Note that if having only one tflite as input, the final output directory will be <output directory>/<base name of model>.
 
-Example:
+Example1:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_file=/tmp/person_detect.tflite --output_dir=/tmp/tflite-micro/gen_dir
+             --input_tflite_files=/tmp/person_detect.tflite --output_dir=/tmp/gen_dir
 ```
 
 A header file called, gen_micro_mutable_op_resolver.h will be created in /tmp/gen_dir/person_detect.
 
-This can then be included in the application and used like below:
+Example2:
+
+```
+bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
+             --input_tflite_files=/tmp/person_detect.tflite,/tmp/keyword_scrambled.tflite --output_dir=/tmp/gen_dir
+```
+A header file called, gen_micro_mutable_op_resolver.h will be created in /tmp/gen_dir.
+
+The generated header file can then be included in the application and used like below:
 
 ```
 tflite::MicroMutableOpResolver<kNumberOperators> op_resolver = get_resolver();
@@ -31,7 +39,7 @@ tflite::MicroMutableOpResolver<kNumberOperators> op_resolver = get_resolver();
 Another script can be used to verify the generated header file. This will also demonstrate the usage of generated header file.
 
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_file=<path to tflite file> --output_dir=<output directory>
+             --input_tflite_files=<path to tflite file> --output_dir=<output directory>
 
 Note that final output directory will be <output directory>/<base name of model>.
 
@@ -39,7 +47,7 @@ Example:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_file=/tmp/person_detect.tflite --output_dir=/tmp/tflite-micro/gen_dir
+             --input_tflite_files=/tmp/person_detect.tflite --output_dir=/tmp/tflite-micro/gen_dir
 ```
 
 Note that the generated test must be somewhere in tflite-micro and it also need to be run from there.
@@ -60,9 +68,9 @@ Example:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_file=/tmp/my_model.tflite --output_dir=$(realpath gen_dir)
+             --input_tflite_files=/tmp/my_model.tflite --output_dir=$(realpath gen_dir)
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_file=/tmp/my_model.tflite --output_dir=$(realpath gen_dir) --verify_output=1
+             --input_tflite_files=/tmp/my_model.tflite --output_dir=$(realpath gen_dir) --verify_output=1
 bazel run gen_dir/my_model:micro_mutable_op_resolver_test
 
 ```
@@ -73,9 +81,9 @@ Example:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_file=/tmp/big_model.tflite --output_dir=gen_dir
+             --input_tflite_files=/tmp/big_model.tflite --output_dir=gen_dir
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_file=/tmp/big_model.tflite --output_dir=gen_dir --verify_output=1 --arena_size=1000000
+             --input_tflite_files=/tmp/big_model.tflite --output_dir=gen_dir --verify_output=1 --arena_size=1000000
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver/generated/big_model:micro_mutable_op_resolver_test
 
 ```
