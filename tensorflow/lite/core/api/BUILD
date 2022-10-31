@@ -8,15 +8,21 @@ package(
 
 cc_library(
     name = "api",
+    copts = tflite_copts() + micro_copts(),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":flatbuffer_conversions",
+        ":op_resolver",
+    ],
+)
+
+cc_library(
+    name = "flatbuffer_conversions",
     srcs = [
         "flatbuffer_conversions.cc",
-        "tensor_utils.cc",
     ],
     hdrs = [
-        "error_reporter.h",
         "flatbuffer_conversions.h",
-        "op_resolver.h",
-        "tensor_utils.h",
     ],
     copts = tflite_copts() + micro_copts(),
     visibility = ["//visibility:public"],

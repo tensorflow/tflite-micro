@@ -1,0 +1,45 @@
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "micro_copts",
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+    # Disabling layering_check because of http://b/177257332
+    features = ["-layering_check"],
+    licenses = ["notice"],
+)
+
+cc_library(
+    name = "flatbuffer_conversions_bridge",
+    srcs = [
+        "flatbuffer_conversions_bridge.cc",
+    ],
+    hdrs = [
+        "flatbuffer_conversions_bridge.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api:flatbuffer_conversions",
+        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/schema:schema_fbs",
+    ],
+)
+
+cc_library(
+    name = "op_resolver_bridge",
+    srcs = ["op_resolver_bridge.cc"],
+    hdrs = ["op_resolver_bridge.h"],
+    copts = micro_copts(),
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core/api:error_reporter",
+        "//tensorflow/lite/core/api:op_resolver",
+        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/schema:schema_fbs",
+    ],
+)
