@@ -267,7 +267,7 @@ constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
                             /*symmetry=*/true},
      /*recurrent_weight*/
      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
-     /*bias=*/{/*scale=*/6.175698625907056e-5f, /*zp=*/0, /*symmetry=*/true}},
+     /*bias=*/{/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}},
 
     /*output_gate=*/
     {/*activation_weight=*/{/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
@@ -689,24 +689,17 @@ struct GateOutputCheckData {
       0.5370495669980353, 0.5370495669980353, -0.1586485, -0.1586485};
 };
 
-const std::unique_ptr<tflite::testing::GateOutputCheckData> kGateOutputData(
-    new GateOutputCheckData);
+const GateOutputCheckData kGateOutputData;
 
-const std::unique_ptr<
-    tflite::testing::ModelContents<float, float, float, float>>
-    kFloatModelContent(
-        new tflite::testing::ModelContents<float, float, float, float>(
-            tflite::testing::kForgetGateParameters,
-            tflite::testing::kInputGateParameters,
-            tflite::testing::kCellGateParameters,
-            tflite::testing::kOutputGateParameters));
+const ModelContents<float, float, float, float> kFloatModelContent(
+    tflite::testing::kForgetGateParameters,
+    tflite::testing::kInputGateParameters, tflite::testing::kCellGateParameters,
+    tflite::testing::kOutputGateParameters);
 
-const std::unique_ptr<QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>>
-    kInt8ModelContent(
-        new QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>(
-            kInt8QuantizationSettings, kIint8ForgetGateParams,
-            kIint8InputGateParams, kIint8CellGateParams,
-            kInt8OutputGateParams));
+const QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
+    kInt8ModelContent(kInt8QuantizationSettings, kIint8ForgetGateParams,
+                      kIint8InputGateParams, kIint8CellGateParams,
+                      kInt8OutputGateParams);
 
 }  // namespace
 }  // namespace testing
@@ -720,33 +713,33 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   // Forget gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kForgetGateParameters, kTfLiteActSigmoid,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_forget_gate_output);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_forget_gate_output);
   // Input gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kInputGateParameters, kTfLiteActSigmoid,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_input_gate_output);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_input_gate_output);
   // output gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kOutputGateParameters, kTfLiteActSigmoid,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_output_gate_output);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_output_gate_output);
   // cell (modulation) gate
   tflite::testing::TestGateOutputFloat(
       tflite::testing::kCellGateParameters,
       tflite::testing::kModelSettings.activation,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_cell_gate_output);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_cell_gate_output);
 }
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   auto& evaluation_params =
-      tflite::testing::kInt8ModelContent->GetEvaluationParameters();
+      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
   float tolerance;
 
   // Forget Gate
@@ -759,9 +752,9 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       evaluation_params.effective_input_to_forget_scale_b,
       evaluation_params.effective_recurrent_to_forget_scale_a,
       evaluation_params.effective_recurrent_to_forget_scale_b,
-      kTfLiteActSigmoid, tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_forget_gate_output, tolerance);
+      kTfLiteActSigmoid, tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_forget_gate_output, tolerance);
 
   // Input Gate
   tolerance = 1e-1f;
@@ -772,9 +765,9 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       evaluation_params.effective_input_to_input_scale_b,
       evaluation_params.effective_recurrent_to_input_scale_a,
       evaluation_params.effective_recurrent_to_input_scale_b, kTfLiteActSigmoid,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_input_gate_output, tolerance);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_input_gate_output, tolerance);
 
   // Output Gate
   tolerance = 1e-2f;
@@ -785,9 +778,9 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       evaluation_params.effective_input_to_output_scale_b,
       evaluation_params.effective_recurrent_to_output_scale_a,
       evaluation_params.effective_recurrent_to_output_scale_b,
-      kTfLiteActSigmoid, tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_output_gate_output, tolerance);
+      kTfLiteActSigmoid, tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_output_gate_output, tolerance);
 
   // Cell Gate (tanh activation)
   tolerance = 1e-2f;
@@ -799,9 +792,9 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       evaluation_params.effective_recurrent_to_cell_scale_a,
       evaluation_params.effective_recurrent_to_cell_scale_b,
       tflite::testing::kModelSettings.activation,
-      tflite::testing::kGateOutputData->input_data,
-      tflite::testing::kGateOutputData->hidden_state,
-      tflite::testing::kGateOutputData->expected_cell_gate_output, tolerance);
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.expected_cell_gate_output, tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdate) {
@@ -947,21 +940,19 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTM) {
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEval) {
-  std::unique_ptr<tflite::testing::ModelContents<float, float, float, float>>
-      float_model_contents(
-          new tflite::testing::ModelContents<float, float, float, float>(
-              tflite::testing::kForgetGateParameters,
-              tflite::testing::kInputGateParameters,
-              tflite::testing::kCellGateParameters,
-              tflite::testing::kOutputGateParameters));
-  float_model_contents->SetInputTensorData(tflite::testing::kInputData);
+  tflite::testing::ModelContents<float, float, float, float>
+      float_model_contents(tflite::testing::kForgetGateParameters,
+                           tflite::testing::kInputGateParameters,
+                           tflite::testing::kCellGateParameters,
+                           tflite::testing::kOutputGateParameters);
+  float_model_contents.SetInputTensorData(tflite::testing::kInputData);
 
   tflite::EvalFloatLstm(
-      float_model_contents->GetTensor(0), float_model_contents->GetTensor(4),
-      float_model_contents->GetTensor(1), float_model_contents->GetTensor(7),
-      float_model_contents->GetTensor(10), float_model_contents->GetTensor(5),
-      float_model_contents->GetTensor(2), float_model_contents->GetTensor(8),
-      float_model_contents->GetTensor(11),
+      float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
+      float_model_contents.GetTensor(1), float_model_contents.GetTensor(7),
+      float_model_contents.GetTensor(10), float_model_contents.GetTensor(5),
+      float_model_contents.GetTensor(2), float_model_contents.GetTensor(8),
+      float_model_contents.GetTensor(11),
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
@@ -974,14 +965,14 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
       /*aux_input_to_forget_weights=*/nullptr,
       /*aux_input_to_cell_weights=*/nullptr,
       /*aux_input_to_output_weights=*/nullptr,
-      float_model_contents->GetTensor(6), float_model_contents->GetTensor(3),
-      float_model_contents->GetTensor(9), float_model_contents->GetTensor(12),
+      float_model_contents.GetTensor(6), float_model_contents.GetTensor(3),
+      float_model_contents.GetTensor(9), float_model_contents.GetTensor(12),
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &tflite::testing::kModelSettings,
       /*forward_sequence=*/true, /*time_major=*/false,
-      /*output_offset=*/0, float_model_contents->ScratchBuffers(),
-      float_model_contents->GetTensor(13), float_model_contents->GetTensor(14),
-      float_model_contents->GetTensor(15));
+      /*output_offset=*/0, float_model_contents.ScratchBuffers(),
+      float_model_contents.GetTensor(13), float_model_contents.GetTensor(14),
+      float_model_contents.GetTensor(15));
 
   // Validate hidden state. See previous test for the calculation
   const float expected_hidden_state[] = {
@@ -989,7 +980,7 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
       0.50054074, 0.50054148   // batch2
   };
   tflite::testing::ValidateResultGoldens(
-      expected_hidden_state, float_model_contents->GetHiddenState(),
+      expected_hidden_state, float_model_contents.GetHiddenState(),
       tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
   // Validate cell state. See previous test for the calculation
   const float expected_cell_state[] = {
@@ -997,12 +988,12 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
       0.80327607, 0.80327785  // batch2
   };
   tflite::testing::ValidateResultGoldens(
-      expected_cell_state, float_model_contents->GetCellState(),
+      expected_cell_state, float_model_contents.GetCellState(),
       tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
 
   // Validate output . See previous test for the calculation
   tflite::testing::ValidateResultGoldens(
-      tflite::testing::kExpectedOutput, float_model_contents->GetOutput(),
+      tflite::testing::kExpectedOutput, float_model_contents.GetOutput(),
       tflite::testing::kOutputSize, tflite::testing::kTestFloatTolerance);
 }
 #endif  // !defined(XTENSA)
