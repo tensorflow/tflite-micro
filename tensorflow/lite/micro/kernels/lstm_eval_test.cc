@@ -26,6 +26,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
+// TODO(b/230666079) enable below tests for xtensa when the xtensa
+// kernel is reconciled with reference kernel
+#if !defined(XTENSA)
 namespace tflite {
 namespace testing {
 namespace {
@@ -706,9 +709,6 @@ const QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   // Forget gate
   tflite::testing::TestGateOutputFloat(
