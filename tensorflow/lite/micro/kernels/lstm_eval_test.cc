@@ -996,5 +996,5 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
       tflite::testing::kExpectedOutput, float_model_contents.GetOutput(),
       tflite::testing::kOutputSize, tflite::testing::kTestFloatTolerance);
 }
-#endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
+#endif  // !defined(XTENSA)
