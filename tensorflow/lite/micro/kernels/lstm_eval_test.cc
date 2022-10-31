@@ -222,8 +222,8 @@ struct ModelQuantizationParameters {
   TfLiteType activation_type;
   TfLiteType cell_type;
   TfLiteType bias_type;
-  float nonlinear_activation_input_scale;
-  float nonlinear_activation_output_scale;
+  double nonlinear_activation_input_scale;
+  double nonlinear_activation_output_scale;
   // Quantization parameters for input/output
   TensorQuantizationParameters input_quantization_parameters;
   TensorQuantizationParameters output_quantization_parameters;
