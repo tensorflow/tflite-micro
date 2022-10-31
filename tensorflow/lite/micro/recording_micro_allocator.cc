@@ -33,8 +33,7 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
              /*is_memory_planner_given=*/false) +
          AlignSizeUp<RecordingSingleArenaBufferAllocator>() -
          AlignSizeUp<SingleArenaBufferAllocator>() +
-         AlignSizeUp<RecordingMicroAllocator>() -
-         AlignSizeUp<MicroAllocator>();
+         AlignSizeUp<RecordingMicroAllocator>() - AlignSizeUp<MicroAllocator>();
 }
 
 RecordingMicroAllocator::RecordingMicroAllocator(

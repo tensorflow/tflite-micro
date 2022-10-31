@@ -35,8 +35,8 @@ size_t AlignSizeUp(size_t size, size_t alignment);
 // Templated version of AlignSizeUp
 // Returns an increased size that's a multiple of alignment.
 template <typename T>
-size_t AlignSizeUp(size_t count = 1){
-    return AlignSizeUp(sizeof(T) * count, alignof(T));
+size_t AlignSizeUp(size_t count = 1) {
+  return AlignSizeUp(sizeof(T) * count, alignof(T));
 }
 
 // Returns size in bytes for a given TfLiteType.

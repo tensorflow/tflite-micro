@@ -341,14 +341,12 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
 }  // namespace internal
 
 size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
-  size_t total_size =
-      AlignSizeUp<SingleArenaBufferAllocator>() +
-      AlignSizeUp<MicroAllocator>() +
-      AlignSizeUp<MicroBuiltinDataAllocator>() +
-      AlignSizeUp<SubgraphAllocations>();
+  size_t total_size = AlignSizeUp<SingleArenaBufferAllocator>() +
+                      AlignSizeUp<MicroAllocator>() +
+                      AlignSizeUp<MicroBuiltinDataAllocator>() +
+                      AlignSizeUp<SubgraphAllocations>();
   if (!is_memory_planner_given) {
-    total_size +=
-        AlignSizeUp<GreedyMemoryPlanner>();
+    total_size += AlignSizeUp<GreedyMemoryPlanner>();
   }
   return total_size;
 }

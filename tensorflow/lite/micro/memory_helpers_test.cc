@@ -118,8 +118,10 @@ TF_LITE_MICRO_TEST(TestAlignSizeUp) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(24), tflite::AlignSizeUp(23, 3));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(32), tflite::AlignSizeUp(23, 16));
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(32), tflite::AlignSizeUp<TestAlignSizeUp>());
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(64), tflite::AlignSizeUp<TestAlignSizeUp>(2));
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(32),
+                          tflite::AlignSizeUp<TestAlignSizeUp>());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(64),
+                          tflite::AlignSizeUp<TestAlignSizeUp>(2));
 }
 
 TF_LITE_MICRO_TEST(TestTypeSizeOf) {
