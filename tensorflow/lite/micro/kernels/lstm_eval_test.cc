@@ -85,7 +85,9 @@ struct GateParameters {
 constexpr GateParameters<float, float> kForgetGateParameters = {
     /*.activation_weight=*/{-10, -10, -20, -20},
     /*.recurrent_weight=*/{-10, -10, -20, -20},
-    /*.fused_bias=*/{1, 2}};
+    /*.fused_bias=*/{1, 2},
+    /*activation_zp_folded_bias=*/{0, 0},
+    /*recurrent_zp_folded_bias=*/{0, 0}};
 // positive large weights for input gate to make it really remember
 constexpr GateParameters<float, float> kInputGateParameters = {
     /*.activation_weight=*/{10, 10, 20, 20},
@@ -203,8 +205,9 @@ class ModelContents {
 
 // A struct that holds quantization parameters for a LSTM Tensor
 struct TensorQuantizationParameters {
-  const float scale;
-  const float zero_point;
+  // all the effective
+  const double scale;
+  const int zero_point;
   const bool symmetry;
 };
 
@@ -382,6 +385,11 @@ class QuantizedModelContents
 
   void AssembleEvalualtionParams() {
     double effective_scale;
+    // QuantizeMultiplier takes int as the output shift type, but
+    // the shift type is stored as int32_t inside the IntegerLstmParameter.
+    // Hexagon compilation requires the exact match of the two. Use a buffer to
+    // pass the test (ugly!!!)
+    int buffer_shift_output;
     // Forget Gate
     effective_scale =
         quantization_settings_.input_quantization_parameters.scale *
@@ -390,7 +398,8 @@ class QuantizedModelContents
         quantization_settings_.nonlinear_activation_input_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_input_to_forget_scale_a,
-                       &evaluation_params_.effective_input_to_forget_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_input_to_forget_scale_b = buffer_shift_output;
     effective_scale =
         quantization_settings_.output_quantization_parameters.scale *
         quantization_settings_.forget_gate_quantization_parameters
@@ -399,7 +408,9 @@ class QuantizedModelContents
     QuantizeMultiplier(
         effective_scale,
         &evaluation_params_.effective_recurrent_to_forget_scale_a,
-        &evaluation_params_.effective_recurrent_to_forget_scale_b);
+        &buffer_shift_output);
+    evaluation_params_.effective_recurrent_to_forget_scale_b =
+        buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_forget_effective_bias =
         this->forget_gate_params_.activation_zp_folded_bias;
@@ -414,16 +425,18 @@ class QuantizedModelContents
         quantization_settings_.nonlinear_activation_input_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_input_to_input_scale_a,
-                       &evaluation_params_.effective_input_to_input_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_input_to_input_scale_b = buffer_shift_output;
     effective_scale =
         quantization_settings_.output_quantization_parameters.scale *
         quantization_settings_.input_gate_quantization_parameters
             .recurrent_weight.scale /
         quantization_settings_.nonlinear_activation_input_scale;
-    QuantizeMultiplier(
-        effective_scale,
-        &evaluation_params_.effective_recurrent_to_input_scale_a,
-        &evaluation_params_.effective_recurrent_to_input_scale_b);
+    QuantizeMultiplier(effective_scale,
+                       &evaluation_params_.effective_recurrent_to_input_scale_a,
+                       &buffer_shift_output);
+    evaluation_params_.effective_recurrent_to_input_scale_b =
+        buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_input_effective_bias =
         this->input_gate_params_.activation_zp_folded_bias;
@@ -438,7 +451,8 @@ class QuantizedModelContents
         quantization_settings_.nonlinear_activation_input_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_input_to_cell_scale_a,
-                       &evaluation_params_.effective_input_to_cell_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_input_to_cell_scale_b = buffer_shift_output;
     effective_scale =
         quantization_settings_.output_quantization_parameters.scale *
         quantization_settings_.cell_gate_quantization_parameters
@@ -446,7 +460,9 @@ class QuantizedModelContents
         quantization_settings_.nonlinear_activation_input_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_recurrent_to_cell_scale_a,
-                       &evaluation_params_.effective_recurrent_to_cell_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_recurrent_to_cell_scale_b =
+        buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_cell_effective_bias =
         this->cell_gate_params_.activation_zp_folded_bias;
@@ -461,7 +477,8 @@ class QuantizedModelContents
         quantization_settings_.nonlinear_activation_input_scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_input_to_output_scale_a,
-                       &evaluation_params_.effective_input_to_output_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_input_to_output_scale_b = buffer_shift_output;
     effective_scale =
         quantization_settings_.output_quantization_parameters.scale *
         quantization_settings_.output_gate_quantization_parameters
@@ -470,7 +487,9 @@ class QuantizedModelContents
     QuantizeMultiplier(
         effective_scale,
         &evaluation_params_.effective_recurrent_to_output_scale_a,
-        &evaluation_params_.effective_recurrent_to_output_scale_b);
+        &buffer_shift_output);
+    evaluation_params_.effective_recurrent_to_output_scale_b =
+        buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_output_effective_bias =
         this->output_gate_params_.activation_zp_folded_bias;
@@ -484,15 +503,18 @@ class QuantizedModelContents
         quantization_settings_.output_quantization_parameters.scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_hidden_scale_a,
-                       &evaluation_params_.effective_hidden_scale_b);
+                       &buffer_shift_output);
+    evaluation_params_.effective_hidden_scale_b = buffer_shift_output;
     evaluation_params_.hidden_zp =
         quantization_settings_.output_quantization_parameters.zero_point;
 
     // cell state. Note, cell_scale is actually not a scale. 2^-cell_scale is
     // the true scale for cell
+    int buffer_cell_scale;
     tflite::CheckedLog2(
         quantization_settings_.cell_quantization_parameters.scale,
-        &evaluation_params_.cell_scale);
+        &buffer_cell_scale);
+    evaluation_params_.cell_scale = buffer_cell_scale;
   }
 };
 
