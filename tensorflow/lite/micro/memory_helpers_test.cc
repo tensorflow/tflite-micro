@@ -31,6 +31,12 @@ void* FakeAllocatePersistentBuffer(TfLiteContext* context, size_t bytes) {
   return reinterpret_cast<void*>(global_persistent_buffer);
 }
 
+// Test structure to test AlignSizeUp.
+struct alignas(32) TestAlignSizeUp {
+  // Opaque blob
+  float blob_data[4];
+};
+
 }  // namespace
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -111,6 +117,9 @@ TF_LITE_MICRO_TEST(TestAlignSizeUp) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(24), tflite::AlignSizeUp(23, 2));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(24), tflite::AlignSizeUp(23, 3));
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(32), tflite::AlignSizeUp(23, 16));
+
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(32), tflite::AlignSizeUp<TestAlignSizeUp>());
+  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(64), tflite::AlignSizeUp<TestAlignSizeUp>(2));
 }
 
 TF_LITE_MICRO_TEST(TestTypeSizeOf) {

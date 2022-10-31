@@ -29,17 +29,12 @@ size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
   // similar with MicroAllocator with SingleArenaBufferAllocator and
   // MicroAllocator being replaced.
-  // TODO(b/208703041): a template version of AlignSizeUp to make expression
-  // shorter.
   return MicroAllocator::GetDefaultTailUsage(
              /*is_memory_planner_given=*/false) +
-         AlignSizeUp(sizeof(RecordingSingleArenaBufferAllocator),
-                     alignof(RecordingSingleArenaBufferAllocator)) -
-         AlignSizeUp(sizeof(SingleArenaBufferAllocator),
-                     alignof(SingleArenaBufferAllocator)) +
-         AlignSizeUp(sizeof(RecordingMicroAllocator),
-                     alignof(RecordingMicroAllocator)) -
-         AlignSizeUp(sizeof(MicroAllocator), alignof(MicroAllocator));
+         AlignSizeUp<RecordingSingleArenaBufferAllocator>() -
+         AlignSizeUp<SingleArenaBufferAllocator>() +
+         AlignSizeUp<RecordingMicroAllocator>() -
+         AlignSizeUp<MicroAllocator>();
 }
 
 RecordingMicroAllocator::RecordingMicroAllocator(

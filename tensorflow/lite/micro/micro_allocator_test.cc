@@ -138,10 +138,8 @@ void VerifyRegistrationAndNodeAllocation(
 size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
   const int tensor_count = 4;
   const int node_count = 2;
-  size_t eval_tensor_size = AlignSizeUp(sizeof(TfLiteEvalTensor) * tensor_count,
-                                        alignof(TfLiteEvalTensor));
-  size_t node_registration_size = AlignSizeUp(
-      sizeof(NodeAndRegistration) * node_count, alignof(NodeAndRegistration));
+  size_t eval_tensor_size = AlignSizeUp<TfLiteEvalTensor>(tensor_count);
+  size_t node_registration_size = AlignSizeUp<NodeAndRegistration>(node_count);
 
   const int activation_tensor_count = 3;
   size_t activation_tensor_buffer =
