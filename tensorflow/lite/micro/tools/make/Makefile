@@ -78,8 +78,6 @@ EXTERNAL_DIR :=
 # This is the downloads directory inside the makefiles directory
 DOWNLOADS_DIR := $(MAKEFILE_DIR)/downloads
 
-# This is obviously horrible.  We need to generate these 3 versions of the
-# include directories from one source.
 INCLUDES := \
 -I. \
 -I$(DOWNLOADS_DIR)/gemmlowp \
@@ -93,21 +91,6 @@ endif
 ifneq ($(EXTERNAL_DIR),)
   INCLUDES += -I$(EXTERNAL_DIR)
 endif
-
-# Same list of paths, but now relative to the generated project files.
-GENERATED_PROJECT_INCLUDES := \
--I. \
--I./third_party/gemmlowp \
--I./third_party/flatbuffers/include \
--I./third_party/ruy
-
-# Same list of paths, but now in the format the generate_keil_project.py
-# script expects them.
-PROJECT_INCLUDES := \
-. \
-third_party/gemmlowp \
-third_party/flatbuffers/include \
-third_party/ruy
 
 TEST_SCRIPT :=
 
@@ -279,9 +262,6 @@ MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro
 # Internal examples are copied outside the TFLM repo in google.
 ifneq ($(EXTERNAL_DIR),)
   MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
-else
-  # TODO(b/246833632): remove this once the internal examples are modified to make use of EXTERNAL_DIR instead of replying on google being hard-coded.
-  MICRO_LITE_EXAMPLE_TESTS += $(shell find ../google -name Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
