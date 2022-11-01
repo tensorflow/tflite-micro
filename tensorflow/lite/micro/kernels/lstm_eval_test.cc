@@ -47,7 +47,7 @@ constexpr int kTensorsNum = 16;
 
 constexpr TfLiteLSTMParams kModelSettings = {
     /*.activation=*/kTfLiteActTanh,
-    /*.cell_clip=*/8, /*.proj_clip=*/3,
+    /*.cell_clip=*/6, /*.proj_clip=*/3,
     /*.kernel_type=*/kTfLiteLSTMFullKernel,
     /*.asymmetric_quantize_inputs=*/true};
 
@@ -66,6 +66,60 @@ constexpr float kExpectedOutput[kOutputSize] = {
     -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
     0.46891281,      0.50054074,      0.50054148  // batch2
 };
+
+struct GateOutputCheckData {
+  const float input_data[kInputSize] = {
+      0.2, 0.3,    // batch1
+      -0.98, 0.62  // batch2
+  };
+  const float hidden_state[kGateOutputSize] = {
+      -0.1, 0.2,  // batch1
+      -0.3, 0.5   // batch2
+  };
+  const float cell_state[kGateOutputSize] = {
+      -1.3, 6.2,  // batch1
+      -7.3, 3.5   // batch2
+  };
+
+  // Use the forget gate parameters to test small gate outputs
+  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[-10,-10],[-20,-20]][0.2,
+  // +[[-10,-10],[-20,-20]][-0.1, 0.2]+[1,2]) = sigmoid([-5,-10]) =
+  // [6.69285092e-03, 4.53978687e-05] (Batch1)
+  // Similarly, we have [0.93086158 0.9945137 ] for batch 2
+  const float expected_forget_gate_output[kGateOutputSize] = {
+      6.69285092e-3f, 4.53978687e-5f, 0.93086158, 0.9945137};
+
+  // Use the input gate parameters to test small gate outputs
+  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[10,10],[20,20]][0.2, 0.3]
+  // +[[10,10],[20,20]][-0.1, 0.2]+[-1,-2]) = sigmoid([5,10]) =
+  // [0.99330715, 0.9999546]
+  // Similarly, we have [0.06913842 0.0054863 ] for batch 2
+  const float expected_input_gate_output[kGateOutputSize] = {
+      0.99330715, 0.9999546, 0.06913842, 0.0054863};
+
+  // Use the output gate parameters to test normnal gate outputs
+  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[1,1],[1,1]][0.2, 0.3]
+  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = sigmoid([0.6,0.6]) =
+  // [0.6456563062257954, 0.6456563062257954]
+  // Similarly, we have [[0.46008512 0.46008512]] for batch 2
+  const float expected_output_gate_output[kGateOutputSize] = {
+      0.6456563062257954, 0.6456563062257954, 0.46008512, 0.46008512};
+
+  // Use the cell(modulation) gate parameters to tanh output
+  // output = tanh(W_i*i+W_h*h+b) = tanh([[1,1],[1,1]][0.2, 0.3]
+  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = tanh([0.6,0.6]) =
+  // [0.6456563062257954, 0.6456563062257954]
+  // Similarly, we have [-0.1586485 -0.1586485] for batch 2
+  const float expected_cell_gate_output[kGateOutputSize] = {
+      0.5370495669980353, 0.5370495669980353, -0.1586485, -0.1586485};
+
+  // Cell = forget_gate*cell + input_gate*cell_gate
+  // Note -6.80625824 is clipped to -6
+  const float expected_updated_cell[kGateOutputSize] = {0.52475447, 0.53730665,
+                                                        -6, 3.47992756};
+};
+
+const GateOutputCheckData kGateOutputData;
 
 // Test Settings
 constexpr float kTestFloatTolerance = 1e-6f;
@@ -518,6 +572,12 @@ class QuantizedModelContents
         quantization_settings_.cell_quantization_parameters.scale,
         &buffer_cell_scale);
     evaluation_params_.cell_scale = buffer_cell_scale;
+
+    evaluation_params_.quantized_cell_clip = static_cast<int16_t>(std::min(
+        std::max(kModelSettings.cell_clip /
+                     quantization_settings_.cell_quantization_parameters.scale,
+                 -32768.0),
+        32767.0));
   }
 };
 
@@ -605,6 +665,47 @@ void TestGateOutputQuantized(
                         tolerance);
 }
 
+template <typename ActivationType, typename BiasType, typename CellType>
+void TestCellUpdateQuantized(
+    const ModelQuantizationParameters& quantization_settings,
+    const int32_t cell_scale_shift, const CellType quantized_cell_clip,
+    const float tolerance) {
+  CellType quantized_cell_state[kGateOutputSize];
+  tflite::Quantize(
+      kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
+      quantization_settings.cell_quantization_parameters.scale,
+      quantization_settings.cell_quantization_parameters.zero_point);
+
+  CellType quantized_forget_gate[kGateOutputSize];
+  tflite::Quantize(kGateOutputData.expected_forget_gate_output,
+                   quantized_forget_gate, kGateOutputSize,
+                   quantization_settings.nonlinear_activation_output_scale, 0);
+
+  CellType quantized_input_gate[kGateOutputSize];
+  tflite::Quantize(kGateOutputData.expected_input_gate_output,
+                   quantized_input_gate, kGateOutputSize,
+                   quantization_settings.nonlinear_activation_output_scale, 0);
+
+  CellType quantized_cell_gate[kGateOutputSize];
+  tflite::Quantize(kGateOutputData.expected_cell_gate_output,
+                   quantized_cell_gate, kGateOutputSize,
+                   quantization_settings.nonlinear_activation_output_scale, 0);
+
+  tflite::lstm_internal::UpdateLstmCellInteger(
+      kBatchSize, kStateDimension, quantized_cell_state, cell_scale_shift,
+      quantized_input_gate, quantized_forget_gate, quantized_cell_gate, false,
+      quantized_cell_clip);
+
+  float cell_state_float[kGateOutputSize];
+  Dequantize(quantized_cell_state, kGateOutputSize,
+             quantization_settings.cell_quantization_parameters.scale,
+             quantization_settings.cell_quantization_parameters.zero_point,
+             cell_state_float);
+
+  ValidateResultGoldens(kGateOutputData.expected_updated_cell, cell_state_float,
+                        kGateOutputSize, tolerance);
+}
+
 void TestOneStepLSTMFloat(const float* input_data,
                           const float* expected_hidden_state,
                           const float* expected_cell_state, float* hidden_state,
@@ -649,60 +750,6 @@ void TestOneStepLSTMFloat(const float* input_data,
   ValidateResultGoldens(expected_cell_state, cell_state, kGateOutputSize,
                         kTestFloatTolerance);
 }
-
-struct GateOutputCheckData {
-  const float input_data[kInputSize] = {
-      0.2, 0.3,    // batch1
-      -0.98, 0.62  // batch2
-  };
-  const float hidden_state[kGateOutputSize] = {
-      -0.1, 0.2,  // batch1
-      -0.3, 0.5   // batch2
-  };
-  const float cell_state[kGateOutputSize] = {
-      -1.3, 6.2,  // batch1
-      -9.3, 3.5   // batch2
-  };
-
-  // Use the forget gate parameters to test small gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[-10,-10],[-20,-20]][0.2,
-  // +[[-10,-10],[-20,-20]][-0.1, 0.2]+[1,2]) = sigmoid([-5,-10]) =
-  // [6.69285092e-03, 4.53978687e-05] (Batch1)
-  // Similarly, we have [0.93086158 0.9945137 ] for batch 2
-  const float expected_forget_gate_output[kGateOutputSize] = {
-      6.69285092e-3f, 4.53978687e-5f, 0.93086158, 0.9945137};
-
-  // Use the input gate parameters to test small gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[10,10],[20,20]][0.2, 0.3]
-  // +[[10,10],[20,20]][-0.1, 0.2]+[-1,-2]) = sigmoid([5,10]) =
-  // [0.99330715, 0.9999546]
-  // Similarly, we have [0.06913842 0.0054863 ] for batch 2
-  const float expected_input_gate_output[kGateOutputSize] = {
-      0.99330715, 0.9999546, 0.06913842, 0.0054863};
-
-  // Use the output gate parameters to test normnal gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[1,1],[1,1]][0.2, 0.3]
-  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = sigmoid([0.6,0.6]) =
-  // [0.6456563062257954, 0.6456563062257954]
-  // Similarly, we have [[0.46008512 0.46008512]] for batch 2
-  const float expected_output_gate_output[kGateOutputSize] = {
-      0.6456563062257954, 0.6456563062257954, 0.46008512, 0.46008512};
-
-  // Use the cell(modulation) gate parameters to tanh output
-  // output = tanh(W_i*i+W_h*h+b) = tanh([[1,1],[1,1]][0.2, 0.3]
-  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = tanh([0.6,0.6]) =
-  // [0.6456563062257954, 0.6456563062257954]
-  // Similarly, we have [-0.1586485 -0.1586485] for batch 2
-  const float expected_cell_gate_output[kGateOutputSize] = {
-      0.5370495669980353, 0.5370495669980353, -0.1586485, -0.1586485};
-
-  // Cell = forget_gate*cell + input_gate*cell_gate
-  // Note -8.6679814 is clipped to -8
-  const float expected_updated_cell[kGateOutputSize] = {0.52475447, 0.53730665,
-                                                        -8, 3.47992756};
-};
-
-const GateOutputCheckData kGateOutputData;
 
 const ModelContents<float, float, float, float> kFloatModelContent(
     tflite::testing::kForgetGateParameters,
@@ -754,6 +801,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   auto& evaluation_params =
       tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  // Different gate has different weights, resulting different quantization
+  // prediction precisions
   float tolerance;
 
   // Forget Gate
@@ -832,6 +881,17 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
   tflite::testing::ValidateResultGoldens(
       tflite::testing::kGateOutputData.expected_updated_cell, cell_state,
       tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
+}
+
+TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
+  auto& evaluation_params =
+      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  // Very high precision (can go to 1e-5). The error is introduced by the
+  // quantization error of the clip value
+  const float tolerance = 1e-3f;
+  tflite::testing::TestCellUpdateQuantized<int8_t, int32_t, int16_t>(
+      tflite::testing::kInt8QuantizationSettings, evaluation_params.cell_scale,
+      evaluation_params.quantized_cell_clip, tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOutputCalculation) {
