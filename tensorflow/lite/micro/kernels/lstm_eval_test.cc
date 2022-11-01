@@ -665,6 +665,27 @@ void TestGateOutputQuantized(
                         tolerance);
 }
 
+void TestCellUpdateFloat() {
+  // copy the data since it will be updated
+  float cell_state[kGateOutputSize];
+  std::memcpy(cell_state, kGateOutputData.cell_state,
+              kGateOutputSize * sizeof(float));
+
+  float forget_gate[kGateOutputSize];
+  std::memcpy(forget_gate, kGateOutputData.expected_forget_gate_output,
+              kGateOutputSize * sizeof(float));
+
+  tflite::lstm_internal::UpdateLstmCellFloat(
+      kBatchSize, kStateDimension, cell_state,
+      kGateOutputData.expected_input_gate_output, forget_gate,
+      kGateOutputData.expected_cell_gate_output,
+      /*use_cifg=*/false,
+      /*clip=*/kModelSettings.cell_clip);
+
+  ValidateResultGoldens(kGateOutputData.expected_updated_cell, cell_state,
+                        kGateOutputSize, kTestFloatTolerance);
+}
+
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestCellUpdateQuantized(
     const ModelQuantizationParameters& quantization_settings,
@@ -861,26 +882,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
-  // copy the data since it will be updated
-  float cell_state[tflite::testing::kGateOutputSize];
-  std::memcpy(cell_state, tflite::testing::kGateOutputData.cell_state,
-              tflite::testing::kGateOutputSize * sizeof(float));
-
-  float forget_gate[tflite::testing::kGateOutputSize];
-  std::memcpy(forget_gate,
-              tflite::testing::kGateOutputData.expected_forget_gate_output,
-              tflite::testing::kGateOutputSize * sizeof(float));
-
-  tflite::lstm_internal::UpdateLstmCellFloat(
-      tflite::testing::kBatchSize, tflite::testing::kStateDimension, cell_state,
-      tflite::testing::kGateOutputData.expected_input_gate_output, forget_gate,
-      tflite::testing::kGateOutputData.expected_cell_gate_output,
-      /*use_cifg=*/false,
-      /*clip=*/tflite::testing::kModelSettings.cell_clip);
-
-  tflite::testing::ValidateResultGoldens(
-      tflite::testing::kGateOutputData.expected_updated_cell, cell_state,
-      tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
+  tflite::testing::TestCellUpdateFloat();
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
