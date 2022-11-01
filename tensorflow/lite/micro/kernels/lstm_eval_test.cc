@@ -117,6 +117,11 @@ struct GateOutputCheckData {
   // Note -6.80625824 is clipped to -6
   const float expected_updated_cell[kGateOutputSize] = {0.52475447, 0.53730665,
                                                         -6, 3.47992756};
+
+  // Use the updated cell state to update the hidden state
+  // tanh(expected_updated_cell) * expected_output_gate_output
+  const float expected_updated_hidden[kGateOutputSize] = {
+      0.31079388, 0.3169827, -0.46007947, 0.45921249};
 };
 
 const GateOutputCheckData kGateOutputData;
@@ -301,8 +306,8 @@ constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
     /*nonlinear_input_scale=*/0.00024414062,   // std::pow(2.0f, -12.0f)
     /*nonlinear_output_scale=*/0.00003051757,  // std::pow(2.0f, -15.0f)
     /*Input=*/{/*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false},
-    /*output=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
-    /*hidden=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
+    /*output=*/{/*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false},
+    /*hidden=*/{/*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false},
     /*cell=*/{/*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true},
 
     /*forget_gate=*/
@@ -555,15 +560,16 @@ class QuantizedModelContents
 
     // hidden state (no projection, output is the hidden state)
     effective_scale =
-        quantization_settings_.nonlinear_activation_input_scale *
-        quantization_settings_.nonlinear_activation_input_scale /
-        quantization_settings_.output_quantization_parameters.scale;
+        quantization_settings_.nonlinear_activation_output_scale *
+        quantization_settings_.nonlinear_activation_output_scale /
+        quantization_settings_.hidden_quantization_parameters.scale;
     QuantizeMultiplier(effective_scale,
                        &evaluation_params_.effective_hidden_scale_a,
                        &buffer_shift_output);
     evaluation_params_.effective_hidden_scale_b = buffer_shift_output;
+    // TODO(rewu): the +/- bug
     evaluation_params_.hidden_zp =
-        quantization_settings_.output_quantization_parameters.zero_point;
+        -quantization_settings_.hidden_quantization_parameters.zero_point;
 
     // cell state. Note, cell_scale is actually not a scale. 2^-cell_scale is
     // the true scale for cell
@@ -727,6 +733,69 @@ void TestCellUpdateQuantized(
                         kGateOutputSize, tolerance);
 }
 
+void TestHiddenStateUpdateFloat() {
+  // If no projection layer, hidden state dimension == output dimension ==
+  // cell state dimension
+  float output[kGateOutputSize];
+  float scratch[kGateOutputSize];
+
+  tflite::lstm_internal::CalculateLstmOutputFloat(
+      kBatchSize, kStateDimension, kStateDimension,
+      kGateOutputData.expected_updated_cell,
+      kGateOutputData.expected_output_gate_output, kTfLiteActTanh, nullptr,
+      nullptr, 0, output, scratch);
+
+  ValidateResultGoldens(kGateOutputData.expected_updated_hidden, output,
+                        kGateOutputSize, kTestFloatTolerance);
+}
+
+template <typename ActivationType, typename BiasType, typename CellType>
+void TestHiddenStateUpdateQuantized(
+    const ModelQuantizationParameters& quantization_settings,
+    const IntegerLstmParameter& evaluation_params, const float tolerance) {
+  CellType quantized_cell_state[kGateOutputSize];
+  tflite::Quantize(
+      kGateOutputData.expected_updated_cell, quantized_cell_state,
+      kGateOutputSize, quantization_settings.cell_quantization_parameters.scale,
+      quantization_settings.cell_quantization_parameters.zero_point);
+
+  CellType quantized_output_gate[kGateOutputSize];
+  tflite::Quantize(kGateOutputData.expected_output_gate_output,
+                   quantized_output_gate, kGateOutputSize,
+                   quantization_settings.nonlinear_activation_output_scale, 0);
+
+  // scratches
+  int16_t scratch0[kGateOutputSize];
+  int8_t scratch1[kGateOutputSize];
+  int32_t scratch2[kGateOutputSize];
+
+  // output (updated hidden state)
+  int8_t output_state[kGateOutputSize];
+
+  tflite::lstm_internal::CalculateLstmOutputInteger8x8_16(
+      kBatchSize, kStateDimension, kStateDimension, quantized_cell_state,
+      evaluation_params.cell_scale, quantized_output_gate,
+      evaluation_params.effective_hidden_scale_a,
+      evaluation_params.effective_hidden_scale_b, evaluation_params.hidden_zp,
+      /*projection_weights=*/nullptr, /*proj_scale_a=*/0, 0, 0,
+      /*output_state_zp=*/evaluation_params.hidden_zp,
+      evaluation_params.quantized_proj_clip, output_state, scratch0, scratch1,
+      scratch2);
+
+  for (size_t i = 0; i < kGateOutputSize; i++) {
+    MicroPrintf("Updated Hidden State: %d", output_state[i]);
+  }
+
+  float output_state_float[kGateOutputSize];
+  Dequantize(output_state, kGateOutputSize,
+             quantization_settings.hidden_quantization_parameters.scale,
+             quantization_settings.hidden_quantization_parameters.zero_point,
+             output_state_float);
+
+  ValidateResultGoldens(kGateOutputData.expected_updated_hidden,
+                        output_state_float, kGateOutputSize, tolerance);
+}
+
 void TestOneStepLSTMFloat(const float* input_data,
                           const float* expected_hidden_state,
                           const float* expected_cell_state, float* hidden_state,
@@ -888,36 +957,28 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
   auto& evaluation_params =
       tflite::testing::kInt8ModelContent.GetEvaluationParameters();
-  // Very high precision (can go to 1e-5). The error is introduced by the
-  // quantization error of the clip value
+  // Very high precision. The error is introduced by the
+  // quantization error of the clip value (~1e-5), but cannot actually reach
+  // the precision due to integer overflow for the elements
   const float tolerance = 1e-3f;
   tflite::testing::TestCellUpdateQuantized<int8_t, int32_t, int16_t>(
       tflite::testing::kInt8QuantizationSettings, evaluation_params.cell_scale,
       evaluation_params.quantized_cell_clip, tolerance);
 }
 
-TF_LITE_MICRO_TEST(CheckOutputCalculation) {
-  // -1 and 5 for different tanh behavior (normal, saturated)
-  const float cell_state[] = {-1, 5, 0.1, -3};
-  const float output_gate[] = {0.2, 0.5, -0.8, 0.9};
-  // If no projection layer, hidden state dimension == output dimension ==
-  // cell state dimension
-  float output[tflite::testing::kGateOutputSize];
-  float scratch[tflite::testing::kGateOutputSize];
+TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
+  // Not testing projection here, output is the updated hidden state
+  tflite::testing::TestHiddenStateUpdateFloat();
+}
 
-  tflite::lstm_internal::CalculateLstmOutputFloat(
-      tflite::testing::kBatchSize, tflite::testing::kStateDimension,
-      tflite::testing::kStateDimension, cell_state, output_gate, kTfLiteActTanh,
-      nullptr, nullptr, 0, output, scratch);
+TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
+  auto& evaluation_params =
+      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
 
-  // Output state generate the output and copy it to the hidden state
-  // tanh(cell_state) * output_gate =
-  // [-0.15231883,  0.4999546 , -0.0797344 , -0.89554928]
-  float expected_output_vals[] = {-0.15231883, 0.4999546, -0.0797344,
-                                  -0.89554928};
-  tflite::testing::ValidateResultGoldens(expected_output_vals, output,
-                                         tflite::testing::kGateOutputSize,
-                                         tflite::testing::kTestFloatTolerance);
+  // Theoritical error floor = quantization scale = 0.004705882165580988
+  const float tolerance = 1e-2;
+  tflite::testing::TestHiddenStateUpdateQuantized<int8_t, int32_t, int16_t>(
+      tflite::testing::kInt8QuantizationSettings, evaluation_params, tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTM) {
