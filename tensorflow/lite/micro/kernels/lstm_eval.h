@@ -116,7 +116,7 @@ void LstmStepFloat(
     float* output_state_ptr, float* cell_state_ptr, float* scratch0,
     float* scratch1, float* scratch2, float* scratch3, float* output_ptr);
 
-inline void LstmStepInteger8x8_16(
+void LstmStepInteger8x8_16(
     const int8_t* input_ptr, const int8_t* input_to_input_weight_ptr,
     int32_t effective_input_to_input_scale_a,
     int32_t effective_input_to_input_scale_b,

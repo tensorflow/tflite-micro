@@ -44,6 +44,8 @@ constexpr int kGateOutputSize = kBatchSize * kStateDimension;
 // Number of tensors for the LSTM kernel. 0 input; 1-12 gate parameters; 13-14
 // states; 15 output
 constexpr int kTensorsNum = 16;
+// Test Settings
+constexpr float kTestFloatTolerance = 1e-6f;
 
 constexpr TfLiteLSTMParams kModelSettings = {
     /*.activation=*/kTfLiteActTanh,
@@ -51,22 +53,7 @@ constexpr TfLiteLSTMParams kModelSettings = {
     /*.kernel_type=*/kTfLiteLSTMFullKernel,
     /*.asymmetric_quantize_inputs=*/true};
 
-// batch one using repeated data; batch two mimics
-// random input
-constexpr float kInputData[kInputSize] = {
-    0.2,   0.3,  0.2,  0.3,  0.2,  0.3,   // batch one
-    -0.98, 0.62, 0.01, 0.99, 0.49, -0.32  // batch two
-};
-
-// The expected model output after kTimeSteps using the fixed input and
-// parameters
-constexpr float kExpectedOutput[kOutputSize] = {
-    0.26455893,      0.26870455,      0.47935803,
-    0.47937014,      0.58013272,      0.58013278,  // batch1
-    -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
-    0.46891281,      0.50054074,      0.50054148  // batch2
-};
-
+// Data to test the output of each gate inside the LSTM
 struct GateOutputCheckData {
   const float input_data[kInputSize] = {
       0.2, 0.3,    // batch1
@@ -124,10 +111,7 @@ struct GateOutputCheckData {
       0.31079388, 0.3169827, -0.46007947, 0.45921249};
 };
 
-const GateOutputCheckData kGateOutputData;
-
-// Test Settings
-constexpr float kTestFloatTolerance = 1e-6f;
+constexpr GateOutputCheckData kGateOutputData;
 
 // Struct that holds the weight/bias information for a standard gate (i.e. no
 // modification such as layer normalization, peephole, etc.)
@@ -171,6 +155,22 @@ constexpr GateParameters<float, float> kOutputGateParameters = {
     /*.fused_bias=*/{0, 0},
     /*activation_zp_folded_bias=*/{0, 0},
     /*recurrent_zp_folded_bias=*/{0, 0}};
+
+// batch one using repeated data; batch two mimics
+// random input
+constexpr float kMultiTimeInputData[kInputSize] = {
+    0.2,   0.3,  0.2,  0.3,  0.2,  0.3,   // batch one
+    -0.98, 0.62, 0.01, 0.99, 0.49, -0.32  // batch two
+};
+
+// The expected model output after kTimeSteps using the fixed input and
+// parameters
+constexpr float kMultiTimeExpectedOutput[kOutputSize] = {
+    0.26455893,      0.26870455,      0.47935803,
+    0.47937014,      0.58013272,      0.58013278,  // batch1
+    -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
+    0.46891281,      0.50054074,      0.50054148  // batch2
+};
 
 // Class that holds all the tensors for evaluation
 template <typename ActivationType, typename WeightType, typename BiasType,
@@ -634,8 +634,8 @@ void TestGateOutputQuantized(
   // Quantize the  floating point hidden state
   ActivationType quantized_hidden_state[kGateOutputSize];
   Quantize(hidden_state, quantized_hidden_state, kGateOutputSize,
-           quantization_settings.output_quantization_parameters.scale,
-           quantization_settings.output_quantization_parameters.zero_point);
+           quantization_settings.hidden_quantization_parameters.scale,
+           quantization_settings.hidden_quantization_parameters.zero_point);
 
   CellType gate_output[kGateOutputSize] = {0};
   BiasType scratch_buffer[kGateOutputSize];
@@ -782,10 +782,6 @@ void TestHiddenStateUpdateQuantized(
       evaluation_params.quantized_proj_clip, output_state, scratch0, scratch1,
       scratch2);
 
-  for (size_t i = 0; i < kGateOutputSize; i++) {
-    MicroPrintf("Updated Hidden State: %d", output_state[i]);
-  }
-
   float output_state_float[kGateOutputSize];
   Dequantize(output_state, kGateOutputSize,
              quantization_settings.hidden_quantization_parameters.scale,
@@ -796,18 +792,26 @@ void TestHiddenStateUpdateQuantized(
                         output_state_float, kGateOutputSize, tolerance);
 }
 
-void TestOneStepLSTMFloat(const float* input_data,
-                          const float* expected_hidden_state,
-                          const float* expected_cell_state, float* hidden_state,
-                          float* cell_state, float* output) {
+void TestOneStepLSTMFloat() {
   // scratch buffers
   float forget_gate_scratch[kGateOutputSize];
   float input_gate_scratch[kGateOutputSize];
   float cell_gate_scratch[kGateOutputSize];
   float output_gate_scratch[kGateOutputSize];
 
+  // initialize hidden and cell state (will be updated, copy the value)
+  float hidden_state[kGateOutputSize];
+  std::memcpy(hidden_state, kGateOutputData.hidden_state,
+              kGateOutputSize * sizeof(float));
+
+  float cell_state[kGateOutputSize];
+  std::memcpy(cell_state, kGateOutputData.cell_state,
+              kGateOutputSize * sizeof(float));
+
+  float output[kGateOutputSize];
+
   tflite::lstm_internal::LstmStepFloat(
-      input_data, kInputGateParameters.activation_weight,
+      kGateOutputData.input_data, kInputGateParameters.activation_weight,
       kForgetGateParameters.activation_weight,
       kCellGateParameters.activation_weight,
       kOutputGateParameters.activation_weight,
@@ -835,10 +839,129 @@ void TestOneStepLSTMFloat(const float* input_data,
       input_gate_scratch, forget_gate_scratch, cell_gate_scratch,
       output_gate_scratch, output);
 
-  ValidateResultGoldens(expected_hidden_state, hidden_state, kGateOutputSize,
-                        kTestFloatTolerance);
-  ValidateResultGoldens(expected_cell_state, cell_state, kGateOutputSize,
-                        kTestFloatTolerance);
+  ValidateResultGoldens(kGateOutputData.expected_updated_hidden, hidden_state,
+                        kGateOutputSize, kTestFloatTolerance);
+  ValidateResultGoldens(kGateOutputData.expected_updated_cell, cell_state,
+                        kGateOutputSize, kTestFloatTolerance);
+}
+
+template <typename ActivationType, typename BiasType, typename CellType>
+void TestOneStepLSTMQuantized(
+    const ModelQuantizationParameters& quantization_settings,
+    const IntegerLstmParameter& evaluation_params,
+    const float hidden_state_tolerance, const float cell_state_tolerance) {
+  ActivationType quantized_input[kInputSize];
+  tflite::Quantize(
+      kGateOutputData.input_data, quantized_input, kInputSize,
+      quantization_settings.input_quantization_parameters.scale,
+      quantization_settings.input_quantization_parameters.zero_point);
+
+  // initialize hidden and cell state (will be updated)
+  ActivationType quantized_hidden_state[kGateOutputSize];
+  Quantize(kGateOutputData.hidden_state, quantized_hidden_state,
+           kGateOutputSize,
+           quantization_settings.hidden_quantization_parameters.scale,
+           quantization_settings.hidden_quantization_parameters.zero_point);
+
+  CellType quantized_cell_state[kGateOutputSize];
+  tflite::Quantize(
+      kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
+      quantization_settings.cell_quantization_parameters.scale,
+      quantization_settings.cell_quantization_parameters.zero_point);
+
+  ActivationType output[kGateOutputSize];
+  // Scratch buffers
+  CellType scratch0[kGateOutputSize];
+  CellType scratch1[kGateOutputSize];
+  CellType scratch2[kGateOutputSize];
+  CellType scratch3[kGateOutputSize];
+  ActivationType scratch4[kOutputSize];
+  BiasType scratch5[kGateOutputSize];
+
+  tflite::lstm_internal::LstmStepInteger8x8_16(
+      quantized_input, kIint8InputGateParams.activation_weight,
+      evaluation_params.effective_input_to_input_scale_a,
+      evaluation_params.effective_input_to_input_scale_b,
+      kIint8ForgetGateParams.activation_weight,
+      evaluation_params.effective_input_to_forget_scale_a,
+      evaluation_params.effective_input_to_forget_scale_b,
+      kIint8CellGateParams.activation_weight,
+      evaluation_params.effective_input_to_cell_scale_a,
+      evaluation_params.effective_input_to_cell_scale_b,
+      kInt8OutputGateParams.activation_weight,
+      evaluation_params.effective_input_to_output_scale_a,
+      evaluation_params.effective_input_to_output_scale_b,
+      kIint8InputGateParams.recurrent_weight,
+      evaluation_params.effective_recurrent_to_input_scale_a,
+      evaluation_params.effective_recurrent_to_input_scale_b,
+      kIint8ForgetGateParams.recurrent_weight,
+      evaluation_params.effective_recurrent_to_forget_scale_a,
+      evaluation_params.effective_recurrent_to_forget_scale_b,
+      kIint8CellGateParams.recurrent_weight,
+      evaluation_params.effective_recurrent_to_cell_scale_a,
+      evaluation_params.effective_recurrent_to_cell_scale_b,
+      kInt8OutputGateParams.recurrent_weight,
+      evaluation_params.effective_recurrent_to_output_scale_a,
+      evaluation_params.effective_recurrent_to_output_scale_b,
+      /*cell_to_input_weight_ptr=*/nullptr,
+      /*effective_cell_to_input_scale_a=*/0,
+      /*effective_cell_to_input_scale_b=*/0,
+      /*cell_to_forget_weight_ptr=*/nullptr,
+      /*effective_cell_to_forget_scale_a=*/0,
+      /*effective_cell_to_forget_scale_b=*/0,
+      /*cell_to_output_weight_ptr=*/nullptr,
+      /*effective_cell_to_output_scale_a=*/0,
+      /*effective_cell_to_output_scale_b=*/0,
+      /*projection_weight_ptr=*/nullptr, /*effective_proj_scale_a=*/0,
+      /*effective_proj_scale_b=*/0, evaluation_params.hidden_zp,
+      evaluation_params.effective_hidden_scale_a,
+      evaluation_params.effective_hidden_scale_b,
+      /*layer_norm_input_weight_ptr=*/nullptr,
+      /*layer_norm_input_scale_a=*/0, /*layer_norm_input_scale_b=*/0,
+      /*layer_norm_forget_weight_ptr=*/nullptr,
+      /*layer_norm_forget_scale_a=*/0, /*layer_norm_forget_scale_b=*/0,
+      /*layer_norm_cell_weight_ptr=*/nullptr,
+      /*layer_norm_cell_scale_a=*/0, /*layer_norm_cell_scale_b=*/0,
+      /*layer_norm_output_weight_ptr=*/nullptr,
+      /*layer_norm_output_scale_a=*/0, /*layer_norm_output_scale_b=*/0,
+      /*input_gate_bias_ptr=*/nullptr, /*forget_gate_bias_ptr=*/nullptr,
+      /*cell_gate_bias_ptr=*/nullptr, /*output_gate_bias_ptr=*/nullptr,
+      evaluation_params.quantized_cell_clip,
+      evaluation_params.quantized_proj_clip, evaluation_params.cell_scale,
+      /*input_variance_guard=*/0, /*forget_variance_guard=*/0,
+      /*cell_variance_guard=*/0, /*output_variance_guard=*/0,
+      evaluation_params.input_to_forget_effective_bias,
+      evaluation_params.recurrent_to_forget_effective_bias,
+      evaluation_params.input_to_cell_effective_bias,
+      evaluation_params.recurrent_to_cell_effective_bias,
+      evaluation_params.input_to_output_effective_bias,
+      evaluation_params.recurrent_to_output_effective_bias,
+      evaluation_params.input_to_input_effective_bias,
+      evaluation_params.recurrent_to_input_effective_bias,
+      evaluation_params.projection_effective_bias, kBatchSize, kInputDimension,
+      kStateDimension, kStateDimension, quantized_hidden_state,
+      quantization_settings.output_quantization_parameters.zero_point,
+      quantized_cell_state, output, scratch0, scratch1, scratch2, scratch3,
+      scratch4, scratch5);
+
+  float dequantized_hidden_state[kGateOutputSize];
+  Dequantize(quantized_hidden_state, kGateOutputSize,
+             quantization_settings.hidden_quantization_parameters.scale,
+             quantization_settings.hidden_quantization_parameters.zero_point,
+             dequantized_hidden_state);
+
+  float dequantized_cell_state[kGateOutputSize];
+  Dequantize(quantized_cell_state, kGateOutputSize,
+             quantization_settings.cell_quantization_parameters.scale,
+             quantization_settings.cell_quantization_parameters.zero_point,
+             dequantized_cell_state);
+
+  ValidateResultGoldens(kGateOutputData.expected_updated_hidden,
+                        dequantized_hidden_state, kGateOutputSize,
+                        hidden_state_tolerance);
+  ValidateResultGoldens(kGateOutputData.expected_updated_cell,
+                        dequantized_cell_state, kGateOutputSize,
+                        cell_state_tolerance);
 }
 
 const ModelContents<float, float, float, float> kFloatModelContent(
@@ -981,111 +1104,29 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
       tflite::testing::kInt8QuantizationSettings, evaluation_params, tolerance);
 }
 
-TF_LITE_MICRO_TEST(CheckOneStepLSTM) {
-  // initialize states as zero arrays (as in real cases)
-  float hidden_state[] = {
-      0, 0,  // batch1
-      0, 0   // batch2
-  };
-  float cell_state[] = {
-      0, 0,  // batch1
-      0, 0   // batch2
-  };
-  // initialize State
-  float output[tflite::testing::kGateOutputSize];
-
-  // Previous hidden_state (h): [0. 0.]
-  // Previous cell_state (cell): [0. 0.]
-  // Forget gate output: [0.01798621 0.00033535]
-  // Long term state after forgetting: [0. 0.]
-  // Input gate output: [0.98201379 0.99966465]
-  // Modulation gate output: [0.46211716 0.46211716]
-  // Gated input: [0.45380542 0.46196219]
-  // Long term state after adding input: [0.45380542 0.46196219]
-  // Output_gate_output: [0.62245933 0.62245933]
-  // Gated output: [0.26455893 0.26870455]
-  // Current hidden_state (h): [0.26455893 0.26870455]
-  // Current cell_state (cell): [0.45380542 0.46196219] (batch1)
-  const float step1_input_data[] = {
-      0.2, 0.3,    // batch1
-      -0.98, 0.62  // batch2
-  };
-  const float step1_expected_hidden_state[] = {
-      0.26455893, 0.26870455,           // batch1
-      -1.41184672e-3f, -1.43329117e-5f  // batch2
-  };
-  const float step1_expected_cell_state[] = {
-      0.45380542, 0.46196219,           // batch1
-      -3.43550167e-3f, -3.48766956e-5f  // batch2
-  };
-  tflite::testing::TestOneStepLSTMFloat(
-      step1_input_data, step1_expected_hidden_state, step1_expected_cell_state,
-      hidden_state, cell_state, output);
-
-  // Previous hidden_state (h): [0.26455893 0.26870455]
-  // Previous cell_state (cell): [0.45380542 0.46196219]
-  // Forget gate output: [8.8480948e-05 7.8302637e-09]
-  // Long term state after forgetting: [4.01531339e-05 3.61728574e-09]
-  // Input gate output: [0.99991152 0.99999999]
-  // Modulation gate output: [0.77521391 0.77521391]
-  // Gated input: [0.77514532 0.7752139 ]
-  // Long term state after adding input: [0.77518547 0.77521391]
-  // Output_gate_output: [0.7375481 0.7375481]
-  // Gated output: [0.47935803 0.47937014]
-  // Current hidden_state (h): [0.47935803 0.47937014]
-  // Current cell_state (cell): [0.77518547 0.77521391] (batch1)
-  const float step2_input_data[] = {
-      0.2, 0.3,   // batch1
-      0.01, 0.99  // batch2
-  };
-  const float step2_expected_hidden_state[] = {
-      0.47935803, 0.47937014,  // batch1
-      0.46887168, 0.46891281   // batch2
-  };
-  const float step2_expected_cell_state[] = {
-      0.77518547, 0.77521391,  // batch1
-      0.76089886, 0.76099453   // batch2
-  };
-  tflite::testing::TestOneStepLSTMFloat(
-      step2_input_data, step2_expected_hidden_state, step2_expected_cell_state,
-      hidden_state, cell_state, output);
-
-  // Previous hidden_state (h): [0.47935803 0.47937014]
-  // Previous cell_state (cell): [0.77518547 0.77521391]
-  // Forget gate output: [1.25637118e-06 1.57847251e-12]
-  // Long term state after forgetting: [9.73920683e-07 1.22365384e-12]
-  // Input gate output: [0.99999874 1.        ]
-  // Modulation gate output: [0.8974053 0.8974053]
-  // Gated input: [0.89740417 0.8974053 ]
-  // Long term state after adding input: [0.89740515 0.8974053 ]
-  // Output_gate_output: [0.81133808 0.81133808]
-  // Gated output: [0.58013272 0.58013278]
-  // Current hidden_state (h): [0.58013272 0.58013278]
-  // Current cell_state (cell): [0.89740515 0.8974053 ] (batch1)
-  const float step3_input_data[] = {
-      0.2, 0.3,    // batch1
-      0.49, -0.32  // batch2
-  };
-  const float step3_expected_hidden_state[] = {
-      0.58013272, 0.58013278,  // batch1
-      0.50054074, 0.50054148   // batch2
-  };
-  const float step3_expected_cell_state[] = {
-      0.89740515, 0.8974053,  // batch1
-      0.80327607, 0.80327785  // batch2
-  };
-  tflite::testing::TestOneStepLSTMFloat(
-      step3_input_data, step3_expected_hidden_state, step3_expected_cell_state,
-      hidden_state, cell_state, output);
+TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
+  tflite::testing::TestOneStepLSTMFloat();
 }
 
-TF_LITE_MICRO_TEST(TestLSTMEval) {
+TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
+  auto& evaluation_params =
+      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+
+  const float hidden_state_tolerance = 1e-2;
+  // cell state degrade due to integer overflow
+  const float cell_state_tolerance = 1e-1;
+  tflite::testing::TestOneStepLSTMQuantized<int8_t, int32_t, int16_t>(
+      tflite::testing::kInt8QuantizationSettings, evaluation_params,
+      hidden_state_tolerance, cell_state_tolerance);
+}
+
+TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
   tflite::testing::ModelContents<float, float, float, float>
       float_model_contents(tflite::testing::kForgetGateParameters,
                            tflite::testing::kInputGateParameters,
                            tflite::testing::kCellGateParameters,
                            tflite::testing::kOutputGateParameters);
-  float_model_contents.SetInputTensorData(tflite::testing::kInputData);
+  float_model_contents.SetInputTensorData(tflite::testing::kMultiTimeInputData);
 
   tflite::EvalFloatLstm(
       float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
@@ -1133,8 +1174,9 @@ TF_LITE_MICRO_TEST(TestLSTMEval) {
 
   // Validate output . See previous test for the calculation
   tflite::testing::ValidateResultGoldens(
-      tflite::testing::kExpectedOutput, float_model_contents.GetOutput(),
-      tflite::testing::kOutputSize, tflite::testing::kTestFloatTolerance);
+      tflite::testing::kMultiTimeExpectedOutput,
+      float_model_contents.GetOutput(), tflite::testing::kOutputSize,
+      tflite::testing::kTestFloatTolerance);
 }
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
