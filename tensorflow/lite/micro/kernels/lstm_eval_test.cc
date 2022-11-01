@@ -47,7 +47,7 @@ constexpr int kTensorsNum = 16;
 
 constexpr TfLiteLSTMParams kModelSettings = {
     /*.activation=*/kTfLiteActTanh,
-    /*.cell_clip=*/10, /*.proj_clip=*/3,
+    /*.cell_clip=*/8, /*.proj_clip=*/3,
     /*.kernel_type=*/kTfLiteLSTMFullKernel,
     /*.asymmetric_quantize_inputs=*/true};
 
@@ -249,7 +249,7 @@ constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
     /*Input=*/{/*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false},
     /*output=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
     /*hidden=*/{/*scale=*/0.00392156862745098, /*zp=*/-26, /*symmetry=*/false},
-    /*cell=*/{/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
+    /*cell=*/{/*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true},
 
     /*forget_gate=*/
     {/*activation_weight=*/{/*scale=*/0.15748031496062992, /*zp=*/0,
@@ -659,6 +659,11 @@ struct GateOutputCheckData {
       -0.1, 0.2,  // batch1
       -0.3, 0.5   // batch2
   };
+  const float cell_state[kGateOutputSize] = {
+      -1.3, 6.2,  // batch1
+      -9.3, 3.5   // batch2
+  };
+
   // Use the forget gate parameters to test small gate outputs
   // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[-10,-10],[-20,-20]][0.2,
   // +[[-10,-10],[-20,-20]][-0.1, 0.2]+[1,2]) = sigmoid([-5,-10]) =
@@ -690,6 +695,11 @@ struct GateOutputCheckData {
   // Similarly, we have [-0.1586485 -0.1586485] for batch 2
   const float expected_cell_gate_output[kGateOutputSize] = {
       0.5370495669980353, 0.5370495669980353, -0.1586485, -0.1586485};
+
+  // Cell = forget_gate*cell + input_gate*cell_gate
+  // Note -8.6679814 is clipped to -8
+  const float expected_updated_cell[kGateOutputSize] = {0.52475447, 0.53730665,
+                                                        -8, 3.47992756};
 };
 
 const GateOutputCheckData kGateOutputData;
@@ -801,24 +811,27 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       tflite::testing::kGateOutputData.expected_cell_gate_output, tolerance);
 }
 
-TF_LITE_MICRO_TEST(CheckCellUpdate) {
-  float cell_state[] = {0.1, 0.2, 0.3, 0.4};
-  float forget_gate[] = {0.2, 0.5, 0.3, 0.6};
-  const float input_gate[] = {0.8, 0.9, 0.6, 0.7};
-  const float cell_gate[] = {-0.3, 0.8, 0.1, 0.2};
+TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
+  // copy the data since it will be updated
+  float cell_state[tflite::testing::kGateOutputSize];
+  std::memcpy(cell_state, tflite::testing::kGateOutputData.cell_state,
+              tflite::testing::kGateOutputSize * sizeof(float));
 
-  // Cell = forget_gate*cell + input_gate*cell_gate
-  // = [0.02, 0.1, 0.09, 0.24] + [-0.24, 0.72 , 0.06, 0.14 ] = [-0.22, 0.82]
-  const float expected_cell_vals[] = {-0.22, 0.82, 0.15, 0.38};
+  float forget_gate[tflite::testing::kGateOutputSize];
+  std::memcpy(forget_gate,
+              tflite::testing::kGateOutputData.expected_forget_gate_output,
+              tflite::testing::kGateOutputSize * sizeof(float));
 
   tflite::lstm_internal::UpdateLstmCellFloat(
       tflite::testing::kBatchSize, tflite::testing::kStateDimension, cell_state,
-      input_gate, forget_gate, cell_gate, /*use_cifg=*/false,
+      tflite::testing::kGateOutputData.expected_input_gate_output, forget_gate,
+      tflite::testing::kGateOutputData.expected_cell_gate_output,
+      /*use_cifg=*/false,
       /*clip=*/tflite::testing::kModelSettings.cell_clip);
 
-  tflite::testing::ValidateResultGoldens(expected_cell_vals, cell_state,
-                                         tflite::testing::kGateOutputSize,
-                                         tflite::testing::kTestFloatTolerance);
+  tflite::testing::ValidateResultGoldens(
+      tflite::testing::kGateOutputData.expected_updated_cell, cell_state,
+      tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOutputCalculation) {
