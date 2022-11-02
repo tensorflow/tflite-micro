@@ -627,7 +627,7 @@ class QuantizedModelContents
     evaluation_params_.cell_scale = buffer_cell_scale;
 
     evaluation_params_.quantized_cell_clip = static_cast<int16_t>(std::min(
-        std::max(static_cast<double> kModelSettings.cell_clip /
+        std::max(static_cast<double>(kModelSettings.cell_clip) /
                      quantization_settings_.cell_quantization_parameters.scale,
                  -32768.0),
         32767.0));
