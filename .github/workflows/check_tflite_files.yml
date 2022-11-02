@@ -9,6 +9,9 @@ on:
       pr-number:
         required: true
         type: string
+      pr-body:
+        required: true
+        type: string
     secrets:
       tflm-bot-token:
         required: true
@@ -23,6 +26,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
 
       - name: Check Files
+        if: ${{ !contains(inputs.pr-body, 'NO_CHECK_TFLITE_FILES=') }}
         run: |
           URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr-number }}/files"
           PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.tflm-bot-token }}" $URL | jq -r '.[] | .filename')
