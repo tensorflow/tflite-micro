@@ -651,7 +651,7 @@ void LstmStepFloat(
 //   cell_state_ptr   - size 'n_batch * n_cell'
 //   output_ptr       - size 'n_batch * n_output'
 // TODO(b/159947023): scratch0 is not used if (!cifg). Don't allocate then.
-inline void LstmStepInteger8x8_16(
+void LstmStepInteger8x8_16(
     const int8_t* input_ptr, const int8_t* input_to_input_weight_ptr,
     int32_t effective_input_to_input_scale_a,
     int32_t effective_input_to_input_scale_b,
