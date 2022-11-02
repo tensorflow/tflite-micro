@@ -31,7 +31,7 @@ Additional Links:
 
 Build Type       |    Status     |
 -----------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml?query=event%3Aschedule) |
+CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml?query=event%3Aschedule) |
 Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
 
@@ -58,9 +58,9 @@ the TFLM unit tests using software emulation or instruction set simulators.
 Build Type      |    Status     |
 -----------     | --------------|
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
-Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml) |
+Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml?query=event%3Aschedule) |
 RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
-Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml?query=event%3Aschedule) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
+Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml?query=event%3Aschedule) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
 
 
 # Contributing
