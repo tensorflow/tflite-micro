@@ -111,7 +111,36 @@ struct GateOutputCheckData {
       0.31079388, 0.3169827, -0.46007947, 0.45921249};
 };
 
+struct MultiTimeLSTMEvalData {
+  // batch one using repeated data; batch two mimics
+  // random input
+  const float input_data[kInputSize] = {
+      0.2,   0.3,  0.2,  0.3,  0.2,  0.3,   // batch one
+      -0.98, 0.62, 0.01, 0.99, 0.49, -0.32  // batch two
+  };
+
+  // The expected model output after kTimeSteps using the fixed input and
+  // parameters
+  const float expected_output[kOutputSize] = {
+      0.26455893,      0.26870455,      0.47935803,
+      0.47937014,      0.58013272,      0.58013278,  // batch1
+      -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
+      0.46891281,      0.50054074,      0.50054148  // batch2
+  };
+
+  const float expected_hidden_state[kGateOutputSize] = {
+      0.58013272, 0.58013278,  // batch1
+      0.50054074, 0.50054148   // batch2
+  };
+
+  const float expected_cell_state[kGateOutputSize] = {
+      0.89740515, 0.8974053,  // batch1
+      0.80327607, 0.80327785  // batch2
+  };
+};
+
 constexpr GateOutputCheckData kGateOutputData;
+constexpr MultiTimeLSTMEvalData kMultiTimeEvalData;
 
 // Struct that holds the weight/bias information for a standard gate (i.e. no
 // modification such as layer normalization, peephole, etc.)
@@ -155,22 +184,6 @@ constexpr GateParameters<float, float> kOutputGateParameters = {
     /*.fused_bias=*/{0, 0},
     /*activation_zp_folded_bias=*/{0, 0},
     /*recurrent_zp_folded_bias=*/{0, 0}};
-
-// batch one using repeated data; batch two mimics
-// random input
-constexpr float kMultiTimeInputData[kInputSize] = {
-    0.2,   0.3,  0.2,  0.3,  0.2,  0.3,   // batch one
-    -0.98, 0.62, 0.01, 0.99, 0.49, -0.32  // batch two
-};
-
-// The expected model output after kTimeSteps using the fixed input and
-// parameters
-constexpr float kMultiTimeExpectedOutput[kOutputSize] = {
-    0.26455893,      0.26870455,      0.47935803,
-    0.47937014,      0.58013272,      0.58013278,  // batch1
-    -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
-    0.46891281,      0.50054074,      0.50054148  // batch2
-};
 
 // Class that holds all the tensors for evaluation
 template <typename ActivationType, typename WeightType, typename BiasType,
@@ -226,7 +239,7 @@ class ModelContents {
   // input is defined in the ModelContent (const across all derived models)
   ActivationType input_[kOutputSize] = {0};
   ActivationType output_[kOutputSize] = {0};
-  // scratch buffers (4)
+  // scratch buffers (4; used for floating point model only)
   CellType scratch_buffers_[4 * kGateOutputSize] = {0};
 
   void InitializeTensors() {
@@ -428,6 +441,10 @@ class QuantizedModelContents
 
   const IntegerLstmParameter& GetEvaluationParameters() const {
     return evaluation_params_;
+  }
+
+  const ModelQuantizationParameters& QuantizationSettings() const {
+    return quantization_settings_;
   }
 
  private:
@@ -964,10 +981,129 @@ void TestOneStepLSTMQuantized(
                         cell_state_tolerance);
 }
 
-const ModelContents<float, float, float, float> kFloatModelContent(
-    tflite::testing::kForgetGateParameters,
-    tflite::testing::kInputGateParameters, tflite::testing::kCellGateParameters,
-    tflite::testing::kOutputGateParameters);
+void TestLSTMEvalFloat() {
+  ModelContents<float, float, float, float> float_model_contents(
+      kForgetGateParameters, kInputGateParameters, kCellGateParameters,
+      kOutputGateParameters);
+
+  float_model_contents.SetInputTensorData(kMultiTimeEvalData.input_data);
+
+  tflite::EvalFloatLstm(
+      float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
+      float_model_contents.GetTensor(1), float_model_contents.GetTensor(7),
+      float_model_contents.GetTensor(10), float_model_contents.GetTensor(5),
+      float_model_contents.GetTensor(2), float_model_contents.GetTensor(8),
+      float_model_contents.GetTensor(11),
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_output_weights=*/nullptr,
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+      /*aux_input=*/nullptr,
+      /*aux_input_to_input_weights=*/nullptr,
+      /*aux_input_to_forget_weights=*/nullptr,
+      /*aux_input_to_cell_weights=*/nullptr,
+      /*aux_input_to_output_weights=*/nullptr,
+      float_model_contents.GetTensor(6), float_model_contents.GetTensor(3),
+      float_model_contents.GetTensor(9), float_model_contents.GetTensor(12),
+      /*projection_weights=*/nullptr,
+      /*projection_bias=*/nullptr, &kModelSettings,
+      /*forward_sequence=*/true, /*time_major=*/false,
+      /*output_offset=*/0, float_model_contents.ScratchBuffers(),
+      float_model_contents.GetTensor(13), float_model_contents.GetTensor(14),
+      float_model_contents.GetTensor(15));
+
+  // Validate hidden state. See previous test for the calculation
+  ValidateResultGoldens(kMultiTimeEvalData.expected_hidden_state,
+                        float_model_contents.GetHiddenState(), kGateOutputSize,
+                        kTestFloatTolerance);
+  // Validate cell state. See previous test for the calculation
+  ValidateResultGoldens(kMultiTimeEvalData.expected_cell_state,
+                        float_model_contents.GetCellState(), kGateOutputSize,
+                        kTestFloatTolerance);
+  // Validate output . See previous test for the calculation
+  ValidateResultGoldens(kMultiTimeEvalData.expected_output,
+                        float_model_contents.GetOutput(), kOutputSize,
+                        kTestFloatTolerance);
+}
+
+template <typename ActivationType, typename BiasType, typename CellType>
+void TestLSTMEvalQuantized(
+    QuantizedModelContents<ActivationType, int8_t, BiasType, CellType>&
+        quantized_model_content) {
+  // Scratch buffers
+  CellType scratch0[kGateOutputSize];
+  CellType scratch1[kGateOutputSize];
+  CellType scratch2[kGateOutputSize];
+  CellType scratch3[kGateOutputSize];
+  ActivationType scratch4[kOutputSize];
+  BiasType scratch5[kGateOutputSize];
+
+  auto& quantization_settings = quantized_model_content.QuantizationSettings();
+  ActivationType quantized_input[kInputSize];
+  Quantize(kMultiTimeEvalData.input_data, quantized_input, kInputSize,
+           quantization_settings.input_quantization_parameters.scale,
+           quantization_settings.input_quantization_parameters.zero_point);
+  quantized_model_content.SetInputTensorData(quantized_input);
+
+  EvalInteger8x8_16Lstm(
+      quantized_model_content.GetTensor(0),
+      quantized_model_content.GetTensor(4),
+      quantized_model_content.GetTensor(1),
+      quantized_model_content.GetTensor(7),
+      quantized_model_content.GetTensor(10),
+      quantized_model_content.GetTensor(5),
+      quantized_model_content.GetTensor(2),
+      quantized_model_content.GetTensor(8),
+      quantized_model_content.GetTensor(11),
+      /*cell_to_input_weights=*/nullptr,
+      /*cell_to_forget_weights=*/nullptr,
+      /*cell_to_output_weights=*/nullptr,
+      /*input_layer_norm_coefficients=*/nullptr,
+      /*forget_layer_norm_coefficients=*/nullptr,
+      /*cell_layer_norm_coefficients=*/nullptr,
+      /*output_layer_norm_coefficients=*/nullptr,
+      quantized_model_content.GetTensor(6),
+      quantized_model_content.GetTensor(3),
+      quantized_model_content.GetTensor(9),
+      quantized_model_content.GetTensor(12),
+      /*projection_weights=*/nullptr,
+      /*projection_bias=*/nullptr, &kModelSettings,
+      /*forward_sequence=*/true, /*time_major=*/false,
+      &quantized_model_content.GetEvaluationParameters(),
+      quantization_settings.output_quantization_parameters.zero_point,
+      quantized_model_content.GetTensor(13),
+      quantized_model_content.GetTensor(14),
+      quantized_model_content.GetTensor(15), scratch0, scratch1, scratch2,
+      scratch3, scratch4, scratch5);
+
+  float dequantized_hidden_state[kGateOutputSize];
+  Dequantize(quantized_model_content.GetHiddenState(), kGateOutputSize,
+             quantization_settings.hidden_quantization_parameters.scale,
+             quantization_settings.hidden_quantization_parameters.zero_point,
+             dequantized_hidden_state);
+
+  //   ValidateResultGoldens(kMultiTimeEvalData.expected_hidden_state,
+  //                         dequantized_hidden_state, kGateOutputSize,
+  //                         kTestFloatTolerance);
+
+  //   float dequantized_cell_state[kGateOutputSize];
+  //   Dequantize(quantized_cell_state, kGateOutputSize,
+  //              quantization_settings.cell_quantization_parameters.scale,
+  //              quantization_settings.cell_quantization_parameters.zero_point,
+  //              dequantized_cell_state);
+
+  //   // Validate cell state. See previous test for the calculation
+  //   ValidateResultGoldens(kMultiTimeEvalData.expected_cell_state,
+  //                         quantized_model_content.GetCellState(),
+  //                         kGateOutputSize, kTestFloatTolerance);
+  //   // Validate output . See previous test for the calculation
+  //   ValidateResultGoldens(kMultiTimeEvalData.expected_output,
+  //                         quantized_model_content.GetOutput(), kOutputSize,
+  //                         kTestFloatTolerance);
+}
 
 const QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
     kInt8ModelContent(kInt8QuantizationSettings, kIint8ForgetGateParams,
@@ -1120,63 +1256,18 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
       hidden_state_tolerance, cell_state_tolerance);
 }
 
-TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
-  tflite::testing::ModelContents<float, float, float, float>
-      float_model_contents(tflite::testing::kForgetGateParameters,
-                           tflite::testing::kInputGateParameters,
-                           tflite::testing::kCellGateParameters,
-                           tflite::testing::kOutputGateParameters);
-  float_model_contents.SetInputTensorData(tflite::testing::kMultiTimeInputData);
+TF_LITE_MICRO_TEST(TestLSTMEvalFloat) { tflite::testing::TestLSTMEvalFloat(); }
 
-  tflite::EvalFloatLstm(
-      float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
-      float_model_contents.GetTensor(1), float_model_contents.GetTensor(7),
-      float_model_contents.GetTensor(10), float_model_contents.GetTensor(5),
-      float_model_contents.GetTensor(2), float_model_contents.GetTensor(8),
-      float_model_contents.GetTensor(11),
-      /*cell_to_input_weights=*/nullptr,
-      /*cell_to_forget_weights=*/nullptr,
-      /*cell_to_output_weights=*/nullptr,
-      /*input_layer_norm_coefficients=*/nullptr,
-      /*forget_layer_norm_coefficients=*/nullptr,
-      /*cell_layer_norm_coefficients=*/nullptr,
-      /*output_layer_norm_coefficients=*/nullptr,
-      /*aux_input=*/nullptr,
-      /*aux_input_to_input_weights=*/nullptr,
-      /*aux_input_to_forget_weights=*/nullptr,
-      /*aux_input_to_cell_weights=*/nullptr,
-      /*aux_input_to_output_weights=*/nullptr,
-      float_model_contents.GetTensor(6), float_model_contents.GetTensor(3),
-      float_model_contents.GetTensor(9), float_model_contents.GetTensor(12),
-      /*projection_weights=*/nullptr,
-      /*projection_bias=*/nullptr, &tflite::testing::kModelSettings,
-      /*forward_sequence=*/true, /*time_major=*/false,
-      /*output_offset=*/0, float_model_contents.ScratchBuffers(),
-      float_model_contents.GetTensor(13), float_model_contents.GetTensor(14),
-      float_model_contents.GetTensor(15));
+TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
+  tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
+      int8_model_content(tflite::testing::kInt8QuantizationSettings,
+                         tflite::testing::kIint8ForgetGateParams,
+                         tflite::testing::kIint8InputGateParams,
+                         tflite::testing::kIint8CellGateParams,
+                         tflite::testing::kInt8OutputGateParams);
 
-  // Validate hidden state. See previous test for the calculation
-  const float expected_hidden_state[] = {
-      0.58013272, 0.58013278,  // batch1
-      0.50054074, 0.50054148   // batch2
-  };
-  tflite::testing::ValidateResultGoldens(
-      expected_hidden_state, float_model_contents.GetHiddenState(),
-      tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
-  // Validate cell state. See previous test for the calculation
-  const float expected_cell_state[] = {
-      0.89740515, 0.8974053,  // batch1
-      0.80327607, 0.80327785  // batch2
-  };
-  tflite::testing::ValidateResultGoldens(
-      expected_cell_state, float_model_contents.GetCellState(),
-      tflite::testing::kGateOutputSize, tflite::testing::kTestFloatTolerance);
-
-  // Validate output . See previous test for the calculation
-  tflite::testing::ValidateResultGoldens(
-      tflite::testing::kMultiTimeExpectedOutput,
-      float_model_contents.GetOutput(), tflite::testing::kOutputSize,
-      tflite::testing::kTestFloatTolerance);
+  tflite::testing::TestLSTMEvalQuantized<int8_t, int32_t, int16_t>(
+      int8_model_content);
 }
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
