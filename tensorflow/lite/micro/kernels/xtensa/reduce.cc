@@ -43,10 +43,16 @@ void* XtensaInitReduce(TfLiteContext* context, const char* buffer,
   return data;
 }
 
+TfLiteStatus XtensaPrepareAny(TfLiteContext* context, TfLiteNode* node) {
+  OpDataReduce* op_data =
+      &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
+  TF_LITE_ENSURE_OK(context, PrepareReduceHelper(context, node, op_data));
+}
+
 TfLiteStatus XtensaPrepareMax(TfLiteContext* context, TfLiteNode* node) {
   OpDataReduce* op_data =
       &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
-  TF_LITE_ENSURE_OK(context, PrepareMaxHelper(context, node, op_data));
+  TF_LITE_ENSURE_OK(context, PrepareReduceHelper(context, node, op_data));
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, ReducePrepareVision(context, node));
 #endif  // VISION_P6
@@ -57,6 +63,13 @@ TfLiteStatus XtensaPrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   OpDataReduce* op_data =
       &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
   return PrepareMeanOrSumHelper(context, node, op_data);
+}
+
+TfLiteStatus XtensaEvalAny(TfLiteContext* context, TfLiteNode* node) {
+  XtensaReduceOpData* op_data_xtensa =
+      static_cast<XtensaReduceOpData*>(node->user_data);
+  OpDataReduce* op_data = &(op_data_xtensa->reference_op_data);
+  return EvalReduceHelper(context, node, op_data, kAny);
 }
 
 TfLiteStatus XtensaEvalMean(TfLiteContext* context, TfLiteNode* node) {
@@ -84,13 +97,13 @@ TfLiteStatus XtensaEvalMax(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     default: {
-      // Use the reference EvalMax for all other cases.
-      return EvalMaxHelper(context, node, op_data);
+      // Use the reference EvalReduceHelper for all other cases.
+      return EvalReduceHelper(context, node, op_data, kMax);
     }
   }
   return kTfLiteOk;
 #else
-  return EvalMaxHelper(context, node, op_data);
+  return EvalReduceHelper(context, node, op_data, kMax);
 #endif
 }
 
@@ -103,6 +116,11 @@ TfLiteStatus XtensaEvalSum(TfLiteContext* context, TfLiteNode* node) {
 TfLiteRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalMean);
+}
+
+TfLiteRegistration Register_REDUCE_ANY() {
+  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareAny,
+                                   XtensaEvalAny);
 }
 
 TfLiteRegistration Register_REDUCE_MAX() {

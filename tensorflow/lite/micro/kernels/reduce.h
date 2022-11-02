@@ -20,10 +20,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/reduce_common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 
-namespace tflite {
+using ReduceType = tflite::ops::builtin::reduce::ReduceType;
 
+namespace tflite {
 extern const int kMaxNumberOfAxis;
 extern const int kMaxNumberOfReducedAxis;
 
@@ -39,16 +41,16 @@ struct OpDataReduce {
   int num_output_elements;
 };
 
-TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
-                              OpDataReduce* op_data);
+TfLiteStatus PrepareReduceHelper(TfLiteContext* context, TfLiteNode* node,
+                                 OpDataReduce* op_data);
 
 TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data);
 
-TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
-                           OpDataReduce* op_data);
 TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
                             OpDataReduce* op_data);
+TfLiteStatus EvalReduceHelper(TfLiteContext* context, TfLiteNode* node,
+                              OpDataReduce* op_data, ReduceType reduce_type);
 TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 
@@ -56,6 +58,7 @@ void ReduceResolveAxis(const int* axis_data, int axis_count,
                        MeanParams* op_params);
 
 TfLiteRegistration Register_MEAN();
+TfLiteRegistration Register_REDUCE_ANY();
 TfLiteRegistration Register_REDUCE_MAX();
 TfLiteRegistration Register_SUM();
 

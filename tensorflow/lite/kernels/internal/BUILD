@@ -74,7 +74,9 @@ cc_library(
     hdrs = glob([
         "reference/*.h",
         "reference/integer_ops/*.h",
-    ]),
+    ]) + [
+        "reduce_common.h",
+    ],
     copts = tflite_copts(),
     # We are disabling parse_headers for this header-only target so that the
     # external and internal builds are consistent. The primary issue here is
