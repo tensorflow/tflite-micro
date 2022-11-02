@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <math.h>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace ops {

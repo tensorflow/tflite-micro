@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -33,8 +33,7 @@ FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SingleArenaBufferAllocator* allocator,
                                    MicroGraph* micro_graph)
     : MicroContext(
-          MicroAllocator::Create(dummy_tensor_arena, KDummyTensorArenaSize,
-                                 GetMicroErrorReporter()),
+          MicroAllocator::Create(dummy_tensor_arena, KDummyTensorArenaSize),
           nullptr, micro_graph),
       tensors_(tensors),
       allocator_(allocator) {}

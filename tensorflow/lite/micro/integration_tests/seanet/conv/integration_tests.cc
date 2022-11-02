@@ -83,7 +83,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_input_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/conv/conv9_model_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -104,8 +104,7 @@ void RunModel(const uint8_t* model, const int16_t* input,
   MicroProfiler profiler;
   AllOpsResolver resolver;
   MicroInterpreter interpreter(GetModel(model), resolver, tensor_arena,
-                               kTensorArenaSize, GetMicroErrorReporter(),
-                               nullptr, &profiler);
+                               kTensorArenaSize, nullptr, &profiler);
   interpreter.AllocateTensors();
 
   TfLiteTensor* input_tensor = interpreter.input(0);

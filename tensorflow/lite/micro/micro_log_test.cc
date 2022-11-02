@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 #include "tensorflow/lite/micro/system_setup.h"
 
@@ -24,12 +24,9 @@ inline void InitializeTest() { InitializeTarget(); }
 int main(int argc, char** argv) {
   tflite::InitializeTest();
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-  tflite::MicroErrorReporter micro_error_reporter;
-  tflite::ErrorReporter* error_reporter = &micro_error_reporter;
-  TF_LITE_REPORT_ERROR(error_reporter, "Number: %d", 42);
-  TF_LITE_REPORT_ERROR(error_reporter, "Badly-formed format string %");
-  TF_LITE_REPORT_ERROR(error_reporter,
-                       "Another % badly-formed %% format string");
-  TF_LITE_REPORT_ERROR(error_reporter, "~~~%s~~~", "ALL TESTS PASSED");
+  MicroPrintf("Number: %d", 42);
+  MicroPrintf("Badly-formed format string %");
+  MicroPrintf("Another % badly-formed %% format string");
+  MicroPrintf("~~~%s~~~", "ALL TESTS PASSED");
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
 }

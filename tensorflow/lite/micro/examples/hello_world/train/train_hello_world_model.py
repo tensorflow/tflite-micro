@@ -58,6 +58,7 @@ import math
 import textwrap
 import traceback
 from typing import NamedTuple, Optional
+from pathlib import Path
 
 ## Shell command utility method
 
@@ -606,7 +607,10 @@ def compare_sizes(config: ConfigData) -> None:
   """
 
   # Calculate size
-  size_tf = os.path.getsize(config.MODEL_TF)
+  size_tf = sum(
+      map(lambda p: p.stat().st_size,
+          filter(Path.is_file,
+                 Path(config.MODEL_TF).rglob('*'))))
   size_no_quant_tflite = os.path.getsize(config.MODEL_NO_QUANT_TFLITE)
   size_quant_tflite = os.path.getsize(config.MODEL_QUANT_TFLITE)
 

@@ -19,19 +19,15 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestAudioProvider) {
-  tflite::MicroErrorReporter micro_error_reporter;
-
   int audio_samples_size = 0;
   int16_t* audio_samples = nullptr;
-  TfLiteStatus get_status =
-      GetAudioSamples(&micro_error_reporter, 0, kFeatureSliceDurationMs,
-                      &audio_samples_size, &audio_samples);
+  TfLiteStatus get_status = GetAudioSamples(
+      0, kFeatureSliceDurationMs, &audio_samples_size, &audio_samples);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
   TF_LITE_MICRO_EXPECT_LE(audio_samples_size, kMaxAudioSampleSize);
   TF_LITE_MICRO_EXPECT(audio_samples != nullptr);

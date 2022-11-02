@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/yes_feature_data_slice.h"
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 // This is a test-only API, not exposed in any public headers, so declare it.
@@ -29,10 +29,7 @@ void SetMicroFeaturesNoiseEstimates(const uint32_t* estimate_presets);
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
-  tflite::MicroErrorReporter micro_error_reporter;
-
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          InitializeMicroFeatures(&micro_error_reporter));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, InitializeMicroFeatures());
 
   // The micro features pipeline retains state from previous calls to help
   // estimate the background noise. Unfortunately this makes it harder to
@@ -51,7 +48,7 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
   int8_t yes_calculated_data[g_yes_feature_data_slice_size];
   size_t num_samples_read;
   TfLiteStatus yes_status = GenerateMicroFeatures(
-      &micro_error_reporter, g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
+      g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
       g_yes_feature_data_slice_size, yes_calculated_data, &num_samples_read);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, yes_status);
 
@@ -60,17 +57,13 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
     const int actual = yes_calculated_data[i];
     TF_LITE_MICRO_EXPECT_EQ(expected, actual);
     if (expected != actual) {
-      TF_LITE_REPORT_ERROR(&micro_error_reporter,
-                           "Expected value %d but found %d", expected, actual);
+      MicroPrintf("Expected value %d but found %d", expected, actual);
     }
   }
 }
 
 TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorNo) {
-  tflite::MicroErrorReporter micro_error_reporter;
-
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          InitializeMicroFeatures(&micro_error_reporter));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, InitializeMicroFeatures());
   // As we did for the previous features, set known good noise state
   // parameters.
   const uint32_t no_estimate_presets[] = {
@@ -85,7 +78,7 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorNo) {
   int8_t no_calculated_data[g_no_feature_data_slice_size];
   size_t num_samples_read;
   TfLiteStatus no_status = GenerateMicroFeatures(
-      &micro_error_reporter, g_no_30ms_audio_data, g_no_30ms_audio_data_size,
+      g_no_30ms_audio_data, g_no_30ms_audio_data_size,
       g_no_feature_data_slice_size, no_calculated_data, &num_samples_read);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, no_status);
 
@@ -94,8 +87,7 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorNo) {
     const int actual = no_calculated_data[i];
     TF_LITE_MICRO_EXPECT_EQ(expected, actual);
     if (expected != actual) {
-      TF_LITE_REPORT_ERROR(&micro_error_reporter,
-                           "Expected value %d but found %d", expected, actual);
+      MicroPrintf("Expected value %d but found %d", expected, actual);
     }
   }
 }

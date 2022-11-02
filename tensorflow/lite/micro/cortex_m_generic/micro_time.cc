@@ -23,6 +23,16 @@ limitations under the License.
 
 namespace tflite {
 
+#if defined(PROJECT_GENERATION)
+
+// Stub functions for the project_generation target since these will be replaced
+// by the target-specific implementation in the overall infrastructure that the
+// TFLM project generation will be a part of.
+uint32_t ticks_per_second() { return 0; }
+uint32_t GetCurrentTimeTicks() { return 0; }
+
+#else
+
 uint32_t ticks_per_second() { return 0; }
 
 uint32_t GetCurrentTimeTicks() {
@@ -65,5 +75,7 @@ uint32_t GetCurrentTimeTicks() {
   return 0;
 #endif
 }
+
+#endif  // defined(PROJECT_GENERATION)
 
 }  // namespace tflite

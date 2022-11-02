@@ -1,4 +1,4 @@
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,6 @@ steps:
   - run: |
       git clone https://github.com/tensorflow/tflite-micro.git 
       mv ./tflite-micro/tensorflow/ .
-      tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh > ./cortex_m_generic.log
+      tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang &> ./cortex_m_generic.log
 download:
   - cortex_m_generic.log

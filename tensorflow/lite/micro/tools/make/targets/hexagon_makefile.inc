@@ -110,7 +110,7 @@ INCLUDES += \
 # Excludes memory_arena_threshold_test because of the size difference between
 # reference OP and optimized OP.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 

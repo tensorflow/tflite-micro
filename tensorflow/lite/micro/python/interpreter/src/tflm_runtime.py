@@ -21,7 +21,11 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interprete
 
 class Interpreter(object):
 
-  def __init__(self, model_data, custom_op_registerers, arena_size):
+  def __init__(self,
+               model_data,
+               custom_op_registerers,
+               arena_size,
+               num_resource_variables=0):
     if model_data is None:
       raise ValueError("Model must not be None")
 
@@ -34,10 +38,14 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size)
+        model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
+  def from_file(self,
+                model_path,
+                custom_op_registerers=[],
+                arena_size=None,
+                num_resource_variables=0):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -46,6 +54,9 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
+      num_resource_variables: (Only required if using MicroResourceVariables)
+        The number of resource variables can be found by counting the
+        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
@@ -56,10 +67,15 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size,
+                       num_resource_variables)
 
   @classmethod
-  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
+  def from_bytes(self,
+                 model_data,
+                 custom_op_registerers=[],
+                 arena_size=None,
+                 num_resource_variables=0):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -68,12 +84,27 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
+      num_resource_variables: (Only required if using MicroResourceVariables)
+        The number of resource variables can be found by counting the
+        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(model_data, custom_op_registerers, arena_size,
+                       num_resource_variables)
+
+  def print_allocations(self):
+    """Invoke the RecordingMicroAllocator to print the arena usage.
+
+    This should be called after `invoke()`.
+
+    Returns:
+      This method does not return anything, but It dumps the arena
+      usage to stderr.
+    """
+    self._interpreter.PrintAllocations()
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.
@@ -85,6 +116,19 @@ class Interpreter(object):
       well upon any error.
     """
     return self._interpreter.Invoke()
+
+  def reset(self):
+    """Reset the model state to be what you would expect when the interpreter is first
+
+    created. i.e. after Init and Prepare is called for the very first time.
+
+    This should be called after invoke stateful model like LSTM.
+
+    Returns:
+      Status code of the C++ invoke function. A RuntimeError will be raised as
+      well upon any error.
+    """
+    return self._interpreter.Reset()
 
   def set_input(self, input_data, index):
     """Set input data into input tensor.
@@ -123,3 +167,57 @@ class Interpreter(object):
       raise ValueError("Index must be a non-negative integer")
 
     return self._interpreter.GetOutputTensor(index)
+
+  def get_input_details(self, index):
+    """Get input tensor information
+
+    Args:
+        index (int): An integer between 0 and the number of output tensors
+          (exclusive) consistent with the order defined in the list of outputs
+          in the .tflite model
+
+    Returns:
+        A dictionary from input index to tensor details where each item is a
+        dictionary with details about an input tensor. Each dictionary contains
+        the following fields that describe the tensor:
+        + `shape`: The shape of the tensor.
+        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
+        + `quantization_parameters`: A dictionary of parameters used to quantize
+          the tensor:
+          ~ `scales`: List of scales (one if per-tensor quantization).
+          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
+          ~ `quantized_dimension`: Specifies the dimension of per-axis
+          quantization, in the case of multiple scales/zero_points.
+
+    """
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetInputTensorDetails(index)
+
+  def get_output_details(self, index):
+    """Get output tensor information
+
+    Args:
+        index (int): An integer between 0 and the number of output tensors
+          (exclusive) consistent with the order defined in the list of outputs
+          in the .tflite model
+
+    Returns:
+        A dictionary from input index to tensor details where each item is a
+        dictionary with details about an input tensor. Each dictionary contains
+        the following fields that describe the tensor:
+        + `shape`: The shape of the tensor.
+        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
+        + `quantization_parameters`: A dictionary of parameters used to quantize
+          the tensor:
+          ~ `scales`: List of scales (one if per-tensor quantization).
+          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
+          ~ `quantized_dimension`: Specifies the dimension of per-axis
+          quantization, in the case of multiple scales/zero_points.
+
+    """
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
+
+    return self._interpreter.GetOutputTensorDetails(index)

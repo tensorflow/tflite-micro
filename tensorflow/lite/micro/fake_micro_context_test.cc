@@ -18,7 +18,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -57,8 +56,8 @@ TF_LITE_MICRO_TESTS_BEGIN
 TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
-  tflite::SingleArenaBufferAllocator simple_memory_allocator(
-      tflite::GetMicroErrorReporter(), arena_buffer, kArenaSize);
+  tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
+                                                             kArenaSize);
   tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
@@ -70,8 +69,8 @@ TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
 TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
-  tflite::SingleArenaBufferAllocator simple_memory_allocator(
-      tflite::GetMicroErrorReporter(), arena_buffer, kArenaSize);
+  tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
+                                                             kArenaSize);
   tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(

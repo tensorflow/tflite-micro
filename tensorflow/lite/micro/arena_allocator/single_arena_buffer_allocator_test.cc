@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -26,8 +25,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 TF_LITE_MICRO_TEST(TestEnsureHeadSizeSimpleAlignment) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -54,8 +52,7 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeSimpleAlignment) {
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignment) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 12);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -86,8 +83,7 @@ TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignment) {
 TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignedHandlesCorrectBytesAvailable) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 12);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -123,8 +119,7 @@ TF_LITE_MICRO_TEST(TestAdjustHeadSizeMisalignedHandlesCorrectBytesAvailable) {
 TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -142,8 +137,7 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemory) {
 TF_LITE_MICRO_TEST(TestGetAvailableMemoryWithTempAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   constexpr size_t allocation_size = 100;
   uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
@@ -164,8 +158,7 @@ TF_LITE_MICRO_TEST(TestGetAvailableMemoryWithTempAllocations) {
 TF_LITE_MICRO_TEST(TestGetUsedBytes) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
   TF_LITE_MICRO_EXPECT_EQ(allocator.GetUsedBytes(), static_cast<size_t>(0));
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
@@ -182,8 +175,7 @@ TF_LITE_MICRO_TEST(TestGetUsedBytes) {
 TF_LITE_MICRO_TEST(TestGetUsedBytesTempAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   constexpr size_t allocation_size = 100;
   uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
@@ -202,8 +194,7 @@ TF_LITE_MICRO_TEST(TestGetUsedBytesTempAllocations) {
 TF_LITE_MICRO_TEST(TestJustFits) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result = allocator.AllocatePersistentBuffer(arena_size, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
@@ -212,8 +203,7 @@ TF_LITE_MICRO_TEST(TestJustFits) {
 TF_LITE_MICRO_TEST(TestAligned) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result = allocator.AllocatePersistentBuffer(1, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
@@ -227,8 +217,7 @@ TF_LITE_MICRO_TEST(TestAligned) {
 TF_LITE_MICRO_TEST(TestMultipleTooLarge) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* result = allocator.AllocatePersistentBuffer(768, 1);
   TF_LITE_MICRO_EXPECT(nullptr != result);
@@ -240,8 +229,7 @@ TF_LITE_MICRO_TEST(TestMultipleTooLarge) {
 TF_LITE_MICRO_TEST(TestTempAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* temp1 = allocator.AllocateTemp(100, 1);
   TF_LITE_MICRO_EXPECT(nullptr != temp1);
@@ -256,8 +244,7 @@ TF_LITE_MICRO_TEST(TestTempAllocations) {
 TF_LITE_MICRO_TEST(TestResetTempAllocations) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* temp1 = allocator.AllocateTemp(100, 1);
   TF_LITE_MICRO_EXPECT(nullptr != temp1);
@@ -275,8 +262,7 @@ TF_LITE_MICRO_TEST(TestResetTempAllocations) {
 TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(0, 1);
   TF_LITE_MICRO_EXPECT(resizable_buf != nullptr);
 
@@ -303,8 +289,7 @@ TF_LITE_MICRO_TEST(TestEnsureHeadSizeWithoutResettingTemp) {
 TF_LITE_MICRO_TEST(TestIsAllTempDeallocated) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
-  tflite::SingleArenaBufferAllocator allocator(tflite::GetMicroErrorReporter(),
-                                               arena, arena_size);
+  tflite::SingleArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* temp1 = allocator.AllocateTemp(100, 1);
   TF_LITE_MICRO_EXPECT(allocator.IsAllTempDeallocated() == false);

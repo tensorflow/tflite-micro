@@ -16,7 +16,9 @@
 #
 # Called with following arguments:
 # 1 - Path to the downloads folder which is typically
-#     tensorflow/lite/micro/tools/make/downloads
+#     ${TENSORFLOW_ROOT}/tensorflow/lite/micro/tools/make/downloads
+# 2 - Generated source directory
+# 3 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:
@@ -31,11 +33,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../../..
-cd "${ROOT_DIR}"
-
-source tensorflow/lite/micro/tools/make/bash_helpers.sh
+source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
 GENERATED_SRCS_DIR=${2}
@@ -68,7 +66,7 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
        ${CONVERTED_PERSON_MODEL_INT8}
   echo -n "const " >> ${CONVERTED_PERSON_MODEL_INT8}
   xxd -i ${MODEL_DIR}/person_detect_vela.tflite >> ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/tensorflow_lite_micro_tools_make_gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
+  sed -i 's/gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
       ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/'  ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/g_person_detect_model_data_len/g_person_detect_model_data_size/'  ${CONVERTED_PERSON_MODEL_INT8}

@@ -22,7 +22,7 @@ using sysbus
 mach create $name
 machine LoadPlatformDescription @platforms/cpus/sifive-fe310.repl
 
-$bin?=@/workspace/tensorflow/lite/micro/tools/make/gen/riscv32_mcu_riscv32_mcu/bin/micro_speech_test
+$bin?=@/workspace/gen/riscv32_mcu_riscv32_mcu/bin/micro_speech_test
 
 showAnalyzer uart0 Antmicro.Renode.Analyzers.LoggingUartAnalyzer
 logFile @/tmp/renode_riscv_log.txt

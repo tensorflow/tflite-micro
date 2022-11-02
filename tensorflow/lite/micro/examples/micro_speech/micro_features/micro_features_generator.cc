@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/experimental/microfrontend/lib/frontend.h"
 #include "tensorflow/lite/experimental/microfrontend/lib/frontend_util.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ bool g_is_first_time = true;
 
 }  // namespace
 
-TfLiteStatus InitializeMicroFeatures(tflite::ErrorReporter* error_reporter) {
+TfLiteStatus InitializeMicroFeatures() {
   FrontendConfig config;
   config.window.size_ms = kFeatureSliceDurationMs;
   config.window.step_size_ms = kFeatureSliceStrideMs;
@@ -49,7 +50,7 @@ TfLiteStatus InitializeMicroFeatures(tflite::ErrorReporter* error_reporter) {
   config.log_scale.scale_shift = 6;
   if (!FrontendPopulateState(&config, &g_micro_features_state,
                              kAudioSampleFrequency)) {
-    TF_LITE_REPORT_ERROR(error_reporter, "FrontendPopulateState() failed");
+    MicroPrintf("FrontendPopulateState() failed");
     return kTfLiteError;
   }
   g_is_first_time = true;
@@ -64,8 +65,7 @@ void SetMicroFeaturesNoiseEstimates(const uint32_t* estimate_presets) {
   }
 }
 
-TfLiteStatus GenerateMicroFeatures(tflite::ErrorReporter* error_reporter,
-                                   const int16_t* input, int input_size,
+TfLiteStatus GenerateMicroFeatures(const int16_t* input, int input_size,
                                    int output_size, int8_t* output,
                                    size_t* num_samples_read) {
   const int16_t* frontend_input;

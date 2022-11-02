@@ -20,12 +20,10 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestCallability) {
-  tflite::MicroErrorReporter micro_error_reporter;
-
   // This will have external side-effects (like printing to the debug console
   // or lighting an LED) that are hard to observe, so the most we can do is
   // make sure the call doesn't crash.
-  RespondToCommand(&micro_error_reporter, 0, "foo", 0, true);
+  RespondToCommand(0, "foo", 0, true);
 }
 
 TF_LITE_MICRO_TESTS_END

@@ -22,8 +22,8 @@ limitations under the License.
 namespace tflite {
 
 RecordingSingleArenaBufferAllocator::RecordingSingleArenaBufferAllocator(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size)
-    : SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size),
+    uint8_t* buffer_head, size_t buffer_size)
+    : SingleArenaBufferAllocator(buffer_head, buffer_size),
       requested_head_bytes_(0),
       requested_tail_bytes_(0),
       used_bytes_(0),
@@ -32,13 +32,11 @@ RecordingSingleArenaBufferAllocator::RecordingSingleArenaBufferAllocator(
 RecordingSingleArenaBufferAllocator::~RecordingSingleArenaBufferAllocator() {}
 
 RecordingSingleArenaBufferAllocator*
-RecordingSingleArenaBufferAllocator::Create(ErrorReporter* error_reporter,
-                                            uint8_t* buffer_head,
+RecordingSingleArenaBufferAllocator::Create(uint8_t* buffer_head,
                                             size_t buffer_size) {
-  TFLITE_DCHECK(error_reporter != nullptr);
   TFLITE_DCHECK(buffer_head != nullptr);
-  RecordingSingleArenaBufferAllocator tmp = RecordingSingleArenaBufferAllocator(
-      error_reporter, buffer_head, buffer_size);
+  RecordingSingleArenaBufferAllocator tmp =
+      RecordingSingleArenaBufferAllocator(buffer_head, buffer_size);
 
   uint8_t* allocator_buffer = tmp.AllocatePersistentBuffer(
       sizeof(RecordingSingleArenaBufferAllocator),

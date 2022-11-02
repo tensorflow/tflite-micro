@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -45,7 +46,38 @@ void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
   return data;
 }
 
+TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
+                                 const TfLiteTensor* input1,
+                                 const TfLiteTensor* input2,
+                                 const TfLiteTensor* input3,
+                                 const TfLiteIntArray* output_shape) {
+  const int dims1 = NumDimensions(input1);
+  const int dims2 = NumDimensions(input2);
+  const int dims3 = NumDimensions(input3);
+  const int out_dims = std::max(std::max(dims1, dims2), dims3);
+  TF_LITE_ENSURE_EQ(context, out_dims, output_shape->size);
+
+  for (int i = 0; i < out_dims; ++i) {
+    const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
+    const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
+    const int d3 = i >= dims3 ? 1 : SizeOfDimension(input3, dims3 - i - 1);
+    const int min_value = std::min(std::min(d1, d2), d3);
+    int max_value = std::max(std::max(d1, d2), d3);
+    // If one dimention is 0, others must be 0 or 1.
+    if (min_value == 0) max_value = 0;
+    if (!(d1 == 1 || d1 == max_value) || !(d2 == 1 || d2 == max_value) ||
+        !(d3 == 1 || d3 == max_value)) {
+      MicroPrintf("Given shapes are not broadcastable.");
+      return kTfLiteError;
+    }
+    TF_LITE_ENSURE_EQ(context, output_shape->data[out_dims - i - 1], max_value);
+  }
+  return kTfLiteOk;
+}
+
 TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
+  OpData* data = reinterpret_cast<OpData*>(node->user_data);
+
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -78,7 +110,12 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   bool same_shape = HaveSameShapes(input_condition, input_x) &&
                     HaveSameShapes(input_x, input_y);
-  TF_LITE_ENSURE(context, same_shape);
+  if (!same_shape) {
+    TF_LITE_ENSURE_OK(
+        context, CheckBroadcastShape(context, input_condition, input_x, input_y,
+                                     output->dims));
+    data->requires_broadcast = true;
+  }
 
   micro_context->DeallocateTempTfLiteTensor(input_condition);
   micro_context->DeallocateTempTfLiteTensor(input_x);
@@ -128,9 +165,11 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteError;                                           \
   }
 
-  if (data->has_low_rank_input_condition || data->requires_broadcast) {
+  if (data->has_low_rank_input_condition) {
     MicroPrintf("Not yet implemented.");
     return kTfLiteError;
+  } else if (data->requires_broadcast) {
+    TF_LITE_SWITCH(input_x->type, BroadcastSelect5DSlow);
   } else {
     TF_LITE_SWITCH(input_x->type, Select);
   }

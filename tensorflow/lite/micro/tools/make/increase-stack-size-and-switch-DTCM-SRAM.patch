@@ -1,13 +1,13 @@
-From 24a382db4fba684a9d6d320cb900eeac7b628837 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?M=C3=A5ns=20Nilsson?= <mans.nilsson@arm.com>
-Date: Wed, 15 Jun 2022 14:00:36 +0200
+From 470dee13bffc0adb9a778d56fab3028031f71e80 Mon Sep 17 00:00:00 2001
+From: TFLM <tflm@google.com>
+Date: Fri, 28 Oct 2022 11:01:15 +0200
 Subject: [PATCH] TFLM patch
 
 ---
- targets/corstone-300/platform.ld      | 8 +++-----
- targets/corstone-300/platform.scatter | 5 +++--
- targets/corstone-300/retarget.c       | 8 ++++++++
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ targets/corstone-300/platform.ld      |  8 +++-----
+ targets/corstone-300/platform.scatter |  5 +++--
+ targets/corstone-300/retarget.c       | 16 ++++++++--------
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
 diff --git a/targets/corstone-300/platform.ld b/targets/corstone-300/platform.ld
 index ec58acc..21316a4 100644
@@ -84,10 +84,25 @@ index fab12d1..be5c227 100644
  
      #if (ETHOSU_ARENA == 1)
 diff --git a/targets/corstone-300/retarget.c b/targets/corstone-300/retarget.c
-index 4bde44d..8b69295 100644
+index 4bde44d..b510ad8 100644
 --- a/targets/corstone-300/retarget.c
 +++ b/targets/corstone-300/retarget.c
-@@ -274,3 +274,11 @@ int ferror(FILE *f) {
+@@ -172,14 +172,6 @@ long RETARGET(_flen)(FILEHANDLE fh) {
+     return -1;
+ }
+ 
+-int RETARGET(_tmpnam)(char *name, int sig, unsigned maxlen) {
+-    (void)name;
+-    (void)sig;
+-    (void)maxlen;
+-
+-    return 1;
+-}
+-
+ char *RETARGET(_command_string)(char *cmd, int len) {
+     (void)len;
+ 
+@@ -274,3 +266,11 @@ int ferror(FILE *f) {
      return EOF;
  }
  #endif

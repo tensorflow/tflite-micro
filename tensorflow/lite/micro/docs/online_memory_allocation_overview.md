@@ -44,13 +44,17 @@ begin. The `MicroInterpreter` instance will invoke
 out of the serialized flatbuffer and begin walking through the main subgraph.
 
 The method `MicroAllocator::StartModelAllocation()` begins allocation in the
-following order: * Initializes internal state for scratch buffer allocations *
-Allocates a list of `TfLiteEvalTensor` C structs based on the number of tensors
-in the subgraph. * Allocations are persistent and stored in the tail section. *
-Tensors that reference buffers in the flatbuffer are assigned at this point. *
-Allocates a list of `TfLiteRegistration` and `TfLiteNode` C structs for every
-operator in the model subgraph * Allocations are persistent and stored in the
-tail section. * Walks back through the list of subgraph operators and assigns
+following order: 
+* Initializes internal state for scratch buffer allocations 
+* Allocates a list of `TfLiteEvalTensor` C structs based on the number of tensors
+in the subgraph. 
+* Allocations are persistent and stored in the tail section. 
+* Tensors that reference buffers in the flatbuffer are assigned at this point. 
+* Allocates a list of `TfLiteRegistration` and `TfLiteNode` C structs for every
+operator in the model subgraph 
+* Allocations are persistent and stored in the
+tail section. 
+* Walks back through the list of subgraph operators and assigns
 all C structs with relevant information from the flatbuffer.
 
 At the conclusion of this phase, the operator kernel implementations are ready

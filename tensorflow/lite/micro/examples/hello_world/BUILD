@@ -43,8 +43,8 @@ cc_test(
     ],
     deps = [
         ":model",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
@@ -62,7 +62,7 @@ cc_library(
     copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 
@@ -92,8 +92,8 @@ cc_binary(
         ":constants",
         ":model",
         ":output_handler",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/schema:schema_fbs",

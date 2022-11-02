@@ -83,14 +83,14 @@ and issue following commands:
 # Create platform
 include @tensorflow/lite/micro/testing/bluepill_nontest.resc
 # Load ELF file
-sysbus LoadELF @tensorflow/lite/micro/tools/make/gen/bluepill_cortex-m3_default/bin/keyword_benchmark
+sysbus LoadELF @gen/bluepill_cortex-m3_default/bin/keyword_benchmark
 # Start simulation
 start
 
 # To run again:
 Clear
 include @tensorflow/lite/micro/testing/bluepill_nontest.resc
-sysbus LoadELF @tensorflow/lite/micro/tools/make/gen/bluepill_cortex-m3_default/bin/keyword_benchmark
+sysbus LoadELF @gen/bluepill_cortex-m3_default/bin/keyword_benchmark
 start
 
 ```
@@ -98,7 +98,7 @@ start
 To make repeat runs a bit easier, you can put all the commands into a
 single line (up arrow will show the last command in the Renode terminal):
 ```
-Clear; include @tensorflow/lite/micro/testing/bluepill_nontest.resc; sysbus LoadELF @tensorflow/lite/micro/tools/make/gen/bluepill_cortex-m3_default/bin/keyword_benchmark; start
+Clear; include @tensorflow/lite/micro/testing/bluepill_nontest.resc; sysbus LoadELF @gen/bluepill_cortex-m3_default/bin/keyword_benchmark; start
 ```
 
 You can also connect GDB to the simulation.

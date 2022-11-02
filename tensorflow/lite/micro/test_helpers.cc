@@ -23,7 +23,6 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -1755,17 +1754,6 @@ int TestStrcmp(const char* a, const char* b) {
   }
   return *reinterpret_cast<const unsigned char*>(a) -
          *reinterpret_cast<const unsigned char*>(b);
-}
-
-// Wrapper to forward kernel errors to the interpreter's error reporter.
-void ReportOpError(struct TfLiteContext* context, const char* format, ...) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  ErrorReporter* error_reporter = static_cast<ErrorReporter*>(context->impl_);
-  va_list args;
-  va_start(args, format);
-  TF_LITE_REPORT_ERROR(error_reporter, format, args);
-  va_end(args);
-#endif
 }
 
 // Create a TfLiteIntArray from an array of ints.  The first element in the

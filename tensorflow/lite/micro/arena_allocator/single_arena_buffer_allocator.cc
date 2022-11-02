@@ -21,39 +21,31 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, uint8_t* buffer_tail)
-    :
-#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-      error_reporter_(error_reporter),
-#endif
-      buffer_head_(buffer_head),
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(uint8_t* buffer_head,
+                                                       uint8_t* buffer_tail)
+    : buffer_head_(buffer_head),
       buffer_tail_(buffer_tail),
       head_(buffer_head),
       tail_(buffer_tail),
-      temp_(buffer_head_) {
-}
+      temp_(buffer_head_) {}
 
-SingleArenaBufferAllocator::SingleArenaBufferAllocator(
-    ErrorReporter* error_reporter, uint8_t* buffer, size_t buffer_size)
-    : SingleArenaBufferAllocator(error_reporter, buffer, buffer + buffer_size) {
-}
+SingleArenaBufferAllocator::SingleArenaBufferAllocator(uint8_t* buffer,
+                                                       size_t buffer_size)
+    : SingleArenaBufferAllocator(buffer, buffer + buffer_size) {}
 
 /* static */
 SingleArenaBufferAllocator* SingleArenaBufferAllocator::Create(
-    ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
-  TFLITE_DCHECK(error_reporter != nullptr);
+    uint8_t* buffer_head, size_t buffer_size) {
   TFLITE_DCHECK(buffer_head != nullptr);
   SingleArenaBufferAllocator tmp =
-      SingleArenaBufferAllocator(error_reporter, buffer_head, buffer_size);
+      SingleArenaBufferAllocator(buffer_head, buffer_size);
 
   // Allocate enough bytes from the buffer to create a
   // SingleArenaBufferAllocator. The new instance will use the current adjusted
@@ -93,8 +85,7 @@ TfLiteStatus SingleArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_buf,
   // Only supports one resizable buffer, which starts at the buffer head.
   uint8_t* expect_resizable_buf = AlignPointerUp(buffer_head_, alignment);
   if (head_ != temp_ || resizable_buf != expect_resizable_buf) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Internal error: either buffer is not resizable or "
         "ResetTempAllocations() is not called before ResizeBuffer().");
     return kTfLiteError;
@@ -103,8 +94,7 @@ TfLiteStatus SingleArenaBufferAllocator::ResizeBuffer(uint8_t* resizable_buf,
   uint8_t* const aligned_result = AlignPointerUp(buffer_head_, alignment);
   const size_t available_memory = tail_ - aligned_result;
   if (available_memory < size) {
-    TF_LITE_REPORT_ERROR(
-        error_reporter_,
+    MicroPrintf(
         "Failed to resize buffer. Requested: %u, available %u, missing: %u",
         size, available_memory, size - available_memory);
     return kTfLiteError;
@@ -121,10 +111,10 @@ uint8_t* SingleArenaBufferAllocator::AllocatePersistentBuffer(
   if (aligned_result < head_) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
     const size_t missing_memory = head_ - aligned_result;
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed to allocate tail memory. Requested: %u, "
-                         "available %u, missing: %u",
-                         size, size - missing_memory, missing_memory);
+    MicroPrintf(
+        "Failed to allocate tail memory. Requested: %u, "
+        "available %u, missing: %u",
+        size, size - missing_memory, missing_memory);
 #endif
     return nullptr;
   }
@@ -137,10 +127,10 @@ uint8_t* SingleArenaBufferAllocator::AllocateTemp(size_t size,
   uint8_t* const aligned_result = AlignPointerUp(temp_, alignment);
   const size_t available_memory = tail_ - aligned_result;
   if (available_memory < size) {
-    TF_LITE_REPORT_ERROR(error_reporter_,
-                         "Failed to allocate temp memory. Requested: %u, "
-                         "available %u, missing: %u",
-                         size, available_memory, size - available_memory);
+    MicroPrintf(
+        "Failed to allocate temp memory. Requested: %u, "
+        "available %u, missing: %u",
+        size, available_memory, size - available_memory);
     return nullptr;
   }
   temp_ = aligned_result + size;

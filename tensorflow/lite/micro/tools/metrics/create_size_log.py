@@ -42,8 +42,7 @@ def _profile_a_binary(root_dir, binary_name, makefile_options, build_info):
   target_dir = "%s_%s_%s" % (makefile_options["TARGET"],
                              makefile_options["TARGET_ARCH"],
                              makefile_options["BUILD_TYPE"])
-  binary_path = os.path.join(root_dir, 'tensorflow/lite/micro/tools/make/gen/',
-                             target_dir, 'bin', binary_name)
+  binary_path = os.path.join(root_dir, 'gen/', target_dir, 'bin', binary_name)
   csv_path = os.path.join(root_dir, 'data/continuous_builds/size_profiling',
                           target_dir, "%s.csv" % binary_name)
 

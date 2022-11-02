@@ -17,7 +17,6 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -37,8 +36,8 @@ tflite::MicroContext CreateMicroContext() {
   static uint8_t tensor_arena[kArenaSize];
 
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  MicroAllocator* micro_allocator = MicroAllocator::Create(
-      tensor_arena, kArenaSize, tflite::GetMicroErrorReporter());
+  MicroAllocator* micro_allocator =
+      MicroAllocator::Create(tensor_arena, kArenaSize);
   MicroGraph* micro_graph = new (micro_graph_placement_buffer)
       MicroGraph(nullptr, nullptr, nullptr, nullptr);
 

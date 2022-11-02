@@ -29,6 +29,7 @@ limitations under the License.
 #include <cmath>
 
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/simple_model_settings.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace {
 
@@ -73,19 +74,17 @@ void CalculatePeriodicHann(int window_length, float* window_function) {
 
 }  // namespace
 
-TfLiteStatus GenerateSimpleFeatures(tflite::ErrorReporter* error_reporter,
-                                    const int16_t* input, int input_size,
+TfLiteStatus GenerateSimpleFeatures(const int16_t* input, int input_size,
                                     int output_size, uint8_t* output) {
   // Ensure our input and output data arrays are valid.
   if (input_size > kMaxAudioSampleSize) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Input size %d larger than %d",
-                         input_size, kMaxAudioSampleSize);
+    MicroPrintf("Input size %d larger than %d", input_size,
+                kMaxAudioSampleSize);
     return kTfLiteError;
   }
   if (output_size != kFeatureSliceSize) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Requested output size %d doesn't match %d",
-                         output_size, kFeatureSliceSize);
+    MicroPrintf("Requested output size %d doesn't match %d", output_size,
+                kFeatureSliceSize);
     return kTfLiteError;
   }
 

@@ -37,7 +37,7 @@ function build_target() {
   readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
 
   # Return the relative binary with path and name.
-  __BINARY_TARGET_PATH="tensorflow/lite/micro/tools/make/gen/${target}_${target_arch}_${build_type}/bin/${binary_target}"
+  __BINARY_TARGET_PATH="gen/${target}_${target_arch}_${build_type}/bin/${binary_target}"
 }
 
 FLAG_ERROR_ON_MEM_INCREASE=$1

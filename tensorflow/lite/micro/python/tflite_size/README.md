@@ -21,12 +21,7 @@ collapsibly list so that you can zoom in/out individual structure based on need.
 
 ## How to update `schema_generated_with_reflective_type.h`
 
-Currently, `schema_generated_with_rflective_type.h` is updated offline as
-follows
-
-```
-flatc -c -b --reflect-types --reflect-names third_party/tensorflow/lite/schema/schema.fbs
-```
-The last command will generate schema_generated.h with reflection that this
-library needs. Rename it to `schema_generated_with_reflective_type.h`.
+We generate our own schema_generated_with_reflective, using the build target in 
+tensorflow/lite/schema:schema_fbs_with_reflection (call with: 
+bazel build schema_fbs_with_reflection_srcs). 
 

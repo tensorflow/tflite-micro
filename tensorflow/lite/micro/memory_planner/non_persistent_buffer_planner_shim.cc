@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -25,9 +25,9 @@ NonPersistentMemoryPlannerShim::NonPersistentMemoryPlannerShim(
 
 NonPersistentMemoryPlannerShim::~NonPersistentMemoryPlannerShim() {}
 
-TfLiteStatus NonPersistentMemoryPlannerShim::AddBuffer(
-    tflite::ErrorReporter* error_reporter, int size, int first_time_used,
-    int last_time_used) {
+TfLiteStatus NonPersistentMemoryPlannerShim::AddBuffer(int size,
+                                                       int first_time_used,
+                                                       int last_time_used) {
   buffer_request_count_++;
   if (buffer_request_count_ > buffer_plan_->buffer_count) {
     MicroPrintf(
@@ -51,7 +51,7 @@ int NonPersistentMemoryPlannerShim::GetBufferCount() {
 }
 
 TfLiteStatus NonPersistentMemoryPlannerShim::GetOffsetForBuffer(
-    ErrorReporter* error_reporter, int buffer_request_index, int* offset) {
+    int buffer_request_index, int* offset) {
   if (buffer_request_index >= buffer_plan_->buffer_count) {
     MicroPrintf(
         "Attempting to get offset for buffer %d, but only %d buffers in given "

@@ -31,4 +31,4 @@ files in the [hello_world
 example](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/examples/hello_world).
 
 The generated cc and header files can be found in
-`tensorflow/lite/micro/tools/make/gen/<target>/genfiles/<path to example>`.
+`gen/<target>/genfiles/<path to example>`.

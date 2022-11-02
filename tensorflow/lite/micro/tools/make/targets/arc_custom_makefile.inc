@@ -56,24 +56,24 @@ endif
 endif # ARC_TAGS
 
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/hello_world/Makefile.inc \
-  tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
-  tensorflow/lite/micro/examples/memory_footprint/Makefile.inc \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
-  tensorflow/lite/micro/examples/network_tester/Makefile.inc \
-  tensorflow/lite/micro/examples/person_detection/Makefile.inc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/memory_footprint/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/Makefile.inc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/Makefile.inc
 
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 # Removing integration tests for ARC due to issues.
 MICRO_LITE_INTEGRATION_TESTS := 
 
-TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_arc_mdb.sh
+TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_arc_mdb.sh
 
 TARGET_SPECIFIC_MAKE_TEST := 1
 

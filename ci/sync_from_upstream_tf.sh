@@ -31,25 +31,6 @@ rm -rf /tmp/tensorflow
 
 git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
 
-# As part of the import from upstream TF, we generate the Python bindings for
-# the TfLite flatbuffer schema.
-
-# TfLite is using flatbuffers2.0 but TFLM is currently staying with 1.12.0
-# See http://b/235888271 for additional context as well as some of the workflows
-# that we will need to fix before upgrading to a newer flatbuffer version.
-rm -rf /tmp/tensorflow/third_party/flatbuffers
-cp -r ci/flatbuffers_for_tf_sync/ /tmp/tensorflow/third_party/flatbuffers
-
-cd /tmp/tensorflow
-bazel build tensorflow/lite/python:schema_py
-/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python
-
-# Also generate C++ bindings with flatc 1.12.0
-bazel build tensorflow/lite/schema:schema_fbs_srcs
-/bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
-
-cd -
-
 SHARED_TFL_CODE=$(<ci/tflite_files.txt)
 
 for filepath in ${SHARED_TFL_CODE}
@@ -57,6 +38,17 @@ do
   mkdir -p $(dirname ${filepath})
   /bin/cp /tmp/tensorflow/${filepath} ${filepath}
 done
+
+# We are still generating and checking in the C++ and Python bindings for the TfLite
+# flatbuffer schema in the nightly sync to keep it working with the Makefiles.
+bazel build tensorflow/lite/python:schema_py
+/bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python/schema_py_generated.py
+
+bazel build tensorflow/lite/schema:schema_fbs_srcs
+/bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
+
+# Must clean the bazel directories out after building as we don't check these in.
+bazel clean
 
 # The shared TFL/TFLM python code uses a different bazel workspace in the two
 # repositories (TF and tflite-micro) which needs the import statements to be

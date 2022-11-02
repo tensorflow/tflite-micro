@@ -33,10 +33,12 @@ jobs:
           tensorflow/lite/micro/tools/ci_build/test_generate_integration_tests.sh
       - name: error trapping
         if: ${{ failure() }}
-        uses: JasonEtco/create-an-issue@v2
         env:
           WORKFLOW: ${{ github.workflow }}
           RUN_NUMBER: ${{ github.run_number }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          filename: .github/scheduled-error-template.md
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          FLAG_LABEL: ci:bot_issue
+        run: |
+          pip3 install PyGithub
+          python3 ci/issue_on_error.py

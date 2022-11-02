@@ -35,8 +35,8 @@ limitations under the License.
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -47,18 +47,15 @@ limitations under the License.
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestInvoke) {
-  // Set up logging.
-  tflite::MicroErrorReporter micro_error_reporter;
-
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model =
       ::tflite::GetModel(g_micro_speech_lstm_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter,
-                         "Model provided is schema version %d not equal "
-                         "to supported version %d.\n",
-                         model->version(), TFLITE_SCHEMA_VERSION);
+    MicroPrintf(
+        "Model provided is schema version %d not equal "
+        "to supported version %d.\n",
+        model->version(), TFLITE_SCHEMA_VERSION);
   }
 
   // Pull in only the operation implementations we need.
@@ -81,8 +78,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   // Build an interpreter to run the model with.
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
-                                       tensor_arena_size,
-                                       &micro_error_reporter);
+                                       tensor_arena_size);
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.
@@ -105,7 +101,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // Run the model on this input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter.Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
+    MicroPrintf("Invoke failed\n");
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
 
@@ -138,7 +134,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   // Run the model on this "No" input.
   invoke_status = interpreter.Invoke();
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(&micro_error_reporter, "Invoke failed\n");
+    MicroPrintf("Invoke failed\n");
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
 
@@ -156,7 +152,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   unknown_score = output->data.int8[kUnknownIndex] + 128;
   TF_LITE_MICRO_EXPECT_GT(no_score, unknown_score);
   TF_LITE_MICRO_EXPECT_GT(no_score, yes_score);
-  TF_LITE_REPORT_ERROR(&micro_error_reporter, "Ran successfully\n");
+  MicroPrintf("Ran successfully\n");
 }
 
 TF_LITE_MICRO_TESTS_END

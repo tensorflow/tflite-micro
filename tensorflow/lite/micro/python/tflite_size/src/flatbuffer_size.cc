@@ -317,7 +317,7 @@ inline size_t IterateObject(const uint8_t* obj, const TypeTable* type_table,
   for (size_t i = 0; i < type_table->num_elems; i++) {
     auto type_code = type_table->type_codes[i];
     auto type = static_cast<ElementaryType>(type_code.base_type);
-    auto is_vector = type_code.is_vector != 0;
+    auto is_vector = type_code.is_repeating != 0;
     auto ref_idx = type_code.sequence_ref;
     const TypeTable* ref = nullptr;
     if (ref_idx >= 0) {

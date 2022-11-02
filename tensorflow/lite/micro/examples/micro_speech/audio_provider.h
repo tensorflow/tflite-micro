@@ -17,7 +17,6 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_AUDIO_PROVIDER_H_
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 
 // This is an abstraction around an audio source like a microphone, and is
 // expected to return 16-bit PCM sample data for a given point in time. The
@@ -29,8 +28,7 @@ limitations under the License.
 // The reference implementation can have no platform-specific dependencies, so
 // it just returns an array filled with zeros. For real applications, you should
 // ensure there's a specialized implementation that accesses hardware APIs.
-TfLiteStatus GetAudioSamples(tflite::ErrorReporter* error_reporter,
-                             int start_ms, int duration_ms,
+TfLiteStatus GetAudioSamples(int start_ms, int duration_ms,
                              int* audio_samples_size, int16_t** audio_samples);
 
 // Returns the time that audio data was last captured in milliseconds. There's
