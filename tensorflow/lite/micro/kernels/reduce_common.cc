@@ -347,16 +347,13 @@ TfLiteStatus GetReducerInitValue(ReduceType reduce_type, T& init_value) {
 }
 
 template <typename T>
-T (*GetReducer(ReduceType reduce_type))(const T current, const T in) {
+T (*GetReducer(ReduceType reduce_type))
+(const T current, const T in) {
   switch (reduce_type) {
     case ReduceType::kSum:
-      return [](const T current, const T in) -> T {
-        return in + current;
-      };
+      return [](const T current, const T in) -> T { return in + current; };
     case ReduceType::kProd:
-      return [](const T current, const T in) -> T {
-        return in * current;
-      };
+      return [](const T current, const T in) -> T { return in * current; };
     case ReduceType::kMax:
       return [](const T current, const T in) -> T {
         return (in > current) ? in : current;
@@ -366,16 +363,11 @@ T (*GetReducer(ReduceType reduce_type))(const T current, const T in) {
         return (in < current) ? in : current;
       };
     case ReduceType::kAny:
-      return [](const T current, const T in) -> T {
-        return in || current;
-      };
+      return [](const T current, const T in) -> T { return in || current; };
     case ReduceType::kAll:
-      return [](const T current, const T in) -> T {
-        return in && current;
-      };
+      return [](const T current, const T in) -> T { return in && current; };
     default:
-      MicroPrintf("GetReducer: Unsupported ReduceType: %d",
-                  reduce_type);
+      MicroPrintf("GetReducer: Unsupported ReduceType: %d", reduce_type);
   }
   return nullptr;
 }
@@ -396,46 +388,39 @@ TfLiteStatus EvalReduceHelper(TfLiteContext* context, TfLiteNode* node,
   int* resolved_axis = static_cast<int*>(
       context->GetScratchBuffer(context, op_data->resolved_axis_idx));
   switch (input->type) {
-    case kTfLiteFloat32:
-    {
+    case kTfLiteFloat32: {
       float init_value;
-      TF_LITE_ENSURE_EQ(context,
-                        GetReducerInitValue(reduce_type, init_value),
+      TF_LITE_ENSURE_EQ(context, GetReducerInitValue(reduce_type, init_value),
                         kTfLiteOk);
       auto reducer = GetReducer<float>(reduce_type);
       TF_LITE_ENSURE(context, reducer != nullptr);
-      TF_LITE_ENSURE(
-          context,
-          reference_ops::ReduceGeneric<float>(
-              tflite::micro::GetTensorData<float>(input), input->dims->data,
-              input->dims->size, tflite::micro::GetTensorData<float>(output),
-              output->dims->data, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis,
-              params->keep_dims, temp_buffer, resolved_axis,
-              init_value, reducer
-              ));
+      TF_LITE_ENSURE(context, reference_ops::ReduceGeneric<float>(
+                                  tflite::micro::GetTensorData<float>(input),
+                                  input->dims->data, input->dims->size,
+                                  tflite::micro::GetTensorData<float>(output),
+                                  output->dims->data, output->dims->size,
+                                  tflite::micro::GetTensorData<int>(axis),
+                                  num_axis, params->keep_dims, temp_buffer,
+                                  resolved_axis, init_value, reducer));
       break;
     }
-    case kTfLiteInt8:
-    {
+    case kTfLiteInt8: {
       int8_t init_value;
-      TF_LITE_ENSURE_EQ(context,
-                        GetReducerInitValue(reduce_type, init_value),
+      TF_LITE_ENSURE_EQ(context, GetReducerInitValue(reduce_type, init_value),
                         kTfLiteOk);
       TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data->input_scale),
                         static_cast<double>(op_data->output_scale));
       TF_LITE_ENSURE_EQ(context, op_data->input_zp, op_data->output_zp);
       auto reducer = GetReducer<int8_t>(reduce_type);
       TF_LITE_ENSURE(context, reducer != nullptr);
-      TF_LITE_ENSURE(
-          context,
-          reference_ops::ReduceGeneric<int8_t>(
-              tflite::micro::GetTensorData<int8_t>(input), input->dims->data,
-              input->dims->size, tflite::micro::GetTensorData<int8_t>(output),
-              output->dims->data, output->dims->size,
-              tflite::micro::GetTensorData<int>(axis), num_axis,
-              params->keep_dims, temp_buffer, resolved_axis,
-              init_value, reducer));
+      TF_LITE_ENSURE(context, reference_ops::ReduceGeneric<int8_t>(
+                                  tflite::micro::GetTensorData<int8_t>(input),
+                                  input->dims->data, input->dims->size,
+                                  tflite::micro::GetTensorData<int8_t>(output),
+                                  output->dims->data, output->dims->size,
+                                  tflite::micro::GetTensorData<int>(axis),
+                                  num_axis, params->keep_dims, temp_buffer,
+                                  resolved_axis, init_value, reducer));
       break;
     }
     default:
