@@ -446,6 +446,40 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
       tflite::Register_MEAN(), &params);
 }
 
+TF_LITE_MICRO_TEST(AnyOpTestNotKeepDims) {
+  int input_shape[] = {3, 2, 3, 2};
+  const float input_data[] = {false, false, false, false, false, false,
+                              false, true,  false, false, false, true};
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {1, 0, -3, -3};
+  int output_shape[] = {1, 2};
+  const float expected_output_data[] = {false, true};
+  float output_data[2];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_ANY(), &params);
+}
+
+TF_LITE_MICRO_TEST(AnyOpTestKeepDims) {
+  int input_shape[] = {3, 2, 3, 2};
+  const float input_data[] = {false, false, false, false, false, false,
+                              false, true,  false, false, false, true};
+  int axis_shape[] = {1, 2};
+  const int32_t axis_data[] = {0, 2};
+  int output_shape[] = {1, 3};
+  const float expected_output_data[] = {true, false, true};
+  float output_data[3];
+
+  TfLiteReducerParams params = {true};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_ANY(), &params);
+}
+
 TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
   int input_shape[] = {3, 4, 3, 2};
   const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
