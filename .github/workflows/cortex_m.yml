@@ -9,7 +9,10 @@ name: Cortex-M
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
   schedule:
-  # - cron: '0 4 * * *'
+    # uncomment this to run daily
+    # - cron: '0 4 * * *'
+    # run on the 1st of every month
+    - cron: '0 4 1 * *'  
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
