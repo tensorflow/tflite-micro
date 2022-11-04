@@ -435,25 +435,29 @@ class QuantizedModelContents
     : public ModelContents<ActivationType, WeightType, BiasType, CellType> {
  public:
   QuantizedModelContents(
-      const ModelQuantizationParameters quantization_settings)
+      const ModelQuantizationParameters quantization_settings,
+      const GateParameters<float, float> forget_gate_params,
+      const GateParameters<float, float> input_gate_params,
+      const GateParameters<float, float> cell_gate_params,
+      const GateParameters<float, float> output_gate_params)
       : ModelContents<ActivationType, WeightType, BiasType, CellType>(
             CreateQuantizedGateParameters<WeightType, BiasType>(
-                kForgetGateParameters,
+                forget_gate_params,
                 quantization_settings.input_quantization_parameters,
                 quantization_settings.output_quantization_parameters,
                 quantization_settings.forget_gate_quantization_parameters),
             CreateQuantizedGateParameters<WeightType, BiasType>(
-                kInputGateParameters,
+                input_gate_params,
                 quantization_settings.input_quantization_parameters,
                 quantization_settings.output_quantization_parameters,
                 quantization_settings.input_gate_quantization_parameters),
             CreateQuantizedGateParameters<WeightType, BiasType>(
-                kCellGateParameters,
+                cell_gate_params,
                 quantization_settings.input_quantization_parameters,
                 quantization_settings.output_quantization_parameters,
                 quantization_settings.cell_gate_quantization_parameters),
             CreateQuantizedGateParameters<WeightType, BiasType>(
-                kOutputGateParameters,
+                output_gate_params,
                 quantization_settings.input_quantization_parameters,
                 quantization_settings.output_quantization_parameters,
                 quantization_settings.output_gate_quantization_parameters)),
@@ -1069,10 +1073,12 @@ void TestLSTMEvalFloat() {
 }
 
 template <typename ActivationType, typename BiasType, typename CellType>
-void TestLSTMEvalQuantized(
-    QuantizedModelContents<ActivationType, int8_t, BiasType, CellType>&
-        quantized_model_content,
-    const float hidden_state_tolerance, const float cell_state_tolerance) {
+void TestLSTMEvalQuantized(const float hidden_state_tolerance,
+                           const float cell_state_tolerance) {
+  QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
+      quantized_model_content(kInt8QuantizationSettings, kForgetGateParameters,
+                              kInputGateParameters, kCellGateParameters,
+                              kOutputGateParameters);
   // Scratch buffers
   CellType scratch0[kGateOutputSize];
   CellType scratch1[kGateOutputSize];
@@ -1187,7 +1193,11 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
                                                 int16_t>
-      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings,
+                          tflite::testing::kForgetGateParameters,
+                          tflite::testing::kInputGateParameters,
+                          tflite::testing::kCellGateParameters,
+                          tflite::testing::kOutputGateParameters);
   auto evaluation_params = model_contents_int8.GetEvaluationParameters();
 
   // Different gate has different weights, resulting different quantization
@@ -1251,7 +1261,12 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
   const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
                                                 int16_t>
-      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings,
+                          tflite::testing::kForgetGateParameters,
+                          tflite::testing::kInputGateParameters,
+                          tflite::testing::kCellGateParameters,
+                          tflite::testing::kOutputGateParameters);
+
   auto evaluation_params = model_contents_int8.GetEvaluationParameters();
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
@@ -1270,7 +1285,11 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
 TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
   const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
                                                 int16_t>
-      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings,
+                          tflite::testing::kForgetGateParameters,
+                          tflite::testing::kInputGateParameters,
+                          tflite::testing::kCellGateParameters,
+                          tflite::testing::kOutputGateParameters);
 
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
@@ -1286,7 +1305,11 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
   const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
                                                 int16_t>
-      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings,
+                          tflite::testing::kForgetGateParameters,
+                          tflite::testing::kInputGateParameters,
+                          tflite::testing::kCellGateParameters,
+                          tflite::testing::kOutputGateParameters);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
@@ -1298,14 +1321,11 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
 TF_LITE_MICRO_TEST(TestLSTMEvalFloat) { tflite::testing::TestLSTMEvalFloat(); }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
-  tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
-      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
-
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
   tflite::testing::TestLSTMEvalQuantized<int8_t, int32_t, int16_t>(
-      model_contents_int8, hidden_state_tolerance, cell_state_tolerance);
+      hidden_state_tolerance, cell_state_tolerance);
 }
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
