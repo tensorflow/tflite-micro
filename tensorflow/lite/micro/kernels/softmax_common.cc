@@ -63,10 +63,10 @@ TfLiteStatus InitializeLutForInt16(TfLiteContext* context,
         10.0f / range, std::numeric_limits<int16_t>::max(), 2.0f / range, 0,
         [](float value) { return std::exp(value); }, op_data->exp_lut);
 
-    LUTPopulate<int16_t>(1.0f / range, std::numeric_limits<int16_t>::min(),
-                         2.0f / range, 0,
-                         [](float value) { return 1.0f / (1.0f + value); },
-                         op_data->one_over_one_plus_x_lut);
+    LUTPopulate<int16_t>(
+        1.0f / range, std::numeric_limits<int16_t>::min(), 2.0f / range, 0,
+        [](float value) { return 1.0f / (1.0f + value); },
+        op_data->one_over_one_plus_x_lut);
 
     op_data->zero_point = output->params.zero_point;
     op_data->scale = output->params.scale;
