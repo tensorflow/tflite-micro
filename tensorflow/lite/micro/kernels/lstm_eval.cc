@@ -246,12 +246,43 @@ void CalculateLstmGateInteger8x8_16(
   // versions, bias is only used in layer normalization.
   memset(gate, 0, n_batch * n_cell * sizeof(int16_t));
   // For each batch and cell: compute input_weight * input.
+
+  for (int i = 0; i < n_cell * n_batch; i++) {
+    MicroPrintf("quantized input: %d", input[i]);
+  }
+
+  //   for (int i = 0; i < n_cell * n_batch; i++) {
+  //     MicroPrintf("input_to_gate_bias: %d", input_to_gate_bias[i]);
+  //   }
+
+  //   for (int i = 0; i < n_cell * n_batch; i++) {
+  //     MicroPrintf("input_to_gate_weights: %d", input_to_gate_weights[i]);
+  //   }
+
   tflite::tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       input, input_to_gate_bias, input_to_gate_weights, input_to_gate_scale_a,
       input_to_gate_scale_b, n_batch, n_input, n_cell, 0, scratch5, gate,
       nullptr);
   // Note: no aux_input.
+  for (int i = 0; i < n_cell * n_batch; i++) {
+    MicroPrintf("After apply input: %d", gate[i]);
+  }
 
+  for (int i = 0; i < n_cell * n_batch; i++) {
+    MicroPrintf("quantized hidden: %d", output_state[i]);
+  }
+
+  for (int i = 0; i < n_cell; i++) {
+    MicroPrintf("recurrent_to_gate_bias: %d", recurrent_to_gate_bias[i]);
+  }
+
+  for (int i = 0; i < n_cell * n_batch; i++) {
+    MicroPrintf("recurrent_to_gate_weights: %d", recurrent_to_gate_weights[i]);
+  }
+
+  //   for (int i = 0; i < n_cell * n_batch; i++) {
+  //     MicroPrintf("quantized hidden state: %d", output_state[i]);
+  //   }
   // For each batch and cell: compute recurrent_weight * output_state.
   tflite::tensor_utils::MatrixBatchVectorMultiplyAccumulate(
       output_state, recurrent_to_gate_bias, recurrent_to_gate_weights,
@@ -269,6 +300,10 @@ void CalculateLstmGateInteger8x8_16(
         gate, layer_norm_coefficients, layer_norm_bias,
         layer_norm_input_scale_a, layer_norm_input_scale_b,
         layer_norm_variance_guard, n_batch, n_cell, gate);
+  }
+
+  for (int i = 0; i < n_cell * n_batch; i++) {
+    MicroPrintf("before activation: %d", gate[i]);
   }
   // Apply activation
   switch (activation) {

@@ -211,7 +211,6 @@ class ModelContents {
         output_gate_params_(output_gate_params) {
     InitializeTensors();
   }
-
   // Provide interface to set the input tensor values for flexible testing
   void SetInputTensorData(const ActivationType* data) {
     std::memcpy(input_, data, kInputSize * sizeof(ActivationType));
@@ -233,6 +232,19 @@ class ModelContents {
   const ActivationType* GetOutput() const { return output_; }
 
   CellType* ScratchBuffers() { return scratch_buffers_; }
+
+  const GateParameters<WeightType, BiasType>* GetForgetGateParams() const {
+    return &forget_gate_params_;
+  }
+  const GateParameters<WeightType, BiasType>* GetInputGateParams() const {
+    return &input_gate_params_;
+  }
+  const GateParameters<WeightType, BiasType>* GetCellGateParams() const {
+    return &cell_gate_params_;
+  }
+  const GateParameters<WeightType, BiasType>* GetOutputGateParams() const {
+    return &output_gate_params_;
+  }
 
  protected:
   GateParameters<WeightType, BiasType> forget_gate_params_;
@@ -372,7 +384,7 @@ constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
 // A function that converts floating point gate parameters to the
 // corresponding quantized version
 template <typename WeightType, typename BiasType>
-GateParameters<WeightType, BiasType> QuantizedGateParameters(
+GateParameters<WeightType, BiasType> CreateQuantizedGateParameters(
     const GateParameters<float, float>& gate_parameters,
     const TensorQuantizationParameters& input_quantization_params,
     const TensorQuantizationParameters& output_quantization_params,
@@ -412,33 +424,6 @@ GateParameters<WeightType, BiasType> QuantizedGateParameters(
   return quantized_gate_params;
 }
 
-const GateParameters<int8_t, int32_t> kIint8ForgetGateParams =
-    QuantizedGateParameters<int8_t, int32_t>(
-        kForgetGateParameters,
-        kInt8QuantizationSettings.input_quantization_parameters,
-        kInt8QuantizationSettings.output_quantization_parameters,
-        kInt8QuantizationSettings.forget_gate_quantization_parameters);
-
-const GateParameters<int8_t, int32_t> kIint8InputGateParams =
-    QuantizedGateParameters<int8_t, int32_t>(
-        kInputGateParameters,
-        kInt8QuantizationSettings.input_quantization_parameters,
-        kInt8QuantizationSettings.output_quantization_parameters,
-        kInt8QuantizationSettings.input_gate_quantization_parameters);
-
-const GateParameters<int8_t, int32_t> kIint8CellGateParams =
-    QuantizedGateParameters<int8_t, int32_t>(
-        kCellGateParameters,
-        kInt8QuantizationSettings.input_quantization_parameters,
-        kInt8QuantizationSettings.output_quantization_parameters,
-        kInt8QuantizationSettings.cell_gate_quantization_parameters);
-
-const auto kInt8OutputGateParams = QuantizedGateParameters<int8_t, int32_t>(
-    kOutputGateParameters,
-    kInt8QuantizationSettings.input_quantization_parameters,
-    kInt8QuantizationSettings.output_quantization_parameters,
-    kInt8QuantizationSettings.output_gate_quantization_parameters);
-
 // Class that contains all the information to run quantized LSTM inference
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType>
@@ -446,14 +431,28 @@ class QuantizedModelContents
     : public ModelContents<ActivationType, WeightType, BiasType, CellType> {
  public:
   QuantizedModelContents(
-      const ModelQuantizationParameters quantization_settings,
-      const GateParameters<WeightType, BiasType> quantized_forget_gate_params,
-      const GateParameters<WeightType, BiasType> quantized_input_gate_params,
-      const GateParameters<WeightType, BiasType> quantized_cell_gate_params,
-      const GateParameters<WeightType, BiasType> quantized_output_gate_params)
+      const ModelQuantizationParameters quantization_settings)
       : ModelContents<ActivationType, WeightType, BiasType, CellType>(
-            quantized_forget_gate_params, quantized_input_gate_params,
-            quantized_cell_gate_params, quantized_output_gate_params),
+            CreateQuantizedGateParameters<WeightType, BiasType>(
+                kForgetGateParameters,
+                quantization_settings.input_quantization_parameters,
+                quantization_settings.output_quantization_parameters,
+                quantization_settings.forget_gate_quantization_parameters),
+            CreateQuantizedGateParameters<WeightType, BiasType>(
+                kInputGateParameters,
+                quantization_settings.input_quantization_parameters,
+                quantization_settings.output_quantization_parameters,
+                quantization_settings.input_gate_quantization_parameters),
+            CreateQuantizedGateParameters<WeightType, BiasType>(
+                kCellGateParameters,
+                quantization_settings.input_quantization_parameters,
+                quantization_settings.output_quantization_parameters,
+                quantization_settings.cell_gate_quantization_parameters),
+            CreateQuantizedGateParameters<WeightType, BiasType>(
+                kOutputGateParameters,
+                quantization_settings.input_quantization_parameters,
+                quantization_settings.output_quantization_parameters,
+                quantization_settings.output_gate_quantization_parameters)),
         quantization_settings_(quantization_settings) {
     // Setup the IntegerLstmParameter
     AssembleEvalualtionParams();
@@ -464,8 +463,8 @@ class QuantizedModelContents
     return &evaluation_params_;
   }
 
-  const ModelQuantizationParameters& QuantizationSettings() const {
-    return quantization_settings_;
+  const ModelQuantizationParameters* QuantizationSettings() const {
+    return &quantization_settings_;
   }
 
   // Set the input tensor, quantized version
@@ -634,11 +633,6 @@ class QuantizedModelContents
   }
 };
 
-const QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
-    kInt8ModelContent(kInt8QuantizationSettings, kIint8ForgetGateParams,
-                      kIint8InputGateParams, kIint8CellGateParams,
-                      kInt8OutputGateParams);
-
 /*TEST HELPER FUNCTIONS*/
 template <typename T>
 void ValidateResultGoldens(const T* golden, const T* output_data,
@@ -671,37 +665,38 @@ void TestGateOutputFloat(const GateParameters<float, float>& gate_params,
 // IntegerLstmParameter
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestGateOutputQuantized(
-    const GateParameters<int8_t, BiasType>& gate_params,
-    const ModelQuantizationParameters& quantization_settings,
+    const GateParameters<int8_t, BiasType>* gate_params,
+    const ModelQuantizationParameters* quantization_settings,
     int32_t effective_input_to_gate_scale_a,
     int32_t effective_input_to_gate_scale_b,
     int32_t effective_recurrent_to_gate_scale_a,
     int32_t effective_recurrent_to_gate_scale_b,
-    TfLiteFusedActivation nonlinear_type, const float* input_data,
-    const float* hidden_state, const float* expected_vals, float tolerance) {
+    TfLiteFusedActivation nonlinear_type, const float* expected_vals,
+    float tolerance) {
   // Quantize the  floating point input
   ActivationType quantized_input[kOneTimeInputSize];
-  Quantize(input_data, quantized_input, kOneTimeInputSize,
-           quantization_settings.input_quantization_parameters.scale,
-           quantization_settings.input_quantization_parameters.zero_point);
+  Quantize(kGateOutputData.input_data, quantized_input, kOneTimeInputSize,
+           quantization_settings->input_quantization_parameters.scale,
+           quantization_settings->input_quantization_parameters.zero_point);
   // Quantize the  floating point hidden state
   ActivationType quantized_hidden_state[kGateOutputSize];
-  Quantize(hidden_state, quantized_hidden_state, kGateOutputSize,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
+  Quantize(kGateOutputData.hidden_state, quantized_hidden_state,
+           kGateOutputSize,
+           quantization_settings->hidden_quantization_parameters.scale,
+           quantization_settings->hidden_quantization_parameters.zero_point);
 
   CellType gate_output[kGateOutputSize] = {0};
   BiasType scratch_buffer[kGateOutputSize];
 
   tflite::lstm_internal::CalculateLstmGateInteger8x8_16(
       // Input and weights
-      quantized_input, gate_params.activation_weight,
-      gate_params.activation_zp_folded_bias, effective_input_to_gate_scale_a,
+      quantized_input, gate_params->activation_weight,
+      gate_params->activation_zp_folded_bias, effective_input_to_gate_scale_a,
       effective_input_to_gate_scale_b,
       // Output state and weights
-      quantized_hidden_state, gate_params.activation_weight,
-      gate_params.recurrent_zp_folded_bias, effective_recurrent_to_gate_scale_a,
-      effective_recurrent_to_gate_scale_b,
+      quantized_hidden_state, gate_params->activation_weight,
+      gate_params->recurrent_zp_folded_bias,
+      effective_recurrent_to_gate_scale_a, effective_recurrent_to_gate_scale_b,
       // Cell state and weights
       nullptr, nullptr, 0, 0,
       // Layer normalization parameters (layer norm LSTM)
@@ -717,7 +712,7 @@ void TestGateOutputQuantized(
 
   float gate_output_float[kGateOutputSize];
   Dequantize(gate_output, kGateOutputSize,
-             quantization_settings.nonlinear_activation_output_scale, 0,
+             quantization_settings->nonlinear_activation_output_scale, 0,
              gate_output_float);
 
   ValidateResultGoldens(expected_vals, gate_output_float, kGateOutputSize,
@@ -747,29 +742,29 @@ void TestCellUpdateFloat() {
 
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestCellUpdateQuantized(
-    const ModelQuantizationParameters& quantization_settings,
+    const ModelQuantizationParameters* quantization_settings,
     const int32_t cell_scale_shift, const CellType quantized_cell_clip,
     const float tolerance) {
   CellType quantized_cell_state[kGateOutputSize];
   tflite::Quantize(
       kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
-      quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
+      quantization_settings->cell_quantization_parameters.scale,
+      quantization_settings->cell_quantization_parameters.zero_point);
 
   CellType quantized_forget_gate[kGateOutputSize];
   tflite::Quantize(kGateOutputData.expected_forget_gate_output,
                    quantized_forget_gate, kGateOutputSize,
-                   quantization_settings.nonlinear_activation_output_scale, 0);
+                   quantization_settings->nonlinear_activation_output_scale, 0);
 
   CellType quantized_input_gate[kGateOutputSize];
   tflite::Quantize(kGateOutputData.expected_input_gate_output,
                    quantized_input_gate, kGateOutputSize,
-                   quantization_settings.nonlinear_activation_output_scale, 0);
+                   quantization_settings->nonlinear_activation_output_scale, 0);
 
   CellType quantized_cell_gate[kGateOutputSize];
   tflite::Quantize(kGateOutputData.expected_cell_gate_output,
                    quantized_cell_gate, kGateOutputSize,
-                   quantization_settings.nonlinear_activation_output_scale, 0);
+                   quantization_settings->nonlinear_activation_output_scale, 0);
 
   tflite::lstm_internal::UpdateLstmCellInteger(
       kBatchSize, kStateDimension, quantized_cell_state, cell_scale_shift,
@@ -778,8 +773,8 @@ void TestCellUpdateQuantized(
 
   float cell_state_float[kGateOutputSize];
   Dequantize(quantized_cell_state, kGateOutputSize,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
+             quantization_settings->cell_quantization_parameters.scale,
+             quantization_settings->cell_quantization_parameters.zero_point,
              cell_state_float);
 
   ValidateResultGoldens(kGateOutputData.expected_updated_cell, cell_state_float,
@@ -804,18 +799,19 @@ void TestHiddenStateUpdateFloat() {
 
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestHiddenStateUpdateQuantized(
-    const ModelQuantizationParameters& quantization_settings,
+    const ModelQuantizationParameters* quantization_settings,
     const IntegerLstmParameter* evaluation_params, const float tolerance) {
   CellType quantized_cell_state[kGateOutputSize];
   tflite::Quantize(
       kGateOutputData.expected_updated_cell, quantized_cell_state,
-      kGateOutputSize, quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
+      kGateOutputSize,
+      quantization_settings->cell_quantization_parameters.scale,
+      quantization_settings->cell_quantization_parameters.zero_point);
 
   CellType quantized_output_gate[kGateOutputSize];
   tflite::Quantize(kGateOutputData.expected_output_gate_output,
                    quantized_output_gate, kGateOutputSize,
-                   quantization_settings.nonlinear_activation_output_scale, 0);
+                   quantization_settings->nonlinear_activation_output_scale, 0);
 
   // scratches
   int16_t scratch0[kGateOutputSize];
@@ -837,8 +833,8 @@ void TestHiddenStateUpdateQuantized(
 
   float output_state_float[kGateOutputSize];
   Dequantize(output_state, kGateOutputSize,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
+             quantization_settings->hidden_quantization_parameters.scale,
+             quantization_settings->hidden_quantization_parameters.zero_point,
              output_state_float);
 
   ValidateResultGoldens(kGateOutputData.expected_updated_hidden,
@@ -900,27 +896,30 @@ void TestOneStepLSTMFloat() {
 
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestOneStepLSTMQuantized(
-    const ModelQuantizationParameters& quantization_settings,
-    const IntegerLstmParameter* evaluation_params,
+    const QuantizedModelContents<ActivationType, int8_t, BiasType, CellType>&
+        model_contents,
     const float hidden_state_tolerance, const float cell_state_tolerance) {
+  auto quantization_settings = model_contents.QuantizationSettings();
+  auto evaluation_params = model_contents.GetEvaluationParameters();
+
   ActivationType quantized_input[4];
   tflite::Quantize(
       kGateOutputData.input_data, quantized_input, 4,
-      quantization_settings.input_quantization_parameters.scale,
-      quantization_settings.input_quantization_parameters.zero_point);
+      quantization_settings->input_quantization_parameters.scale,
+      quantization_settings->input_quantization_parameters.zero_point);
 
   // initialize hidden and cell state (will be updated)
   ActivationType quantized_hidden_state[kGateOutputSize] = {0};
   Quantize(kGateOutputData.hidden_state, quantized_hidden_state,
            kGateOutputSize,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
+           quantization_settings->hidden_quantization_parameters.scale,
+           quantization_settings->hidden_quantization_parameters.zero_point);
 
   CellType quantized_cell_state[kGateOutputSize] = {0};
   tflite::Quantize(
       kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
-      quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
+      quantization_settings->cell_quantization_parameters.scale,
+      quantization_settings->cell_quantization_parameters.zero_point);
 
   ActivationType output[kGateOutputSize];
   // Scratch buffers
@@ -932,28 +931,28 @@ void TestOneStepLSTMQuantized(
   BiasType scratch5[kGateOutputSize];
 
   tflite::lstm_internal::LstmStepInteger8x8_16(
-      quantized_input, kIint8InputGateParams.activation_weight,
+      quantized_input, model_contents.GetInputGateParams()->activation_weight,
       evaluation_params->effective_input_to_input_scale_a,
       evaluation_params->effective_input_to_input_scale_b,
-      kIint8ForgetGateParams.activation_weight,
+      model_contents.GetForgetGateParams()->activation_weight,
       evaluation_params->effective_input_to_forget_scale_a,
       evaluation_params->effective_input_to_forget_scale_b,
-      kIint8CellGateParams.activation_weight,
+      model_contents.GetCellGateParams()->activation_weight,
       evaluation_params->effective_input_to_cell_scale_a,
       evaluation_params->effective_input_to_cell_scale_b,
-      kInt8OutputGateParams.activation_weight,
+      model_contents.GetOutputGateParams()->activation_weight,
       evaluation_params->effective_input_to_output_scale_a,
       evaluation_params->effective_input_to_output_scale_b,
-      kIint8InputGateParams.recurrent_weight,
+      model_contents.GetInputGateParams()->recurrent_weight,
       evaluation_params->effective_recurrent_to_input_scale_a,
       evaluation_params->effective_recurrent_to_input_scale_b,
-      kIint8ForgetGateParams.recurrent_weight,
+      model_contents.GetForgetGateParams()->recurrent_weight,
       evaluation_params->effective_recurrent_to_forget_scale_a,
       evaluation_params->effective_recurrent_to_forget_scale_b,
-      kIint8CellGateParams.recurrent_weight,
+      model_contents.GetCellGateParams()->recurrent_weight,
       evaluation_params->effective_recurrent_to_cell_scale_a,
       evaluation_params->effective_recurrent_to_cell_scale_b,
-      kInt8OutputGateParams.recurrent_weight,
+      model_contents.GetOutputGateParams()->recurrent_weight,
       evaluation_params->effective_recurrent_to_output_scale_a,
       evaluation_params->effective_recurrent_to_output_scale_b,
       /*cell_to_input_weight_ptr=*/nullptr,
@@ -993,20 +992,20 @@ void TestOneStepLSTMQuantized(
       evaluation_params->recurrent_to_input_effective_bias,
       evaluation_params->projection_effective_bias, kBatchSize, kInputDimension,
       kStateDimension, kStateDimension, quantized_hidden_state,
-      quantization_settings.output_quantization_parameters.zero_point,
+      quantization_settings->output_quantization_parameters.zero_point,
       quantized_cell_state, output, scratch0, scratch1, scratch2, scratch3,
       scratch4, scratch5);
 
   float dequantized_hidden_state[kGateOutputSize];
   Dequantize(quantized_hidden_state, kGateOutputSize,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
+             quantization_settings->hidden_quantization_parameters.scale,
+             quantization_settings->hidden_quantization_parameters.zero_point,
              dequantized_hidden_state);
 
   float dequantized_cell_state[kGateOutputSize];
   Dequantize(quantized_cell_state, kGateOutputSize,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
+             quantization_settings->cell_quantization_parameters.scale,
+             quantization_settings->cell_quantization_parameters.zero_point,
              dequantized_cell_state);
 
   ValidateResultGoldens(kGateOutputData.expected_updated_hidden,
@@ -1078,7 +1077,7 @@ void TestLSTMEvalQuantized(
   ActivationType scratch4[kOutputSize];
   BiasType scratch5[kGateOutputSize];
 
-  auto& quantization_settings = quantized_model_content.QuantizationSettings();
+  auto quantization_settings = quantized_model_content.QuantizationSettings();
 
   // Quantize Input and Hidden State
   quantized_model_content.QuantizeInputTensor(kMultiTimeEvalData.input_data);
@@ -1110,7 +1109,7 @@ void TestLSTMEvalQuantized(
       /*projection_bias=*/nullptr, &kModelSettings,
       /*forward_sequence=*/true, /*time_major=*/false,
       quantized_model_content.GetEvaluationParameters(),
-      quantization_settings.output_quantization_parameters.zero_point,
+      quantization_settings->output_quantization_parameters.zero_point,
       quantized_model_content.GetTensor(13),
       quantized_model_content.GetTensor(14),
       quantized_model_content.GetTensor(15), scratch0, scratch1, scratch2,
@@ -1118,8 +1117,8 @@ void TestLSTMEvalQuantized(
 
   float dequantized_hidden_state[kGateOutputSize];
   Dequantize(quantized_model_content.GetHiddenState(), kGateOutputSize,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
+             quantization_settings->hidden_quantization_parameters.scale,
+             quantization_settings->hidden_quantization_parameters.zero_point,
              dequantized_hidden_state);
 
   ValidateResultGoldens(kMultiTimeEvalData.expected_hidden_state,
@@ -1128,8 +1127,8 @@ void TestLSTMEvalQuantized(
 
   float dequantized_cell_state[kGateOutputSize];
   Dequantize(quantized_model_content.GetCellState(), kGateOutputSize,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
+             quantization_settings->cell_quantization_parameters.scale,
+             quantization_settings->cell_quantization_parameters.zero_point,
              dequantized_cell_state);
   ValidateResultGoldens(kMultiTimeEvalData.expected_cell_state,
                         dequantized_cell_state, kGateOutputSize,
@@ -1137,8 +1136,8 @@ void TestLSTMEvalQuantized(
 
   float dequantized_output[kOutputSize];
   Dequantize(quantized_model_content.GetOutput(), kOutputSize,
-             quantization_settings.output_quantization_parameters.scale,
-             quantization_settings.output_quantization_parameters.zero_point,
+             quantization_settings->output_quantization_parameters.scale,
+             quantization_settings->output_quantization_parameters.zero_point,
              dequantized_output);
   ValidateResultGoldens(kMultiTimeEvalData.expected_output, dequantized_output,
                         kOutputSize, hidden_state_tolerance);
@@ -1182,8 +1181,11 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
-  auto evaluation_params =
-      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
+                                                int16_t>
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+  auto evaluation_params = model_contents_int8.GetEvaluationParameters();
+
   // Different gate has different weights, resulting different quantization
   // prediction precisions
   float tolerance;
@@ -1192,54 +1194,49 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Quantization performs badly here due to integer overflow!!!
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kIint8ForgetGateParams,
-      tflite::testing::kInt8QuantizationSettings,
+      model_contents_int8.GetForgetGateParams(),
+      model_contents_int8.QuantizationSettings(),
       evaluation_params->effective_input_to_forget_scale_a,
       evaluation_params->effective_input_to_forget_scale_b,
       evaluation_params->effective_recurrent_to_forget_scale_a,
       evaluation_params->effective_recurrent_to_forget_scale_b,
-      kTfLiteActSigmoid, tflite::testing::kGateOutputData.input_data,
-      tflite::testing::kGateOutputData.hidden_state,
+      kTfLiteActSigmoid,
       tflite::testing::kGateOutputData.expected_forget_gate_output, tolerance);
 
   // Input Gate
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kIint8InputGateParams,
-      tflite::testing::kInt8QuantizationSettings,
+      model_contents_int8.GetInputGateParams(),
+      model_contents_int8.QuantizationSettings(),
       evaluation_params->effective_input_to_input_scale_a,
       evaluation_params->effective_input_to_input_scale_b,
       evaluation_params->effective_recurrent_to_input_scale_a,
       evaluation_params->effective_recurrent_to_input_scale_b,
-      kTfLiteActSigmoid, tflite::testing::kGateOutputData.input_data,
-      tflite::testing::kGateOutputData.hidden_state,
+      kTfLiteActSigmoid,
       tflite::testing::kGateOutputData.expected_input_gate_output, tolerance);
 
   // Output Gate
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kInt8OutputGateParams,
-      tflite::testing::kInt8QuantizationSettings,
+      model_contents_int8.GetOutputGateParams(),
+      model_contents_int8.QuantizationSettings(),
       evaluation_params->effective_input_to_output_scale_a,
       evaluation_params->effective_input_to_output_scale_b,
       evaluation_params->effective_recurrent_to_output_scale_a,
       evaluation_params->effective_recurrent_to_output_scale_b,
-      kTfLiteActSigmoid, tflite::testing::kGateOutputData.input_data,
-      tflite::testing::kGateOutputData.hidden_state,
+      kTfLiteActSigmoid,
       tflite::testing::kGateOutputData.expected_output_gate_output, tolerance);
 
   // Cell Gate (tanh activation)
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kIint8CellGateParams,
-      tflite::testing::kInt8QuantizationSettings,
+      model_contents_int8.GetCellGateParams(),
+      model_contents_int8.QuantizationSettings(),
       evaluation_params->effective_input_to_cell_scale_a,
       evaluation_params->effective_input_to_cell_scale_b,
       evaluation_params->effective_recurrent_to_cell_scale_a,
       evaluation_params->effective_recurrent_to_cell_scale_b,
       tflite::testing::kModelSettings.activation,
-      tflite::testing::kGateOutputData.input_data,
-      tflite::testing::kGateOutputData.hidden_state,
       tflite::testing::kGateOutputData.expected_cell_gate_output, tolerance);
 }
 
@@ -1248,14 +1245,16 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
-  auto evaluation_params =
-      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
+                                                int16_t>
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+  auto evaluation_params = model_contents_int8.GetEvaluationParameters();
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
   // the precision due to integer overflow for the elements
   const float tolerance = 1e-3f;
   tflite::testing::TestCellUpdateQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kInt8QuantizationSettings, evaluation_params->cell_scale,
+      model_contents_int8.QuantizationSettings(), evaluation_params->cell_scale,
       evaluation_params->quantized_cell_clip, tolerance);
 }
 
@@ -1265,12 +1264,15 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
-  auto evaluation_params =
-      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
+                                                int16_t>
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
+
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
   tflite::testing::TestHiddenStateUpdateQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kInt8QuantizationSettings, evaluation_params, tolerance);
+      model_contents_int8.QuantizationSettings(),
+      model_contents_int8.GetEvaluationParameters(), tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
@@ -1278,32 +1280,28 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
-  auto evaluation_params =
-      tflite::testing::kInt8ModelContent.GetEvaluationParameters();
+  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
+                                                int16_t>
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
   tflite::testing::TestOneStepLSTMQuantized<int8_t, int32_t, int16_t>(
-      tflite::testing::kInt8QuantizationSettings, evaluation_params,
-      hidden_state_tolerance, cell_state_tolerance);
+      model_contents_int8, hidden_state_tolerance, cell_state_tolerance);
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalFloat) { tflite::testing::TestLSTMEvalFloat(); }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
   tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
-      int8_model_content(tflite::testing::kInt8QuantizationSettings,
-                         tflite::testing::kIint8ForgetGateParams,
-                         tflite::testing::kIint8InputGateParams,
-                         tflite::testing::kIint8CellGateParams,
-                         tflite::testing::kInt8OutputGateParams);
+      model_contents_int8(tflite::testing::kInt8QuantizationSettings);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
   tflite::testing::TestLSTMEvalQuantized<int8_t, int32_t, int16_t>(
-      int8_model_content, hidden_state_tolerance, cell_state_tolerance);
+      model_contents_int8, hidden_state_tolerance, cell_state_tolerance);
 }
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
