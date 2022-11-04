@@ -100,6 +100,7 @@ The following resources may also be useful:
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
+ * [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
 
 # RFCs
 
