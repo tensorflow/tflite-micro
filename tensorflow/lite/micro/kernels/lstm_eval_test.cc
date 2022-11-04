@@ -416,6 +416,10 @@ GateParameters<WeightType, BiasType> CreateQuantizedGateParameters(
       -input_quantization_params.zero_point, kStateDimension, kInputDimension,
       quantized_gate_params.activation_zp_folded_bias);
 
+  // Have to initialize the array to 0
+  BiasType zeros[kStateDimension] = {0};
+  std::memcpy(quantized_gate_params.recurrent_zp_folded_bias, zeros,
+              kStateDimension * sizeof(BiasType));
   tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
       quantized_gate_params.recurrent_weight,
       -output_quantization_params.zero_point, kStateDimension, kStateDimension,
