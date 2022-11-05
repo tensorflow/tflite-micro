@@ -147,7 +147,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return CheckOutputSize(context, &op_context);
 }
 
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
 void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
                                  const RuntimeShape& unextended_input_shape,
                                  const int16_t* input_data,
@@ -218,7 +218,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorData<int8_t>(output));
       break;
     case kTfLiteInt16:
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       StridedSlice_int16_hifi4opt(
           op_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int16_t>(input),
