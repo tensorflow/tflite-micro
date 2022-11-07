@@ -22,6 +22,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":error_reporter",
+        ":error_reporter_macro",
         ":op_resolver",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -47,10 +48,24 @@ cc_library(
     ],
     deps = [
         ":error_reporter",
+        ":error_reporter_macro",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
+    ],
+)
+
+cc_library(
+    name = "error_reporter_macro",
+    hdrs = ["error_reporter_macro.h"],
+    compatible_with = get_compatible_with_portable(),
+    copts = tflite_copts(),
+    visibility = [
+        "//third_party/tensorflow/lite/core/api:__pkg__",
+    ],
+    deps = [
+        ":error_reporter",
     ],
 )
 
