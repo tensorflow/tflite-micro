@@ -60,9 +60,9 @@ cc_library(
     name = "error_reporter_macro",
     hdrs = ["error_reporter_macro.h"],
     compatible_with = get_compatible_with_portable(),
-    copts = tflite_copts(),
+    copts = tflite_copts() + micro_copts(),
     visibility = [
-        "//third_party/tensorflow/lite/core/api:__pkg__",
+        "//tensorflow/lite/core/api:__pkg__",
     ],
     deps = [
         ":error_reporter",
