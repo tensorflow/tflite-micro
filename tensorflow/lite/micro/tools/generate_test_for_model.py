@@ -80,11 +80,10 @@ class TestDataGenerator:
     else:
       return [
           output_shape,
-          np.random.randint(
-              low=np.iinfo(dtype).min,
-              high=np.iinfo(dtype).max,
-              dtype=dtype,
-              size=input_tensor1().shape)
+          np.random.randint(low=np.iinfo(dtype).min,
+                            high=np.iinfo(dtype).max,
+                            dtype=dtype,
+                            size=input_tensor1().shape)
       ]
 
   def _GetTypeStringFromTensor(self, tensor):
