@@ -8,10 +8,7 @@ py_test(
     main = "interpreter_test.py",
     python_version = "PY3",
     tags = [
-        "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
         "notap",  # TODO(b/247808903)
-        "noubsan",
     ],
     deps = [
         requirement("numpy"),
