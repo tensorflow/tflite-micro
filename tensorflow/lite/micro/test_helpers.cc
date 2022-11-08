@@ -1744,6 +1744,25 @@ CreateFlatbufferBuffers() {
   return result;
 }
 
+const flatbuffers::Vector<flatbuffers::Offset<Buffer>>*
+CreateFlatbufferBuffersWithInt8Data() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+  constexpr size_t buffer_data_size = 1;
+  const uint8_t buffer_data[buffer_data_size] = {21};
+  constexpr size_t buffers_size = 1;
+  const Offset<Buffer> buffers[buffers_size] = {CreateBuffer(
+      *builder, builder->CreateVector(buffer_data, buffer_data_size))};
+  const flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Buffer>>>
+      buffers_offset = builder->CreateVector(buffers, buffers_size);
+  builder->Finish(buffers_offset);
+  void* buffers_pointer = builder->GetBufferPointer();
+  const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* result =
+      flatbuffers::GetRoot<flatbuffers::Vector<flatbuffers::Offset<Buffer>>>(
+          buffers_pointer);
+  return result;
+}
+
 int TestStrcmp(const char* a, const char* b) {
   if ((a == nullptr) || (b == nullptr)) {
     return -1;

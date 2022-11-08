@@ -190,6 +190,27 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
   simple_allocator->~SingleArenaBufferAllocator();
 }
 
+TF_LITE_MICRO_TEST(TestInitializeWrongTypeRuntimeTensor) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::SingleArenaBufferAllocator* simple_allocator =
+      tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
+
+  // Tensor has TensorType_INT32 (4bytes) type but data has uint8 type (1byte)
+  const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(1);
+  const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* int8buffers =
+      tflite::testing::CreateFlatbufferBuffersWithInt8Data();
+
+  TfLiteTensor allocated_tensor;
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteError,
+      tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
+          simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
+          int8buffers, &allocated_tensor));
+
+  simple_allocator->~SingleArenaBufferAllocator();
+}
+
 // TODO(b/162311891): Drop this test when InitializeTfLiteTensorFromFlatbuffer()
 // always allocates from temp (interpreter returns buffers from
 // TfLiteEvalTensor):

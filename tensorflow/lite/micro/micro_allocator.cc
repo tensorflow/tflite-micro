@@ -162,28 +162,43 @@ INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
 
 namespace internal {
 
-// Returns a pointer to any buffer associated with the flatbuffer tensor. Can
-// return nullptr if no buffer is found.
-void* GetFlatbufferTensorBuffer(
+// Assign data information from the flatbuffer tensor to the runtime tensor
+// (TFLite Tensor or TFLiteEval Tensor)
+TfLiteStatus AssignTensorData(
     const tflite::Tensor& flatbuffer_tensor,
-    const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers) {
+    const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
+    void** tensor_data, size_t* data_size) {
   // We need to figure out where the actual contents of this tensor are stored
   // in memory. We'll check to see if there's a serialized buffer (pretty much
-  // the same as a constant op in TensorFlow) associated with this tensor first,
-  // and if there is update the runtime structure to point to its location in
-  // memory.
-  // First see if there's any buffer information in the serialized tensor.
+  // the same as a constant op in TensorFlow) associated with this tensor
+  // first, and if there is update the runtime structure to point to its
+  // location in memory. First see if there's any buffer information in the
+  // serialized tensor.
   // TODO(b/170379532): Add better unit tests to validate flatbuffer values.
-  void* out_buffer = nullptr;
+  *tensor_data = nullptr;  // nullptr if no buffer is found.
+  // Calculate the required data size (in bytes) for the tensor
+  size_t required_bytes;
+  size_t type_size;
+  TF_LITE_ENSURE_STATUS(
+      BytesRequiredForTensor(flatbuffer_tensor, &required_bytes, &type_size));
+  // TFLiteTensor contains the information about the data size. Record
+  // it if necessary
+  if (data_size != nullptr) {
+    *data_size = required_bytes;
+  }
+
   if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
-      // If it has any data, is the data size larger than zero?
-      if (array->size()) {
-        // We've found a buffer with valid data, so update the runtime tensor
-        // data structure to point to it.
-        out_buffer = const_cast<void*>(static_cast<const void*>(array->data()));
+      // If it has any data, does the size matches the expectation?
+      if (required_bytes != array->size()) {
+        MicroPrintf(
+            "Incorrect buffer data size. Please check the flatbuffer file. \n");
+        return kTfLiteError;
       }
+      // We've found a buffer with valid data, so update the runtime tensor
+      // data structure to point to it.
+      *tensor_data = const_cast<void*>(static_cast<const void*>(array->data()));
     }
     // TODO(petewarden): It's not clear in what circumstances we could have a
     // buffer in the serialized tensor, but it doesn't have any data in it. Is
@@ -191,7 +206,7 @@ void* GetFlatbufferTensorBuffer(
     // error condition? It would be good to tighten up the specification to make
     // it less ambiguous.
   }
-  return out_buffer;
+  return kTfLiteOk;
 }
 
 TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
@@ -211,7 +226,8 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
   // Make sure we remember if the serialized tensor is designated as a variable.
   result->is_variable = flatbuffer_tensor.is_variable();
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  TF_LITE_ENSURE_STATUS(AssignTensorData(flatbuffer_tensor, buffers,
+                                         &result->data.data, &result->bytes));
 
   // TODO(petewarden): Some of these paths aren't getting enough testing
   // coverage, so we should figure out some tests that exercise them.
@@ -224,11 +240,6 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     // We set the data from a serialized buffer, so record tha.
     result->allocation_type = kTfLiteMmapRo;
   }
-
-  // Figure out what the size in bytes of the buffer is and store it.
-  size_t type_size;
-  TF_LITE_ENSURE_STATUS(
-      BytesRequiredForTensor(flatbuffer_tensor, &result->bytes, &type_size));
 
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
@@ -326,7 +337,7 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
                                           &result->type,
                                           tflite::GetMicroErrorReporter()));
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  AssignTensorData(flatbuffer_tensor, buffers, &result->data.data, nullptr);
 
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
