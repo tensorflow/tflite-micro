@@ -25,6 +25,9 @@ jobs:
 
     name: Bazel (presubmit)
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.trigger-sha }}
@@ -44,6 +47,9 @@ jobs:
 
     name: Cortex-M (presubmit)
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.trigger-sha }}
@@ -62,6 +68,9 @@ jobs:
 
     name: Code Style (presubmit)
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.trigger-sha }}
@@ -75,6 +84,9 @@ jobs:
 
     name: Project Generation (presubmit)
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.trigger-sha }}
@@ -92,6 +104,9 @@ jobs:
 
     name: Makefile x86 (presubmit)
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           ref: ${{ inputs.trigger-sha }}

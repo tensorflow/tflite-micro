@@ -20,6 +20,9 @@ jobs:
 
     name: RISC-V Continuous Builds
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
