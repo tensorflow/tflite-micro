@@ -190,15 +190,19 @@ TfLiteStatus AssignTensorData(
   if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
-      // If it has any data, does the size matches the expectation?
-      if (required_bytes != array->size()) {
-        MicroPrintf(
-            "Incorrect buffer data size. Please check the flatbuffer file. \n");
-        return kTfLiteError;
+      if (array->size()) {
+        // If it has any data, does the size matches the expectation?
+        if (required_bytes != array->size()) {
+          MicroPrintf(
+              "Incorrect buffer data size. Please check the flatbuffer file. "
+              "\n");
+          return kTfLiteError;
+        }
+        // We've found a buffer with valid data, so update the runtime tensor
+        // data structure to point to it.
+        *tensor_data =
+            const_cast<void*>(static_cast<const void*>(array->data()));
       }
-      // We've found a buffer with valid data, so update the runtime tensor
-      // data structure to point to it.
-      *tensor_data = const_cast<void*>(static_cast<const void*>(array->data()));
     }
     // TODO(petewarden): It's not clear in what circumstances we could have a
     // buffer in the serialized tensor, but it doesn't have any data in it. Is

@@ -11,8 +11,7 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
     $(TENSORFLOW_ROOT)third_party/xtensa/examples/$(EXAMPLE_NAME)/pytorch_images_dog_jpg.h
 
    ## Tests loading and running a mobilenet v2 model.
-   # Disable the test now until the error introdued by b/249165251 is resolved
-   #$(eval $(call microlite_test,pytorch_to_tflite_test,\
-   #$(PYTORCH_TO_TFLITE_TEST_SRCS),$(PYTORCH_TO_TFLITE_HDRS),$(PYTORCH_TO_TFLITE_GENERATOR_INPUTS)))
+   $(eval $(call microlite_test,pytorch_to_tflite_test,\
+   $(PYTORCH_TO_TFLITE_TEST_SRCS),$(PYTORCH_TO_TFLITE_HDRS),$(PYTORCH_TO_TFLITE_GENERATOR_INPUTS)))
 endif
 
