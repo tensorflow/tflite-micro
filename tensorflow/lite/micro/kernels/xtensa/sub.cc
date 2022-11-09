@@ -159,7 +159,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int16_t>(input2),
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       } else {
         tflite::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),

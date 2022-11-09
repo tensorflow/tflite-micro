@@ -37,7 +37,7 @@ for layer in layers:
 
 for k, v in results.items():
   for test_name, tick_count in v.items():
-    print('|{0}|{1} ticks|'.format(test_name, tick_count))
+    print('{0} {1}'.format(test_name, tick_count))
 
   # print(results)
 

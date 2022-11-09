@@ -348,9 +348,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 // be removed.
 #if defined(HIFI4)
           xa_nn_transpose_conv_sym8sxsym16s(
-#else //defined(HIFI4_INTERNAL)
+#else
           xa_nn_transpose_conv(
-#endif
+#endif //defined(HIFI4)
               &output_data[b * output_height * output_width * output_depth],
               const_cast<WORD16*>(
                   &input_data[b * input_height * input_width * input_depth]),
@@ -373,7 +373,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
-#endif
+#endif // defined(HIFI4) || defined(HIFI4_INTERNAL)
       }
       break;
     }

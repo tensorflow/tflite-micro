@@ -235,14 +235,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             pad_value);
         if (err != 0) return kTfLiteError;
       } else {
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
         reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
                            tflite::micro::GetTensorData<int16_t>(input),
                            &pad_value, tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int16_t>(output));
 #if defined(HIFI4) || defined(HIFI4_INTERNAL)
       }
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
     } break;
     case kTfLiteInt32: {
       int32_t pad_value =

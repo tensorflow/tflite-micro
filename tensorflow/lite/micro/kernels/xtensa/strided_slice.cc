@@ -191,7 +191,7 @@ void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
       input_shape.Dims(1), input_shape.Dims(2), input_shape.Dims(3),
       input_shape.Dims(4));
 }
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -230,7 +230,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int16_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;
     case kTfLiteInt32:
       reference_ops::StridedSlice(
