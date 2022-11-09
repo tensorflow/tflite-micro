@@ -59,7 +59,7 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteEvalTensor* filter,
                             const TfLiteEvalTensor* bias,
                             TfLiteEvalTensor* output);
-#endif   // defined(HIFI4) || defined (HIFI4_INTERNAL)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
 
 #if defined(VISION_P6)
 

@@ -89,7 +89,7 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
       if (err != 0) return kTfLiteError;
 #else
       QuantizeLeakyRelu<int16_t>(data, input, output);
-#endif // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       return kTfLiteOk;
     } break;
     default:

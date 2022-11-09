@@ -98,7 +98,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                      output);
 #else
       return ConvReferenceEvalInt16(context, node);
-#endif   // defined(HIFI4) || defined (HIFI4_INTERNAL)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
       break;
     }
     default:
