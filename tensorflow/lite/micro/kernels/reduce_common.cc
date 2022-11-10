@@ -347,13 +347,24 @@ TfLiteStatus GetReducerInitValue(ReduceType reduce_type, T& init_value) {
 }
 
 template <typename T>
+T (*getReducerForProd())(const T current, const T in) {
+  return [](const T current, const T in) -> T { return in * current; };
+}
+
+// Specialize for the warning: int-in-bool-context
+template <>
+bool (*getReducerForProd())(const bool current, const bool in) {
+  return [](const bool current, const bool in) -> bool { return in && current; };
+}
+
+template <typename T>
 T (*GetReducer(ReduceType reduce_type))
 (const T current, const T in) {
   switch (reduce_type) {
     case ReduceType::kSum:
       return [](const T current, const T in) -> T { return in + current; };
     case ReduceType::kProd:
-      return [](const T current, const T in) -> T { return in * current; };
+      return getReducerForProd<T>();
     case ReduceType::kMax:
       return [](const T current, const T in) -> T {
         return (in > current) ? in : current;
@@ -388,6 +399,22 @@ TfLiteStatus EvalReduceHelper(TfLiteContext* context, TfLiteNode* node,
   int* resolved_axis = static_cast<int*>(
       context->GetScratchBuffer(context, op_data->resolved_axis_idx));
   switch (input->type) {
+    case kTfLiteBool: {
+      bool init_value;
+      TF_LITE_ENSURE_EQ(context, GetReducerInitValue(reduce_type, init_value),
+                        kTfLiteOk);
+      auto reducer = GetReducer<bool>(reduce_type);
+      TF_LITE_ENSURE(context, reducer != nullptr);
+      TF_LITE_ENSURE(context, reference_ops::ReduceGeneric<bool>(
+                                  tflite::micro::GetTensorData<bool>(input),
+                                  input->dims->data, input->dims->size,
+                                  tflite::micro::GetTensorData<bool>(output),
+                                  output->dims->data, output->dims->size,
+                                  tflite::micro::GetTensorData<int>(axis),
+                                  num_axis, params->keep_dims, temp_buffer,
+                                  resolved_axis, init_value, reducer));
+      break;
+    }
     case kTfLiteFloat32: {
       float init_value;
       TF_LITE_ENSURE_EQ(context, GetReducerInitValue(reduce_type, init_value),
@@ -424,7 +451,7 @@ TfLiteStatus EvalReduceHelper(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     default:
-      MicroPrintf("Only float32 and int8 types are supported.");
+      MicroPrintf("Only bool, float32 and int8 types are supported.");
       return kTfLiteError;
   }
   return kTfLiteOk;

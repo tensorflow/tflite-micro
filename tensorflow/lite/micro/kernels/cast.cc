@@ -83,6 +83,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                       tflite::micro::GetTensorShape(output));
 
   switch (input->type) {
+    case kTfLiteBool:
+      return copyToTensor(context, input->data.b, output, num_elements);
     case kTfLiteInt8:
       return copyToTensor(context, input->data.int8, output, num_elements);
     case kTfLiteInt16:
