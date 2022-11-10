@@ -150,8 +150,8 @@ COMMON_FLAGS := \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
-ifneq ($(TARGET), 'xtensa')
-  ifneq ($(TARGET), 'hexagon')
+ifneq ($(TARGET), xtensa)
+  ifneq ($(TARGET), hexagon)
     COMMON_FLAGS += -Wno-stringop-overread
   endif
 endif
