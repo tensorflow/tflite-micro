@@ -150,10 +150,9 @@ COMMON_FLAGS := \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
-ifneq ($(TARGET), xtensa)
-  ifneq ($(TARGET), hexagon)
-    COMMON_FLAGS += -Wno-stringop-overread
-  endif
+# no-stringop-overread is not a valid flag for some toolchains
+ifeq ($(findstring $(TARGET),xtensa hexagon),)
+  COMMON_FLAGS += -Wno-stringop-overread
 endif
 
 ifeq ($(TARGET), $(HOST_OS))
