@@ -141,7 +141,6 @@ CC_WARNINGS := \
 
 COMMON_FLAGS := \
   -Werror \
-  -Wno-stringop-overread \
   -fno-unwind-tables \
   -ffunction-sections \
   -fdata-sections \
@@ -150,6 +149,10 @@ COMMON_FLAGS := \
   -DTF_LITE_DISABLE_X86_NEON \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
+
+ifeq ($(TOOLCHAIN), gcc)
+  COMMON_FLAGS += -Wno-stringop-overread
+endif
 
 ifeq ($(TARGET), $(HOST_OS))
   # If we are not doing a cross-compilation then -DTF_LITE_USE_CTIME is what we
