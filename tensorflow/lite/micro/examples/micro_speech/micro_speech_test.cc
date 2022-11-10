@@ -58,7 +58,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 #else
   constexpr int tensor_arena_size = 10 * 1024;
 #endif
-  uint8_t tensor_arena[tensor_arena_size];
+  alignas(16) uint8_t tensor_arena[tensor_arena_size];
 
   // Build an interpreter to run the model with.
   tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena,
