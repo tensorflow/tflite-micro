@@ -150,8 +150,10 @@ COMMON_FLAGS := \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
-ifeq ($(TOOLCHAIN), gcc)
-  COMMON_FLAGS += -Wno-stringop-overread
+ifneq ($(TARGET), 'xtensa')
+  ifneq ($(TARGET), 'hexagon')
+    COMMON_FLAGS += -Wno-stringop-overread
+  endif
 endif
 
 ifeq ($(TARGET), $(HOST_OS))
