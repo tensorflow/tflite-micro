@@ -141,6 +141,7 @@ CC_WARNINGS := \
 
 COMMON_FLAGS := \
   -Werror \
+  -Wno-stringop-overread \
   -fno-unwind-tables \
   -ffunction-sections \
   -fdata-sections \
