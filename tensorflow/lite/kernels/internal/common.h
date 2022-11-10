@@ -388,6 +388,7 @@ constexpr int LUTSize() {
                     std::is_same<T, int8_t>::value ||
                     std::is_same<T, int16_t>::value,
                 "Only LUTs with uint8, int8 or int16 inputs are supported.");
+  // As per c++11: constexpr methods cannot have more than one return statement.
   return (std::is_same<T, uint8_t>::value || std::is_same<T, int8_t>::value)
              ? 256
              : 513;
