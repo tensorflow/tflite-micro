@@ -38,6 +38,9 @@ struct OpDataFullyConnected {
   int32_t input_zero_point;
   int32_t filter_zero_point;
   int32_t output_zero_point;
+  // A buffer used to store unpacked filter values. This is used if the source
+  // tensor is of n-bit precision that cannot be easily processed by kernels.
+  int filter_buffer_index;
 };
 
 extern const int kFullyConnectedInputTensor;
