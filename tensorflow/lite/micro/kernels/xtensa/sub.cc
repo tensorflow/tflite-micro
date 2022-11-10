@@ -108,7 +108,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
     }
     case kTfLiteInt16: {
       if (need_broadcast) {
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
         const RuntimeShape extended_output_shape_debug =
             RuntimeShape::ExtendedShape(5,
                                         tflite::micro::GetTensorShape(output));
@@ -159,7 +159,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int16_t>(input2),
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       } else {
         tflite::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),
