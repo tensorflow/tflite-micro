@@ -151,7 +151,7 @@ COMMON_FLAGS := \
   $(ADDITIONAL_DEFINES)
 
 # no-stringop-overread is not a valid flag for some toolchains
-ifeq ($(findstring $(TARGET),xtensa hexagon),)
+ifeq ($(filter cortex_m% xtensa hexagon,$(TARGET)),)
   COMMON_FLAGS += -Wno-stringop-overread
 endif
 
