@@ -1,1 +1,1 @@
-Please refer to: https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md
+Please refer to: <https://github.com/tensorflow/tensorflow/blob/master/SECURITY.md>
