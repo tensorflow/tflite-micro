@@ -20,12 +20,12 @@ run machine learning models on DSPs, microcontrollers and other devices with
 limited memory.
 
 Additional Links:
- * [Tensorflow github repository](https://github.com/tensorflow/tensorflow/)
- * [TFLM at tensorflow.org](https://www.tensorflow.org/lite/microcontrollers)
+* [Tensorflow github repository](https://github.com/tensorflow/tensorflow/)
+* [TFLM at tensorflow.org](https://www.tensorflow.org/lite/microcontrollers)
 
 # Build Status
 
- * [GitHub Status](https://www.githubstatus.com/)
+* [GitHub Status](https://www.githubstatus.com/)
 
 ## Official Builds
 
@@ -34,8 +34,8 @@ Build Type       |    Status     |
 CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml) |
 Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
-
 ## Community Supported TFLM Examples
+
 This table captures platforms that TFLM has been ported to. Please see
 [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md) for
 additional documentation.
@@ -50,8 +50,8 @@ Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https:/
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
 
-
 ## Community Supported Kernels and Unit Tests
+
 This is a list of targets that have optimized kernel implementations and/or run
 the TFLM unit tests using software emulation or instruction set simulators.
 
@@ -62,13 +62,13 @@ Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions
 RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
 Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
 
-
 # Contributing
+
 See our [contribution documentation](CONTRIBUTING.md).
 
 # Getting Help
 
-A [Github issue](https://github.com/tensorflow/tflite-micro/issues/new/choose)
+A [GitHub issue](https://github.com/tensorflow/tflite-micro/issues/new/choose)
 should be the primary method of getting in touch with the TensorFlow Lite Micro
 (TFLM) team.
 
@@ -88,19 +88,19 @@ The following resources may also be useful:
 
 # Additional Documentation
 
- * [Continuous Integration](docs/continuous_integration.md)
- * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
- * [Profiling](tensorflow/lite/micro/docs/profiling.md)
- * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
- * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
- * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
- * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
- * Platform/IP support
-   * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
- * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
- * [Python Dev Guide](docs/python.md)
- * [Automatically Generated Files](docs/automatically_generated_files.md)
- * [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
+* [Continuous Integration](docs/continuous_integration.md)
+* [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
+* [Profiling](tensorflow/lite/micro/docs/profiling.md)
+* [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+* [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
+* [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
+* [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
+* Platform/IP support
+  * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
+* [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
+* [Python Dev Guide](docs/python.md)
+* [Automatically Generated Files](docs/automatically_generated_files.md)
+* [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
 
 # RFCs
 
