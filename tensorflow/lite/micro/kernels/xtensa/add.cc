@@ -128,26 +128,24 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
       } else {
 #if defined(HIFI4) || defined(HIFI4_INTERNAL)
         int err;
-        const RuntimeShape& input1_shape =
-            tflite::micro::GetTensorShape(input1);
-        const RuntimeShape& input2_shape =
-            tflite::micro::GetTensorShape(input2);
-        const RuntimeShape& output_shape =
-            tflite::micro::GetTensorShape(output);
-        const int flat_size =
-            MatchingElementsSize(input1_shape, input2_shape, output_shape);
+        int input1_shape_dims =
+            tflite::micro::GetTensorShape(input1).DimensionsCount();
+        int input2_shape_dims =
+            tflite::micro::GetTensorShape(input2).DimensionsCount();
+        int output_shape_dims =
+            tflite::micro::GetTensorShape(output).DimensionsCount();
 
-        err = xa_nn_elm_add_asym16sxasym16s_asym16s(
-            tflite::micro::GetTensorData<int16_t>(output),
+        err = xa_nn_elm_add_broadcast_4D_asym16sxasym16s_asym16s(
+            tflite::micro::GetTensorData<int16_t>(output), &output_shape_dims,
             op_params.output_offset, op_params.output_shift,
             op_params.output_multiplier, op_params.quantized_activation_min,
             op_params.quantized_activation_max,
-            tflite::micro::GetTensorData<int16_t>(input1),
+            tflite::micro::GetTensorData<int16_t>(input1), &input1_shape_dims,
             op_params.input1_offset, op_params.input1_shift,
             op_params.input1_multiplier,
-            tflite::micro::GetTensorData<int16_t>(input2),
+            tflite::micro::GetTensorData<int16_t>(input2), &input2_shape_dims,
             op_params.input2_offset, op_params.input2_shift,
-            op_params.input2_multiplier, op_params.left_shift, flat_size);
+            op_params.input2_multiplier, op_params.left_shift);
 
         TF_LITE_ENSURE(context, err == 0);
 
