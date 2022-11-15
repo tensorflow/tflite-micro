@@ -22,7 +22,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api:flatbuffer_conversions",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        ":micro_error_reporter",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
@@ -39,7 +39,23 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/core/api:op_resolver",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        ":micro_error_reporter",
         "//tensorflow/lite/schema:schema_fbs",
+    ],
+)
+
+cc_library(
+    name = "micro_error_reporter",
+    srcs = [
+        "micro_error_reporter.cc",
+    ],
+    hdrs = [
+        "micro_error_reporter.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        ":micro_compatibility",
+        ":micro_log",
+        "//tensorflow/lite/core/api:error_reporter",
     ],
 )

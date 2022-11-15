@@ -38,7 +38,6 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_context",
-        ":micro_error_reporter",
         ":micro_graph",
         ":micro_profiler_interface",
         ":op_resolvers",
@@ -65,7 +64,6 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
-        ":micro_error_reporter",
         ":micro_graph",
         ":micro_log",
         ":micro_profiler_interface",
@@ -260,22 +258,6 @@ cc_library(
     deps = [
         ":debug_log",
         ":micro_string",
-    ],
-)
-
-cc_library(
-    name = "micro_error_reporter",
-    srcs = [
-        "micro_error_reporter.cc",
-    ],
-    hdrs = [
-        "micro_error_reporter.h",
-    ],
-    copts = micro_copts(),
-    deps = [
-        ":micro_compatibility",
-        ":micro_log",
-        "//tensorflow/lite/core/api:error_reporter",
     ],
 )
 
