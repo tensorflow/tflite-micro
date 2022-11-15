@@ -54,8 +54,8 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/core/api:error_reporter",
     ],
 )
