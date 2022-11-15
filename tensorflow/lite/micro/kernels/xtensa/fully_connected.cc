@@ -28,6 +28,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#define FC_FIX_3D_DATA
+
 namespace tflite {
 namespace {
 
@@ -98,7 +100,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // int8 quantization.
   TFLITE_DCHECK(filter->params.zero_point == 0);
 
+#if defined(FC_FIX_3D_DATA)
+  TFLITE_DCHECK_GE(GetTensorShape(output).DimensionsCount(), 1);
+#else
   TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
+#endif
 
   TF_LITE_ENSURE_OK(
       context, CalculateOpData(context, params->activation, input->type, input,
@@ -136,7 +142,11 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int num_batches = output_shape.Dims(0);
+#if defined(FC_FIX_3D_DATA)
+  const int output_depth = output_shape.Dims(output_shape.DimensionsCount()-1);
+#else
   const int output_depth = output_shape.Dims(1);
+#endif
 
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();
