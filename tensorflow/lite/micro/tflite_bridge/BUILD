@@ -20,9 +20,9 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
+        ":micro_error_reporter",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api:flatbuffer_conversions",
-        ":micro_error_reporter",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
@@ -36,10 +36,10 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
+        ":micro_error_reporter",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/core/api:op_resolver",
-        ":micro_error_reporter",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
