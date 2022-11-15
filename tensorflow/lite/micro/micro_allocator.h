@@ -226,7 +226,7 @@ class MicroAllocator {
   // `FinishModelAllocation`. Otherwise, it will return 0.
   size_t used_bytes() const;
 
-  BuiltinDataAllocator* GetBuiltinDataAllocator();
+  bridge::BuiltinDataAllocator* GetBuiltinDataAllocator();
 
  protected:
   MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
