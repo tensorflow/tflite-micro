@@ -12,7 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
 #include "tensorflow/lite/micro/micro_allocation_info.h"
+
+#include <algorithm>
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -321,28 +324,31 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
   if (model_->metadata()) {
     for (size_t i = 0; i < model_->metadata()->size(); ++i) {
       auto metadata = model_->metadata()->Get(i);
-      const size_t metadata_name_size = strlen(metadata->name()->c_str());
 
-      if ((strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
-                   std::min(metadata_name_size,
-                            strlen(kOfflineMemAllocMetadata))) == 0) &&
-          metadata_name_size == strlen(kOfflineMemAllocMetadata)) {
-        const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers =
-            model_->buffers();
-        auto* buffer = (*buffers)[metadata->buffer()];
-        auto* array = buffer->data();
-        const uint32_t* metadata_buffer =
-            reinterpret_cast<const uint32_t*>(array->data());
-        const size_t nbr_tensors = static_cast<size_t>(metadata_buffer[2]);
-        *offline_planner_offsets =
-            reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
+      if (metadata->name()) {
+        const size_t metadata_name_size = strlen(metadata->name()->c_str());
 
-        if (info_.tensor_count != nbr_tensors) {
-          MicroPrintf(
-              "Nbr of offline buffer offsets (%d) in metadata "
-              "not equal nbr tensors (%d)\n",
-              nbr_tensors, info_.tensor_count);
-          return kTfLiteError;
+        if ((strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
+                     std::min(metadata_name_size,
+                              strlen(kOfflineMemAllocMetadata))) == 0) &&
+            metadata_name_size == strlen(kOfflineMemAllocMetadata)) {
+          const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers =
+              model_->buffers();
+          auto* buffer = (*buffers)[metadata->buffer()];
+          auto* array = buffer->data();
+          const uint32_t* metadata_buffer =
+              reinterpret_cast<const uint32_t*>(array->data());
+          const size_t nbr_tensors = static_cast<size_t>(metadata_buffer[2]);
+          *offline_planner_offsets =
+              reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
+
+          if (info_.tensor_count != nbr_tensors) {
+            MicroPrintf(
+                "Nbr of offline buffer offsets (%d) in metadata "
+                "not equal nbr tensors (%d)\n",
+                nbr_tensors, info_.tensor_count);
+            return kTfLiteError;
+          }
         }
       }
     }
