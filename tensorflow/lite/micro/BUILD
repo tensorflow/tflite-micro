@@ -45,9 +45,12 @@ cc_library(
         "//tensorflow/lite:type_to_tflitetype",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:tensor",
+        "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
+        "//tensorflow/lite/micro/tflite_bridge:op_resolver_bridge",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
+
     ],
 )
 
