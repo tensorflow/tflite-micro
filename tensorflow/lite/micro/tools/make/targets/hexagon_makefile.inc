@@ -82,6 +82,11 @@ PLATFORM_ARGS = \
   -mcpu=$(HEXAGON_CPU_VER) \
   -m$(HEXAGON_CPU_VER)
 
+# TODO(b/258710417): n-bit with the Hexagon optimized kernels is currently
+# failing with a misaligned store exception. As a result, we are currently
+# disabling n-bit support for Hexagon.
+PLATFORM_ARGS += -DDISABLE_NBIT
+
 # See http://b/183462077 for more details on why we need -G0 for an LPI build.
 ifeq ($(HEXAGON_LPI_BUILD), true)
   PLATFORM_ARGS += -G0
