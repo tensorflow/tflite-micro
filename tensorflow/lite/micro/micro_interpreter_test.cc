@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -31,7 +31,7 @@ namespace tflite {
 namespace {
 constexpr size_t buffer_arena_size = 256 * 1024;
 uint8_t arena_buffer[buffer_arena_size];
-class MockProfiler : public MicroProfiler {
+class MockProfiler : public MicroProfilerInterface {
  public:
   MockProfiler() : event_starts_(0), event_ends_(0) {}
 

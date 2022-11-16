@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
@@ -52,7 +52,7 @@ void RunModel(const uint8_t* model,
   AllOpsResolver op_resolver;
 
   MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
-                               kTensorArenaSize, GetMicroErrorReporter(),
+                               kTensorArenaSize,
                                nullptr, &profiler);
   interpreter.AllocateTensors();
 % for input_idx, input in enumerate(inputs):

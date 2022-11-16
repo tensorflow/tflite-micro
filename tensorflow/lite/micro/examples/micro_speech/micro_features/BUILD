@@ -29,11 +29,6 @@ cc_library(
 )
 
 cc_library(
-    name = "static_alloc",
-    hdrs = ["static_alloc.h"],
-)
-
-cc_library(
     name = "micro_features_generator",
     srcs = [
         "micro_features_generator.cc",
@@ -45,7 +40,7 @@ cc_library(
         ":micro_model_settings",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/experimental/microfrontend/lib:frontend",
-        "//tensorflow/lite/micro:micro_error_reporter",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 
@@ -75,8 +70,8 @@ cc_test(
         ":micro_features_generator_test_data",
         ":micro_model_settings",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro/examples/micro_speech:audio_sample_test_data",
         "//tensorflow/lite/micro/testing:micro_test",
     ],

@@ -24,14 +24,13 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
 namespace {
@@ -205,7 +204,7 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size) {
+    size_t arena_size, int num_resource_variables) {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
@@ -223,8 +222,12 @@ InterpreterWrapper::InterpreterWrapper(
 
   const Model* model = GetModel(buf);
   model_ = model_data;
-  error_reporter_ = std::unique_ptr<ErrorReporter>(new MicroErrorReporter());
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
+  allocator_ = RecordingMicroAllocator::Create(memory_arena_.get(), arena_size);
+  MicroResourceVariables* resource_variables_ = nullptr;
+  if (num_resource_variables > 0)
+    resource_variables_ =
+        MicroResourceVariables::Create(allocator_, num_resource_variables);
 
   for (const auto& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(), &all_ops_resolver_)) {
@@ -235,9 +238,8 @@ InterpreterWrapper::InterpreterWrapper(
     }
   }
 
-  interpreter_ =
-      new MicroInterpreter(model, all_ops_resolver_, memory_arena_.get(),
-                           arena_size, error_reporter_.get());
+  interpreter_ = new MicroInterpreter(model, all_ops_resolver_, allocator_,
+                                      resource_variables_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
@@ -248,6 +250,8 @@ InterpreterWrapper::InterpreterWrapper(
   // up the lookup table that maps PyArray_* macros to the correct APIs.
   ImportNumpy();
 }
+
+void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
 int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 

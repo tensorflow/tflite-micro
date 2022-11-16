@@ -103,7 +103,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/strided_slice/s
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice33_golden_int16.csv \
 
 integration_tests_seanet_strided_slice_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/strided_slice/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/strided_slice/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_strided_slice_test,\
 $(integration_tests_seanet_strided_slice_SRCS),,$(integration_tests_seanet_strided_slice_GENERATOR_INPUTS)))

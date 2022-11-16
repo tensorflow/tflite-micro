@@ -38,6 +38,7 @@ def generate_conv_model(write_to_file=True,
   This model does not make any relevant classifications. It only exists to
   generate a model that is designed to run on embedded devices.
   """
+  np.random.seed(0)
   input_shape = (16, 16, 1)
 
   model = tf.keras.models.Sequential()
@@ -59,6 +60,7 @@ def generate_conv_model(write_to_file=True,
   model.fit(data_x, data_y, epochs=5)
 
   def representative_dataset_gen():
+    np.random.seed(0)
     for _ in range(12):
       yield [np.random.rand(16, 16).reshape(1, 16, 16, 1).astype(np.float32)]
 

@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -92,12 +93,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
                      output);
 #else
       return ConvReferenceEvalInt16(context, node);
-#endif  // defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
       break;
     }
     default:

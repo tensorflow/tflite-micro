@@ -47,10 +47,10 @@ magic_wand_GENERATOR_INPUTS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/magic_wand.tflite
 
 magic_wand_GENERATED_SRCS := \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.cc
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.cc
 
 magic_wand_GENERATED_HDRS := \
-$(GENERATED_SRCS_DIR)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/magic_wand_model_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/*/Makefile.inc)

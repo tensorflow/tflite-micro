@@ -58,7 +58,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/pad/pad18_input
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/pad/pad18_golden_int16.csv \
 
 integration_tests_seanet_pad_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/pad/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/pad/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_pad_test,\
 $(integration_tests_seanet_pad_SRCS),,$(integration_tests_seanet_pad_GENERATOR_INPUTS)))

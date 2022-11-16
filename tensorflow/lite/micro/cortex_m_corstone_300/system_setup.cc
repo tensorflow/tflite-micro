@@ -22,6 +22,7 @@ limitations under the License.
 // DWT and PMU counters.
 #include CMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE
 
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_time.h"
 #include "tensorflow/lite/micro/system_setup.h"
 

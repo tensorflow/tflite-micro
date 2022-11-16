@@ -578,7 +578,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
 
 TF_LITE_MICRO_TEST(SumFloatFlatten2NonReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
-  int output_shape[] = {1, 4};
+  int output_shape[] = {1, 12};
   int axis_shape[] = {1, 1};
   int32_t axis_data[] = {2};
   float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,

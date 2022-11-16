@@ -13,41 +13,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Called with following arguments:
+# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
+# 3 - (optional) Path to the HEXAGON TFLM Lib
 
 set -e
 
 # Default prebulit core library on docker
 HEXAGON_TFLM_LIB=/root/Qualcomm/hexagon_tflm_core.a
 
-if [[ $# -ge 1 ]];
+TENSORFLOW_ROOT=${1}
+EXTERNAL_DIR=${2}
+
+if [[ $# -ge 3 ]];
 then
-  HEXAGON_TFLM_LIB=$1
+  HEXAGON_TFLM_LIB=$3
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
-pwd
+source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
-
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
   TARGET=hexagon \
   OPTIMIZED_KERNEL_DIR=hexagon \
-  OPTIMIZED_KERNEL_DIR_PREFIX=third_party \
+  OPTIMIZED_KERNEL_DIR_PREFIX=${TENSORFLOW_ROOT}third_party \
   HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
   build -j$(nproc)
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
   TARGET=hexagon \
   OPTIMIZED_KERNEL_DIR=hexagon \
-  OPTIMIZED_KERNEL_DIR_PREFIX=third_party \
+  OPTIMIZED_KERNEL_DIR_PREFIX=${TENSORFLOW_ROOT}third_party \
   HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
   test -j$(nproc)
 
 

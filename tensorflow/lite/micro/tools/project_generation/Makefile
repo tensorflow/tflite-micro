@@ -40,6 +40,14 @@ INCLUDES := \
   -I./third_party/kissfft/tools \
   -I./third_party/ruy
 
+ifneq ($(TENSORFLOW_ROOT),)
+  INCLUDES += -I$(TENSORFLOW_ROOT)
+endif
+
+ifneq ($(EXTERNAL_DIR),)
+  INCLUDES += -I$(EXTERNAL_DIR)
+endif
+
 ifeq ($(BUILD_TYPE), cmsis_nn)
   CXX := arm-none-eabi-g++
   CC := arm-none-eabi-gcc
@@ -47,9 +55,9 @@ ifeq ($(BUILD_TYPE), cmsis_nn)
 
   INCLUDES += \
     -I./third_party/cmsis \
-    -I./third_party/cmsis/CMSIS/Core/Include \
-    -I./third_party/cmsis/CMSIS/DSP/Include \
-    -I./third_party/cmsis/CMSIS/NN/Include
+    -I./third_party/cmsis_nn \
+    -I./third_party/cmsis_nn/Include \
+    -I./third_party/cmsis/CMSIS/Core/Include
 
   COMMON_FLAGS += \
     -DTF_LITE_MCU_DEBUG_LOG \
@@ -81,7 +89,7 @@ OBJDIR := $(GENDIR)/obj
 BINDIR := $(GENDIR)/bin
 LIB := $(GENDIR)/libtflm.a
 
-TFLM_CC_SRCS := $(shell find tensorflow -name "*.cc" -o -name "*.c")
+TFLM_CC_SRCS := $(shell find $(TENSORFLOW_ROOT)tensorflow -name "*.cc" -o -name "*.c")
 OBJS := $(addprefix $(OBJDIR)/, $(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(TFLM_CC_SRCS))))
 
 $(OBJDIR)/%.o: %.cc

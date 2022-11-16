@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -26,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -48,7 +49,6 @@ struct UnidirectionalSequenceLstmOpData {
   int32_t output_state_zero_point;
 
   IntegerLstmParameter integer_lstm_param;
-  HybridLstmScales hybrid_lstm_scales;
 };
 
 TfLiteStatus PopulateQuantizedLstmParams8x8_16(
@@ -506,151 +506,6 @@ void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
 }
 
 // Check that input tensor dimensions matches with each other.
-TfLiteStatus SetHybridScales(TfLiteContext* context, TfLiteNode* node) {
-  UnidirectionalSequenceLstmOpData* op_data =
-      reinterpret_cast<UnidirectionalSequenceLstmOpData*>(node->user_data);
-  MicroContext* micro_context = GetMicroContext(context);
-
-  TfLiteTensor* input_to_input_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmInputToInputWeightsTensor);
-  op_data->hybrid_lstm_scales.input_to_input_weights_scale =
-      (input_to_input_weights != nullptr) ? input_to_input_weights->params.scale
-                                          : 1.0f;
-
-  TfLiteTensor* input_to_forget_weights =
-      micro_context->AllocateTempInputTensor(node,
-                                             kLstmInputToForgetWeightsTensor);
-  op_data->hybrid_lstm_scales.input_to_forget_weights_scale =
-      (input_to_forget_weights != nullptr)
-          ? input_to_forget_weights->params.scale
-          : 1.0f;
-
-  TfLiteTensor* input_to_cell_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmInputToCellWeightsTensor);
-  op_data->hybrid_lstm_scales.input_to_cell_weights_scale =
-      (input_to_cell_weights != nullptr) ? input_to_cell_weights->params.scale
-                                         : 1.0f;
-
-  TfLiteTensor* input_to_output_weights =
-      micro_context->AllocateTempInputTensor(node,
-                                             kLstmInputToOutputWeightsTensor);
-  op_data->hybrid_lstm_scales.input_to_output_weights_scale =
-      (input_to_output_weights != nullptr)
-          ? input_to_output_weights->params.scale
-          : 1.0f;
-
-  op_data->hybrid_lstm_scales.aux_input_to_input_weights_scale = 1.0f;
-  op_data->hybrid_lstm_scales.aux_input_to_forget_weights_scale = 1.0f;
-  op_data->hybrid_lstm_scales.aux_input_to_cell_weights_scale = 1.0f;
-  op_data->hybrid_lstm_scales.aux_input_to_output_weights_scale = 1.0f;
-
-  TfLiteTensor* recurrent_to_input_weights =
-      micro_context->AllocateTempInputTensor(
-          node, kLstmRecurrentToInputWeightsTensor);
-  op_data->hybrid_lstm_scales.recurrent_to_input_weights_scale =
-      (recurrent_to_input_weights != nullptr)
-          ? recurrent_to_input_weights->params.scale
-          : 1.0f;
-
-  TfLiteTensor* recurrent_to_forget_weights =
-      micro_context->AllocateTempInputTensor(
-          node, kLstmRecurrentToForgetWeightsTensor);
-  op_data->hybrid_lstm_scales.recurrent_to_forget_weights_scale =
-      (recurrent_to_forget_weights != nullptr)
-          ? recurrent_to_forget_weights->params.scale
-          : 1.0f;
-
-  TfLiteTensor* recurrent_to_cell_weights =
-      micro_context->AllocateTempInputTensor(node,
-                                             kLstmRecurrentToCellWeightsTensor);
-  op_data->hybrid_lstm_scales.recurrent_to_cell_weights_scale =
-      (recurrent_to_cell_weights != nullptr)
-          ? recurrent_to_cell_weights->params.scale
-          : 1.0f;
-
-  TfLiteTensor* recurrent_to_output_weights =
-      micro_context->AllocateTempInputTensor(
-          node, kLstmRecurrentToOutputWeightsTensor);
-  op_data->hybrid_lstm_scales.recurrent_to_output_weights_scale =
-      (recurrent_to_output_weights != nullptr)
-          ? recurrent_to_output_weights->params.scale
-          : 1.0f;
-
-  TfLiteTensor* cell_to_input_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmCellToInputWeightsTensor);
-  op_data->hybrid_lstm_scales.cell_to_input_weights_scale =
-      (cell_to_input_weights != nullptr) ? cell_to_input_weights->params.scale
-                                         : 1.0f;
-
-  TfLiteTensor* cell_to_forget_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmCellToForgetWeightsTensor);
-  op_data->hybrid_lstm_scales.cell_to_forget_weights_scale =
-      (cell_to_forget_weights != nullptr) ? cell_to_forget_weights->params.scale
-                                          : 1.0f;
-
-  TfLiteTensor* cell_to_output_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmCellToOutputWeightsTensor);
-  op_data->hybrid_lstm_scales.cell_to_output_weights_scale =
-      (cell_to_output_weights != nullptr) ? cell_to_output_weights->params.scale
-                                          : 1.0f;
-
-  TfLiteTensor* projection_weights = micro_context->AllocateTempInputTensor(
-      node, kLstmProjectionWeightsTensor);
-  op_data->hybrid_lstm_scales.projection_weights_scale =
-      (projection_weights != nullptr) ? projection_weights->params.scale : 1.0f;
-
-  if (input_to_input_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input_to_input_weights);
-  }
-
-  if (input_to_forget_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input_to_forget_weights);
-  }
-
-  if (input_to_cell_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input_to_cell_weights);
-  }
-
-  if (input_to_output_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input_to_output_weights);
-  }
-
-  if (recurrent_to_input_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(recurrent_to_input_weights);
-  }
-
-  if (recurrent_to_forget_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(recurrent_to_forget_weights);
-  }
-
-  if (recurrent_to_cell_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(recurrent_to_cell_weights);
-  }
-
-  if (recurrent_to_output_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(recurrent_to_output_weights);
-  }
-
-  if (cell_to_input_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(cell_to_input_weights);
-  }
-
-  if (cell_to_forget_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(cell_to_forget_weights);
-  }
-
-  if (cell_to_output_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(cell_to_output_weights);
-  }
-
-  if (projection_weights != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(projection_weights);
-  }
-
-  return kTfLiteOk;
-}
-
-// Check that input tensor dimensions matches with each other.
 TfLiteStatus CheckInputTensorDimensions(TfLiteContext* context,
                                         TfLiteNode* node, int n_input,
                                         int n_output, int n_cell,
@@ -983,8 +838,8 @@ TfLiteStatus PrecomputeZeroPointTimesWeightWithBias(
   }
   if (zero_point != 0) {
     const int8_t* weight = GetTensorData<int8_t>(weight_tensor);
-    micro_tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point, row,
-                                                       col, *output);
+    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(weight, zero_point,
+                                                         row, col, *output);
   }
   return kTfLiteOk;
 }
@@ -1304,102 +1159,6 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                           &(op_data->scratch_index[kPrimaryScratchBuffer])));
   }
 
-  if (IsHybridOp(input, input_to_output_weights)) {
-    TF_LITE_ENSURE(context, kNumHybridTempBuffers <= scratch_index_size);
-
-    TF_LITE_ENSURE_OK(context, SetHybridScales(context, node));
-
-    op_data->compute_row_sums = true;
-
-    // Allocate temporary tensors to store quantized values of input,
-    // output_state and cell_state tensors.
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context,
-                          GetTensorShape(input).FlatSize() *
-                              TfLiteTypeGetSize(input_to_output_weights->type),
-                          &(op_data->scratch_index[kInputQuantized])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context,
-                          GetTensorShape(output_state).FlatSize() *
-                              TfLiteTypeGetSize(input_to_output_weights->type),
-                          &(op_data->scratch_index[kOutputStateQuantized])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context,
-                          GetTensorShape(cell_state).FlatSize() *
-                              TfLiteTypeGetSize(input_to_output_weights->type),
-                          &(op_data->scratch_index[kCellStateQuantized])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kScales])));
-
-    // Allocate temporary buffers to store scaling factors and product scaling
-    // factors. The latter is a convenience storage which allows to quantize
-    // a vector once (which produces the scaling factors) and multiply it with
-    // different matrices (which requires multiplying the scaling factors with
-    // the scaling factor of the matrix).
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kInputScalingFactors])));
-
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                     &(op_data->scratch_index[kOutputStateScalingFactors])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kProductScalingFactors])));
-
-    // Allocate a temporary buffer to store the recovered cell weights. Since
-    // this is used for diagonal matrices, only need to store n_cell values.
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_cell * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kRecoveredCellWeights])));
-
-    // Allocate a temporary buffer to store the accumulated int32 values.
-    TF_LITE_ENSURE_OK(
-        context,
-        context->RequestScratchBufferInArena(
-            context, n_cell * n_batch * TfLiteTypeGetSize(kTfLiteInt32),
-            &(op_data->scratch_index[kAccumScratch])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kInputZeroPoints])));
-
-    TF_LITE_ENSURE_OK(context,
-                      context->RequestScratchBufferInArena(
-                          context, n_batch * TfLiteTypeGetSize(kTfLiteFloat32),
-                          &(op_data->scratch_index[kOutputStateZeroPoints])));
-
-    int row_sums_rows = use_cifg ? 6 : 8;
-    TfLiteTensor* projection_weights = micro_context->AllocateTempInputTensor(
-        node, kLstmProjectionWeightsTensor);
-    if (projection_weights != nullptr) {
-      row_sums_rows += ceil(static_cast<float>(n_output) / n_cell);
-    }
-    op_data->row_sums_size = row_sums_rows;
-    TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-    op_data->row_sums = static_cast<int32_t*>(context->AllocatePersistentBuffer(
-        context, row_sums_rows * n_cell * sizeof(int32_t)));
-    if (projection_weights != nullptr) {
-      micro_context->DeallocateTempTfLiteTensor(projection_weights);
-    }
-  }
-
   if (is_integer) {
     // Integer UnidirectionalSequenceLSTM prepare function for 8x8->16.
     // This code path needs 5 intermediate tensors per Op.
@@ -1586,97 +1345,29 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
     } break;
     case kTfLiteUInt8:
     case kTfLiteInt8: {
-      const bool is_hybrid = input->type == kTfLiteFloat32;
-      if (is_hybrid) {
-        // Index the scratch buffers pointers to the global scratch buffer.
-        UnidirectionalSequenceLstmOpData* op_data_rw =
-            reinterpret_cast<UnidirectionalSequenceLstmOpData*>(
-                node->user_data);
-        return EvalHybridLstm(
-            &(op_data->hybrid_lstm_scales), input, input_to_input_weights,
-            /*input_to_input_weights_ledger*/ nullptr, input_to_forget_weights,
-            /*input_to_forget_weights_ledger*/ nullptr, input_to_cell_weights,
-            /*input_to_cell_weights_ledger*/ nullptr, input_to_output_weights,
-            /*input_to_output_weights_ledger*/ nullptr,
-            recurrent_to_input_weights,
-            /*recurrent_to_input_weights_ledger*/ nullptr,
-            recurrent_to_forget_weights,
-            /*recurrent_to_forget_weights_ledger*/ nullptr,
-            recurrent_to_cell_weights,
-            /*recurrent_to_cell_weights_ledger*/ nullptr,
-            recurrent_to_output_weights,
-            /*recurrent_to_output_weights_ledger*/ nullptr,
-            cell_to_input_weights, cell_to_forget_weights,
-            cell_to_output_weights, input_layer_norm_coefficients,
-            forget_layer_norm_coefficients, cell_layer_norm_coefficients,
-            output_layer_norm_coefficients,
-            /*aux_input=*/nullptr,
-            /*aux_input_to_input_weights=*/nullptr,
-            /*aux_input_to_forget_weights=*/nullptr,
-            /*aux_input_to_cell_weights=*/nullptr,
-            /*aux_input_to_output_weights=*/nullptr, input_gate_bias,
-            forget_gate_bias, cell_gate_bias, output_gate_bias,
-            projection_weights, /*projection_weights_ledger*/ nullptr,
-            projection_bias, &lstm_params,
-            /*forward_sequence=*/true, time_major,
-            /*output_offset=*/0,
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kPrimaryScratchBuffer])),
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kInputScalingFactors])),
-            /*aux_input_sf=*/nullptr,
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kOutputStateScalingFactors])),
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kProductScalingFactors])),
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kRecoveredCellWeights])),
-            reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kInputQuantized])),
-            /*aux_input_quantized=*/nullptr,
-            reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kOutputStateQuantized])),
-            reinterpret_cast<int8_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kCellStateQuantized])),
-            reinterpret_cast<float*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kScales])),
-            output_state, cell_state,
-            reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kAccumScratch])),
-            output,
-            reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kInputZeroPoints])),
-            /*aux_input_zp=*/nullptr,
-            reinterpret_cast<int32_t*>(context->GetScratchBuffer(
-                context, op_data->scratch_index[kOutputStateZeroPoints])),
-            op_data_rw->row_sums, op_data_rw->row_sums_size,
-            &op_data_rw->compute_row_sums);
-      } else {
-        return EvalInteger8x8_16Lstm(
-            input, input_to_input_weights, input_to_forget_weights,
-            input_to_cell_weights, input_to_output_weights,
-            recurrent_to_input_weights, recurrent_to_forget_weights,
-            recurrent_to_cell_weights, recurrent_to_output_weights,
-            cell_to_input_weights, cell_to_forget_weights,
-            cell_to_output_weights, input_layer_norm_coefficients,
-            forget_layer_norm_coefficients, cell_layer_norm_coefficients,
-            output_layer_norm_coefficients, input_gate_bias, forget_gate_bias,
-            cell_gate_bias, output_gate_bias, projection_weights,
-            projection_bias, &lstm_params, /*forward_sequence=*/true,
-            time_major, &op_data->integer_lstm_param,
-            op_data->output_state_zero_point, output_state, cell_state, output,
-            reinterpret_cast<int16_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[0])),
-            reinterpret_cast<int16_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[1])),
-            reinterpret_cast<int16_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[2])),
-            reinterpret_cast<int16_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[3])),
-            reinterpret_cast<int8_t*>(
-                context->GetScratchBuffer(context, op_data->scratch_index[4])),
-            nullptr);
-      }
+      return EvalInteger8x8_16Lstm(
+          input, input_to_input_weights, input_to_forget_weights,
+          input_to_cell_weights, input_to_output_weights,
+          recurrent_to_input_weights, recurrent_to_forget_weights,
+          recurrent_to_cell_weights, recurrent_to_output_weights,
+          cell_to_input_weights, cell_to_forget_weights, cell_to_output_weights,
+          input_layer_norm_coefficients, forget_layer_norm_coefficients,
+          cell_layer_norm_coefficients, output_layer_norm_coefficients,
+          input_gate_bias, forget_gate_bias, cell_gate_bias, output_gate_bias,
+          projection_weights, projection_bias, &lstm_params,
+          /*forward_sequence=*/true, time_major, &op_data->integer_lstm_param,
+          op_data->output_state_zero_point, output_state, cell_state, output,
+          reinterpret_cast<int16_t*>(
+              context->GetScratchBuffer(context, op_data->scratch_index[0])),
+          reinterpret_cast<int16_t*>(
+              context->GetScratchBuffer(context, op_data->scratch_index[1])),
+          reinterpret_cast<int16_t*>(
+              context->GetScratchBuffer(context, op_data->scratch_index[2])),
+          reinterpret_cast<int16_t*>(
+              context->GetScratchBuffer(context, op_data->scratch_index[3])),
+          reinterpret_cast<int8_t*>(
+              context->GetScratchBuffer(context, op_data->scratch_index[4])),
+          nullptr);
     } break;
     default:
       MicroPrintf("Type %s is not currently supported.",

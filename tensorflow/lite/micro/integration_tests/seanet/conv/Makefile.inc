@@ -67,7 +67,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/conv/conv21_inp
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/conv/conv21_golden_int16.csv \
 
 integration_tests_seanet_conv_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/conv/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/conv/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_conv,\
 $(integration_tests_seanet_conv_SRCS),,$(integration_tests_seanet_conv_GENERATOR_INPUTS)))

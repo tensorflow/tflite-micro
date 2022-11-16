@@ -16,7 +16,7 @@
 #
 # Called with following arguments:
 # 1 - Path to the downloads folder which is typically
-#     tensorflow/lite/micro/tools/make/downloads
+#     ${TENSORFLOW_ROOT}/tensorflow/lite/micro/tools/make/downloads
 #
 # This script is called from the Makefile and uses the following convention to
 # enable determination of sucess/failure:

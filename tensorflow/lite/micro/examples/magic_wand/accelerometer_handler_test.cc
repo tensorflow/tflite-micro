@@ -18,28 +18,25 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestSetup) {
-  tflite::MicroErrorReporter micro_error_reporter;
-  TfLiteStatus setup_status = SetupAccelerometer(&micro_error_reporter);
+  TfLiteStatus setup_status = SetupAccelerometer();
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, setup_status);
 }
 
 TF_LITE_MICRO_TEST(TestAccelerometer) {
   float input[384] = {0.0};
-  tflite::MicroErrorReporter micro_error_reporter;
   // Test that the function returns false before insufficient data is available
-  bool inference_flag = ReadAccelerometer(&micro_error_reporter, input, 384);
+  bool inference_flag = ReadAccelerometer(input, 384);
   TF_LITE_MICRO_EXPECT_EQ(inference_flag, false);
 
   // Test that the function returns true once sufficient data is available to
   // fill the model's input buffer (128 sets of values)
   for (int i = 1; i <= 128; i++) {
-    inference_flag = ReadAccelerometer(&micro_error_reporter, input, 384);
+    inference_flag = ReadAccelerometer(input, 384);
   }
   TF_LITE_MICRO_EXPECT_EQ(inference_flag, true);
 }

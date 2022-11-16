@@ -19,6 +19,8 @@ limitations under the License.
 #include <cstdint>
 #include <new>
 
+#include "tensorflow/lite/micro/micro_log.h"
+
 namespace {
 uint8_t micro_error_reporter_buffer[sizeof(tflite::MicroErrorReporter)];
 tflite::MicroErrorReporter* error_reporter_ = nullptr;

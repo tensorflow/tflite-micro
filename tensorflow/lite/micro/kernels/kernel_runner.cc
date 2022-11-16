@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
@@ -39,8 +40,7 @@ KernelRunner::KernelRunner(const TfLiteRegistration& registration,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
                            void* builtin_data, TfLiteIntArray* intermediates)
     : registration_(registration),
-      allocator_(SingleArenaBufferAllocator::Create(GetMicroErrorReporter(),
-                                                    kKernelRunnerBuffer_,
+      allocator_(SingleArenaBufferAllocator::Create(kKernelRunnerBuffer_,
                                                     kKernelRunnerBufferSize_)),
       mock_micro_graph_(allocator_),
       fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {

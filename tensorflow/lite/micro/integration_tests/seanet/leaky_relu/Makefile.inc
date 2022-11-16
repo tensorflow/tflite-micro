@@ -70,7 +70,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leak
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu22_golden_int16.csv \
 
 integration_tests_seanet_leaky_relu_SRCS := \
-tensorflow/lite/micro/integration_tests/seanet/leaky_relu/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/leaky_relu/integration_tests.cc
 
 $(eval $(call microlite_test,integration_tests_seanet_leaky_relu_test,\
 $(integration_tests_seanet_leaky_relu_SRCS),,$(integration_tests_seanet_leaky_relu_GENERATOR_INPUTS)))
