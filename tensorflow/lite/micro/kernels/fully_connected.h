@@ -41,7 +41,7 @@ struct OpDataFullyConnected {
 
 // TODO(b/258710417): enable by default once optimized fully-connected works for
 // all targets.
-#if !defined(HEXAGON) && !defined(OPTIMIZED_KERNEL_DIR)
+#if !defined(HEXAGON) || !defined(OPTIMIZED_KERNEL_DIR)
   // A buffer used to store unpacked filter values. This is used if the source
   // tensor is of n-bit precision that cannot be easily processed by kernels.
   int filter_buffer_index;
