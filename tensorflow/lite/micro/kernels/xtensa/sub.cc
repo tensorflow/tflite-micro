@@ -81,15 +81,15 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
   op_params.output_shift = data->output_shift;
   SetActivationParams(data->output_activation_min, data->output_activation_max,
                       &op_params);
-#if !(defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5))
+#if !(defined(HIFI4) || defined(HIFI4_INTERNAL))
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
       tflite::micro::GetTensorShape(input2), &op_params);
-#endif // !(defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5))
+#endif  // !(defined(HIFI4) || defined(HIFI4_INTERNAL))
 
   switch (output->type) {
     case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -104,19 +104,18 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       int inp1_off = 0;
       int inp2_off = 0;
       int out_off;
-      out_off = output_dims[1] * output_dims[2] * output_dims[3]
-                    * output_dims[4];
+      out_off =
+          output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if(input1_dims[0] > 1) {
-        inp1_off = input1_dims[1] * input1_dims[2] * input1_dims[3]
-                      * input1_dims[4];
+        inp1_off =
+            input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
       }
       if(input2_dims[0] > 1) {
-        inp2_off = input2_dims[1] * input2_dims[2] * input2_dims[3]
-                      * input2_dims[4];
+        inp2_off =
+            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
-      for(b = 0; b < output_dims[0]; b++)
-      {
+      for (b = 0; b < output_dims[0]; b++) {
         err = xa_nn_elm_sub_broadcast_4D_asym8sxasym8s_asym8s(
             tflite::micro::GetTensorData<int8_t>(output) + b * out_off,
             output_dims + 1, op_params.output_offset, op_params.output_shift,
@@ -125,13 +124,13 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int8_t>(input1) + b * inp1_off,
             input1_dims + 1, op_params.input1_offset, op_params.input1_shift,
             op_params.input1_multiplier,
-            tflite::micro::GetTensorData<int8_t>(input2),
-            input2_dims + 1, op_params.input2_offset, op_params.input2_shift,
+            tflite::micro::GetTensorData<int8_t>(input2), input2_dims + 1,
+            op_params.input2_offset, op_params.input2_shift,
             op_params.input2_multiplier, op_params.left_shift);
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#else  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -149,11 +148,11 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -168,19 +167,18 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       int inp1_off = 0;
       int inp2_off = 0;
       int out_off;
-      out_off = output_dims[1] * output_dims[2] * output_dims[3]
-                    * output_dims[4];
+      out_off =
+          output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if(input1_dims[0] > 1) {
-        inp1_off = input1_dims[1] * input1_dims[2] * input1_dims[3]
-                      * input1_dims[4];
+        inp1_off =
+            input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
       }
       if(input2_dims[0] > 1) {
-        inp2_off = input2_dims[1] * input2_dims[2] * input2_dims[3]
-                      * input2_dims[4];
+        inp2_off =
+            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
-      for(b = 0; b < output_dims[0]; b++)
-      {
+      for (b = 0; b < output_dims[0]; b++) {
         err = xa_nn_elm_sub_broadcast_4D_asym16sxasym16s_asym16s(
             tflite::micro::GetTensorData<int16_t>(output) + b * out_off,
             output_dims + 1, op_params.output_offset, op_params.output_shift,
@@ -189,13 +187,13 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorData<int16_t>(input1) + b * inp1_off,
             input1_dims + 1, op_params.input1_offset, op_params.input1_shift,
             op_params.input1_multiplier,
-            tflite::micro::GetTensorData<int16_t>(input2),
-            input2_dims + 1, op_params.input2_offset, op_params.input2_shift,
+            tflite::micro::GetTensorData<int16_t>(input2), input2_dims + 1,
+            op_params.input2_offset, op_params.input2_shift,
             op_params.input2_multiplier, op_params.left_shift);
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#else  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -213,7 +211,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       }
-#endif // #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;
     }
     default:
