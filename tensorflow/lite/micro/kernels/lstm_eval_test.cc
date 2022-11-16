@@ -233,20 +233,20 @@ class ModelContents {
 
   CellType* ScratchBuffers() { return scratch_buffers_; }
 
-  const GateParameters<WeightType, BiasType>* GetForgetGateParams() const {
+  GateParameters<WeightType, BiasType>* GetForgetGateParams() {
     return &forget_gate_params_;
   }
-  const GateParameters<WeightType, BiasType>* GetInputGateParams() const {
+  GateParameters<WeightType, BiasType>* GetInputGateParams() {
     return &input_gate_params_;
   }
-  const GateParameters<WeightType, BiasType>* GetCellGateParams() const {
+  GateParameters<WeightType, BiasType>* GetCellGateParams() {
     return &cell_gate_params_;
   }
-  const GateParameters<WeightType, BiasType>* GetOutputGateParams() const {
+  GateParameters<WeightType, BiasType>* GetOutputGateParams() {
     return &output_gate_params_;
   }
 
- protected:
+ private:
   GateParameters<WeightType, BiasType> forget_gate_params_;
   GateParameters<WeightType, BiasType> input_gate_params_;
   GateParameters<WeightType, BiasType> cell_gate_params_;
@@ -529,9 +529,9 @@ class QuantizedModelContents
         buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_forget_effective_bias =
-        this->forget_gate_params_.activation_zp_folded_bias;
+        this->GetForgetGateParams()->activation_zp_folded_bias;
     evaluation_params_.recurrent_to_forget_effective_bias =
-        this->forget_gate_params_.recurrent_zp_folded_bias;
+        this->GetForgetGateParams()->recurrent_zp_folded_bias;
 
     // input gate
     effective_scale =
@@ -555,9 +555,9 @@ class QuantizedModelContents
         buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_input_effective_bias =
-        this->input_gate_params_.activation_zp_folded_bias;
+        this->GetInputGateParams()->activation_zp_folded_bias;
     evaluation_params_.recurrent_to_input_effective_bias =
-        this->input_gate_params_.recurrent_zp_folded_bias;
+        this->GetInputGateParams()->recurrent_zp_folded_bias;
 
     // cell gate
     effective_scale =
@@ -581,9 +581,9 @@ class QuantizedModelContents
         buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_cell_effective_bias =
-        this->cell_gate_params_.activation_zp_folded_bias;
+        this->GetCellGateParams()->activation_zp_folded_bias;
     evaluation_params_.recurrent_to_cell_effective_bias =
-        this->cell_gate_params_.recurrent_zp_folded_bias;
+        this->GetCellGateParams()->recurrent_zp_folded_bias;
 
     // output gate
     effective_scale =
@@ -608,9 +608,9 @@ class QuantizedModelContents
         buffer_shift_output;
     // Set effective bias
     evaluation_params_.input_to_output_effective_bias =
-        this->output_gate_params_.activation_zp_folded_bias;
+        this->GetOutputGateParams()->activation_zp_folded_bias;
     evaluation_params_.recurrent_to_output_effective_bias =
-        this->output_gate_params_.recurrent_zp_folded_bias;
+        this->GetOutputGateParams()->recurrent_zp_folded_bias;
 
     // hidden state (no projection, output is the hidden state)
     effective_scale =
@@ -621,9 +621,8 @@ class QuantizedModelContents
                        &evaluation_params_.effective_hidden_scale_a,
                        &buffer_shift_output);
     evaluation_params_.effective_hidden_scale_b = buffer_shift_output;
-    // TODO(rewu): the +/- bug
     evaluation_params_.hidden_zp =
-        -quantization_settings_.hidden_quantization_parameters.zero_point;
+        quantization_settings_.hidden_quantization_parameters.zero_point;
 
     // cell state. Note, cell_scale is actually not a scale. 2^-cell_scale is
     // the true scale for cell
@@ -904,7 +903,7 @@ void TestOneStepLSTMFloat() {
 
 template <typename ActivationType, typename BiasType, typename CellType>
 void TestOneStepLSTMQuantized(
-    const QuantizedModelContents<ActivationType, int8_t, BiasType, CellType>&
+    QuantizedModelContents<ActivationType, int8_t, BiasType, CellType>&
         model_contents,
     const float hidden_state_tolerance, const float cell_state_tolerance) {
   auto quantization_settings = model_contents.QuantizationSettings();
@@ -1191,8 +1190,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
-  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
-                                                int16_t>
+  tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
       model_contents_int8(tflite::testing::kInt8QuantizationSettings,
                           tflite::testing::kForgetGateParameters,
                           tflite::testing::kInputGateParameters,
@@ -1303,8 +1301,7 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
-  const tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t,
-                                                int16_t>
+  tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
       model_contents_int8(tflite::testing::kInt8QuantizationSettings,
                           tflite::testing::kForgetGateParameters,
                           tflite::testing::kInputGateParameters,
