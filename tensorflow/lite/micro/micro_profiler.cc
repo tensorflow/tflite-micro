@@ -95,6 +95,14 @@ void MicroProfiler::LogTicksPerTagCsv() {
 #endif
 }
 
+MicroProfiler::Event MicroProfiler::GetEvent(int index) {
+  TFLITE_DCHECK(index >= 0);
+  TFLITE_DCHECK(index < num_events_);
+  return {.tag = tags_[index],
+          .start_ticks = start_ticks_[index],
+          .end_ticks = end_ticks_[index]};
+}
+
 // This method finds a particular array element in the total_ticks_per_tag array
 // with the matching tag_name passed in the method. If it can find a
 // matching array element that has the same tag_name, then it will return the

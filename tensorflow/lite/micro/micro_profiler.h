@@ -65,6 +65,18 @@ class MicroProfiler : public MicroProfilerInterface {
   // total ticks summed across all events with that particular tag.
   void LogTicksPerTagCsv();
 
+  // Return current number of events in the profiler.
+  int NumEvents() const { return num_events_; }
+
+  struct Event {
+    const char* tag;
+    uint32_t start_ticks;
+    uint32_t end_ticks;
+  };
+
+  // Return event at index. Must be less than current `NumEvents`.
+  Event GetEvent(int index);
+
  private:
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
