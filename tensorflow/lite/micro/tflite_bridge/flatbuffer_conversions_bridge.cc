@@ -33,8 +33,7 @@ TfLiteStatus CallBuiltinParseFunction(BuiltinParseFunction parser,
                                       const Operator* op,
                                       BuiltinDataAllocator* allocator,
                                       void** builtin_data) {
-  return parser(op, tflite::GetMicroErrorReporter(), allocator,
-                (void**)(&builtin_data));
+  return parser(op, tflite::GetMicroErrorReporter(), allocator, builtin_data);
 }
 }  // namespace bridge
 }  // namespace tflite
