@@ -29,11 +29,6 @@ cc_library(
 )
 
 cc_library(
-    name = "static_alloc",
-    hdrs = ["static_alloc.h"],
-)
-
-cc_library(
     name = "micro_features_generator",
     srcs = [
         "micro_features_generator.cc",

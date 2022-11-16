@@ -95,6 +95,17 @@ class Interpreter(object):
     return Interpreter(model_data, custom_op_registerers, arena_size,
                        num_resource_variables)
 
+  def print_allocations(self):
+    """Invoke the RecordingMicroAllocator to print the arena usage.
+
+    This should be called after `invoke()`.
+
+    Returns:
+      This method does not return anything, but It dumps the arena
+      usage to stderr.
+    """
+    self._interpreter.PrintAllocations()
+
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.
 

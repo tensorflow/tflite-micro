@@ -26,13 +26,6 @@ namespace tflite {
 // allocation usage.
 class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
  public:
-  // TODO(b/246776144): Will be removed with http://b/246776144
-  RecordingSingleArenaBufferAllocator(ErrorReporter* error_reporter,
-                                      uint8_t* buffer_head, size_t buffer_size)
-      : RecordingSingleArenaBufferAllocator(buffer_head, buffer_size) {
-    (void)error_reporter;
-  }
-
   RecordingSingleArenaBufferAllocator(uint8_t* buffer_head, size_t buffer_size);
   // TODO(b/157615197): Cleanup constructors/destructor and use factory
   // functions.
@@ -40,14 +33,6 @@ class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
 
   static RecordingSingleArenaBufferAllocator* Create(uint8_t* buffer_head,
                                                      size_t buffer_size);
-
-  // TODO(b/246776144): Will be removed with http://b/246776144
-  static RecordingSingleArenaBufferAllocator* Create(
-      ErrorReporter* error_reporter, uint8_t* buffer_head, size_t buffer_size) {
-    (void)error_reporter;
-    return RecordingSingleArenaBufferAllocator::Create(buffer_head,
-                                                       buffer_size);
-  }
 
   // Returns the number of bytes requested from the head or tail.
   size_t GetRequestedBytes() const;

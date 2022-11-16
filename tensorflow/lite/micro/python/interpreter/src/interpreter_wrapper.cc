@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
 namespace {
@@ -221,8 +222,9 @@ InterpreterWrapper::InterpreterWrapper(
 
   const Model* model = GetModel(buf);
   model_ = model_data;
-  allocator_ = MicroAllocator::Create(new uint8_t[arena_size], arena_size);
-  resource_variables_ = nullptr;
+  memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
+  allocator_ = RecordingMicroAllocator::Create(memory_arena_.get(), arena_size);
+  MicroResourceVariables* resource_variables_ = nullptr;
   if (num_resource_variables > 0)
     resource_variables_ =
         MicroResourceVariables::Create(allocator_, num_resource_variables);
@@ -248,6 +250,8 @@ InterpreterWrapper::InterpreterWrapper(
   // up the lookup table that maps PyArray_* macros to the correct APIs.
   ImportNumpy();
 }
+
+void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
 int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 

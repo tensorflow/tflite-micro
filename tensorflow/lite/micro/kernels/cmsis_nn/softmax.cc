@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/softmax.h"
 
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"

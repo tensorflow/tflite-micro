@@ -126,7 +126,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       } else {
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
         int err;
         const RuntimeShape& input1_shape =
             tflite::micro::GetTensorShape(input1);

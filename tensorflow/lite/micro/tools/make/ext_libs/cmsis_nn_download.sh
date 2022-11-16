@@ -41,23 +41,23 @@ if [ ! -d ${DOWNLOADS_DIR} ]; then
   exit 1
 fi
 
-DOWNLOADED_CMSIS_PATH=${DOWNLOADS_DIR}/cmsis
+DOWNLOADED_CMSIS_NN_PATH=${DOWNLOADS_DIR}/cmsis_nn
 
-if [ -d ${DOWNLOADED_CMSIS_PATH} ]; then
-  echo >&2 "${DOWNLOADED_CMSIS_PATH} already exists, skipping the download."
+if [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
+  echo >&2 "${DOWNLOADED_CMSIS_NN_PATH} already exists, skipping the download."
 else
 
-  ZIP_PREFIX="dde5bac01b1b0b5ef528989a3139ce10bb1b054d"
-  CMSIS_URL="http://github.com/ARM-software/CMSIS_5/archive/${ZIP_PREFIX}.zip"
-  CMSIS_MD5="00cc7ce80ace3d074deaa2c07d9c5c3b"
+  ZIP_PREFIX_NN="e98ee09a03dd12d4b3eac6f7efa25d3ad62a24b9"
+  CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
+  CMSIS_NN_MD5="a0e4b5f2c5c62405c304c7ffcc64af3b"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
-  wget ${CMSIS_URL} -O /tmp/${ZIP_PREFIX}.zip >&2
-  check_md5 /tmp/${ZIP_PREFIX}.zip ${CMSIS_MD5}
+  wget ${CMSIS_NN_URL} -O /tmp/${ZIP_PREFIX_NN}.zip >&2
+  check_md5 /tmp/${ZIP_PREFIX_NN}.zip ${CMSIS_NN_MD5}
 
-  unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
-  mv /tmp/CMSIS_5-${ZIP_PREFIX} ${DOWNLOADED_CMSIS_PATH}
+  unzip -qo /tmp/${ZIP_PREFIX_NN}.zip -d /tmp >&2
+  mv /tmp/CMSIS-NN-${ZIP_PREFIX_NN} ${DOWNLOADED_CMSIS_NN_PATH}
 fi
 
 echo "SUCCESS"

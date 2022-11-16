@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -142,37 +142,39 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void PopulateCommonParams(TfLiteContext* context,
-                          cmsis_nn_per_tensor_quant_params& quant_params,
-                          cmsis_nn_dims& input_dims, cmsis_nn_dims& filter_dims,
-                          cmsis_nn_dims& bias_dims, cmsis_nn_dims& output_dims,
-                          cmsis_nn_context& ctx, const OpData& data) {
-  quant_params.multiplier = data.reference_op_data.output_multiplier;
-  quant_params.shift = data.reference_op_data.output_shift;
+                          cmsis_nn_per_tensor_quant_params* const quant_params,
+                          cmsis_nn_dims* const input_dims,
+                          cmsis_nn_dims* const filter_dims,
+                          cmsis_nn_dims* const bias_dims,
+                          cmsis_nn_dims* const output_dims,
+                          cmsis_nn_context* const ctx, const OpData& data) {
+  quant_params->multiplier = data.reference_op_data.output_multiplier;
+  quant_params->shift = data.reference_op_data.output_shift;
 
-  input_dims.n = data.batches;
-  input_dims.h = 1;
-  input_dims.w = 1;
-  input_dims.c = data.accum_depth;
+  input_dims->n = data.batches;
+  input_dims->h = 1;
+  input_dims->w = 1;
+  input_dims->c = data.accum_depth;
 
-  filter_dims.n = data.accum_depth;
-  filter_dims.h = 1;
-  filter_dims.w = 1;
-  filter_dims.c = data.output_depth;
+  filter_dims->n = data.accum_depth;
+  filter_dims->h = 1;
+  filter_dims->w = 1;
+  filter_dims->c = data.output_depth;
 
-  bias_dims.n = 1;
-  bias_dims.h = 1;
-  bias_dims.w = 1;
-  bias_dims.c = data.output_depth;
+  bias_dims->n = 1;
+  bias_dims->h = 1;
+  bias_dims->w = 1;
+  bias_dims->c = data.output_depth;
 
-  output_dims.n = data.batches;
-  output_dims.h = 1;
-  output_dims.w = 1;
-  output_dims.c = data.output_depth;
+  output_dims->n = data.batches;
+  output_dims->h = 1;
+  output_dims->w = 1;
+  output_dims->c = data.output_depth;
 
-  ctx.buf = nullptr;
-  ctx.size = 0;
+  ctx->buf = nullptr;
+  ctx->size = 0;
   if (data.buffer_idx > -1) {
-    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
+    ctx->buf = context->GetScratchBuffer(context, data.buffer_idx);
   }
 }
 
@@ -194,8 +196,8 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   cmsis_nn_dims output_dims;
   cmsis_nn_context ctx;
 
-  PopulateCommonParams(context, quant_params, input_dims, filter_dims,
-                       bias_dims, output_dims, ctx, data);
+  PopulateCommonParams(context, &quant_params, &input_dims, &filter_dims,
+                       &bias_dims, &output_dims, &ctx, data);
 
   const int32_t* bias_data =
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
@@ -265,8 +267,8 @@ TfLiteStatus EvalQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
   cmsis_nn_dims output_dims;
   cmsis_nn_context ctx;
 
-  PopulateCommonParams(context, quant_params, input_dims, filter_dims,
-                       bias_dims, output_dims, ctx, data);
+  PopulateCommonParams(context, &quant_params, &input_dims, &filter_dims,
+                       &bias_dims, &output_dims, &ctx, data);
 
   const int64_t* bias_data =
       tflite::micro::GetOptionalTensorData<int64_t>(bias);
