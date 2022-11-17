@@ -630,12 +630,13 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
       kTfLiteOk);
 }
 
+// This test was created by handcrafting simple_int4_weights_data, and
+// simple_golden_null_bias_int4_weights was obtained by running
+// TestFullyConnectedQuantized() with int8 quantization, and ensuring that int4
+// quantization yields the same outputs.
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
   const float input_scale = 1.0f;
   const int input_zero_point = -1;
-  // Handcrafting scale to work such that all values of `simple_weights_data`
-  // are quantized to within [-8,7]. Zero point of -7 is chosen so that enough
-  // quantization bins are utilized to pass the tolerance.
   const float weights_scale = 1.0f;
   const int weights_zero_point = 0;
   const float output_scale = 0.5f;
