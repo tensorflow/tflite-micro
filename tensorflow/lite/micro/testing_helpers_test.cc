@@ -40,6 +40,29 @@ TF_LITE_MICRO_TEST(CreateQuantizedBiasTensor) {
   }
 }
 
+
+TF_LITE_MICRO_TEST(UnpackInt4Basic) {
+  int8_t input[4] = {-8, 3, -2, -5};
+  const int8_t expect_output[2] = {0x38, static_cast<int8_t>(0xBE)};
+  int8_t output_size = 2;
+
+  tflite::testing::PackInt4ValuesDenselyInPlace(reinterpret_cast<uint8_t*>(input), 4);
+  for (int i = 0; i < output_size; i++) {
+    TF_LITE_MICRO_EXPECT_EQ(expect_output[i], input[i]);
+  }
+}
+
+TF_LITE_MICRO_TEST(UnpackInt4BasicOddLength) {
+  int8_t input[4] = {-8, 3, -2};
+  const int8_t expect_output[2] = {0x38, static_cast<int8_t>(0xB0)};
+  int8_t output_size = 2;
+
+  tflite::testing::PackInt4ValuesDenselyInPlace(reinterpret_cast<uint8_t*>(input), 4);
+  for (int i = 0; i < output_size; i++) {
+    TF_LITE_MICRO_EXPECT_EQ(expect_output[i], input[i]);
+  }
+}
+
 TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
   float input_scale = 0.5;
   float weight_scales[] = {0.5, 1, 2, 4};
