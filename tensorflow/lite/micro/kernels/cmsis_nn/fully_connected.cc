@@ -131,8 +131,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         RuntimeShape(filter->dims->size,
                      reinterpret_cast<const int32_t*>(filter->dims->data))
             .FlatSize();
-    context->RequestScratchBufferInArena(context, filter_size,
-                                         &data->filter_buffer_index);
+    context->RequestScratchBufferInArena(
+        context, filter_size, &data->reference_op_data.filter_buffer_index);
   }
 
   if (buf_size > 0) {
@@ -340,8 +340,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           return EvalQuantizedInt8(context, node, data, input, filter, bias,
                                    output);
         case kTfLiteInt4: {
-          int8_t* unpacked_filter_data = static_cast<int8_t*>(
-              context->GetScratchBuffer(context, data.filter_buffer_index));
+          int8_t* unpacked_filter_data =
+              static_cast<int8_t*>(context->GetScratchBuffer(
+                  context, data.reference_op_data.filter_buffer_index));
           tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
               FullyConnectedParamsQuantized(data),
               tflite::micro::GetTensorShape(input),
@@ -359,18 +360,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                       TfLiteTypeGetName(filter->type), filter->type);
           return kTfLiteError;
       }
-    } break;
+      break;
+    }
+    case kTfLiteInt16: {
+      return EvalQuantizedInt16(context, node, data, input, filter, bias,
+                                output);
+    }
+    default: {
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
+      return kTfLiteError;
+    }
   }
-  case kTfLiteInt16: {
-    return EvalQuantizedInt16(context, node, data, input, filter, bias, output);
-  }
-  default: {
-    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
-                input->type);
-    return kTfLiteError;
-  }
-}
-return kTfLiteOk;
+  return kTfLiteOk;
 }
 
 // Note that the current function names are not ideal at all (this EvalInt8
