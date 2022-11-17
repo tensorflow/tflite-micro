@@ -42,12 +42,17 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 1
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
+// INT4 isn't supported on Hexagon (b/258710417)
+#if !defined(HEXAGON)
 const float simple_int4_weights_data[] = {
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 1
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 2
 };
-
+const float simple_golden_null_bias_int4_weights[] = {
+    -28, -28, -28, 0, 0, 0,
+};
+#endif
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 const float simple_golden[] = {
@@ -55,9 +60,6 @@ const float simple_golden[] = {
 };
 const float simple_golden_null_bias[] = {
     23, 23, 23, 57, 57, 57,
-};
-const float simple_golden_null_bias_int4_weights[] = {
-    -28, -28, -28, 0, 0, 0,
 };
 
 const int simple_output_size = 6;
@@ -631,7 +633,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
 }
 
 // INT4 isn't supported on Hexagon (b/258710417)
-#if !(defined(HEXAGON))
+#if !defined(HEXAGON)
 // This test was created by handcrafting simple_int4_weights_data, and
 // simple_golden_null_bias_int4_weights was obtained by running
 // TestFullyConnectedQuantized() with int8 quantization, and ensuring that int4
