@@ -10,6 +10,7 @@ package(
 
 cc_library(
     name = "common",
+    srcs = ["common.cc"],
     hdrs = [
         "builtin_op_data.h",
         "common.h",
@@ -17,8 +18,6 @@ cc_library(
     copts = tflite_copts(),
     deps = [
         ":c_api_types",
-        "//tensorflow/lite/core/c:c_api_types",
-        "//tensorflow/lite/core/c:common",
     ],
 )
 
@@ -26,7 +25,4 @@ cc_library(
     name = "c_api_types",
     hdrs = ["c_api_types.h"],
     copts = tflite_copts(),
-    deps = [
-        "//tensorflow/lite/core/c:c_api_types",
-    ],
 )
