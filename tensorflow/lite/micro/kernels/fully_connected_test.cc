@@ -630,6 +630,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
       kTfLiteOk);
 }
 
+// INT4 isn't supported on Hexagon (b/258710417)
+#if !(defined(HEXAGON))
 // This test was created by handcrafting simple_int4_weights_data, and
 // simple_golden_null_bias_int4_weights was obtained by running
 // TestFullyConnectedQuantized() with int8 quantization, and ensuring that int4
@@ -660,5 +662,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
           output_zero_point, kTfLiteActNone, output_data, kTfLiteInt4),
       kTfLiteOk);
 }
+#endif
 
 TF_LITE_MICRO_TESTS_END
