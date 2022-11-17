@@ -42,6 +42,12 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 1
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
+const float simple_int4_weights_data[] = {
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 1
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 2
+};
+
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 const float simple_golden[] = {
@@ -49,6 +55,9 @@ const float simple_golden[] = {
 };
 const float simple_golden_null_bias[] = {
     23, 23, 23, 57, 57, 57,
+};
+const float simple_golden_null_bias_int4_weights[] = {
+    -28, -28, -28, 0, 0, 0,
 };
 
 const int simple_output_size = 6;
@@ -627,8 +636,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
   // Handcrafting scale to work such that all values of `simple_weights_data`
   // are quantized to within [-8,7]. Zero point of -7 is chosen so that enough
   // quantization bins are utilized to pass the tolerance.
-  const float weights_scale = 2.f;
-  const int weights_zero_point = -7;
+  const float weights_scale = 1.0f;
+  const int weights_zero_point = 0;
   const float output_scale = 0.5f;
   const int output_zero_point = -1;
 
@@ -642,12 +651,12 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
           tflite::testing::simple_input_dims,
           tflite::testing::simple_input_data, input_quantized, input_scale,
           input_zero_point, tflite::testing::simple_weights_dims,
-          tflite::testing::simple_weights_data, weights_quantized,
+          tflite::testing::simple_int4_weights_data, weights_quantized,
           weights_scale, weights_zero_point, nullptr, nullptr,
           static_cast<int32_t*>(nullptr),
-          tflite::testing::simple_golden_null_bias, golden_quantized,
-          tflite::testing::simple_output_dims, output_scale, output_zero_point,
-          kTfLiteActNone, output_data, kTfLiteInt4),
+          tflite::testing::simple_golden_null_bias_int4_weights,
+          golden_quantized, tflite::testing::simple_output_dims, output_scale,
+          output_zero_point, kTfLiteActNone, output_data, kTfLiteInt4),
       kTfLiteOk);
 }
 
