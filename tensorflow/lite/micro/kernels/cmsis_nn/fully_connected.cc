@@ -344,7 +344,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               static_cast<int8_t*>(context->GetScratchBuffer(
                   context, data.reference_op_data.filter_buffer_index));
           tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
-              FullyConnectedParamsQuantized(data),
+              FullyConnectedParamsQuantized(data.reference_op_data),
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int8_t>(input),
               tflite::micro::GetTensorShape(filter),

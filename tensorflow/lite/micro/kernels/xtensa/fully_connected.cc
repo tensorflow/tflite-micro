@@ -224,8 +224,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetOptionalTensorData<int32_t>(bias),
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int8_t>(output));
+    return kTfLiteOk;
+  } else {
+    return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
   }
-  return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
 }
 
 }  // namespace

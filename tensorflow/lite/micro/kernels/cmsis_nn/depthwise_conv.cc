@@ -123,8 +123,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         RuntimeShape(filter->dims->size,
                      reinterpret_cast<const int32_t*>(filter->dims->data))
             .FlatSize();
-    context->RequestScratchBufferInArena(context, filter_size,
-                                         &data->filter_buffer_index);
+    context->RequestScratchBufferInArena(
+        context, filter_size, &data->reference_op_data.filter_buffer_index);
   }
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataDepthwiseConv(
@@ -353,16 +353,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8:
       switch (filter->type) {
-        case kTfLiteInt8:
+        case kTfLiteInt8: {
           EvalQuantizedPerChannel(context, node, params, data, input, filter,
                                   bias, output);
           break;
+        }
         case kTfLiteInt4: {
-          int8_t* unpacked_filter_data = static_cast<int8_t*>(
-              context->GetScratchBuffer(context, data.filter_buffer_index));
+          int8_t* unpacked_filter_data =
+              static_cast<int8_t*>(context->GetScratchBuffer(
+                  context, data.reference_op_data.filter_buffer_index));
           reference_integer_ops::DepthwiseConvPerChannelWithPackedInt4Weights(
-              DepthwiseConvParamsQuantized(params, data),
-              data.per_channel_output_multiplier, data.per_channel_output_shift,
+              DepthwiseConvParamsQuantized(params, data.reference_op_data),
+              data.reference_op_data.per_channel_output_multiplier,
+              data.reference_op_data.per_channel_output_shift,
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int8_t>(input),
               tflite::micro::GetTensorShape(filter),
@@ -373,11 +376,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorData<int8_t>(output));
           break;
         }
-        default:
+        default: {
           MicroPrintf("Filter type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);
           return kTfLiteError;
+        }
       }
+      break;
     case kTfLiteInt16:
       EvalQuantizedPerChannel16x8(context, node, params, data, input, filter,
                                   bias, output);
