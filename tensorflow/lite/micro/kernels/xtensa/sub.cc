@@ -130,7 +130,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else  // defined(HIFI4)
+#else   // defined(HIFI4)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
