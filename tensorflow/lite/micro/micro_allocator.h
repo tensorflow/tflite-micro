@@ -19,11 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
+#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -226,7 +226,7 @@ class MicroAllocator {
   // `FinishModelAllocation`. Otherwise, it will return 0.
   size_t used_bytes() const;
 
-  BuiltinDataAllocator* GetBuiltinDataAllocator();
+  TfLiteBridgeBuiltinDataAllocator* GetBuiltinDataAllocator();
 
  protected:
   MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
@@ -296,7 +296,7 @@ class MicroAllocator {
   IPersistentBufferAllocator* persistent_buffer_allocator_;
 
   // Allocator used to allocate persistent builtin data.
-  BuiltinDataAllocator* builtin_data_allocator_;
+  TfLiteBridgeBuiltinDataAllocator* builtin_data_allocator_;
 
   // Activation buffer memory planner.
   MicroMemoryPlanner* memory_planner_;
