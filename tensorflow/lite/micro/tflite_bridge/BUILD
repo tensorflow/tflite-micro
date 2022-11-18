@@ -24,7 +24,7 @@ cc_library(
     deps = [
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api:api",
+        "//tensorflow/lite/core/api",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
