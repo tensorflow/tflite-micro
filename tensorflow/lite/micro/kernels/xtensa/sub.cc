@@ -81,6 +81,8 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
   op_params.output_shift = data->output_shift;
   SetActivationParams(data->output_activation_min, data->output_activation_max,
                       &op_params);
+  // TODO(b/259724572): vision_p6 and hifi code path is getting very confusing.
+  // Let's separate them into two different files.
 #if !defined(HIFI4)
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
@@ -100,6 +102,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       const int* input1_dims = extended_input1_shape.DimsData();
       const int* input2_dims = extended_input2_shape.DimsData();
       const int* output_dims = extended_output_shape.DimsData();
+      // TODO(b/259724572): Refactor the following block of code.
       int b;
       int inp1_off = 0;
       int inp2_off = 0;
