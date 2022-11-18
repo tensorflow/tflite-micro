@@ -24,7 +24,7 @@ cc_library(
     deps = [
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api:flatbuffer_conversions",
+        "//tensorflow/lite/core/api:api",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
@@ -55,6 +55,9 @@ cc_library(
         "micro_error_reporter.h",
     ],
     copts = micro_copts(),
+    visibility = [
+        "//tensorflow/lite/micro/tflite_bridge:__pkg__",
+    ],
     deps = [
         "//tensorflow/lite/core/api:error_reporter",
         "//tensorflow/lite/micro:micro_compatibility",
