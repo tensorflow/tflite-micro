@@ -50,7 +50,7 @@ constexpr int kUnassignedScratchBufferRequestIndex = -1;
 
 const TfLiteIntArray kZeroLengthIntArray = {};
 
-class MicroBuiltinDataAllocator : public bridge::BuiltinDataAllocator {
+class MicroBuiltinDataAllocator : public TfLiteBridgeBuiltinDataAllocator {
  public:
   explicit MicroBuiltinDataAllocator(
       IPersistentBufferAllocator* persistent_allocator)
@@ -201,8 +201,8 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
-  TF_LITE_ENSURE_STATUS(tflite::bridge::ConvertTensorType(
-      flatbuffer_tensor.type(), &result->type));
+  TF_LITE_ENSURE_STATUS(
+      tflite::ConvertTensorType(flatbuffer_tensor.type(), &result->type));
   // Make sure we remember if the serialized tensor is designated as a variable.
   result->is_variable = flatbuffer_tensor.is_variable();
 
@@ -317,8 +317,8 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
-  TF_LITE_ENSURE_STATUS(tflite::bridge::ConvertTensorType(
-      flatbuffer_tensor.type(), &result->type));
+  TF_LITE_ENSURE_STATUS(
+      tflite::ConvertTensorType(flatbuffer_tensor.type(), &result->type));
 
   result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
 
@@ -931,7 +931,7 @@ internal::ScratchBufferRequest* MicroAllocator::GetScratchBufferRequests() {
       scratch_buffer_head_, alignof(internal::ScratchBufferRequest)));
 }
 
-bridge::BuiltinDataAllocator* MicroAllocator::GetBuiltinDataAllocator() {
+TfLiteBridgeBuiltinDataAllocator* MicroAllocator::GetBuiltinDataAllocator() {
   return builtin_data_allocator_;
 }
 

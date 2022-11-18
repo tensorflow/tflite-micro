@@ -93,7 +93,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
     TFLITE_DCHECK(subgraph != nullptr);
 
     auto* opcodes = model_->operator_codes();
-    bridge::BuiltinDataAllocator* builtin_data_allocator =
+    TfLiteBridgeBuiltinDataAllocator* builtin_data_allocator =
         allocator_.GetBuiltinDataAllocator();
     uint32_t operators_size = NumSubgraphOperators(subgraph);
     for (size_t i = 0; i < operators_size; ++i) {
@@ -104,11 +104,11 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
         return kTfLiteError;
       }
       const auto* opcode = opcodes->Get(index);
-      TfLiteStatus status = bridge::GetRegistrationFromOpCode(
-          opcode, op_resolver_,
-          &(graph_.GetAllocations()[subgraph_idx]
-                .node_and_registrations[i]
-                .registration));
+      TfLiteStatus status =
+          GetRegistrationFromOpCode(opcode, op_resolver_,
+                                    &(graph_.GetAllocations()[subgraph_idx]
+                                          .node_and_registrations[i]
+                                          .registration));
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to get registration from op code %s\n ",
                     EnumNameBuiltinOperator(GetBuiltinCode(opcode)));
@@ -144,7 +144,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
           return kTfLiteError;
         }
 
-        bridge::BuiltinParseFunction parser =
+        TfLiteBridgeBuiltinParseFunction parser =
             op_resolver_.GetOpDataParser(op_type);
         if (parser == nullptr) {
           MicroPrintf("Did not find a parser for %s",
@@ -152,7 +152,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
 
           return kTfLiteError;
         }
-        TF_LITE_ENSURE_STATUS(bridge::CallBuiltinParseFunction(
+        TF_LITE_ENSURE_STATUS(CallBuiltinParseFunction(
             parser, op, builtin_data_allocator, (void**)(&builtin_data)));
       }
 

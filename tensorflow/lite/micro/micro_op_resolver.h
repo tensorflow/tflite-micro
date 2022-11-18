@@ -31,7 +31,7 @@ namespace tflite {
 // We need an interface class instead of directly using MicroMutableOpResolver
 // because MicroMutableOpResolver is a class template with the number of
 // registered Ops as the template parameter.
-class MicroOpResolver : public bridge::OpResolver {
+class MicroOpResolver : public TfLiteBridgeOpResolver {
  public:
   // Returns the Op registration struct corresponding to the enum code from the
   // flatbuffer schema. Returns nullptr if the op is not found or if op ==
@@ -57,7 +57,7 @@ class MicroOpResolver : public bridge::OpResolver {
 
   // Returns the operator specific parsing function for the OpData for a
   // BuiltinOperator (if registered), else nullptr.
-  virtual bridge::BuiltinParseFunction GetOpDataParser(
+  virtual TfLiteBridgeBuiltinParseFunction GetOpDataParser(
       BuiltinOperator op) const = 0;
 
   ~MicroOpResolver() override {}

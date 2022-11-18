@@ -4,7 +4,6 @@ load(
 )
 
 package(
-    default_visibility = ["//visibility:public"],
     # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
     licenses = ["notice"],
@@ -19,6 +18,9 @@ cc_library(
         "flatbuffer_conversions_bridge.h",
     ],
     copts = micro_copts(),
+    visibility = [
+        "//tensorflow/lite/micro:__pkg__",
+    ],
     deps = [
         ":micro_error_reporter",
         "//tensorflow/lite/c:common",
@@ -33,7 +35,7 @@ cc_library(
     hdrs = ["op_resolver_bridge.h"],
     copts = micro_copts(),
     visibility = [
-        "//visibility:public",
+        "//tensorflow/lite/micro:__pkg__",
     ],
     deps = [
         ":micro_error_reporter",

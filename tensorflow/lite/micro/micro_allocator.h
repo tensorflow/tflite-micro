@@ -226,7 +226,7 @@ class MicroAllocator {
   // `FinishModelAllocation`. Otherwise, it will return 0.
   size_t used_bytes() const;
 
-  bridge::BuiltinDataAllocator* GetBuiltinDataAllocator();
+  TfLiteBridgeBuiltinDataAllocator* GetBuiltinDataAllocator();
 
  protected:
   MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
@@ -296,7 +296,7 @@ class MicroAllocator {
   IPersistentBufferAllocator* persistent_buffer_allocator_;
 
   // Allocator used to allocate persistent builtin data.
-  bridge::BuiltinDataAllocator* builtin_data_allocator_;
+  TfLiteBridgeBuiltinDataAllocator* builtin_data_allocator_;
 
   // Activation buffer memory planner.
   MicroMemoryPlanner* memory_planner_;

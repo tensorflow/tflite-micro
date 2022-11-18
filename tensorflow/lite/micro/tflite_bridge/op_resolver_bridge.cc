@@ -22,7 +22,6 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
-namespace bridge {
 
 TfLiteStatus GetRegistrationFromOpCode(
     const OperatorCode* opcode, const OpResolver& op_resolver,
@@ -30,5 +29,4 @@ TfLiteStatus GetRegistrationFromOpCode(
   return GetRegistrationFromOpCode(
       opcode, op_resolver, tflite::GetMicroErrorReporter(), registration);
 }
-}  // namespace bridge
 }  // namespace tflite

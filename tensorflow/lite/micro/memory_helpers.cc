@@ -111,7 +111,7 @@ TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
 
   TfLiteType tf_lite_type;
   TF_LITE_ENSURE_STATUS(
-      bridge::ConvertTensorType(flatbuffer_tensor.type(), &tf_lite_type));
+      ConvertTensorType(flatbuffer_tensor.type(), &tf_lite_type));
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(tf_lite_type, type_size));
   *bytes = element_count * (*type_size);
   return kTfLiteOk;

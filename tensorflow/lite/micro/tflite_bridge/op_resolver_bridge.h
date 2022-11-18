@@ -12,12 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_CORE_API_OP_RESOLVER_BRIDGE_H_
-#define TENSORFLOW_LITE_CORE_API_OP_RESOLVER_BRIDGE_H_
-
-#include <functional>
-#include <memory>
-#include <vector>
+#ifndef TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_OP_RESOLVER_BRIDGE_H_
+#define TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_OP_RESOLVER_BRIDGE_H_
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
@@ -28,12 +24,7 @@ namespace tflite {
 // Forward declaration of the classes and structs used here.
 struct OperatorCode;
 
-// namespace bridge to wrap the TFLite API and features for use in TFLM
-namespace bridge {
-
-// Using declarative to create tflite::bridge::OpResolver from
-// tflite::OpResolver
-using OpResolver = OpResolver;
+using TfLiteBridgeOpResolver = OpResolver;
 
 // Handles the logic for converting between an OperatorCode structure extracted
 // from a flatbuffer and information about a registered operator
@@ -42,7 +33,6 @@ TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const OpResolver& op_resolver,
                                        const TfLiteRegistration** registration);
 
-}  // namespace bridge
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_CORE_API_OP_RESOLVER_BRIDGE_H_
+#endif  // TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_OP_RESOLVER_BRIDGE_H_

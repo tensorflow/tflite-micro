@@ -21,19 +21,14 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
-namespace bridge {
-// Converts the tensor data type used in the flat buffer to the representation
-// used by the runtime.
 TfLiteStatus ConvertTensorType(TensorType tensor_type, TfLiteType* type) {
   return ConvertTensorType(tensor_type, type, tflite::GetMicroErrorReporter());
 }
 
-// Wrapper function to wrap the parser function calls
-TfLiteStatus CallBuiltinParseFunction(BuiltinParseFunction parser,
+TfLiteStatus CallBuiltinParseFunction(TfLiteBridgeBuiltinParseFunction parser,
                                       const Operator* op,
                                       BuiltinDataAllocator* allocator,
                                       void** builtin_data) {
   return parser(op, tflite::GetMicroErrorReporter(), allocator, builtin_data);
 }
-}  // namespace bridge
 }  // namespace tflite
