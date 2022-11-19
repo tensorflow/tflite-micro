@@ -10,11 +10,13 @@ cc_library(
     name = "api",
     srcs = [
         "flatbuffer_conversions.cc",
+        "tensor_utils.cc",
     ],
     hdrs = [
         "error_reporter.h",
         "flatbuffer_conversions.h",
         "op_resolver.h",
+        "tensor_utils.h",
     ],
     copts = tflite_copts() + micro_copts(),
     visibility = ["//visibility:public"],
