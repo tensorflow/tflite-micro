@@ -98,8 +98,8 @@ class TestDataGenerator:
       raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
     interpreter = tf.lite.Interpreter(model_path=model_path,
-                                      experimental_op_resolver_type=tf.lite.
-                                      experimental.OpResolverType.BUILTIN_REF)
+                                      experimental_op_resolver_type=\
+                                        tf.lite.experimental.OpResolverType.BUILTIN_REF)
 
     interpreter.allocate_tensors()
 
@@ -136,8 +136,8 @@ class TestDataGenerator:
       # Load model and run a single inference with random inputs.
       interpreter = tf.lite.Interpreter(
           model_path=model_path,
-          experimental_op_resolver_type=tf.lite.experimental.OpResolverType.
-          BUILTIN_REF)
+          experimental_op_resolver_type=\
+            tf.lite.experimental.OpResolverType.BUILTIN_REF)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
           interpreter.get_input_details()[0]['index'])
