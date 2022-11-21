@@ -99,7 +99,7 @@ class TestDataGenerator:
     model_path = self.model_paths[0]
     interpreter = tf.lite.Interpreter(model_path=model_path,
                                       experimental_op_resolver_type=\
-                                        tf.lite.experimental.OpResolverType.BUILTIN_REF)
+                                      tf.lite.experimental.OpResolverType.BUILTIN_REF)
 
     interpreter.allocate_tensors()
 
@@ -137,7 +137,7 @@ class TestDataGenerator:
       interpreter = tf.lite.Interpreter(
           model_path=model_path,
           experimental_op_resolver_type=\
-            tf.lite.experimental.OpResolverType.BUILTIN_REF)
+          tf.lite.experimental.OpResolverType.BUILTIN_REF)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
           interpreter.get_input_details()[0]['index'])

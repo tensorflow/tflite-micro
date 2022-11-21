@@ -505,7 +505,7 @@ def predict_tflite(tflite_model: bytes, x_test: np.ndarray) -> np.ndarray:
   # Initialize the TFLite interpreter
   interpreter = tf.lite.Interpreter(model_content=tflite_model,
                                     experimental_op_resolver_type=\
-                                      tf.lite.experimental.OpResolverType.BUILTIN_REF)
+                                    tf.lite.experimental.OpResolverType.BUILTIN_REF)
   interpreter.allocate_tensors()
 
   input_details = interpreter.get_input_details()[0]

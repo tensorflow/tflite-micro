@@ -45,7 +45,7 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
     tflite_interpreter = tf.lite.Interpreter(
         model_path=self.model_path,
         experimental_op_resolver_type=\
-          tf.lite.experimental.OpResolverType.BUILTIN_REF)
+        tf.lite.experimental.OpResolverType.BUILTIN_REF)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
