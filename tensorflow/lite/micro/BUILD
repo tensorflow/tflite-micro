@@ -225,7 +225,7 @@ cc_library(
         ":micro_compatibility",
         ":micro_log",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api:flatbuffer_conversions",
+        "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels:micro_ops",
