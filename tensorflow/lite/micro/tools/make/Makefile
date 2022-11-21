@@ -150,11 +150,6 @@ COMMON_FLAGS := \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
-# no-stringop-overread is not a valid flag for some toolchains
-ifeq ($(findstring $(TARGET),xtensa hexagon),)
-  COMMON_FLAGS += -Wno-stringop-overread
-endif
-
 ifeq ($(TARGET), $(HOST_OS))
   # If we are not doing a cross-compilation then -DTF_LITE_USE_CTIME is what we
   # want to have by default.
