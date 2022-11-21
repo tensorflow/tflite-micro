@@ -170,9 +170,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       # Check that TFLM output has correct metadata
       self.assertDTypeEqual(tflm_output, np.int8)
       self.assertEqual(tflm_output.shape, self.output_shape)
-      # Check that result differences are less than tolerance (b/205046520).
-      # TODO: Remove tolerance when the bug is fixed.
-      self.assertAllLessEqual((tflite_output - tflm_output), 1)
+      self.assertAllEqual(tflite_output, tflm_output)
 
   def _helperModelFromFileAndBufferEqual(self, number_resource_variables=0):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
