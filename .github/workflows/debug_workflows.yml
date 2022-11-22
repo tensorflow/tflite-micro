@@ -1,0 +1,19 @@
+name: Debugging Workflows
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  no-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail-without-labels
+        if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:test') }}
+        run: exit 1
+
+  call-ci:
+    needs: no-labels
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
