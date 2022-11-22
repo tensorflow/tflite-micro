@@ -89,6 +89,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   output_dims.w = output->dims->data[2];
   output_dims.c = output_shape.Dims(3);
 
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(
+        context, filter_size, &data->reference_op_data.filter_buffer_index);
+  }
+
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const int num_channels = filter->dims->data[kConvQuantizedDimension];
     data->reference_op_data.per_channel_output_multiplier =
@@ -424,8 +433,36 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                     bias, output);
+      switch (filter->type) {
+        case kTfLiteInt8: {
+          return EvalQuantizedPerChannel(context, node, params, data, input,
+                                         filter, bias, output);
+        }
+
+        case kTfLiteInt4: {
+          int8_t* unpacked_filter_data =
+              static_cast<int8_t*>(context->GetScratchBuffer(
+                  context, data.reference_op_data.filter_buffer_index));
+          reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
+              ConvParamsQuantized(params, data.reference_op_data),
+              data.reference_op_data.per_channel_output_multiplier,
+              data.reference_op_data.per_channel_output_shift,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int8_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(filter),
+              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int32_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type);
+          return kTfLiteError;
+        }
+      }
+
       break;
     case kTfLiteInt16:
       return EvalQuantizedPerChannel16x8(context, node, params, data, input,
