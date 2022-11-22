@@ -26,7 +26,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
-
 // Common inputs and outputs.
 constexpr int kInputElements = 16;
 static int kInputShape[] = {4, 2, 2, 4, 1};
