@@ -455,6 +455,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
+              return kTfLiteOk;
         }
         default: {
           MicroPrintf("Filter type %s (%d) not supported.",
