@@ -69,7 +69,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return nullptr;
   }
 
-  MicroOpResolver::BuiltinParseFunction GetOpDataParser(
+  TfLiteBridgeBuiltinParseFunction GetOpDataParser(
       BuiltinOperator op) const override {
     TFLITE_DCHECK(num_buitin_ops_ <= tOpCount);
     for (unsigned int i = 0; i < num_buitin_ops_; ++i) {
@@ -599,7 +599,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
  private:
   TfLiteStatus AddBuiltin(tflite::BuiltinOperator op,
                           const TfLiteRegistration& registration,
-                          MicroOpResolver::BuiltinParseFunction parser) {
+                          TfLiteBridgeBuiltinParseFunction parser) {
     if (op == BuiltinOperator_CUSTOM) {
       MicroPrintf("Invalid parameter BuiltinOperator_CUSTOM to the ");
       MicroPrintf("AddBuiltin function.");
@@ -637,7 +637,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // Arrays (and counter) to store the builtin codes and their corresponding
   // parse functions as these are registered with the Op Resolver.
   BuiltinOperator builtin_codes_[tOpCount];
-  MicroOpResolver::BuiltinParseFunction builtin_parsers_[tOpCount];
+  TfLiteBridgeBuiltinParseFunction builtin_parsers_[tOpCount];
   unsigned int num_buitin_ops_ = 0;
 };
 
