@@ -1871,6 +1871,7 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     int* zero_points, TfLiteAffineQuantization* affine_quant,
     int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type) {
   int channel_count = dims->data[quantized_dimension];
+
   scales[0] = static_cast<float>(channel_count);
   zero_points[0] = channel_count;
 
@@ -1884,7 +1885,6 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
   affine_quant->scale = FloatArrayFromFloats(scales);
   affine_quant->zero_point = IntArrayFromInts(zero_points);
   affine_quant->quantized_dimension = quantized_dimension;
-
   TfLiteTensor result =
       CreateTensor(quantized, dims, is_variable, tensor_weight_type);
   result.quantization = {kTfLiteAffineQuantization, affine_quant};

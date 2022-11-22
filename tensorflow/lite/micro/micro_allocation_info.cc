@@ -39,6 +39,10 @@ void AllocationInfoBuilder::UpdateFirstCreated(AllocationInfo* current,
   TFLITE_DCHECK(current->first_created <= allocation_scope_count);
   if (current->first_created == kUninitializedLifetime) {
     current->first_created = allocation_scope_count;
+    // TODO(b/257084942): This will ensure that tensors that are outputs from an
+    // OP but not inputs to any other OP also have a reasonable lifetime.
+    // This bug will be used to add automated tests for this issue.
+    current->last_used = allocation_scope_count;
   }
 }
 
@@ -326,7 +330,7 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
       auto metadata = model_->metadata()->Get(i);
 
       if (metadata->name()) {
-        const size_t metadata_name_size = strlen(metadata->name()->c_str());
+        const size_t metadata_name_size = metadata->name()->size();
 
         if ((strncmp(metadata->name()->c_str(), kOfflineMemAllocMetadata,
                      std::min(metadata_name_size,
