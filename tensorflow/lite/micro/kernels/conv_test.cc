@@ -26,7 +26,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
-
 // Common inputs and outputs.
 constexpr int kInputElements = 16;
 static int kInputShape[] = {4, 2, 2, 4, 1};
@@ -62,9 +61,39 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
+TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
+  const int output_dims_count = 12;
+  int8_t output_data[output_dims_count];
+
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int8_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int32_t bias_quantized[tflite::testing::kBiasElements];
+  int8_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestConvQuantizedPerChannel(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kFilterShape, tflite::testing::kFilterData,
+          filter_quantized, tflite::testing::kBiasShape,
+          tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+          golden_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
+          output_data, kTfLiteInt4));
+}
 #if !defined(XTENSA)  // TODO(b/170321206): xtensa kernels are less general than
                       // reference kernels and we ifdef out test cases that are
                       // currently known to fail.
+
 TF_LITE_MICRO_TEST(SimpleTestFloat) {
   float output_data[tflite::testing::kOutputElements];
 
