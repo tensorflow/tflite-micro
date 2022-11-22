@@ -9,7 +9,7 @@ Teardown With Custom Message
 Create Platform
     Execute Command           $logfile=@${UART_LOG}
     Execute Script            ${RESC}
-    Provides                  ready-platform
+    Provides                  ready-platform Reexecution
 
 Test Binary
     [Arguments]               ${BIN}
