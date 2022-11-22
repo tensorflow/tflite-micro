@@ -150,6 +150,14 @@ COMMON_FLAGS := \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 
+<<<<<<< HEAD
+# no-stringop-overread is not a valid flag for some toolchains
+ifeq ($(filter cortex_m% xtensa hexagon,$(TARGET)),)
+  COMMON_FLAGS += -Wno-stringop-overread
+endif
+
+=======
+>>>>>>> origin/upstream/main
 ifeq ($(TARGET), $(HOST_OS))
   # If we are not doing a cross-compilation then -DTF_LITE_USE_CTIME is what we
   # want to have by default.
