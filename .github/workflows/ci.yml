@@ -26,7 +26,7 @@ jobs:
     name: Bazel (presubmit)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
         with:
@@ -36,8 +36,6 @@ jobs:
           sudo ci/install_bazel.sh
           pip3 install Pillow
           pip3 install Wave
-          export PYTHON_BIN_PATH=$(which python)
-          sudo apt install -y python-numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
@@ -48,7 +46,7 @@ jobs:
     name: Cortex-M (presubmit)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
         with:
@@ -69,7 +67,7 @@ jobs:
     name: Code Style (presubmit)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
         with:
@@ -85,7 +83,7 @@ jobs:
     name: Project Generation (presubmit)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
         with:
@@ -105,7 +103,7 @@ jobs:
     name: Makefile x86 (presubmit)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
         with:
