@@ -70,6 +70,7 @@ jobs:
               repo: context.repo.repo,
               name: 'ci:run'
             })
+        continue-on-error: true
 
   pr-has-bug:
     runs-on: ubuntu-latest
