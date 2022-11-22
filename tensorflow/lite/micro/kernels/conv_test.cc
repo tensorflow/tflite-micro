@@ -24,40 +24,40 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 amespace tflite {
-namespace testing {
-namespace {
+  namespace testing {
+  namespace {
 
-// Common inputs and outputs.
-constexpr int kInputElements = 16;
-static int kInputShape[] = {4, 2, 2, 4, 1};
-static const float kInputData[kInputElements] = {1, 1, 1, 1, 2, 2, 2, 2,
-                                                 1, 2, 3, 4, 1, 2, 3, 4};
+  // Common inputs and outputs.
+  constexpr int kInputElements = 16;
+  static int kInputShape[] = {4, 2, 2, 4, 1};
+  static const float kInputData[kInputElements] = {1, 1, 1, 1, 2, 2, 2, 2,
+                                                   1, 2, 3, 4, 1, 2, 3, 4};
 
-constexpr int kFilterElements = 12;
-static int kFilterShape[] = {4, 3, 2, 2, 1};
-static const float kFilterData[kFilterElements] = {1,  2, 3,  4,  -1, 1,
-                                                   -1, 1, -1, -1, 1,  1};
+  constexpr int kFilterElements = 12;
+  static int kFilterShape[] = {4, 3, 2, 2, 1};
+  static const float kFilterData[kFilterElements] = {1,  2, 3,  4,  -1, 1,
+                                                     -1, 1, -1, -1, 1,  1};
 
-constexpr int kBiasElements = 3;
-static int kBiasShape[] = {1, 3};
-static const float kBiasData[kBiasElements] = {1, 2, 3};
+  constexpr int kBiasElements = 3;
+  static int kBiasShape[] = {1, 3};
+  static const float kBiasData[kBiasElements] = {1, 2, 3};
 
-constexpr int kOutputElements = 12;
-static int kOutputShape[] = {4, 2, 1, 2, 3};
-static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
-                                                   17, 4, 3, 37, 4, 3};
+  constexpr int kOutputElements = 12;
+  static int kOutputShape[] = {4, 2, 1, 2, 3};
+  static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
+                                                     17, 4, 3, 37, 4, 3};
 
-static TfLiteConvParams common_conv_params = {
-    kTfLitePaddingValid,  // padding
-    2,                    // stride_width
-    2,                    // stride_height
-    kTfLiteActNone,       // activation
-    1,                    // dilation_width_factor
-    1,                    // dilation_height_factor
-};
+  static TfLiteConvParams common_conv_params = {
+      kTfLitePaddingValid,  // padding
+      2,                    // stride_width
+      2,                    // stride_height
+      kTfLiteActNone,       // activation
+      1,                    // dilation_width_factor
+      1,                    // dilation_height_factor
+  };
 
-}  // namespace
-}  // namespace testing
+  }  // namespace
+  }  // namespace testing
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
