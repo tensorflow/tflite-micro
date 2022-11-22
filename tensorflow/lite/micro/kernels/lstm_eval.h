@@ -22,7 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+// Since LSTM includes multiple intermediate stages, introducing the internal
+// namespace to expose them for testing
 namespace lstm_internal {
 void CalculateLstmGateFloat(
     const float* input, const float* input_to_gate_weights,
