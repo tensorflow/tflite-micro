@@ -126,7 +126,7 @@ struct MultiTimeLstmEvalData {
   };
 
   // Initialize hidden state as zeros
-  const float hidden_state[kGateOutputSize] = {0};
+  const float hidden_state[kGateOutputSize] = {};
 
   // The expected model output after kTimeSteps using the fixed input and
   // parameters
@@ -488,7 +488,7 @@ class QuantizedModelContents
   // values. The quantization of the floating point values uses the quantization
   // parameters specified while creating the ModelQuantization object.
   void QuantizeInputTensor(const float* data) {
-    ActivationType quantized_input_data[kInputSize];
+    ActivationType quantized_input_data[kInputSize] = {};
     Quantize(data, quantized_input_data, kInputSize,
              quantization_settings_.input_quantization_parameters.scale,
              quantization_settings_.input_quantization_parameters.zero_point);
@@ -500,7 +500,7 @@ class QuantizedModelContents
   // quantization parameters specified while creating the ModelQuantization
   // object.
   void QuantizeHiddenStateTensor(const float* data) {
-    ActivationType quantized_hidden_state_data[kGateOutputSize];
+    ActivationType quantized_hidden_state_data[kGateOutputSize] = {};
     Quantize(data, quantized_hidden_state_data, kGateOutputSize,
              quantization_settings_.hidden_quantization_parameters.scale,
              quantization_settings_.hidden_quantization_parameters.zero_point);
@@ -670,7 +670,7 @@ void TestGateOutputFloat(const GateParameters<float, float>& gate_params,
                          TfLiteFusedActivation activation_type,
                          const float* input_data, const float* hidden_state,
                          const float* expected_vals) {
-  float gate_output[kGateOutputSize] = {0};
+  float gate_output[kGateOutputSize] = {};
   tflite::lstm_internal::CalculateLstmGateFloat(
       input_data, gate_params.activation_weight,
       /*aux_input=*/nullptr, /*aux_input_to_gate_weights*/ nullptr,
@@ -698,19 +698,19 @@ void TestGateOutputQuantized(
     TfLiteFusedActivation nonlinear_type, const float* expected_vals,
     float tolerance) {
   // Quantize the  floating point input
-  ActivationType quantized_input[kOneTimeInputSize];
+  ActivationType quantized_input[kOneTimeInputSize] = {};
   Quantize(kGateOutputData.input_data, quantized_input, kOneTimeInputSize,
            quantization_settings.input_quantization_parameters.scale,
            quantization_settings.input_quantization_parameters.zero_point);
   // Quantize the  floating point hidden state
-  ActivationType quantized_hidden_state[kGateOutputSize];
+  ActivationType quantized_hidden_state[kGateOutputSize] = {};
   Quantize(kGateOutputData.hidden_state, quantized_hidden_state,
            kGateOutputSize,
            quantization_settings.hidden_quantization_parameters.scale,
            quantization_settings.hidden_quantization_parameters.zero_point);
 
-  CellType gate_output[kGateOutputSize] = {0};
-  BiasType scratch_buffer[kGateOutputSize];
+  CellType gate_output[kGateOutputSize] = {};
+  BiasType scratch_buffer[kGateOutputSize] = {};
 
   tflite::lstm_internal::CalculateLstmGateInteger8x8_16(
       // Input and weights
@@ -734,7 +734,7 @@ void TestGateOutputQuantized(
       // Scratch arrays
       scratch_buffer);
 
-  float gate_output_float[kGateOutputSize];
+  float gate_output_float[kGateOutputSize] = {};
   Dequantize(gate_output, kGateOutputSize,
              quantization_settings.nonlinear_activation_output_scale, 0,
              gate_output_float);
@@ -745,11 +745,11 @@ void TestGateOutputQuantized(
 
 void TestCellUpdateFloat() {
   // copy the data since it will be updated
-  float cell_state[kGateOutputSize];
+  float cell_state[kGateOutputSize] = {};
   std::memcpy(cell_state, kGateOutputData.cell_state,
               kGateOutputSize * sizeof(float));
 
-  float forget_gate[kGateOutputSize];
+  float forget_gate[kGateOutputSize] = {};
   std::memcpy(forget_gate, kGateOutputData.expected_forget_gate_output,
               kGateOutputSize * sizeof(float));
 
@@ -769,23 +769,23 @@ void TestCellUpdateQuantized(
     const ModelQuantizationParameters& quantization_settings,
     const int32_t cell_scale_shift, const CellType quantized_cell_clip,
     const float tolerance) {
-  CellType quantized_cell_state[kGateOutputSize];
+  CellType quantized_cell_state[kGateOutputSize] = {};
   tflite::Quantize(
       kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
       quantization_settings.cell_quantization_parameters.scale,
       quantization_settings.cell_quantization_parameters.zero_point);
 
-  CellType quantized_forget_gate[kGateOutputSize];
+  CellType quantized_forget_gate[kGateOutputSize] = {};
   tflite::Quantize(kGateOutputData.expected_forget_gate_output,
                    quantized_forget_gate, kGateOutputSize,
                    quantization_settings.nonlinear_activation_output_scale, 0);
 
-  CellType quantized_input_gate[kGateOutputSize];
+  CellType quantized_input_gate[kGateOutputSize] = {};
   tflite::Quantize(kGateOutputData.expected_input_gate_output,
                    quantized_input_gate, kGateOutputSize,
                    quantization_settings.nonlinear_activation_output_scale, 0);
 
-  CellType quantized_cell_gate[kGateOutputSize];
+  CellType quantized_cell_gate[kGateOutputSize] = {};
   tflite::Quantize(kGateOutputData.expected_cell_gate_output,
                    quantized_cell_gate, kGateOutputSize,
                    quantization_settings.nonlinear_activation_output_scale, 0);
@@ -795,7 +795,7 @@ void TestCellUpdateQuantized(
       quantized_input_gate, quantized_forget_gate, quantized_cell_gate, false,
       quantized_cell_clip);
 
-  float cell_state_float[kGateOutputSize];
+  float cell_state_float[kGateOutputSize] = {};
   Dequantize(quantized_cell_state, kGateOutputSize,
              quantization_settings.cell_quantization_parameters.scale,
              quantization_settings.cell_quantization_parameters.zero_point,
@@ -808,8 +808,8 @@ void TestCellUpdateQuantized(
 void TestHiddenStateUpdateFloat() {
   // If no projection layer, hidden state dimension == output dimension ==
   // cell state dimension
-  float output[kGateOutputSize];
-  float scratch[kGateOutputSize];
+  float output[kGateOutputSize] = {};
+  float scratch[kGateOutputSize] = {};
 
   tflite::lstm_internal::CalculateLstmOutputFloat(
       kBatchSize, kStateDimension, kStateDimension,
@@ -825,24 +825,24 @@ template <typename ActivationType, typename BiasType, typename CellType>
 void TestHiddenStateUpdateQuantized(
     const ModelQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params, const float tolerance) {
-  CellType quantized_cell_state[kGateOutputSize];
+  CellType quantized_cell_state[kGateOutputSize] = {};
   tflite::Quantize(
       kGateOutputData.expected_updated_cell, quantized_cell_state,
       kGateOutputSize, quantization_settings.cell_quantization_parameters.scale,
       quantization_settings.cell_quantization_parameters.zero_point);
 
-  CellType quantized_output_gate[kGateOutputSize];
+  CellType quantized_output_gate[kGateOutputSize] = {};
   tflite::Quantize(kGateOutputData.expected_output_gate_output,
                    quantized_output_gate, kGateOutputSize,
                    quantization_settings.nonlinear_activation_output_scale, 0);
 
   // scratches
-  int16_t scratch0[kGateOutputSize];
-  int8_t scratch1[kGateOutputSize];
-  int32_t scratch2[kGateOutputSize];
+  int16_t scratch0[kGateOutputSize] = {};
+  int8_t scratch1[kGateOutputSize] = {};
+  int32_t scratch2[kGateOutputSize] = {};
 
   // output (updated hidden state)
-  int8_t output_state[kGateOutputSize];
+  int8_t output_state[kGateOutputSize] = {};
 
   tflite::lstm_internal::CalculateLstmOutputInteger8x8_16(
       kBatchSize, kStateDimension, kStateDimension, quantized_cell_state,
@@ -854,7 +854,7 @@ void TestHiddenStateUpdateQuantized(
       evaluation_params.quantized_proj_clip, output_state, scratch0, scratch1,
       scratch2);
 
-  float output_state_float[kGateOutputSize];
+  float output_state_float[kGateOutputSize] = {};
   Dequantize(output_state, kGateOutputSize,
              quantization_settings.hidden_quantization_parameters.scale,
              quantization_settings.hidden_quantization_parameters.zero_point,
@@ -866,21 +866,21 @@ void TestHiddenStateUpdateQuantized(
 
 void TestOneStepLSTMFloat() {
   // scratch buffers
-  float forget_gate_scratch[kGateOutputSize];
-  float input_gate_scratch[kGateOutputSize];
-  float cell_gate_scratch[kGateOutputSize];
-  float output_gate_scratch[kGateOutputSize];
+  float forget_gate_scratch[kGateOutputSize] = {};
+  float input_gate_scratch[kGateOutputSize] = {};
+  float cell_gate_scratch[kGateOutputSize] = {};
+  float output_gate_scratch[kGateOutputSize] = {};
 
   // initialize hidden and cell state (will be updated, copy the value)
-  float hidden_state[kGateOutputSize];
+  float hidden_state[kGateOutputSize] = {};
   std::memcpy(hidden_state, kGateOutputData.hidden_state,
               kGateOutputSize * sizeof(float));
 
-  float cell_state[kGateOutputSize];
+  float cell_state[kGateOutputSize] = {};
   std::memcpy(cell_state, kGateOutputData.cell_state,
               kGateOutputSize * sizeof(float));
 
-  float output[kGateOutputSize];
+  float output[kGateOutputSize] = {};
 
   tflite::lstm_internal::LstmStepFloat(
       kGateOutputData.input_data, kInputGateParameters.activation_weight,
@@ -925,33 +925,33 @@ void TestOneStepLSTMQuantized(
   auto quantization_settings = model_contents.QuantizationSettings();
   auto evaluation_params = model_contents.EvaluationParameters();
 
-  ActivationType quantized_input[4];
+  ActivationType quantized_input[4] = {};
   tflite::Quantize(
       kGateOutputData.input_data, quantized_input, 4,
       quantization_settings.input_quantization_parameters.scale,
       quantization_settings.input_quantization_parameters.zero_point);
 
   // initialize hidden and cell state (will be updated)
-  ActivationType quantized_hidden_state[kGateOutputSize] = {0};
+  ActivationType quantized_hidden_state[kGateOutputSize] = {};
   Quantize(kGateOutputData.hidden_state, quantized_hidden_state,
            kGateOutputSize,
            quantization_settings.hidden_quantization_parameters.scale,
            quantization_settings.hidden_quantization_parameters.zero_point);
 
-  CellType quantized_cell_state[kGateOutputSize] = {0};
+  CellType quantized_cell_state[kGateOutputSize] = {};
   tflite::Quantize(
       kGateOutputData.cell_state, quantized_cell_state, kGateOutputSize,
       quantization_settings.cell_quantization_parameters.scale,
       quantization_settings.cell_quantization_parameters.zero_point);
 
-  ActivationType output[kGateOutputSize];
+  ActivationType output[kGateOutputSize] = {};
   // Scratch buffers
-  CellType scratch0[kGateOutputSize];
-  CellType scratch1[kGateOutputSize];
-  CellType scratch2[kGateOutputSize];
-  CellType scratch3[kGateOutputSize];
-  ActivationType scratch4[kOutputSize];
-  BiasType scratch5[kGateOutputSize];
+  CellType scratch0[kGateOutputSize] = {};
+  CellType scratch1[kGateOutputSize] = {};
+  CellType scratch2[kGateOutputSize] = {};
+  CellType scratch3[kGateOutputSize] = {};
+  ActivationType scratch4[kOutputSize] = {};
+  BiasType scratch5[kGateOutputSize] = {};
 
   tflite::lstm_internal::LstmStepInteger8x8_16(
       quantized_input, model_contents.InputGateParams().activation_weight,
@@ -1019,13 +1019,13 @@ void TestOneStepLSTMQuantized(
       quantized_cell_state, output, scratch0, scratch1, scratch2, scratch3,
       scratch4, scratch5);
 
-  float dequantized_hidden_state[kGateOutputSize];
+  float dequantized_hidden_state[kGateOutputSize] = {};
   Dequantize(quantized_hidden_state, kGateOutputSize,
              quantization_settings.hidden_quantization_parameters.scale,
              quantization_settings.hidden_quantization_parameters.zero_point,
              dequantized_hidden_state);
 
-  float dequantized_cell_state[kGateOutputSize];
+  float dequantized_cell_state[kGateOutputSize] = {};
   Dequantize(quantized_cell_state, kGateOutputSize,
              quantization_settings.cell_quantization_parameters.scale,
              quantization_settings.cell_quantization_parameters.zero_point,
@@ -1096,12 +1096,12 @@ void TestLSTMEvalQuantized(const float hidden_state_tolerance,
                               kInputGateParameters, kCellGateParameters,
                               kOutputGateParameters);
   // Scratch buffers
-  CellType scratch0[kGateOutputSize];
-  CellType scratch1[kGateOutputSize];
-  CellType scratch2[kGateOutputSize];
-  CellType scratch3[kGateOutputSize];
-  ActivationType scratch4[kOutputSize];
-  BiasType scratch5[kGateOutputSize];
+  CellType scratch0[kGateOutputSize] = {};
+  CellType scratch1[kGateOutputSize] = {};
+  CellType scratch2[kGateOutputSize] = {};
+  CellType scratch3[kGateOutputSize] = {};
+  ActivationType scratch4[kOutputSize] = {};
+  BiasType scratch5[kGateOutputSize] = {};
 
   auto quantization_settings = quantized_model_content.QuantizationSettings();
 
@@ -1141,7 +1141,7 @@ void TestLSTMEvalQuantized(const float hidden_state_tolerance,
       quantized_model_content.GetTensor(15), scratch0, scratch1, scratch2,
       scratch3, scratch4, scratch5);
 
-  float dequantized_hidden_state[kGateOutputSize];
+  float dequantized_hidden_state[kGateOutputSize] = {};
   Dequantize(quantized_model_content.GetHiddenState(), kGateOutputSize,
              quantization_settings.hidden_quantization_parameters.scale,
              quantization_settings.hidden_quantization_parameters.zero_point,
@@ -1151,7 +1151,7 @@ void TestLSTMEvalQuantized(const float hidden_state_tolerance,
                         dequantized_hidden_state, kGateOutputSize,
                         hidden_state_tolerance);
 
-  float dequantized_cell_state[kGateOutputSize];
+  float dequantized_cell_state[kGateOutputSize] = {};
   Dequantize(quantized_model_content.GetCellState(), kGateOutputSize,
              quantization_settings.cell_quantization_parameters.scale,
              quantization_settings.cell_quantization_parameters.zero_point,
@@ -1160,7 +1160,7 @@ void TestLSTMEvalQuantized(const float hidden_state_tolerance,
                         dequantized_cell_state, kGateOutputSize,
                         cell_state_tolerance);
 
-  float dequantized_output[kOutputSize];
+  float dequantized_output[kOutputSize] = {};
   Dequantize(quantized_model_content.GetOutput(), kOutputSize,
              quantization_settings.output_quantization_parameters.scale,
              quantization_settings.output_quantization_parameters.zero_point,
