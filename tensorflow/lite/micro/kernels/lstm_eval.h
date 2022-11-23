@@ -186,68 +186,68 @@ void LstmStepInteger8x8_16(
 // Pamameters for integer LSTM.
 // Consider split this into two Integer Parameters if more fields are added.
 struct IntegerLstmParameter {
-  int32_t effective_input_to_input_scale_a;
-  int32_t effective_input_to_input_scale_b;
-  int32_t effective_recurrent_to_input_scale_a;
-  int32_t effective_recurrent_to_input_scale_b;
-  int32_t effective_cell_to_input_scale_a;
-  int32_t effective_cell_to_input_scale_b;
-  int32_t effective_input_to_forget_scale_a;
-  int32_t effective_input_to_forget_scale_b;
-  int32_t effective_recurrent_to_forget_scale_a;
-  int32_t effective_recurrent_to_forget_scale_b;
-  int32_t effective_cell_to_forget_scale_a;
-  int32_t effective_cell_to_forget_scale_b;
-  int32_t effective_input_to_cell_scale_a;
-  int32_t effective_input_to_cell_scale_b;
-  int32_t effective_recurrent_to_cell_scale_a;
-  int32_t effective_recurrent_to_cell_scale_b;
-  int32_t effective_input_to_output_scale_a;
-  int32_t effective_input_to_output_scale_b;
-  int32_t effective_recurrent_to_output_scale_a;
-  int32_t effective_recurrent_to_output_scale_b;
-  int32_t effective_cell_to_output_scale_a;
-  int32_t effective_cell_to_output_scale_b;
-  int32_t effective_proj_scale_a;
-  int32_t effective_proj_scale_b;
-  int32_t effective_hidden_scale_a;
-  int32_t effective_hidden_scale_b;
-  int32_t layer_norm_input_scale_a;
-  int32_t layer_norm_input_scale_b;
-  int32_t layer_norm_forget_scale_a;
-  int32_t layer_norm_forget_scale_b;
-  int32_t layer_norm_cell_scale_a;
-  int32_t layer_norm_cell_scale_b;
-  int32_t layer_norm_output_scale_a;
-  int32_t layer_norm_output_scale_b;
+  int32_t effective_input_to_input_scale_a = 0;
+  int32_t effective_input_to_input_scale_b = 0;
+  int32_t effective_recurrent_to_input_scale_a = 0;
+  int32_t effective_recurrent_to_input_scale_b = 0;
+  int32_t effective_cell_to_input_scale_a = 0;
+  int32_t effective_cell_to_input_scale_b = 0;
+  int32_t effective_input_to_forget_scale_a = 0;
+  int32_t effective_input_to_forget_scale_b = 0;
+  int32_t effective_recurrent_to_forget_scale_a = 0;
+  int32_t effective_recurrent_to_forget_scale_b = 0;
+  int32_t effective_cell_to_forget_scale_a = 0;
+  int32_t effective_cell_to_forget_scale_b = 0;
+  int32_t effective_input_to_cell_scale_a = 0;
+  int32_t effective_input_to_cell_scale_b = 0;
+  int32_t effective_recurrent_to_cell_scale_a = 0;
+  int32_t effective_recurrent_to_cell_scale_b = 0;
+  int32_t effective_input_to_output_scale_a = 0;
+  int32_t effective_input_to_output_scale_b = 0;
+  int32_t effective_recurrent_to_output_scale_a = 0;
+  int32_t effective_recurrent_to_output_scale_b = 0;
+  int32_t effective_cell_to_output_scale_a = 0;
+  int32_t effective_cell_to_output_scale_b = 0;
+  int32_t effective_proj_scale_a = 0;
+  int32_t effective_proj_scale_b = 0;
+  int32_t effective_hidden_scale_a = 0;
+  int32_t effective_hidden_scale_b = 0;
+  int32_t layer_norm_input_scale_a = 0;
+  int32_t layer_norm_input_scale_b = 0;
+  int32_t layer_norm_forget_scale_a = 0;
+  int32_t layer_norm_forget_scale_b = 0;
+  int32_t layer_norm_cell_scale_a = 0;
+  int32_t layer_norm_cell_scale_b = 0;
+  int32_t layer_norm_output_scale_a = 0;
+  int32_t layer_norm_output_scale_b = 0;
   // Quantized clip value for cell and projection. Zero value means no
   // clipping.
-  int16_t quantized_cell_clip;
-  int8_t quantized_proj_clip;
-  int32_t hidden_zp;
-  int32_t cell_scale;
+  int16_t quantized_cell_clip = 0;
+  int8_t quantized_proj_clip = 0;
+  int32_t hidden_zp = 0;
+  int32_t cell_scale = 0;
 
-  int32_t input_variance_guard;
-  int32_t forget_variance_guard;
-  int32_t cell_variance_guard;
-  int32_t output_variance_guard;
+  int32_t input_variance_guard = 0;
+  int32_t forget_variance_guard = 0;
+  int32_t cell_variance_guard = 0;
+  int32_t output_variance_guard = 0;
 
   // Pre-calculate bias + zero_point * weight.
-  int32_t* input_to_forget_effective_bias;
-  int32_t* recurrent_to_forget_effective_bias;
-  int32_t* input_to_cell_effective_bias;
-  int32_t* recurrent_to_cell_effective_bias;
-  int32_t* input_to_output_effective_bias;
-  int32_t* recurrent_to_output_effective_bias;
-  int32_t* input_to_input_effective_bias;
-  int32_t* recurrent_to_input_effective_bias;
-  int32_t* projection_effective_bias;
+  int32_t* input_to_forget_effective_bias = nullptr;
+  int32_t* recurrent_to_forget_effective_bias = nullptr;
+  int32_t* input_to_cell_effective_bias = nullptr;
+  int32_t* recurrent_to_cell_effective_bias = nullptr;
+  int32_t* input_to_output_effective_bias = nullptr;
+  int32_t* recurrent_to_output_effective_bias = nullptr;
+  int32_t* input_to_input_effective_bias = nullptr;
+  int32_t* recurrent_to_input_effective_bias = nullptr;
+  int32_t* projection_effective_bias = nullptr;
 
   // Scale and zero point for intermediate tensors.
   // Used only in the 8x8_8 case.
-  int32_t intermediate_scale_a[8];
-  int32_t intermediate_scale_b[8];
-  int32_t intermediate_zp[12];
+  int32_t intermediate_scale_a[8] = {};
+  int32_t intermediate_scale_b[8] = {};
+  int32_t intermediate_zp[12] = {};
 };
 
 TfLiteStatus EvalFloatLstm(
