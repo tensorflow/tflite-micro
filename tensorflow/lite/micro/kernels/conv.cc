@@ -111,10 +111,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (filter->type) {
         case kTfLiteInt4: {
-          int8_t* unpacked_filter_data = nullptr;
-          OpDataConv* op_data = static_cast<OpDataConv*>(node->user_data);
-          unpacked_filter_data = static_cast<int8_t*>(
-              context->GetScratchBuffer(context, op_data->filter_buffer_index));
+          int8_t* unpacked_filter_data = static_cast<int8_t*>(
+              context->GetScratchBuffer(context, data.filter_buffer_index));
           reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
               ConvParamsQuantized(params, data),
               data.per_channel_output_multiplier, data.per_channel_output_shift,

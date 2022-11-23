@@ -200,7 +200,6 @@ TfLiteFloatArray* FloatArrayFromFloats(const float* floats);
 // Returns a new buffer that is packed densely with 2 4-bit values in a byte.
 // The packing format is low-bits-first, i.e. the lower nibble of a byte is
 // filled first, followed by the upper nibble.
-
 void PackInt4ValuesDenselyInPlace(uint8_t* src_buffer, int buffer_size);
 
 template <typename T>
@@ -223,7 +222,6 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
     PackInt4ValuesDenselyInPlace(tflite::GetTensorData<uint8_t>(&result),
                                  ElementCount(*dims));
     result.bytes = ((ElementCount(*dims) + 1) / 2);
-
   } else {
     // Const cast is used to allow passing in const and non-const arrays within
     // a single CreateTensor method. A Const array should be used for immutable
@@ -231,15 +229,15 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
     // tensors.
     result.type = typeToTfLiteType<T>();
   }
-
   return result;
 }
 
 template <typename T>
 TfLiteTensor CreateQuantizedTensor(const T* data, TfLiteIntArray* dims,
                                    const float scale, const int zero_point = 0,
-                                   const bool is_variable = false) {
-  TfLiteTensor result = CreateTensor(data, dims, is_variable);
+                                   const bool is_variable = false,
+                                   TfLiteType type = kTfLiteNoType) {
+  TfLiteTensor result = CreateTensor(data, dims, is_variable, type);
   result.params = {scale, zero_point};
   result.quantization = {kTfLiteAffineQuantization, nullptr};
   return result;
@@ -248,10 +246,12 @@ TfLiteTensor CreateQuantizedTensor(const T* data, TfLiteIntArray* dims,
 template <typename T>
 TfLiteTensor CreateQuantizedTensor(const float* input, T* quantized,
                                    TfLiteIntArray* dims, float scale,
-                                   int zero_point, bool is_variable = false) {
+                                   int zero_point, bool is_variable = false,
+                                   TfLiteType type = kTfLiteNoType) {
   int input_size = ElementCount(*dims);
   tflite::Quantize(input, quantized, input_size, scale, zero_point);
-  return CreateQuantizedTensor(quantized, dims, scale, zero_point, is_variable);
+  return CreateQuantizedTensor(quantized, dims, scale, zero_point, is_variable,
+                               type);
 }
 
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
