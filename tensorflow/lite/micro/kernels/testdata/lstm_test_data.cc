@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
 
+#include "tensorflow/lite/micro/test_helpers.h"
+
 namespace tflite {
 namespace testing {
 template <typename ActivationType, typename WeightType, typename BiasType,

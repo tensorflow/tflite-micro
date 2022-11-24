@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstring>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
 namespace testing {
