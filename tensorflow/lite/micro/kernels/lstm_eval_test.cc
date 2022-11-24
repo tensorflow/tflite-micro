@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -58,104 +59,10 @@ constexpr TfLiteLSTMParams kModelSettings = {
     /*.asymmetric_quantize_inputs=*/true};
 
 /*TEST DATA */
-/*Testing Data*/
-// One time data  to test the output of each gate inside the LSTM
-struct GateOutputCheckData {
-  const float input_data[kOneTimeInputSize] = {
-      0.2, 0.3,    // batch1
-      -0.98, 0.62  // batch2
-  };
-  const float hidden_state[kGateOutputSize] = {
-      -0.1, 0.2,  // batch1
-      -0.3, 0.5   // batch2
-  };
-  const float cell_state[kGateOutputSize] = {
-      -1.3, 6.2,  // batch1
-      -7.3, 3.5   // batch2
-  };
-
-  // Use the forget gate parameters to test small gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[-10,-10],[-20,-20]][0.2,
-  // +[[-10,-10],[-20,-20]][-0.1, 0.2]+[1,2]) = sigmoid([-5,-10]) =
-  // [6.69285092e-03, 4.53978687e-05] (Batch1)
-  // Similarly, we have [0.93086158 0.9945137 ] for batch 2
-  const float expected_forget_gate_output[kGateOutputSize] = {
-      6.69285092e-3f, 4.53978687e-5f, 0.93086158, 0.9945137};
-
-  // Use the input gate parameters to test small gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[10,10],[20,20]][0.2, 0.3]
-  // +[[10,10],[20,20]][-0.1, 0.2]+[-1,-2]) = sigmoid([5,10]) =
-  // [0.99330715, 0.9999546]
-  // Similarly, we have [0.06913842 0.0054863 ] for batch 2
-  const float expected_input_gate_output[kGateOutputSize] = {
-      0.99330715, 0.9999546, 0.06913842, 0.0054863};
-
-  // Use the output gate parameters to test normnal gate outputs
-  // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[1,1],[1,1]][0.2, 0.3]
-  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = sigmoid([0.6,0.6]) =
-  // [0.6456563062257954, 0.6456563062257954]
-  // Similarly, we have [[0.46008512 0.46008512]] for batch 2
-  const float expected_output_gate_output[kGateOutputSize] = {
-      0.6456563062257954, 0.6456563062257954, 0.46008512, 0.46008512};
-
-  // Use the cell(modulation) gate parameters to tanh output
-  // output = tanh(W_i*i+W_h*h+b) = tanh([[1,1],[1,1]][0.2, 0.3]
-  // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = tanh([0.6,0.6]) =
-  // [0.6456563062257954, 0.6456563062257954]
-  // Similarly, we have [-0.1586485 -0.1586485] for batch 2
-  const float expected_cell_gate_output[kGateOutputSize] = {
-      0.5370495669980353, 0.5370495669980353, -0.1586485, -0.1586485};
-
-  // Cell = forget_gate*cell + input_gate*cell_gate
-  // Note -6.80625824 is clipped to -6
-  const float expected_updated_cell[kGateOutputSize] = {0.52475447, 0.53730665,
-                                                        -6, 3.47992756};
-
-  // Use the updated cell state to update the hidden state
-  // tanh(expected_updated_cell) * expected_output_gate_output
-  const float expected_updated_hidden[kGateOutputSize] = {
-      0.31079388, 0.3169827, -0.46007947, 0.45921249};
-};
-
-struct MultiTimeLstmEvalData {
-  // batch one using repeated data; batch two mimics
-  // random input
-  const float input_data[kInputSize] = {
-      0.2,   0.3,  0.2,  0.3,  0.2,  0.3,   // batch one
-      -0.98, 0.62, 0.01, 0.99, 0.49, -0.32  // batch two
-  };
-
-  // Initialize hidden state as zeros
-  const float hidden_state[kGateOutputSize] = {};
-
-  // The expected model output after kTimeSteps using the fixed input and
-  // parameters
-  // TODO(b/253466487): document how the golden values are arrived at
-  const float expected_output[kOutputSize] = {
-      0.26455893,      0.26870455,      0.47935803,
-      0.47937014,      0.58013272,      0.58013278,  // batch1
-      -1.41184672e-3f, -1.43329117e-5f, 0.46887168,
-      0.46891281,      0.50054074,      0.50054148  // batch2
-  };
-
-  const float expected_hidden_state[kGateOutputSize] = {
-      0.58013272, 0.58013278,  // batch1
-      0.50054074, 0.50054148   // batch2
-  };
-
-  const float expected_cell_state[kGateOutputSize] = {
-      0.89740515, 0.8974053,  // batch1
-      0.80327607, 0.80327785  // batch2
-  };
-};
-
-// TODO(b/253466487): move the struct declaration (generalized, with setters)
-// into a .h and defines the global variables here
-constexpr GateOutputCheckData kGateOutputData;
-constexpr MultiTimeLstmEvalData kMultiTimeEvalData;
+const auto kGateOutputData = Get2X2GateOutputCheckData();
+const auto kMultiTimeEvalData = Get2X2LstmEvalCheckData();
 
 /*MODEL PARAMETERS*/
-
 // Struct that holds the weight/bias information for a standard gate (i.e. no
 // modification such as layer normalization, peephole, etc.)
 template <typename WeightType, typename BiasType>
@@ -315,78 +222,8 @@ class ModelContents {
 };
 
 /*QUANTIZATION SETTINGS*/
-// A struct that holds quantization parameters for a LSTM Tensor
-struct TensorQuantizationParameters {
-  // all the effective
-  const double scale;
-  const int zero_point;
-  const bool symmetry;
-};
-
-struct GateQuantizationParameters {
-  TensorQuantizationParameters activation_weight;
-  TensorQuantizationParameters recurrent_weight;
-  TensorQuantizationParameters bias;
-};
-
-// A struct that holds the quantization settings for the model
-struct ModelQuantizationParameters {
-  TfLiteType activation_type;
-  TfLiteType cell_type;
-  TfLiteType bias_type;
-  double nonlinear_activation_input_scale;
-  double nonlinear_activation_output_scale;
-  // Quantization parameters for input/output
-  TensorQuantizationParameters input_quantization_parameters;
-  TensorQuantizationParameters output_quantization_parameters;
-  // Quantization parameters for internal states
-  TensorQuantizationParameters hidden_quantization_parameters;
-  TensorQuantizationParameters cell_quantization_parameters;
-  // Quantization parameters for gates
-  GateQuantizationParameters forget_gate_quantization_parameters;
-  GateQuantizationParameters input_gate_quantization_parameters;
-  GateQuantizationParameters cell_gate_quantization_parameters;
-  GateQuantizationParameters output_gate_quantization_parameters;
-};
-
-// TODO(b/253466487): using initialization functions to make it more readable
-// (and general)
-constexpr ModelQuantizationParameters kInt8QuantizationSettings = {
-    /*activation_type=*/kTfLiteInt8,
-    /*cell_type=*/kTfLiteInt16,
-    /*bias_type=*/kTfLiteInt32,
-    /*nonlinear_input_scale=*/0.00024414062,   // std::pow(2.0f, -12.0f)
-    /*nonlinear_output_scale=*/0.00003051757,  // std::pow(2.0f, -15.0f)
-    /*Input=*/{/*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false},
-    /*output=*/{/*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false},
-    /*hidden=*/{/*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false},
-    /*cell=*/{/*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true},
-
-    /*forget_gate=*/
-    {/*activation_weight=*/{/*scale=*/0.15748031496062992, /*zp=*/0,
-                            /*symmetry=*/true},
-     /*recurrent_weight*/
-     {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-     /*bias=*/{/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}},
-
-    /*input_gate=*/
-    {/*activation_weight=*/{/*scale=*/0.15748031496062992, /*zp=*/0,
-                            /*symmetry=*/true},
-     /*recurrent_weight*/
-     {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-     /*bias=*/{/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}},
-
-    /*cell_gate=*/
-    {/*activation_weight=*/{/*scale=*/0.007874015748031496, /*zp=*/0,
-                            /*symmetry=*/true},
-     /*recurrent_weight*/
-     {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
-     /*bias=*/{/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}},
-
-    /*output_gate=*/
-    {/*activation_weight=*/{/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-     /*recurrent_weight*/ {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-     /*bias=*/{/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true}}};
+const ModelQuantizationParameters kInt8QuantizationSettings =
+    Get2X2Int8LstmQuantizationSettings();
 
 // A function that converts floating point gate parameters to the
 // corresponding quantized version
@@ -1040,9 +877,7 @@ void TestOneStepLSTMQuantized(
 }
 
 void TestLSTMEvalFloat() {
-  ModelContents<float, float, float, float> float_model_contents(
-      kForgetGateParameters, kInputGateParameters, kCellGateParameters,
-      kOutputGateParameters);
+  auto float_model_contents = Create2x3x2X2FloatModelContents();
 
   float_model_contents.SetInputTensorData(kMultiTimeEvalData.input_data);
 
@@ -1208,6 +1043,11 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // TODO(b/253466487): make it constant after refactor the IntegerLstmParameter
+  MicroPrintf("TEST %f",
+              tflite::testing::kInt8QuantizationSettings
+                  .input_gate_quantization_parameters.activation_weight.scale);
+  MicroPrintf("TEST %f", 0.15748031496062992);
+
   tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
       model_contents_int8(tflite::testing::kInt8QuantizationSettings,
                           tflite::testing::kForgetGateParameters,
