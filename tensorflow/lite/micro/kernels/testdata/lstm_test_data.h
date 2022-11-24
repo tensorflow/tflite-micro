@@ -132,11 +132,7 @@ class TestModelContents {
 
  private:
   template <typename T>
-  void SetTensor(const int index, const T* data, int* dims) {
-    tensors_[index].data.data = const_cast<T*>(data);
-    tensors_[index].dims = IntArrayFromInts(dims);
-    tensors_[index].type = typeToTfLiteType<T>();
-  }
+  void SetTensor(const int index, const T* data, int* dims);
 
   GateParameters<WeightType, BiasType, input_dimension, state_dimension>
       forget_gate_params_;

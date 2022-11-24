@@ -63,6 +63,19 @@ TestModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
   SetTensor(15, output_, output_size_);
 }
 
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
+template <typename T>
+void TestModelContents<ActivationType, WeightType, BiasType, CellType,
+                       batch_size, time_steps, input_dimension,
+                       state_dimension>::SetTensor(const int index,
+                                                   const T* data, int* dims) {
+  tensors_[index].data.data = const_cast<T*>(data);
+  tensors_[index].dims = IntArrayFromInts(dims);
+  tensors_[index].type = typeToTfLiteType<T>();
+}
+
 GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
   GateOutputCheckData<4, 4> gate_data;
   const float input_data[4] = {
