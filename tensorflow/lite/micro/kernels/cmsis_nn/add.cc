@@ -48,8 +48,10 @@ struct OpData {
   int32_t input1_multiplier;
   int32_t input2_multiplier;
   int32_t output_multiplier;
+
   int output_shift;
   int left_shift;
+
   int32_t input1_offset;
   int32_t input2_offset;
   int32_t output_offset;
@@ -179,12 +181,18 @@ TfLiteStatus EvalAddQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));
   } else {
-    reference_ops::Add(op_params, tflite::micro::GetTensorShape(input1),
-                       tflite::micro::GetTensorData<int16_t>(input1),
-                       tflite::micro::GetTensorShape(input2),
-                       tflite::micro::GetTensorData<int16_t>(input2),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<int16_t>(output), false);
+    arm_elementwise_add_s16(
+        tflite::micro::GetTensorData<int16_t>(input1),
+        tflite::micro::GetTensorData<int16_t>(input2), op_params.input1_offset,
+        op_params.input1_multiplier, op_params.input1_shift,
+        op_params.input2_offset, op_params.input2_multiplier,
+        op_params.input2_shift, op_params.left_shift,
+        tflite::micro::GetTensorData<int16_t>(output), op_params.output_offset,
+        op_params.output_multiplier, op_params.output_shift,
+        op_params.quantized_activation_min, op_params.quantized_activation_max,
+        MatchingElementsSize(tflite::micro::GetTensorShape(input1),
+                             tflite::micro::GetTensorShape(input2),
+                             tflite::micro::GetTensorShape(output)));
   }
 
   return kTfLiteOk;
