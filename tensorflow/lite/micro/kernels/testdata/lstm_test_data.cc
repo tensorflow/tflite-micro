@@ -15,68 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
 
-#include "tensorflow/lite/micro/test_helpers.h"
-
 namespace tflite {
 namespace testing {
-template <typename ActivationType, typename WeightType, typename BiasType,
-          typename CellType, int batch_size, int time_steps,
-          int input_dimension, int state_dimension>
-TestModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>::
-    TestModelContents(const GateParameters<WeightType, BiasType,
-                                           input_dimension, state_dimension>
-                          forget_gate_params,
-                      const GateParameters<WeightType, BiasType,
-                                           input_dimension, state_dimension>
-                          input_gate_params,
-                      const GateParameters<WeightType, BiasType,
-                                           input_dimension, state_dimension>
-                          cell_gate_params,
-                      const GateParameters<WeightType, BiasType,
-                                           input_dimension, state_dimension>
-                          output_gate_params)
-    : forget_gate_params_(forget_gate_params),
-      input_gate_params_(input_gate_params),
-      cell_gate_params_(cell_gate_params),
-      output_gate_params_(output_gate_params) {
-  // Input Tensor
-  SetTensor(0, input_, input_size_);
-  // Forget Gate Tensors
-  SetTensor(1, forget_gate_params_.activation_weight, activation_weight_size_);
-  SetTensor(2, forget_gate_params_.recurrent_weight, recurrent_weight_size_);
-  SetTensor(3, forget_gate_params_.fused_bias, bias_size_);
-  // Input Gate Tensors
-  SetTensor(4, input_gate_params_.activation_weight, activation_weight_size_);
-  SetTensor(5, input_gate_params_.recurrent_weight, recurrent_weight_size_);
-  SetTensor(6, input_gate_params_.fused_bias, bias_size_);
-  // Cell Gate Tensors
-  SetTensor(7, cell_gate_params_.activation_weight, activation_weight_size_);
-  SetTensor(8, cell_gate_params_.recurrent_weight, recurrent_weight_size_);
-  SetTensor(9, cell_gate_params_.fused_bias, bias_size_);
-  // Output Gate Tensors
-  SetTensor(10, output_gate_params_.activation_weight, activation_weight_size_);
-  SetTensor(11, output_gate_params_.recurrent_weight, recurrent_weight_size_);
-  SetTensor(12, output_gate_params_.fused_bias, bias_size_);
-  // State Tensors
-  SetTensor(13, hidden_state_, state_size_);
-  SetTensor(14, cell_state_, state_size_);
-  // Output Tensor
-  SetTensor(15, output_, output_size_);
-}
-
-template <typename ActivationType, typename WeightType, typename BiasType,
-          typename CellType, int batch_size, int time_steps,
-          int input_dimension, int state_dimension>
-template <typename T>
-void TestModelContents<ActivationType, WeightType, BiasType, CellType,
-                       batch_size, time_steps, input_dimension,
-                       state_dimension>::SetTensor(const int index,
-                                                   const T* data, int* dims) {
-  tensors_[index].data.data = const_cast<T*>(data);
-  tensors_[index].dims = IntArrayFromInts(dims);
-  tensors_[index].type = typeToTfLiteType<T>();
-}
 
 GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
   GateOutputCheckData<4, 4> gate_data;
@@ -241,6 +181,7 @@ ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       0.00024414062;  // std::pow(2.0f, -12.0f)
   quantization_settings.nonlinear_activation_output_scale =
       0.00003051757;  // std::pow(2.0f, -15.0f)
+
   // state quantization parameters
   quantization_settings.input_quantization_parameters = {
       /*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false};
@@ -260,12 +201,10 @@ ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}};
-
   quantization_settings.cell_gate_quantization_parameters = {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
-
   quantization_settings.output_gate_quantization_parameters = {
       {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},

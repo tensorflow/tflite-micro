@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstring>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
 namespace testing {
@@ -84,7 +85,14 @@ class TestModelContents {
                         cell_gate_params,
                     const GateParameters<WeightType, BiasType, input_dimension,
                                          state_dimension>
-                        output_gate_params);
+                        output_gate_params)
+      : forget_gate_params_(forget_gate_params),
+        input_gate_params_(input_gate_params),
+        cell_gate_params_(cell_gate_params),
+        output_gate_params_(output_gate_params) {
+    InitializeTensors();
+  }
+
   // Provide interface to set the input tensor values for flexible testing
   void SetInputTensorData(const ActivationType* data) {
     std::memcpy(
@@ -130,8 +138,40 @@ class TestModelContents {
   }
 
  private:
+  void InitializeTensors() {
+    // Input Tensor
+    SetTensor(0, input_, input_size_);
+    // Forget Gate Tensors
+    SetTensor(1, forget_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(2, forget_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(3, forget_gate_params_.fused_bias, bias_size_);
+    // Input Gate Tensors
+    SetTensor(4, input_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(5, input_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(6, input_gate_params_.fused_bias, bias_size_);
+    // Cell Gate Tensors
+    SetTensor(7, cell_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(8, cell_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(9, cell_gate_params_.fused_bias, bias_size_);
+    // Output Gate Tensors
+    SetTensor(10, output_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(11, output_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(12, output_gate_params_.fused_bias, bias_size_);
+    // State Tensors
+    SetTensor(13, hidden_state_, state_size_);
+    SetTensor(14, cell_state_, state_size_);
+    // Output Tensor
+    SetTensor(15, output_, output_size_);
+  }
+
   template <typename T>
-  void SetTensor(const int index, const T* data, int* dims);
+  void SetTensor(const int index, const T* data, int* dims) {
+    tensors_[index].data.data = const_cast<T*>(data);
+    tensors_[index].dims = IntArrayFromInts(dims);
+    tensors_[index].type = typeToTfLiteType<T>();
+  }
 
   GateParameters<WeightType, BiasType, input_dimension, state_dimension>
       forget_gate_params_;
@@ -166,25 +206,12 @@ class TestModelContents {
 
 // A struct that holds quantization parameters for a LSTM Tensor
 struct TensorQuantizationParameters {
-  TensorQuantizationParameters() = default;
-  TensorQuantizationParameters(const double arg_scale, const int arg_zero_point,
-                               const bool arg_symmetry)
-      : scale(arg_scale), zero_point(arg_zero_point), symmetry(arg_symmetry) {}
-  // all the effective
-  double scale = 0;
-  int zero_point = 0;
-  bool symmetry = false;
+  double scale;
+  int zero_point;
+  bool symmetry;
 };
 
 struct GateQuantizationParameters {
-  GateQuantizationParameters() = default;
-  GateQuantizationParameters(
-      const TensorQuantizationParameters arg_activation_weight,
-      const TensorQuantizationParameters arg_recurrent_weight,
-      const TensorQuantizationParameters arg_bias)
-      : activation_weight(arg_activation_weight),
-        recurrent_weight(arg_recurrent_weight),
-        bias(arg_bias) {}
   TensorQuantizationParameters activation_weight;
   TensorQuantizationParameters recurrent_weight;
   TensorQuantizationParameters bias;
