@@ -83,15 +83,15 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
                       &op_params);
   // TODO(b/259724572): vision_p6 and hifi code path is getting very confusing.
   // Let's separate them into two different files.
-#if !defined(HIFI4)
+#if !(defined(HIFI4) || defined(HIFI4_INTERNAL))
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
       tflite::micro::GetTensorShape(input2), &op_params);
-#endif  // !defined(HIFI4)
+#endif  // !(defined(HIFI4) || defined(HIFI4_INTERNAL))
 
   switch (output->type) {
     case kTfLiteInt8: {
-#if defined(HIFI4)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -133,7 +133,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else   // defined(HIFI4)
+#else   // defined(HIFI4) || defined(HIFI4_INTERNAL)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -151,11 +151,11 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -196,7 +196,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else  // defined(HIFI4)
+#else  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       if (need_broadcast) {
 #if defined(HIFI4_INTERNAL)
         const RuntimeShape extended_output_shape_debug =
@@ -259,7 +259,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       }
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;
     }
     default:

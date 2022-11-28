@@ -346,11 +346,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 // TODO(b/239852051): Internal and OSS nnlib have slightly different APIs but
 // the same underlying implementation. Once we switch to all OSS, this ifdef can
 // be removed.
-#if defined(HIFI4)
+#if defined(HIFI4) || defined(HIFI4_INTERNAL)
           xa_nn_transpose_conv_sym8sxsym16s(
 #else
           xa_nn_transpose_conv(
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
               &output_data[b * output_height * output_width * output_depth],
               const_cast<WORD16*>(
                   &input_data[b * input_height * input_width * input_depth]),
