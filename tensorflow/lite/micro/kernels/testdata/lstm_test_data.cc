@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
 
+#include <cstring>
+
 namespace tflite {
 namespace testing {
 
@@ -131,86 +133,6 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData() {
   std::memcpy(eval_data.expected_cell_state, expected_cell_state,
               4 * sizeof(float));
   return eval_data;
-}
-
-TestModelContents<float, float, float, float, 2, 3, 2, 2>
-Create2x3x2X2FloatModelContents() {
-  // Parameters for different gates
-  // negative large weights for forget gate to make it really forget
-  const GateParameters<float, float, 2, 2> forget_gate_params = {
-      /*.activation_weight=*/{-10, -10, -20, -20},
-      /*.recurrent_weight=*/{-10, -10, -20, -20},
-      /*.fused_bias=*/{1, 2},
-      /*activation_zp_folded_bias=*/{0, 0},
-      /*recurrent_zp_folded_bias=*/{0, 0}};
-  // positive large weights for input gate to make it really remember
-  const GateParameters<float, float, 2, 2> input_gate_params = {
-      /*.activation_weight=*/{10, 10, 20, 20},
-      /*.recurrent_weight=*/{10, 10, 20, 20},
-      /*.fused_bias=*/{-1, -2},
-      /*activation_zp_folded_bias=*/{0, 0},
-      /*recurrent_zp_folded_bias=*/{0, 0}};
-  // all ones to test the behavior of tanh at normal range (-1,1)
-  const GateParameters<float, float, 2, 2> cell_gate_params = {
-      /*.activation_weight=*/{1, 1, 1, 1},
-      /*.recurrent_weight=*/{1, 1, 1, 1},
-      /*.fused_bias=*/{0, 0},
-      /*activation_zp_folded_bias=*/{0, 0},
-      /*recurrent_zp_folded_bias=*/{0, 0}};
-  // all ones to test the behavior of sigmoid at normal range (-1. 1)
-  const GateParameters<float, float, 2, 2> output_gate_params = {
-      /*.activation_weight=*/{1, 1, 1, 1},
-      /*.recurrent_weight=*/{1, 1, 1, 1},
-      /*.fused_bias=*/{0, 0},
-      /*activation_zp_folded_bias=*/{0, 0},
-      /*recurrent_zp_folded_bias=*/{0, 0}};
-
-  TestModelContents<float, float, float, float, 2, 3, 2, 2>
-      float_model_contents(forget_gate_params, input_gate_params,
-                           cell_gate_params, output_gate_params);
-
-  return float_model_contents;
-}
-
-ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
-  ModelQuantizationParameters quantization_settings;
-  quantization_settings.activation_type = kTfLiteInt8;
-  quantization_settings.cell_type = kTfLiteInt16;
-  quantization_settings.bias_type = kTfLiteInt32;
-  quantization_settings.nonlinear_activation_input_scale =
-      0.00024414062;  // std::pow(2.0f, -12.0f)
-  quantization_settings.nonlinear_activation_output_scale =
-      0.00003051757;  // std::pow(2.0f, -15.0f)
-
-  // state quantization parameters
-  quantization_settings.input_quantization_parameters = {
-      /*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false};
-  quantization_settings.output_quantization_parameters = {
-      /*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false};
-  quantization_settings.hidden_quantization_parameters = {
-      /*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false};
-  quantization_settings.cell_quantization_parameters = {
-      /*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true};
-
-  // gate quantization parameters
-  quantization_settings.forget_gate_quantization_parameters = {
-      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.input_gate_quantization_parameters = {
-      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.cell_gate_quantization_parameters = {
-      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.output_gate_quantization_parameters = {
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true}};
-
-  return quantization_settings;
 }
 
 }  // namespace testing
