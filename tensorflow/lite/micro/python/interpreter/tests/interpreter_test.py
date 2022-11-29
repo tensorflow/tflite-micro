@@ -59,7 +59,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
-    # TODO(b/247808903): use assertEqual after having fixed flatbuffer
+    # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
+    #  Change to assertEqual for value check after having fixed input flatbuffer
     self.assertAlmostEqual(
         input_details["quantization_parameters"]["scales"][0], 0.003, delta=1)
     self.assertAlmostEqual(
@@ -116,7 +117,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
-    # TODO(b/247808903): use assertEqual after having fixed flatbuffer
+    # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
+    #  Change to assertEqual for value check after having fixed input flatbuffer
     self.assertAlmostEqual(
         output_details["quantization_parameters"]["scales"][0], 0.003, delta=1)
     self.assertAlmostEqual(
