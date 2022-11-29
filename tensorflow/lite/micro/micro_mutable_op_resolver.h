@@ -406,9 +406,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParsePack);
   }
 
-  TfLiteStatus AddPad() {
-    return AddBuiltin(BuiltinOperator_PAD, tflite::ops::micro::Register_PAD(),
-                      ParsePad);
+  TfLiteStatus AddPad(const TfLiteRegistration& registration =
+                          tflite::ops::micro::Register_PAD()) {
+    return AddBuiltin(BuiltinOperator_PAD, registration, ParsePad);
   }
 
   TfLiteStatus AddPadV2() {
