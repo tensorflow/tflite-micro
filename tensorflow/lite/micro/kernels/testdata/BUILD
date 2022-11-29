@@ -22,5 +22,6 @@ cc_library(
     hdrs = ["lstm_test_data.h"],
     deps = [
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
     ],
 )

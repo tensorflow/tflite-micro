@@ -1048,11 +1048,10 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto model_contents_int8_new =
       tflite::testing::Create2x3x2X2Int8ModelContents(quantization_settings);
-  tflite::testing::Int8ModelInferenceContents<2, 3, 2, 2> inf_contents(
+
+  auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       model_contents_int8_new);
-
-  auto evaluation_params = inf_contents.EvaluationParameters();
 
   tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
       model_contents_int8(tflite::testing::kInt8QuantizationSettings,

@@ -15,8 +15,10 @@ limitations under the License.
 
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_TESTDATA_LSTM_TEST_DATA_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_TESTDATA_LSTM_TEST_DATA_H_
+#include <string>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
 namespace testing {
@@ -51,6 +53,189 @@ struct LstmEvalCheckData {
   float expected_cell_state[gate_output_size];
 };
 
+// Struct that holds the weight/bias information for a standard gate (i.e. no
+// modification such as layer normalization, peephole, etc.)
+template <typename WeightType, typename BiasType, int input_dimension,
+          int state_dimension>
+struct GateParameters {
+  WeightType activation_weight[state_dimension * input_dimension];
+  WeightType recurrent_weight[state_dimension * state_dimension];
+  BiasType fused_bias[state_dimension];
+  // Quantized model folded the zero point of activations into biases:
+  // bias + zero_point * weight.
+  BiasType activation_zp_folded_bias[state_dimension];
+  BiasType recurrent_zp_folded_bias[state_dimension];
+};
+
+// A base class that holds all the tensors for evaluation
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
+class ModelContents {
+ public:
+  ModelContents(const GateParameters<WeightType, BiasType, input_dimension,
+                                     state_dimension>
+                    forget_gate_params,
+                const GateParameters<WeightType, BiasType, input_dimension,
+                                     state_dimension>
+                    input_gate_params,
+                const GateParameters<WeightType, BiasType, input_dimension,
+                                     state_dimension>
+                    cell_gate_params,
+                const GateParameters<WeightType, BiasType, input_dimension,
+                                     state_dimension>
+                    output_gate_params)
+      : forget_gate_params_(forget_gate_params),
+        input_gate_params_(input_gate_params),
+        cell_gate_params_(cell_gate_params),
+        output_gate_params_(output_gate_params) {
+    InitializeTensors();
+  }
+
+  // Provide interface to set the input tensor values for flexible testing
+  void SetInputTensorData(const ActivationType* data) {
+    std::memcpy(
+        input_, data,
+        batch_size * input_dimension * time_steps * sizeof(ActivationType));
+    SetTensor(0, input_, input_size_);
+  }
+
+  // Provide interface to set the hidden state tensor values for flexible
+  // testing
+  void SetHiddenStateTensorData(const ActivationType* data) {
+    std::memcpy(hidden_state_, data,
+                batch_size * state_dimension * sizeof(ActivationType));
+    SetTensor(13, hidden_state_, state_size_);
+  }
+
+  TfLiteEvalTensor* GetTensor(int tensor_index) {
+    return &tensors_[tensor_index];
+  }
+  const ActivationType* GetHiddenState() const { return hidden_state_; }
+  const CellType* GetCellState() const { return cell_state_; }
+  const ActivationType* GetOutput() const { return output_; }
+
+  CellType* ScratchBuffers() { return scratch_buffers_; }
+
+  // TODO(b/253466487): make all getters constant after refactor the
+  // IntegerLstmParameter
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  ForgetGateParams() {
+    return forget_gate_params_;
+  }
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  InputGateParams() {
+    return input_gate_params_;
+  }
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  CellGateParams() {
+    return cell_gate_params_;
+  }
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  OutputGateParams() {
+    return output_gate_params_;
+  }
+
+ private:
+  void InitializeTensors() {
+    // Input Tensor
+    SetTensor(0, input_, input_size_);
+    // Forget Gate Tensors
+    SetTensor(1, forget_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(2, forget_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(3, forget_gate_params_.fused_bias, bias_size_);
+    // Input Gate Tensors
+    SetTensor(4, input_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(5, input_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(6, input_gate_params_.fused_bias, bias_size_);
+    // Cell Gate Tensors
+    SetTensor(7, cell_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(8, cell_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(9, cell_gate_params_.fused_bias, bias_size_);
+    // Output Gate Tensors
+    SetTensor(10, output_gate_params_.activation_weight,
+              activation_weight_size_);
+    SetTensor(11, output_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(12, output_gate_params_.fused_bias, bias_size_);
+    // State Tensors
+    SetTensor(13, hidden_state_, state_size_);
+    SetTensor(14, cell_state_, state_size_);
+    // Output Tensor
+    SetTensor(15, output_, output_size_);
+  }
+
+  template <typename T>
+  void SetTensor(const int index, const T* data, int* dims) {
+    tensors_[index].data.data = const_cast<T*>(data);
+    tensors_[index].dims = IntArrayFromInts(dims);
+    tensors_[index].type = typeToTfLiteType<T>();
+  }
+
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>
+      forget_gate_params_;
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>
+      input_gate_params_;
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>
+      cell_gate_params_;
+  GateParameters<WeightType, BiasType, input_dimension, state_dimension>
+      output_gate_params_;
+
+  // Not const since IntArrayFromInts takes int *; the first element of the
+  // array must be the size of the array
+  int input_size_[4] = {3, batch_size, time_steps, input_dimension};
+  int output_size_[4] = {3, batch_size, time_steps, state_dimension};
+  int activation_weight_size_[3] = {2, state_dimension, input_dimension};
+  int recurrent_weight_size_[3] = {2, state_dimension, state_dimension};
+  int bias_size_[3] = {2, batch_size, state_dimension};
+  int state_size_[3] = {2, batch_size, state_dimension};
+
+  // 0 input; 1-12 gate parameters; 13-14 states; 15 output
+  TfLiteEvalTensor tensors_[16];
+
+  // states are initialized to zero
+  ActivationType hidden_state_[batch_size * state_dimension] = {};
+  CellType cell_state_[batch_size * state_dimension] = {};
+  // input is defined in the ModelContent (const across all derived models)
+  ActivationType input_[batch_size * input_dimension * time_steps] = {};
+  ActivationType output_[batch_size * state_dimension * time_steps] = {};
+  // scratch buffers (4; used for floating point model only)
+  CellType scratch_buffers_[4 * batch_size * state_dimension] = {};
+};
+
+// A struct that holds quantization parameters for a LSTM Tensor
+struct TensorQuantizationParameters {
+  double scale;
+  int zero_point;
+  bool symmetry;
+};
+
+struct GateQuantizationParameters {
+  TensorQuantizationParameters activation_weight;
+  TensorQuantizationParameters recurrent_weight;
+  TensorQuantizationParameters bias;
+};
+
+// A struct that holds the quantization settings for the model
+struct ModelQuantizationParameters {
+  TfLiteType activation_type;
+  TfLiteType cell_type;
+  TfLiteType bias_type;
+  double nonlinear_activation_input_scale;
+  double nonlinear_activation_output_scale;
+  // Quantization parameters for input/output
+  TensorQuantizationParameters input_quantization_parameters;
+  TensorQuantizationParameters output_quantization_parameters;
+  // Quantization parameters for internal states
+  TensorQuantizationParameters hidden_quantization_parameters;
+  TensorQuantizationParameters cell_quantization_parameters;
+  // Quantization parameters for gates
+  GateQuantizationParameters forget_gate_quantization_parameters;
+  GateQuantizationParameters input_gate_quantization_parameters;
+  GateQuantizationParameters cell_gate_quantization_parameters;
+  GateQuantizationParameters output_gate_quantization_parameters;
+};
+
 // Get the gate output data (one time step) for a simple 2X2 model
 // batch_size = 2; time_steps = 1; input_dimension = 2; state_dimension = 2
 // input_size = batch_size*time_steps*input_dimension = 4
@@ -63,6 +248,14 @@ GateOutputCheckData<4, 4> Get2X2GateOutputCheckData();
 // gate_output_size = batch_size*state_dimension = 4
 // output_size = time_steps*gate_output_size = 12
 LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData();
+
+// Create a 2x2 float model content
+// batch_size = 2; time_steps = 3; input_dimension = 2; state_dimension = 2
+ModelContents<float, float, float, float, 2, 3, 2, 2>
+Create2x3x2X2FloatModelContents();
+
+// Get the quantization settings for the 2X2 model
+ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings();
 
 }  // namespace testing
 }  // namespace tflite

@@ -131,6 +131,7 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/testdata:lstm_test_data",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -919,11 +920,8 @@ cc_test(
     ],
     deps = [
         ":lstm_eval_test_common",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/kernels/testdata:lstm_test_data",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
