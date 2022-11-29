@@ -67,7 +67,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         -128,
         delta=256)
     self.assertEqual(
-        input_details["quantization_parameters"]["zero_points"].dtype, np.int32)
+        input_details["quantization_parameters"]["zero_points"].dtype,
+        np.int32)
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -123,7 +124,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         -13,
         delta=256)
     self.assertEqual(
-        output_details["quantization_parameters"]["zero_points"].dtype, np.int32)
+        output_details["quantization_parameters"]["zero_points"].dtype,
+        np.int32)
 
   def testOutputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
