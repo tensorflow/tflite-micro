@@ -1044,10 +1044,15 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // TODO(b/253466487): make it constant after refactor the IntegerLstmParameter
-  MicroPrintf("TEST %f",
-              tflite::testing::kInt8QuantizationSettings
-                  .input_gate_quantization_parameters.activation_weight.scale);
-  MicroPrintf("TEST %f", 0.15748031496062992);
+  auto quantization_settings =
+      tflite::testing::Get2X2Int8LstmQuantizationSettings();
+  auto model_contents_int8_new =
+      tflite::testing::Create2x3x2X2Int8ModelContents(quantization_settings);
+  tflite::testing::Int8ModelInferenceContents<2, 3, 2, 2> inf_contents(
+      tflite::testing::kModelSettings, quantization_settings,
+      model_contents_int8_new);
+
+  auto evaluation_params = inf_contents.EvaluationParameters();
 
   tflite::testing::QuantizedModelContents<int8_t, int8_t, int32_t, int16_t>
       model_contents_int8(tflite::testing::kInt8QuantizationSettings,
@@ -1055,7 +1060,6 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
                           tflite::testing::kInputGateParameters,
                           tflite::testing::kCellGateParameters,
                           tflite::testing::kOutputGateParameters);
-  auto evaluation_params = model_contents_int8.EvaluationParameters();
 
   // Different gate has different weights, resulting different quantization
   // prediction precisions
@@ -1065,8 +1069,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Quantization performs badly here due to integer overflow!!!
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      model_contents_int8.ForgetGateParams(),
-      model_contents_int8.QuantizationSettings(),
+      model_contents_int8.ForgetGateParams(), quantization_settings,
       evaluation_params.effective_input_to_forget_scale_a,
       evaluation_params.effective_input_to_forget_scale_b,
       evaluation_params.effective_recurrent_to_forget_scale_a,
@@ -1077,8 +1080,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Input Gate
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      model_contents_int8.InputGateParams(),
-      model_contents_int8.QuantizationSettings(),
+      model_contents_int8.InputGateParams(), quantization_settings,
       evaluation_params.effective_input_to_input_scale_a,
       evaluation_params.effective_input_to_input_scale_b,
       evaluation_params.effective_recurrent_to_input_scale_a,
@@ -1088,8 +1090,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Output Gate
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      model_contents_int8.OutputGateParams(),
-      model_contents_int8.QuantizationSettings(),
+      model_contents_int8.OutputGateParams(), quantization_settings,
       evaluation_params.effective_input_to_output_scale_a,
       evaluation_params.effective_input_to_output_scale_b,
       evaluation_params.effective_recurrent_to_output_scale_a,
@@ -1100,8 +1101,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Cell Gate (tanh activation)
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t>(
-      model_contents_int8.CellGateParams(),
-      model_contents_int8.QuantizationSettings(),
+      model_contents_int8.CellGateParams(), quantization_settings,
       evaluation_params.effective_input_to_cell_scale_a,
       evaluation_params.effective_input_to_cell_scale_b,
       evaluation_params.effective_recurrent_to_cell_scale_a,
