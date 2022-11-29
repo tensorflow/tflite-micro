@@ -60,13 +60,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
     # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
-    #  Change to assertEqual for value check after having fixed input flatbuffer
-    self.assertAlmostEqual(
-        input_details["quantization_parameters"]["scales"][0], 0.003, delta=1)
-    self.assertAlmostEqual(
-        input_details["quantization_parameters"]["zero_points"][0],
-        -128,
-        delta=256)
+    self.assertEqual(input_details["quantization_parameters"]["scales"].dtype,
+                     np.float32)
     self.assertEqual(
         input_details["quantization_parameters"]["zero_points"].dtype,
         np.int32)
@@ -118,13 +113,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
     # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
-    #  Change to assertEqual for value check after having fixed input flatbuffer
-    self.assertAlmostEqual(
-        output_details["quantization_parameters"]["scales"][0], 0.003, delta=1)
-    self.assertAlmostEqual(
-        output_details["quantization_parameters"]["zero_points"][0],
-        -13,
-        delta=256)
+    self.assertEqual(output_details["quantization_parameters"]["scales"].dtype,
+                     np.float32)
     self.assertEqual(
         output_details["quantization_parameters"]["zero_points"].dtype,
         np.int32)
