@@ -19,16 +19,9 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace pad {
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node);
 
-}  // namespace pad
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
-
