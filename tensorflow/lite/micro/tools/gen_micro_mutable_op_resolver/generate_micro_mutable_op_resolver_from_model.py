@@ -31,7 +31,7 @@ TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 FLAGS = flags.FLAGS
 
 flags.DEFINE_list('input_tflite_files', None,
-                    'Full path name list of the input TFLite files.')
+                  'Full path name list of the input TFLite files.')
 flags.DEFINE_string('output_dir', None, 'directory to output generated files')
 
 flags.mark_flag_as_required('input_tflite_files')
@@ -99,7 +99,8 @@ def GetModelOperatorsAndActivation(model_path):
 
   for op_code in data["operator_codes"]:
     # Custom operator already added.
-    if custom_op_found and visualize.BuiltinCodeToName(op_code['builtin_code']) == "CUSTOM":
+    if custom_op_found and visualize.BuiltinCodeToName(
+        op_code['builtin_code']) == "CUSTOM":
       continue
 
     operators_and_activations.add(
@@ -130,7 +131,10 @@ def main(_):
   if number_models > 1:
     model_name = ", ".join(model_names)
 
-  [final_operator_list.append(operator) for operator in merged_operator_list if operator not in final_operator_list]
+  [
+      final_operator_list.append(operator) for operator in merged_operator_list
+      if operator not in final_operator_list
+  ]
 
   os.makedirs(FLAGS.output_dir, exist_ok=True)
   GenerateMicroMutableOpsResolverHeaderFile(final_operator_list, model_name,
