@@ -104,7 +104,8 @@ void SignedSymmetricPerChannelQuantize(const float* values,
                                        TfLiteIntArray* dims,
                                        int quantized_dimension,
                                        int8_t* quantized_values,
-                                       float* scaling_factor);
+                                       float* scaling_factor,
+                                       TfLiteType type = kTfLiteNoType);
 
 // Quantizes inputs based on the values provided, choosing the smallest range
 // which includes all input values.
@@ -135,6 +136,24 @@ void Dequantize(const T* values, const int size, const float scale,
                 int zero_point, float* dequantized_values) {
   for (int i = 0; i < size; ++i) {
     dequantized_values[i] = (values[i] - zero_point) * scale;
+  }
+}
+
+// based on TfLiteType passed in to these functions the corresponding max / min
+// int for that type are returned
+inline int QMinFromTfLiteType(TfLiteType type) {
+  if (type == kTfLiteInt4) {
+    return -8;
+  } else {
+    return std::numeric_limits<int8_t>::min();
+  }
+}
+
+inline int QMaxFromTfLiteType(TfLiteType type) {
+  if (type == kTfLiteInt4) {
+    return 7;
+  } else {
+    return std::numeric_limits<int8_t>::max();
   }
 }
 
