@@ -1,5 +1,6 @@
 queue_rules:
   - name: default
+    checks_timeout: 2 h
     conditions:
       - base=main
       - label=ci:ready_to_merge

@@ -18,7 +18,6 @@ cc_library(
     copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
     ],
 )
 
@@ -114,7 +113,6 @@ cc_library(
     copts = micro_copts(),
     deps = [
         ":simple_memory_allocator",
-        "//tensorflow/lite/core/api",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_framework",
