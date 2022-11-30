@@ -267,6 +267,7 @@ tflm_kernel_cc_library(
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
+        "pad.h",
         "pooling.h",
         "prelu.h",
         "quantize.h",
