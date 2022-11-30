@@ -31,7 +31,7 @@ Additional Links:
 
 Build Type       |    Status     |
 -----------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/ci.yml?query=event%3Aschedule) |
+CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml) |
 Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
 
@@ -42,7 +42,7 @@ additional documentation.
 
 Platform      |    Status     |
 -----------     | --------------|
-Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
+Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
 [Coral Dev Board Micro](https://coral.ai/products/dev-board-micro) | [TFLM + EdgeTPU Examples for Coral Dev Board Micro](https://github.com/google-coral/coralmicro) |
 Espressif Systems Dev Boards  | [![ESP Dev Boards](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml) |
 Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/tflite-micro-renesas) |
@@ -58,9 +58,9 @@ the TFLM unit tests using software emulation or instruction set simulators.
 Build Type      |    Status     |
 -----------     | --------------|
 Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
-Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/hexagon.yml) |
+Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml) |
 RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
-Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml/badge.svg?event=schedule)](https://github.com/tensorflow/tflite-micro/actions/workflows/xtensa.yml?query=event%3Aschedule) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
+Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) [![Xtensa](https://raw.githubusercontent.com/advaitjain/tflite-micro/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa-build-status.svg)](https://github.com/advaitjain/tflite-micro/tree/local-continuous-builds/tensorflow/lite/micro/docs/local_continuous_builds/xtensa.md#summary) |
 
 
 # Contributing
@@ -92,6 +92,7 @@ The following resources may also be useful:
  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
  * [Profiling](tensorflow/lite/micro/docs/profiling.md)
  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+ * [Logging](tensorflow/lite/micro/docs/logging.md)
  * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
@@ -100,6 +101,7 @@ The following resources may also be useful:
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
+ * [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
 
 # RFCs
 

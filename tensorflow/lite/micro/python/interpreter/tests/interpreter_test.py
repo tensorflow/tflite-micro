@@ -59,15 +59,12 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         input_details["quantization_parameters"]["quantized_dimension"], 0)
-    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
-    self.assertAlmostEqual(
-        input_details["quantization_parameters"]["scales"][0],
-        0.003,
-        delta=0.1)
-    self.assertAlmostEqual(
-        input_details["quantization_parameters"]["zero_points"][0],
-        -128,
-        delta=100)
+    # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
+    self.assertEqual(input_details["quantization_parameters"]["scales"].dtype,
+                     np.float32)
+    self.assertEqual(
+        input_details["quantization_parameters"]["zero_points"].dtype,
+        np.int32)
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -115,15 +112,12 @@ class ConvModelTests(test_util.TensorFlowTestCase):
                      1)
     self.assertEqual(
         output_details["quantization_parameters"]["quantized_dimension"], 0)
-    # TODO(b/248061370): use assertEqual after having fixed flatbuffer
-    self.assertAlmostEqual(
-        output_details["quantization_parameters"]["scales"][0],
-        0.003,
-        delta=0.1)
-    self.assertAlmostEqual(
-        output_details["quantization_parameters"]["zero_points"][0],
-        -13,
-        delta=100)
+    # TODO(b/247808903): check only the types here to make sure that all arrays are properly set up.
+    self.assertEqual(output_details["quantization_parameters"]["scales"].dtype,
+                     np.float32)
+    self.assertEqual(
+        output_details["quantization_parameters"]["zero_points"].dtype,
+        np.int32)
 
   def testOutputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -143,7 +137,10 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
     # TFLite interpreter
-    tflite_interpreter = tf.lite.Interpreter(model_content=model_data)
+    tflite_interpreter = tf.lite.Interpreter(
+        model_content=model_data,
+        experimental_op_resolver_type=\
+        tf.lite.experimental.OpResolverType.BUILTIN_REF)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
@@ -167,9 +164,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       # Check that TFLM output has correct metadata
       self.assertDTypeEqual(tflm_output, np.int8)
       self.assertEqual(tflm_output.shape, self.output_shape)
-      # Check that result differences are less than tolerance (b/205046520).
-      # TODO: Remove tolerance when the bug is fixed.
-      self.assertAllLessEqual((tflite_output - tflm_output), 1)
+      self.assertAllEqual(tflite_output, tflm_output)
 
   def _helperModelFromFileAndBufferEqual(self, number_resource_variables=0):
     model_data = generate_test_models.generate_conv_model(True, self.filename)

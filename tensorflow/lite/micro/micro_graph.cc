@@ -165,7 +165,7 @@ TfLiteStatus MicroGraph::InvokeSubgraph(int subgraph_idx) {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
     ScopedMicroProfiler scoped_profiler(
         OpNameFromRegistration(registration),
-        reinterpret_cast<MicroProfiler*>(context_->profiler));
+        reinterpret_cast<MicroProfilerInterface*>(context_->profiler));
 #endif
 
     TFLITE_DCHECK(registration->invoke);
