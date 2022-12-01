@@ -85,9 +85,8 @@ ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
               input_dimension, state_dimension>
 CreateInt8ModelContents(
     const ModelQuantizationParameters& quantization_settings,
-    const ModelContents<float, float, float, float, batch_size, time_steps,
-                        input_dimension, state_dimension>&
-        float_model_contents) {
+    ModelContents<float, float, float, float, batch_size, time_steps,
+                  input_dimension, state_dimension>& float_model_contents) {
   auto quantized_forget_gate_params =
       CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
                                     state_dimension>(
@@ -116,10 +115,34 @@ CreateInt8ModelContents(
           quantization_settings.input_quantization_parameters,
           quantization_settings.output_quantization_parameters,
           quantization_settings.output_gate_quantization_parameters);
-  return ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-                       input_dimension, state_dimension>(
-      quantized_forget_gate_params, quantized_input_gate_params,
-      quantized_cell_gate_params, quantized_output_gate_params);
+  ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
+                input_dimension, state_dimension>
+      quantized_model_content(
+          quantized_forget_gate_params, quantized_input_gate_params,
+          quantized_cell_gate_params, quantized_output_gate_params);
+
+  // Quantize the  floating point input
+  int8_t quantized_input[batch_size * input_dimension] = {};
+  Quantize(float_model_contents.GetInput(), quantized_input,
+           batch_size * input_dimension,
+           quantization_settings.input_quantization_parameters.scale,
+           quantization_settings.input_quantization_parameters.zero_point);
+  quantized_model_content.SetInputTensorData(quantized_input);
+  // Quantize the  floating point hidden state
+  int8_t quantized_hidden_state[batch_size * state_dimension] = {};
+  Quantize(float_model_contents.GetHiddenState(), quantized_hidden_state,
+           batch_size * state_dimension,
+           quantization_settings.hidden_quantization_parameters.scale,
+           quantization_settings.hidden_quantization_parameters.zero_point);
+  quantized_model_content.SetHiddenStateTensorData(quantized_hidden_state);
+  // Quantize the floating point cell state
+  int8_t quantized_cell_state[batch_size * state_dimension] = {};
+  Quantize(float_model_contents.GetCellState(), quantized_cell_state,
+           batch_size * state_dimension,
+           quantization_settings.cell_quantization_parameters.scale,
+           quantization_settings.cell_quantization_parameters.zero_point);
+  quantized_model_content.SetCellStateTensorData(quantized_cell_state);
+  return quantized_model_content;
 }
 
 template <int batch_size, int time_steps, int input_dimension,
@@ -490,8 +513,8 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMFloat(
     const TfLiteLSTMParams& general_model_settings,
-    const ModelContents<float, float, float, float, batch_size, time_steps,
-                        input_dimension, state_dimension>& model_contents,
+    ModelContents<float, float, float, float, batch_size, time_steps,
+                  input_dimension, state_dimension>& model_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float tolerance) {
@@ -500,17 +523,6 @@ void TestOneStepLSTMFloat(
   float input_gate_scratch[batch_size * state_dimension] = {};
   float cell_gate_scratch[batch_size * state_dimension] = {};
   float output_gate_scratch[batch_size * state_dimension] = {};
-
-  // initialize hidden and cell state (will be updated, copy the value)
-  float hidden_state[batch_size * state_dimension] = {};
-  std::memcpy(hidden_state, gate_output_data.hidden_state,
-              batch_size * state_dimension * sizeof(float));
-
-  float cell_state[batch_size * state_dimension] = {};
-  std::memcpy(cell_state, gate_output_data.cell_state,
-              batch_size * state_dimension * sizeof(float));
-
-  float output[batch_size * state_dimension] = {};
 
   tflite::lstm_internal::LstmStepFloat(
       gate_output_data.input_data,
@@ -540,13 +552,15 @@ void TestOneStepLSTMFloat(
       /*projection_weights_ptr=*/nullptr, /*projection_bias_ptr=*/nullptr,
       &general_model_settings, batch_size, state_dimension, input_dimension,
       input_dimension, state_dimension,
-      /*output_batch_leading_dim=*/0, hidden_state, cell_state,
-      input_gate_scratch, forget_gate_scratch, cell_gate_scratch,
-      output_gate_scratch, output);
+      /*output_batch_leading_dim=*/0, model_contents.GetHiddenState(),
+      model_contents.GetCellState(), input_gate_scratch, forget_gate_scratch,
+      cell_gate_scratch, output_gate_scratch, model_contents.GetOutput());
 
-  ValidateResultGoldens(gate_output_data.expected_updated_hidden, hidden_state,
+  ValidateResultGoldens(gate_output_data.expected_updated_hidden,
+                        model_contents.GetHiddenState(),
                         batch_size * state_dimension, tolerance);
-  ValidateResultGoldens(gate_output_data.expected_updated_cell, cell_state,
+  ValidateResultGoldens(gate_output_data.expected_updated_cell,
+                        model_contents.GetCellState(),
                         batch_size * state_dimension, tolerance);
 }
 
@@ -554,35 +568,13 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMQuantized(
-    const ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                        time_steps, input_dimension, state_dimension>&
-        model_contents,
+    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                  time_steps, input_dimension, state_dimension>& model_contents,
     const ModelQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float hidden_state_tolerance, const float cell_state_tolerance) {
-  ActivationType quantized_input[4] = {};
-  tflite::Quantize(
-      gate_output_data.input_data, quantized_input, 4,
-      quantization_settings.input_quantization_parameters.scale,
-      quantization_settings.input_quantization_parameters.zero_point);
-
-  // initialize hidden and cell state (will be updated)
-  ActivationType quantized_hidden_state[batch_size * state_dimension] = {};
-  Quantize(gate_output_data.hidden_state, quantized_hidden_state,
-           batch_size * state_dimension,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
-
-  CellType quantized_cell_state[batch_size * state_dimension] = {};
-  tflite::Quantize(
-      gate_output_data.cell_state, quantized_cell_state,
-      batch_size * state_dimension,
-      quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
-
-  ActivationType output[batch_size * state_dimension] = {};
   // Scratch buffers
   CellType scratch0[batch_size * state_dimension] = {};
   CellType scratch1[batch_size * state_dimension] = {};
@@ -592,7 +584,8 @@ void TestOneStepLSTMQuantized(
   BiasType scratch5[batch_size * state_dimension] = {};
 
   tflite::lstm_internal::LstmStepInteger8x8_16(
-      quantized_input, model_contents.InputGateParams().activation_weight,
+      model_contents.GetInput(),
+      model_contents.InputGateParams().activation_weight,
       evaluation_params.effective_input_to_input_scale_a,
       evaluation_params.effective_input_to_input_scale_b,
       model_contents.ForgetGateParams().activation_weight,
@@ -652,19 +645,19 @@ void TestOneStepLSTMQuantized(
       evaluation_params.input_to_input_effective_bias,
       evaluation_params.recurrent_to_input_effective_bias,
       evaluation_params.projection_effective_bias, batch_size, input_dimension,
-      state_dimension, state_dimension, quantized_hidden_state,
+      state_dimension, state_dimension, model_contents.GetHiddenState(),
       quantization_settings.output_quantization_parameters.zero_point,
-      quantized_cell_state, output, scratch0, scratch1, scratch2, scratch3,
-      scratch4, scratch5);
+      model_contents.GetCellState(), model_contents.GetOutput(), scratch0,
+      scratch1, scratch2, scratch3, scratch4, scratch5);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_hidden_state, batch_size * state_dimension,
+  Dequantize(model_contents.GetHiddenState(), batch_size * state_dimension,
              quantization_settings.hidden_quantization_parameters.scale,
              quantization_settings.hidden_quantization_parameters.zero_point,
              dequantized_hidden_state);
 
   float dequantized_cell_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_cell_state, batch_size * state_dimension,
+  Dequantize(model_contents.GetCellState(), batch_size * state_dimension,
              quantization_settings.cell_quantization_parameters.scale,
              quantization_settings.cell_quantization_parameters.zero_point,
              dequantized_cell_state);
@@ -687,7 +680,6 @@ void TestLSTMEvalFloat(
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
     const float tolerance) {
-  float_model_contents.SetInputTensorData(eval_check_data.input_data);
   float scratch_buffers[4 * batch_size * state_dimension] = {};
 
   tflite::EvalFloatLstm(
@@ -751,22 +743,6 @@ void TestLSTMEvalQuantized(
   CellType scratch3[batch_size * state_dimension] = {};
   ActivationType scratch4[batch_size * state_dimension * time_steps] = {};
   BiasType scratch5[batch_size * state_dimension] = {};
-
-  // Quantize Input and Hidden State data
-  ActivationType
-      quantized_input_data[batch_size * input_dimension * time_steps] = {};
-  Quantize(eval_check_data.input_data, quantized_input_data,
-           batch_size * input_dimension * time_steps,
-           quantization_settings.input_quantization_parameters.scale,
-           quantization_settings.input_quantization_parameters.zero_point);
-  quantized_model_content.SetInputTensorData(quantized_input_data);
-
-  ActivationType quantized_hidden_state_data[batch_size * state_dimension] = {};
-  Quantize(eval_check_data.hidden_state, quantized_hidden_state_data,
-           batch_size * state_dimension,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
-  quantized_model_content.SetHiddenStateTensorData(quantized_hidden_state_data);
 
   EvalInteger8x8_16Lstm(
       quantized_model_content.GetTensor(0),

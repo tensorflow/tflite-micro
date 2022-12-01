@@ -211,8 +211,10 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
-  auto float_model_contents =
-      tflite::testing::Create2x3x2X2FloatModelContents();
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.cell_state);
   tflite::testing::TestOneStepLSTMFloat<2, 3, 2, 2>(
       tflite::testing::kModelSettings, float_model_contents,
       tflite::testing::kGateOutputData, tflite::testing::kTestFloatTolerance);
@@ -221,8 +223,10 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
   auto quantization_settings =
       tflite::testing::Get2X2Int8LstmQuantizationSettings();
-  auto float_model_contents =
-      tflite::testing::Create2x3x2X2FloatModelContents();
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      tflite::testing::kGateOutputData.input_data,
+      tflite::testing::kGateOutputData.hidden_state,
+      tflite::testing::kGateOutputData.cell_state);
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
       quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
@@ -240,8 +244,9 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
-  auto float_model_contents =
-      tflite::testing::Create2x3x2X2FloatModelContents();
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      tflite::testing::kMultiTimeEvalData.input_data,
+      tflite::testing::kMultiTimeEvalData.hidden_state);
   tflite::testing::TestLSTMEvalFloat(tflite::testing::kModelSettings,
                                      float_model_contents,
                                      tflite::testing::kMultiTimeEvalData,
@@ -251,8 +256,9 @@ TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
   auto quantization_settings =
       tflite::testing::Get2X2Int8LstmQuantizationSettings();
-  auto float_model_contents =
-      tflite::testing::Create2x3x2X2FloatModelContents();
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      tflite::testing::kMultiTimeEvalData.input_data,
+      tflite::testing::kMultiTimeEvalData.hidden_state);
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
       quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(

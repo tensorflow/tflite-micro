@@ -133,15 +133,19 @@ class ModelContents {
   void SetCellStateTensorData(const ActivationType* data) {
     std::memcpy(cell_state_, data,
                 batch_size * state_dimension * sizeof(ActivationType));
-    SetTensor(14, hidden_state_, state_size_);
+    SetTensor(14, cell_state_, state_size_);
   }
 
+  // I/O and states are changeable (not const)
   TfLiteEvalTensor* GetTensor(const int tensor_index) {
     return &tensors_[tensor_index];
   }
-  const ActivationType* GetHiddenState() const { return hidden_state_; }
-  const CellType* GetCellState() const { return cell_state_; }
-  const ActivationType* GetOutput() const { return output_; }
+
+  // I/O and states are changeable (not const)
+  ActivationType* GetHiddenState() { return hidden_state_; }
+  CellType* GetCellState() { return cell_state_; }
+  ActivationType* GetInput() { return input_; }
+  ActivationType* GetOutput() { return output_; }
 
   // IntegerLstmParameter
   const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
