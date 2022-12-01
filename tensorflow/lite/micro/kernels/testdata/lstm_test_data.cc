@@ -136,7 +136,9 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData() {
 }
 
 ModelContents<float, float, float, float, 2, 3, 2, 2>
-Create2x3x2X2FloatModelContents() {
+Create2x3x2X2FloatModelContents(const float* input_data,
+                                const float* hidden_state_data,
+                                const float* cell_state) {
   // Parameters for different gates
   // negative large weights for forget gate to make it really forget
   const GateParameters<float, float, 2, 2> forget_gate_params = {
@@ -170,6 +172,16 @@ Create2x3x2X2FloatModelContents() {
   ModelContents<float, float, float, float, 2, 3, 2, 2> float_model_contents(
       forget_gate_params, input_gate_params, cell_gate_params,
       output_gate_params);
+
+  if (input_data != nullptr) {
+    float_model_contents.SetInputTensorData(input_data);
+  }
+  if (hidden_state_data != nullptr) {
+    float_model_contents.SetHiddenStateTensorData(hidden_state_data);
+  }
+  if (hidden_state_data != nullptr) {
+    float_model_contents.SetHiddenStateTensorData(hidden_state_data);
+  }
 
   return float_model_contents;
 }

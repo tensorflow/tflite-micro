@@ -128,7 +128,15 @@ class ModelContents {
     SetTensor(13, hidden_state_, state_size_);
   }
 
-  TfLiteEvalTensor* GetTensor(int tensor_index) {
+  // Provide interface to set the hidden state tensor values for flexible
+  // testing
+  void SetCellStateTensorData(const ActivationType* data) {
+    std::memcpy(cell_state_, data,
+                batch_size * state_dimension * sizeof(ActivationType));
+    SetTensor(14, hidden_state_, state_size_);
+  }
+
+  TfLiteEvalTensor* GetTensor(const int tensor_index) {
     return &tensors_[tensor_index];
   }
   const ActivationType* GetHiddenState() const { return hidden_state_; }
@@ -279,7 +287,9 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData();
 // Create a 2x2 float model content
 // batch_size = 2; time_steps = 3; input_dimension = 2; state_dimension = 2
 ModelContents<float, float, float, float, 2, 3, 2, 2>
-Create2x3x2X2FloatModelContents();
+Create2x3x2X2FloatModelContents(const float* input_data = nullptr,
+                                const float* hidden_state = nullptr,
+                                const float* cell_state = nullptr);
 
 // Get the quantization settings for the 2X2 model
 ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings();
