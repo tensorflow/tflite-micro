@@ -118,6 +118,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       tflite::testing::kGateOutputData.expected_forget_gate_output, tolerance);
 
   // Input Gate
+  // Quantization performs badly here due to integer overflow!!!
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       int8_model_contents.GetInput(), int8_model_contents.GetHiddenState(),
@@ -174,7 +175,7 @@ TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
 
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
-  // the precision due to integer overflow for the elements
+  // the precision due to integer overflow of the elements
   const float tolerance = 1e-3f;
   tflite::testing::TestCellUpdateQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       tflite::testing::kGateOutputData,
