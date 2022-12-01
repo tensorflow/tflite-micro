@@ -46,6 +46,7 @@ constexpr TfLiteLSTMParams kModelSettings = {
 /*TEST DATA */
 const auto kGateOutputData = Get2X2GateOutputCheckData();
 const auto kMultiTimeEvalData = Get2X2LstmEvalCheckData();
+const auto kInt8QuantizationSettings = Get2X2Int8LstmQuantizationSettings();
 
 }  // namespace
 }  // namespace testing
@@ -89,17 +90,15 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
-  auto quantization_settings =
-      tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       tflite::testing::kGateOutputData.input_data,
       tflite::testing::kGateOutputData.hidden_state,
       tflite::testing::kGateOutputData.cell_state);
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+      tflite::testing::kInt8QuantizationSettings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
-      tflite::testing::kModelSettings, quantization_settings,
-      int8_model_contents);
+      tflite::testing::kModelSettings,
+      tflite::testing::kInt8QuantizationSettings, int8_model_contents);
 
   // Different gate has different weights, resulting different quantization
   // prediction precisions
@@ -109,7 +108,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       int8_model_contents.GetInput(), int8_model_contents.GetHiddenState(),
-      int8_model_contents.ForgetGateParams(), quantization_settings,
+      int8_model_contents.ForgetGateParams(),
+      tflite::testing::kInt8QuantizationSettings,
       evaluation_params.effective_input_to_forget_scale_a,
       evaluation_params.effective_input_to_forget_scale_b,
       evaluation_params.effective_recurrent_to_forget_scale_a,
@@ -121,7 +121,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   tolerance = 1e-1f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       int8_model_contents.GetInput(), int8_model_contents.GetHiddenState(),
-      int8_model_contents.InputGateParams(), quantization_settings,
+      int8_model_contents.InputGateParams(),
+      tflite::testing::kInt8QuantizationSettings,
       evaluation_params.effective_input_to_input_scale_a,
       evaluation_params.effective_input_to_input_scale_b,
       evaluation_params.effective_recurrent_to_input_scale_a,
@@ -132,7 +133,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       int8_model_contents.GetInput(), int8_model_contents.GetHiddenState(),
-      int8_model_contents.OutputGateParams(), quantization_settings,
+      int8_model_contents.OutputGateParams(),
+      tflite::testing::kInt8QuantizationSettings,
       evaluation_params.effective_input_to_output_scale_a,
       evaluation_params.effective_input_to_output_scale_b,
       evaluation_params.effective_recurrent_to_output_scale_a,
@@ -144,7 +146,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   tolerance = 1e-2f;
   tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
       int8_model_contents.GetInput(), int8_model_contents.GetHiddenState(),
-      int8_model_contents.CellGateParams(), quantization_settings,
+      int8_model_contents.CellGateParams(),
+      tflite::testing::kInt8QuantizationSettings,
       evaluation_params.effective_input_to_cell_scale_a,
       evaluation_params.effective_input_to_cell_scale_b,
       evaluation_params.effective_recurrent_to_cell_scale_a,
@@ -161,24 +164,22 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
-  auto quantization_settings =
-      tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto float_model_contents =
       tflite::testing::Create2x3x2X2FloatModelContents();
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+      tflite::testing::kInt8QuantizationSettings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
-      tflite::testing::kModelSettings, quantization_settings,
-      int8_model_contents);
+      tflite::testing::kModelSettings,
+      tflite::testing::kInt8QuantizationSettings, int8_model_contents);
 
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
   // the precision due to integer overflow for the elements
   const float tolerance = 1e-3f;
   tflite::testing::TestCellUpdateQuantized<int8_t, int32_t, int16_t, 2, 2, 2>(
-      tflite::testing::kGateOutputData, quantization_settings,
-      evaluation_params.cell_scale, evaluation_params.quantized_cell_clip,
-      tolerance);
+      tflite::testing::kGateOutputData,
+      tflite::testing::kInt8QuantizationSettings, evaluation_params.cell_scale,
+      evaluation_params.quantized_cell_clip, tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
@@ -188,22 +189,20 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
-  auto quantization_settings =
-      tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto float_model_contents =
       tflite::testing::Create2x3x2X2FloatModelContents();
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+      tflite::testing::kInt8QuantizationSettings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
-      tflite::testing::kModelSettings, quantization_settings,
-      int8_model_contents);
+      tflite::testing::kModelSettings,
+      tflite::testing::kInt8QuantizationSettings, int8_model_contents);
 
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
   tflite::testing::TestHiddenStateUpdateQuantized<int8_t, int32_t, int16_t, 2,
                                                   2, 2>(
-      tflite::testing::kGateOutputData, quantization_settings,
-      evaluation_params, tolerance);
+      tflite::testing::kGateOutputData,
+      tflite::testing::kInt8QuantizationSettings, evaluation_params, tolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
@@ -217,26 +216,24 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
-  auto quantization_settings =
-      tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       tflite::testing::kGateOutputData.input_data,
       tflite::testing::kGateOutputData.hidden_state,
       tflite::testing::kGateOutputData.cell_state);
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+      tflite::testing::kInt8QuantizationSettings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
-      tflite::testing::kModelSettings, quantization_settings,
-      int8_model_contents);
+      tflite::testing::kModelSettings,
+      tflite::testing::kInt8QuantizationSettings, int8_model_contents);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
   tflite::testing::TestOneStepLSTMQuantized<int8_t, int32_t, int16_t, 2, 3, 2,
                                             2>(
-      int8_model_contents, quantization_settings, evaluation_params,
-      tflite::testing::kGateOutputData, hidden_state_tolerance,
-      cell_state_tolerance);
+      int8_model_contents, tflite::testing::kInt8QuantizationSettings,
+      evaluation_params, tflite::testing::kGateOutputData,
+      hidden_state_tolerance, cell_state_tolerance);
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
@@ -250,23 +247,21 @@ TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
-  auto quantization_settings =
-      tflite::testing::Get2X2Int8LstmQuantizationSettings();
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       tflite::testing::kMultiTimeEvalData.input_data,
       tflite::testing::kMultiTimeEvalData.hidden_state);
   auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+      tflite::testing::kInt8QuantizationSettings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
-      tflite::testing::kModelSettings, quantization_settings,
-      int8_model_contents);
+      tflite::testing::kModelSettings,
+      tflite::testing::kInt8QuantizationSettings, int8_model_contents);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
   tflite::testing::TestLSTMEvalQuantized(
       tflite::testing::kModelSettings, int8_model_contents,
-      quantization_settings, evaluation_params,
+      tflite::testing::kInt8QuantizationSettings, evaluation_params,
       tflite::testing::kMultiTimeEvalData, hidden_state_tolerance,
       cell_state_tolerance);
 }

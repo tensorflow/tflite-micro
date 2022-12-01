@@ -85,6 +85,9 @@ struct GateParameters {
 // The input to the layer has shape (batch_size,time_steps,input_dimension)
 // Both the hidden state and cell state has shape (state_dimension, 1)
 // The output of the layer has shape (batch_size,time_steps,state_dimension)
+// Note it is non-const since LSTM is stateful
+// TODO: Seprate tensors into weights/states/io and use the name from
+// lstm_common.h
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
