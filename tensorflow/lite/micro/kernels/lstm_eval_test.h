@@ -85,8 +85,9 @@ ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
               input_dimension, state_dimension>
 CreateInt8ModelContents(
     const ModelQuantizationParameters& quantization_settings,
-    ModelContents<float, float, float, float, batch_size, time_steps,
-                  input_dimension, state_dimension>& float_model_contents) {
+    const ModelContents<float, float, float, float, batch_size, time_steps,
+                        input_dimension, state_dimension>&
+        float_model_contents) {
   auto quantized_forget_gate_params =
       CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
                                     state_dimension>(
@@ -126,8 +127,9 @@ template <int batch_size, int time_steps, int input_dimension,
 IntegerLstmParameter CreateIntegerParameter(
     const TfLiteLSTMParams& general_model_settings,
     const ModelQuantizationParameters& quantization_settings,
-    ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-                  input_dimension, state_dimension>& quantized_model_contents) {
+    const ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size,
+                        time_steps, input_dimension, state_dimension>&
+        quantized_model_contents) {
   IntegerLstmParameter evaluation_params;
   double effective_scale;
   // TODO(b/260006407): QuantizeMultiplier takes int as the output shift
@@ -156,10 +158,10 @@ IntegerLstmParameter CreateIntegerParameter(
                      &buffer_shift_output);
   evaluation_params.effective_recurrent_to_forget_scale_b = buffer_shift_output;
   // Set effective bias
-  evaluation_params.input_to_forget_effective_bias =
-      quantized_model_contents.ForgetGateParams().activation_zp_folded_bias;
-  evaluation_params.recurrent_to_forget_effective_bias =
-      quantized_model_contents.ForgetGateParams().recurrent_zp_folded_bias;
+  evaluation_params.input_to_forget_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.ForgetGateParams().activation_zp_folded_bias);
+  evaluation_params.recurrent_to_forget_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.ForgetGateParams().recurrent_zp_folded_bias);
 
   // input gate
   effective_scale = quantization_settings.input_quantization_parameters.scale *
@@ -179,10 +181,10 @@ IntegerLstmParameter CreateIntegerParameter(
                      &buffer_shift_output);
   evaluation_params.effective_recurrent_to_input_scale_b = buffer_shift_output;
   // Set effective bias
-  evaluation_params.input_to_input_effective_bias =
-      quantized_model_contents.InputGateParams().activation_zp_folded_bias;
-  evaluation_params.recurrent_to_input_effective_bias =
-      quantized_model_contents.InputGateParams().recurrent_zp_folded_bias;
+  evaluation_params.input_to_input_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.InputGateParams().activation_zp_folded_bias);
+  evaluation_params.recurrent_to_input_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.InputGateParams().recurrent_zp_folded_bias);
 
   // cell gate
   effective_scale = quantization_settings.input_quantization_parameters.scale *
@@ -202,10 +204,10 @@ IntegerLstmParameter CreateIntegerParameter(
                      &buffer_shift_output);
   evaluation_params.effective_recurrent_to_cell_scale_b = buffer_shift_output;
   // Set effective bias
-  evaluation_params.input_to_cell_effective_bias =
-      quantized_model_contents.CellGateParams().activation_zp_folded_bias;
-  evaluation_params.recurrent_to_cell_effective_bias =
-      quantized_model_contents.CellGateParams().recurrent_zp_folded_bias;
+  evaluation_params.input_to_cell_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.CellGateParams().activation_zp_folded_bias);
+  evaluation_params.recurrent_to_cell_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.CellGateParams().recurrent_zp_folded_bias);
 
   // output gate
   effective_scale = quantization_settings.input_quantization_parameters.scale *
@@ -225,10 +227,10 @@ IntegerLstmParameter CreateIntegerParameter(
                      &buffer_shift_output);
   evaluation_params.effective_recurrent_to_output_scale_b = buffer_shift_output;
   // Set effective bias
-  evaluation_params.input_to_output_effective_bias =
-      quantized_model_contents.OutputGateParams().activation_zp_folded_bias;
-  evaluation_params.recurrent_to_output_effective_bias =
-      quantized_model_contents.OutputGateParams().recurrent_zp_folded_bias;
+  evaluation_params.input_to_output_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.OutputGateParams().activation_zp_folded_bias);
+  evaluation_params.recurrent_to_output_effective_bias = const_cast<int32_t*>(
+      quantized_model_contents.OutputGateParams().recurrent_zp_folded_bias);
 
   // hidden state (no projection, output is the hidden state)
   effective_scale = quantization_settings.nonlinear_activation_output_scale *
@@ -488,8 +490,8 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMFloat(
     const TfLiteLSTMParams& general_model_settings,
-    ModelContents<float, float, float, float, batch_size, time_steps,
-                  input_dimension, state_dimension>& model_contents,
+    const ModelContents<float, float, float, float, batch_size, time_steps,
+                        input_dimension, state_dimension>& model_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float tolerance) {
@@ -552,8 +554,9 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMQuantized(
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>& model_contents,
+    const ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                        time_steps, input_dimension, state_dimension>&
+        model_contents,
     const ModelQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params,
     const GateOutputCheckData<batch_size * input_dimension,

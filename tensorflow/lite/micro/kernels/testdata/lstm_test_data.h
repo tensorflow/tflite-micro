@@ -24,8 +24,8 @@ namespace tflite {
 namespace testing {
 // Data structure to store all the data used to check output of internal gates
 // of one time step
-// input_size = batch_size*input_dimension gate_output_size =
-// batch_size*state_dimension
+// input_size = batch_size*input_dimension (size of the input array)
+// gate_output_size = batch_size*state_dimension (size of the gate output)
 template <int input_size, int gate_output_size>
 struct GateOutputCheckData {
   float input_data[input_size];
@@ -41,9 +41,10 @@ struct GateOutputCheckData {
 
 // Data structure to store all the data used to check the output of the kernel
 // of multiple batch, multiple timesteps
-// input_size = batch_size*time_steps*input_dimension
-// gate_output_size = batch_size*state_dimension
-// output_size = time_steps*gate_output_size
+// input_size = batch_size*time_steps*input_dimension (size of the input array)
+// gate_output_size = batch_size*state_dimension (size of the gate output)
+// output_size = time_steps*gate_output_size (size of the output from the
+// kernel)
 template <int input_size, int gate_output_size, int output_size>
 struct LstmEvalCheckData {
   float input_data[input_size];
@@ -55,6 +56,13 @@ struct LstmEvalCheckData {
 
 // Struct that holds the weight/bias information for a standard gate (i.e. no
 // modification such as layer normalization, peephole, etc.)
+// Every gate is defined by the type and size of the weights (bias included)
+// inside.
+// Specifically, types are weight type and bias type (normally the same
+// type of MatMul accumulator).
+// activation_weight has shape (hidden state dimension * input tensor dimension)
+// recurrent_weight has shape (hidden state dimension * hidden state dimension)
+// bias has shape (hidden state dimension, 1)
 template <typename WeightType, typename BiasType, int input_dimension,
           int state_dimension>
 struct GateParameters {
@@ -67,12 +75,24 @@ struct GateParameters {
   BiasType recurrent_zp_folded_bias[state_dimension];
 };
 
-// A base class that holds all the tensors for evaluation
+// Data structure that holds all the information to evaluate a LSTM kernel.
+// ActivationType defines the data type of input/output of the layer. The hidden
+// state has the ActivationType as well since it is the layer output of the
+// previous time
+// WeightType defines the weight data type inside the internal gates.
+// BiasType defines the bias data type inside the internal gates. (normally the
+// same type of MatMul accumulator).
+// The input to the layer has shape (batch_size,time_steps,input_dimension)
+// Both the hidden state and cell state has shape (state_dimension, 1)
+// The output of the layer has shape (batch_size,time_steps,state_dimension)
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
 class ModelContents {
  public:
+  ModelContents(const ModelContents& other) = default;
+  ModelContents& operator=(const ModelContents& other) = default;
+
   ModelContents(const GateParameters<WeightType, BiasType, input_dimension,
                                      state_dimension>
                     forget_gate_params,
@@ -117,22 +137,21 @@ class ModelContents {
 
   CellType* ScratchBuffers() { return scratch_buffers_; }
 
-  // TODO(b/253466487): make all getters constant after refactor the
   // IntegerLstmParameter
-  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
-  ForgetGateParams() {
+  const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  ForgetGateParams() const {
     return forget_gate_params_;
   }
-  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
-  InputGateParams() {
+  const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  InputGateParams() const {
     return input_gate_params_;
   }
-  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
-  CellGateParams() {
+  const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  CellGateParams() const {
     return cell_gate_params_;
   }
-  GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
-  OutputGateParams() {
+  const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
+  OutputGateParams() const {
     return output_gate_params_;
   }
 
@@ -210,17 +229,29 @@ struct TensorQuantizationParameters {
   bool symmetry;
 };
 
+// A struct that holds quantization parameters for an internal gate, which is
+// defined by activation/recurrent weight and bias (assuming no internal layer
+// normalization)
 struct GateQuantizationParameters {
   TensorQuantizationParameters activation_weight;
   TensorQuantizationParameters recurrent_weight;
   TensorQuantizationParameters bias;
 };
 
-// A struct that holds the quantization settings for the model
+// A struct that holds the quantization settings for the LSTM kernel. Data
+// members can be grouped into five parts.
+// 1. Data types (activation,weight, cell, bias)
+// 2. Non-linear activation (i.e., tanh and sigmoid) fixed point
+// calculation settings
+// 3. Input/output tensor quantization settings
+// 4. Internal state (hidden and cell) quantization settings
+// 5. Internal gate (forget, input, cell, output) settings
 struct ModelQuantizationParameters {
   TfLiteType activation_type;
+  TfLiteType weight_type;
   TfLiteType cell_type;
   TfLiteType bias_type;
+  // Fixed point setting for integer nonlinear activation calculation
   double nonlinear_activation_input_scale;
   double nonlinear_activation_output_scale;
   // Quantization parameters for input/output

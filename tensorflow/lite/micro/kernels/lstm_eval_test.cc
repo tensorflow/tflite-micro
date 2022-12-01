@@ -47,10 +47,6 @@ constexpr TfLiteLSTMParams kModelSettings = {
 const auto kGateOutputData = Get2X2GateOutputCheckData();
 const auto kMultiTimeEvalData = Get2X2LstmEvalCheckData();
 
-// /*QUANTIZATION SETTINGS*/
-// const ModelQuantizationParameters kInt8QuantizationSettings =
-//     Get2X2Int8LstmQuantizationSettings();
-
 }  // namespace
 }  // namespace testing
 }  // namespace tflite

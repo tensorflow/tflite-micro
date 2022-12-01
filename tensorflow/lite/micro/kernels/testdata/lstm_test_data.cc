@@ -177,6 +177,7 @@ Create2x3x2X2FloatModelContents() {
 ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
   ModelQuantizationParameters quantization_settings;
   quantization_settings.activation_type = kTfLiteInt8;
+  quantization_settings.weight_type = kTfLiteInt8;
   quantization_settings.cell_type = kTfLiteInt16;
   quantization_settings.bias_type = kTfLiteInt32;
   quantization_settings.nonlinear_activation_input_scale =
