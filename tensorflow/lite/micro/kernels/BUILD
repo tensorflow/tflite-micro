@@ -119,10 +119,7 @@ cc_library(
 )
 
 cc_library(
-    name = "lstm_eval_test_common",
-    srcs = [
-        "lstm_eval_test_common.cc",
-    ],
+    name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_test.h",
     ],
@@ -919,7 +916,7 @@ cc_test(
         "lstm_eval_test.cc",
     ],
     deps = [
-        ":lstm_eval_test_common",
+        ":lstm_eval_test_lib",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/testing:micro_test",

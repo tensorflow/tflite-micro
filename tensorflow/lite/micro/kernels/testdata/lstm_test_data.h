@@ -218,7 +218,7 @@ class ModelContents {
   // input is defined in the ModelContent (const across all derived models)
   ActivationType input_[batch_size * input_dimension * time_steps] = {};
   ActivationType output_[batch_size * state_dimension * time_steps] = {};
-  // scratch buffers (4; used for floating point model only)
+  // scratch buffers (4)
   CellType scratch_buffers_[4 * batch_size * state_dimension] = {};
 };
 
