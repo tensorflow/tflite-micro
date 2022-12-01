@@ -177,32 +177,6 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       } else {
-#if defined(HIFI4_INTERNAL)
-        int err;
-        const RuntimeShape& input1_shape =
-            tflite::micro::GetTensorShape(input1);
-        const RuntimeShape& input2_shape =
-            tflite::micro::GetTensorShape(input2);
-        const RuntimeShape& output_shape =
-            tflite::micro::GetTensorShape(output);
-        const int flat_size =
-            MatchingElementsSize(input1_shape, input2_shape, output_shape);
-
-        err = xa_nn_elm_add_asym16sxasym16s_asym16s(
-            tflite::micro::GetTensorData<int16_t>(output),
-            op_params.output_offset, op_params.output_shift,
-            op_params.output_multiplier, op_params.quantized_activation_min,
-            op_params.quantized_activation_max,
-            tflite::micro::GetTensorData<int16_t>(input1),
-            op_params.input1_offset, op_params.input1_shift,
-            op_params.input1_multiplier,
-            tflite::micro::GetTensorData<int16_t>(input2),
-            op_params.input2_offset, op_params.input2_shift,
-            op_params.input2_multiplier, op_params.left_shift, flat_size);
-
-        TF_LITE_ENSURE(context, err == 0);
-
-#else   // defined(HIFI4_INTERNAL)
         reference_ops::Add(op_params, tflite::micro::GetTensorShape(input1),
                            tflite::micro::GetTensorData<int16_t>(input1),
                            tflite::micro::GetTensorShape(input2),
@@ -210,7 +184,6 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
                            tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int16_t>(output),
                            false);
-#endif  // defined(HIFI4_INTERNAL)
       }
 #endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
       break;

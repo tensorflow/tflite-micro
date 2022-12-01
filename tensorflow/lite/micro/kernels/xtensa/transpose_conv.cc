@@ -348,9 +348,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 // be removed.
 #if defined(HIFI4) || defined(HIFI4_INTERNAL)
           xa_nn_transpose_conv_sym8sxsym16s(
-#else
-          xa_nn_transpose_conv(
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
               &output_data[b * output_height * output_width * output_depth],
               const_cast<WORD16*>(
                   &input_data[b * input_height * input_width * input_depth]),
@@ -360,6 +357,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               filter_width, output_height, output_width, num_elements / batches,
               data.per_channel_output_shift, data.per_channel_output_multiplier,
               &scratch_buffer[b * output_height * output_width * output_depth]);
+#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
         }
 #else
         reference_integer_ops::TransposeConv(
