@@ -363,17 +363,14 @@ void CalculateLstmOutputInteger8x8_16(
   {
     int32_t tanh_input_left_shift = (15 + cell_state_scale) - 3;
     int32_t dims_data = n_batch * n_cell;
+	int32_t input_multiplier = 0;
     if (tanh_input_left_shift < 0) /* handling negative shift value */
     {
-      int32_t i;
       tanh_input_left_shift = -tanh_input_left_shift;
-      for (i = 0; i < dims_data; i++) {
-        cell_state[i] = cell_state[i] >> tanh_input_left_shift;
-      }
-      tanh_input_left_shift = 0;
+	  input_multiplier = 3;
     }
     RuntimeShape tanh_inp_shape = RuntimeShape(1, &dims_data);
-    reference_integer_ops::Tanh(0, tanh_input_left_shift, tanh_inp_shape,
+    reference_integer_ops::Tanh(input_multiplier, tanh_input_left_shift, tanh_inp_shape,
                                 cell_state, tanh_inp_shape, scratch0);
   }
   tflite::tensor_utils::CwiseMul(output_gate, scratch0, hidden_scale_a,
