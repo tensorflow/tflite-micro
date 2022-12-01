@@ -122,9 +122,9 @@ CreateInt8ModelContents(
           quantized_cell_gate_params, quantized_output_gate_params);
 
   // Quantize the  floating point input
-  int8_t quantized_input[batch_size * input_dimension] = {};
+  int8_t quantized_input[batch_size * input_dimension * time_steps] = {};
   Quantize(float_model_contents.GetInput(), quantized_input,
-           batch_size * input_dimension,
+           batch_size * input_dimension * time_steps,
            quantization_settings.input_quantization_parameters.scale,
            quantization_settings.input_quantization_parameters.zero_point);
   quantized_model_content.SetInputTensorData(quantized_input);
@@ -136,7 +136,7 @@ CreateInt8ModelContents(
            quantization_settings.hidden_quantization_parameters.zero_point);
   quantized_model_content.SetHiddenStateTensorData(quantized_hidden_state);
   // Quantize the floating point cell state
-  int8_t quantized_cell_state[batch_size * state_dimension] = {};
+  int16_t quantized_cell_state[batch_size * state_dimension] = {};
   Quantize(float_model_contents.GetCellState(), quantized_cell_state,
            batch_size * state_dimension,
            quantization_settings.cell_quantization_parameters.scale,
@@ -316,7 +316,8 @@ void TestGateOutputFloat(const GateParameters<float, float, input_dimension,
 template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int input_dimension, int state_dimension>
 void TestGateOutputQuantized(
-    const float* input_data, const float* hidden_state,
+    const ActivationType* quantized_input,
+    const ActivationType* quantized_hidden_state,
     const GateParameters<int8_t, BiasType, input_dimension, state_dimension>&
         gate_params,
     const ModelQuantizationParameters& quantization_settings,
@@ -326,17 +327,6 @@ void TestGateOutputQuantized(
     int32_t effective_recurrent_to_gate_scale_b,
     TfLiteFusedActivation nonlinear_type, const float* expected_vals,
     float tolerance) {
-  // Quantize the  floating point input
-  ActivationType quantized_input[batch_size * input_dimension] = {};
-  Quantize(input_data, quantized_input, batch_size * input_dimension,
-           quantization_settings.input_quantization_parameters.scale,
-           quantization_settings.input_quantization_parameters.zero_point);
-  // Quantize the  floating point hidden state
-  ActivationType quantized_hidden_state[batch_size * state_dimension] = {};
-  Quantize(hidden_state, quantized_hidden_state, batch_size * state_dimension,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
-
   CellType gate_output[batch_size * state_dimension] = {};
   BiasType scratch_buffer[batch_size * state_dimension] = {};
 

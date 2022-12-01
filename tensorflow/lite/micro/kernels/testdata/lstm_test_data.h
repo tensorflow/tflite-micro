@@ -130,9 +130,9 @@ class ModelContents {
 
   // Provide interface to set the hidden state tensor values for flexible
   // testing
-  void SetCellStateTensorData(const ActivationType* data) {
+  void SetCellStateTensorData(const CellType* data) {
     std::memcpy(cell_state_, data,
-                batch_size * state_dimension * sizeof(ActivationType));
+                batch_size * state_dimension * sizeof(CellType));
     SetTensor(14, cell_state_, state_size_);
   }
 
