@@ -688,6 +688,7 @@ void TestLSTMEvalFloat(
         batch_size * state_dimension * time_steps>& eval_check_data,
     const float tolerance) {
   float_model_contents.SetInputTensorData(eval_check_data.input_data);
+  float scratch_buffers[4 * batch_size * state_dimension] = {};
 
   tflite::EvalFloatLstm(
       float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
@@ -712,9 +713,8 @@ void TestLSTMEvalFloat(
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false,
-      /*output_offset=*/0, float_model_contents.ScratchBuffers(),
-      float_model_contents.GetTensor(13), float_model_contents.GetTensor(14),
-      float_model_contents.GetTensor(15));
+      /*output_offset=*/0, scratch_buffers, float_model_contents.GetTensor(13),
+      float_model_contents.GetTensor(14), float_model_contents.GetTensor(15));
 
   // Validate hidden state. See previous test for the calculation
   ValidateResultGoldens(eval_check_data.expected_hidden_state,

@@ -135,8 +135,6 @@ class ModelContents {
   const CellType* GetCellState() const { return cell_state_; }
   const ActivationType* GetOutput() const { return output_; }
 
-  CellType* ScratchBuffers() { return scratch_buffers_; }
-
   // IntegerLstmParameter
   const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
   ForgetGateParams() const {
@@ -218,8 +216,6 @@ class ModelContents {
   // input is defined in the ModelContent (const across all derived models)
   ActivationType input_[batch_size * input_dimension * time_steps] = {};
   ActivationType output_[batch_size * state_dimension * time_steps] = {};
-  // scratch buffers (4)
-  CellType scratch_buffers_[4 * batch_size * state_dimension] = {};
 };
 
 // A struct that holds quantization parameters for a LSTM Tensor
