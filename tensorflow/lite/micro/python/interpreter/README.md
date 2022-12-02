@@ -51,8 +51,8 @@ tflm_output = tflm_interpreter.get_output(0)
 Input and output tensor details can also be queried using the Python API:
 
 ```
-print(tflm_interpreter.get_input_details[0])
-print(tflm_interpreter.get_output_details[0])
+print(tflm_interpreter.get_input_details(0))
+print(tflm_interpreter.get_output_details(0))
 ```
 
 ## Technical Details

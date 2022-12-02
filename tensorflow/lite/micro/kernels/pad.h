@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,11 +12,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-// Compatibility shim for new location of interface definitions.
 
-#ifndef TENSORFLOW_LITE_BUILTIN_OP_DATA_H_
-#define TENSORFLOW_LITE_BUILTIN_OP_DATA_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
 
-#include "tensorflow/lite/core/c/builtin_op_data.h"
+#include "tensorflow/lite/c/common.h"
 
-#endif  // TENSORFLOW_LITE_BUILTIN_OP_DATA_H_
+namespace tflite {
+
+TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node);
+
+}  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
