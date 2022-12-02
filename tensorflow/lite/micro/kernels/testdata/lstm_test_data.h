@@ -86,9 +86,7 @@ struct GateParameters {
 // The input to the layer has shape (batch_size,time_steps,input_dimension)
 // Both the hidden state and cell state has shape (state_dimension, 1)
 // The output of the layer has shape (batch_size,time_steps,state_dimension)
-// Note it is non-const since LSTM is stateful
-// TODO: Seprate tensors into weights/states/io and use the name from
-// lstm_common.h
+// Note: state values can change through calls (stateful)
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
@@ -117,33 +115,37 @@ class ModelContents {
   }
 
   // Provide interface to set the input tensor values for flexible testing
-  void SetInputTensorData(const ActivationType* data) {
+  void SetInputData(const ActivationType* data) {
     std::memcpy(
         input_, data,
         batch_size * input_dimension * time_steps * sizeof(ActivationType));
-    SetTensor(kLstmInputTensor, input_, input_size_);
+    SetInternalTensor(kLstmInputTensor, input_, input_size_);
   }
+  const ActivationType* GetInputData() const { return input_; }
 
   // Provide interface to set the hidden state tensor values for flexible
   // testing
-  void SetHiddenStateTensorData(const ActivationType* data) {
+  void SetHiddenStateData(const ActivationType* data) {
     std::memcpy(hidden_state_, data,
                 batch_size * state_dimension * sizeof(ActivationType));
   }
+  const ActivationType* GetHiddenStateData() const { return hidden_state_; }
 
   // Provide interface to set the hidden state tensor values for flexible
   // testing
-  void SetCellStateTensorData(const CellType* data) {
+  void SetCellStateData(const CellType* data) {
     std::memcpy(cell_state_, data,
                 batch_size * state_dimension * sizeof(CellType));
   }
+  const CellType* GetCellStateData() const { return cell_state_; }
+  const ActivationType* GetOutputData() const { return output_; }
 
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
   const TfLiteEvalTensor* GetInternalTensor(const int tensor_index) const {
     return &internal_tensors_[tensor_index];
   }
 
-  // Variable tensors
+  // Variable tensors (will be changed, can not be const)
   TfLiteEvalTensor* HiddenStateTensor() {
     return &internal_tensors_[kLstmOutputStateTensor];
   }
@@ -152,13 +154,6 @@ class ModelContents {
   }
   TfLiteEvalTensor* OutputTensor() { return &output_tensor_; }
 
-  // I/O and states are changeable (not const)
-  ActivationType* GetHiddenState() { return hidden_state_; }
-  CellType* GetCellState() { return cell_state_; }
-  ActivationType* GetInput() { return input_; }
-  ActivationType* GetOutput() { return output_; }
-
-  // IntegerLstmParameter
   const GateParameters<WeightType, BiasType, input_dimension, state_dimension>&
   ForgetGateParams() const {
     return forget_gate_params_;
@@ -177,47 +172,54 @@ class ModelContents {
   }
 
  private:
-  // Note: projection and layer norm is included (deprecated)
   void InitializeTensors() {
     // Input Tensor
-    SetTensor(kLstmInputTensor, input_, input_size_);
+    SetInternalTensor(kLstmInputTensor, input_, input_size_);
     // Forget Gate Tensors
-    SetTensor(kLstmInputToForgetWeightsTensor,
-              forget_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(kLstmRecurrentToForgetWeightsTensor,
-              forget_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(kLstmForgetGateBiasTensor, forget_gate_params_.fused_bias,
-              bias_size_);
+    SetInternalTensor(kLstmInputToForgetWeightsTensor,
+                      forget_gate_params_.activation_weight,
+                      activation_weight_size_);
+    SetInternalTensor(kLstmRecurrentToForgetWeightsTensor,
+                      forget_gate_params_.recurrent_weight,
+                      recurrent_weight_size_);
+    SetInternalTensor(kLstmForgetGateBiasTensor, forget_gate_params_.fused_bias,
+                      bias_size_);
     // Input Gate Tensors
-    SetTensor(kLstmInputToInputWeightsTensor,
-              input_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(kLstmRecurrentToInputWeightsTensor,
-              input_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(kLstmInputGateBiasTensor, input_gate_params_.fused_bias,
-              bias_size_);
+    SetInternalTensor(kLstmInputToInputWeightsTensor,
+                      input_gate_params_.activation_weight,
+                      activation_weight_size_);
+    SetInternalTensor(kLstmRecurrentToInputWeightsTensor,
+                      input_gate_params_.recurrent_weight,
+                      recurrent_weight_size_);
+    SetInternalTensor(kLstmInputGateBiasTensor, input_gate_params_.fused_bias,
+                      bias_size_);
     // Cell Gate Tensors
-    SetTensor(kLstmInputToCellWeightsTensor,
-              cell_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(kLstmRecurrentToCellWeightsTensor,
-              cell_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(kLstmCellGateBiasTensor, cell_gate_params_.fused_bias,
-              bias_size_);
+    SetInternalTensor(kLstmInputToCellWeightsTensor,
+                      cell_gate_params_.activation_weight,
+                      activation_weight_size_);
+    SetInternalTensor(kLstmRecurrentToCellWeightsTensor,
+                      cell_gate_params_.recurrent_weight,
+                      recurrent_weight_size_);
+    SetInternalTensor(kLstmCellGateBiasTensor, cell_gate_params_.fused_bias,
+                      bias_size_);
     // Output Gate Tensors
-    SetTensor(kLstmInputToOutputWeightsTensor,
-              output_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(kLstmRecurrentToOutputWeightsTensor,
-              output_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(kLstmOutputGateBiasTensor, output_gate_params_.fused_bias,
-              bias_size_);
+    SetInternalTensor(kLstmInputToOutputWeightsTensor,
+                      output_gate_params_.activation_weight,
+                      activation_weight_size_);
+    SetInternalTensor(kLstmRecurrentToOutputWeightsTensor,
+                      output_gate_params_.recurrent_weight,
+                      recurrent_weight_size_);
+    SetInternalTensor(kLstmOutputGateBiasTensor, output_gate_params_.fused_bias,
+                      bias_size_);
     // State Tensors
-    SetTensor(kLstmOutputStateTensor, hidden_state_, state_size_);
-    SetTensor(kLstmCellStateTensor, cell_state_, state_size_);
+    SetInternalTensor(kLstmOutputStateTensor, hidden_state_, state_size_);
+    SetInternalTensor(kLstmCellStateTensor, cell_state_, state_size_);
     // Output Tensor
     SetOutputTensor(output_, output_size_);
   }
 
   template <typename T>
-  void SetTensor(const int index, const T* data, int* dims) {
+  void SetInternalTensor(const int index, const T* data, int* dims) {
     internal_tensors_[index].data.data = const_cast<T*>(data);
     internal_tensors_[index].dims = IntArrayFromInts(dims);
     internal_tensors_[index].type = typeToTfLiteType<T>();

@@ -174,13 +174,13 @@ Create2x3x2X2FloatModelContents(const float* input_data,
       output_gate_params);
 
   if (input_data != nullptr) {
-    float_model_contents.SetInputTensorData(input_data);
+    float_model_contents.SetInputData(input_data);
   }
   if (hidden_state_data != nullptr) {
-    float_model_contents.SetHiddenStateTensorData(hidden_state_data);
+    float_model_contents.SetHiddenStateData(hidden_state_data);
   }
   if (cell_state_data != nullptr) {
-    float_model_contents.SetCellStateTensorData(cell_state_data);
+    float_model_contents.SetCellStateData(cell_state_data);
   }
 
   return float_model_contents;
