@@ -123,8 +123,7 @@ cc_library(
     hdrs = [
         "lstm_shared.h",
     ],
-    #Public to let testdata:lstm_test_data use it
-    visibility = ["//visibility:public"],
+    visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
 cc_library(
