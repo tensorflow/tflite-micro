@@ -84,11 +84,11 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
   op_params.output_shift = data->output_shift;
   SetActivationParams(data->output_activation_min, data->output_activation_max,
                       &op_params);
-#if !(defined(HIFI4) || defined(HIFI4_INTERNAL))
+#if !(defined(HIFI4))
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
       tflite::micro::GetTensorShape(input2), &op_params);
-#endif  // !defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // !defined(HIFI4)
 
   switch (output->type) {
     case kTfLiteInt8: {
@@ -97,7 +97,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
           *(reinterpret_cast<XtensaAddOpData*>(node->user_data));
       AddEvalQuantizedVision(context, node, *params, op_data, input1, input2,
                              output);
-#elif defined(HIFI4) || defined(HIFI4_INTERNAL)  // defined(VISION_P6)
+#elif defined(HIFI4)  // defined(VISION_P6)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(4, tflite::micro::GetTensorShape(input1));
@@ -143,7 +143,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(4, tflite::micro::GetTensorShape(input1));
@@ -167,7 +167,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
           op_params.left_shift);
 
       TF_LITE_ENSURE(context, err == 0);
-#else   // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#else   // defined(HIFI4)
       if (need_broadcast) {
         reference_ops::BroadcastAdd4DSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -185,7 +185,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
                            tflite::micro::GetTensorData<int16_t>(output),
                            false);
       }
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
       break;
     }
     default:
