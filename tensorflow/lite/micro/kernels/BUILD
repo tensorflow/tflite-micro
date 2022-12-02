@@ -119,6 +119,14 @@ cc_library(
 )
 
 cc_library(
+    name = "lstm_shared",
+    hdrs = [
+        "lstm_shared.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_test.h",

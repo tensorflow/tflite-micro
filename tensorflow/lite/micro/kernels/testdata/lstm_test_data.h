@@ -18,6 +18,7 @@ limitations under the License.
 #include <string>
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
@@ -120,7 +121,7 @@ class ModelContents {
     std::memcpy(
         input_, data,
         batch_size * input_dimension * time_steps * sizeof(ActivationType));
-    SetTensor(0, input_, input_size_);
+    SetTensor(kLstmInputTensor, input_, input_size_);
   }
 
   // Provide interface to set the hidden state tensor values for flexible
@@ -128,7 +129,6 @@ class ModelContents {
   void SetHiddenStateTensorData(const ActivationType* data) {
     std::memcpy(hidden_state_, data,
                 batch_size * state_dimension * sizeof(ActivationType));
-    SetTensor(13, hidden_state_, state_size_);
   }
 
   // Provide interface to set the hidden state tensor values for flexible
@@ -136,13 +136,21 @@ class ModelContents {
   void SetCellStateTensorData(const CellType* data) {
     std::memcpy(cell_state_, data,
                 batch_size * state_dimension * sizeof(CellType));
-    SetTensor(14, cell_state_, state_size_);
   }
 
-  // I/O and states are changeable (not const)
-  TfLiteEvalTensor* GetTensor(const int tensor_index) {
-    return &tensors_[tensor_index];
+  // Internal tensors, fixed (const). see lstm_shared.h for tensor names
+  const TfLiteEvalTensor* GetInternalTensor(const int tensor_index) const {
+    return &internal_tensors_[tensor_index];
   }
+
+  // Variable tensors
+  TfLiteEvalTensor* HiddenStateTensor() {
+    return &internal_tensors_[kLstmOutputStateTensor];
+  }
+  TfLiteEvalTensor* CellStateTensor() {
+    return &internal_tensors_[kLstmCellStateTensor];
+  }
+  TfLiteEvalTensor* OutputTensor() { return &output_tensor_; }
 
   // I/O and states are changeable (not const)
   ActivationType* GetHiddenState() { return hidden_state_; }
@@ -169,39 +177,57 @@ class ModelContents {
   }
 
  private:
+  // Note: projection and layer norm is included (deprecated)
   void InitializeTensors() {
     // Input Tensor
-    SetTensor(0, input_, input_size_);
+    SetTensor(kLstmInputTensor, input_, input_size_);
     // Forget Gate Tensors
-    SetTensor(1, forget_gate_params_.activation_weight,
-              activation_weight_size_);
-    SetTensor(2, forget_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(3, forget_gate_params_.fused_bias, bias_size_);
+    SetTensor(kLstmInputToForgetWeightsTensor,
+              forget_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(kLstmRecurrentToForgetWeightsTensor,
+              forget_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(kLstmForgetGateBiasTensor, forget_gate_params_.fused_bias,
+              bias_size_);
     // Input Gate Tensors
-    SetTensor(4, input_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(5, input_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(6, input_gate_params_.fused_bias, bias_size_);
+    SetTensor(kLstmInputToInputWeightsTensor,
+              input_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(kLstmRecurrentToInputWeightsTensor,
+              input_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(kLstmInputGateBiasTensor, input_gate_params_.fused_bias,
+              bias_size_);
     // Cell Gate Tensors
-    SetTensor(7, cell_gate_params_.activation_weight, activation_weight_size_);
-    SetTensor(8, cell_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(9, cell_gate_params_.fused_bias, bias_size_);
+    SetTensor(kLstmInputToCellWeightsTensor,
+              cell_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(kLstmRecurrentToCellWeightsTensor,
+              cell_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(kLstmCellGateBiasTensor, cell_gate_params_.fused_bias,
+              bias_size_);
     // Output Gate Tensors
-    SetTensor(10, output_gate_params_.activation_weight,
-              activation_weight_size_);
-    SetTensor(11, output_gate_params_.recurrent_weight, recurrent_weight_size_);
-    SetTensor(12, output_gate_params_.fused_bias, bias_size_);
+    SetTensor(kLstmInputToOutputWeightsTensor,
+              output_gate_params_.activation_weight, activation_weight_size_);
+    SetTensor(kLstmRecurrentToOutputWeightsTensor,
+              output_gate_params_.recurrent_weight, recurrent_weight_size_);
+    SetTensor(kLstmOutputGateBiasTensor, output_gate_params_.fused_bias,
+              bias_size_);
     // State Tensors
-    SetTensor(13, hidden_state_, state_size_);
-    SetTensor(14, cell_state_, state_size_);
+    SetTensor(kLstmOutputStateTensor, hidden_state_, state_size_);
+    SetTensor(kLstmCellStateTensor, cell_state_, state_size_);
     // Output Tensor
-    SetTensor(15, output_, output_size_);
+    SetOutputTensor(output_, output_size_);
   }
 
   template <typename T>
   void SetTensor(const int index, const T* data, int* dims) {
-    tensors_[index].data.data = const_cast<T*>(data);
-    tensors_[index].dims = IntArrayFromInts(dims);
-    tensors_[index].type = typeToTfLiteType<T>();
+    internal_tensors_[index].data.data = const_cast<T*>(data);
+    internal_tensors_[index].dims = IntArrayFromInts(dims);
+    internal_tensors_[index].type = typeToTfLiteType<T>();
+  }
+
+  template <typename T>
+  void SetOutputTensor(const T* data, int* dims) {
+    output_tensor_.data.data = const_cast<T*>(data);
+    output_tensor_.dims = IntArrayFromInts(dims);
+    output_tensor_.type = typeToTfLiteType<T>();
   }
 
   GateParameters<WeightType, BiasType, input_dimension, state_dimension>
@@ -222,8 +248,9 @@ class ModelContents {
   int bias_size_[3] = {2, batch_size, state_dimension};
   int state_size_[3] = {2, batch_size, state_dimension};
 
-  // 0 input; 1-12 gate parameters; 13-14 states; 15 output
-  TfLiteEvalTensor tensors_[16];
+  // see lstm_shared.h for tensor names
+  TfLiteEvalTensor internal_tensors_[24];
+  TfLiteEvalTensor output_tensor_;
 
   // states are initialized to zero
   ActivationType hidden_state_[batch_size * state_dimension] = {};

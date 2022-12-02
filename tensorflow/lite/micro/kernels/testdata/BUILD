@@ -19,9 +19,12 @@ cc_library(
 cc_library(
     name = "lstm_test_data",
     srcs = ["lstm_test_data.cc"],
-    hdrs = ["lstm_test_data.h"],
+    hdrs = [
+        "lstm_test_data.h",
+    ],
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:lstm_shared",
     ],
 )

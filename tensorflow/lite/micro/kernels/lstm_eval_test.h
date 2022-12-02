@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
+#include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -673,11 +674,18 @@ void TestLSTMEvalFloat(
   float scratch_buffers[4 * batch_size * state_dimension] = {};
 
   tflite::EvalFloatLstm(
-      float_model_contents.GetTensor(0), float_model_contents.GetTensor(4),
-      float_model_contents.GetTensor(1), float_model_contents.GetTensor(7),
-      float_model_contents.GetTensor(10), float_model_contents.GetTensor(5),
-      float_model_contents.GetTensor(2), float_model_contents.GetTensor(8),
-      float_model_contents.GetTensor(11),
+      float_model_contents.GetInternalTensor(kLstmInputTensor),
+      float_model_contents.GetInternalTensor(kLstmInputToInputWeightsTensor),
+      float_model_contents.GetInternalTensor(kLstmInputToForgetWeightsTensor),
+      float_model_contents.GetInternalTensor(kLstmInputToCellWeightsTensor),
+      float_model_contents.GetInternalTensor(kLstmInputToOutputWeightsTensor),
+      float_model_contents.GetInternalTensor(
+          kLstmRecurrentToInputWeightsTensor),
+      float_model_contents.GetInternalTensor(
+          kLstmRecurrentToForgetWeightsTensor),
+      float_model_contents.GetInternalTensor(kLstmRecurrentToCellWeightsTensor),
+      float_model_contents.GetInternalTensor(
+          kLstmRecurrentToOutputWeightsTensor),
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
@@ -690,13 +698,17 @@ void TestLSTMEvalFloat(
       /*aux_input_to_forget_weights=*/nullptr,
       /*aux_input_to_cell_weights=*/nullptr,
       /*aux_input_to_output_weights=*/nullptr,
-      float_model_contents.GetTensor(6), float_model_contents.GetTensor(3),
-      float_model_contents.GetTensor(9), float_model_contents.GetTensor(12),
+      float_model_contents.GetInternalTensor(kLstmInputGateBiasTensor),
+      float_model_contents.GetInternalTensor(kLstmForgetGateBiasTensor),
+      float_model_contents.GetInternalTensor(kLstmCellGateBiasTensor),
+      float_model_contents.GetInternalTensor(kLstmOutputGateBiasTensor),
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false,
-      /*output_offset=*/0, scratch_buffers, float_model_contents.GetTensor(13),
-      float_model_contents.GetTensor(14), float_model_contents.GetTensor(15));
+      /*output_offset=*/0, scratch_buffers,
+      float_model_contents.HiddenStateTensor(),
+      float_model_contents.CellStateTensor(),
+      float_model_contents.OutputTensor());
 
   // Validate hidden state. See previous test for the calculation
   ValidateResultGoldens(eval_check_data.expected_hidden_state,
@@ -735,15 +747,21 @@ void TestLSTMEvalQuantized(
   BiasType scratch5[batch_size * state_dimension] = {};
 
   EvalInteger8x8_16Lstm(
-      quantized_model_content.GetTensor(0),
-      quantized_model_content.GetTensor(4),
-      quantized_model_content.GetTensor(1),
-      quantized_model_content.GetTensor(7),
-      quantized_model_content.GetTensor(10),
-      quantized_model_content.GetTensor(5),
-      quantized_model_content.GetTensor(2),
-      quantized_model_content.GetTensor(8),
-      quantized_model_content.GetTensor(11),
+      quantized_model_content.GetInternalTensor(kLstmInputTensor),
+      quantized_model_content.GetInternalTensor(kLstmInputToInputWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmInputToForgetWeightsTensor),
+      quantized_model_content.GetInternalTensor(kLstmInputToCellWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmInputToOutputWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmRecurrentToInputWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmRecurrentToForgetWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmRecurrentToCellWeightsTensor),
+      quantized_model_content.GetInternalTensor(
+          kLstmRecurrentToOutputWeightsTensor),
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
@@ -751,17 +769,17 @@ void TestLSTMEvalQuantized(
       /*forget_layer_norm_coefficients=*/nullptr,
       /*cell_layer_norm_coefficients=*/nullptr,
       /*output_layer_norm_coefficients=*/nullptr,
-      quantized_model_content.GetTensor(6),
-      quantized_model_content.GetTensor(3),
-      quantized_model_content.GetTensor(9),
-      quantized_model_content.GetTensor(12),
+      quantized_model_content.GetInternalTensor(kLstmInputGateBiasTensor),
+      quantized_model_content.GetInternalTensor(kLstmForgetGateBiasTensor),
+      quantized_model_content.GetInternalTensor(kLstmCellGateBiasTensor),
+      quantized_model_content.GetInternalTensor(kLstmOutputGateBiasTensor),
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
       quantization_settings.output_quantization_parameters.zero_point,
-      quantized_model_content.GetTensor(13),
-      quantized_model_content.GetTensor(14),
-      quantized_model_content.GetTensor(15), scratch0, scratch1, scratch2,
+      quantized_model_content.HiddenStateTensor(),
+      quantized_model_content.CellStateTensor(),
+      quantized_model_content.OutputTensor(), scratch0, scratch1, scratch2,
       scratch3, scratch4, scratch5);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};
