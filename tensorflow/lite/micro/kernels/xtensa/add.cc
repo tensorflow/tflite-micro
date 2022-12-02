@@ -167,7 +167,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
           op_params.left_shift);
 
       TF_LITE_ENSURE(context, err == 0);
-#else  // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#else   // defined(HIFI4) || defined(HIFI4_INTERNAL)
       if (need_broadcast) {
         reference_ops::BroadcastAdd4DSlow(
             op_params, tflite::micro::GetTensorShape(input1),
