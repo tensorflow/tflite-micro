@@ -64,8 +64,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
 
-#if defined(HIFI4) || defined(HIFI5) || \
-    defined(VISION_P6)
+#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
