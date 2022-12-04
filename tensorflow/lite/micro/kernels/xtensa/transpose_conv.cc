@@ -312,7 +312,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
       } else {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
         const RuntimeShape& filter_shape =
             tflite::micro::GetTensorShape(filter);
@@ -346,7 +346,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 // TODO(b/239852051): Internal and OSS nnlib have slightly different APIs but
 // the same underlying implementation. Once we switch to all OSS, this ifdef can
 // be removed.
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
           xa_nn_transpose_conv_sym8sxsym16s(
               &output_data[b * output_height * output_width * output_depth],
               const_cast<WORD16*>(
@@ -357,7 +357,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               filter_width, output_height, output_width, num_elements / batches,
               data.per_channel_output_shift, data.per_channel_output_multiplier,
               &scratch_buffer[b * output_height * output_width * output_depth]);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
         }
 #else
         reference_integer_ops::TransposeConv(
@@ -371,7 +371,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
       }
       break;
     }
