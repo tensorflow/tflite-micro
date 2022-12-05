@@ -48,7 +48,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
 #endif
 #if defined(VISION_P6)
@@ -64,8 +64,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
-    defined(VISION_P6)
+#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
@@ -84,7 +83,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (filter->type) {
         case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
           ConvEvalHifi(context, node, params, op_data, input, filter, bias,
                        output);
 #elif defined(VISION_P6)
@@ -92,7 +91,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                 bias, output);
 #else
           return ConvReferenceEvalInt8(context, node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
           break;
         }
         case kTfLiteInt4: {
@@ -121,12 +120,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
                      output);
 #else
       return ConvReferenceEvalInt16(context, node);
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
       break;
     }
     default:
