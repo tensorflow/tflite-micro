@@ -29,11 +29,20 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
 FLAGS = flags.FLAGS
+flags.DEFINE_string(
+    'common_tflite_path', None,
+    'Common path to tflite files. This need to be an absolute path.'
+    'This would typically be the path to the directory where the models reside.'
+)
 
-flags.DEFINE_list('input_tflite_files', None,
-                  'Full path name list of the input TFLite files.')
+flags.DEFINE_list(
+    'input_tflite_files', None,
+    'Relative path name list of the input TFLite files.'
+    'This would be relative to the common path.'
+    'This would typically be the name(s) of the tflite file(s).')
 flags.DEFINE_string('output_dir', None, 'directory to output generated files')
 
+flags.mark_flag_as_required('common_tflite_path')
 flags.mark_flag_as_required('input_tflite_files')
 flags.mark_flag_as_required('output_dir')
 
@@ -114,11 +123,13 @@ def main(_):
   final_operator_list = []
   merged_operator_list = []
 
-  model_paths = FLAGS.input_tflite_files
+  common_model_path = FLAGS.common_tflite_path
+  relative_model_paths = FLAGS.input_tflite_files
 
-  for model_path in model_paths:
-    operators = GetModelOperatorsAndActivation(model_path)
-    model_name = model_path.split('/')[-1]
+  for relative_model_path in relative_model_paths:
+    full_model_path = f"{common_model_path}/{relative_model_path}"
+    operators = GetModelOperatorsAndActivation(full_model_path)
+    model_name = full_model_path.split('/')[-1]
     model_names.append(model_name)
 
     parsed_operator_list = []

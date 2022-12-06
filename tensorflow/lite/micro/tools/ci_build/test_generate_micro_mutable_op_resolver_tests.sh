@@ -23,7 +23,9 @@ cd "${ROOT_DIR}"
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 MODEL="person_detect"
-TEST_TFLITE_FILE="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/models/${MODEL}.tflite)"
+TEST_TFLITE_PATH="$(realpath ${ROOT_DIR}/tensorflow/lite/micro/models)"
+TEST_TFLITE_NAME="${MODEL}.tflite"
+TEST_TFLITE_FILE="${TEST_TFLITE_PATH}/${TEST_TFLITE_NAME}"
 MODEL_BASENAME=$(basename ${TEST_TFLITE_FILE} .tflite)
 TEST_OUTPUT_DIR_RELATIVE=tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test
 TEST_OUTPUT_DIR=${ROOT_DIR}/${TEST_OUTPUT_DIR_RELATIVE}
@@ -33,7 +35,7 @@ TEST_OUTPUT_MODEL_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})/${MODEL_BASENAME}
 GEN_TEST_OUTPUT_DIR_RELATIVE=${TEST_OUTPUT_DIR_RELATIVE}/${MODEL}
 
 readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_files=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_MODEL_DIR_REALPATH}
+             --common_tflite_path=${TEST_TFLITE_PATH} --input_tflite_files=${TEST_TFLITE_NAME} --output_dir=${TEST_OUTPUT_MODEL_DIR_REALPATH}
 
 readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
              --input_tflite_file=${TEST_TFLITE_FILE}  -output_dir=${TEST_OUTPUT_DIR_REALPATH}
