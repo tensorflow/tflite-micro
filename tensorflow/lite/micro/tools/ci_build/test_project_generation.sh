@@ -30,16 +30,16 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 # a simple makefile (e.g. http://b/261106859).
 TEST_OUTPUT_DIR="$(mktemp -d)"
 
-# We currently run the bazel build from TENSORFLOW_ROOT.
-pushd "${ROOT_DIR}" > /dev/null
 readable_run \
-  python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+  python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+  --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
   "${TEST_OUTPUT_DIR}"
 
-readable_run cp tensorflow/lite/micro/tools/project_generation/BUILD.testing "${TEST_OUTPUT_DIR}/BUILD"
-popd > /dev/null
+# We currently run the bazel build from ${TEST_OUTPUT_DIR}/TENSORFLOW_ROOT.
+readable_run cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/BUILD.testing \
+  "${TEST_OUTPUT_DIR}/${TENSORFLOW_ROOT}BUILD"
 
-pushd "${TEST_OUTPUT_DIR}" > /dev/null
+pushd "${TEST_OUTPUT_DIR}/${TENSORFLOW_ROOT}" > /dev/null
 readable_run touch WORKSPACE
 readable_run bazel build :libtflm
 popd > /dev/null
