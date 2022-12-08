@@ -92,6 +92,44 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
   TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 10);
   tflite::AllocationInfo* allocation_info = builder.Finish();
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 0);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 1);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].first_created, 2);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].last_used, 3);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].first_created, 2);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].last_used, 3);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].first_created, 3);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 5);
+}
+
+TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndEmptySubgraph) {
+  constexpr int kArenaSize = 1024;
+  uint8_t arena[kArenaSize];
+  const tflite::Model* model =
+      tflite::testing::GetSimpleModelWithIfAndEmptySubgraph();
+  tflite::SingleArenaBufferAllocator allocator(arena, kArenaSize);
+  tflite::AllocationInfoBuilder builder(model, &allocator);
+  builder.CreateAllocationInfo(0);
+  tflite::MicroAllocator* micro_allocator =
+      tflite::MicroAllocator::Create(arena, kArenaSize);
+  tflite::SubgraphAllocations* subgraph_allocations =
+      micro_allocator->StartModelAllocation(model);
+  builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
+  builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
+  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 10);
+  tflite::AllocationInfo* allocation_info = builder.Finish();
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 4);
