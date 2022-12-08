@@ -56,7 +56,7 @@ ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
 
-else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
+else ifeq ($(TARGET_ARCH), hifi4)
 
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -135,7 +135,7 @@ FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
 
 INCLUDES += -I$(FFT_PATH)/
 
-ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal hifi5))
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi5))
 THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
 
