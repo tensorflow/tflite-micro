@@ -38,6 +38,8 @@ void AllocationInfoBuilder::UpdateFirstCreated(AllocationInfo* current,
                                                int allocation_scope_count) {
   TFLITE_DCHECK(current->first_created <= allocation_scope_count);
   current->first_created = allocation_scope_count;
+  // This will ensure that tensors that are outputs from an
+  // OP but not inputs to any other OP also have a reasonable lifetime.
   current->last_used = allocation_scope_count;
 }
 
