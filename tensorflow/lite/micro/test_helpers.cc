@@ -868,13 +868,6 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
           builder->CreateVector(operator_outputs, outputs_size),
           BuiltinOptions_NONE),
   };
-  const Offset<Operator> subgraph3_operators[operators_size] = {
-      CreateOperator(
-          *builder, 2,
-          builder->CreateVector(operator_inputs, operator_inputs_size),
-          builder->CreateVector(operator_outputs, outputs_size),
-          BuiltinOptions_NONE),
-  };
   constexpr size_t subgraphs_size = 3;
   const Offset<SubGraph> subgraphs[subgraphs_size] = {
       CreateSubGraph(*builder, builder->CreateVector(subgraph1_tensors, 4),
@@ -891,8 +884,7 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
       CreateSubGraph(
           *builder, builder->CreateVector(subgraph3_tensors, 3),
           builder->CreateVector(operator_inputs, operator_inputs_size),
-          builder->CreateVector(operator_outputs, outputs_size),
-          builder->CreateVector(subgraph3_operators, operators_size),
+          builder->CreateVector(operator_outputs, outputs_size), 0,
           builder->CreateString("else_subgraph")),
   };
   constexpr size_t operator_codes_size = 3;

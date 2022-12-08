@@ -92,13 +92,13 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
   TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 10);
   tflite::AllocationInfo* allocation_info = builder.Finish();
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].first_created, 2);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].last_used, 3);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].first_created, 2);
@@ -106,11 +106,14 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].first_created, 3);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 4);
+  TF_LITE_MICRO_EXPECT_NE(allocation_info[7].last_used, -1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 5);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 4);
+  TF_LITE_MICRO_EXPECT_NE(allocation_info[8].last_used, -1);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 4);
+  TF_LITE_MICRO_EXPECT_NE(allocation_info[9].first_created, -1);
+  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 4);
 }
 
 TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndInputSubgraphOverlap) {
