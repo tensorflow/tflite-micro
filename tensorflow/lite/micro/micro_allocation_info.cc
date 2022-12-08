@@ -245,6 +245,8 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
   }
 
   // Mark all outputs as created at the start of the subgraph invocation.
+  // This first_creation value will be updated later to reflect the actual
+  // usage of the tensor at the Operation(Op) scope, as needed.
   // This will handle the case where the subgraph is empty or the tensors
   // are unused by the subgraph. This is a sanity measure to make sure the
   // memory planner gets clean data to work with.
