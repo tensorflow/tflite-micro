@@ -15,8 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
-#include "CMSIS/NN/Include/arm_nn_types.h"
-#include "CMSIS/NN/Include/arm_nnfunctions.h"
+#include "Include/arm_nn_types.h"
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -106,17 +106,14 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
       arm_svdf_s8(
           &scratch_ctx, &scratch_output_ctx, &svdf_params, &in_quant_params,
           &out_quant_params, &input_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(input_tensor),
-          &state_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(
-              activation_state_tensor),
+          tflite::micro::GetTensorData<int8_t>(input_tensor), &state_dims,
+          tflite::micro::GetTensorData<int8_t>(activation_state_tensor),
           &weights_feature_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
+          tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
           &weights_time_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_time_tensor),
-          &bias_dims,
-          (int32_t*)tflite::micro::GetTensorData<int32_t>(bias_tensor),
-          &output_dims, output_data);
+          tflite::micro::GetTensorData<int8_t>(weights_time_tensor), &bias_dims,
+          tflite::micro::GetTensorData<int32_t>(bias_tensor), &output_dims,
+          output_data);
       return kTfLiteOk;
     }
 
@@ -124,16 +121,13 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
       arm_svdf_state_s16_s8(
           &scratch_ctx, &scratch_output_ctx, &svdf_params, &in_quant_params,
           &out_quant_params, &input_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(input_tensor),
-          &state_dims,
-          (int16_t*)tflite::micro::GetTensorData<int16_t>(
-              activation_state_tensor),
+          tflite::micro::GetTensorData<int8_t>(input_tensor), &state_dims,
+          tflite::micro::GetTensorData<int16_t>(activation_state_tensor),
           &weights_feature_dims,
-          (int8_t*)tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
+          tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
           &weights_time_dims,
-          (int16_t*)tflite::micro::GetTensorData<int16_t>(weights_time_tensor),
-          &bias_dims,
-          (int32_t*)tflite::micro::GetTensorData<int32_t>(bias_tensor),
+          tflite::micro::GetTensorData<int16_t>(weights_time_tensor),
+          &bias_dims, tflite::micro::GetTensorData<int32_t>(bias_tensor),
           &output_dims, output_data);
       return kTfLiteOk;
     }

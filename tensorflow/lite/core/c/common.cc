@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/core/c/common.h"
 
-#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/core/c/c_api_types.h"
 #ifdef TF_LITE_TENSORFLOW_PROFILER
 #include "tensorflow/lite/tensorflow_profiler_logger.h"
 #endif
@@ -105,9 +105,13 @@ void TfLiteTensorDataFree(TfLiteTensor* t) {
       t->allocation_type == kTfLitePersistentRo) {
     if (t->data.raw) {
 #ifdef TF_LITE_TENSORFLOW_PROFILER
+      tflite::PauseHeapMonitoring(/*pause=*/true);
       tflite::OnTfLiteTensorDealloc(t);
 #endif
       free(t->data.raw);
+#ifdef TF_LITE_TENSORFLOW_PROFILER
+      tflite::PauseHeapMonitoring(/*pause=*/false);
+#endif
     }
   }
   t->data.raw = nullptr;
@@ -221,28 +225,38 @@ void TfLiteTensorResizeMaybeCopy(size_t num_bytes, TfLiteTensor* tensor,
       tensor->allocation_type != kTfLitePersistentRo) {
     return;
   }
-  // TODO(b/145340303): Tensor data should be aligned.
-  if (!tensor->data.data) {
-    tensor->data.data = (char*)malloc(num_bytes);
 #ifdef TF_LITE_TENSORFLOW_PROFILER
-    tflite::OnTfLiteTensorAlloc(tensor, num_bytes);
+  tflite::PauseHeapMonitoring(/*pause=*/true);
+#endif
+  size_t alloc_bytes = num_bytes;
+  // TODO(b/145340303): Tensor data should be aligned.
+#ifdef TFLITE_KERNEL_USE_XNNPACK
+  alloc_bytes += 16;  // XNNPACK_EXTRA_BYTES = 16
+#endif
+  if (!tensor->data.data) {
+    tensor->data.data = (char*)malloc(alloc_bytes);
+#ifdef TF_LITE_TENSORFLOW_PROFILER
+    tflite::OnTfLiteTensorAlloc(tensor, alloc_bytes);
 #endif
   } else if (num_bytes > tensor->bytes) {
 #ifdef TF_LITE_TENSORFLOW_PROFILER
     tflite::OnTfLiteTensorDealloc(tensor);
 #endif
     if (preserve_data) {
-      tensor->data.data = (char*)realloc(tensor->data.data, num_bytes);
+      tensor->data.data = (char*)realloc(tensor->data.data, alloc_bytes);
     } else {
       // Calling free and malloc can be more efficient as it avoids needlessly
       // copying the data when it is not required.
       free(tensor->data.data);
-      tensor->data.data = (char*)malloc(num_bytes);
+      tensor->data.data = (char*)malloc(alloc_bytes);
     }
 #ifdef TF_LITE_TENSORFLOW_PROFILER
-    tflite::OnTfLiteTensorAlloc(tensor, num_bytes);
+    tflite::OnTfLiteTensorAlloc(tensor, alloc_bytes);
 #endif
   }
+#ifdef TF_LITE_TENSORFLOW_PROFILER
+  tflite::PauseHeapMonitoring(/*pause=*/false);
+#endif
   tensor->bytes = num_bytes;
 }
 
@@ -289,6 +303,8 @@ const char* TfLiteTypeGetName(TfLiteType type) {
       return "RESOURCE";
     case kTfLiteVariant:
       return "VARIANT";
+    case kTfLiteInt4:
+      return "INT4";
   }
   return "Unknown type";
 }
@@ -307,7 +323,7 @@ struct TfLiteOpaqueDelegateStruct* TfLiteOpaqueDelegateCreate(
 }
 
 void TfLiteOpaqueDelegateDelete(
-    const struct TfLiteOpaqueDelegateStruct* opaque_delegate) {
+    struct TfLiteOpaqueDelegateStruct* opaque_delegate) {
   if (!opaque_delegate) return;
 
   const TfLiteDelegate* tflite_delegate =

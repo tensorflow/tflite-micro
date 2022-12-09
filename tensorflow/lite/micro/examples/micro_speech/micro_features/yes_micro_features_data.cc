@@ -20,7 +20,7 @@ limitations under the License.
 
 const int g_yes_micro_f2e59fea_nohash_1_width = 40;
 const int g_yes_micro_f2e59fea_nohash_1_height = 49;
-const signed char g_yes_micro_f2e59fea_nohash_1_data[] = {
+alignas(16) const signed char g_yes_micro_f2e59fea_nohash_1_data[] = {
     116,  98,   118,  95,   106,  85,   101,  81,   67,   -18,  -33,  -12,
     -26,  -128, 9,    34,   56,   45,   9,    -12,  5,    30,   23,   28,
     0,    -18,  0,    -128, -60,  -50,  -50,  -37,  -60,  -60,  -50,  -26,

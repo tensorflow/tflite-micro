@@ -1756,17 +1756,6 @@ int TestStrcmp(const char* a, const char* b) {
          *reinterpret_cast<const unsigned char*>(b);
 }
 
-// Wrapper to forward kernel errors to the interpreter's error reporter.
-void ReportOpError(struct TfLiteContext* context, const char* format, ...) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  ErrorReporter* error_reporter = static_cast<ErrorReporter*>(context->impl_);
-  va_list args;
-  va_start(args, format);
-  TF_LITE_REPORT_ERROR(error_reporter, format, args);
-  va_end(args);
-#endif
-}
-
 // Create a TfLiteIntArray from an array of ints.  The first element in the
 // supplied array must be the size of the array expressed as an int.
 TfLiteIntArray* IntArrayFromInts(int* int_array) {
@@ -1880,13 +1869,14 @@ TfLiteTensor CreatePerChannelQuantizedBiasTensor(
 TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
     int* zero_points, TfLiteAffineQuantization* affine_quant,
-    int quantized_dimension, bool is_variable) {
+    int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type) {
   int channel_count = dims->data[quantized_dimension];
+
   scales[0] = static_cast<float>(channel_count);
   zero_points[0] = channel_count;
 
   SignedSymmetricPerChannelQuantize(input, dims, quantized_dimension, quantized,
-                                    &scales[1]);
+                                    &scales[1], tensor_weight_type);
 
   for (int i = 0; i < channel_count; i++) {
     zero_points[i + 1] = 0;
@@ -1895,8 +1885,8 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
   affine_quant->scale = FloatArrayFromFloats(scales);
   affine_quant->zero_point = IntArrayFromInts(zero_points);
   affine_quant->quantized_dimension = quantized_dimension;
-
-  TfLiteTensor result = CreateTensor(quantized, dims, is_variable);
+  TfLiteTensor result =
+      CreateTensor(quantized, dims, is_variable, tensor_weight_type);
   result.quantization = {kTfLiteAffineQuantization, affine_quant};
   return result;
 }
@@ -1907,6 +1897,19 @@ size_t GetModelTensorCount(const Model* model) {
     return (*subgraphs)[0]->tensors()->size();
   }
   return 0;
+}
+
+void PackInt4ValuesDenselyInPlace(uint8_t* src_buffer, int buffer_size) {
+  for (int i = 0; i < buffer_size; ++i) {
+    if (i % 2 == 0) {
+      src_buffer[i / 2] = src_buffer[i] & 0x0F;
+    } else {
+      src_buffer[i / 2] |= src_buffer[i] << 4;
+    }
+  }
+  // the rest of the buffer should be empty since half of it is packed with the
+  // values
+  memset(src_buffer + (buffer_size + 1) / 2, 0, buffer_size / 2);
 }
 
 }  // namespace testing

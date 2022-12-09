@@ -97,7 +97,8 @@ class MicroProfiler : public MicroProfilerInterface {
 // MicroInterpreter and we want to ensure zero overhead for the release builds.
 class ScopedMicroProfiler {
  public:
-  explicit ScopedMicroProfiler(const char* tag, MicroProfiler* profiler) {}
+  explicit ScopedMicroProfiler(const char* tag,
+                               MicroProfilerInterface* profiler) {}
 };
 
 #else
@@ -114,7 +115,8 @@ class ScopedMicroProfiler {
 // }
 class ScopedMicroProfiler {
  public:
-  explicit ScopedMicroProfiler(const char* tag, MicroProfiler* profiler)
+  explicit ScopedMicroProfiler(const char* tag,
+                               MicroProfilerInterface* profiler)
       : profiler_(profiler) {
     if (profiler_ != nullptr) {
       event_handle_ = profiler_->BeginEvent(tag);
@@ -129,7 +131,7 @@ class ScopedMicroProfiler {
 
  private:
   uint32_t event_handle_ = 0;
-  MicroProfiler* profiler_ = nullptr;
+  MicroProfilerInterface* profiler_ = nullptr;
 };
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
 
