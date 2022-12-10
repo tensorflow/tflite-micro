@@ -130,6 +130,7 @@ cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_test.h",
+        "lstm_eval_16act_test.h",
     ],
     deps = [
         ":kernel_util",
@@ -286,6 +287,7 @@ tflm_kernel_cc_library(
         "logical.h",
         "logistic.h",
         "lstm_eval.h",
+        "lstm_eval_16act.h",
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
@@ -922,6 +924,18 @@ cc_test(
     name = "lstm_eval_test",
     srcs = [
         "lstm_eval_test.cc",
+    ],
+    deps = [
+        ":lstm_eval_test_lib",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "lstm_eval_16act_test",
+    srcs = [
+        "lstm_eval_16act_test.cc",
     ],
     deps = [
         ":lstm_eval_test_lib",

@@ -128,6 +128,26 @@ inline void BroadcastMul4DSlow(
   }
 }
 
+template <typename InputType, typename OutputType>
+inline void MulElementwiseGeneral(int size, const ArithmeticParams& params,
+                                  const InputType* input1_data,
+                                  const InputType* input2_data,
+                                  OutputType* output_data) {
+  for (int i = 0; i < size; ++i) {
+    const int32_t input1_val = params.input1_offset + input1_data[i];
+    const int32_t input2_val = params.input2_offset + input2_data[i];
+    const int32_t unclamped_result =
+        params.output_offset +
+        MultiplyByQuantizedMultiplier(input1_val * input2_val,
+                                      params.output_multiplier,
+                                      params.output_shift);
+    const int32_t clamped_output =
+        std::min(params.quantized_activation_max,
+                 std::max(params.quantized_activation_min, unclamped_result));
+    output_data[i] = static_cast<OutputType>(clamped_output);
+  }
+}
+
 }  // namespace reference_integer_ops
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_INTEGER_OPS_MUL_H_
