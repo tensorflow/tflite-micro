@@ -140,8 +140,10 @@ class ModelContents {
   const CellType* GetCellStateData() const { return cell_state_; }
   const ActivationType* GetOutputData() const { return output_; }
 
-  // Internal tensors, fixed (const). see lstm_shared.h for tensor names
-  const TfLiteEvalTensor* GetInternalTensor(const int tensor_index) const {
+  // Internal tensors. see lstm_shared.h for tensor names
+  // Should be const but make it variable to help set up LSTMKernelContents for
+  // testing
+  TfLiteEvalTensor* GetInternalTensor(const int tensor_index) {
     return &internal_tensors_[tensor_index];
   }
 

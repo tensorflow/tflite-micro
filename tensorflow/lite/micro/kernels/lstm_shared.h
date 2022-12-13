@@ -15,6 +15,9 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_
 
+#include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/kernels/internal/types.h"
+
 namespace tflite {
 
 // Input Tensors of size {n_batch, n_input}
@@ -62,6 +65,62 @@ constexpr int kLstmOutputLayerNormCoefficientsTensor = 23;  // Optional
 
 // Output tensors.
 constexpr int kLstmOutputTensor = 0;
+
+struct GateParameters {
+  FullyConnectedParams input_fc_params;
+  FullyConnectedParams recurrent_fc_params;
+};
+
+struct InterGateParameters {
+  ArithmeticParams forget_cell_mul_params;
+  ArithmeticParams input_mul_params;
+  ArithmeticParams output_mul_params;
+};
+
+struct LSTMBufferIndices {
+  int buffer_indices[4];  // four buffers
+};
+
+struct OpDataLSTM {
+  GateParameters forget_gate_parameters;
+  GateParameters input_gate_parameters;
+  GateParameters cell_gate_parameters;
+  GateParameters output_gate_parameters;
+  InterGateParameters inter_gate_parameters;
+  LSTMBufferIndices buffer_indices;  // TFLM only
+};
+
+// Data structure that holds all the information to evaluate a LSTM kernel.
+template <typename CellType>
+struct LSTMKernelContents {
+ public:
+  // Internal tensors, fixed (const). see lstm_shared.h for tensor names
+  const TfLiteEvalTensor* GetInternalTensor(const int tensor_index) const {
+    return internal_tensors[tensor_index];
+  }
+  // Variable tensors (will be changed, can not be const)
+  TfLiteEvalTensor* HiddenStateTensor() {
+    return internal_tensors[kLstmOutputStateTensor];
+  }
+  TfLiteEvalTensor* CellStateTensor() {
+    return internal_tensors[kLstmCellStateTensor];
+  }
+  TfLiteEvalTensor* OutputTensor() { return output_tensor; }
+
+  TfLiteFusedActivation cell_gate_nonlinear_type;
+  CellType quantized_cell_clip;
+  // 2^-cell_state_scale_power = cell state scale
+  int32_t cell_state_scale_power;
+
+  // Node internal tensors with indexes defined at the beginning of the file
+  TfLiteEvalTensor* internal_tensors[24];
+  TfLiteEvalTensor* output_tensor;
+
+  CellType* buffer0;
+  CellType* buffer1;
+  CellType* buffer2;
+  CellType* buffer3;
+};
 
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_

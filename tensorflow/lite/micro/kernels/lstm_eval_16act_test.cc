@@ -184,5 +184,24 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
       quantization_settings, tolerance);
 }
 
+TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
+  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
+  const auto quantization_settings =
+      tflite::testing::Get2X2Int8LstmQuantizationSettings();
+
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      gate_output_data.input_data, gate_output_data.hidden_state,
+      gate_output_data.cell_state);
+  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
+      quantization_settings, float_model_contents);
+
+  const float hidden_state_tolerance = 1e-2;
+  // cell state degrade due to integer overflow
+  const float cell_state_tolerance = 1e-1;
+  tflite::testing::TestOneStepLSTMInteger<int8_t, int32_t, int16_t, 2, 3, 2, 2>(
+      tflite::testing::kModelSettings, quantization_settings, gate_output_data,
+      hidden_state_tolerance, cell_state_tolerance, int8_model_contents);
+}
+
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END
