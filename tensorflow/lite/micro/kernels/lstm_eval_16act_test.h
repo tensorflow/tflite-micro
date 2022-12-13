@@ -23,6 +23,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/lstm_eval_test.h"
 namespace tflite {
 namespace testing {
+
+/*Helper Functions (mainly about mimicking the kernel preparation)*/
+
 // since TfLiteContext is not available during the kernel test, we mimic (put
 // into stack memory) CalculateOpDataFullyConnected in
 // tensorflow/lite/micro/kernels/fully_connected_common.cc
@@ -89,7 +92,132 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
-// Both preparation and invoke phases are tested here
+template <typename ActivationType, typename BiasType, typename CellType,
+          int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+LSTMKernelContents<CellType> CreateLSTMKernelContent(
+    const TfLiteLSTMParams& builtin_data, const float cell_state_scale,
+    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                  time_steps, input_dimension, state_dimension>&
+        model_contents) {
+  LSTMKernelContents<CellType> kernel_content;
+  // Point to correct tensors
+  kernel_content.internal_tensors[kLstmInputTensor] =
+      model_contents.GetInternalTensor(kLstmInputTensor);
+  kernel_content.internal_tensors[kLstmInputToInputWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmInputToInputWeightsTensor);
+  kernel_content.internal_tensors[kLstmInputToForgetWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmInputToForgetWeightsTensor);
+  kernel_content.internal_tensors[kLstmInputToCellWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmInputToCellWeightsTensor);
+  kernel_content.internal_tensors[kLstmInputToOutputWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmInputToOutputWeightsTensor);
+  kernel_content.internal_tensors[kLstmRecurrentToInputWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmRecurrentToInputWeightsTensor);
+  kernel_content.internal_tensors[kLstmRecurrentToForgetWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmRecurrentToForgetWeightsTensor);
+  kernel_content.internal_tensors[kLstmRecurrentToCellWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmRecurrentToCellWeightsTensor);
+  kernel_content.internal_tensors[kLstmRecurrentToOutputWeightsTensor] =
+      model_contents.GetInternalTensor(kLstmRecurrentToOutputWeightsTensor);
+  kernel_content.internal_tensors[kLstmInputGateBiasTensor] =
+      model_contents.GetInternalTensor(kLstmInputGateBiasTensor);
+  kernel_content.internal_tensors[kLstmForgetGateBiasTensor] =
+      model_contents.GetInternalTensor(kLstmForgetGateBiasTensor);
+  kernel_content.internal_tensors[kLstmCellGateBiasTensor] =
+      model_contents.GetInternalTensor(kLstmCellGateBiasTensor);
+  kernel_content.internal_tensors[kLstmOutputGateBiasTensor] =
+      model_contents.GetInternalTensor(kLstmOutputGateBiasTensor);
+  kernel_content.internal_tensors[kLstmOutputStateTensor] =
+      model_contents.GetInternalTensor(kLstmOutputStateTensor);
+  kernel_content.internal_tensors[kLstmOutputGateBiasTensor] =
+      model_contents.GetInternalTensor(kLstmOutputGateBiasTensor);
+  kernel_content.internal_tensors[kLstmCellStateTensor] =
+      model_contents.GetInternalTensor(kLstmCellStateTensor);
+  // Not used internal tensors
+  kernel_content.internal_tensors[kLstmCellToInputWeightsTensor] = nullptr;
+  kernel_content.internal_tensors[kLstmCellToForgetWeightsTensor] = nullptr;
+  kernel_content.internal_tensors[kLstmCellToOutputWeightsTensor] = nullptr;
+  kernel_content.internal_tensors[kLstmProjectionWeightsTensor] = nullptr;
+  kernel_content.internal_tensors[kLstmProjectionBiasTensor] = nullptr;
+  kernel_content.internal_tensors[kLstmInputLayerNormCoefficientsTensor] =
+      nullptr;
+  kernel_content.internal_tensors[kLstmForgetLayerNormCoefficientsTensor] =
+      nullptr;
+  kernel_content.internal_tensors[kLstmInputLayerNormCoefficientsTensor] =
+      nullptr;
+  kernel_content.internal_tensors[kLstmCellLayerNormCoefficientsTensor] =
+      nullptr;
+  kernel_content.internal_tensors[kLstmOutputLayerNormCoefficientsTensor] =
+      nullptr;
+  // Output tensor
+  kernel_content.output_tensor = model_contents.OutputTensor();
+
+  // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
+  int buffer;
+  tflite::CheckedLog2(cell_state_scale, &buffer);
+  kernel_content.cell_state_scale_power = buffer;
+  // Cell state specifics
+  kernel_content.cell_gate_nonlinear_type = builtin_data.activation;
+  kernel_content.quantized_cell_clip = static_cast<CellType>(
+      std::min(std::max(static_cast<double>(builtin_data.cell_clip) /
+                            static_cast<double>(cell_state_scale),
+                        -32768.0),
+               32767.0));
+  return kernel_content;
+}
+
+template <typename ActivationType, typename BiasType, typename CellType,
+          int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+OpDataLSTM CreateLSTMOpData(
+    const ModelQuantizationParameters& quantization_settings,
+    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                  time_steps, input_dimension, state_dimension>&
+        model_contents) {
+  OpDataLSTM op_data;
+  // Gate Parameters
+  op_data.forget_gate_parameters = CreateGateParams<CellType>(
+      quantization_settings.input_quantization_parameters,
+      quantization_settings.hidden_quantization_parameters,
+      quantization_settings.forget_gate_quantization_parameters,
+      quantization_settings.nonlinear_activation_input_scale);
+  op_data.input_gate_parameters = CreateGateParams<CellType>(
+      quantization_settings.input_quantization_parameters,
+      quantization_settings.hidden_quantization_parameters,
+      quantization_settings.input_gate_quantization_parameters,
+      quantization_settings.nonlinear_activation_input_scale);
+  op_data.cell_gate_parameters = CreateGateParams<CellType>(
+      quantization_settings.input_quantization_parameters,
+      quantization_settings.hidden_quantization_parameters,
+      quantization_settings.cell_gate_quantization_parameters,
+      quantization_settings.nonlinear_activation_input_scale);
+  op_data.output_gate_parameters = CreateGateParams<CellType>(
+      quantization_settings.input_quantization_parameters,
+      quantization_settings.hidden_quantization_parameters,
+      quantization_settings.output_gate_quantization_parameters,
+      quantization_settings.nonlinear_activation_input_scale);
+  // Inter gate multiplication parameters
+  op_data.inter_gate_parameters.forget_cell_mul_params =
+      CreateInterGateMulParams<CellType>(
+          quantization_settings.nonlinear_activation_output_scale,
+          quantization_settings.cell_quantization_parameters.scale,
+          quantization_settings.cell_quantization_parameters.scale);
+  op_data.inter_gate_parameters.input_mul_params =
+      CreateInterGateMulParams<CellType>(
+          quantization_settings.nonlinear_activation_output_scale,
+          quantization_settings.nonlinear_activation_output_scale,
+          quantization_settings.cell_quantization_parameters.scale);
+  op_data.inter_gate_parameters.output_mul_params =
+      CreateInterGateMulParams<ActivationType>(
+          quantization_settings.nonlinear_activation_output_scale,
+          quantization_settings.nonlinear_activation_output_scale,
+          quantization_settings.hidden_quantization_parameters.scale,
+          quantization_settings.hidden_quantization_parameters.zero_point);
+  return op_data;
+}
+
+/*Test Functions*/
 template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int state_dimension>
 void TestGateOutputQuantized(
@@ -226,131 +354,6 @@ void TestHiddenStateUpdateQuantized(
   ValidateResultGoldens(gate_output_data.expected_updated_hidden,
                         hidden_state_float, batch_size * state_dimension,
                         tolerance);
-}
-
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-LSTMKernelContents<CellType> CreateLSTMKernelContent(
-    const TfLiteLSTMParams& builtin_data, const float cell_state_scale,
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>&
-        model_contents) {
-  LSTMKernelContents<CellType> kernel_content;
-  // Point to correct tensors
-  kernel_content.internal_tensors[kLstmInputTensor] =
-      model_contents.GetInternalTensor(kLstmInputTensor);
-  kernel_content.internal_tensors[kLstmInputToInputWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmInputToInputWeightsTensor);
-  kernel_content.internal_tensors[kLstmInputToForgetWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmInputToForgetWeightsTensor);
-  kernel_content.internal_tensors[kLstmInputToCellWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmInputToCellWeightsTensor);
-  kernel_content.internal_tensors[kLstmInputToOutputWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmInputToOutputWeightsTensor);
-  kernel_content.internal_tensors[kLstmRecurrentToInputWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmRecurrentToInputWeightsTensor);
-  kernel_content.internal_tensors[kLstmRecurrentToForgetWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmRecurrentToForgetWeightsTensor);
-  kernel_content.internal_tensors[kLstmRecurrentToCellWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmRecurrentToCellWeightsTensor);
-  kernel_content.internal_tensors[kLstmRecurrentToOutputWeightsTensor] =
-      model_contents.GetInternalTensor(kLstmRecurrentToOutputWeightsTensor);
-  kernel_content.internal_tensors[kLstmInputGateBiasTensor] =
-      model_contents.GetInternalTensor(kLstmInputGateBiasTensor);
-  kernel_content.internal_tensors[kLstmForgetGateBiasTensor] =
-      model_contents.GetInternalTensor(kLstmForgetGateBiasTensor);
-  kernel_content.internal_tensors[kLstmCellGateBiasTensor] =
-      model_contents.GetInternalTensor(kLstmCellGateBiasTensor);
-  kernel_content.internal_tensors[kLstmOutputGateBiasTensor] =
-      model_contents.GetInternalTensor(kLstmOutputGateBiasTensor);
-  kernel_content.internal_tensors[kLstmOutputStateTensor] =
-      model_contents.GetInternalTensor(kLstmOutputStateTensor);
-  kernel_content.internal_tensors[kLstmOutputGateBiasTensor] =
-      model_contents.GetInternalTensor(kLstmOutputGateBiasTensor);
-  kernel_content.internal_tensors[kLstmCellStateTensor] =
-      model_contents.GetInternalTensor(kLstmCellStateTensor);
-  // Not used internal tensors
-  kernel_content.internal_tensors[kLstmCellToInputWeightsTensor] = nullptr;
-  kernel_content.internal_tensors[kLstmCellToForgetWeightsTensor] = nullptr;
-  kernel_content.internal_tensors[kLstmCellToOutputWeightsTensor] = nullptr;
-  kernel_content.internal_tensors[kLstmProjectionWeightsTensor] = nullptr;
-  kernel_content.internal_tensors[kLstmProjectionBiasTensor] = nullptr;
-  kernel_content.internal_tensors[kLstmInputLayerNormCoefficientsTensor] =
-      nullptr;
-  kernel_content.internal_tensors[kLstmForgetLayerNormCoefficientsTensor] =
-      nullptr;
-  kernel_content.internal_tensors[kLstmInputLayerNormCoefficientsTensor] =
-      nullptr;
-  kernel_content.internal_tensors[kLstmCellLayerNormCoefficientsTensor] =
-      nullptr;
-  kernel_content.internal_tensors[kLstmOutputLayerNormCoefficientsTensor] =
-      nullptr;
-  // Output tensor
-  kernel_content.output_tensor = model_contents.OutputTensor();
-
-  // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
-  int buffer;
-  tflite::CheckedLog2(cell_state_scale, &buffer);
-  kernel_content.cell_state_scale_power = buffer;
-  // Cell state specifics
-  kernel_content.cell_gate_nonlinear_type = builtin_data.activation;
-  kernel_content.quantized_cell_clip = static_cast<CellType>(
-      std::min(std::max(static_cast<double>(builtin_data.cell_clip) /
-                            static_cast<double>(cell_state_scale),
-                        -32768.0),
-               32767.0));
-  return kernel_content;
-}
-
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-OpDataLSTM CreateLSTMOpData(
-    const ModelQuantizationParameters& quantization_settings,
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>&
-        model_contents) {
-  OpDataLSTM op_data;
-  // Gate Parameters
-  op_data.forget_gate_parameters = CreateGateParams<CellType>(
-      quantization_settings.input_quantization_parameters,
-      quantization_settings.hidden_quantization_parameters,
-      quantization_settings.forget_gate_quantization_parameters,
-      quantization_settings.nonlinear_activation_input_scale);
-  op_data.input_gate_parameters = CreateGateParams<CellType>(
-      quantization_settings.input_quantization_parameters,
-      quantization_settings.hidden_quantization_parameters,
-      quantization_settings.input_gate_quantization_parameters,
-      quantization_settings.nonlinear_activation_input_scale);
-  op_data.cell_gate_parameters = CreateGateParams<CellType>(
-      quantization_settings.input_quantization_parameters,
-      quantization_settings.hidden_quantization_parameters,
-      quantization_settings.cell_gate_quantization_parameters,
-      quantization_settings.nonlinear_activation_input_scale);
-  op_data.output_gate_parameters = CreateGateParams<CellType>(
-      quantization_settings.input_quantization_parameters,
-      quantization_settings.hidden_quantization_parameters,
-      quantization_settings.output_gate_quantization_parameters,
-      quantization_settings.nonlinear_activation_input_scale);
-  // Inter gate multiplication parameters
-  op_data.inter_gate_parameters.forget_cell_mul_params =
-      CreateInterGateMulParams<CellType>(
-          quantization_settings.nonlinear_activation_output_scale,
-          quantization_settings.cell_quantization_parameters.scale,
-          quantization_settings.cell_quantization_parameters.scale);
-  op_data.inter_gate_parameters.input_mul_params =
-      CreateInterGateMulParams<CellType>(
-          quantization_settings.nonlinear_activation_output_scale,
-          quantization_settings.nonlinear_activation_output_scale,
-          quantization_settings.cell_quantization_parameters.scale);
-  op_data.inter_gate_parameters.output_mul_params =
-      CreateInterGateMulParams<ActivationType>(
-          quantization_settings.nonlinear_activation_output_scale,
-          quantization_settings.nonlinear_activation_output_scale,
-          quantization_settings.hidden_quantization_parameters.scale,
-          quantization_settings.hidden_quantization_parameters.zero_point);
-  return op_data;
 }
 
 template <typename ActivationType, typename BiasType, typename CellType,
