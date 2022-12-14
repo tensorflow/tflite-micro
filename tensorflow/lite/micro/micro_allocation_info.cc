@@ -37,10 +37,9 @@ constexpr int kUninitializedLifetime = -1;
 void AllocationInfoBuilder::UpdateFirstCreated(AllocationInfo* current,
                                                int allocation_scope_count) {
   TFLITE_DCHECK(current->first_created <= allocation_scope_count);
-  current->first_created = allocation_scope_count;
-  // This will ensure that tensors that are outputs from an
-  // OP but not inputs to any other OP also have a reasonable lifetime.
-  current->last_used = allocation_scope_count;
+  if (current->first_created == kUninitializedLifetime) {
+    current->first_created = allocation_scope_count;
+  }
 }
 
 // Mark the given AllocationInfo as last used at the specified allocation scope
@@ -242,19 +241,9 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
     UpdateFirstCreated(current, allocation_scope_count_);
-  }
-
-  // Mark all outputs as created at the start of the subgraph invocation.
-  // This first_creation value will be updated later to reflect the actual
-  // usage of the tensor at the Operation(Op) scope, as needed.
-  // This will handle the case where the subgraph is empty or the tensors
-  // are unused by the subgraph. This is a sanity measure to make sure the
-  // memory planner gets clean data to work with.
-  for (size_t i = 0;
-       subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
-    const int tensor_index = subgraph->outputs()->Get(i);
-    AllocationInfo* current = &subgraph_allocation_info[tensor_index];
-    UpdateFirstCreated(current, allocation_scope_count_);
+    // This will ensure that tensors that are outputs from an
+    // OP but not inputs to any other OP also have a reasonable lifetime.
+    UpdateLastUsed(current, allocation_scope_count_);
   }
 
   for (uint32_t i = 0; i < operators_size; i++) {
@@ -326,6 +315,11 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
        subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+    // Make sure to assign the First created value of the subgraph output
+    // This will handle the case where the subgraph is empty or the output
+    // tensors are unused by the subgraph. This is a sanity measure to
+    // make sure the memory planner gets clean data to work with.
+    UpdateFirstCreated(current, allocation_scope_count_);
     UpdateLastUsed(current, allocation_scope_count_);
   }
   return kTfLiteOk;
