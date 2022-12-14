@@ -85,6 +85,13 @@ class MicroBenchmarkRunner {
     interpreter_.GetMicroAllocator().PrintAllocations();
   }
 
+
+  void* GetOutput() { return interpreter_.output(0)->data.data; }
+
+  void* GetInput() { return interpreter_.input(0)->data.data; }
+
+  size_t GetArenaUsage() const { return interpreter_.arena_used_bytes(); }
+
  private:
   tflite::RecordingMicroAllocator* allocator_;
   tflite::RecordingMicroInterpreter interpreter_;
