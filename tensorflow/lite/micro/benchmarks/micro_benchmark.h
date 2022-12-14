@@ -85,7 +85,6 @@ class MicroBenchmarkRunner {
     interpreter_.GetMicroAllocator().PrintAllocations();
   }
 
-
   void* GetOutput() { return interpreter_.output(0)->data.data; }
 
   void* GetInput() { return interpreter_.input(0)->data.data; }
