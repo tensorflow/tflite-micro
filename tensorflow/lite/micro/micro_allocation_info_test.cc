@@ -145,12 +145,9 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndEmptySubgraph) {
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 4);
-  TF_LITE_MICRO_EXPECT_NE(allocation_info[7].last_used, -1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 4);
-  TF_LITE_MICRO_EXPECT_NE(allocation_info[8].last_used, -1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 4);
-  TF_LITE_MICRO_EXPECT_NE(allocation_info[9].first_created, -1);
   TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 4);
 }
 
