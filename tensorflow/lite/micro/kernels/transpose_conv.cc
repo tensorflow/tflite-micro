@@ -261,8 +261,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
+      const auto& params =
+          *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+      ConvParams op_params = data.params;
+      CalculateActivationRange(params.activation,
+                               &op_params.float_activation_min,
+                               &op_params.float_activation_max);
+
       reference_ops::TransposeConv(
-          data.params, tflite::micro::GetTensorShape(input),
+          op_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(filter),
           tflite::micro::GetTensorData<float>(filter),
