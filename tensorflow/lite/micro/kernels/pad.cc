@@ -119,9 +119,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace
-
-TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -218,13 +216,15 @@ TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace
+
 TfLiteRegistration Register_PAD() {
-  return tflite::micro::RegisterOp(Init, PadPrepare, Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 // Also register Pad as PadV2.
 TfLiteRegistration Register_PADV2() {
-  return tflite::micro::RegisterOp(Init, PadPrepare, Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 }  // namespace tflite
