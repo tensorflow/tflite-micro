@@ -34,9 +34,9 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
                                    num_resource_variables));
       }))
       .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
-      .def("GetAllocations",
+      .def("GetMemoryStats",
            [](InterpreterWrapper& self) {
-             return tflite::PyoOrThrow(self.GetAllocations());
+             return tflite::PyoOrThrow(self.GetMemoryStats());
            })
       .def("Invoke", &InterpreterWrapper::Invoke)
       .def("Reset", &InterpreterWrapper::Reset)

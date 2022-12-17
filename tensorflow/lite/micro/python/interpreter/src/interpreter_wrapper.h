@@ -31,7 +31,7 @@ class InterpreterWrapper {
   ~InterpreterWrapper();
 
   void PrintAllocations();
-  PyObject* GetAllocations();
+  PyObject* GetMemoryStats();
   int Invoke();
   int Reset();
   void SetInputTensor(PyObject* data, size_t index);

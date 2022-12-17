@@ -106,7 +106,7 @@ class Interpreter(object):
     """
     self._interpreter.PrintAllocations()
 
-  def get_allocations(self):
+  def memory_stats(self):
     """Invoke the RecordingMicroAllocator to get the arena usage.
 
     This should be called after `invoke()`.
@@ -114,7 +114,7 @@ class Interpreter(object):
     Returns:
       This method returns the arena usage as an PyObject.
     """
-    return self._interpreter.GetAllocations()
+    return self._interpreter.GetMemoryStats()
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.

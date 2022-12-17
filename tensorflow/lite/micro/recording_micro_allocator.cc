@@ -114,52 +114,14 @@ void RecordingMicroAllocator::PrintAllocations() const {
                           "Operator runtime data", "OpData structs");
 }
 
-AllocationData RecordingMicroAllocator::GetAllocations() const {
-  AllocationData allocation_data = AllocationData();
-  allocation_data.used_bytes = recording_memory_allocator_->GetUsedBytes();
-  allocation_data.non_persistent_used_bytes =
+MemoryStats RecordingMicroAllocator::GetMemoryStats() const {
+  MemoryStats memory_stats = MemoryStats();
+  memory_stats.used_bytes = recording_memory_allocator_->GetUsedBytes();
+  memory_stats.non_persistent_used_bytes =
       recording_memory_allocator_->GetNonPersistentUsedBytes();
-  allocation_data.persistent_used_bytes =
+  memory_stats.persistent_used_bytes =
       recording_memory_allocator_->GetPersistentUsedBytes();
-  int allocation_count = 0;
-
-  allocation_data.head = RecordedAllocationWithMetadata();
-  RecordedAllocationWithMetadata* allocation_with_metadata =
-      GetRecordedAllocationWithMetadata(
-          RecordedAllocationType::kTfLiteEvalTensorData,
-          "TfLiteEvalTensor data", "allocations", &allocation_data.head,
-          &allocation_count);
-
-  allocation_with_metadata = GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kPersistentTfLiteTensorData,
-      "Persistent TfLiteTensor data", "tensors", allocation_with_metadata,
-      &allocation_count);
-
-  allocation_with_metadata = GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kPersistentTfLiteTensorQuantizationData,
-      "Persistent TfLiteTensor quantization data", "allocations",
-      allocation_with_metadata, &allocation_count);
-
-  allocation_with_metadata = GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kPersistentBufferData, "Persistent buffer data",
-      "allocations", allocation_with_metadata, &allocation_count);
-
-  allocation_with_metadata = GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kTfLiteTensorVariableBufferData,
-      "TfLiteTensor variable buffer data", "allocations",
-      allocation_with_metadata, &allocation_count);
-
-  allocation_with_metadata = GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kNodeAndRegistrationArray,
-      "NodeAndRegistration struct", "NodeAndRegistration structs",
-      allocation_with_metadata, &allocation_count);
-
-  GetRecordedAllocationWithMetadata(
-      RecordedAllocationType::kOpData, "Operator runtime data",
-      "OpData structs", allocation_with_metadata, &allocation_count);
-
-  allocation_data.allocation_count = allocation_count;
-  return allocation_data;
+  return memory_stats;
 }
 
 void* RecordingMicroAllocator::AllocatePersistentBuffer(size_t bytes) {
@@ -183,30 +145,6 @@ void RecordingMicroAllocator::PrintRecordedAllocation(
         allocation.count, allocation_description);
   }
 #endif
-}
-
-RecordedAllocationWithMetadata*
-RecordingMicroAllocator::GetRecordedAllocationWithMetadata(
-    RecordedAllocationType allocation_type, const char* allocation_name,
-    const char* allocation_description,
-    RecordedAllocationWithMetadata* last_allocation_with_metadata,
-    int* allocation_count) const {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  RecordedAllocation allocation = GetRecordedAllocation(allocation_type);
-  if (allocation.used_bytes > 0 || allocation.requested_bytes > 0) {
-    RecordedAllocationWithMetadata* allocation_with_metadata =
-        new RecordedAllocationWithMetadata();
-    allocation_with_metadata->allocation_name = allocation_name;
-    allocation_with_metadata->allocation_description = allocation_description;
-    allocation_with_metadata->recorded_allocation_ = allocation;
-    allocation_with_metadata->next_allocation_with_metadata = nullptr;
-    last_allocation_with_metadata->next_allocation_with_metadata =
-        allocation_with_metadata;
-    ++(*allocation_count);
-    return allocation_with_metadata;
-  }
-#endif
-  return last_allocation_with_metadata;
 }
 
 TfLiteStatus RecordingMicroAllocator::AllocateNodeAndRegistrations(

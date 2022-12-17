@@ -45,28 +45,12 @@ struct RecordedAllocation {
   size_t count;
 };
 
-// Container for holding information about allocation recordings by a given
-// type with the metadata of the allocation like name, description along with a
-// pointer to the next allocation_with_metadata.
-struct RecordedAllocationWithMetadata {
-  const char* allocation_name;
-  const char* allocation_description;
-  RecordedAllocation recorded_allocation_;
-  RecordedAllocationWithMetadata* next_allocation_with_metadata = nullptr;
-};
-
-// Container for holding about allocation recording along with some data from
-// Recording memory allocator like used bytes etc. This is mainly used to
-// transport these numbers to python interpreter.
-struct AllocationData {
+// Container for holding about arena allocation. This is mainly used to
+// transport arena allocation numbers to python interpreter.
+struct MemoryStats {
   int used_bytes;
   int non_persistent_used_bytes;
   int persistent_used_bytes;
-  int allocation_count;
-  // The following data field named head does not contain any data but just the
-  // data for next_allocation_with_metadata. So whenever iterating, start from
-  // head.next_allocation_with_metadata to get the first valid data.
-  RecordedAllocationWithMetadata head;
 };
 
 // Utility subclass of MicroAllocator that records all allocations
@@ -94,9 +78,9 @@ class RecordingMicroAllocator : public MicroAllocator {
   // defined in RecordedAllocationType.
   void PrintAllocations() const;
 
-  // Gathers all allocation recordings by type defined in RecordedAllocationType
-  // And returns that consolidated informations as a struct.
-  AllocationData GetAllocations() const;
+  // Gathers all arena allocation returns that consolidated information as a
+  // struct.
+  MemoryStats GetMemoryStats() const;
 
   void* AllocatePersistentBuffer(size_t bytes) override;
 
@@ -127,12 +111,6 @@ class RecordingMicroAllocator : public MicroAllocator {
   void PrintRecordedAllocation(RecordedAllocationType allocation_type,
                                const char* allocation_name,
                                const char* allocation_description) const;
-
-  RecordedAllocationWithMetadata* GetRecordedAllocationWithMetadata(
-      RecordedAllocationType allocation_type, const char* allocation_name,
-      const char* allocation_description,
-      RecordedAllocationWithMetadata* last_allocation_with_metadata,
-      int* allocation_count) const;
 
   RecordedAllocation SnapshotAllocationUsage() const;
   void RecordAllocationUsage(const RecordedAllocation& snapshotted_allocation,

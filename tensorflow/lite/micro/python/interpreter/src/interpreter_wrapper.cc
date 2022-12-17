@@ -362,8 +362,8 @@ PyObject* InterpreterWrapper::GetOutputTensorDetails(size_t index) const {
   return GetTensorDetails(interpreter_->output(index));
 }
 
-PyObject* InterpreterWrapper::GetAllocations() {
-  AllocationData allocation_data = allocator_->GetAllocations();
+PyObject* InterpreterWrapper::GetMemoryStats() {
+  MemoryStats allocation_data = allocator_->GetMemoryStats();
   PyObject* result = PyDict_New();
 
   PyObject* value = PyLong_FromLong(allocation_data.used_bytes);
@@ -374,41 +374,6 @@ PyObject* InterpreterWrapper::GetAllocations() {
 
   value = PyLong_FromLong(allocation_data.persistent_used_bytes);
   PyDict_SetItemString(result, "persistent_used_bytes", value);
-
-  RecordedAllocationWithMetadata* allocation_with_metadata =
-      allocation_data.head.next_allocation_with_metadata;
-  PyObject* allocation_metadata = PyList_New(allocation_data.allocation_count);
-  int pos = 0;
-  while (allocation_with_metadata != nullptr) {
-    PyObject* allocation_entry = PyDict_New();
-    value = PyBytes_FromStringAndSize(
-        allocation_with_metadata->allocation_description,
-        strlen(allocation_with_metadata->allocation_description));
-    PyDict_SetItemString(allocation_entry, "allocation_description", value);
-
-    value = PyBytes_FromStringAndSize(
-        allocation_with_metadata->allocation_name,
-        strlen(allocation_with_metadata->allocation_name));
-    PyDict_SetItemString(allocation_entry, "allocation_name", value);
-
-    value = PyLong_FromLong(
-        allocation_with_metadata->recorded_allocation_.used_bytes);
-    PyDict_SetItemString(allocation_entry, "used_bytes", value);
-
-    value =
-        PyLong_FromLong(allocation_with_metadata->recorded_allocation_.count);
-    PyDict_SetItemString(allocation_entry, "count", value);
-
-    value = PyLong_FromLong(
-        allocation_with_metadata->recorded_allocation_.requested_bytes);
-    PyDict_SetItemString(allocation_entry, "requested_bytes", value);
-
-    PyList_SetItem(allocation_metadata, pos, allocation_entry);
-    allocation_with_metadata =
-        allocation_with_metadata->next_allocation_with_metadata;
-    pos++;
-  }
-  PyDict_SetItemString(result, "allocation_metadata", allocation_metadata);
   return result;
 }
 
