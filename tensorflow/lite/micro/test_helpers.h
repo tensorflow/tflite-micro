@@ -157,6 +157,9 @@ const Model* GetSimpleStatefulModel();
 // Returns a flatbuffer model with "if" and two subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndIf();
 
+// Returns a flatbuffer model with "if" and two subgraphs one of which is empty.
+const Model* GetSimpleModelWithIfAndEmptySubgraph();
+
 // Returns a flatbuffer model with "while" and three subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndWhile();
 
@@ -184,9 +187,6 @@ CreateFlatbufferBuffers();
 // Performs a simple string comparison without requiring standard C library.
 int TestStrcmp(const char* a, const char* b);
 
-// Wrapper to forward kernel errors to the interpreter's error reporter.
-void ReportOpError(struct TfLiteContext* context, const char* format, ...);
-
 void PopulateContext(TfLiteTensor* tensors, int tensors_size,
                      TfLiteContext* context);
 
@@ -198,31 +198,49 @@ TfLiteIntArray* IntArrayFromInts(int* int_array);
 // supplied array must be the size of the array expressed as a float.
 TfLiteFloatArray* FloatArrayFromFloats(const float* floats);
 
+// Assumes that `src_tensor` is a buffer where each element is a 4-bit value
+// stored in 8-bit.
+// Returns a new buffer that is packed densely with 2 4-bit values in a byte.
+// The packing format is low-bits-first, i.e. the lower nibble of a byte is
+// filled first, followed by the upper nibble.
+void PackInt4ValuesDenselyInPlace(uint8_t* src_buffer, int buffer_size);
+
 template <typename T>
 TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
-                          const bool is_variable = false) {
+                          const bool is_variable = false,
+                          TfLiteType type = kTfLiteNoType) {
   TfLiteTensor result;
   result.dims = dims;
   result.params = {};
   result.quantization = {kTfLiteNoQuantization, nullptr};
   result.is_variable = is_variable;
   result.allocation_type = kTfLiteMemNone;
-  result.type = typeToTfLiteType<T>();
-  // Const cast is used to allow passing in const and non-const arrays within a
-  // single CreateTensor method. A Const array should be used for immutable
-  // input tensors and non-const array should be used for mutable and output
-  // tensors.
   result.data.data = const_cast<T*>(data);
   result.quantization = {kTfLiteAffineQuantization, nullptr};
   result.bytes = ElementCount(*dims) * sizeof(T);
+  result.data.data = const_cast<T*>(data);
+
+  if (type == kTfLiteInt4) {
+    result.type = kTfLiteInt4;
+    PackInt4ValuesDenselyInPlace(tflite::GetTensorData<uint8_t>(&result),
+                                 ElementCount(*dims));
+    result.bytes = ((ElementCount(*dims) + 1) / 2);
+  } else {
+    // Const cast is used to allow passing in const and non-const arrays within
+    // a single CreateTensor method. A Const array should be used for immutable
+    // input tensors and non-const array should be used for mutable and output
+    // tensors.
+    result.type = typeToTfLiteType<T>();
+  }
   return result;
 }
 
 template <typename T>
 TfLiteTensor CreateQuantizedTensor(const T* data, TfLiteIntArray* dims,
                                    const float scale, const int zero_point = 0,
-                                   const bool is_variable = false) {
-  TfLiteTensor result = CreateTensor(data, dims, is_variable);
+                                   const bool is_variable = false,
+                                   TfLiteType type = kTfLiteNoType) {
+  TfLiteTensor result = CreateTensor(data, dims, is_variable, type);
   result.params = {scale, zero_point};
   result.quantization = {kTfLiteAffineQuantization, nullptr};
   return result;
@@ -231,10 +249,12 @@ TfLiteTensor CreateQuantizedTensor(const T* data, TfLiteIntArray* dims,
 template <typename T>
 TfLiteTensor CreateQuantizedTensor(const float* input, T* quantized,
                                    TfLiteIntArray* dims, float scale,
-                                   int zero_point, bool is_variable = false) {
+                                   int zero_point, bool is_variable = false,
+                                   TfLiteType type = kTfLiteNoType) {
   int input_size = ElementCount(*dims);
   tflite::Quantize(input, quantized, input_size, scale, zero_point);
-  return CreateQuantizedTensor(quantized, dims, scale, zero_point, is_variable);
+  return CreateQuantizedTensor(quantized, dims, scale, zero_point, is_variable,
+                               type);
 }
 
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
@@ -272,7 +292,8 @@ TfLiteTensor CreatePerChannelQuantizedBiasTensor(
 TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
     int* zero_points, TfLiteAffineQuantization* affine_quant,
-    int quantized_dimension, bool is_variable = false);
+    int quantized_dimension, bool is_variable = false,
+    TfLiteType tensor_weight_type = kTfLiteNoType);
 
 // Returns the number of tensors in the default subgraph for a tflite::Model.
 size_t GetModelTensorCount(const Model* model);

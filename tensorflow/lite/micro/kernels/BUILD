@@ -94,7 +94,6 @@ cc_library(
         "//tensorflow/lite/micro:fake_micro_context",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_arena_constants",
-        "//tensorflow/lite/micro:micro_error_reporter",
         "//tensorflow/lite/micro:mock_micro_graph",
         "//tensorflow/lite/micro:test_helpers",
     ],
@@ -137,7 +136,7 @@ cc_library(
 
 HIFI4_COPTS = [
     "-DXTENSA=1",
-    "-DHIFI4_INTERNAL=1",
+    "-DHIFI4=1",
 ]
 
 HIFI5_COPTS = [
@@ -268,6 +267,7 @@ tflm_kernel_cc_library(
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
+        "pad.h",
         "pooling.h",
         "prelu.h",
         "quantize.h",
@@ -304,7 +304,6 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/kernels/internal:tensor_utils",
         ":activation_utils",
         ":kernel_util",
-        ":micro_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -330,11 +329,6 @@ tflm_kernel_cc_library(
         xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
         "//conditions:default": [],
     }),
-)
-
-cc_library(
-    name = "micro_utils",
-    hdrs = ["micro_utils.h"],
 )
 
 cc_library(

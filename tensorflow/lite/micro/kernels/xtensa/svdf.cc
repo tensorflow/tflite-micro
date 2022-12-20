@@ -32,7 +32,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
 
 TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteEvalTensor* input_tensor,
@@ -105,7 +105,7 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
@@ -113,7 +113,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
 
@@ -195,15 +195,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt8);
 
   const double effective_scale_1 =
-      static_cast<double>(input->params.scale * weights_feature->params.scale /
-                          activation_state->params.scale);
+      static_cast<double>(input->params.scale) *
+      static_cast<double>(weights_feature->params.scale) /
+      static_cast<double>(activation_state->params.scale);
   const double effective_scale_2 =
-      static_cast<double>(activation_state->params.scale *
-                          weights_time->params.scale / output->params.scale);
+      static_cast<double>(activation_state->params.scale) *
+      static_cast<double>(weights_time->params.scale) /
+      static_cast<double>(output->params.scale);
 
   TF_LITE_ENSURE_NEAR(context, static_cast<double>(bias->params.scale),
-                      static_cast<double>(activation_state->params.scale *
-                                          weights_time->params.scale),
+                      static_cast<double>(activation_state->params.scale) *
+                          static_cast<double>(weights_time->params.scale),
                       1e-5);
 
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -239,7 +241,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
@@ -263,7 +265,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   return EvalIntegerSvdfHifi(context, node, input, weights_feature,
                              weights_time, bias, params, activation_state,
                              output, data);
@@ -306,7 +308,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteError;
   }
   return kTfLiteOk;
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 }
 
 }  // namespace

@@ -94,6 +94,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(context, filter_size,
+                                         &data->filter_buffer_index);
+  }
+
   // Filter weights will always be symmetric quantized since we only support
   // int8 quantization.
   TFLITE_DCHECK(filter->params.zero_point == 0);
@@ -133,7 +142,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   // once it is also passed to the FullyConnected function. Until it is copied
   // to a local op_param variable, we do not get any latency improvements from
   // passing by value.
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int num_batches = output_shape.Dims(0);
   const int output_depth = output_shape.Dims(1);
@@ -180,7 +189,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(bias), bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
   return kTfLiteOk;
 }
@@ -202,7 +211,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+  if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4) {
+    int8_t* unpacked_filter_data = static_cast<int8_t*>(
+        context->GetScratchBuffer(context, data.filter_buffer_index));
+    tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
+        FullyConnectedParamsQuantized(data),
+        tflite::micro::GetTensorShape(input),
+        tflite::micro::GetTensorData<int8_t>(input),
+        tflite::micro::GetTensorShape(filter),
+        tflite::micro::GetTensorData<int8_t>(filter), unpacked_filter_data,
+        tflite::micro::GetTensorShape(bias),
+        tflite::micro::GetOptionalTensorData<int32_t>(bias),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<int8_t>(output));
+    return kTfLiteOk;
+  } else {
+    return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+  }
 }
 
 }  // namespace

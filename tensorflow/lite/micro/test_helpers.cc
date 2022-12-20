@@ -918,6 +918,117 @@ const Model* BuildSimpleModelWithSubgraphsAndIf() {
   return model;
 }
 
+const Model* BuildSimpleModelWithIfAndEmptySubgraph() {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+
+  constexpr size_t buffers_size = 1;
+  const Offset<Buffer> buffers[buffers_size] = {
+      CreateBuffer(*builder),
+  };
+  const int32_t condition_tensor_shape[] = {1};
+  const int32_t data_tensor_shape[] = {1, 2};
+  constexpr size_t tensors_size = 4;
+  const Offset<Tensor> subgraph1_tensors[tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(condition_tensor_shape, 1),
+                   TensorType_BOOL, 0,
+                   builder->CreateString("condition tensor"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor2"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor"), 0, false),
+  };
+  const Offset<Tensor> subgraph2_tensors[tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor2"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor"), 0, false),
+  };
+  const Offset<Tensor> subgraph3_tensors[tensors_size] = {
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor1"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("input_tensor2"), 0, false),
+      CreateTensor(*builder, builder->CreateVector(data_tensor_shape, 2),
+                   TensorType_FLOAT32, 0,
+                   builder->CreateString("output_tensor"), 0, false),
+  };
+
+  constexpr size_t if_inputs_size = 3;
+  const int32_t if_inputs[if_inputs_size] = {0, 1, 2};
+  constexpr size_t outputs_size = 1;
+  const int32_t if_outputs[outputs_size] = {3};
+  constexpr size_t operator_inputs_size = 2;
+  const int32_t operator_inputs[operator_inputs_size] = {0, 1};
+  const int32_t operator_outputs[outputs_size] = {2};
+  constexpr size_t operators_size = 1;
+  const Offset<Operator> subgraph1_operators[operators_size] = {
+      CreateOperator(
+          *builder, 0, builder->CreateVector(if_inputs, if_inputs_size),
+          builder->CreateVector(if_outputs, outputs_size),
+          BuiltinOptions_IfOptions, CreateIfOptions(*builder, 1, 2).Union()),
+  };
+  const Offset<Operator> subgraph2_operators[operators_size] = {
+      CreateOperator(
+          *builder, 1,
+          builder->CreateVector(operator_inputs, operator_inputs_size),
+          builder->CreateVector(operator_outputs, outputs_size),
+          BuiltinOptions_NONE),
+  };
+  constexpr size_t subgraphs_size = 3;
+  const Offset<SubGraph> subgraphs[subgraphs_size] = {
+      CreateSubGraph(*builder, builder->CreateVector(subgraph1_tensors, 4),
+                     builder->CreateVector(if_inputs, if_inputs_size),
+                     builder->CreateVector(if_outputs, outputs_size),
+                     builder->CreateVector(subgraph1_operators, operators_size),
+                     builder->CreateString("if_subgraph")),
+      CreateSubGraph(
+          *builder, builder->CreateVector(subgraph2_tensors, 3),
+          builder->CreateVector(operator_inputs, operator_inputs_size),
+          builder->CreateVector(operator_outputs, outputs_size),
+          builder->CreateVector(subgraph2_operators, operators_size),
+          builder->CreateString("then_subgraph")),
+      CreateSubGraph(
+          *builder, builder->CreateVector(subgraph3_tensors, 3),
+          builder->CreateVector(operator_inputs, operator_inputs_size),
+          builder->CreateVector(operator_outputs, outputs_size), 0,
+          builder->CreateString("else_subgraph")),
+  };
+  constexpr size_t operator_codes_size = 3;
+  const Offset<OperatorCode> operator_codes[operator_codes_size] = {
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_IF),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_ADD),
+      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
+                               "multiple_inputs_op",
+                               /*version=*/0, BuiltinOperator_MUL),
+  };
+  const Offset<Model> model_offset = CreateModel(
+      *builder, 0, builder->CreateVector(operator_codes, operator_codes_size),
+      builder->CreateVector(subgraphs, subgraphs_size),
+      builder->CreateString("test_model"),
+      builder->CreateVector(buffers, buffers_size));
+  FinishModelBuffer(*builder, model_offset);
+  void* model_pointer = builder->GetBufferPointer();
+  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+  return model;
+}
+
 const Model* BuildSimpleModelWithSubgraphsAndWhile() {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
@@ -1604,6 +1715,14 @@ const Model* GetSimpleModelWithSubgraphsAndIf() {
   return model;
 }
 
+const Model* GetSimpleModelWithIfAndEmptySubgraph() {
+  static Model* model = nullptr;
+  if (!model) {
+    model = const_cast<Model*>(BuildSimpleModelWithIfAndEmptySubgraph());
+  }
+  return model;
+}
+
 const Model* GetSimpleModelWithSubgraphsAndWhile() {
   static Model* model = nullptr;
   if (!model) {
@@ -1756,17 +1875,6 @@ int TestStrcmp(const char* a, const char* b) {
          *reinterpret_cast<const unsigned char*>(b);
 }
 
-// Wrapper to forward kernel errors to the interpreter's error reporter.
-void ReportOpError(struct TfLiteContext* context, const char* format, ...) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  ErrorReporter* error_reporter = static_cast<ErrorReporter*>(context->impl_);
-  va_list args;
-  va_start(args, format);
-  TF_LITE_REPORT_ERROR(error_reporter, format, args);
-  va_end(args);
-#endif
-}
-
 // Create a TfLiteIntArray from an array of ints.  The first element in the
 // supplied array must be the size of the array expressed as an int.
 TfLiteIntArray* IntArrayFromInts(int* int_array) {
@@ -1880,13 +1988,14 @@ TfLiteTensor CreatePerChannelQuantizedBiasTensor(
 TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
     int* zero_points, TfLiteAffineQuantization* affine_quant,
-    int quantized_dimension, bool is_variable) {
+    int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type) {
   int channel_count = dims->data[quantized_dimension];
+
   scales[0] = static_cast<float>(channel_count);
   zero_points[0] = channel_count;
 
   SignedSymmetricPerChannelQuantize(input, dims, quantized_dimension, quantized,
-                                    &scales[1]);
+                                    &scales[1], tensor_weight_type);
 
   for (int i = 0; i < channel_count; i++) {
     zero_points[i + 1] = 0;
@@ -1895,8 +2004,8 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
   affine_quant->scale = FloatArrayFromFloats(scales);
   affine_quant->zero_point = IntArrayFromInts(zero_points);
   affine_quant->quantized_dimension = quantized_dimension;
-
-  TfLiteTensor result = CreateTensor(quantized, dims, is_variable);
+  TfLiteTensor result =
+      CreateTensor(quantized, dims, is_variable, tensor_weight_type);
   result.quantization = {kTfLiteAffineQuantization, affine_quant};
   return result;
 }
@@ -1907,6 +2016,19 @@ size_t GetModelTensorCount(const Model* model) {
     return (*subgraphs)[0]->tensors()->size();
   }
   return 0;
+}
+
+void PackInt4ValuesDenselyInPlace(uint8_t* src_buffer, int buffer_size) {
+  for (int i = 0; i < buffer_size; ++i) {
+    if (i % 2 == 0) {
+      src_buffer[i / 2] = src_buffer[i] & 0x0F;
+    } else {
+      src_buffer[i / 2] |= src_buffer[i] << 4;
+    }
+  }
+  // the rest of the buffer should be empty since half of it is packed with the
+  // values
+  memset(src_buffer + (buffer_size + 1) / 2, 0, buffer_size / 2);
 }
 
 }  // namespace testing

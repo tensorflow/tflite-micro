@@ -33,7 +33,7 @@ TfLiteTensor* output = nullptr;
 int inference_count = 0;
 
 constexpr int kTensorArenaSize = 2000;
-uint8_t tensor_arena[kTensorArenaSize];
+alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
 // The name of this function is important for Arduino compatibility.

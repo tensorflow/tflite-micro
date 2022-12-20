@@ -26,7 +26,7 @@ namespace tflite {
 
 namespace {
 // Softmax parameter data that persists in user_data
-const int kInt16LUTArraySize = 513;
+const int kInt16LUTArraySize = LUTSize<int16_t>();
 
 TfLiteStatus InitializeLutForInt16(TfLiteContext* context,
                                    const TfLiteTensor* input,
@@ -57,12 +57,17 @@ TfLiteStatus InitializeLutForInt16(TfLiteContext* context,
     TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
     // exp LUT only used on negative values
     // we consider exp(-10.0) is insignificant to accumulation
-    gen_lut<float, int16_t, int16_t>(
-        [](float value) { return std::exp(value); }, -10.0f, 0.0f, -1.0f, 1.0f,
-        op_data->exp_lut);
-    gen_lut<float, int16_t, int16_t>(
-        [](float value) { return 1.0f / (1.0f + value); }, 0.0f, 1.0f, -1.0f,
-        1.0f, op_data->one_over_one_plus_x_lut);
+    const int32_t range = std::numeric_limits<int16_t>::max() -
+                          std::numeric_limits<int16_t>::min();
+    LUTPopulate<int16_t>(
+        10.0f / range, std::numeric_limits<int16_t>::max(), 2.0f / range, 0,
+        [](float value) { return std::exp(value); }, op_data->exp_lut);
+
+    LUTPopulate<int16_t>(
+        1.0f / range, std::numeric_limits<int16_t>::min(), 2.0f / range, 0,
+        [](float value) { return 1.0f / (1.0f + value); },
+        op_data->one_over_one_plus_x_lut);
+
     op_data->zero_point = output->params.zero_point;
     op_data->scale = output->params.scale;
   }

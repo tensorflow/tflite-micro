@@ -13,11 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
 
 #include <cstdarg>
 #include <cstdint>
 #include <new>
+
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace {
 uint8_t micro_error_reporter_buffer[sizeof(tflite::MicroErrorReporter)];

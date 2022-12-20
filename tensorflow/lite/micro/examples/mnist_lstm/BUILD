@@ -16,6 +16,7 @@ py_binary(
     srcs_version = "PY3",
     deps = [
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "@absl_py//absl:app",
     ],
 )
 
@@ -29,6 +30,7 @@ py_test(
     srcs = ["evaluate_test.py"],
     data = [
         "trained_lstm.tflite",
+        "trained_lstm_quant.tflite",
         ":sample_images",
     ],
     main = "evaluate_test.py",

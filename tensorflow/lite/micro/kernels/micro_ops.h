@@ -33,6 +33,8 @@ namespace tflite {
 
 TfLiteRegistration Register_ADD();
 TfLiteRegistration Register_ADD_N();
+TfLiteRegistration Register_ARG_MAX();
+TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_ASSIGN_VARIABLE();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
 TfLiteRegistration Register_BATCH_TO_SPACE_ND();
@@ -67,6 +69,8 @@ TfLiteRegistration Register_MAX_POOL_2D();
 TfLiteRegistration Register_MIRROR_PAD();
 TfLiteRegistration Register_PRELU();
 TfLiteRegistration Register_MUL();
+TfLiteRegistration Register_PAD();
+TfLiteRegistration Register_PADV2();
 TfLiteRegistration Register_QUANTIZE();
 TfLiteRegistration Register_READ_VARIABLE();
 TfLiteRegistration Register_RELU();
@@ -94,8 +98,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_ARG_MAX();
-TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_CEIL();
 TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
@@ -112,8 +114,6 @@ TfLiteRegistration Register_MINIMUM();
 TfLiteRegistration Register_NEG();
 TfLiteRegistration Register_NOT_EQUAL();
 TfLiteRegistration Register_PACK();
-TfLiteRegistration Register_PAD();
-TfLiteRegistration Register_PADV2();
 TfLiteRegistration Register_RESHAPE();
 TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TfLiteRegistration Register_ROUND();
