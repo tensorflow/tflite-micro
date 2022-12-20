@@ -103,7 +103,7 @@ class Interpreter(object):
     Returns:
       This method returns nothing but prints the latency info.
     """
-    return self._interpreter.PrintLatencyStats()
+    self._interpreter.PrintLatencyStats()
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.
