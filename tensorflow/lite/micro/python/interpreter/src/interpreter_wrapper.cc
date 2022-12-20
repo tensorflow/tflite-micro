@@ -242,8 +242,7 @@ InterpreterWrapper::InterpreterWrapper(
   }
 
   interpreter_ = new tflite::RecordingMicroInterpreter(
-      model, all_ops_resolver_, allocator_,
-      resource_variables_, &profiler_);
+      model, all_ops_resolver_, allocator_, resource_variables_, &profiler_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
