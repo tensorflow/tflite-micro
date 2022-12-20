@@ -247,7 +247,8 @@ class ModelContents {
   // array must be the size of the array
   int input_size_[4] = {3, batch_size, time_steps, input_dimension};
   int output_size_[4] = {3, batch_size, time_steps, state_dimension};
-  int activation_weight_size_[3] = {2, state_dimension, input_dimension};
+  // weight tensor has C-style "row-major" memory ordering
+  int activation_weight_size_[3] = {2, input_dimension, state_dimension};
   int recurrent_weight_size_[3] = {2, state_dimension, state_dimension};
   int bias_size_[3] = {2, batch_size, state_dimension};
   int state_size_[3] = {2, batch_size, state_dimension};

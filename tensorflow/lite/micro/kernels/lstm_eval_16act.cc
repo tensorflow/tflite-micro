@@ -18,21 +18,50 @@ limitations under the License.
 
 namespace tflite {
 namespace lstm_internal {
+void LstmStepManager::UpdateTime() {
+  current_time_ += 1;
+  TFLITE_DCHECK_LE(current_time_, size_info_.time_steps);
+  // default as one batch per inference
+  input_offset_ = current_time_ * size_info_.input_dimension;
+  output_offset_ = current_time_ * size_info_.state_dimension;
+  // time major: batch inference
+  if (size_info_.time_major) {
+    input_offset_ = input_offset_ * size_info_.batch_size;
+    output_offset_ = output_offset_ * size_info_.batch_size;
+  }
+}
 
+void LstmStepManager::UpdateTime() {
+  current_batch_ += 1;
+  TFLITE_DCHECK_LE(current_time_, size_info_.batch_size);
+  // batch inference for time major: no action needed
+  if (size_info_.time_major) {
+    return;
+  }
+  // otherwise: singe batch inference, go to the next batch
+  hidden_state_offset_ = current_batch_ * size_info_.state_dimension;
+  cell_state_offset_ = current_batch_ * size_info_.state_dimension;
+}
 
+const RuntimeShape LstmStepManager::InputShape() {
+  int batch_size = 1;
+  if (size_info_.time_major) {
+    batch_size = size_info_.batch_size;
+  }
+  const int dims[2] = {batch_size, size_info_.input_dimension};
+  const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims);
+  return RuntimeShape(2, dims_data);
+}
 
-// // Calculates a single LSTM gate.
-// // Implements the following formula:
-// //   gate = activate(FC(input) + FC(recurrent))
-// // Activation is sigmoid except for the "cell" gate (configurable, usually tanh)
-// void CalculateLstmGateInteger(  // Input FC
-//     const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_weight,
-//     const TfLiteEvalTensor* input_bias, const FullyConnectedParams * input_fc_params,
-//     // Recurrent FC
-//     const TfLiteEvalTensor* recurrent, const TfLiteEvalTensor* recurrent_weight,
-//     const TfLiteEvalTensor* recurrent_bias, const FullyConnectedParams *  recurrent_fc_params,
-//     // Output
-//     CellType*  gate_output,
-//     CellType* fc_output_buffer);
+const RuntimeShape LstmStepManager::StateShape() {
+  int batch_size = 1;
+  if (size_info_.time_major) {
+    batch_size = size_info_.batch_size;
+  }
+  const int dims[2] = {batch_size, size_info_.state_dimension};
+  const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims);
+  return RuntimeShape(2, dims_data);
+}
+
 }  // namespace lstm_internal
 }  // namespace tflite

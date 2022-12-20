@@ -81,7 +81,17 @@ struct LSTMBufferIndices {
   int buffer_indices[4];  // four buffers
 };
 
+struct SizeInformation {
+  bool time_major;
+  int batch_size;
+  int time_steps;
+  int input_dimension;
+  int state_dimension;
+};
+
 struct OpDataLSTM {
+  SizeInformation size_info;
+  TfLiteFusedActivation cell_gate_nonlinear_type;
   GateParameters forget_gate_parameters;
   GateParameters input_gate_parameters;
   GateParameters cell_gate_parameters;
@@ -105,7 +115,6 @@ struct LSTMKernelContents {
   TfLiteEvalTensor* CellStateTensor() {
     return internal_tensors[kLstmCellStateTensor];
   }
-  TfLiteEvalTensor* OutputTensor() { return output_tensor; }
 
   TfLiteFusedActivation cell_gate_nonlinear_type;
   CellType quantized_cell_clip;
