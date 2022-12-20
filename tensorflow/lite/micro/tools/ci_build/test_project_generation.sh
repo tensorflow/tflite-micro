@@ -25,23 +25,33 @@ ROOT_DIR="$(pwd)/${TENSORFLOW_ROOT}"
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-# First, we test that create_tflm_tree without any examples can be used to build a
-# static library.
-TEST_OUTPUT_DIR="$(mktemp -d)"
+# TODO(b/261685878): re-enable once all the issues with the bazel project
+# generation CI are sorted out.
+#
+# # First, we test that create_tflm_tree without any examples can be used to build a
+# # static library with bazel. Bazel can help catch errors that are not caught by
+# # a simple makefile (e.g. http://b/261106859).
+# TEST_OUTPUT_DIR="$(mktemp -d)"
+#
+# # We currently run the bazel build from TENSORFLOW_ROOT.
+# pushd "${ROOT_DIR}" > /dev/null
+# readable_run \
+#   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+#   "${TEST_OUTPUT_DIR}"
+#
+# readable_run cp tensorflow/lite/micro/tools/project_generation/BUILD.testing "${TEST_OUTPUT_DIR}/BUILD"
+# popd > /dev/null
+#
+# pushd "${TEST_OUTPUT_DIR}" > /dev/null
+# readable_run touch WORKSPACE
+# readable_run bazel build :libtflm
+# popd > /dev/null
+#
+# rm -rf "${TEST_OUTPUT_DIR}"
 
-readable_run \
-  python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
-  "${TEST_OUTPUT_DIR}"
-
-readable_run cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR}"
-pushd "${TEST_OUTPUT_DIR}" > /dev/null
-readable_run make -j8 libtflm
-popd > /dev/null
-
-rm -rf "${TEST_OUTPUT_DIR}"
-
-# Next, we test that create_tflm_tree can be used to build example binaries.
+# Next, we test that create_tflm_tree can be used to build example binaries. We
+# perform this test with a Makefile (instead of bazel) because make is more
+# commonly understood and because we use make for cross-compilation.
 EXAMPLES="-e hello_world -e magic_wand -e micro_speech -e person_detection"
 
 TEST_OUTPUT_DIR="$(mktemp -d)"
