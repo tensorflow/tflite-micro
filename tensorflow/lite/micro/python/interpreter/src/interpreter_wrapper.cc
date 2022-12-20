@@ -34,7 +34,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 
-
 namespace tflite {
 namespace {
 // This function looks up the registerer symbol based on the string name
