@@ -23,7 +23,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 
-
 namespace tflite {
 
 class InterpreterWrapper {
