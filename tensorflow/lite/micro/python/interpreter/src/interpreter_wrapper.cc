@@ -26,11 +26,14 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_micro_interpreter.h"
+
 
 namespace tflite {
 namespace {
@@ -238,8 +241,9 @@ InterpreterWrapper::InterpreterWrapper(
     }
   }
 
-  interpreter_ = new MicroInterpreter(model, all_ops_resolver_, allocator_,
-                                      resource_variables_);
+  interpreter_ = new tflite::RecordingMicroInterpreter(
+      model, all_ops_resolver_, allocator_,
+      resource_variables_, &profiler_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
@@ -252,6 +256,8 @@ InterpreterWrapper::InterpreterWrapper(
 }
 
 void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
+
+void InterpreterWrapper::PrintLatencyStats() { profiler_.LogTicksPerTagCsv(); }
 
 int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 
