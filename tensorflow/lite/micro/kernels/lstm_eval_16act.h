@@ -36,7 +36,7 @@ namespace lstm_internal {
 class LstmStepManager {
  public:
   LstmStepManager() = delete;
-  explicit LstmStepManager(const SizeInformation& size_info)
+  explicit LstmStepManager(const LstmSizeInfo& size_info)
       : size_info_(size_info) {}
 
   void UpdateTime();
@@ -59,7 +59,7 @@ class LstmStepManager {
   int cell_state_offset_ = 0;
   // Size info is from the opdata, which reside in the persistent memory
   // (guarante to outlast LSTMStepManager, which reside in stack)
-  const SizeInformation& size_info_;
+  const LstmSizeInfo& size_info_;
 };
 
 // Calculates a single LSTM gate.
@@ -210,7 +210,7 @@ void UpdateLstmHiddenInteger(const LstmStepManager& step_info,
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStepInteger(const LstmStepManager& step_info,
-                     const OpDataLSTM& op_data,
+                     const OpDataLSTM<CellType>& op_data,
                      LSTMKernelContents<CellType>& kernel_content) {
   /*Step1: Calculate gate outputs to prepare cell state update*/
   CellType* gate_internal_buffer = kernel_content.buffer3;
@@ -265,7 +265,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
       // Output
       cell_gate_output,
       // Scratch arrays
-      gate_internal_buffer, kernel_content.cell_gate_nonlinear_type);
+      gate_internal_buffer, op_data.cell_gate_nonlinear_type);
 
   /*Step2: update the cell state */
   const InterGateParameters& inter_gate_params = op_data.inter_gate_parameters;
@@ -276,7 +276,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
       input_gate_output, cell_gate_output,
       inter_gate_params.forget_cell_mul_params,
       inter_gate_params.input_mul_params, updated_input_buffer,
-      kernel_content.quantized_cell_clip);
+      op_data.cell_state_info.quantized_cell_clip);
 
   /*Step3: update the hidden state */
   CellType* output_gate_output = kernel_content.buffer1;  // reuse buffer
@@ -302,7 +302,8 @@ void LstmStepInteger(const LstmStepManager& step_info,
       step_info, kernel_content.CellStateTensor(),
       kernel_content.HiddenStateTensor(), output_gate_output,
       inter_gate_params.output_mul_params,
-      kernel_content.cell_state_scale_power, tanh_activated_cell_buffer);
+      op_data.cell_state_info.cell_state_scale_power,
+      tanh_activated_cell_buffer);
 }
 
 }  // namespace lstm_internal
@@ -310,7 +311,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
 // TODO (rewu): Modify the code to take into account of multi-step data
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
-TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
+TfLiteStatus EvalLstmInteger(const OpDataLSTM<CellType>& op_data,
                              LSTMKernelContents<CellType>& kernel_content) {
   ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
       kernel_content.output_tensor);

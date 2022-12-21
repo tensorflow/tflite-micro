@@ -81,7 +81,7 @@ struct LSTMBufferIndices {
   int buffer_indices[4];  // four buffers
 };
 
-struct SizeInformation {
+struct LstmSizeInfo {
   bool time_major;
   int batch_size;
   int time_steps;
@@ -89,8 +89,19 @@ struct SizeInformation {
   int state_dimension;
 };
 
+template <typename CellType>
+struct CellStateInfo {
+  // clipping range for cell state
+  CellType quantized_cell_clip;
+  // 2^-cell_state_scale_power = cell state scale, required by integer tanh
+  // computation
+  int32_t cell_state_scale_power;
+};
+
+template <typename CellType>
 struct OpDataLSTM {
-  SizeInformation size_info;
+  LstmSizeInfo size_info;
+  CellStateInfo<CellType> cell_state_info;
   TfLiteFusedActivation cell_gate_nonlinear_type;
   GateParameters forget_gate_parameters;
   GateParameters input_gate_parameters;
@@ -100,8 +111,8 @@ struct OpDataLSTM {
   LSTMBufferIndices buffer_indices;  // TFLM only
 };
 
-// Data structure that holds all the information to evaluate a LSTM kernel.
 template <typename CellType>
+// Data structure that holds all the information to evaluate a LSTM kernel.
 struct LSTMKernelContents {
  public:
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
@@ -116,20 +127,22 @@ struct LSTMKernelContents {
     return internal_tensors[kLstmCellStateTensor];
   }
 
-  TfLiteFusedActivation cell_gate_nonlinear_type;
-  CellType quantized_cell_clip;
-  // 2^-cell_state_scale_power = cell state scale
-  int32_t cell_state_scale_power;
-
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];
   TfLiteEvalTensor* output_tensor;
-
   CellType* buffer0;
   CellType* buffer1;
   CellType* buffer2;
   CellType* buffer3;
 };
+
+// template <typename CellType>
+// struct LstmBuffers {
+//   CellType* buffer0;
+//   CellType* buffer1;
+//   CellType* buffer2;
+//   CellType* buffer3;
+// };
 
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_
