@@ -36,7 +36,7 @@ void LstmStepManager::UpdateTime() {
 
 void LstmStepManager::UpdateBatch() {
   current_batch_ += 1;
-  TFLITE_DCHECK_LE(current_time_, size_info_.batch_size);
+  TFLITE_DCHECK_LE(current_batch_, size_info_.batch_size);
   // batch inference for time major: no action needed
   if (size_info_.time_major) {
     return;

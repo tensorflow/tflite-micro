@@ -450,97 +450,67 @@ void TestOneStepLSTMInteger(
                         cell_state_tolerance);
 }
 
-// template <typename ActivationType, typename BiasType, typename CellType,
-//           int batch_size, int time_steps, int input_dimension,
-//           int state_dimension>
-// void TestLSTMEvalQuantized(
-//     const TfLiteLSTMParams& general_model_settings,
-//     /*can not be const, state will be updated*/
-//     ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-//                   time_steps, input_dimension, state_dimension>&
-//         quantized_model_content,
-//     const ModelQuantizationParameters& quantization_settings,
-//     const IntegerLstmParameter& evaluation_params,
-//     const LstmEvalCheckData<
-//         batch_size * time_steps * input_dimension, batch_size *
-//         state_dimension, batch_size * state_dimension * time_steps>&
-//         eval_check_data,
-//     const float hidden_state_tolerance, const float cell_state_tolerance) {
-//   // Scratch buffers
-//   CellType scratch0[batch_size * state_dimension] = {};
-//   CellType scratch1[batch_size * state_dimension] = {};
-//   CellType scratch2[batch_size * state_dimension] = {};
-//   CellType scratch3[batch_size * state_dimension] = {};
-//   ActivationType scratch4[batch_size * state_dimension * time_steps] = {};
-//   BiasType scratch5[batch_size * state_dimension] = {};
+template <typename ActivationType, typename BiasType, typename CellType,
+          int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+void TestLSTMEvalQuantized(
+    const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
+    const ModelQuantizationParameters& quantization_settings,
+    const LstmEvalCheckData<
+        batch_size * time_steps * input_dimension, batch_size * state_dimension,
+        batch_size * state_dimension * time_steps>& eval_check_data,
+    const float hidden_state_tolerance, const float cell_state_tolerance,
+    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                  time_steps, input_dimension, state_dimension>&
+        model_contents) {
+  // Mimicking the kernel preparation phase, model_contents approximate the node
+  LSTMKernelContents<CellType> kernel_content = CreateLSTMKernelContent(
+      builtin_data, quantization_settings.cell_quantization_parameters.scale,
+      model_contents);
+  // Scratch buffers on the stack
+  CellType buffer0[batch_size * state_dimension] = {};
+  kernel_content.buffer0 = buffer0;
+  CellType buffer1[batch_size * state_dimension] = {};
+  kernel_content.buffer1 = buffer1;
+  CellType buffer2[batch_size * state_dimension] = {};
+  kernel_content.buffer2 = buffer2;
+  CellType buffer3[batch_size * state_dimension] = {};
+  kernel_content.buffer3 = buffer3;
 
-//   EvalLstmInteger(
-//       quantized_model_content.GetInternalTensor(kLstmInputTensor),
-//       quantized_model_content.GetInternalTensor(kLstmInputToInputWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmInputToForgetWeightsTensor),
-//       quantized_model_content.GetInternalTensor(kLstmInputToCellWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmInputToOutputWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmRecurrentToInputWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmRecurrentToForgetWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmRecurrentToCellWeightsTensor),
-//       quantized_model_content.GetInternalTensor(
-//           kLstmRecurrentToOutputWeightsTensor),
-//       /*cell_to_input_weights=*/nullptr,
-//       /*cell_to_forget_weights=*/nullptr,
-//       /*cell_to_output_weights=*/nullptr,
-//       /*input_layer_norm_coefficients=*/nullptr,
-//       /*forget_layer_norm_coefficients=*/nullptr,
-//       /*cell_layer_norm_coefficients=*/nullptr,
-//       /*output_layer_norm_coefficients=*/nullptr,
-//       quantized_model_content.GetInternalTensor(kLstmInputGateBiasTensor),
-//       quantized_model_content.GetInternalTensor(kLstmForgetGateBiasTensor),
-//       quantized_model_content.GetInternalTensor(kLstmCellGateBiasTensor),
-//       quantized_model_content.GetInternalTensor(kLstmOutputGateBiasTensor),
-//       /*projection_weights=*/nullptr,
-//       /*projection_bias=*/nullptr, &general_model_settings,
-//       /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
-//       quantization_settings.output_quantization_parameters.zero_point,
-//       quantized_model_content.HiddenStateTensor(),
-//       quantized_model_content.CellStateTensor(),
-//       quantized_model_content.OutputTensor(), scratch0, scratch1, scratch2,
-//       scratch3, scratch4, scratch5);
+  OpDataLSTM op_data =
+      CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
 
-//   float dequantized_hidden_state[batch_size * state_dimension] = {};
-//   Dequantize(quantized_model_content.GetHiddenStateData(),
-//              batch_size * state_dimension,
-//              quantization_settings.hidden_quantization_parameters.scale,
-//              quantization_settings.hidden_quantization_parameters.zero_point,
-//              dequantized_hidden_state);
+  tflite::EvalLstmInteger<ActivationType, int8_t, CellType, BiasType>(
+      op_data, kernel_content);
 
-//   ValidateResultGoldens(eval_check_data.expected_hidden_state,
-//                         dequantized_hidden_state, batch_size *
-//                         state_dimension, hidden_state_tolerance);
+  float dequantized_hidden_state[batch_size * state_dimension] = {};
+  Dequantize(model_contents.GetHiddenStateData(), batch_size * state_dimension,
+             quantization_settings.hidden_quantization_parameters.scale,
+             quantization_settings.hidden_quantization_parameters.zero_point,
+             dequantized_hidden_state);
 
-//   float dequantized_cell_state[batch_size * state_dimension] = {};
-//   Dequantize(quantized_model_content.GetCellStateData(),
-//              batch_size * state_dimension,
-//              quantization_settings.cell_quantization_parameters.scale,
-//              quantization_settings.cell_quantization_parameters.zero_point,
-//              dequantized_cell_state);
-//   ValidateResultGoldens(eval_check_data.expected_cell_state,
-//                         dequantized_cell_state, batch_size * state_dimension,
-//                         cell_state_tolerance);
+  ValidateResultGoldens(eval_check_data.expected_hidden_state,
+                        dequantized_hidden_state, batch_size * state_dimension,
+                        hidden_state_tolerance);
 
-//   float dequantized_output[batch_size * state_dimension * time_steps] = {};
-//   Dequantize(quantized_model_content.GetOutputData(),
-//              batch_size * state_dimension * time_steps,
-//              quantization_settings.output_quantization_parameters.scale,
-//              quantization_settings.output_quantization_parameters.zero_point,
-//              dequantized_output);
-//   ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
-//                         batch_size * state_dimension,
-//                         hidden_state_tolerance);
-// }
+  float dequantized_cell_state[batch_size * state_dimension] = {};
+  Dequantize(model_contents.GetCellStateData(), batch_size * state_dimension,
+             quantization_settings.cell_quantization_parameters.scale,
+             quantization_settings.cell_quantization_parameters.zero_point,
+             dequantized_cell_state);
+  ValidateResultGoldens(eval_check_data.expected_cell_state,
+                        dequantized_cell_state, batch_size * state_dimension,
+                        cell_state_tolerance);
+
+  float dequantized_output[batch_size * state_dimension * time_steps] = {};
+  Dequantize(model_contents.GetOutputData(),
+             batch_size * state_dimension * time_steps,
+             quantization_settings.output_quantization_parameters.scale,
+             quantization_settings.output_quantization_parameters.zero_point,
+             dequantized_output);
+  ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
+                        batch_size * state_dimension, hidden_state_tolerance);
+}
 
 }  // namespace testing
 }  // namespace tflite

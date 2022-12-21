@@ -229,5 +229,23 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
       hidden_state_tolerance, cell_state_tolerance, int8_model_contents);
 }
 
+TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
+  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
+  const auto quantization_settings =
+      tflite::testing::Get2X2Int8LstmQuantizationSettings();
+
+  auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
+      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
+      quantization_settings, float_model_contents);
+
+  const float hidden_state_tolerance = 1e-2;
+  // cell state degrade due to integer overflow
+  const float cell_state_tolerance = 1e-1;
+  tflite::testing::TestLSTMEvalQuantized(
+      tflite::testing::kModelSettings, quantization_settings, kernel_eval_data,
+      hidden_state_tolerance, cell_state_tolerance, int8_model_contents);
+}
+
 #endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END

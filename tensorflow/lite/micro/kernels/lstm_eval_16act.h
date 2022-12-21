@@ -41,6 +41,7 @@ class LstmStepManager {
 
   void UpdateTime();
   void UpdateBatch();
+  void ResetTime() { current_time_ = 0; }
   const RuntimeShape InputShape() const;
   const RuntimeShape StateShape() const;
 
@@ -147,7 +148,8 @@ void UpdateLstmCellInteger(const LstmStepManager& step_info,
       cell_state_shape.FlatSize(), forget_cell_mul_params, forget_gate_output,
       tflite::micro::GetTensorData<CellType>(cell_state) +
           step_info.CellStateOffset(),
-      tflite::micro::GetTensorData<CellType>(cell_state));
+      tflite::micro::GetTensorData<CellType>(cell_state) +
+          step_info.CellStateOffset());
 
   // Input Gate x Cell Gate
   tflite::reference_integer_ops::MulElementwise(
@@ -161,7 +163,8 @@ void UpdateLstmCellInteger(const LstmStepManager& step_info,
       buffer,
       /*n_batch=*/cell_state_shape.DimsData()[0],
       /*n_state=*/cell_state_shape.DimsData()[1],
-      tflite::micro::GetTensorData<CellType>(cell_state));
+      tflite::micro::GetTensorData<CellType>(cell_state) +
+          step_info.CellStateOffset());
 
   if (clip > 0) {
     tflite::tensor_utils::CwiseClipping(
@@ -332,7 +335,7 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
   } else {
     // batch first, unable to size the input data. single batch inference
     for (int b = 0; b < size_info.batch_size; b++) {
-      for (int t = 0; t < kernel_content.time_steps; t++) {
+      for (int t = 0; t < size_info.time_steps; t++) {
         lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
                                        BiasType>(step_info, op_data,
                                                  kernel_content);
@@ -347,9 +350,10 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
       }
       // prepare for the next batch
       step_info.UpdateBatch();
+      step_info.ResetTime();
     }
-    return kTfLiteOk;
   }
+  return kTfLiteOk;
 }
 }  // namespace tflite
 
