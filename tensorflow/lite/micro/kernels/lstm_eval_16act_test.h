@@ -92,13 +92,13 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
 LSTMKernelContents<CellType> CreateLSTMKernelContent(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const float cell_state_scale,
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+    ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   LSTMKernelContents<CellType> kernel_content;
@@ -182,13 +182,13 @@ SizeInformation CreateLstmSizeInfo(
   return size_info;
 }
 
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
 OpDataLSTM CreateLSTMOpData(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+    ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   OpDataLSTM op_data;
@@ -241,9 +241,9 @@ OpDataLSTM CreateLSTMOpData(
 }
 
 /*Test Functions*/
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int state_dimension>
-void TestGateOutputQuantized(
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int state_dimension>
+void TestCalculateLstmGateInteger(
     const tflite::lstm_internal::LstmStepManager& step_info,
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_weight,
     const TfLiteEvalTensor* input_bias,
@@ -266,7 +266,7 @@ void TestGateOutputQuantized(
       model_quantization_settings.nonlinear_activation_input_scale);
 
   // only int8 weight is supported now
-  tflite::lstm_internal::CalculateLstmGateInteger<ActivationType, int8_t,
+  tflite::lstm_internal::CalculateLstmGateInteger<ActivationType, WeightType,
                                                   CellType, BiasType>(
       step_info, gate_params,
       // Input FC
@@ -289,7 +289,7 @@ void TestGateOutputQuantized(
 
 template <typename CellType, int batch_size, int input_dimension,
           int state_dimension>
-void TestCellUpdateQuantized(
+void TestUpdateLstmCellInteger(
     const tflite::lstm_internal::LstmStepManager& step_info,
     TfLiteEvalTensor* cell_state,
     const GateOutputCheckData<batch_size * input_dimension,
@@ -349,7 +349,7 @@ void TestCellUpdateQuantized(
 
 template <typename ActivationType, typename CellType, int batch_size,
           int input_dimension, int state_dimension>
-void TestHiddenStateUpdateQuantized(
+void TestUpdateLstmHiddenInteger(
     const tflite::lstm_internal::LstmStepManager& step_info,
     TfLiteEvalTensor* cell_state, TfLiteEvalTensor* hidden_state,
     const GateOutputCheckData<batch_size * input_dimension,
@@ -390,17 +390,17 @@ void TestHiddenStateUpdateQuantized(
                         tolerance);
 }
 
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-void TestOneStepLSTMInteger(
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
+void TestLstmStepInteger(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float hidden_state_tolerance, const float cell_state_tolerance,
     /*can not be const, state will be updated*/
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+    ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
@@ -422,7 +422,7 @@ void TestOneStepLSTMInteger(
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(op_data.size_info);
-  tflite::lstm_internal::LstmStepInteger<ActivationType, int8_t, CellType,
+  tflite::lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
                                          BiasType>(step_info, op_data,
                                                    kernel_content);
 
@@ -450,17 +450,17 @@ void TestOneStepLSTMInteger(
                         cell_state_tolerance);
 }
 
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-void TestLSTMEvalQuantized(
+template <typename ActivationType, typename WeightType, typename BiasType,
+          typename CellType, int batch_size, int time_steps,
+          int input_dimension, int state_dimension>
+void TestEvalLstmInteger(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
     const float hidden_state_tolerance, const float cell_state_tolerance,
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+    ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
@@ -480,7 +480,7 @@ void TestLSTMEvalQuantized(
   OpDataLSTM op_data =
       CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
 
-  tflite::EvalLstmInteger<ActivationType, int8_t, CellType, BiasType>(
+  tflite::EvalLstmInteger<ActivationType, WeightType, CellType, BiasType>(
       op_data, kernel_content);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};

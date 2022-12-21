@@ -73,7 +73,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Forget gate
   // Quantization performs badly here due to integer overflow!!!
   float tolerance = 1e-1f;
-  tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2>(
+  tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
+                                                int16_t, 2, 2>(
       step_info,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor),
       int8_model_contents.GetInternalTensor(
@@ -94,7 +95,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   // Input gate
   // Quantization performs badly here due to integer overflow!!!
   tolerance = 1e-1f;
-  tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2>(
+  tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
+                                                int16_t, 2, 2>(
       step_info,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor),
       int8_model_contents.GetInternalTensor(
@@ -114,7 +116,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
 
   // Output gate
   tolerance = 1e-2f;
-  tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2>(
+  tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
+                                                int16_t, 2, 2>(
       step_info,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor),
       int8_model_contents.GetInternalTensor(
@@ -134,7 +137,8 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
 
   // Cell gate
   tolerance = 1e-2f;
-  tflite::testing::TestGateOutputQuantized<int8_t, int32_t, int16_t, 2, 2>(
+  tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
+                                                int16_t, 2, 2>(
       step_info,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor),
       int8_model_contents.GetInternalTensor(
@@ -176,7 +180,7 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt8) {
   // quantization error of the clip value (~1e-5), but cannot actually reach
   // the precision due to integer overflow of the elements
   const float tolerance = 1e-3f;
-  tflite::testing::TestCellUpdateQuantized<int16_t, 2, 2, 2>(
+  tflite::testing::TestUpdateLstmCellInteger<int16_t, 2, 2, 2>(
       step_info, int8_model_contents.CellStateTensor(), gate_output_data,
       quantization_settings, tflite::testing::kModelSettings.cell_clip,
       tolerance);
@@ -204,7 +208,7 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
 
-  tflite::testing::TestHiddenStateUpdateQuantized<int8_t, int16_t, 2, 2, 2>(
+  tflite::testing::TestUpdateLstmHiddenInteger<int8_t, int16_t, 2, 2, 2>(
       step_info, int8_model_contents.CellStateTensor(),
       int8_model_contents.HiddenStateTensor(), gate_output_data,
       quantization_settings, tolerance);
@@ -224,7 +228,8 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
-  tflite::testing::TestOneStepLSTMInteger<int8_t, int32_t, int16_t, 2, 3, 2, 2>(
+  tflite::testing::TestLstmStepInteger<int8_t, int8_t, int32_t, int16_t, 2, 3,
+                                       2, 2>(
       tflite::testing::kModelSettings, quantization_settings, gate_output_data,
       hidden_state_tolerance, cell_state_tolerance, int8_model_contents);
 }
@@ -242,7 +247,7 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
-  tflite::testing::TestLSTMEvalQuantized(
+  tflite::testing::TestEvalLstmInteger(
       tflite::testing::kModelSettings, quantization_settings, kernel_eval_data,
       hidden_state_tolerance, cell_state_tolerance, int8_model_contents);
 }
