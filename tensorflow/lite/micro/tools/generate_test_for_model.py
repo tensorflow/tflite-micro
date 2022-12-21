@@ -74,7 +74,7 @@ class TestDataGenerator:
         [1, output_height, output_width,
          filter_tensor().shape[0]],
         dtype=np.int32)
-    if dtype == np.float or dtype == np.float32 or dtype == np.float64:
+    if dtype == float or dtype == np.float32 or dtype == np.float64:
       random = np.random.uniform(low=1, high=100, size=input_tensor1().shape)
       return [output_shape, random.astype(np.float32)]
     else:
@@ -93,7 +93,7 @@ class TestDataGenerator:
       return 'int16'
     if tensor.dtype == np.int32:
       return 'int32'
-    if tensor.dtype == np.float or tensor.dtype == np.float32:
+    if tensor.dtype == float or tensor.dtype == np.float32:
       return 'float'
 
   def generate_golden_single_in_single_out(self):
