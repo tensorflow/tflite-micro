@@ -69,10 +69,14 @@ TfLiteStatus PoolingPrepare(TfLiteContext* context, TfLiteNode* node) {
   if (input->type == kTfLiteFloat32) {
     CalculateActivationRange(params->activation, &data->activation_min_f32,
                              &data->activation_max_f32);
-  } else if (input->type == kTfLiteInt8) {
+  } else if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     CalculateActivationRangeQuantized(context, params->activation, output,
                                       &data->activation_min,
                                       &data->activation_max);
+  } else {
+    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                input->type);
+    return kTfLiteError;
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
