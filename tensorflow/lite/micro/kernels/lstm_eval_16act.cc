@@ -22,16 +22,19 @@ void LstmStepManager::UpdateTime() {
   current_time_ += 1;
   TFLITE_DCHECK_LE(current_time_, size_info_.time_steps);
   // default as one batch per inference
-  input_offset_ = current_time_ * size_info_.input_dimension;
-  output_offset_ = current_time_ * size_info_.state_dimension;
+  int input_step = size_info_.input_dimension;
+  int output_step = size_info_.state_dimension;
   // time major: batch inference
   if (size_info_.time_major) {
-    input_offset_ = input_offset_ * size_info_.batch_size;
-    output_offset_ = output_offset_ * size_info_.batch_size;
+    input_step = input_step * size_info_.batch_size;
+    output_step = output_step * size_info_.batch_size;
   }
+
+  input_offset_ += input_step;
+  output_offset_ += output_step;
 }
 
-void LstmStepManager::UpdateTime() {
+void LstmStepManager::UpdateBatch() {
   current_batch_ += 1;
   TFLITE_DCHECK_LE(current_time_, size_info_.batch_size);
   // batch inference for time major: no action needed
@@ -39,11 +42,11 @@ void LstmStepManager::UpdateTime() {
     return;
   }
   // otherwise: singe batch inference, go to the next batch
-  hidden_state_offset_ = current_batch_ * size_info_.state_dimension;
-  cell_state_offset_ = current_batch_ * size_info_.state_dimension;
+  hidden_state_offset_ += size_info_.state_dimension;
+  cell_state_offset_ += size_info_.state_dimension;
 }
 
-const RuntimeShape LstmStepManager::InputShape() {
+const RuntimeShape LstmStepManager::InputShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {
     batch_size = size_info_.batch_size;
@@ -53,7 +56,7 @@ const RuntimeShape LstmStepManager::InputShape() {
   return RuntimeShape(2, dims_data);
 }
 
-const RuntimeShape LstmStepManager::StateShape() {
+const RuntimeShape LstmStepManager::StateShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {
     batch_size = size_info_.batch_size;

@@ -96,7 +96,8 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 LSTMKernelContents<CellType> CreateLSTMKernelContent(
-    const TfLiteLSTMParams& builtin_data, const float cell_state_scale,
+    const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
+    const float cell_state_scale,
     ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
@@ -167,15 +168,37 @@ LSTMKernelContents<CellType> CreateLSTMKernelContent(
   return kernel_content;
 }
 
+SizeInformation CreateLstmSizeInfo(
+    const bool time_major, const TfLiteIntArray* input_tensor_shape,
+    const TfLiteIntArray* hidden_state_tensor_shape) {
+  SizeInformation size_info;
+  size_info.time_major = time_major;
+  size_info.batch_size =
+      time_major ? input_tensor_shape->data[1] : input_tensor_shape->data[0];
+  size_info.time_steps =
+      time_major ? input_tensor_shape->data[0] : input_tensor_shape->data[1];
+  size_info.input_dimension = input_tensor_shape->data[2];
+  size_info.state_dimension = hidden_state_tensor_shape->data[1];
+  return size_info;
+}
+
 template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 OpDataLSTM CreateLSTMOpData(
+    const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   OpDataLSTM op_data;
+  op_data.cell_gate_nonlinear_type = builtin_data.activation;
+
+  op_data.size_info = CreateLstmSizeInfo(
+      builtin_data.time_major,
+      model_contents.GetInternalTensor(kLstmInputTensor)->dims,
+      model_contents.HiddenStateTensor()->dims);
+
   // Gate Parameters
   op_data.forget_gate_parameters = CreateGateParams<CellType>(
       quantization_settings.input_quantization_parameters,
@@ -221,6 +244,7 @@ OpDataLSTM CreateLSTMOpData(
 template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int state_dimension>
 void TestGateOutputQuantized(
+    const tflite::lstm_internal::LstmStepManager& step_info,
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_weight,
     const TfLiteEvalTensor* input_bias,
     // Recurrent FC
@@ -244,7 +268,7 @@ void TestGateOutputQuantized(
   // only int8 weight is supported now
   tflite::lstm_internal::CalculateLstmGateInteger<ActivationType, int8_t,
                                                   CellType, BiasType>(
-      gate_params,
+      step_info, gate_params,
       // Input FC
       input, input_weight, input_bias,
       // Recurrent FC
@@ -266,11 +290,12 @@ void TestGateOutputQuantized(
 template <typename CellType, int batch_size, int input_dimension,
           int state_dimension>
 void TestCellUpdateQuantized(
+    const tflite::lstm_internal::LstmStepManager& step_info,
     TfLiteEvalTensor* cell_state,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const ModelQuantizationParameters& quantization_settings,
-    const CellType quantized_cell_clip, const float tolerance) {
+    const float cell_state_clip, const float tolerance) {
   CellType quantized_forget_gate[batch_size * state_dimension] = {};
   tflite::Quantize(gate_output_data.expected_forget_gate_output,
                    quantized_forget_gate, batch_size * state_dimension,
@@ -297,8 +322,16 @@ void TestCellUpdateQuantized(
       quantization_settings.nonlinear_activation_output_scale,
       quantization_settings.cell_quantization_parameters.scale);
 
+  CellType quantized_cell_clip = static_cast<CellType>(std::min(
+      std::max(
+          static_cast<double>(cell_state_clip) /
+              static_cast<double>(
+                  quantization_settings.cell_quantization_parameters.scale),
+          -32768.0),
+      32767.0));
+
   tflite::lstm_internal::UpdateLstmCellInteger<CellType>(
-      cell_state, quantized_forget_gate, quantized_input_gate,
+      step_info, cell_state, quantized_forget_gate, quantized_input_gate,
       quantized_cell_gate, forget_cell_mul_params, input_mul_params, buffer,
       quantized_cell_clip);
 
@@ -317,6 +350,7 @@ void TestCellUpdateQuantized(
 template <typename ActivationType, typename CellType, int batch_size,
           int input_dimension, int state_dimension>
 void TestHiddenStateUpdateQuantized(
+    const tflite::lstm_internal::LstmStepManager& step_info,
     TfLiteEvalTensor* cell_state, TfLiteEvalTensor* hidden_state,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
@@ -341,7 +375,7 @@ void TestHiddenStateUpdateQuantized(
   int32_t cell_state_scale_power = cell_state_scale_power_buffer;
 
   tflite::lstm_internal::UpdateLstmHiddenInteger<CellType, ActivationType>(
-      cell_state, hidden_state, quantized_output_gate, mul_params,
+      step_info, cell_state, hidden_state, quantized_output_gate, mul_params,
       cell_state_scale_power, buffer);
 
   float hidden_state_float[batch_size * state_dimension] = {};
@@ -360,7 +394,7 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMInteger(
-    const TfLiteLSTMParams& builtin_data,
+    const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
@@ -383,9 +417,14 @@ void TestOneStepLSTMInteger(
   CellType buffer3[batch_size * state_dimension] = {};
   kernel_content.buffer3 = buffer3;
 
-  OpDataLSTM op_data = CreateLSTMOpData(quantization_settings, model_contents);
+  OpDataLSTM op_data =
+      CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
+  // set time_major to true to test batch inference
+  op_data.size_info.time_major = true;
+  tflite::lstm_internal::LstmStepManager step_info(op_data.size_info);
   tflite::lstm_internal::LstmStepInteger<ActivationType, int8_t, CellType,
-                                         BiasType>(op_data, kernel_content);
+                                         BiasType>(step_info, op_data,
+                                                   kernel_content);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};
   Dequantize(tflite::micro::GetTensorData<ActivationType>(
@@ -411,95 +450,97 @@ void TestOneStepLSTMInteger(
                         cell_state_tolerance);
 }
 
-template <typename ActivationType, typename BiasType, typename CellType,
-          int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-void TestLSTMEvalQuantized(
-    const TfLiteLSTMParams& general_model_settings,
-    /*can not be const, state will be updated*/
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>&
-        quantized_model_content,
-    const ModelQuantizationParameters& quantization_settings,
-    const IntegerLstmParameter& evaluation_params,
-    const LstmEvalCheckData<
-        batch_size * time_steps * input_dimension, batch_size * state_dimension,
-        batch_size * state_dimension * time_steps>& eval_check_data,
-    const float hidden_state_tolerance, const float cell_state_tolerance) {
-  // Scratch buffers
-  CellType scratch0[batch_size * state_dimension] = {};
-  CellType scratch1[batch_size * state_dimension] = {};
-  CellType scratch2[batch_size * state_dimension] = {};
-  CellType scratch3[batch_size * state_dimension] = {};
-  ActivationType scratch4[batch_size * state_dimension * time_steps] = {};
-  BiasType scratch5[batch_size * state_dimension] = {};
+// template <typename ActivationType, typename BiasType, typename CellType,
+//           int batch_size, int time_steps, int input_dimension,
+//           int state_dimension>
+// void TestLSTMEvalQuantized(
+//     const TfLiteLSTMParams& general_model_settings,
+//     /*can not be const, state will be updated*/
+//     ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+//                   time_steps, input_dimension, state_dimension>&
+//         quantized_model_content,
+//     const ModelQuantizationParameters& quantization_settings,
+//     const IntegerLstmParameter& evaluation_params,
+//     const LstmEvalCheckData<
+//         batch_size * time_steps * input_dimension, batch_size *
+//         state_dimension, batch_size * state_dimension * time_steps>&
+//         eval_check_data,
+//     const float hidden_state_tolerance, const float cell_state_tolerance) {
+//   // Scratch buffers
+//   CellType scratch0[batch_size * state_dimension] = {};
+//   CellType scratch1[batch_size * state_dimension] = {};
+//   CellType scratch2[batch_size * state_dimension] = {};
+//   CellType scratch3[batch_size * state_dimension] = {};
+//   ActivationType scratch4[batch_size * state_dimension * time_steps] = {};
+//   BiasType scratch5[batch_size * state_dimension] = {};
 
-  EvalInteger8x8_16Lstm(
-      quantized_model_content.GetInternalTensor(kLstmInputTensor),
-      quantized_model_content.GetInternalTensor(kLstmInputToInputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmInputToForgetWeightsTensor),
-      quantized_model_content.GetInternalTensor(kLstmInputToCellWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmInputToOutputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToInputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToForgetWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToCellWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToOutputWeightsTensor),
-      /*cell_to_input_weights=*/nullptr,
-      /*cell_to_forget_weights=*/nullptr,
-      /*cell_to_output_weights=*/nullptr,
-      /*input_layer_norm_coefficients=*/nullptr,
-      /*forget_layer_norm_coefficients=*/nullptr,
-      /*cell_layer_norm_coefficients=*/nullptr,
-      /*output_layer_norm_coefficients=*/nullptr,
-      quantized_model_content.GetInternalTensor(kLstmInputGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmForgetGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmCellGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmOutputGateBiasTensor),
-      /*projection_weights=*/nullptr,
-      /*projection_bias=*/nullptr, &general_model_settings,
-      /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
-      quantization_settings.output_quantization_parameters.zero_point,
-      quantized_model_content.HiddenStateTensor(),
-      quantized_model_content.CellStateTensor(),
-      quantized_model_content.OutputTensor(), scratch0, scratch1, scratch2,
-      scratch3, scratch4, scratch5);
+//   EvalLstmInteger(
+//       quantized_model_content.GetInternalTensor(kLstmInputTensor),
+//       quantized_model_content.GetInternalTensor(kLstmInputToInputWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmInputToForgetWeightsTensor),
+//       quantized_model_content.GetInternalTensor(kLstmInputToCellWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmInputToOutputWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmRecurrentToInputWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmRecurrentToForgetWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmRecurrentToCellWeightsTensor),
+//       quantized_model_content.GetInternalTensor(
+//           kLstmRecurrentToOutputWeightsTensor),
+//       /*cell_to_input_weights=*/nullptr,
+//       /*cell_to_forget_weights=*/nullptr,
+//       /*cell_to_output_weights=*/nullptr,
+//       /*input_layer_norm_coefficients=*/nullptr,
+//       /*forget_layer_norm_coefficients=*/nullptr,
+//       /*cell_layer_norm_coefficients=*/nullptr,
+//       /*output_layer_norm_coefficients=*/nullptr,
+//       quantized_model_content.GetInternalTensor(kLstmInputGateBiasTensor),
+//       quantized_model_content.GetInternalTensor(kLstmForgetGateBiasTensor),
+//       quantized_model_content.GetInternalTensor(kLstmCellGateBiasTensor),
+//       quantized_model_content.GetInternalTensor(kLstmOutputGateBiasTensor),
+//       /*projection_weights=*/nullptr,
+//       /*projection_bias=*/nullptr, &general_model_settings,
+//       /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
+//       quantization_settings.output_quantization_parameters.zero_point,
+//       quantized_model_content.HiddenStateTensor(),
+//       quantized_model_content.CellStateTensor(),
+//       quantized_model_content.OutputTensor(), scratch0, scratch1, scratch2,
+//       scratch3, scratch4, scratch5);
 
-  float dequantized_hidden_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_model_content.GetHiddenStateData(),
-             batch_size * state_dimension,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
-             dequantized_hidden_state);
+//   float dequantized_hidden_state[batch_size * state_dimension] = {};
+//   Dequantize(quantized_model_content.GetHiddenStateData(),
+//              batch_size * state_dimension,
+//              quantization_settings.hidden_quantization_parameters.scale,
+//              quantization_settings.hidden_quantization_parameters.zero_point,
+//              dequantized_hidden_state);
 
-  ValidateResultGoldens(eval_check_data.expected_hidden_state,
-                        dequantized_hidden_state, batch_size * state_dimension,
-                        hidden_state_tolerance);
+//   ValidateResultGoldens(eval_check_data.expected_hidden_state,
+//                         dequantized_hidden_state, batch_size *
+//                         state_dimension, hidden_state_tolerance);
 
-  float dequantized_cell_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_model_content.GetCellStateData(),
-             batch_size * state_dimension,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
-             dequantized_cell_state);
-  ValidateResultGoldens(eval_check_data.expected_cell_state,
-                        dequantized_cell_state, batch_size * state_dimension,
-                        cell_state_tolerance);
+//   float dequantized_cell_state[batch_size * state_dimension] = {};
+//   Dequantize(quantized_model_content.GetCellStateData(),
+//              batch_size * state_dimension,
+//              quantization_settings.cell_quantization_parameters.scale,
+//              quantization_settings.cell_quantization_parameters.zero_point,
+//              dequantized_cell_state);
+//   ValidateResultGoldens(eval_check_data.expected_cell_state,
+//                         dequantized_cell_state, batch_size * state_dimension,
+//                         cell_state_tolerance);
 
-  float dequantized_output[batch_size * state_dimension * time_steps] = {};
-  Dequantize(quantized_model_content.GetOutputData(),
-             batch_size * state_dimension * time_steps,
-             quantization_settings.output_quantization_parameters.scale,
-             quantization_settings.output_quantization_parameters.zero_point,
-             dequantized_output);
-  ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
-                        batch_size * state_dimension, hidden_state_tolerance);
-}
+//   float dequantized_output[batch_size * state_dimension * time_steps] = {};
+//   Dequantize(quantized_model_content.GetOutputData(),
+//              batch_size * state_dimension * time_steps,
+//              quantization_settings.output_quantization_parameters.scale,
+//              quantization_settings.output_quantization_parameters.zero_point,
+//              dequantized_output);
+//   ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
+//                         batch_size * state_dimension,
+//                         hidden_state_tolerance);
+// }
 
 }  // namespace testing
 }  // namespace tflite

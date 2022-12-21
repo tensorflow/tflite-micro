@@ -32,6 +32,35 @@ namespace tflite {
 // Since LSTM includes multiple intermediate stages, introducing the internal
 // namespace to expose them for testing
 namespace lstm_internal {
+
+class LstmStepManager {
+ public:
+  LstmStepManager() = delete;
+  explicit LstmStepManager(const SizeInformation& size_info)
+      : size_info_(size_info) {}
+
+  void UpdateTime();
+  void UpdateBatch();
+  const RuntimeShape InputShape() const;
+  const RuntimeShape StateShape() const;
+
+  const int InputOffset() const { return input_offset_; }
+  const int OutputOffset() const { return output_offset_; }
+  const int HiddenStateOffset() const { return hidden_state_offset_; }
+  const int CellStateOffset() const { return cell_state_offset_; }
+
+ private:
+  int current_time_ = 0;
+  int current_batch_ = 0;
+  int input_offset_ = 0;
+  int output_offset_ = 0;
+  int hidden_state_offset_ = 0;
+  int cell_state_offset_ = 0;
+  // Size info is from the opdata, which reside in the persistent memory
+  // (guarante to outlast LSTMStepManager, which reside in stack)
+  const SizeInformation& size_info_;
+};
+
 // Calculates a single LSTM gate.
 // Implements the following formula:
 //   gate = activate(FC(input) + FC(recurrent))
@@ -39,27 +68,25 @@ namespace lstm_internal {
 // tanh)
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
-void CalculateLstmGateInteger(const GateParameters& gate_params,
-                              // Input FC
-                              const TfLiteEvalTensor* input,
-                              const TfLiteEvalTensor* input_weight,
-                              const TfLiteEvalTensor* input_bias,
-                              // Recurrent FC
-                              const TfLiteEvalTensor* recurrent,
-                              const TfLiteEvalTensor* recurrent_weight,
-                              const TfLiteEvalTensor* recurrent_bias,
-                              // Output
-                              CellType* gate_output,
-                              // Scratch arrays
-                              CellType* fc_output_buffer,
-                              const TfLiteFusedActivation activation) {
-  // gate output has the same size of the recurrent
-  const auto gate_output_shape = tflite::micro::GetTensorShape(recurrent);
+void CalculateLstmGateInteger(
+    const LstmStepManager& step_info, const GateParameters& gate_params,
+    // Input FC
+    const TfLiteEvalTensor* input, const TfLiteEvalTensor* input_weight,
+    const TfLiteEvalTensor* input_bias,
+    // Recurrent FC
+    const TfLiteEvalTensor* recurrent, const TfLiteEvalTensor* recurrent_weight,
+    const TfLiteEvalTensor* recurrent_bias,
+    // Output
+    CellType* gate_output,
+    // Scratch arrays
+    CellType* fc_output_buffer, const TfLiteFusedActivation activation) {
+  const auto gate_output_shape = step_info.StateShape();
   // Input FC
   tflite::reference_integer_ops::FullyConnectedGeneral<
       ActivationType, CellType, WeightType, BiasType, int64_t>(
-      gate_params.input_fc_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<ActivationType>(input),
+      gate_params.input_fc_params, step_info.InputShape(),
+      tflite::micro::GetTensorData<ActivationType>(input) +
+          step_info.InputOffset(),
       micro::GetTensorShape(input_weight),
       tflite::micro::GetTensorData<WeightType>(input_weight),
       tflite::micro::GetTensorShape(input_bias),
@@ -69,8 +96,9 @@ void CalculateLstmGateInteger(const GateParameters& gate_params,
   // Recurrent FC
   tflite::reference_integer_ops::FullyConnectedGeneral<
       ActivationType, CellType, WeightType, BiasType, int32_t>(
-      gate_params.recurrent_fc_params, tflite::micro::GetTensorShape(recurrent),
-      tflite::micro::GetTensorData<ActivationType>(recurrent),
+      gate_params.recurrent_fc_params, step_info.StateShape(),
+      tflite::micro::GetTensorData<ActivationType>(recurrent) +
+          step_info.HiddenStateOffset(),
       tflite::micro::GetTensorShape(recurrent_weight),
       tflite::micro::GetTensorData<WeightType>(recurrent_weight),
       tflite::micro::GetTensorShape(recurrent_bias),
@@ -103,7 +131,8 @@ void CalculateLstmGateInteger(const GateParameters& gate_params,
 }
 
 template <typename CellType>
-void UpdateLstmCellInteger(TfLiteEvalTensor* cell_state,
+void UpdateLstmCellInteger(const LstmStepManager& step_info,
+                           TfLiteEvalTensor* cell_state,
                            // Gate outputs
                            CellType* forget_gate_output,
                            const CellType* input_gate_output,
@@ -112,11 +141,12 @@ void UpdateLstmCellInteger(TfLiteEvalTensor* cell_state,
                            const ArithmeticParams& forget_cell_mul_params,
                            const ArithmeticParams& input_mul_params,
                            CellType* buffer, CellType clip) {
-  auto cell_state_shape = tflite::micro::GetTensorShape(cell_state);
+  auto cell_state_shape = step_info.StateShape();
   // Forget Gate x Cell State
   tflite::reference_integer_ops::MulElementwise(
       cell_state_shape.FlatSize(), forget_cell_mul_params, forget_gate_output,
-      tflite::micro::GetTensorData<CellType>(cell_state),
+      tflite::micro::GetTensorData<CellType>(cell_state) +
+          step_info.CellStateOffset(),
       tflite::micro::GetTensorData<CellType>(cell_state));
 
   // Input Gate x Cell Gate
@@ -126,27 +156,32 @@ void UpdateLstmCellInteger(TfLiteEvalTensor* cell_state,
 
   // Update the cell state
   tflite::tensor_utils::CwiseAdd(
-      tflite::micro::GetTensorData<CellType>(cell_state), buffer,
+      tflite::micro::GetTensorData<CellType>(cell_state) +
+          step_info.CellStateOffset(),
+      buffer,
       /*n_batch=*/cell_state_shape.DimsData()[0],
       /*n_state=*/cell_state_shape.DimsData()[1],
       tflite::micro::GetTensorData<CellType>(cell_state));
 
   if (clip > 0) {
     tflite::tensor_utils::CwiseClipping(
-        tflite::micro::GetTensorData<CellType>(cell_state),
+        tflite::micro::GetTensorData<CellType>(cell_state) +
+            step_info.CellStateOffset(),
         cell_state_shape.FlatSize(), clip);
   }
 }
 
 template <typename CellType, typename ActivationType>
-void UpdateLstmHiddenInteger(TfLiteEvalTensor* cell_state,
+void UpdateLstmHiddenInteger(const LstmStepManager& step_info,
+                             TfLiteEvalTensor* cell_state,
                              TfLiteEvalTensor* hidden_state,
                              const CellType* output_gate_output,
                              const ArithmeticParams& mul_params,
                              int32_t cell_state_scale_power, CellType* buffer) {
-  auto cell_state_shape = tflite::micro::GetTensorShape(cell_state);
+  auto cell_state_shape = step_info.StateShape();
   CellType* cell_state_data =
-      tflite::micro::GetTensorData<CellType>(cell_state);
+      tflite::micro::GetTensorData<CellType>(cell_state) +
+      step_info.CellStateOffset();
   // Tanh(cell_state)
   {
     int32_t tanh_input_left_shift = (15 + cell_state_scale_power) - 3;
@@ -165,18 +200,20 @@ void UpdateLstmHiddenInteger(TfLiteEvalTensor* cell_state,
   // Update the hidden state
   tflite::reference_integer_ops::MulElementwiseGeneral(
       cell_state_shape.FlatSize(), mul_params, buffer, output_gate_output,
-      tflite::micro::GetTensorData<ActivationType>(hidden_state));
+      tflite::micro::GetTensorData<ActivationType>(hidden_state) +
+          step_info.HiddenStateOffset());
 }
 
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
-void LstmStepInteger(const OpDataLSTM& op_data,
+void LstmStepInteger(const LstmStepManager& step_info,
+                     const OpDataLSTM& op_data,
                      LSTMKernelContents<CellType>& kernel_content) {
   /*Step1: Calculate gate outputs to prepare cell state update*/
   CellType* gate_internal_buffer = kernel_content.buffer3;
   CellType* forget_gate_output = kernel_content.buffer0;
   CalculateLstmGateInteger<ActivationType, WeightType, CellType, BiasType>(
-      op_data.forget_gate_parameters,
+      step_info, op_data.forget_gate_parameters,
       // Input FC
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToForgetWeightsTensor),
@@ -194,7 +231,7 @@ void LstmStepInteger(const OpDataLSTM& op_data,
   // Input Gate calculation;
   CellType* input_gate_output = kernel_content.buffer1;
   CalculateLstmGateInteger<ActivationType, WeightType, CellType, BiasType>(
-      op_data.input_gate_parameters,
+      step_info, op_data.input_gate_parameters,
       // Input FC
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToInputWeightsTensor),
@@ -212,7 +249,7 @@ void LstmStepInteger(const OpDataLSTM& op_data,
   // Cell Gate calculation
   CellType* cell_gate_output = kernel_content.buffer2;
   CalculateLstmGateInteger<ActivationType, WeightType, CellType, BiasType>(
-      op_data.cell_gate_parameters,
+      step_info, op_data.cell_gate_parameters,
       // Input FC
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToCellWeightsTensor),
@@ -232,15 +269,16 @@ void LstmStepInteger(const OpDataLSTM& op_data,
   CellType* updated_input_buffer = kernel_content.buffer1;  // reuse buffer
 
   UpdateLstmCellInteger<CellType>(
-      kernel_content.CellStateTensor(), forget_gate_output, input_gate_output,
-      cell_gate_output, inter_gate_params.forget_cell_mul_params,
+      step_info, kernel_content.CellStateTensor(), forget_gate_output,
+      input_gate_output, cell_gate_output,
+      inter_gate_params.forget_cell_mul_params,
       inter_gate_params.input_mul_params, updated_input_buffer,
       kernel_content.quantized_cell_clip);
 
   /*Step3: update the hidden state */
   CellType* output_gate_output = kernel_content.buffer1;  // reuse buffer
   CalculateLstmGateInteger<ActivationType, WeightType, CellType, BiasType>(
-      op_data.output_gate_parameters,
+      step_info, op_data.output_gate_parameters,
       // Input FC
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToOutputWeightsTensor),
@@ -258,37 +296,11 @@ void LstmStepInteger(const OpDataLSTM& op_data,
   CellType* tanh_activated_cell_buffer =
       kernel_content.buffer0;  // reuse buffer
   tflite::lstm_internal::UpdateLstmHiddenInteger<CellType, ActivationType>(
-      kernel_content.CellStateTensor(), kernel_content.HiddenStateTensor(),
-      output_gate_output, inter_gate_params.output_mul_params,
+      step_info, kernel_content.CellStateTensor(),
+      kernel_content.HiddenStateTensor(), output_gate_output,
+      inter_gate_params.output_mul_params,
       kernel_content.cell_state_scale_power, tanh_activated_cell_buffer);
 }
-
-class LstmStepManager {
- public:
-  explicit LstmStepManager(const SizeInformation& size_info)
-      : size_info_(size_info) {}
-
-  void UpdateTime();
-  void UpdateBatch();
-  const RuntimeShape InputShape();
-  const RuntimeShape StateShape();
-
-  const int InputOffset() const { return input_offset_; }
-  const int OutputOffset() const { return output_offset_; }
-  const int HiddenStateOffset() const { return hidden_state_offset_; }
-  const int CellStateOffset() const { return cell_state_offset_; }
-
- private:
-  int current_time_ = 0;
-  int current_batch_ = 0;
-  int input_offset_ = 0;
-  int output_offset_ = 0;
-  int hidden_state_offset_ = 0;
-  int cell_state_offset_ = 0;
-  // Size info is from the opdata, which reside in the persistent memory
-  // (guarante to outlast LSTMStepManager, which reside in stack)
-  const SizeInformation& size_info_;
-};
 
 }  // namespace lstm_internal
 
@@ -297,8 +309,8 @@ template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                              LSTMKernelContents<CellType>& kernel_content) {
-  ActivationType* output_ptr =
-      flite::micro::GetTensorData<ActivationType>(kernel_content.output_tensor);
+  ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
+      kernel_content.output_tensor);
   const auto& size_info = op_data.size_info;
   lstm_internal::LstmStepManager step_info(size_info);
   // time is the first dimention, enable batch computation
@@ -309,8 +321,8 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                                      BiasType>(step_info, op_data,
                                                kernel_content);
       // record the output (from the updated hidden state)
-      std::memcpy(output_ptr,
-                  kflite::micro::GetTensorData<ActivationType>(
+      std::memcpy(output_ptr + step_info.OutputOffset(),
+                  tflite::micro::GetTensorData<ActivationType>(
                       kernel_content.HiddenStateTensor()),
                   size_info.batch_size * size_info.state_dimension *
                       sizeof(ActivationType));
@@ -325,8 +337,8 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                                        BiasType>(step_info, op_data,
                                                  kernel_content);
         // record the output (from the updated hidden state)
-        std::memcpy(output_ptr,
-                    kflite::micro::GetTensorData<ActivationType>(
+        std::memcpy(output_ptr + step_info.OutputOffset(),
+                    tflite::micro::GetTensorData<ActivationType>(
                         kernel_content.HiddenStateTensor()),
                     size_info.batch_size * size_info.state_dimension *
                         sizeof(ActivationType));
