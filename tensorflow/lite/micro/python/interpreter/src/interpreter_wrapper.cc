@@ -367,13 +367,13 @@ PyObject* InterpreterWrapper::GetMemoryStats() {
   PyObject* result = PyDict_New();
 
   PyObject* value = PyLong_FromLong(allocation_data.used_bytes);
-  PyDict_SetItemString(result, "used_bytes", value);
+  PyDict_SetItemString(result, "total_bytes", value);
 
   value = PyLong_FromLong(allocation_data.non_persistent_used_bytes);
-  PyDict_SetItemString(result, "non_persistent_used_bytes", value);
+  PyDict_SetItemString(result, "non_persistent_bytes", value);
 
   value = PyLong_FromLong(allocation_data.persistent_used_bytes);
-  PyDict_SetItemString(result, "persistent_used_bytes", value);
+  PyDict_SetItemString(result, "persistent_bytes", value);
   return result;
 }
 
