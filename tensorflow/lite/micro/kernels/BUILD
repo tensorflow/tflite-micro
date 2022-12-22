@@ -129,8 +129,8 @@ cc_library(
 cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
-        "lstm_eval_test.h",
         "lstm_eval_general_test.h",
+        "lstm_eval_test.h",
     ],
     deps = [
         ":kernel_util",
