@@ -429,7 +429,7 @@ void TestLstmStepInteger(
       CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(op_data.size_info);
+  tflite::lstm_internal::LstmStepManager step_info(&op_data.size_info);
   tflite::lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
                                          BiasType>(step_info, op_data,
                                                    kernel_content);

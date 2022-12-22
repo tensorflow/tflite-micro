@@ -39,8 +39,10 @@ namespace lstm_internal {
 class LstmStepManager {
  public:
   LstmStepManager() = delete;
-  explicit LstmStepManager(const LstmSizeInfo& size_info)
-      : size_info_(size_info) {}
+  // Does not take any ownership, and all pointers must refer to valid objects
+  // that outlive the one constructed.
+  explicit LstmStepManager(const LstmSizeInfo* size_info)
+      : size_info_(*size_info) {}
 
   void UpdateTime();
   void UpdateBatch();
@@ -61,7 +63,7 @@ class LstmStepManager {
   int output_offset_ = 0;
   int hidden_state_offset_ = 0;
   int cell_state_offset_ = 0;
-  // Size info is from the LstmOpData, which reside in the persistent memory
+  // Sizeinfo is from LstmOpData, which reside in the memory arena
   // (guarante to outlast LSTMStepManager, which reside in stack)
   const LstmSizeInfo& size_info_;
 };
@@ -318,8 +320,8 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                              LSTMKernelContents<CellType>& kernel_content) {
   ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
       kernel_content.output_tensor);
+  lstm_internal::LstmStepManager step_info(&op_data.size_info);
   const auto& size_info = op_data.size_info;
-  lstm_internal::LstmStepManager step_info(size_info);
   // time is the first dimention, enable batch computation
   if (size_info.time_major) {
     for (int t = 0; t < size_info.time_steps; t++) {

@@ -66,7 +66,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       /*time_major*/ true,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
-  tflite::lstm_internal::LstmStepManager step_info(size_info);
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Forget gate
   // Quantization performs badly here due to integer overflow!!!
@@ -172,7 +172,7 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt8) {
       /*time_major*/ true,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
-  tflite::lstm_internal::LstmStepManager step_info(size_info);
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
@@ -201,7 +201,7 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
       /*time_major*/ true,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
-  tflite::lstm_internal::LstmStepManager step_info(size_info);
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
