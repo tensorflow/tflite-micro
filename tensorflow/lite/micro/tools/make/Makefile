@@ -357,6 +357,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/log_softmax.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_general.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/maximum_minimum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \

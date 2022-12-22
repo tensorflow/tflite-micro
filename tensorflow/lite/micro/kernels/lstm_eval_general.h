@@ -45,10 +45,10 @@ class LstmStepManager {
   const RuntimeShape InputShape() const;
   const RuntimeShape StateShape() const;
 
-  const int InputOffset() const { return input_offset_; }
-  const int OutputOffset() const { return output_offset_; }
-  const int HiddenStateOffset() const { return hidden_state_offset_; }
-  const int CellStateOffset() const { return cell_state_offset_; }
+  int InputOffset() const { return input_offset_; }
+  int OutputOffset() const { return output_offset_; }
+  int HiddenStateOffset() const { return hidden_state_offset_; }
+  int CellStateOffset() const { return cell_state_offset_; }
 
  private:
   int current_time_ = 0;
