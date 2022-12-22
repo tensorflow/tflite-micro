@@ -330,31 +330,38 @@ void LstmStepInteger(const LstmStepManager& step_info,
       inter_gate_params.output_mul_params,
       kernel_content.cell_state_info.cell_state_scale_power,
       tanh_activated_cell_buffer);
+
+  /*Step3: copy the update the hidden state to output*/
+  // Check offset validity to avoid memory overflow
+  TFLITE_DCHECK_LE(
+      step_info.OutputOffset() + step_info.StateShape().FlatSize(),
+      tflite::micro::GetTensorShape(kernel_content.output_tensor).FlatSize());
+  // record the output (from the updated hidden state)
+  ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
+      kernel_content.output_tensor);
+  const auto* hidden_state = kernel_content.HiddenStateTensor();
+  std::memcpy(output_ptr + step_info.OutputOffset(),
+              tflite::micro::GetTensorData<ActivationType>(hidden_state) +
+                  step_info.HiddenStateOffset(),
+              step_info.StateShape().FlatSize() * sizeof(ActivationType));
 }
 
 }  // namespace lstm_internal
 
+// Evaulate the LSTM kernel with (potential) multi-steps and multi-batch input
+// Since
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                              LSTMKernelContents<CellType>& kernel_content) {
-  ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
-      kernel_content.output_tensor);
   lstm_internal::LstmStepManager step_info(&op_data.size_info);
   const auto& size_info = op_data.size_info;
   // time is the first dimention, enable batch computation
   if (size_info.time_major) {
     for (int t = 0; t < size_info.time_steps; t++) {
-      // update cell and hidden states
       lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
                                      BiasType>(step_info, op_data,
                                                kernel_content);
-      // record the output (from the updated hidden state)
-      std::memcpy(output_ptr + step_info.OutputOffset(),
-                  tflite::micro::GetTensorData<ActivationType>(
-                      kernel_content.HiddenStateTensor()),
-                  size_info.batch_size * size_info.state_dimension *
-                      sizeof(ActivationType));
       // prepare for the next time step
       step_info.UpdateTime();
     }
@@ -365,12 +372,6 @@ TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
         lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
                                        BiasType>(step_info, op_data,
                                                  kernel_content);
-        // record the output (from the updated hidden state)
-        std::memcpy(output_ptr + step_info.OutputOffset(),
-                    tflite::micro::GetTensorData<ActivationType>(
-                        kernel_content.HiddenStateTensor()),
-                    size_info.batch_size * size_info.state_dimension *
-                        sizeof(ActivationType));
         // prepare for the next time step
         step_info.UpdateTime();
       }

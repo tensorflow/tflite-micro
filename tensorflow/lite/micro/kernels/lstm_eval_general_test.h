@@ -110,6 +110,8 @@ CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
   return cell_state_info;
 }
 
+// Create LSTMKernelContents from ModelContents by copying TfLiteEvalTensor
+// pointers
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
