@@ -52,6 +52,8 @@ void LstmStepManager::UpdateBatch() {
   cell_state_offset_ += size_info_.state_dimension;
 }
 
+// Input shape for each single time LSTM invocation.
+// Multi-batch for time_major input
 const RuntimeShape LstmStepManager::InputShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {
@@ -62,6 +64,8 @@ const RuntimeShape LstmStepManager::InputShape() const {
   return RuntimeShape(2, dims_data);
 }
 
+// State shape (both hidden and cell) for each single time LSTM invocation.
+// Multi-batch for time_major input
 const RuntimeShape LstmStepManager::StateShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {

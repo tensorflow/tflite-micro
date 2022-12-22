@@ -26,8 +26,10 @@ namespace testing {
 
 /*Helper Functions (mainly about mimicking the kernel preparation)*/
 
-// since TfLiteContext is not available during the kernel test, we mimic (put
-// into stack memory) CalculateOpDataFullyConnected in
+// Create fully connected parameters using quantization settings of input and
+// weight tensors.
+// Since TfLiteContext is not available during the kernel test, here we mimic
+// (put into stack memory) CalculateOpDataFullyConnected in
 // tensorflow/lite/micro/kernels/fully_connected_common.cc
 template <typename CellType>
 tflite::FullyConnectedParams CreateFCParams(
@@ -55,6 +57,7 @@ tflite::FullyConnectedParams CreateFCParams(
   return tflite::FullyConnectedParamsQuantized(data);
 }
 
+// Wrapper function to create gate parameters for the four internal LSTM gates
 template <typename CellType>
 tflite::GateParameters CreateGateParams(
     const TensorQuantizationParameters& input_quant_params,
@@ -71,6 +74,12 @@ tflite::GateParameters CreateGateParams(
   return gate_params;
 }
 
+// Create parameters for element wise multiplication that happens in a) cell
+// state update ; b) hidden state update
+// Note that all the output of gates are symmetrically quantized so only scales
+// are required for input. However, during the hidden state update phase, the
+// output is the updated hidden state, which is asymmetrically quantized. Thus
+// output may require zero point
 template <typename OutputType>
 tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
                                                   const float input2_scale,
@@ -93,6 +102,9 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
+// Create the additional information about the cell state, which include:
+// cell_state_scale_power: used in integer nonlinear function (e.g., tanh)
+// quantized_cell_clip: quantized cell clip range
 template <typename CellType>
 CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
                                                 const float cell_clip) {
@@ -180,6 +192,9 @@ LSTMKernelContents<CellType> CreateLSTMKernelContent(
   return kernel_content;
 }
 
+// Deduce the size information (Batch (B), Time Steps (T), Input dimension (I),
+// State dimension (S)) that defines the LSTM using the input and hidden state
+// tensor
 LstmSizeInfo CreateLstmSizeInfo(
     const bool time_major, const TfLiteIntArray* input_tensor_shape,
     const TfLiteIntArray* hidden_state_tensor_shape) {
@@ -194,10 +209,16 @@ LstmSizeInfo CreateLstmSizeInfo(
   return size_info;
 }
 
+// Create the LstmOpData using the ModelContents and ModelQuantizationParameters
+// (defined in test_data/lstm_test_data)
+// During the actual inference phase, OpDataLSTM is created using information
+// from the flatbuffer file. The test divide the complete LSTM node information
+// into ModelContents and ModelQuantizationParameters for easy construction
+// purposes
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-OpDataLSTM CreateLSTMOpData(
+OpDataLSTM CreateLstmOpData(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
@@ -251,7 +272,7 @@ OpDataLSTM CreateLSTMOpData(
   return op_data;
 }
 
-/*Test Functions*/
+/*Test Functions Below Here*/
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int state_dimension>
 void TestCalculateLstmGateInteger(
@@ -428,7 +449,7 @@ void TestLstmStepInteger(
   kernel_content.buffer3 = buffer3;
 
   OpDataLSTM op_data =
-      CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
+      CreateLstmOpData(builtin_data, quantization_settings, model_contents);
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(&op_data.size_info);
@@ -487,7 +508,7 @@ void TestEvalLstmInteger(
   kernel_content.buffer3 = buffer3;
 
   OpDataLSTM op_data =
-      CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
+      CreateLstmOpData(builtin_data, quantization_settings, model_contents);
 
   tflite::EvalLstmInteger<ActivationType, WeightType, CellType, BiasType>(
       op_data, kernel_content);

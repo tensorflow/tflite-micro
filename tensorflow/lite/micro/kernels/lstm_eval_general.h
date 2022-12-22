@@ -71,8 +71,7 @@ class LstmStepManager {
 // Calculates a single LSTM gate.
 // Implements the following formula:
 //   gate = activate(FC(input) + FC(recurrent))
-// Activation is sigmoid except for the "cell" gate (configurable, usually
-// tanh)
+// Activation is sigmoid except for the "cell" gate (configurable, usually tanh)
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void CalculateLstmGateInteger(
@@ -144,6 +143,10 @@ void CalculateLstmGateInteger(
   }
 }
 
+// Update the cell state using the output from the forget gate, input gate, and
+// cell gate Formula: updated_cell_state = forget_gate_output*cell_state +
+// input_gate_output * cell_gate_output, where * denotes element wise
+// multiplication
 template <typename CellType>
 void UpdateLstmCellInteger(const LstmStepManager& step_info,
                            TfLiteEvalTensor* cell_state,
@@ -192,6 +195,9 @@ void UpdateLstmCellInteger(const LstmStepManager& step_info,
   }
 }
 
+// Update the hidden state of the LSTM kernel using the following formula:
+// updated_hidden_state = Tanh(updated_cell_state) * output_gate_output, * means
+// element wise multiplication
 template <typename CellType, typename ActivationType>
 void UpdateLstmHiddenInteger(const LstmStepManager& step_info,
                              TfLiteEvalTensor* cell_state,
@@ -331,7 +337,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
       kernel_content.cell_state_info.cell_state_scale_power,
       tanh_activated_cell_buffer);
 
-  /*Step3: copy the update the hidden state to output*/
+  /*Step4: copy the update the hidden state to output*/
   // Check offset validity to avoid memory overflow
   TFLITE_DCHECK_LE(
       step_info.OutputOffset() + step_info.StateShape().FlatSize(),
