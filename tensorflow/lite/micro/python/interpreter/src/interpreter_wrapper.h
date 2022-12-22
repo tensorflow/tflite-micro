@@ -33,7 +33,7 @@ class InterpreterWrapper {
   ~InterpreterWrapper();
 
   void PrintAllocations();
-  void PrintLatencyStats();
+  int GetTotalTicks();
   int Invoke();
   int Reset();
   void SetInputTensor(PyObject* data, size_t index);

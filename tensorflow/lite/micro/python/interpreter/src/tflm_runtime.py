@@ -95,15 +95,15 @@ class Interpreter(object):
     return Interpreter(model_data, custom_op_registerers, arena_size,
                        num_resource_variables)
 
-  def print_latency_stats(self):
-    """Invoke the MicroProfiler to print the latency (ticks) numbers .
+  def get_latency(self):
+    """Invoke the MicroProfiler to returns the total number of ticks.
 
     This should be called after `invoke()`.
 
     Returns:
-      This method returns nothing but prints the latency info.
+      This method returns the total number of ticks.
     """
-    self._interpreter.PrintLatencyStats()
+    return self._interpreter.GetTotalTicks()
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.

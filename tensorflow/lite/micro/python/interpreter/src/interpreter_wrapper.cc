@@ -255,7 +255,7 @@ InterpreterWrapper::InterpreterWrapper(
 
 void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
-void InterpreterWrapper::PrintLatencyStats() { profiler_.LogTicksPerTagCsv(); }
+int InterpreterWrapper::GetTotalTicks() { return profiler_.GetTotalTicks(); }
 
 int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
 
