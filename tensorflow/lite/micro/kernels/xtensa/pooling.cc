@@ -252,8 +252,8 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
           *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
       PoolEvalVision(context, node, *params, op_data, input, output);
 #else
-      AveragePoolingEvalQuantized(context, node, params, reference_op_data,
-                                  input, output);
+      AveragePoolingEvalQuantized<int8_t>(context, node, params,
+                                          reference_op_data, input, output);
 #endif
     } break;
     default:
@@ -295,8 +295,8 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
           *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
       PoolEvalVision(context, node, *params, op_data, input, output);
 #else
-      MaxPoolingEvalQuantized(context, node, params, reference_op_data, input,
-                              output);
+      MaxPoolingEvalQuantized<int8_t>(context, node, params, reference_op_data,
+                                      input, output);
 #endif
     } break;
     default:
