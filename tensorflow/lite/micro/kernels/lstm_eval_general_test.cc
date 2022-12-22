@@ -61,11 +61,12 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
       quantization_settings, float_model_contents);
 
   // get step information: only one time step, no need to update
-  // set time_major = true to test batch inference
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ true,
+      /*time_major*/ false,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Forget gate
@@ -167,11 +168,12 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt8) {
       quantization_settings, float_model_contents);
 
   // get step information: only one time step, no need to update
-  // set time_major = true to test batch inference
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ true,
+      /*time_major*/ false,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Very high precision. The error is introduced by the
@@ -196,11 +198,12 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
       quantization_settings, float_model_contents);
 
   // get step information: only one time step, no need to update
-  // set time_major = true to test batch inference
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ true,
+      /*time_major*/ false,
       int8_model_contents.GetInternalTensor(tflite::kLstmInputTensor)->dims,
       int8_model_contents.HiddenStateTensor()->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Theoritical error floor = quantization scale = 0.004705882165580988

@@ -88,6 +88,13 @@ void CalculateLstmGateInteger(
     // Scratch arrays
     CellType* fc_output_buffer, const TfLiteFusedActivation activation) {
   const auto gate_output_shape = step_info.StateShape();
+  // Check offset validity to avoid memory overflow
+  TFLITE_DCHECK_LE(step_info.InputOffset() + step_info.InputShape().FlatSize(),
+                   tflite::micro::GetTensorShape(input).FlatSize());
+  TFLITE_DCHECK_LE(
+      step_info.HiddenStateOffset() + step_info.StateShape().FlatSize(),
+      tflite::micro::GetTensorShape(recurrent).FlatSize());
+
   // Input FC
   tflite::reference_integer_ops::FullyConnectedGeneral<
       ActivationType, CellType, WeightType, BiasType, int64_t>(
@@ -148,6 +155,11 @@ void UpdateLstmCellInteger(const LstmStepManager& step_info,
                            const ArithmeticParams& forget_cell_mul_params,
                            const ArithmeticParams& input_mul_params,
                            CellType* buffer, CellType clip) {
+  // Check offset validity to avoid memory overflow
+  TFLITE_DCHECK_LE(
+      step_info.CellStateOffset() + step_info.StateShape().FlatSize(),
+      tflite::micro::GetTensorShape(cell_state).FlatSize());
+
   auto cell_state_shape = step_info.StateShape();
   // Forget Gate x Cell State
   tflite::reference_integer_ops::MulElementwise(
@@ -187,6 +199,14 @@ void UpdateLstmHiddenInteger(const LstmStepManager& step_info,
                              const CellType* output_gate_output,
                              const ArithmeticParams& mul_params,
                              int32_t cell_state_scale_power, CellType* buffer) {
+  // Check offset validity to avoid memory overflow
+  TFLITE_DCHECK_LE(
+      step_info.CellStateOffset() + step_info.StateShape().FlatSize(),
+      tflite::micro::GetTensorShape(cell_state).FlatSize());
+  TFLITE_DCHECK_LE(
+      step_info.HiddenStateOffset() + step_info.StateShape().FlatSize(),
+      tflite::micro::GetTensorShape(hidden_state).FlatSize());
+
   auto cell_state_shape = step_info.StateShape();
   CellType* cell_state_data =
       tflite::micro::GetTensorData<CellType>(cell_state) +

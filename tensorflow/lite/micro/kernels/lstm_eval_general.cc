@@ -18,6 +18,9 @@ limitations under the License.
 
 namespace tflite {
 namespace lstm_internal {
+
+// Increment the data offset so the sigle time step invocation call can access
+// the corresponding input/output tensor data at the time step
 void LstmStepManager::UpdateTime() {
   current_time_ += 1;
   TFLITE_DCHECK_LE(current_time_, size_info_.time_steps);
@@ -34,6 +37,9 @@ void LstmStepManager::UpdateTime() {
   output_offset_ += output_step;
 }
 
+// Increment the data offset so the sigle time step invocation call can access
+// the corresponding hidden/cell state tensor data at the time step (for single
+// batch inference only)
 void LstmStepManager::UpdateBatch() {
   current_batch_ += 1;
   TFLITE_DCHECK_LE(current_batch_, size_info_.batch_size);
