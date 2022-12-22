@@ -33,8 +33,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
-// Test Settings
-constexpr float kTestFloatTolerance = 1e-6f;
 // LSTM internal setting (e.g., nonlinear activation type)
 constexpr TfLiteUnidirectionalSequenceLSTMParams kModelSettings = {
     /*.activation=*/kTfLiteActTanh,

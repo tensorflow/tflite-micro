@@ -89,19 +89,8 @@ struct LstmSizeInfo {
   int state_dimension;
 };
 
-template <typename CellType>
-struct CellStateInfo {
-  // clipping range for cell state
-  CellType quantized_cell_clip;
-  // 2^-cell_state_scale_power = cell state scale, required by integer tanh
-  // computation
-  int32_t cell_state_scale_power;
-};
-
-template <typename CellType>
 struct OpDataLSTM {
   LstmSizeInfo size_info;
-  CellStateInfo<CellType> cell_state_info;
   TfLiteFusedActivation cell_gate_nonlinear_type;
   GateParameters forget_gate_parameters;
   GateParameters input_gate_parameters;
@@ -109,6 +98,15 @@ struct OpDataLSTM {
   GateParameters output_gate_parameters;
   InterGateParameters inter_gate_parameters;
   LSTMBufferIndices buffer_indices;  // TFLM only
+};
+
+template <typename CellType>
+struct CellStateInfo {
+  // clipping range for cell state
+  CellType quantized_cell_clip;
+  // 2^-cell_state_scale_power = cell state scale, required by integer tanh
+  // computation
+  int32_t cell_state_scale_power;
 };
 
 template <typename CellType>
@@ -126,6 +124,8 @@ struct LSTMKernelContents {
   TfLiteEvalTensor* CellStateTensor() {
     return internal_tensors[kLstmCellStateTensor];
   }
+  // cell_state_info reside here to make OpDataLSTM non-templated
+  CellStateInfo<CellType> cell_state_info;
 
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];

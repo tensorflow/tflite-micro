@@ -93,10 +93,29 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
+template <typename CellType>
+CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
+                                                const float cell_clip) {
+  CellStateInfo<CellType> cell_state_info;
+  // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
+  int buffer;
+  tflite::CheckedLog2(cell_state_scale, &buffer);
+  cell_state_info.cell_state_scale_power = buffer;
+  // Cell state specifics
+  cell_state_info.quantized_cell_clip = static_cast<CellType>(
+      std::min(std::max(static_cast<double>(cell_clip) /
+                            static_cast<double>(cell_state_scale),
+                        -32768.0),
+               32767.0));
+  return cell_state_info;
+}
+
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
 LSTMKernelContents<CellType> CreateLSTMKernelContent(
+    const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
+    const ModelQuantizationParameters& quantization_settings,
     ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
@@ -152,6 +171,10 @@ LSTMKernelContents<CellType> CreateLSTMKernelContent(
       nullptr;
   // Output tensor
   kernel_content.output_tensor = model_contents.OutputTensor();
+
+  kernel_content.cell_state_info = CreateLstmCellStateInfo<CellType>(
+      quantization_settings.cell_quantization_parameters.scale,
+      builtin_data.cell_clip);
   return kernel_content;
 }
 
@@ -169,37 +192,17 @@ LstmSizeInfo CreateLstmSizeInfo(
   return size_info;
 }
 
-template <typename CellType>
-CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
-                                                const float cell_clip) {
-  CellStateInfo<CellType> cell_state_info;
-  // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
-  int buffer;
-  tflite::CheckedLog2(cell_state_scale, &buffer);
-  cell_state_info.cell_state_scale_power = buffer;
-  // Cell state specifics
-  cell_state_info.quantized_cell_clip = static_cast<CellType>(
-      std::min(std::max(static_cast<double>(cell_clip) /
-                            static_cast<double>(cell_state_scale),
-                        -32768.0),
-               32767.0));
-  return cell_state_info;
-}
-
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-OpDataLSTM<CellType> CreateLSTMOpData(
+OpDataLSTM CreateLSTMOpData(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
-  OpDataLSTM<CellType> op_data;
+  OpDataLSTM op_data;
   op_data.cell_gate_nonlinear_type = builtin_data.activation;
-  op_data.cell_state_info = CreateLstmCellStateInfo<CellType>(
-      quantization_settings.cell_quantization_parameters.scale,
-      builtin_data.cell_clip);
   op_data.size_info = CreateLstmSizeInfo(
       builtin_data.time_major,
       model_contents.GetInternalTensor(kLstmInputTensor)->dims,
@@ -410,8 +413,8 @@ void TestLstmStepInteger(
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
-  LSTMKernelContents<CellType> kernel_content =
-      CreateLSTMKernelContent(model_contents);
+  LSTMKernelContents<CellType> kernel_content = CreateLSTMKernelContent(
+      builtin_data, quantization_settings, model_contents);
   // Scratch buffers on the stack
   CellType buffer0[batch_size * state_dimension] = {};
   kernel_content.buffer0 = buffer0;
@@ -422,7 +425,7 @@ void TestLstmStepInteger(
   CellType buffer3[batch_size * state_dimension] = {};
   kernel_content.buffer3 = buffer3;
 
-  OpDataLSTM<CellType> op_data =
+  OpDataLSTM op_data =
       CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
@@ -469,8 +472,8 @@ void TestEvalLstmInteger(
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
-  LSTMKernelContents<CellType> kernel_content =
-      CreateLSTMKernelContent(model_contents);
+  LSTMKernelContents<CellType> kernel_content = CreateLSTMKernelContent(
+      builtin_data, quantization_settings, model_contents);
   // Scratch buffers on the stack
   CellType buffer0[batch_size * state_dimension] = {};
   kernel_content.buffer0 = buffer0;
@@ -481,7 +484,7 @@ void TestEvalLstmInteger(
   CellType buffer3[batch_size * state_dimension] = {};
   kernel_content.buffer3 = buffer3;
 
-  OpDataLSTM<CellType> op_data =
+  OpDataLSTM op_data =
       CreateLSTMOpData(builtin_data, quantization_settings, model_contents);
 
   tflite::EvalLstmInteger<ActivationType, WeightType, CellType, BiasType>(

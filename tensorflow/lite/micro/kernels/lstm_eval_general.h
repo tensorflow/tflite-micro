@@ -210,7 +210,7 @@ void UpdateLstmHiddenInteger(const LstmStepManager& step_info,
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStepInteger(const LstmStepManager& step_info,
-                     const OpDataLSTM<CellType>& op_data,
+                     const OpDataLSTM& op_data,
                      LSTMKernelContents<CellType>& kernel_content) {
   /*Step1: Calculate gate outputs to prepare cell state update*/
   CellType* gate_internal_buffer = kernel_content.buffer3;
@@ -276,7 +276,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
       input_gate_output, cell_gate_output,
       inter_gate_params.forget_cell_mul_params,
       inter_gate_params.input_mul_params, updated_input_buffer,
-      op_data.cell_state_info.quantized_cell_clip);
+      kernel_content.cell_state_info.quantized_cell_clip);
 
   /*Step3: update the hidden state */
   CellType* output_gate_output = kernel_content.buffer1;  // reuse buffer
@@ -302,7 +302,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
       step_info, kernel_content.CellStateTensor(),
       kernel_content.HiddenStateTensor(), output_gate_output,
       inter_gate_params.output_mul_params,
-      op_data.cell_state_info.cell_state_scale_power,
+      kernel_content.cell_state_info.cell_state_scale_power,
       tanh_activated_cell_buffer);
 }
 
@@ -311,7 +311,7 @@ void LstmStepInteger(const LstmStepManager& step_info,
 // TODO (rewu): Modify the code to take into account of multi-step data
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
-TfLiteStatus EvalLstmInteger(const OpDataLSTM<CellType>& op_data,
+TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
                              LSTMKernelContents<CellType>& kernel_content) {
   ActivationType* output_ptr = tflite::micro::GetTensorData<ActivationType>(
       kernel_content.output_tensor);
