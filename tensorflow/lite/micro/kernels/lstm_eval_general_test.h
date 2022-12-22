@@ -83,7 +83,8 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   op_params.input2_offset = 0;
   op_params.output_offset = output_zp;
 
-  const double input_product_scale = input1_scale * input2_scale;
+  const double input_product_scale =
+      static_cast<double>(input1_scale) * static_cast<double>(input2_scale);
   double effective_scale =
       input_product_scale / static_cast<double>(output_scale);
 
