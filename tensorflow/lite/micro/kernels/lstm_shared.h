@@ -66,11 +66,13 @@ constexpr int kLstmOutputLayerNormCoefficientsTensor = 23;  // Optional
 // Output tensors.
 constexpr int kLstmOutputTensor = 0;
 
+// Parameters for the two fully conncted computation inside each gate
 struct GateParameters {
   FullyConnectedParams input_fc_params;
   FullyConnectedParams recurrent_fc_params;
 };
 
+// Paramaters for the element wise multiplications between gate outputs
 struct InterGateParameters {
   ArithmeticParams forget_cell_mul_params;
   ArithmeticParams input_mul_params;
@@ -81,6 +83,8 @@ struct LSTMBufferIndices {
   int buffer_indices[4];  // four buffers
 };
 
+// Size information about the LSTM kernel, which is deduced from tensors stored
+// in the flat buffer file.
 struct LstmSizeInfo {
   bool time_major;
   int batch_size;
@@ -89,6 +93,11 @@ struct LstmSizeInfo {
   int state_dimension;
 };
 
+// Contains required computation information for LSTM kernel evaluation.
+// Specifically, it includes shape and quantization settings for the LSTM
+// internal operations. Formatted to support operations defined in the
+// tensorflow/lite/kernels/internal/reference/integer_ops
+// Should be constructed during the preparation phase
 struct OpDataLSTM {
   LstmSizeInfo size_info;
   TfLiteFusedActivation cell_gate_nonlinear_type;
@@ -100,6 +109,7 @@ struct OpDataLSTM {
   LSTMBufferIndices buffer_indices;  // TFLM only
 };
 
+// Contains information about the cell state tensor
 template <typename CellType>
 struct CellStateInfo {
   // clipping range for cell state
@@ -109,8 +119,9 @@ struct CellStateInfo {
   int32_t cell_state_scale_power;
 };
 
+// Provide an interface to access the internal tensors and buffers used for LSTM
+// invocation. Constructed during the invocation phase
 template <typename CellType>
-// Data structure that holds all the information to evaluate a LSTM kernel.
 struct LSTMKernelContents {
  public:
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
@@ -130,6 +141,8 @@ struct LSTMKernelContents {
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];
   TfLiteEvalTensor* output_tensor;
+
+  // TFLM buffers requires buffer index from LstmOpData.
   CellType* buffer0;
   CellType* buffer1;
   CellType* buffer2;

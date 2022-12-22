@@ -33,6 +33,9 @@ namespace tflite {
 // namespace to expose them for testing
 namespace lstm_internal {
 
+// Manages the slice position (offset), slice length (sliced tensor shape), and
+// update rules for input/output/hidden state/cell state tensors at each time
+// step.
 class LstmStepManager {
  public:
   LstmStepManager() = delete;
@@ -41,6 +44,7 @@ class LstmStepManager {
 
   void UpdateTime();
   void UpdateBatch();
+
   void ResetTime() { current_time_ = 0; }
   const RuntimeShape InputShape() const;
   const RuntimeShape StateShape() const;
@@ -57,7 +61,7 @@ class LstmStepManager {
   int output_offset_ = 0;
   int hidden_state_offset_ = 0;
   int cell_state_offset_ = 0;
-  // Size info is from the opdata, which reside in the persistent memory
+  // Size info is from the LstmOpData, which reside in the persistent memory
   // (guarante to outlast LSTMStepManager, which reside in stack)
   const LstmSizeInfo& size_info_;
 };
@@ -308,7 +312,6 @@ void LstmStepInteger(const LstmStepManager& step_info,
 
 }  // namespace lstm_internal
 
-// TODO (rewu): Modify the code to take into account of multi-step data
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 TfLiteStatus EvalLstmInteger(const OpDataLSTM& op_data,
