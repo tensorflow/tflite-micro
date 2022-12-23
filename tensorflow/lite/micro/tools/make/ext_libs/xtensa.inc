@@ -14,7 +14,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc
 
 ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))

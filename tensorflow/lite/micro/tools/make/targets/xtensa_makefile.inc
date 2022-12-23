@@ -88,15 +88,3 @@ EXCLUDED_EXAMPLE_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/Makefile.inc
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
-
-# Needed for LSTM support.
-MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-$(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
-
-ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
-  MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
-endif

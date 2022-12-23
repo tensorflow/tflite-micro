@@ -21,7 +21,7 @@ namespace testing {
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+#if 1 //!defined(XTENSA)
 
 // test configuration for integer no peephole test
 constexpr int kLstmNumBatchIntegerNoPeephole = 2;

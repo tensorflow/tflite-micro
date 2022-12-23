@@ -28,7 +28,7 @@ limitations under the License.
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+#if 1 //!defined(XTENSA)
 namespace tflite {
 namespace testing {
 namespace {
@@ -1177,7 +1177,7 @@ void TestLSTMEvalQuantized(const float hidden_state_tolerance,
 TF_LITE_MICRO_TESTS_BEGIN
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
-#if !defined(XTENSA)
+#if 1 //!defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   // Forget gate
   tflite::testing::TestGateOutputFloat(
