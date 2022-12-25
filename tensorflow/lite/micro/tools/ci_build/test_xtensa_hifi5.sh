@@ -34,7 +34,8 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   TARGET=xtensa \
   TARGET_ARCH=hifi5 \
   OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=AE_HiFi5_LE5_AO_FP_XC \
+  XTENSA_CORE=PRD_H5_RDO_07_01_2022 \
+  XTENSA_TOOLS_VERSION=RI-2022.9-linux \
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
   build -j$(nproc)
@@ -43,7 +44,8 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   TARGET=xtensa \
   TARGET_ARCH=hifi5 \
   OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=AE_HiFi5_LE5_AO_FP_XC \
+  XTENSA_CORE=PRD_H5_RDO_07_01_2022 \
+  XTENSA_TOOLS_VERSION=RI-2022.9-linux \
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
   test -j$(nproc)
