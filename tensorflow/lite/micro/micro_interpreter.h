@@ -39,7 +39,6 @@ namespace tflite {
 
 // Encapsulates a pre-trained model and drives the model inference.
 //
-//
 // @note This class is not thread-safe.
 // The client is responsible for ensuring serialized interaction to avoid data
 // races and undefined behavior.
@@ -100,7 +99,7 @@ class MicroInterpreter {
   // tensor buffers), and must be called again if (and only if) an input tensor
   // is resized.
   //
-  // @return Atatus of success or failure. Will fail if any of the
+  // @return Status of success or failure. Will fail if any of the
   // ops in the model (other than those which were rewritten by delegates, if
   // any) are not supported by the Interpreter's OpResolver.
   TfLiteStatus AllocateTensors();
@@ -109,6 +108,7 @@ class MicroInterpreter {
   //
   // In order to support partial graph runs for strided models, this can return
   // values other than kTfLiteOk and kTfLiteError.
+  // TODO(b/149795762): Add this to the TfLiteStatus enum.
   TfLiteStatus Invoke();
 
   // This is the recommended API for an application to pass an external payload

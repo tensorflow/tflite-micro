@@ -59,19 +59,21 @@ const TfLiteEvalTensor* GetEvalInput(const TfLiteContext* context,
 TfLiteEvalTensor* GetEvalOutput(const TfLiteContext* context,
                                 const TfLiteNode* node, int index);
 
-// Gets the mutable data for a specified tensor.
+// Gets the mutable data for a tensor that is expected to exist.
 // @param tensor The tensor to read/write.
-// @return A pointer to the tensor data.
+// @return A pointer to the mutable tensor data.
 template <typename T>
 T* GetTensorData(TfLiteEvalTensor* tensor) {
   TFLITE_DCHECK(tensor != nullptr);
   return reinterpret_cast<T*>(tensor->data.raw);
 }
 
-// Returns const data for a TfLiteEvalTensor struct that are expected to exist.
+// Gets the immutable data for a tensor that is expected to exist.
 //
 // For example, use this to access the allocated input tensor data by passing
 // it the result from `MicroInterpreter::input_tensor`.
+// @param tensor The tensor to read.
+// @return A pointer to the read-only tensor data.
 template <typename T>
 const T* GetTensorData(const TfLiteEvalTensor* tensor) {
   TFLITE_DCHECK(tensor != nullptr);
