@@ -33,6 +33,8 @@ namespace tflite {
 
 TfLiteRegistration Register_ADD();
 TfLiteRegistration Register_ADD_N();
+TfLiteRegistration Register_ARG_MAX();
+TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_ASSIGN_VARIABLE();
 TfLiteRegistration Register_AVERAGE_POOL_2D();
 TfLiteRegistration Register_BATCH_TO_SPACE_ND();
@@ -96,8 +98,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_ARG_MAX();
-TfLiteRegistration Register_ARG_MIN();
 TfLiteRegistration Register_CEIL();
 TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
