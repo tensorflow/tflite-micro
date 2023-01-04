@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -93,11 +93,11 @@ TfLiteStatus MulPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpDataMul(context, node, params, data);
 }
 
-void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
-                               const OpDataMul* data,
-                               const TfLiteEvalTensor* input1,
-                               const TfLiteEvalTensor* input2,
-                               TfLiteEvalTensor* output) {
+TfLiteStatus EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
+                                       const OpDataMul* data,
+                                       const TfLiteEvalTensor* input1,
+                                       const TfLiteEvalTensor* input2,
+                                       TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params = {};
   op_params.quantized_activation_min = data->output_activation_min;
   op_params.quantized_activation_max = data->output_activation_max;
@@ -147,7 +147,30 @@ void EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
                          tflite::micro::GetTensorShape(output),
                          tflite::micro::GetTensorData<int32_t>(output));
     }
+  } else if (input1->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, op_params.input1_offset, 0.0);
+    TF_LITE_ENSURE_EQ(context, op_params.input2_offset, 0.0);
+    TF_LITE_ENSURE_EQ(context, op_params.output_offset, 0.0);
+
+    if (need_broadcast) {
+      reference_integer_ops::BroadcastMul4DSlow(
+          op_params, tflite::micro::GetTensorShape(input1),
+          tflite::micro::GetTensorData<int16_t>(input1),
+          tflite::micro::GetTensorShape(input2),
+          tflite::micro::GetTensorData<int16_t>(input2),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(output));
+    } else {
+      reference_integer_ops::Mul(op_params,
+                                 tflite::micro::GetTensorShape(input1),
+                                 tflite::micro::GetTensorData<int16_t>(input1),
+                                 tflite::micro::GetTensorShape(input2),
+                                 tflite::micro::GetTensorData<int16_t>(input2),
+                                 tflite::micro::GetTensorShape(output),
+                                 tflite::micro::GetTensorData<int16_t>(output));
+    }
   }
+  return kTfLiteOk;
 }
 
 void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
