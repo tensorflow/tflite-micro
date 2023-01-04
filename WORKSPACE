@@ -29,8 +29,9 @@ hedron_compile_commands_setup()
 
 http_archive(
     name = "rules_python",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.4.0/rules_python-0.4.0.tar.gz",
-    sha256 = "954aa89b491be4a083304a2cb838019c8b8c3720a7abb9c4cb81ac7a24230cea",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
 load("@rules_python//python:pip.bzl", "pip_install")
@@ -41,6 +42,9 @@ pip_install(
    name = "tflm_pip_deps",
    requirements = "//third_party:python_requirements.txt",
 )
+
+load("@tflm_pip_deps//:requirements.bzl", "install_deps")
+install_deps()
 
 load("@//tensorflow:workspace.bzl", "workspace")
 workspace()

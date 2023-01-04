@@ -18,6 +18,9 @@ def _find_headers(ctx, py_library, include_prefix):
     build = py_library.relative(":BUILD.bazel")
     path = ctx.path(build).dirname
 
+    # rules_python unpacks the Python package within the site-packages directory.
+    path = path.get_child("site-packages")
+
     # Append the include_prefix, if any. get_child() needs one component at a
     # time.
     if include_prefix:

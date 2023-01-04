@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirements")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 compile_pip_requirements(
     # Defines targets which use pip-compile to keep the Python locked
