@@ -34,13 +34,10 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
-load("@rules_python//python:pip.bzl", "pip_install")
-
-# Create a central external repo that contains Bazel targets for all the
-# third-party packages specified in the requirements.txt file.
-pip_install(
+load("@rules_python//python:pip.bzl", "pip_parse")
+pip_parse(
    name = "tflm_pip_deps",
-   requirements = "//third_party:python_requirements.txt",
+   requirements_lock = "@//third_party:python_requirements.txt",
 )
 
 load("@tflm_pip_deps//:requirements.bzl", "install_deps")
