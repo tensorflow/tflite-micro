@@ -19,6 +19,6 @@ compile_pip_requirements(
         # ^ lets pip-compile include setuptools, recommended by
         # `pip-compile -h` as future default behavior
     ],
-    requirements_in = "requirements.in",
-    requirements_txt = "requirements.txt",
+    requirements_in = "python_requirements.in",
+    requirements_txt = "python_requirements.txt",
 )
