@@ -24,9 +24,21 @@ limitations under the License.
 
 namespace tflite {
 
+void MicroProfiler::ConsolidateEvents() {
+  for (int i = 0; i < num_events_; ++i) {
+    uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+    TFLITE_DCHECK(tags_[i] != nullptr);
+    int position = FindExistingOrNextPosition(tags_[i]);
+    TFLITE_DCHECK(position >= 0);
+    total_ticks_per_tag[position].tag = tags_[i];
+    total_ticks_per_tag[position].ticks += ticks;
+  }
+  ClearEvents();
+}
+
 uint32_t MicroProfiler::BeginEvent(const char* tag) {
   if (num_events_ == kMaxEvents) {
-    num_events_ = 0;
+    ConsolidateEvents();
   }
 
   tags_[num_events_] = tag;
@@ -42,8 +54,19 @@ void MicroProfiler::EndEvent(uint32_t event_handle) {
 
 uint32_t MicroProfiler::GetTotalTicks() const {
   int32_t ticks = 0;
+
+  // Get total ticks from current individual events
   for (int i = 0; i < num_events_; ++i) {
     ticks += end_ticks_[i] - start_ticks_[i];
+  }
+
+  // Get total ticks from consolidated events with unique tags
+  for (int i = 0; i < kMaxEvents; ++i) {
+    TicksPerTag each_tag_entry = total_ticks_per_tag[i];
+    if (each_tag_entry.tag == nullptr) {
+      break;
+    }
+    ticks += each_tag_entry.ticks;
   }
   return ticks;
 }
@@ -72,24 +95,19 @@ void MicroProfiler::LogTicksPerTagCsv() {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   MicroPrintf(
       "\"Unique Tag\",\"Total ticks across all events with that tag.\"");
-  int total_ticks = 0;
-  for (int i = 0; i < num_events_; ++i) {
-    uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-    TFLITE_DCHECK(tags_[i] != nullptr);
-    int position = FindExistingOrNextPosition(tags_[i]);
-    TFLITE_DCHECK(position >= 0);
-    total_ticks_per_tag[position].tag = tags_[i];
-    total_ticks_per_tag[position].ticks =
-        total_ticks_per_tag[position].ticks + ticks;
-    total_ticks += ticks;
-  }
 
-  for (int i = 0; i < num_events_; ++i) {
+  // Consolidate current individual events with duplicate tags so that we're
+  // counting all events with the same tags.
+  ConsolidateEvents();
+
+  int total_ticks = 0;
+  for (int i = 0; i < kMaxEvents; ++i) {
     TicksPerTag each_tag_entry = total_ticks_per_tag[i];
     if (each_tag_entry.tag == nullptr) {
       break;
     }
     MicroPrintf("%s, %d", each_tag_entry.tag, each_tag_entry.ticks);
+    total_ticks += each_tag_entry.ticks;
   }
   MicroPrintf("total number of ticks, %d", total_ticks);
 #endif
@@ -103,7 +121,7 @@ void MicroProfiler::LogTicksPerTagCsv() {
 // from the array.
 int MicroProfiler::FindExistingOrNextPosition(const char* tag_name) {
   int pos = 0;
-  for (; pos < num_events_; pos++) {
+  for (; pos < kMaxEvents; pos++) {
     TicksPerTag each_tag_entry = total_ticks_per_tag[pos];
     if (each_tag_entry.tag == nullptr ||
         strcmp(each_tag_entry.tag, tag_name) == 0) {

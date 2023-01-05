@@ -66,14 +66,13 @@ KeywordBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
 void KeywordRunNIerations(int iterations, const char* tag,
                           KeywordBenchmarkRunner& benchmark_runner,
                           MicroProfiler& profiler) {
-  int32_t ticks = 0;
+  profiler.ClearEvents();
   for (int i = 0; i < iterations; ++i) {
     benchmark_runner.SetRandomInput(i);
-    profiler.ClearEvents();
     benchmark_runner.RunSingleIteration();
-    ticks += profiler.GetTotalTicks();
   }
-  MicroPrintf("%s took %d ticks (%d ms)", tag, ticks, TicksToMs(ticks));
+  uint32_t ticks = profiler.GetTotalTicks();
+  MicroPrintf("%s took %u ticks (%u ms)", tag, ticks, TicksToMs(ticks));
 }
 
 }  // namespace tflite

@@ -60,9 +60,11 @@ class MicroProfiler : public MicroProfilerInterface {
   // Separated Value) form.
   void LogCsv() const;
 
-  // Prints  total ticks for each unique tag in CSV format.
+  // Prints total ticks for each unique tag in CSV format.
   // Output will have one row for each unique tag along with the
   // total ticks summed across all events with that particular tag.
+  // ConsolidateEvents() is called in this function so current events will be
+  // cleared as a side effect including `start_ticks_` and `end_ticks_`.
   void LogTicksPerTagCsv();
 
  private:
@@ -86,6 +88,13 @@ class MicroProfiler : public MicroProfilerInterface {
   TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
 
   int FindExistingOrNextPosition(const char* tag_name);
+
+  // Moves all current events in with the same tags into the same entries in
+  // `total_ticks_per_tag` and clears the current events (sets `num_events_` to
+  // 0). This is called in BeginEvent() when the number of events exceeds
+  // kMaxEvents to free up, and in LogTicksPerTagCsv() to facilitate aggregation
+  // of entries with unique tags.
+  void ConsolidateEvents();
 
   TF_LITE_REMOVE_VIRTUAL_DELETE;
 };

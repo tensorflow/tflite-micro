@@ -72,13 +72,12 @@ void PersonDetectionNIerations(const int8_t* input, int iterations,
                                const char* tag,
                                PersonDetectionBenchmarkRunner& benchmark_runner,
                                MicroProfiler& profiler) {
+  profiler.ClearEvents();
   benchmark_runner.SetInput(input);
-  uint32_t ticks = 0;
   for (int i = 0; i < iterations; ++i) {
-    profiler.ClearEvents();
     benchmark_runner.RunSingleIteration();
-    ticks += profiler.GetTotalTicks();
   }
+  uint32_t ticks = profiler.GetTotalTicks();
   MicroPrintf("%s took %u ticks (%u ms)", tag, ticks, TicksToMs(ticks));
 }
 
