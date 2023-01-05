@@ -39,7 +39,7 @@ load("@rules_python//python:pip.bzl", "pip_install")
 # third-party packages specified in the requirements.txt file.
 pip_install(
    name = "tflm_pip_deps",
-   requirements = "//third_party:requirements.txt",
+   requirements = "//third_party:python_requirements.txt",
 )
 
 load("@//tensorflow:workspace.bzl", "workspace")
