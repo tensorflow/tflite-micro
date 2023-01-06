@@ -147,7 +147,7 @@ TfLiteStatus QuantizedMeanOrSum(TfLiteContext* context, TfLiteNode* node,
   TfLiteReducerParams* params =
       static_cast<TfLiteReducerParams*>(node->builtin_data);
 
-  bool result = reference_ops::QuantizedMeanOrSum<T, int32_t>(
+  bool result = reference_ops::QuantizedMeanOrSumExtraArgs<T, int32_t>(
       tflite::micro::GetTensorData<T>(input), op_data->input_zp,
       op_data->input_scale, &input->dims->data[0], input->dims->size,
       tflite::micro::GetTensorData<T>(output), op_data->output_scale,
