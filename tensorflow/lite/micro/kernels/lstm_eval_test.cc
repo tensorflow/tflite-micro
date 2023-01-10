@@ -96,8 +96,9 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       gate_output_data.input_data, gate_output_data.hidden_state,
       gate_output_data.cell_state);
-  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+  auto int8_model_contents =
+      tflite::testing::CreateIntModelContents<int8_t, int8_t, int32_t, int16_t>(
+          quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       int8_model_contents);
@@ -174,8 +175,9 @@ TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
 
   auto float_model_contents =
       tflite::testing::Create2x3x2X2FloatModelContents();
-  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+  auto int8_model_contents =
+      tflite::testing::CreateIntModelContents<int8_t, int8_t, int32_t, int16_t>(
+          quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       int8_model_contents);
@@ -203,8 +205,9 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
 
   auto float_model_contents =
       tflite::testing::Create2x3x2X2FloatModelContents();
-  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+  auto int8_model_contents =
+      tflite::testing::CreateIntModelContents<int8_t, int8_t, int32_t, int16_t>(
+          quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       int8_model_contents);
@@ -235,8 +238,9 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       gate_output_data.input_data, gate_output_data.hidden_state,
       gate_output_data.cell_state);
-  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+  auto int8_model_contents =
+      tflite::testing::CreateIntModelContents<int8_t, int8_t, int32_t, int16_t>(
+          quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       int8_model_contents);
@@ -267,8 +271,9 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
 
   auto float_model_contents = tflite::testing::Create2x3x2X2FloatModelContents(
       kernel_eval_data.input_data, kernel_eval_data.hidden_state);
-  auto int8_model_contents = tflite::testing::CreateInt8ModelContents(
-      quantization_settings, float_model_contents);
+  auto int8_model_contents =
+      tflite::testing::CreateIntModelContents<int8_t, int8_t, int32_t, int16_t>(
+          quantization_settings, float_model_contents);
   auto evaluation_params = tflite::testing::CreateIntegerParameter(
       tflite::testing::kModelSettings, quantization_settings,
       int8_model_contents);

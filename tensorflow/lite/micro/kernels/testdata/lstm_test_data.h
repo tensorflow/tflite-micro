@@ -330,8 +330,11 @@ Create2x3x2X2FloatModelContents(const float* input_data = nullptr,
                                 const float* hidden_state = nullptr,
                                 const float* cell_state = nullptr);
 
-// Get the quantization settings for the 2X2 model
+// Get the quantization settings for the 2X2 model (int8 ACT, int8 WEIGHT)
 ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings();
+
+// Get the quantization settings for the 2X2 model (int16 ACT, int8 WEIGHT)
+ModelQuantizationParameters Get2X2Int16LstmQuantizationSettings();
 
 }  // namespace testing
 }  // namespace tflite

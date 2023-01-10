@@ -221,10 +221,50 @@ ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
   quantization_settings.output_gate_quantization_parameters = {
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true}};
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
+  return quantization_settings;
+}
 
+ModelQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
+  ModelQuantizationParameters quantization_settings;
+  quantization_settings.activation_type = kTfLiteInt16;
+  quantization_settings.weight_type = kTfLiteInt8;
+  quantization_settings.cell_type = kTfLiteInt16;
+  quantization_settings.bias_type = kTfLiteInt64;
+  quantization_settings.nonlinear_activation_input_scale =
+      0.00024414062;  // std::pow(2.0f, -12.0f)
+  quantization_settings.nonlinear_activation_output_scale =
+      0.00003051757;  // std::pow(2.0f, -15.0f)
+
+  // state quantization parameters
+  quantization_settings.input_quantization_parameters = {
+      /*scale=*/3.0518044e-5, /*zp=*/0, /*symmetry=*/false};
+  quantization_settings.output_quantization_parameters = {
+      /*scale=*/1.8310826e-5, /*zp=*/-5461, /*symmetry=*/false};
+  quantization_settings.hidden_quantization_parameters = {
+      /*scale=*/1.8310826e-5, /*zp=*/-5461, /*symmetry=*/false};
+  quantization_settings.cell_quantization_parameters = {
+      /*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true};
+
+  // gate quantization parameters
+  quantization_settings.forget_gate_quantization_parameters = {
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.input_gate_quantization_parameters = {
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.cell_gate_quantization_parameters = {
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.output_gate_quantization_parameters = {
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
   return quantization_settings;
 }
 
