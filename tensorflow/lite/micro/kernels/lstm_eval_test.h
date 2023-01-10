@@ -30,7 +30,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-// TODO(): Make this compatible with the legacy code.
 //  A function that converts floating point gate parameters to the
 //  corresponding quantized version
 template <typename WeightType, typename BiasType, int input_dimension,
@@ -55,30 +54,50 @@ CreateQuantizedGateParameters(
   tflite::SymmetricQuantize(gate_parameters.fused_bias,
                             quantized_gate_params.fused_bias, state_dimension,
                             gate_quantization_params.bias.scale);
+  return quantized_gate_params;
+}
 
-  //   // Note: steps below are not required for the generalized LSTM evaluation
-  //   // (e.g., 16bits activation)
-  //   // Copy the bias values to prepare zero_point folded
-  //   // bias precomputation. bias has same scale as
-  //   input_scale*input_weight_scale)
-  //   std::memcpy(quantized_gate_params.activation_zp_folded_bias,
-  //               quantized_gate_params.fused_bias,
-  //               state_dimension * sizeof(int32_t));
-  //   // Pre-calculate bias - zero_point * weight (a constant).
-  //   tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-  //       quantized_gate_params.activation_weight,
-  //       -1 * input_quantization_params.zero_point, state_dimension,
-  //       input_dimension, quantized_gate_params.activation_zp_folded_bias);
+//  Template specialization for int8Xint8 (int32 bias) since the legacy code
+//  requires bias precomputation
+template <>
+GateParameters<int8_t, int32_t, 2, 2> CreateQuantizedGateParameters(
+    const GateParameters<float, float, 2, 2>& gate_parameters,
+    const TensorQuantizationParameters& input_quantization_params,
+    const TensorQuantizationParameters& output_quantization_params,
+    const GateQuantizationParameters& gate_quantization_params) {
+  GateParameters<int8_t, int32_t, 2, 2> quantized_gate_params;
+  tflite::SymmetricQuantize(gate_parameters.activation_weight,
+                            quantized_gate_params.activation_weight, 2 * 2,
+                            gate_quantization_params.activation_weight.scale);
+  tflite::SymmetricQuantize(gate_parameters.recurrent_weight,
+                            quantized_gate_params.recurrent_weight, 2 * 2,
+                            gate_quantization_params.recurrent_weight.scale);
+  tflite::SymmetricQuantize(gate_parameters.fused_bias,
+                            quantized_gate_params.fused_bias, 2,
+                            gate_quantization_params.bias.scale);
 
-  //   // Initialize the folded bias to zeros for accumulation
-  //   for (size_t i = 0; i < state_dimension; i++) {
-  //     quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
-  //   }
-  //   // Calculate : -zero_point * weight since it is a constant
-  //   tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-  //       quantized_gate_params.recurrent_weight,
-  //       -1 * output_quantization_params.zero_point, state_dimension,
-  //       state_dimension, quantized_gate_params.recurrent_zp_folded_bias);
+  // Note: steps below are not required for the generalized LSTM evaluation
+  // (e.g., 16bits activation)
+  // Copy the bias values to prepare zero_point folded
+  // bias precomputation. bias has same scale as
+  // input_scale*input_weight_scale)
+  std::memcpy(quantized_gate_params.activation_zp_folded_bias,
+              quantized_gate_params.fused_bias, 2 * sizeof(int32_t));
+  // Pre-calculate bias - zero_point * weight (a constant).
+  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+      quantized_gate_params.activation_weight,
+      -1 * input_quantization_params.zero_point, 2, 2,
+      quantized_gate_params.activation_zp_folded_bias);
+
+  // Initialize the folded bias to zeros for accumulation
+  for (size_t i = 0; i < 2; i++) {
+    quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
+  }
+  // Calculate : -zero_point * weight since it is a constant
+  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+      quantized_gate_params.recurrent_weight,
+      -1 * output_quantization_params.zero_point, 2, 2,
+      quantized_gate_params.recurrent_zp_folded_bias);
 
   return quantized_gate_params;
 }
