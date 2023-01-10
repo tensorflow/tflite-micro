@@ -65,9 +65,9 @@ load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python", python_version = "3")
 
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("@//python:py_pkg_cc_deps.bzl", "tflm_py_cc_headers")
-tflm_py_cc_headers(
-    name = "numpy_headers",
-    py_library = requirement("numpy"),
+load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+py_pkg_cc_deps(
+    name = "numpy_cc_deps",
+    pkg = requirement("numpy"),
     include_prefix = "numpy/core/include",
 )

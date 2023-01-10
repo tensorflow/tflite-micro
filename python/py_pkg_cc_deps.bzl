@@ -1,21 +1,21 @@
-"Repository rule for creating a repository with the C headers of a Python package."
+"Repository rule exporting C-language dependencies contained in a Python package."
 
-# This extends the standard @rules_python rules to expose the C headers
+# This rule extends the standard @rules_python rules to expose C-language dependences
 # contained in some Python packages like NumPy. It extends @rules_python rather
 # than duplicating the download mechanism, and to ensure the versions of Python
-# packages used throughout the WWORKSPACE are consistent. Exposing the headers
-# could conceivably become a build-in feature of @rules_python at some point.
+# packages used throughout the WWORKSPACE are consistent. This
+# could conceivably become a built-in feature of @rules_python at some point.
 
-def _find_headers(ctx, py_library, include_prefix):
+def _find_headers(ctx, pkg, include_prefix):
     # Find the path to the headers within the @rules_python repository for the Python
-    # package `py_library`.
+    # package `pkg`.
 
     # WARNING: To get a flesystem path via ctx.path(), its argument must be a
     # label to a non-generated file. ctx.path() does not work on non-file
     # A standard technique for finding the path to a repository (see,
     # e.g., rules_go) is to use the repository's BUILD file; however, the exact
     # name of the build file is an implementation detail of @rules.python.
-    build = py_library.relative(":BUILD.bazel")
+    build = pkg.relative(":BUILD.bazel")
     path = ctx.path(build).dirname
 
     # rules_python unpacks the Python package within the site-packages directory.
@@ -29,40 +29,40 @@ def _find_headers(ctx, py_library, include_prefix):
 
     return path
 
-def _tflm_py_cc_headers_impl(ctx):
+def _py_pkg_cc_deps(ctx):
     # Create a repository with the directory tree:
     #     repository/
     #               |- _include --> @rules_python//package/[include_prefix]
     #               \_ BUILD
 
     # Symlink to the headers within the @rules_python repository
-    src = _find_headers(ctx, ctx.attr.py_library, ctx.attr.include_prefix)
+    src = _find_headers(ctx, ctx.attr.pkg, ctx.attr.include_prefix)
     destdir = "_include"
     ctx.symlink(src, destdir)
 
     # Write a BUILD file publishing a cc_library() target for the headers.
     BUILD = """\
 cc_library(
-    name = "%s",
+    name = "cc_headers",
     hdrs = glob(["%s/**/*.h"], allow_empty=False),
     includes = ["%s"],
     visibility = ["@//tensorflow/lite/micro:__subpackages__"],
 )
-""" % (ctx.attr.name, destdir, destdir)
+""" % (destdir, destdir)
     ctx.file("BUILD", content = BUILD, executable = False)
 
-tflm_py_cc_headers = repository_rule(
-    implementation = _tflm_py_cc_headers_impl,
+py_pkg_cc_deps = repository_rule(
+    implementation = _py_pkg_cc_deps,
     local = True,
     attrs = {
-        "py_library": attr.label(mandatory = True),
+        "pkg": attr.label(mandatory = True),
         "include_prefix": attr.string(mandatory = False),
     },
 )
-"""Repository rule for creating an external repository `name` with the C
-headers from a Python package published as a `py_library` target by
+"""Repository rule for creating an external repository `name` with the C-language
+dependencies from a Python package published as a `pkg` target by
 @rules_python. The top-level Bazel package in the repository provides a
-cc_library target named `name` (the default target of the package) for use
+cc_library target named `cc_headeers` for use
 as a dependency in targets building against the headers.
 
 Use the optional `include_prefix` to base headers at a subdirectory of the
@@ -83,30 +83,29 @@ repository named `tflm_pip_deps` via @rules_python in the WORKSPACE:
     )
 ```
 
-2. Use the repository rule `tflm_py_cc_headers` in the WORKSPACE to create an
-external repository with a target `@numpy_headers:numpy_headers`, passing the
-py_library target from @tflm_pip_deps obtained via requirement() and an
+2. Use the repository rule `py_pkg_cc_deps` in the WORKSPACE to create an
+external repository with a target `@numpy_cc_deps//:cc_headers`, passing the
+pkg target from @tflm_pip_deps obtained via requirement(), and an
 `include_prefix` based on an examination of the package and the desired #include
-paths in our C code:
+paths in the C code:
 ```
     load("@tflm_pip_deps//:requirements.bzl", "requirement")
-    load("@//python:py_pkg_cc_deps.bzl", "tflm_py_cc_headers")
-    tflm_py_cc_headers(
-        name = "numpy_headers",
-        py_library = requirement("numpy"),
+    load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+    py_pkg_cc_deps(
+        name = "numpy_cc_deps",
+        pkg = requirement("numpy"),
         include_prefix = "numpy/core/include",
     )
 ```
 
-3. Use the cc_library target `@numpy_headers:numpy_headers` in a BUILD file as
+3. Use the cc_library target `@numpy_cc_deps//:cc_headers` in a BUILD file as
 a dependency to a rule that needs the headers, e.g., the cc_library()-based
-pybind_library(). Note the target can be spelled as the default target of the
-repository's top-level package:
+pybind_library():
 ```
     pybind_library(
         name = "your_extension_lib",
         srcs = [...],
-        deps = ["@numpy_headers", ...],
+        deps = ["@numpy_cc_deps//:cc_headers", ...],
     )
 ```
 """
