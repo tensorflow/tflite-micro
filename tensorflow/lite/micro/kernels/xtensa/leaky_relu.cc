@@ -76,7 +76,7 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     } break;
     case kTfLiteInt16: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
       const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
       const int flat_size = MatchingFlatSize(input_shape, output_shape);
@@ -89,7 +89,7 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
       if (err != 0) return kTfLiteError;
 #else
       QuantizeLeakyRelu<int16_t>(data, input, output);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
       return kTfLiteOk;
     } break;
     default:

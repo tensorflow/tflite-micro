@@ -157,6 +157,9 @@ const Model* GetSimpleStatefulModel();
 // Returns a flatbuffer model with "if" and two subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndIf();
 
+// Returns a flatbuffer model with "if" and two subgraphs one of which is empty.
+const Model* GetSimpleModelWithIfAndEmptySubgraph();
+
 // Returns a flatbuffer model with "while" and three subgraphs.
 const Model* GetSimpleModelWithSubgraphsAndWhile();
 
