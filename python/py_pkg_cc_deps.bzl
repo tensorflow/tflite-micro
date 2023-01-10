@@ -90,7 +90,7 @@ py_library target from @tflm_pip_deps obtained via requirement() and an
 paths in our C code:
 ```
     load("@tflm_pip_deps//:requirements.bzl", "requirement")
-    load("@//tensorflow/lite/micro/python:py_cc_headers.bzl", "tflm_py_cc_headers")
+    load("@//python:py_pkg_cc_deps.bzl", "tflm_py_cc_headers")
     tflm_py_cc_headers(
         name = "numpy_headers",
         py_library = requirement("numpy"),
