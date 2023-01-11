@@ -66,7 +66,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 #endif  // defined(VISION_P6)
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -194,7 +194,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const auto& data =
       *(static_cast<const OpDataFullyConnected*>(node->user_data));
@@ -232,8 +232,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
+TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
+  return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
+}
+
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
 }
 
 }  // namespace tflite
