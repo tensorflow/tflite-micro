@@ -28,6 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_svdf.h"
+#include "tensorflow/lite/micro/kernels/xtensa/hifimini/fixedpoint_utils.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -220,10 +221,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataSvdf* data = static_cast<OpDataSvdf*>(node->user_data);
 
+#if defined(HIFIMINI)
+  QuantizeMultiplierForInt24(effective_scale_1, &data->effective_scale_1_a,
+                             &data->effective_scale_1_b);
+  QuantizeMultiplierForInt24(effective_scale_2, &data->effective_scale_2_a,
+                             &data->effective_scale_2_b);
+#else
   QuantizeMultiplier(effective_scale_1, &(data->effective_scale_1_a),
                      &(data->effective_scale_1_b));
   QuantizeMultiplier(effective_scale_2, &(data->effective_scale_2_a),
                      &(data->effective_scale_2_b));
+#endif
 
   data->input_zero_point = input->params.zero_point;
   data->output_zero_point = output->params.zero_point;
