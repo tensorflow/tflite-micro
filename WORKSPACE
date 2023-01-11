@@ -66,8 +66,15 @@ python_configure(name = "local_config_python", python_version = "3")
 
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+
 py_pkg_cc_deps(
     name = "numpy_cc_deps",
     pkg = requirement("numpy"),
     include_prefix = "numpy/core/include",
+)
+
+py_pkg_cc_deps(
+    name = "tensorflow_cc_deps",
+    pkg = requirement("tensorflow-cpu"),
+    lib = "tensorflow/libtensorflow_framework.so.2",
 )

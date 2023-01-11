@@ -6,8 +6,8 @@
 # packages used throughout the WWORKSPACE are consistent. This
 # could conceivably become a built-in feature of @rules_python at some point.
 
-def _find_headers(ctx, pkg, include_prefix):
-    # Find the path to the headers within the @rules_python repository for the Python
+def _abspath(ctx, pkg, relpath):
+    # Make an absolute path within the @rules_python repository for the Python
     # package `pkg`.
 
     # WARNING: To get a flesystem path via ctx.path(), its argument must be a
@@ -21,10 +21,10 @@ def _find_headers(ctx, pkg, include_prefix):
     # rules_python unpacks the Python package within the site-packages directory.
     path = path.get_child("site-packages")
 
-    # Append the include_prefix, if any. get_child() needs one component at a
-    # time.
-    if include_prefix:
-        for c in include_prefix.split("/"):
+    # Append components of the relpath, if any. get_child() needs one component
+    # at a time.
+    if relpath:
+        for c in relpath.split("/"):
             path = path.get_child(c)
 
     return path
@@ -36,19 +36,40 @@ def _py_pkg_cc_deps(ctx):
     #               \_ BUILD
 
     # Symlink to the headers within the @rules_python repository
-    src = _find_headers(ctx, ctx.attr.pkg, ctx.attr.include_prefix)
+    srcdir = _abspath(ctx, ctx.attr.pkg, ctx.attr.include_prefix)
     destdir = "_include"
-    ctx.symlink(src, destdir)
+    ctx.symlink(srcdir, destdir)
 
     # Write a BUILD file publishing a cc_library() target for the headers.
     BUILD = """\
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "cc_headers",
     hdrs = glob(["%s/**/*.h"], allow_empty=False),
     includes = ["%s"],
-    visibility = ["@//tensorflow/lite/micro:__subpackages__"],
+    # visibility = ["@//tensorflow/lite/micro:__subpackages__"],
 )
 """ % (destdir, destdir)
+
+    if ctx.attr.lib != "":
+        # Symlink to the library within the @rules_python repository
+        src = _abspath(ctx, ctx.attr.pkg, ctx.attr.lib)
+        dest = ctx.attr.lib.split("/")[-1]
+        ctx.symlink(src, dest)
+
+        # Write a BUILD file publishing a cc_library() target for the headers.
+        BUILD += """\
+cc_library(
+    name = "cc_library",
+    srcs = ["%s"],
+    deps = [":cc_headers"],
+    # visibility = ["@//tensorflow/lite/micro:__subpackages__"],
+)
+""" % dest
+
     ctx.file("BUILD", content = BUILD, executable = False)
 
 py_pkg_cc_deps = repository_rule(
@@ -57,6 +78,7 @@ py_pkg_cc_deps = repository_rule(
     attrs = {
         "pkg": attr.label(mandatory = True),
         "include_prefix": attr.string(mandatory = False),
+        "lib": attr.string(mandatory = False),
     },
 )
 """Repository rule for creating an external repository `name` with the C-language
