@@ -105,16 +105,15 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
 // Create the additional information about the cell state, which include:
 // cell_state_scale_power: used in integer nonlinear function (e.g., tanh)
 // quantized_cell_clip: quantized cell clip range
-template <typename CellType>
-CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
-                                                const float cell_clip) {
-  CellStateInfo<CellType> cell_state_info;
+CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
+                                      const float cell_clip) {
+  CellStateInfo cell_state_info;
   // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
   int buffer;
   tflite::CheckedLog2(cell_state_scale, &buffer);
   cell_state_info.cell_state_scale_power = buffer;
   // Cell state specifics
-  cell_state_info.quantized_cell_clip = static_cast<CellType>(
+  cell_state_info.quantized_cell_clip = static_cast<int16_t>(
       std::min(std::max(static_cast<double>(cell_clip) /
                             static_cast<double>(cell_state_scale),
                         -32768.0),
@@ -127,13 +126,13 @@ CellStateInfo<CellType> CreateLstmCellStateInfo(const float cell_state_scale,
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-LSTMKernelContents<CellType> CreateLSTMKernelContent(
+LSTMKernelContents CreateLSTMKernelContent(
     const TfLiteUnidirectionalSequenceLSTMParams& builtin_data,
     const ModelQuantizationParameters& quantization_settings,
     ModelContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
-  LSTMKernelContents<CellType> kernel_content;
+  LSTMKernelContents kernel_content;
   // Point to correct tensors
   kernel_content.internal_tensors[kLstmInputTensor] =
       model_contents.GetInternalTensor(kLstmInputTensor);
@@ -185,10 +184,6 @@ LSTMKernelContents<CellType> CreateLSTMKernelContent(
       nullptr;
   // Output tensor
   kernel_content.output_tensor = model_contents.OutputTensor();
-
-  kernel_content.cell_state_info = CreateLstmCellStateInfo<CellType>(
-      quantization_settings.cell_quantization_parameters.scale,
-      builtin_data.cell_clip);
   return kernel_content;
 }
 
@@ -225,11 +220,16 @@ OpDataLSTM CreateLstmOpData(
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   OpDataLSTM op_data;
+
   op_data.cell_gate_nonlinear_type = builtin_data.activation;
   op_data.size_info = CreateLstmSizeInfo(
       builtin_data.time_major,
       model_contents.GetInternalTensor(kLstmInputTensor)->dims,
       model_contents.HiddenStateTensor()->dims);
+
+  op_data.cell_state_info = CreateLstmCellStateInfo(
+      quantization_settings.cell_quantization_parameters.scale,
+      builtin_data.cell_clip);
 
   // Gate Parameters
   op_data.forget_gate_parameters = CreateGateParams<CellType>(
@@ -436,7 +436,7 @@ void TestLstmStepInteger(
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
-  LSTMKernelContents<CellType> kernel_content = CreateLSTMKernelContent(
+  LSTMKernelContents kernel_content = CreateLSTMKernelContent(
       builtin_data, quantization_settings, model_contents);
   // Scratch buffers on the stack
   CellType buffer0[batch_size * state_dimension] = {};
@@ -495,7 +495,7 @@ void TestEvalLstmInteger(
                   time_steps, input_dimension, state_dimension>&
         model_contents) {
   // Mimicking the kernel preparation phase, model_contents approximate the node
-  LSTMKernelContents<CellType> kernel_content = CreateLSTMKernelContent(
+  LSTMKernelContents kernel_content = CreateLSTMKernelContent(
       builtin_data, quantization_settings, model_contents);
   // Scratch buffers on the stack
   CellType buffer0[batch_size * state_dimension] = {};
