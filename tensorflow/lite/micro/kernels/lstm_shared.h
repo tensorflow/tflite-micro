@@ -79,10 +79,6 @@ struct InterGateParameters {
   ArithmeticParams output_mul_params;
 };
 
-struct LSTMBufferIndices {
-  int buffer_indices[4];  // four buffers
-};
-
 // Size information about the LSTM kernel, which is deduced from tensors stored
 // in the flat buffer file.
 struct LstmSizeInfo {
@@ -106,7 +102,7 @@ struct OpDataLSTM {
   GateParameters cell_gate_parameters;
   GateParameters output_gate_parameters;
   InterGateParameters inter_gate_parameters;
-  LSTMBufferIndices buffer_indices;  // TFLM only
+  int buffer_indices[4];  // TFLM only
 };
 
 // Contains information about the cell state tensor
@@ -148,14 +144,6 @@ struct LSTMKernelContents {
   CellType* buffer2;
   CellType* buffer3;
 };
-
-// template <typename CellType>
-// struct LstmBuffers {
-//   CellType* buffer0;
-//   CellType* buffer1;
-//   CellType* buffer2;
-//   CellType* buffer3;
-// };
 
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_

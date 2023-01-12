@@ -15,7 +15,9 @@ limitations under the License.
 #include <algorithm>
 #include <limits>
 
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval_general.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
@@ -70,6 +72,9 @@ class LstmTensors {
     TF_LITE_ENSURE(context, internal_tensors_[kLstmCellStateTensor] != nullptr);
     TF_LITE_ENSURE(context,
                    internal_tensors_[kLstmCellStateTensor]->is_variable);
+    // cell state must be 16 bits
+    TF_LITE_ENSURE_EQ(context, internal_tensors_[kLstmCellStateTensor]->type,
+                      kTfLiteInt16);
     // output
     TF_LITE_ENSURE(context, output_tensor_ != nullptr);
 
@@ -199,6 +204,74 @@ TfLiteStatus ValidateTensorSize(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+// Wrapper function to create gate parameters for the four internal LSTM gates
+TfLiteStatus CreateGateParams(
+    TfLiteContext* context,
+    /*Input tensors*/
+    const TfLiteTensor* input, const TfLiteTensor* input_weight,
+    const TfLiteTensor* input_bias,
+    /*Hidden state tensors*/
+    const TfLiteTensor* hidden_state, const TfLiteTensor* hidden_state_weight,
+    const TfLiteTensor* hidden_state_bias,
+    /*Scale of the fc output (input to non-linear activation)*/
+    const float nonlinear_activation_input_scale, const TfLiteType cell_type,
+    tflite::GateParameters& gate_params) {
+  // A temp tflite tensor to represent the output of fc operation. Only the data
+  // type and quantization parameters are set since it is only used for
+  // parameter calculations
+  TfLiteTensor fc_output_temp;
+  fc_output_temp.type = cell_type;
+  fc_output_temp.params.scale = nonlinear_activation_input_scale;
+  fc_output_temp.params.zero_point = 0;  // symmetrical quantized
+
+  // A temp fc opdata to reuse the helper function on creating fc parameters
+  tflite::OpDataFullyConnected fc_data_temp;
+
+  TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(
+      context, kTfLiteActNone, input->type, input, input_weight, input_bias,
+      &fc_output_temp, &fc_data_temp));
+  gate_params.input_fc_params = FullyConnectedParamsQuantized(fc_data_temp);
+  TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(
+      context, kTfLiteActNone, hidden_state->type, hidden_state,
+      hidden_state_weight, hidden_state_bias, &fc_output_temp, &fc_data_temp));
+  gate_params.recurrent_fc_params = FullyConnectedParamsQuantized(fc_data_temp);
+  return kTfLiteOk;
+}
+
+// Create parameters for element wise multiplication that happens in a) cell
+// state update ; b) hidden state update
+// Note that all the output of gates are symmetrically quantized so only scales
+// are required for input. However, during the hidden state update phase, the
+// output is the updated hidden state, which is asymmetrically quantized. Thus
+// output may require zero point
+tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
+                                                  const float input2_scale,
+                                                  const float output_scale,
+                                                  const TfLiteType output_type,
+                                                  const int output_zp = 0) {
+  tflite::ArithmeticParams op_params = {};
+  if (output_type == kTfLiteInt16) {
+    op_params.quantized_activation_min = std::numeric_limits<int16_t>::min();
+    op_params.quantized_activation_max = std::numeric_limits<int16_t>::max();
+  } else if (output_type == kTfLiteInt8) {
+    op_params.quantized_activation_min = std::numeric_limits<int8_t>::min();
+    op_params.quantized_activation_max = std::numeric_limits<int8_t>::max();
+  }
+
+  op_params.input1_offset = 0;  // symmetric
+  op_params.input2_offset = 0;  // symmetric
+  op_params.output_offset = output_zp;
+
+  const double input_product_scale =
+      static_cast<double>(input1_scale) * static_cast<double>(input2_scale);
+  double effective_scale =
+      input_product_scale / static_cast<double>(output_scale);
+
+  QuantizeMultiplier(effective_scale, &op_params.output_multiplier,
+                     &op_params.output_shift);
+  return op_params;
+}
+
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
                                      size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -225,10 +298,79 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
 
   TF_LITE_ENSURE_OK(
       context, ValidateTensorSize(context, lstm_tensors, op_data->size_info));
+
+  // Create Gate Parameters
+  auto cell_type = lstm_tensors.CellStateTensor()->type;
+  float nonlinear_input_scale = 1e-12;  // Q3.12 -> Q0.15
+  TF_LITE_ENSURE_STATUS(CreateGateParams(
+      context, lstm_tensors.GetInternalTensor(kLstmInputTensor),
+      lstm_tensors.GetInternalTensor(kLstmInputToForgetWeightsTensor),
+      lstm_tensors.GetInternalTensor(kLstmForgetGateBiasTensor),
+      lstm_tensors.GetInternalTensor(kLstmOutputStateTensor),
+      lstm_tensors.GetInternalTensor(kLstmRecurrentToForgetWeightsTensor),
+      /*hidden_state_bias=*/nullptr, nonlinear_input_scale, cell_type,
+      op_data->forget_gate_parameters));
+  TF_LITE_ENSURE_STATUS(CreateGateParams(
+      context, lstm_tensors.GetInternalTensor(kLstmInputTensor),
+      lstm_tensors.GetInternalTensor(kLstmInputToInputWeightsTensor),
+      lstm_tensors.GetInternalTensor(kLstmInputGateBiasTensor),
+      lstm_tensors.GetInternalTensor(kLstmOutputStateTensor),
+      lstm_tensors.GetInternalTensor(kLstmRecurrentToInputWeightsTensor),
+      /*hidden_state_bias=*/nullptr, nonlinear_input_scale, cell_type,
+      op_data->input_gate_parameters));
+  TF_LITE_ENSURE_STATUS(CreateGateParams(
+      context, lstm_tensors.GetInternalTensor(kLstmInputTensor),
+      lstm_tensors.GetInternalTensor(kLstmInputToCellWeightsTensor),
+      lstm_tensors.GetInternalTensor(kLstmCellGateBiasTensor),
+      lstm_tensors.GetInternalTensor(kLstmOutputStateTensor),
+      lstm_tensors.GetInternalTensor(kLstmRecurrentToCellWeightsTensor),
+      /*hidden_state_bias=*/nullptr, nonlinear_input_scale, cell_type,
+      op_data->cell_gate_parameters));
+  TF_LITE_ENSURE_STATUS(CreateGateParams(
+      context, lstm_tensors.GetInternalTensor(kLstmInputTensor),
+      lstm_tensors.GetInternalTensor(kLstmInputToOutputWeightsTensor),
+      lstm_tensors.GetInternalTensor(kLstmOutputGateBiasTensor),
+      lstm_tensors.GetInternalTensor(kLstmOutputStateTensor),
+      lstm_tensors.GetInternalTensor(kLstmRecurrentToOutputWeightsTensor),
+      /*hidden_state_bias=*/nullptr, nonlinear_input_scale, cell_type,
+      op_data->output_gate_parameters));
+
+  // Inter gate multiplication parameters
+  float nonlinear_output_scale = 1e-15;  // Q3.12 -> Q0.15
+  float cell_state_scale = lstm_tensors.CellStateTensor()->params.scale;
+  // forget gate output (nonlinear output) x cell state -> cell state
+  op_data->inter_gate_parameters.forget_cell_mul_params =
+      CreateInterGateMulParams(nonlinear_output_scale, cell_state_scale,
+                               cell_state_scale, cell_type);
+  // input gate output x cell gate output -> cell state
+  op_data->inter_gate_parameters.input_mul_params =
+      CreateInterGateMulParams(nonlinear_output_scale, nonlinear_output_scale,
+                               cell_state_scale, cell_type);
+  // tanh output x output gate output -> hidden state (potentially asymmetric)
+  op_data->inter_gate_parameters.output_mul_params = CreateInterGateMulParams(
+      nonlinear_output_scale, nonlinear_output_scale,
+      lstm_tensors.HiddenStateTensor()->params.scale,
+      lstm_tensors.HiddenStateTensor()->type,
+      lstm_tensors.HiddenStateTensor()->params.zero_point);
+
+  // request buffers (four buffers)
+  for (size_t i = 0; i < 4; i++) {
+    TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                   context,
+                                   op_data->size_info.batch_size *
+                                       op_data->size_info.state_dimension *
+                                       TfLiteTypeGetSize(cell_type),
+                                   &(op_data->buffer_indices[i])));
+  }
 }
 
 TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
-                                            TfLiteNode* node) {}
+                                            TfLiteNode* node) {
+  const OpDataLSTM* op_data = reinterpret_cast<OpDataLSTM*>(node->user_data);
+  const auto* builtin_data =
+      reinterpret_cast<TfLiteUnidirectionalSequenceLSTMParams*>(
+          node->builtin_data);
+}
 
 }  // namespace
 
