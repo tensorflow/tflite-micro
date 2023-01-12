@@ -143,14 +143,14 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
 
 #if defined(HIFIMINI)
-  FullyConnectedEvalHifimini(
-      FullyConnectedParamsQuantized(data), tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<int8_t>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<int8_t>(filter),
-      tflite::micro::GetTensorShape(bias), bias_data,
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<int8_t>(output));
+  FullyConnectedEvalHifimini(FullyConnectedParamsQuantized(data),
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(filter),
+                             tflite::micro::GetTensorData<int8_t>(filter),
+                             tflite::micro::GetTensorShape(bias), bias_data,
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
 #elif defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int num_batches = output_shape.Dims(0);
