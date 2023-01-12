@@ -12,6 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
+// Integer version of unidirectional sequence lstm. Only the standard LSTM
+// (defined in the keras LSTM layer, e.g., no peephole etc.) is supported here.
+// Currently used by the 16 bits activation case only
+
 #include <algorithm>
 #include <limits>
 
@@ -27,9 +32,10 @@ namespace tflite {
 namespace {
 /*Helper Functions*/
 
-// Interface to access all the TempTfLiteTensors of the LSTM kernel
-// Can only be constructed through the constructor to avoid memory leakage
-// All TempTfLiteTensors will be deallocated through the destructor.
+// Interface to access all the TempTfLiteTensors of the LSTM kernel during the
+// preparation phase. Can only be constructed through the constructor to avoid
+// memory leakage. All TempTfLiteTensors will be deallocated through the
+// destructor.
 class LstmTensors {
  public:
   LstmTensors(const LstmTensors& other) = delete;
@@ -54,9 +60,9 @@ class LstmTensors {
     micro_context_->DeallocateTempTfLiteTensor(output_tensor_);
   }
 
-  // Verify the tensor properties
-  // Input/output/states/FC weights tensors are required for kernel evaulation.
-  // Also, the state tensors should be variables. Variants of the standard LSTM
+  // Verify the LSTM internal tensor properties (e.g., type checks)
+  // Input/output/states/fc weights tensors are required for kernel evaulation.
+  // The state tensors should be variables. Variants of the standard LSTM
   // are not supported here, therefore their corresponding tensors should be
   // invalid
   TfLiteStatus ValidateTensorStatus(TfLiteContext* context) const {
@@ -68,6 +74,9 @@ class LstmTensors {
                    internal_tensors_[kLstmOutputStateTensor] != nullptr);
     TF_LITE_ENSURE(context,
                    internal_tensors_[kLstmOutputStateTensor]->is_variable);
+    // hidden state becomes input so they must have the same type
+    TF_LITE_ENSURE_EQ(context, internal_tensors_[kLstmOutputStateTensor]->type,
+                      internal_tensors_[kLstmInputTensor]->type);
     // cell state
     TF_LITE_ENSURE(context, internal_tensors_[kLstmCellStateTensor] != nullptr);
     TF_LITE_ENSURE(context,
@@ -77,14 +86,23 @@ class LstmTensors {
                       kTfLiteInt16);
     // output
     TF_LITE_ENSURE(context, output_tensor_ != nullptr);
+    // output type is the same as the input type (activations)
+    TF_LITE_ENSURE_EQ(context, output_tensor_->type,
+                      internal_tensors_[kLstmInputTensor]->type);
 
     // weight tensors (1-9, see lstm_shared for index definition)
+    const auto weight_type =
+        internal_tensors_[kLstmInputToForgetWeightsTensor]->type;
     for (size_t i = 1; i < 9; i++) {
       TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+      TF_LITE_ENSURE_EQ(context, internal_tensors_[i]->type, weight_type);
     }
+
     // bias tensors (12-15, see lstm_shared for index definition)
+    const auto bias_type = internal_tensors_[kLstmForgetGateBiasTensor]->type;
     for (size_t i = 12; i < 16; i++) {
       TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+      TF_LITE_ENSURE_EQ(context, internal_tensors_[i]->type, bias_type);
     }
 
     // Tensors from LSTM variants are invalid
@@ -100,7 +118,6 @@ class LstmTensors {
     for (size_t i = 20; i < 24; i++) {
       TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
     }
-
     return kTfLiteOk;
   }
 
@@ -272,6 +289,50 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
+// Create the additional information about the cell state, which include:
+// cell_state_scale_power: used in integer nonlinear function (e.g., tanh)
+// quantized_cell_clip: quantized cell clip range
+CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
+                                      const float cell_clip) {
+  CellStateInfo cell_state_info;
+  // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
+  int buffer;
+  tflite::CheckedLog2(cell_state_scale, &buffer);
+  cell_state_info.cell_state_scale_power = buffer;
+  // Cell state specifics
+  cell_state_info.quantized_cell_clip = static_cast<int16_t>(
+      std::min(std::max(static_cast<double>(cell_clip) /
+                            static_cast<double>(cell_state_scale),
+                        -32768.0),
+               32767.0));
+  return cell_state_info;
+}
+
+LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
+                                           TfLiteNode* node,
+                                           const int* buffer_indices) {
+  LSTMKernelContents kernel_content;
+  // Point to correct tensors
+  for (size_t i = 0; i < 24; i++) {
+    kernel_content.internal_tensors[i] =
+        tflite::micro::GetMutableEvalInput(context, node, i);
+  }
+  // Output tensor
+  kernel_content.output_tensor = tflite::micro::GetEvalOutput(context, node, 0);
+  // buffers
+  kernel_content.buffer0 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[0]));
+  kernel_content.buffer1 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[1]));
+  kernel_content.buffer2 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[2]));
+  kernel_content.buffer3 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[3]));
+  return kernel_content;
+}
+
+/*Kernel functions*/
+
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
                                      size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -282,6 +343,9 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                                TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
   TF_LITE_ENSURE_EQ(context, node->inputs->size, 24);
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  TFLITE_DCHECK(node->user_data != nullptr);
 
   OpDataLSTM* op_data = reinterpret_cast<OpDataLSTM*>(node->user_data);
   const auto* builtin_data =
@@ -296,6 +360,8 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                          lstm_tensors.GetInternalTensor(kLstmInputTensor)->dims,
                          lstm_tensors.HiddenStateTensor()->dims);
 
+  op_data->cell_state_info = CreateLstmCellStateInfo(
+      lstm_tensors.CellStateTensor()->params.scale, builtin_data->cell_clip);
   TF_LITE_ENSURE_OK(
       context, ValidateTensorSize(context, lstm_tensors, op_data->size_info));
 
@@ -366,15 +432,62 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
 
 TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
                                             TfLiteNode* node) {
-  const OpDataLSTM* op_data = reinterpret_cast<OpDataLSTM*>(node->user_data);
-  const auto* builtin_data =
-      reinterpret_cast<TfLiteUnidirectionalSequenceLSTMParams*>(
-          node->builtin_data);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpDataLSTM& op_data = *reinterpret_cast<OpDataLSTM*>(node->user_data);
+  auto kernel_content =
+      CreateLSTMKernelContent(context, node, op_data.buffer_indices);
+
+  const auto activation_type =
+      kernel_content.internal_tensors[kLstmInputTensor]->type;
+  const auto weight_type =
+      kernel_content.internal_tensors[kLstmInputToInputWeightsTensor]->type;
+
+  switch (activation_type) {
+    case kTfLiteInt8: {
+      switch (weight_type) {
+        case kTfLiteInt8: {
+          // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
+          EvalLstmInteger<int8_t, int8_t, int16_t, int32_t>(op_data,
+                                                            kernel_content);
+          break;
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(weight_type), activation_type);
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    case kTfLiteInt16: {
+      switch (weight_type) {
+        case kTfLiteInt8: {
+          // 16(activation)x8(weight)->16(cell) LSTM with 64 bits bias
+          EvalLstmInteger<int16_t, int8_t, int16_t, int64_t>(op_data,
+                                                             kernel_content);
+          break;
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(weight_type), weight_type);
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+    default: {
+      MicroPrintf("Input type %s (%d) not supported.",
+                  TfLiteTypeGetName(activation_type), activation_type);
+      return kTfLiteError;
+    }
+  }
+  return kTfLiteOk;
 }
 
 }  // namespace
 
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_General() {
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_Integer() {
   return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
                                    UnidirectionalSequenceLstmPrepare,
                                    UnidirectionalSequenceLstmEval);

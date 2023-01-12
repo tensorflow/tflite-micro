@@ -12,6 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
+// Functions to perform integer evaulation for standard LSTM (e.g., defined in
+// the keras lstm layer, no peephole etc.). Currently used by the 16 bits
+// activation case only
+
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_H_
 #include <algorithm>
