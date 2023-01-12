@@ -18,6 +18,7 @@ limitations under the License.
 
 #if defined(HIFMINI)
 #include <xtensa/tie/xt_hifi2.h>
+
 #include "tensorflow/lite/micro/kernels/xtensa/hifimini/fixedpoint_utils.h"
 #endif  // defined(HIFMINI)
 
