@@ -34,8 +34,15 @@ struct XtensaFullyConnectedOpData {
 #endif  // VISION_P6
 };
 
-#if defined(VISION_P6)
+#if defined(HIFIMINI)
+void FullyConnectedEvalHifimini(const FullyConnectedParams& params,
+                    const RuntimeShape& input_shape, const int8_t* input_data,
+                    const RuntimeShape& filter_shape, const int8_t* filter_data,
+                    const RuntimeShape& bias_shape, const int32_t* bias_data,
+                    const RuntimeShape& output_shape, int8_t* output_data);
+#endif  // defined(HIFIMINI)
 
+#if defined(VISION_P6)
 TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
                                          TfLiteNode* node);
 
@@ -46,7 +53,6 @@ TfLiteStatus FullyConnectedEvalVision(TfLiteContext* context, TfLiteNode* node,
                                       const TfLiteEvalTensor* filter,
                                       const TfLiteEvalTensor* bias,
                                       TfLiteEvalTensor* output);
-
 #endif  // VISION_P6
 
 }  // namespace tflite
