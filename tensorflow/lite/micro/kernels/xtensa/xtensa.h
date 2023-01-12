@@ -28,7 +28,6 @@ limitations under the License.
 #define ALIGN_PTR(x, bytes) ((((unsigned)(x)) + (bytes - 1)) & (~(bytes - 1)))
 #endif  // defined(HIFI4) || defined(HIFI5)
 
-
 #if defined(VISION_P6)
 #include "utils.h"
 #include "vision_api.h"

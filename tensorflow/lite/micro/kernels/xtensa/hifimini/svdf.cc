@@ -39,14 +39,14 @@ namespace tflite {
  * Note: passing OpDataSvdf by value might seem like an oversight but it helps
  * reduce the latency. See b/155656675 for more details.
  */
-TfLiteStatus EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
-                             const TfLiteEvalTensor* input_tensor,
-                             const TfLiteEvalTensor* weights_feature_tensor,
-                             const TfLiteEvalTensor* weights_time_tensor,
-                             const TfLiteEvalTensor* bias_tensor,
-                             const TfLiteSVDFParams* params,
-                             TfLiteEvalTensor* activation_state_tensor,
-                             TfLiteEvalTensor* output_tensor, OpDataSvdf data) {
+TfLiteStatus EvalIntegerSvdfHifimini(
+    TfLiteContext* context, TfLiteNode* node,
+    const TfLiteEvalTensor* input_tensor,
+    const TfLiteEvalTensor* weights_feature_tensor,
+    const TfLiteEvalTensor* weights_time_tensor,
+    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
+    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
+    OpDataSvdf data) {
   const int n_rank = params->rank;
   const int n_batch = input_tensor->dims->data[0];
   const int n_input = input_tensor->dims->data[1];

@@ -17,6 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_HIFIMINI_FIXEDPOINT_UTILS_H_
 
 #include <xtensa/tie/xt_hifi2.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>

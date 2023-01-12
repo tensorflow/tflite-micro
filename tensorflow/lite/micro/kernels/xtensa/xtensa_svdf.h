@@ -24,14 +24,14 @@ limitations under the License.
 
 namespace tflite {
 #if defined(HIFIMINI)
-TfLiteStatus EvalIntegerSvdfHifimini(TfLiteContext* context, TfLiteNode* node,
-                             const TfLiteEvalTensor* input_tensor,
-                             const TfLiteEvalTensor* weights_feature_tensor,
-                             const TfLiteEvalTensor* weights_time_tensor,
-                             const TfLiteEvalTensor* bias_tensor,
-                             const TfLiteSVDFParams* params,
-                             TfLiteEvalTensor* activation_state_tensor,
-                             TfLiteEvalTensor* output_tensor, OpDataSvdf data);
+TfLiteStatus EvalIntegerSvdfHifimini(
+    TfLiteContext* context, TfLiteNode* node,
+    const TfLiteEvalTensor* input_tensor,
+    const TfLiteEvalTensor* weights_feature_tensor,
+    const TfLiteEvalTensor* weights_time_tensor,
+    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
+    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
+    OpDataSvdf data);
 #endif  // HIFIMINI
 
 }  // namespace tflite
