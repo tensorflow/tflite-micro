@@ -89,6 +89,16 @@ struct LstmSizeInfo {
   int state_dimension;
 };
 
+// Contains information about the cell state tensor
+struct CellStateInfo {
+  // clipping range for cell state only 16 bits cell is supported (could be
+  // generalized through templatation)
+  int16_t quantized_cell_clip;
+  // 2^-cell_state_scale_power = cell state scale, required by integer tanh
+  // computation
+  int32_t cell_state_scale_power;
+};
+
 // Contains required computation information for LSTM kernel evaluation.
 // Specifically, it includes shape and quantization settings for the LSTM
 // internal operations. Formatted to support operations defined in the
@@ -96,6 +106,7 @@ struct LstmSizeInfo {
 // Should be constructed during the preparation phase
 struct OpDataLSTM {
   LstmSizeInfo size_info;
+  CellStateInfo cell_state_info;
   TfLiteFusedActivation cell_gate_nonlinear_type;
   GateParameters forget_gate_parameters;
   GateParameters input_gate_parameters;
@@ -105,19 +116,8 @@ struct OpDataLSTM {
   int buffer_indices[4];  // TFLM only
 };
 
-// Contains information about the cell state tensor
-template <typename CellType>
-struct CellStateInfo {
-  // clipping range for cell state
-  CellType quantized_cell_clip;
-  // 2^-cell_state_scale_power = cell state scale, required by integer tanh
-  // computation
-  int32_t cell_state_scale_power;
-};
-
 // Provide an interface to access the internal tensors and buffers used for LSTM
 // invocation. Constructed during the invocation phase
-template <typename CellType>
 struct LSTMKernelContents {
  public:
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
@@ -131,18 +131,16 @@ struct LSTMKernelContents {
   TfLiteEvalTensor* CellStateTensor() {
     return internal_tensors[kLstmCellStateTensor];
   }
-  // cell_state_info reside here to make OpDataLSTM non-templated
-  CellStateInfo<CellType> cell_state_info;
-
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];
   TfLiteEvalTensor* output_tensor;
 
-  // TFLM buffers requires buffer index from LstmOpData.
-  CellType* buffer0;
-  CellType* buffer1;
-  CellType* buffer2;
-  CellType* buffer3;
+  // TFLM buffers requires buffer index from LstmOpData. (only 16bits cell state
+  // is supported)
+  int16_t* buffer0;
+  int16_t* buffer1;
+  int16_t* buffer2;
+  int16_t* buffer3;
 };
 
 }  // namespace tflite
