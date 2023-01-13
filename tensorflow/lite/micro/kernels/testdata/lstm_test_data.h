@@ -168,6 +168,7 @@ class LstmNodeContents {
   // Only required for the integer kernel
   void AddQuantizationParameters(
       const NodeQuantizationParameters& quantization_params) {
+    quantization_settings_ = quantization_params;
     // Input Tensor
     SetTensorQuantizationParam(kLstmInputTensor, quantization_params.input);
     // Forget Gate Tensors
@@ -226,28 +227,34 @@ class LstmNodeContents {
     std::memcpy(hidden_state_, data,
                 batch_size * state_dimension * sizeof(ActivationType));
   }
-  const ActivationType* GetHiddenStateData() const { return hidden_state_; }
+  ActivationType* GetHiddenStateData() { return hidden_state_; }
 
-  // Provide interface to set the hidden state tensor values for flexible
+  // Provide interface to set the cell state tensor values for flexible
   // testing
   void SetCellStateData(const CellType* data) {
     std::memcpy(cell_state_, data,
                 batch_size * state_dimension * sizeof(CellType));
   }
-  const CellType* GetCellStateData() const { return cell_state_; }
-  const ActivationType* GetOutputData() const { return output_; }
+  CellType* GetCellStateData() { return cell_state_; }
+  ActivationType* GetOutputData() { return output_; }
 
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
-  const TfLiteTensor* GetTensor(const int tensor_index) const {
-    return &tensors_[tensor_index];
+  const TfLiteEvalTensor* GetEvalTensor(const int tensor_index) const {
+    auto valid_index = input_tensor_indeces_[tensor_index + 1];
+    if (valid_index < 0) {
+      return nullptr;
+    }
+    return &eval_tensors_[tensor_index];
   }
 
   // Variable tensors (will be changed, can not be const)
-  TfLiteTensor* HiddenStateTensor() {
-    return &tensors_[kLstmOutputStateTensor];
+  TfLiteEvalTensor* HiddenStateEvalTensor() {
+    return &eval_tensors_[kLstmOutputStateTensor];
   }
-  TfLiteTensor* CellStateTensor() { return &tensors_[kLstmCellStateTensor]; }
-  TfLiteTensor* OutputTensor() { return &tensors_[24]; }
+  TfLiteEvalTensor* CellStateEvalTensor() {
+    return &eval_tensors_[kLstmCellStateTensor];
+  }
+  TfLiteEvalTensor* OutputEvalTensor() { return &eval_tensors_[24]; }
 
   const GateData<WeightType, BiasType, input_dimension, state_dimension>&
   ForgetGateData() const {
@@ -268,8 +275,17 @@ class LstmNodeContents {
 
   const TfLiteLSTMParams BuiltinData() const { return builtin_data_; }
 
+  const NodeQuantizationParameters QuantizationSettings() const {
+    return quantization_settings_;
+  }
+
  private:
   void InitializeTensors() {
+    // Invalid all the input tensors untill we set it
+    input_tensor_indeces_[0] = 24;  // tot elements
+    for (size_t i = 1; i < 25; i++) {
+      input_tensor_indeces_[i] = kTfLiteOptionalTensor;
+    }
     // Input Tensor
     SetTensor(kLstmInputTensor, input_, input_size_);
     // Forget Gate Tensors
@@ -302,29 +318,22 @@ class LstmNodeContents {
     // State Tensors
     SetTensor(kLstmOutputStateTensor, hidden_state_, state_size_);
     SetTensor(kLstmCellStateTensor, cell_state_, state_size_);
-    // Output Tensor
+    // // Output Tensor
     SetTensor(24, output_, output_size_);
-
-    // Tensors from LSTM variants are invalid
-    // No peephole
-    // for (size_t i = 9; i < 12; i++) {
-    //   &tensors_[i] = nullptr;
-    // }
-    // // No projection
-    // for (size_t i = 16; i < 18; i++) {
-    //   tensors_[i] = nullptr;
-    // }
-    // // No internal layer norm
-    // for (size_t i = 20; i < 24; i++) {
-    //   tensors_[i] = nullptr;
-    // }
   }
 
   template <typename T>
   void SetTensor(const int index, const T* data, int* dims) {
+    // Lite tensors for kernel level testing
     tensors_[index].data.data = const_cast<T*>(data);
     tensors_[index].dims = IntArrayFromInts(dims);
     tensors_[index].type = typeToTfLiteType<T>();
+    // Eval tensors for internal computation testing
+    eval_tensors_[index].data.data = const_cast<T*>(data);
+    eval_tensors_[index].dims = IntArrayFromInts(dims);
+    eval_tensors_[index].type = typeToTfLiteType<T>();
+    // update the index
+    input_tensor_indeces_[index + 1] = index;
   }
 
   void SetTensorQuantizationParam(
@@ -343,6 +352,11 @@ class LstmNodeContents {
   GateData<WeightType, BiasType, input_dimension, state_dimension>
       output_gate_data_;
 
+  // Keep to ease the testing process (although all quantization information can
+  // be obtained from individual tensors, they are well organized here and light
+  // weighted)
+  NodeQuantizationParameters quantization_settings_;
+
   // Not const since IntArrayFromInts takes int *; the first element of the
   // array must be the size of the array
   int input_size_[4] = {3, batch_size, time_steps, input_dimension};
@@ -353,7 +367,13 @@ class LstmNodeContents {
   int state_size_[3] = {2, batch_size, state_dimension};
 
   // see lstm_shared.h for tensor names, the last tensor is the output tensor
-  TfLiteTensor tensors_[24];
+  TfLiteTensor tensors_[24 + 1];
+  // Use for internel kernel testing
+  TfLiteEvalTensor eval_tensors_[24 + 1];
+  // indices for the tensors inside the node (required by kernel runner)
+  int input_tensor_indeces_[1 + 24] = {};
+  // single output (last in the tensors array)
+  int output_tensor_indeces_[2] = {1, 24};
 
   // tennsor data
   // states are initialized to zero
@@ -421,9 +441,8 @@ LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                  time_steps, input_dimension, state_dimension>
 CreateIntegerNodeContents(
     const NodeQuantizationParameters& quantization_settings,
-    const LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                           input_dimension, state_dimension>&
-        float_node_contents) {
+    LstmNodeContents<float, float, float, float, batch_size, time_steps,
+                     input_dimension, state_dimension>& float_node_contents) {
   const auto quantized_forget_gate_data =
       CreateQuantizedGateData<ActivationType, BiasType, input_dimension,
                               state_dimension>(
@@ -506,10 +525,9 @@ NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings();
 // input is in float format since the source of truth is always the float
 // configuration
 LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
-Create2x3x2X2Int8NodeContents(
-    const NodeQuantizationParameters& quantization_settings,
-    const float* input_data = nullptr, const float* hidden_state = nullptr,
-    const float* cell_state = nullptr);
+Create2x3x2X2Int8NodeContents(const float* input_data = nullptr,
+                              const float* hidden_state = nullptr,
+                              const float* cell_state = nullptr);
 
 }  // namespace testing
 }  // namespace tflite
