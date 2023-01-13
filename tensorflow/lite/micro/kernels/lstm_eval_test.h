@@ -93,31 +93,23 @@ CreateInt8ModelContents(
   auto quantized_forget_gate_params =
       CreateQuantizedGateData<int8_t, int32_t, input_dimension,
                               state_dimension>(
-          float_model_contents.ForgetGateParams(),
-          quantization_settings.input_quantization_parameters,
-          quantization_settings.output_quantization_parameters,
-          quantization_settings.forget_gate_quantization_parameters);
+          float_model_contents.ForgetGateData(), quantization_settings.input,
+          quantization_settings.output, quantization_settings.forget_gate);
   auto quantized_input_gate_params =
       CreateQuantizedGateData<int8_t, int32_t, input_dimension,
                               state_dimension>(
-          float_model_contents.InputGateParams(),
-          quantization_settings.input_quantization_parameters,
-          quantization_settings.output_quantization_parameters,
-          quantization_settings.input_gate_quantization_parameters);
+          float_model_contents.InputGateData(), quantization_settings.input,
+          quantization_settings.output, quantization_settings.input_gate);
   auto quantized_cell_gate_params =
       CreateQuantizedGateData<int8_t, int32_t, input_dimension,
                               state_dimension>(
-          float_model_contents.CellGateParams(),
-          quantization_settings.input_quantization_parameters,
-          quantization_settings.output_quantization_parameters,
-          quantization_settings.cell_gate_quantization_parameters);
+          float_model_contents.CellGateData(), quantization_settings.input,
+          quantization_settings.output, quantization_settings.cell_gate);
   auto quantized_output_gate_params =
       CreateQuantizedGateData<int8_t, int32_t, input_dimension,
                               state_dimension>(
-          float_model_contents.OutputGateParams(),
-          quantization_settings.input_quantization_parameters,
-          quantization_settings.output_quantization_parameters,
-          quantization_settings.output_gate_quantization_parameters);
+          float_model_contents.OutputGateData(), quantization_settings.input,
+          quantization_settings.output, quantization_settings.output_gate);
   LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
                    input_dimension, state_dimension>
       quantized_model_content(
@@ -128,22 +120,21 @@ CreateInt8ModelContents(
   int8_t quantized_input[batch_size * input_dimension * time_steps] = {};
   Quantize(float_model_contents.GetInputData(), quantized_input,
            batch_size * input_dimension * time_steps,
-           quantization_settings.input_quantization_parameters.scale,
-           quantization_settings.input_quantization_parameters.zero_point);
+           quantization_settings.input.scale,
+           quantization_settings.input.zero_point);
   quantized_model_content.SetInputData(quantized_input);
   // Quantize the  floating point hidden state
   int8_t quantized_hidden_state[batch_size * state_dimension] = {};
   Quantize(float_model_contents.GetHiddenStateData(), quantized_hidden_state,
            batch_size * state_dimension,
-           quantization_settings.hidden_quantization_parameters.scale,
-           quantization_settings.hidden_quantization_parameters.zero_point);
+           quantization_settings.hidden_state.scale,
+           quantization_settings.hidden_state.zero_point);
   quantized_model_content.SetHiddenStateData(quantized_hidden_state);
   // Quantize the floating point cell state
   int16_t quantized_cell_state[batch_size * state_dimension] = {};
   Quantize(float_model_contents.GetCellStateData(), quantized_cell_state,
-           batch_size * state_dimension,
-           quantization_settings.cell_quantization_parameters.scale,
-           quantization_settings.cell_quantization_parameters.zero_point);
+           batch_size * state_dimension, quantization_settings.cell_state.scale,
+           quantization_settings.cell_state.zero_point);
   quantized_model_content.SetCellStateData(quantized_cell_state);
   return quantized_model_content;
 }
@@ -167,17 +158,15 @@ IntegerLstmParameter CreateIntegerParameter(
   // TODO(b/253466487): Considering refactoring IntegerLstmParameter to
   // distribute the calculation of gate quantization parameters (e.g.,
   // effective scale) to gate level. Forget Gate
-  effective_scale = quantization_settings.input_quantization_parameters.scale *
-                    quantization_settings.forget_gate_quantization_parameters
-                        .activation_weight.scale /
+  effective_scale = quantization_settings.input.scale *
+                    quantization_settings.forget_gate.activation_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_input_to_forget_scale_a,
                      &buffer_shift_output);
   evaluation_params.effective_input_to_forget_scale_b = buffer_shift_output;
-  effective_scale = quantization_settings.output_quantization_parameters.scale *
-                    quantization_settings.forget_gate_quantization_parameters
-                        .recurrent_weight.scale /
+  effective_scale = quantization_settings.output.scale *
+                    quantization_settings.forget_gate.recurrent_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_recurrent_to_forget_scale_a,
@@ -185,22 +174,20 @@ IntegerLstmParameter CreateIntegerParameter(
   evaluation_params.effective_recurrent_to_forget_scale_b = buffer_shift_output;
   // Set effective bias
   evaluation_params.input_to_forget_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.ForgetGateParams().activation_zp_folded_bias);
+      quantized_model_contents.ForgetGateData().activation_zp_folded_bias);
   evaluation_params.recurrent_to_forget_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.ForgetGateParams().recurrent_zp_folded_bias);
+      quantized_model_contents.ForgetGateData().recurrent_zp_folded_bias);
 
   // input gate
-  effective_scale = quantization_settings.input_quantization_parameters.scale *
-                    quantization_settings.input_gate_quantization_parameters
-                        .activation_weight.scale /
+  effective_scale = quantization_settings.input.scale *
+                    quantization_settings.input_gate.activation_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_input_to_input_scale_a,
                      &buffer_shift_output);
   evaluation_params.effective_input_to_input_scale_b = buffer_shift_output;
-  effective_scale = quantization_settings.output_quantization_parameters.scale *
-                    quantization_settings.input_gate_quantization_parameters
-                        .recurrent_weight.scale /
+  effective_scale = quantization_settings.output.scale *
+                    quantization_settings.input_gate.recurrent_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_recurrent_to_input_scale_a,
@@ -208,22 +195,20 @@ IntegerLstmParameter CreateIntegerParameter(
   evaluation_params.effective_recurrent_to_input_scale_b = buffer_shift_output;
   // Set effective bias
   evaluation_params.input_to_input_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.InputGateParams().activation_zp_folded_bias);
+      quantized_model_contents.InputGateData().activation_zp_folded_bias);
   evaluation_params.recurrent_to_input_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.InputGateParams().recurrent_zp_folded_bias);
+      quantized_model_contents.InputGateData().recurrent_zp_folded_bias);
 
   // cell gate
-  effective_scale = quantization_settings.input_quantization_parameters.scale *
-                    quantization_settings.cell_gate_quantization_parameters
-                        .activation_weight.scale /
+  effective_scale = quantization_settings.input.scale *
+                    quantization_settings.cell_gate.activation_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_input_to_cell_scale_a,
                      &buffer_shift_output);
   evaluation_params.effective_input_to_cell_scale_b = buffer_shift_output;
-  effective_scale = quantization_settings.output_quantization_parameters.scale *
-                    quantization_settings.cell_gate_quantization_parameters
-                        .recurrent_weight.scale /
+  effective_scale = quantization_settings.output.scale *
+                    quantization_settings.cell_gate.recurrent_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_recurrent_to_cell_scale_a,
@@ -231,22 +216,20 @@ IntegerLstmParameter CreateIntegerParameter(
   evaluation_params.effective_recurrent_to_cell_scale_b = buffer_shift_output;
   // Set effective bias
   evaluation_params.input_to_cell_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.CellGateParams().activation_zp_folded_bias);
+      quantized_model_contents.CellGateData().activation_zp_folded_bias);
   evaluation_params.recurrent_to_cell_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.CellGateParams().recurrent_zp_folded_bias);
+      quantized_model_contents.CellGateData().recurrent_zp_folded_bias);
 
   // output gate
-  effective_scale = quantization_settings.input_quantization_parameters.scale *
-                    quantization_settings.output_gate_quantization_parameters
-                        .activation_weight.scale /
+  effective_scale = quantization_settings.input.scale *
+                    quantization_settings.output_gate.activation_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_input_to_output_scale_a,
                      &buffer_shift_output);
   evaluation_params.effective_input_to_output_scale_b = buffer_shift_output;
-  effective_scale = quantization_settings.output_quantization_parameters.scale *
-                    quantization_settings.output_gate_quantization_parameters
-                        .recurrent_weight.scale /
+  effective_scale = quantization_settings.output.scale *
+                    quantization_settings.output_gate.recurrent_weight.scale /
                     quantization_settings.nonlinear_activation_input_scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_recurrent_to_output_scale_a,
@@ -254,33 +237,32 @@ IntegerLstmParameter CreateIntegerParameter(
   evaluation_params.effective_recurrent_to_output_scale_b = buffer_shift_output;
   // Set effective bias
   evaluation_params.input_to_output_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.OutputGateParams().activation_zp_folded_bias);
+      quantized_model_contents.OutputGateData().activation_zp_folded_bias);
   evaluation_params.recurrent_to_output_effective_bias = const_cast<int32_t*>(
-      quantized_model_contents.OutputGateParams().recurrent_zp_folded_bias);
+      quantized_model_contents.OutputGateData().recurrent_zp_folded_bias);
 
   // hidden state (no projection, output is the hidden state)
   effective_scale = quantization_settings.nonlinear_activation_output_scale *
                     quantization_settings.nonlinear_activation_output_scale /
-                    quantization_settings.hidden_quantization_parameters.scale;
+                    quantization_settings.hidden_state.scale;
   QuantizeMultiplier(effective_scale,
                      &evaluation_params.effective_hidden_scale_a,
                      &buffer_shift_output);
   evaluation_params.effective_hidden_scale_b = buffer_shift_output;
-  evaluation_params.hidden_zp =
-      quantization_settings.hidden_quantization_parameters.zero_point;
+  evaluation_params.hidden_zp = quantization_settings.hidden_state.zero_point;
 
   // cell state. Note, cell_scale is actually not a scale. 2^-cell_scale is
   // the true scale for cell
   int buffer_cell_scale;
-  tflite::CheckedLog2(quantization_settings.cell_quantization_parameters.scale,
+  tflite::CheckedLog2(quantization_settings.cell_state.scale,
                       &buffer_cell_scale);
   evaluation_params.cell_scale = buffer_cell_scale;
 
-  evaluation_params.quantized_cell_clip = static_cast<int16_t>(std::min(
-      std::max(static_cast<double>(general_model_settings.cell_clip) /
-                   quantization_settings.cell_quantization_parameters.scale,
-               -32768.0),
-      32767.0));
+  evaluation_params.quantized_cell_clip = static_cast<int16_t>(
+      std::min(std::max(static_cast<double>(general_model_settings.cell_clip) /
+                            quantization_settings.cell_state.scale,
+                        -32768.0),
+               32767.0));
   return evaluation_params;
 }
 
@@ -397,11 +379,10 @@ void TestCellUpdateQuantized(
     const int32_t cell_scale_shift, const CellType quantized_cell_clip,
     const float tolerance) {
   CellType quantized_cell_state[batch_size * state_dimension] = {};
-  tflite::Quantize(
-      gate_output_data.cell_state, quantized_cell_state,
-      batch_size * state_dimension,
-      quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
+  tflite::Quantize(gate_output_data.cell_state, quantized_cell_state,
+                   batch_size * state_dimension,
+                   quantization_settings.cell_state.scale,
+                   quantization_settings.cell_state.zero_point);
 
   CellType quantized_forget_gate[batch_size * state_dimension] = {};
   tflite::Quantize(gate_output_data.expected_forget_gate_output,
@@ -425,9 +406,8 @@ void TestCellUpdateQuantized(
 
   float cell_state_float[batch_size * state_dimension] = {};
   Dequantize(quantized_cell_state, batch_size * state_dimension,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
-             cell_state_float);
+             quantization_settings.cell_state.scale,
+             quantization_settings.cell_state.zero_point, cell_state_float);
 
   ValidateResultGoldens(gate_output_data.expected_updated_cell,
                         cell_state_float, batch_size * state_dimension,
@@ -462,11 +442,10 @@ void TestHiddenStateUpdateQuantized(
     const NodeQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params, const float tolerance) {
   CellType quantized_cell_state[batch_size * state_dimension] = {};
-  tflite::Quantize(
-      gate_output_data.expected_updated_cell, quantized_cell_state,
-      batch_size * state_dimension,
-      quantization_settings.cell_quantization_parameters.scale,
-      quantization_settings.cell_quantization_parameters.zero_point);
+  tflite::Quantize(gate_output_data.expected_updated_cell, quantized_cell_state,
+                   batch_size * state_dimension,
+                   quantization_settings.cell_state.scale,
+                   quantization_settings.cell_state.zero_point);
 
   CellType quantized_output_gate[batch_size * state_dimension] = {};
   tflite::Quantize(gate_output_data.expected_output_gate_output,
@@ -493,9 +472,8 @@ void TestHiddenStateUpdateQuantized(
 
   float output_state_float[batch_size * state_dimension] = {};
   Dequantize(output_state, batch_size * state_dimension,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
-             output_state_float);
+             quantization_settings.hidden_state.scale,
+             quantization_settings.hidden_state.zero_point, output_state_float);
 
   ValidateResultGoldens(gate_output_data.expected_updated_hidden,
                         output_state_float, batch_size * state_dimension,
@@ -528,18 +506,18 @@ void TestOneStepLSTMFloat(
 
   tflite::lstm_internal::LstmStepFloat(
       gate_output_data.input_data,
-      model_contents.InputGateParams().activation_weight,
-      model_contents.ForgetGateParams().activation_weight,
-      model_contents.CellGateParams().activation_weight,
-      model_contents.OutputGateParams().activation_weight,
+      model_contents.InputGateData().activation_weight,
+      model_contents.ForgetGateData().activation_weight,
+      model_contents.CellGateData().activation_weight,
+      model_contents.OutputGateData().activation_weight,
       /*aux_input_ptr=*/nullptr, /*aux_input_to_input_weights_ptr=*/nullptr,
       /*aux_input_to_forget_weights_ptr=*/nullptr,
       /*aux_input_to_cell_weights_ptr=*/nullptr,
       /*aux_input_to_output_weights_ptr=*/nullptr,
-      model_contents.InputGateParams().recurrent_weight,
-      model_contents.ForgetGateParams().recurrent_weight,
-      model_contents.CellGateParams().recurrent_weight,
-      model_contents.OutputGateParams().recurrent_weight,
+      model_contents.InputGateData().recurrent_weight,
+      model_contents.ForgetGateData().recurrent_weight,
+      model_contents.CellGateData().recurrent_weight,
+      model_contents.OutputGateData().recurrent_weight,
       /*cell_to_input_weights_ptr=*/nullptr,
       /*cell_to_forget_weights_ptr=*/nullptr,
       /*cell_to_output_weights_ptr=*/nullptr,
@@ -547,10 +525,10 @@ void TestOneStepLSTMFloat(
       /*forget_layer_norm_coefficients_ptr=*/nullptr,
       /*cell_layer_norm_coefficients_ptr=*/nullptr,
       /*output_layer_norm_coefficients_ptr=*/nullptr,
-      model_contents.InputGateParams().fused_bias,
-      model_contents.ForgetGateParams().fused_bias,
-      model_contents.CellGateParams().fused_bias,
-      model_contents.OutputGateParams().fused_bias,
+      model_contents.InputGateData().fused_bias,
+      model_contents.ForgetGateData().fused_bias,
+      model_contents.CellGateData().fused_bias,
+      model_contents.OutputGateData().fused_bias,
       /*projection_weights_ptr=*/nullptr, /*projection_bias_ptr=*/nullptr,
       &general_model_settings, batch_size, state_dimension, input_dimension,
       input_dimension, state_dimension,
@@ -597,28 +575,28 @@ void TestOneStepLSTMQuantized(
 
   tflite::lstm_internal::LstmStepInteger8x8_16(
       model_contents.GetInputData(),
-      model_contents.InputGateParams().activation_weight,
+      model_contents.InputGateData().activation_weight,
       evaluation_params.effective_input_to_input_scale_a,
       evaluation_params.effective_input_to_input_scale_b,
-      model_contents.ForgetGateParams().activation_weight,
+      model_contents.ForgetGateData().activation_weight,
       evaluation_params.effective_input_to_forget_scale_a,
       evaluation_params.effective_input_to_forget_scale_b,
-      model_contents.CellGateParams().activation_weight,
+      model_contents.CellGateData().activation_weight,
       evaluation_params.effective_input_to_cell_scale_a,
       evaluation_params.effective_input_to_cell_scale_b,
-      model_contents.OutputGateParams().activation_weight,
+      model_contents.OutputGateData().activation_weight,
       evaluation_params.effective_input_to_output_scale_a,
       evaluation_params.effective_input_to_output_scale_b,
-      model_contents.InputGateParams().recurrent_weight,
+      model_contents.InputGateData().recurrent_weight,
       evaluation_params.effective_recurrent_to_input_scale_a,
       evaluation_params.effective_recurrent_to_input_scale_b,
-      model_contents.ForgetGateParams().recurrent_weight,
+      model_contents.ForgetGateData().recurrent_weight,
       evaluation_params.effective_recurrent_to_forget_scale_a,
       evaluation_params.effective_recurrent_to_forget_scale_b,
-      model_contents.CellGateParams().recurrent_weight,
+      model_contents.CellGateData().recurrent_weight,
       evaluation_params.effective_recurrent_to_cell_scale_a,
       evaluation_params.effective_recurrent_to_cell_scale_b,
-      model_contents.OutputGateParams().recurrent_weight,
+      model_contents.OutputGateData().recurrent_weight,
       evaluation_params.effective_recurrent_to_output_scale_a,
       evaluation_params.effective_recurrent_to_output_scale_b,
       /*cell_to_input_weight_ptr=*/nullptr,
@@ -658,20 +636,19 @@ void TestOneStepLSTMQuantized(
       evaluation_params.recurrent_to_input_effective_bias,
       evaluation_params.projection_effective_bias, batch_size, input_dimension,
       state_dimension, state_dimension, hidden_state,
-      quantization_settings.output_quantization_parameters.zero_point,
-      cell_state, output, scratch0, scratch1, scratch2, scratch3, scratch4,
-      scratch5);
+      quantization_settings.output.zero_point, cell_state, output, scratch0,
+      scratch1, scratch2, scratch3, scratch4, scratch5);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};
   Dequantize(model_contents.GetHiddenStateData(), batch_size * state_dimension,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
+             quantization_settings.hidden_state.scale,
+             quantization_settings.hidden_state.zero_point,
              dequantized_hidden_state);
 
   float dequantized_cell_state[batch_size * state_dimension] = {};
   Dequantize(model_contents.GetCellStateData(), batch_size * state_dimension,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
+             quantization_settings.cell_state.scale,
+             quantization_settings.cell_state.zero_point,
              dequantized_cell_state);
 
   ValidateResultGoldens(gate_output_data.expected_updated_hidden,
@@ -790,29 +767,27 @@ void TestLSTMEvalQuantized(
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
-      quantization_settings.output_quantization_parameters.zero_point,
+      quantization_settings.output.zero_point,
       quantized_model_content.HiddenStateTensor(),
       quantized_model_content.CellStateTensor(),
       quantized_model_content.OutputTensor(), scratch0, scratch1, scratch2,
       scratch3, scratch4, scratch5);
 
   float dequantized_hidden_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_model_content.GetHiddenStateData(),
-             batch_size * state_dimension,
-             quantization_settings.hidden_quantization_parameters.scale,
-             quantization_settings.hidden_quantization_parameters.zero_point,
-             dequantized_hidden_state);
+  Dequantize(
+      quantized_model_content.GetHiddenStateData(),
+      batch_size * state_dimension, quantization_settings.hidden_state.scale,
+      quantization_settings.hidden_state.zero_point, dequantized_hidden_state);
 
   ValidateResultGoldens(eval_check_data.expected_hidden_state,
                         dequantized_hidden_state, batch_size * state_dimension,
                         hidden_state_tolerance);
 
   float dequantized_cell_state[batch_size * state_dimension] = {};
-  Dequantize(quantized_model_content.GetCellStateData(),
-             batch_size * state_dimension,
-             quantization_settings.cell_quantization_parameters.scale,
-             quantization_settings.cell_quantization_parameters.zero_point,
-             dequantized_cell_state);
+  Dequantize(
+      quantized_model_content.GetCellStateData(), batch_size * state_dimension,
+      quantization_settings.cell_state.scale,
+      quantization_settings.cell_state.zero_point, dequantized_cell_state);
   ValidateResultGoldens(eval_check_data.expected_cell_state,
                         dequantized_cell_state, batch_size * state_dimension,
                         cell_state_tolerance);
@@ -820,9 +795,8 @@ void TestLSTMEvalQuantized(
   float dequantized_output[batch_size * state_dimension * time_steps] = {};
   Dequantize(quantized_model_content.GetOutputData(),
              batch_size * state_dimension * time_steps,
-             quantization_settings.output_quantization_parameters.scale,
-             quantization_settings.output_quantization_parameters.zero_point,
-             dequantized_output);
+             quantization_settings.output.scale,
+             quantization_settings.output.zero_point, dequantized_output);
   ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
                         batch_size * state_dimension, hidden_state_tolerance);
 }
