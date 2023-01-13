@@ -34,14 +34,14 @@ namespace testing {
 // corresponding quantized version
 template <typename WeightType, typename BiasType, int input_dimension,
           int state_dimension>
-GateParameters<WeightType, BiasType, input_dimension, state_dimension>
-CreateQuantizedGateParameters(
-    const GateParameters<float, float, input_dimension, state_dimension>&
+GateData<WeightType, BiasType, input_dimension, state_dimension>
+CreateQuantizedGateData(
+    const GateData<float, float, input_dimension, state_dimension>&
         gate_parameters,
     const TensorQuantizationParameters& input_quantization_params,
     const TensorQuantizationParameters& output_quantization_params,
     const GateQuantizationParameters& gate_quantization_params) {
-  GateParameters<WeightType, BiasType, input_dimension, state_dimension>
+  GateData<WeightType, BiasType, input_dimension, state_dimension>
       quantized_gate_params;
   tflite::SymmetricQuantize(gate_parameters.activation_weight,
                             quantized_gate_params.activation_weight,
@@ -83,43 +83,43 @@ CreateQuantizedGateParameters(
 // model contents and quantization settings
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
-ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-              input_dimension, state_dimension>
+LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
+                 input_dimension, state_dimension>
 CreateInt8ModelContents(
-    const ModelQuantizationParameters& quantization_settings,
-    const ModelContents<float, float, float, float, batch_size, time_steps,
-                        input_dimension, state_dimension>&
+    const NodeQuantizationParameters& quantization_settings,
+    const LstmNodeContents<float, float, float, float, batch_size, time_steps,
+                           input_dimension, state_dimension>&
         float_model_contents) {
   auto quantized_forget_gate_params =
-      CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
-                                    state_dimension>(
+      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
+                              state_dimension>(
           float_model_contents.ForgetGateParams(),
           quantization_settings.input_quantization_parameters,
           quantization_settings.output_quantization_parameters,
           quantization_settings.forget_gate_quantization_parameters);
   auto quantized_input_gate_params =
-      CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
-                                    state_dimension>(
+      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
+                              state_dimension>(
           float_model_contents.InputGateParams(),
           quantization_settings.input_quantization_parameters,
           quantization_settings.output_quantization_parameters,
           quantization_settings.input_gate_quantization_parameters);
   auto quantized_cell_gate_params =
-      CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
-                                    state_dimension>(
+      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
+                              state_dimension>(
           float_model_contents.CellGateParams(),
           quantization_settings.input_quantization_parameters,
           quantization_settings.output_quantization_parameters,
           quantization_settings.cell_gate_quantization_parameters);
   auto quantized_output_gate_params =
-      CreateQuantizedGateParameters<int8_t, int32_t, input_dimension,
-                                    state_dimension>(
+      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
+                              state_dimension>(
           float_model_contents.OutputGateParams(),
           quantization_settings.input_quantization_parameters,
           quantization_settings.output_quantization_parameters,
           quantization_settings.output_gate_quantization_parameters);
-  ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-                input_dimension, state_dimension>
+  LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
+                   input_dimension, state_dimension>
       quantized_model_content(
           quantized_forget_gate_params, quantized_input_gate_params,
           quantized_cell_gate_params, quantized_output_gate_params);
@@ -152,9 +152,9 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 IntegerLstmParameter CreateIntegerParameter(
     const TfLiteLSTMParams& general_model_settings,
-    const ModelQuantizationParameters& quantization_settings,
-    const ModelContents<int8_t, int8_t, int32_t, int16_t, batch_size,
-                        time_steps, input_dimension, state_dimension>&
+    const NodeQuantizationParameters& quantization_settings,
+    const LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size,
+                           time_steps, input_dimension, state_dimension>&
         quantized_model_contents) {
   IntegerLstmParameter evaluation_params;
   double effective_scale;
@@ -294,11 +294,11 @@ void ValidateResultGoldens(const T* golden, const T* output_data,
 }
 
 template <int batch_size, int input_dimension, int state_dimension>
-void TestGateOutputFloat(const GateParameters<float, float, input_dimension,
-                                              state_dimension>& gate_params,
-                         TfLiteFusedActivation activation_type,
-                         const float* input_data, const float* hidden_state,
-                         const float* expected_vals, const float tolerance) {
+void TestGateOutputFloat(
+    const GateData<float, float, input_dimension, state_dimension>& gate_params,
+    TfLiteFusedActivation activation_type, const float* input_data,
+    const float* hidden_state, const float* expected_vals,
+    const float tolerance) {
   float gate_output[batch_size * state_dimension] = {};
   tflite::lstm_internal::CalculateLstmGateFloat(
       input_data, gate_params.activation_weight,
@@ -321,9 +321,9 @@ template <typename ActivationType, typename BiasType, typename CellType,
 void TestGateOutputQuantized(
     const ActivationType* quantized_input,
     const ActivationType* quantized_hidden_state,
-    const GateParameters<int8_t, BiasType, input_dimension, state_dimension>&
+    const GateData<int8_t, BiasType, input_dimension, state_dimension>&
         gate_params,
-    const ModelQuantizationParameters& quantization_settings,
+    const NodeQuantizationParameters& quantization_settings,
     int32_t effective_input_to_gate_scale_a,
     int32_t effective_input_to_gate_scale_b,
     int32_t effective_recurrent_to_gate_scale_a,
@@ -393,7 +393,7 @@ template <typename ActivationType, typename BiasType, typename CellType,
 void TestCellUpdateQuantized(
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
-    const ModelQuantizationParameters& quantization_settings,
+    const NodeQuantizationParameters& quantization_settings,
     const int32_t cell_scale_shift, const CellType quantized_cell_clip,
     const float tolerance) {
   CellType quantized_cell_state[batch_size * state_dimension] = {};
@@ -459,7 +459,7 @@ template <typename ActivationType, typename BiasType, typename CellType,
 void TestHiddenStateUpdateQuantized(
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
-    const ModelQuantizationParameters& quantization_settings,
+    const NodeQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params, const float tolerance) {
   CellType quantized_cell_state[batch_size * state_dimension] = {};
   tflite::Quantize(
@@ -507,8 +507,8 @@ template <int batch_size, int time_steps, int input_dimension,
 void TestOneStepLSTMFloat(
     const TfLiteLSTMParams& general_model_settings,
     /*can not be const, state will be updated*/
-    ModelContents<float, float, float, float, batch_size, time_steps,
-                  input_dimension, state_dimension>& model_contents,
+    LstmNodeContents<float, float, float, float, batch_size, time_steps,
+                     input_dimension, state_dimension>& model_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float tolerance) {
@@ -571,9 +571,10 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int state_dimension>
 void TestOneStepLSTMQuantized(
     /*can not be const, state will be updated*/
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>& model_contents,
-    const ModelQuantizationParameters& quantization_settings,
+    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                     time_steps, input_dimension, state_dimension>&
+        model_contents,
+    const NodeQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
@@ -686,8 +687,8 @@ template <int batch_size, int time_steps, int input_dimension,
 void TestLSTMEvalFloat(
     const TfLiteLSTMParams& general_model_settings,
     /*can not be const, state will be updated*/
-    ModelContents<float, float, float, float, batch_size, time_steps,
-                  input_dimension, state_dimension>& float_model_contents,
+    LstmNodeContents<float, float, float, float, batch_size, time_steps,
+                     input_dimension, state_dimension>& float_model_contents,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
@@ -695,18 +696,15 @@ void TestLSTMEvalFloat(
   float scratch_buffers[4 * batch_size * state_dimension] = {};
 
   tflite::EvalFloatLstm(
-      float_model_contents.GetInternalTensor(kLstmInputTensor),
-      float_model_contents.GetInternalTensor(kLstmInputToInputWeightsTensor),
-      float_model_contents.GetInternalTensor(kLstmInputToForgetWeightsTensor),
-      float_model_contents.GetInternalTensor(kLstmInputToCellWeightsTensor),
-      float_model_contents.GetInternalTensor(kLstmInputToOutputWeightsTensor),
-      float_model_contents.GetInternalTensor(
-          kLstmRecurrentToInputWeightsTensor),
-      float_model_contents.GetInternalTensor(
-          kLstmRecurrentToForgetWeightsTensor),
-      float_model_contents.GetInternalTensor(kLstmRecurrentToCellWeightsTensor),
-      float_model_contents.GetInternalTensor(
-          kLstmRecurrentToOutputWeightsTensor),
+      float_model_contents.GetTensor(kLstmInputTensor),
+      float_model_contents.GetTensor(kLstmInputToInputWeightsTensor),
+      float_model_contents.GetTensor(kLstmInputToForgetWeightsTensor),
+      float_model_contents.GetTensor(kLstmInputToCellWeightsTensor),
+      float_model_contents.GetTensor(kLstmInputToOutputWeightsTensor),
+      float_model_contents.GetTensor(kLstmRecurrentToInputWeightsTensor),
+      float_model_contents.GetTensor(kLstmRecurrentToForgetWeightsTensor),
+      float_model_contents.GetTensor(kLstmRecurrentToCellWeightsTensor),
+      float_model_contents.GetTensor(kLstmRecurrentToOutputWeightsTensor),
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
@@ -719,10 +717,10 @@ void TestLSTMEvalFloat(
       /*aux_input_to_forget_weights=*/nullptr,
       /*aux_input_to_cell_weights=*/nullptr,
       /*aux_input_to_output_weights=*/nullptr,
-      float_model_contents.GetInternalTensor(kLstmInputGateBiasTensor),
-      float_model_contents.GetInternalTensor(kLstmForgetGateBiasTensor),
-      float_model_contents.GetInternalTensor(kLstmCellGateBiasTensor),
-      float_model_contents.GetInternalTensor(kLstmOutputGateBiasTensor),
+      float_model_contents.GetTensor(kLstmInputGateBiasTensor),
+      float_model_contents.GetTensor(kLstmForgetGateBiasTensor),
+      float_model_contents.GetTensor(kLstmCellGateBiasTensor),
+      float_model_contents.GetTensor(kLstmOutputGateBiasTensor),
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false,
@@ -751,10 +749,10 @@ template <typename ActivationType, typename BiasType, typename CellType,
 void TestLSTMEvalQuantized(
     const TfLiteLSTMParams& general_model_settings,
     /*can not be const, state will be updated*/
-    ModelContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                  time_steps, input_dimension, state_dimension>&
+    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
+                     time_steps, input_dimension, state_dimension>&
         quantized_model_content,
-    const ModelQuantizationParameters& quantization_settings,
+    const NodeQuantizationParameters& quantization_settings,
     const IntegerLstmParameter& evaluation_params,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
@@ -769,21 +767,15 @@ void TestLSTMEvalQuantized(
   BiasType scratch5[batch_size * state_dimension] = {};
 
   EvalInteger8x8_16Lstm(
-      quantized_model_content.GetInternalTensor(kLstmInputTensor),
-      quantized_model_content.GetInternalTensor(kLstmInputToInputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmInputToForgetWeightsTensor),
-      quantized_model_content.GetInternalTensor(kLstmInputToCellWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmInputToOutputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToInputWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToForgetWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToCellWeightsTensor),
-      quantized_model_content.GetInternalTensor(
-          kLstmRecurrentToOutputWeightsTensor),
+      quantized_model_content.GetTensor(kLstmInputTensor),
+      quantized_model_content.GetTensor(kLstmInputToInputWeightsTensor),
+      quantized_model_content.GetTensor(kLstmInputToForgetWeightsTensor),
+      quantized_model_content.GetTensor(kLstmInputToCellWeightsTensor),
+      quantized_model_content.GetTensor(kLstmInputToOutputWeightsTensor),
+      quantized_model_content.GetTensor(kLstmRecurrentToInputWeightsTensor),
+      quantized_model_content.GetTensor(kLstmRecurrentToForgetWeightsTensor),
+      quantized_model_content.GetTensor(kLstmRecurrentToCellWeightsTensor),
+      quantized_model_content.GetTensor(kLstmRecurrentToOutputWeightsTensor),
       /*cell_to_input_weights=*/nullptr,
       /*cell_to_forget_weights=*/nullptr,
       /*cell_to_output_weights=*/nullptr,
@@ -791,10 +783,10 @@ void TestLSTMEvalQuantized(
       /*forget_layer_norm_coefficients=*/nullptr,
       /*cell_layer_norm_coefficients=*/nullptr,
       /*output_layer_norm_coefficients=*/nullptr,
-      quantized_model_content.GetInternalTensor(kLstmInputGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmForgetGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmCellGateBiasTensor),
-      quantized_model_content.GetInternalTensor(kLstmOutputGateBiasTensor),
+      quantized_model_content.GetTensor(kLstmInputGateBiasTensor),
+      quantized_model_content.GetTensor(kLstmForgetGateBiasTensor),
+      quantized_model_content.GetTensor(kLstmCellGateBiasTensor),
+      quantized_model_content.GetTensor(kLstmOutputGateBiasTensor),
       /*projection_weights=*/nullptr,
       /*projection_bias=*/nullptr, &general_model_settings,
       /*forward_sequence=*/true, /*time_major=*/false, &evaluation_params,
