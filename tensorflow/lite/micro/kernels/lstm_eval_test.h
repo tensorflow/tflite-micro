@@ -30,115 +30,6 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-// A function that converts floating point gate parameters to the
-// corresponding quantized version
-template <typename WeightType, typename BiasType, int input_dimension,
-          int state_dimension>
-GateData<WeightType, BiasType, input_dimension, state_dimension>
-CreateQuantizedGateData(
-    const GateData<float, float, input_dimension, state_dimension>&
-        gate_parameters,
-    const TensorQuantizationParameters& input_quantization_params,
-    const TensorQuantizationParameters& output_quantization_params,
-    const GateQuantizationParameters& gate_quantization_params) {
-  GateData<WeightType, BiasType, input_dimension, state_dimension>
-      quantized_gate_params;
-  tflite::SymmetricQuantize(gate_parameters.activation_weight,
-                            quantized_gate_params.activation_weight,
-                            state_dimension * input_dimension,
-                            gate_quantization_params.activation_weight.scale);
-  tflite::SymmetricQuantize(gate_parameters.recurrent_weight,
-                            quantized_gate_params.recurrent_weight,
-                            state_dimension * state_dimension,
-                            gate_quantization_params.recurrent_weight.scale);
-  tflite::SymmetricQuantize(gate_parameters.fused_bias,
-                            quantized_gate_params.fused_bias, state_dimension,
-                            gate_quantization_params.bias.scale);
-
-  // Copy the bias values to prepare zero_point folded bias precomputation. bias
-  // has same scale as input_scale*input_weight_scale)
-  std::memcpy(quantized_gate_params.activation_zp_folded_bias,
-              quantized_gate_params.fused_bias,
-              state_dimension * sizeof(BiasType));
-  // Pre-calculate bias - zero_point * weight (a constant).
-  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-      quantized_gate_params.activation_weight,
-      -1 * input_quantization_params.zero_point, state_dimension,
-      input_dimension, quantized_gate_params.activation_zp_folded_bias);
-
-  // Initialize the folded bias to zeros for accumulation
-  for (size_t i = 0; i < state_dimension; i++) {
-    quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
-  }
-  // Calculate : -zero_point * weight since it is a constant
-  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-      quantized_gate_params.recurrent_weight,
-      -1 * output_quantization_params.zero_point, state_dimension,
-      state_dimension, quantized_gate_params.recurrent_zp_folded_bias);
-
-  return quantized_gate_params;
-}
-
-// Create int8 (activation) x int8 (weight) -> int16 (cell) model from the float
-// model contents and quantization settings
-template <int batch_size, int time_steps, int input_dimension,
-          int state_dimension>
-LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-                 input_dimension, state_dimension>
-CreateInt8ModelContents(
-    const NodeQuantizationParameters& quantization_settings,
-    const LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                           input_dimension, state_dimension>&
-        float_model_contents) {
-  auto quantized_forget_gate_params =
-      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
-                              state_dimension>(
-          float_model_contents.ForgetGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.forget_gate);
-  auto quantized_input_gate_params =
-      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
-                              state_dimension>(
-          float_model_contents.InputGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.input_gate);
-  auto quantized_cell_gate_params =
-      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
-                              state_dimension>(
-          float_model_contents.CellGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.cell_gate);
-  auto quantized_output_gate_params =
-      CreateQuantizedGateData<int8_t, int32_t, input_dimension,
-                              state_dimension>(
-          float_model_contents.OutputGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.output_gate);
-  LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size, time_steps,
-                   input_dimension, state_dimension>
-      quantized_model_content(
-          quantized_forget_gate_params, quantized_input_gate_params,
-          quantized_cell_gate_params, quantized_output_gate_params);
-
-  // Quantize the  floating point input
-  int8_t quantized_input[batch_size * input_dimension * time_steps] = {};
-  Quantize(float_model_contents.GetInputData(), quantized_input,
-           batch_size * input_dimension * time_steps,
-           quantization_settings.input.scale,
-           quantization_settings.input.zero_point);
-  quantized_model_content.SetInputData(quantized_input);
-  // Quantize the  floating point hidden state
-  int8_t quantized_hidden_state[batch_size * state_dimension] = {};
-  Quantize(float_model_contents.GetHiddenStateData(), quantized_hidden_state,
-           batch_size * state_dimension,
-           quantization_settings.hidden_state.scale,
-           quantization_settings.hidden_state.zero_point);
-  quantized_model_content.SetHiddenStateData(quantized_hidden_state);
-  // Quantize the floating point cell state
-  int16_t quantized_cell_state[batch_size * state_dimension] = {};
-  Quantize(float_model_contents.GetCellStateData(), quantized_cell_state,
-           batch_size * state_dimension, quantization_settings.cell_state.scale,
-           quantization_settings.cell_state.zero_point);
-  quantized_model_content.SetCellStateData(quantized_cell_state);
-  return quantized_model_content;
-}
-
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 IntegerLstmParameter CreateIntegerParameter(
@@ -278,7 +169,7 @@ void ValidateResultGoldens(const T* golden, const T* output_data,
 template <int batch_size, int input_dimension, int state_dimension>
 void TestGateOutputFloat(
     const GateData<float, float, input_dimension, state_dimension>& gate_params,
-    TfLiteFusedActivation activation_type, const float* input_data,
+    const TfLiteFusedActivation activation_type, const float* input_data,
     const float* hidden_state, const float* expected_vals,
     const float tolerance) {
   float gate_output[batch_size * state_dimension] = {};

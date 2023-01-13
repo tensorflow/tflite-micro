@@ -178,20 +178,20 @@ Create2x3x2X2FloatNodeContents(const float* input_data,
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
 
-  LstmNodeContents<float, float, float, float, 2, 3, 2, 2> float_model_contents(
+  LstmNodeContents<float, float, float, float, 2, 3, 2, 2> float_node_contents(
       kDefaultBuiltinData, forget_gate_data, input_gate_data, cell_gate_data,
       output_gate_data);
 
   if (input_data != nullptr) {
-    float_model_contents.SetInputData(input_data);
+    float_node_contents.SetInputData(input_data);
   }
   if (hidden_state_data != nullptr) {
-    float_model_contents.SetHiddenStateData(hidden_state_data);
+    float_node_contents.SetHiddenStateData(hidden_state_data);
   }
   if (cell_state_data != nullptr) {
-    float_model_contents.SetCellStateData(cell_state_data);
+    float_node_contents.SetCellStateData(cell_state_data);
   }
-  return float_model_contents;
+  return float_node_contents;
 }
 
 NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
@@ -234,6 +234,18 @@ NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true}};
 
   return quantization_settings;
+}
+
+LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+Create2x3x2X2Int8NodeContents(
+    const NodeQuantizationParameters& quantization_settings,
+    const float* input_data, const float* hidden_state,
+    const float* cell_state) {
+  auto float_node_content =
+      Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
+  return CreateIntegerNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
+                                   2>(quantization_settings,
+                                      float_node_content);
 }
 
 }  // namespace testing
