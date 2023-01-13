@@ -22,10 +22,11 @@ namespace testing {
 
 namespace {
 // LSTM internal setting (e.g., nonlinear activation type)
-constexpr TfLiteLSTMParams kDefaultBuiltinData = {
+// Only UnidirectionalLSTM is supported now
+constexpr TfLiteUnidirectionalSequenceLSTMParams kDefaultBuiltinData = {
     /*.activation=*/kTfLiteActTanh,
     /*.cell_clip=*/6, /*.proj_clip=*/3,
-    /*.kernel_type=*/kTfLiteLSTMFullKernel,
+    /*.time_major=*/false,
     /*.asymmetric_quantize_inputs=*/true};
 }  // namespace
 
@@ -284,6 +285,18 @@ Create2x3x2X2Int8NodeContents(const float* input_data,
       Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
   const auto quantization_settings = Get2X2Int8LstmQuantizationSettings();
   return CreateIntegerNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
+                                   2>(quantization_settings,
+                                      float_node_content);
+}
+
+LstmNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
+Create2x3x2X2Int16NodeContents(const float* input_data,
+                               const float* hidden_state,
+                               const float* cell_state) {
+  auto float_node_content =
+      Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
+  const auto quantization_settings = Get2X2Int16LstmQuantizationSettings();
+  return CreateIntegerNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
                                    2>(quantization_settings,
                                       float_node_content);
 }

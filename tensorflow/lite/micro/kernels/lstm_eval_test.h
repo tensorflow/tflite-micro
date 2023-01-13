@@ -368,7 +368,7 @@ void TestHiddenStateUpdateQuantized(
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMFloat(
-    const TfLiteLSTMParams& general_model_settings,
+    const TfLiteUnidirectionalSequenceLSTMParams& general_model_settings,
     /*can not be const, state will be updated*/
     LstmNodeContents<float, float, float, float, batch_size, time_steps,
                      input_dimension, state_dimension>& node_contents,
