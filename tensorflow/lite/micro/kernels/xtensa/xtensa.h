@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
 
-#if defined(HIFMINI)
+#if defined(HIFIMINI)
 #include <xtensa/tie/xt_hifi2.h>
 
 #include "tensorflow/lite/micro/kernels/xtensa/hifimini/fixedpoint_utils.h"

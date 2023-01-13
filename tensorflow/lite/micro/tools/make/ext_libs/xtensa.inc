@@ -19,7 +19,8 @@ MICROLITE_CC_KERNEL_SRCS += \
 ifeq ($(TARGET_ARCH), hifimini)
   # hifimini optimizations are implemented in the TFLM repository itself.
   THIRD_PARTY_KERNEL_CC_SRCS += \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc
 
 else ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
