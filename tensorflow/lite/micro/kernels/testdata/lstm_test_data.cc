@@ -20,6 +20,16 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
+namespace {
+// LSTM internal setting (e.g., nonlinear activation type)
+// Only UnidirectionalLSTM is supported now
+constexpr TfLiteUnidirectionalSequenceLSTMParams kDefaultBuiltinData = {
+    /*.activation=*/kTfLiteActTanh,
+    /*.cell_clip=*/6, /*.proj_clip=*/3,
+    /*.time_major=*/false,
+    /*.asymmetric_quantize_inputs=*/true};
+}  // namespace
+
 GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
   GateOutputCheckData<4, 4> gate_data;
   const float input_data[4] = {
@@ -135,59 +145,58 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData() {
   return eval_data;
 }
 
-ModelContents<float, float, float, float, 2, 3, 2, 2>
-Create2x3x2X2FloatModelContents(const float* input_data,
-                                const float* hidden_state_data,
-                                const float* cell_state_data) {
+LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+Create2x3x2X2FloatNodeContents(const float* input_data,
+                               const float* hidden_state_data,
+                               const float* cell_state_data) {
   // Parameters for different gates
   // negative large weights for forget gate to make it really forget
-  const GateParameters<float, float, 2, 2> forget_gate_params = {
+  const GateData<float, float, 2, 2> forget_gate_data = {
       /*.activation_weight=*/{-10, -10, -20, -20},
       /*.recurrent_weight=*/{-10, -10, -20, -20},
       /*.fused_bias=*/{1, 2},
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
   // positive large weights for input gate to make it really remember
-  const GateParameters<float, float, 2, 2> input_gate_params = {
+  const GateData<float, float, 2, 2> input_gate_data = {
       /*.activation_weight=*/{10, 10, 20, 20},
       /*.recurrent_weight=*/{10, 10, 20, 20},
       /*.fused_bias=*/{-1, -2},
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
   // all ones to test the behavior of tanh at normal range (-1,1)
-  const GateParameters<float, float, 2, 2> cell_gate_params = {
+  const GateData<float, float, 2, 2> cell_gate_data = {
       /*.activation_weight=*/{1, 1, 1, 1},
       /*.recurrent_weight=*/{1, 1, 1, 1},
       /*.fused_bias=*/{0, 0},
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
   // all ones to test the behavior of sigmoid at normal range (-1. 1)
-  const GateParameters<float, float, 2, 2> output_gate_params = {
+  const GateData<float, float, 2, 2> output_gate_data = {
       /*.activation_weight=*/{1, 1, 1, 1},
       /*.recurrent_weight=*/{1, 1, 1, 1},
       /*.fused_bias=*/{0, 0},
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
 
-  ModelContents<float, float, float, float, 2, 3, 2, 2> float_model_contents(
-      forget_gate_params, input_gate_params, cell_gate_params,
-      output_gate_params);
+  LstmNodeContents<float, float, float, float, 2, 3, 2, 2> float_node_contents(
+      kDefaultBuiltinData, forget_gate_data, input_gate_data, cell_gate_data,
+      output_gate_data);
 
   if (input_data != nullptr) {
-    float_model_contents.SetInputData(input_data);
+    float_node_contents.SetInputData(input_data);
   }
   if (hidden_state_data != nullptr) {
-    float_model_contents.SetHiddenStateData(hidden_state_data);
+    float_node_contents.SetHiddenStateData(hidden_state_data);
   }
   if (cell_state_data != nullptr) {
-    float_model_contents.SetCellStateData(cell_state_data);
+    float_node_contents.SetCellStateData(cell_state_data);
   }
-
-  return float_model_contents;
+  return float_node_contents;
 }
 
-ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
-  ModelQuantizationParameters quantization_settings;
+NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
+  NodeQuantizationParameters quantization_settings;
   quantization_settings.activation_type = kTfLiteInt8;
   quantization_settings.weight_type = kTfLiteInt8;
   quantization_settings.cell_type = kTfLiteInt16;
@@ -198,37 +207,37 @@ ModelQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       0.00003051757;  // std::pow(2.0f, -15.0f)
 
   // state quantization parameters
-  quantization_settings.input_quantization_parameters = {
-      /*scale=*/0.00784313725490196, /*zp=*/0, /*symmetry=*/false};
-  quantization_settings.output_quantization_parameters = {
-      /*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false};
-  quantization_settings.hidden_quantization_parameters = {
-      /*scale=*/0.004705882165580988, /*zp=*/-21, /*symmetry=*/false};
-  quantization_settings.cell_quantization_parameters = {
-      /*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true};
+  quantization_settings.input = {/*scale=*/0.00784313725490196, /*zp=*/0,
+                                 /*symmetry=*/false};
+  quantization_settings.output = {/*scale=*/0.004705882165580988, /*zp=*/-21,
+                                  /*symmetry=*/false};
+  quantization_settings.hidden_state = {/*scale=*/0.004705882165580988,
+                                        /*zp=*/-21, /*symmetry=*/false};
+  quantization_settings.cell_state = {/*scale=*/0.00024414062, /*zp=*/0,
+                                      /*symmetry=*/true};
 
   // gate quantization parameters
-  quantization_settings.forget_gate_quantization_parameters = {
+  quantization_settings.forget_gate = {
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.input_gate_quantization_parameters = {
+  quantization_settings.input_gate = {
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.0012351397251814111, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.cell_gate_quantization_parameters = {
+  quantization_settings.cell_gate = {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.output_gate_quantization_parameters = {
+  quantization_settings.output_gate = {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
   return quantization_settings;
 }
 
-ModelQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
-  ModelQuantizationParameters quantization_settings;
+NodeQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
+  NodeQuantizationParameters quantization_settings;
   quantization_settings.activation_type = kTfLiteInt16;
   quantization_settings.weight_type = kTfLiteInt8;
   quantization_settings.cell_type = kTfLiteInt16;
@@ -239,33 +248,57 @@ ModelQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
       0.00003051757;  // std::pow(2.0f, -15.0f)
 
   // state quantization parameters
-  quantization_settings.input_quantization_parameters = {
-      /*scale=*/3.0518044e-5, /*zp=*/0, /*symmetry=*/false};
-  quantization_settings.output_quantization_parameters = {
-      /*scale=*/1.8310826e-5, /*zp=*/-5461, /*symmetry=*/false};
-  quantization_settings.hidden_quantization_parameters = {
-      /*scale=*/1.8310826e-5, /*zp=*/-5461, /*symmetry=*/false};
-  quantization_settings.cell_quantization_parameters = {
-      /*scale=*/0.00024414062, /*zp=*/0, /*symmetry=*/true};
+  quantization_settings.input = {/*scale=*/3.0518044e-5, /*zp=*/0,
+                                 /*symmetry=*/false};
+  quantization_settings.output = {/*scale=*/1.8310826e-5, /*zp=*/-5461,
+                                  /*symmetry=*/false};
+  quantization_settings.hidden_state = {/*scale=*/1.8310826e-5, /*zp=*/-5461,
+                                        /*symmetry=*/false};
+  quantization_settings.cell_state = {/*scale=*/0.00024414062, /*zp=*/0,
+                                      /*symmetry=*/true};
 
   // gate quantization parameters
-  quantization_settings.forget_gate_quantization_parameters = {
+  quantization_settings.forget_gate = {
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.input_gate_quantization_parameters = {
+  quantization_settings.input_gate = {
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.cell_gate_quantization_parameters = {
+  quantization_settings.cell_gate = {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
-  quantization_settings.output_gate_quantization_parameters = {
+  quantization_settings.output_gate = {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
   return quantization_settings;
+}
+
+LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+Create2x3x2X2Int8NodeContents(const float* input_data,
+                              const float* hidden_state,
+                              const float* cell_state) {
+  auto float_node_content =
+      Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
+  const auto quantization_settings = Get2X2Int8LstmQuantizationSettings();
+  return CreateIntegerNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
+                                   2>(quantization_settings,
+                                      float_node_content);
+}
+
+LstmNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
+Create2x3x2X2Int16NodeContents(const float* input_data,
+                               const float* hidden_state,
+                               const float* cell_state) {
+  auto float_node_content =
+      Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
+  const auto quantization_settings = Get2X2Int16LstmQuantizationSettings();
+  return CreateIntegerNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>(quantization_settings,
+                                      float_node_content);
 }
 
 }  // namespace testing
