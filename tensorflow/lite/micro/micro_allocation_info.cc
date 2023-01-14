@@ -39,10 +39,6 @@ void AllocationInfoBuilder::UpdateFirstCreated(AllocationInfo* current,
   TFLITE_DCHECK(current->first_created <= allocation_scope_count);
   if (current->first_created == kUninitializedLifetime) {
     current->first_created = allocation_scope_count;
-    // TODO(b/257084942): This will ensure that tensors that are outputs from an
-    // OP but not inputs to any other OP also have a reasonable lifetime.
-    // This bug will be used to add automated tests for this issue.
-    current->last_used = allocation_scope_count;
   }
 }
 
@@ -245,6 +241,9 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     const int tensor_index = subgraph->inputs()->Get(i);
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
     UpdateFirstCreated(current, allocation_scope_count_);
+    // This will ensure that the tensors that are inputs to the subgraphs
+    // but not used in any ops also have a reasonable lifetime.
+    UpdateLastUsed(current, allocation_scope_count_);
   }
 
   for (uint32_t i = 0; i < operators_size; i++) {
@@ -316,6 +315,11 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
        subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
+    // Make sure to assign the First created value of the subgraph output
+    // This will handle the case where the subgraph is empty. This helps
+    // ensure all tensors have valid lifetimes before those are used by the
+    // memory planner.
+    UpdateFirstCreated(current, allocation_scope_count_);
     UpdateLastUsed(current, allocation_scope_count_);
   }
   return kTfLiteOk;

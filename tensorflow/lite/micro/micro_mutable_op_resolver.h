@@ -126,13 +126,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddArgMax() {
-    return AddBuiltin(BuiltinOperator_ARG_MAX,
-                      tflite::ops::micro::Register_ARG_MAX(), ParseArgMax);
+    return AddBuiltin(BuiltinOperator_ARG_MAX, Register_ARG_MAX(), ParseArgMax);
   }
 
   TfLiteStatus AddArgMin() {
-    return AddBuiltin(BuiltinOperator_ARG_MIN,
-                      tflite::ops::micro::Register_ARG_MIN(), ParseArgMin);
+    return AddBuiltin(BuiltinOperator_ARG_MIN, Register_ARG_MIN(), ParseArgMin);
   }
 
   TfLiteStatus AddAssignVariable() {
@@ -392,8 +390,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddNeg() {
-    return AddBuiltin(BuiltinOperator_NEG, tflite::ops::micro::Register_NEG(),
-                      ParseNeg);
+    return AddBuiltin(BuiltinOperator_NEG, Register_NEG(), ParseNeg);
   }
 
   TfLiteStatus AddNotEqual() {
