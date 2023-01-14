@@ -269,6 +269,7 @@ tflm_kernel_cc_library(
         "transpose.cc",
         "transpose_conv.cc",
         "unidirectional_sequence_lstm.cc",
+        "unidirectional_sequence_lstm_integer.cc",
         "unpack.cc",
         "var_handle.cc",
         "while.cc",
@@ -1376,6 +1377,24 @@ cc_test(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_test_config",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "unidirectional_sequence_lstm_integer_test",
+    srcs = [
+        "unidirectional_sequence_lstm_integer_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":lstm_eval_test_lib",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

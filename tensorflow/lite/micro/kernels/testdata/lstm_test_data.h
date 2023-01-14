@@ -247,6 +247,17 @@ class LstmNodeContents {
     return &eval_tensors_[tensor_index];
   }
 
+  TfLiteTensor* GetTensors() { return tensors_; }
+
+  // Required by the kernel runner
+  TfLiteIntArray* KernelInputs() {
+    return IntArrayFromInts(input_tensor_indeces_);
+  }
+  // Required by the kernel runner
+  TfLiteIntArray* KernelOutputs() {
+    return IntArrayFromInts(output_tensor_indeces_);
+  }
+
   // Variable tensors (will be changed, can not be const)
   TfLiteEvalTensor* HiddenStateEvalTensor() {
     return &eval_tensors_[kLstmOutputStateTensor];
@@ -273,11 +284,11 @@ class LstmNodeContents {
     return output_gate_data_;
   }
 
-  const TfLiteUnidirectionalSequenceLSTMParams BuiltinData() const {
+  const TfLiteUnidirectionalSequenceLSTMParams& BuiltinData() const {
     return builtin_data_;
   }
 
-  const NodeQuantizationParameters QuantizationSettings() const {
+  const NodeQuantizationParameters& QuantizationSettings() const {
     return quantization_settings_;
   }
 

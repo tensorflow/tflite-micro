@@ -428,6 +428,7 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                        TfLiteTypeGetSize(cell_type),
                                    &(op_data->buffer_indices[i])));
   }
+  return kTfLiteOk;
 }
 
 TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
