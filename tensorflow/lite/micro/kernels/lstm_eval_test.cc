@@ -201,7 +201,7 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
       gate_output_data.input_data, gate_output_data.hidden_state,
       gate_output_data.cell_state);
   tflite::testing::TestOneStepLSTMFloat<2, 3, 2, 2>(
-      float_node_contents.BuiltinData(), float_node_contents, gate_output_data,
+      float_node_contents, gate_output_data,
       tflite::testing::kTestFloatTolerance);
 }
 
