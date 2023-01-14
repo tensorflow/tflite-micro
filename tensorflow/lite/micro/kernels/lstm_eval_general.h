@@ -108,7 +108,7 @@ void CalculateLstmGateInteger(
 
   // Recurrent FC
   tflite::reference_integer_ops::FullyConnectedGeneral<
-      ActivationType, CellType, WeightType, BiasType, int32_t>(
+      ActivationType, CellType, WeightType, BiasType, int64_t>(
       gate_params.recurrent_fc_params, step_info.StateShape(),
       tflite::micro::GetTensorData<ActivationType>(recurrent) +
           step_info.HiddenStateOffset(),
