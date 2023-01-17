@@ -73,8 +73,11 @@ struct GateData {
   BiasType fused_bias[state_dimension];
   // Quantized model folded the zero point of activations into biases:
   // bias + zero_point * weight.
-  BiasType activation_zp_folded_bias[state_dimension];
-  BiasType recurrent_zp_folded_bias[state_dimension];
+  // Note: folded bias is only required for the legacy 8x8->16 pass. Therefore
+  // the data type is fixed here to avoid compilation errors (the computation of
+  // folding does not support other types)
+  int32_t activation_zp_folded_bias[state_dimension];
+  int32_t recurrent_zp_folded_bias[state_dimension];
 };
 
 // A struct that holds quantization parameters for a LSTM Tensor
@@ -397,7 +400,8 @@ CreateQuantizedGateData(
         gate_parameters,
     const TensorQuantizationParameters& input_quantization_params,
     const TensorQuantizationParameters& output_quantization_params,
-    const GateQuantizationParameters& gate_quantization_params) {
+    const GateQuantizationParameters& gate_quantization_params,
+    const bool fold_zero_point) {
   GateData<WeightType, BiasType, input_dimension, state_dimension>
       quantized_gate_params;
   tflite::SymmetricQuantize(gate_parameters.activation_weight,
@@ -411,56 +415,38 @@ CreateQuantizedGateData(
   tflite::SymmetricQuantize(gate_parameters.fused_bias,
                             quantized_gate_params.fused_bias, state_dimension,
                             gate_quantization_params.bias.scale);
-  return quantized_gate_params;
-}
-
-//  Template specialization for int8Xint8 (int32 bias) since the legacy code
-//  requires bias precomputation
-template <>
-GateData<int8_t, int32_t, 2, 2> CreateQuantizedGateData(
-    const GateData<float, float, 2, 2>& gate_parameters,
-    const TensorQuantizationParameters& input_quantization_params,
-    const TensorQuantizationParameters& output_quantization_params,
-    const GateQuantizationParameters& gate_quantization_params) {
-  GateData<int8_t, int32_t, 2, 2> quantized_gate_params;
-  tflite::SymmetricQuantize(gate_parameters.activation_weight,
-                            quantized_gate_params.activation_weight, 2 * 2,
-                            gate_quantization_params.activation_weight.scale);
-  tflite::SymmetricQuantize(gate_parameters.recurrent_weight,
-                            quantized_gate_params.recurrent_weight, 2 * 2,
-                            gate_quantization_params.recurrent_weight.scale);
-  tflite::SymmetricQuantize(gate_parameters.fused_bias,
-                            quantized_gate_params.fused_bias, 2,
-                            gate_quantization_params.bias.scale);
-
   // Note: steps below are not required for the generalized LSTM evaluation
   // (e.g., 16bits activation)
-  // Copy the bias values to prepare zero_point folded
-  // bias precomputation. bias has same scale as
-  // input_scale*input_weight_scale)
-  std::memcpy(quantized_gate_params.activation_zp_folded_bias,
-              quantized_gate_params.fused_bias, 2 * sizeof(int32_t));
-  // Pre-calculate bias - zero_point * weight (a constant).
-  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-      quantized_gate_params.activation_weight,
-      -1 * input_quantization_params.zero_point, 2, 2,
-      quantized_gate_params.activation_zp_folded_bias);
+  if (fold_zero_point) {
+    // Copy the bias values to prepare zero_point folded
+    // bias precomputation. bias has same scale as
+    // input_scale*input_weight_scale)
+    std::memcpy(quantized_gate_params.activation_zp_folded_bias,
+                quantized_gate_params.fused_bias, 2 * sizeof(int32_t));
+    // Pre-calculate bias - zero_point * weight (a constant).
+    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+        quantized_gate_params.activation_weight,
+        -1 * input_quantization_params.zero_point, 2, 2,
+        quantized_gate_params.activation_zp_folded_bias);
 
-  // Initialize the folded bias to zeros for accumulation
-  for (size_t i = 0; i < 2; i++) {
-    quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
+    // Initialize the folded bias to zeros for accumulation
+    for (size_t i = 0; i < 2; i++) {
+      quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
+    }
+    // Calculate : -zero_point * weight since it is a constant
+    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+        quantized_gate_params.recurrent_weight,
+        -1 * output_quantization_params.zero_point, 2, 2,
+        quantized_gate_params.recurrent_zp_folded_bias);
   }
-  // Calculate : -zero_point * weight since it is a constant
-  tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
-      quantized_gate_params.recurrent_weight,
-      -1 * output_quantization_params.zero_point, 2, 2,
-      quantized_gate_params.recurrent_zp_folded_bias);
-
   return quantized_gate_params;
 }
 
 // Create integer LSTM node content from the float node contents and
 // quantization settings
+// Note: fold_zero_point folds the zero point into the bias (precomputation),
+// which is not required for the generalized integer inference (16 bits act
+// LSTM).
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
@@ -468,28 +454,33 @@ LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                  time_steps, input_dimension, state_dimension>
 CreateIntegerNodeContents(
     const NodeQuantizationParameters& quantization_settings,
+    const bool fold_zero_point,
     LstmNodeContents<float, float, float, float, batch_size, time_steps,
                      input_dimension, state_dimension>& float_node_contents) {
   const auto quantized_forget_gate_data =
       CreateQuantizedGateData<WeightType, BiasType, input_dimension,
                               state_dimension>(
           float_node_contents.ForgetGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.forget_gate);
+          quantization_settings.output, quantization_settings.forget_gate,
+          fold_zero_point);
   const auto quantized_input_gate_data =
       CreateQuantizedGateData<WeightType, BiasType, input_dimension,
                               state_dimension>(
           float_node_contents.InputGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.input_gate);
+          quantization_settings.output, quantization_settings.input_gate,
+          fold_zero_point);
   const auto quantized_cell_gate_data =
       CreateQuantizedGateData<WeightType, BiasType, input_dimension,
                               state_dimension>(
           float_node_contents.CellGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.cell_gate);
+          quantization_settings.output, quantization_settings.cell_gate,
+          fold_zero_point);
   const auto quantized_output_gate_params =
       CreateQuantizedGateData<WeightType, BiasType, input_dimension,
                               state_dimension>(
           float_node_contents.OutputGateData(), quantization_settings.input,
-          quantization_settings.output, quantization_settings.output_gate);
+          quantization_settings.output, quantization_settings.output_gate,
+          fold_zero_point);
   LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
                    time_steps, input_dimension, state_dimension>
       quantized_node_content(
