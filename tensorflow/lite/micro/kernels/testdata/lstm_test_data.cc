@@ -286,6 +286,7 @@ Create2x3x2X2Int8NodeContents(const float* input_data,
   const auto quantization_settings = Get2X2Int8LstmQuantizationSettings();
   return CreateIntegerNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
                                    2>(quantization_settings,
+                                      /*fold_zero_point=*/true,
                                       float_node_content);
 }
 
@@ -298,6 +299,7 @@ Create2x3x2X2Int16NodeContents(const float* input_data,
   const auto quantization_settings = Get2X2Int16LstmQuantizationSettings();
   return CreateIntegerNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
                                    2>(quantization_settings,
+                                      /*fold_zero_point=*/false,
                                       float_node_content);
 }
 
