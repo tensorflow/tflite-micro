@@ -1,92 +1,140 @@
 "Repository rule exporting C-language dependencies contained in a Python package."
 
-# This rule extends the standard @rules_python rules to expose C-language dependences
-# contained in some Python packages like NumPy. It extends @rules_python rather
-# than duplicating the download mechanism, and to ensure the versions of Python
-# packages used throughout the WWORKSPACE are consistent. This
-# could conceivably become a built-in feature of @rules_python at some point.
+# This extends the standard rules_python rules to expose C-language dependences
+# contained in some Python packages like NumPy. It extends rules_python to
+# avoid duplicating the download mechanism, and to ensure the Python package
+# versions used throughout the WWORKSPACE are consistent.
 
-def _find_headers(ctx, pkg, include_prefix):
-    # Find the path to the headers within the @rules_python repository for the Python
+def _rules_python_path(ctx, pkg):
+    # Make an absolute path to the rules_python repository for the Python
     # package `pkg`.
 
     # WARNING: To get a flesystem path via ctx.path(), its argument must be a
     # label to a non-generated file. ctx.path() does not work on non-file
     # A standard technique for finding the path to a repository (see,
     # e.g., rules_go) is to use the repository's BUILD file; however, the exact
-    # name of the build file is an implementation detail of @rules.python.
-    build = pkg.relative(":BUILD.bazel")
-    path = ctx.path(build).dirname
+    # name of the build file is an implementation detail of rules_python.
+    build_file = pkg.relative(":BUILD.bazel")
+    abspath = ctx.path(build_file).dirname
+    return abspath
 
-    # rules_python unpacks the Python package within the site-packages directory.
-    path = path.get_child("site-packages")
+def _join_paths(a, b):
+    if type(a) == "string" and type(b) == "string":
+        result = "/".join((a, b))
 
-    # Append the include_prefix, if any. get_child() needs one component at a
-    # time.
-    if include_prefix:
-        for c in include_prefix.split("/"):
-            path = path.get_child(c)
+    elif type(a) == "path" and type(b) == "string":
+        # Append components of string b to path a, because path.get_child()
+        # requires one component at a time.
+        result = a
+        for x in b.split("/"):
+            result = result.get_child(x)
 
-    return path
+    return result
+
+def _make_build_file(basedir, include_paths, libs):
+    template = """\
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "cc_headers",
+    hdrs = glob(%s, allow_empty=False, exclude_directories=1),
+    includes = %s,
+)
+
+cc_library(
+    name = "cc_library",
+    srcs = %s,
+    deps = [":cc_headers"],
+)
+"""
+    hdrs = [(_join_paths(basedir, inc) + "/**") for inc in include_paths]
+    includes = [_join_paths(basedir, inc) for inc in include_paths]
+    srcs = [_join_paths(basedir, lib) for lib in libs]
+
+    return template % (hdrs, includes, srcs)
 
 def _py_pkg_cc_deps(ctx):
     # Create a repository with the directory tree:
     #     repository/
-    #               |- _include --> @rules_python//package/[include_prefix]
+    #               |- _site --> @specific_rules_python_pkg/site-packages
     #               \_ BUILD
 
-    # Symlink to the headers within the @rules_python repository
-    src = _find_headers(ctx, ctx.attr.pkg, ctx.attr.include_prefix)
-    destdir = "_include"
-    ctx.symlink(src, destdir)
+    # Symlink to the rules_python repository of pkg
+    srcdir = _join_paths(_rules_python_path(ctx, ctx.attr.pkg), "site-packages")
+    destdir = "_site"
+    ctx.symlink(srcdir, destdir)
 
-    # Write a BUILD file publishing a cc_library() target for the headers.
-    BUILD = """\
-cc_library(
-    name = "cc_headers",
-    hdrs = glob(["%s/**/*.h"], allow_empty=False),
-    includes = ["%s"],
-    visibility = ["@//tensorflow/lite/micro:__subpackages__"],
-)
-""" % (destdir, destdir)
-    ctx.file("BUILD", content = BUILD, executable = False)
+    # Write a BUILD file publishing targets
+    ctx.file(
+        "BUILD",
+        content = _make_build_file(destdir, ctx.attr.includes, ctx.attr.libs),
+        executable = False,
+    )
 
 py_pkg_cc_deps = repository_rule(
     implementation = _py_pkg_cc_deps,
     local = True,
     attrs = {
-        "pkg": attr.label(mandatory = True),
-        "include_prefix": attr.string(mandatory = False),
+        "pkg": attr.label(
+            doc = "Python package target via rules_python's requirement()",
+            mandatory = True,
+        ),
+        "includes": attr.string_list(
+            doc = "list of include dirs",
+            mandatory = True,
+            allow_empty = False,
+        ),
+        "libs": attr.string_list(
+            doc = "list of libraries against which to link",
+            mandatory = False,
+        ),
     },
 )
-"""Repository rule for creating an external repository `name` with the C-language
-dependencies from a Python package published as a `pkg` target by
-@rules_python. The top-level Bazel package in the repository provides a
-cc_library target named `cc_headeers` for use
-as a dependency in targets building against the headers.
+"""Repository rule for creating an external repository `name` with C-language
+dependencies from the Python package `pkg`, published by rules_python. Set
+`pkg` using the `requirement` function from rules_python.
 
-Use the optional `include_prefix` to base headers at a subdirectory of the
-Python package rather than its root. E.g., numpy's headers are in
-`numpy/core/include/numpy/header.h` relative to the root of the numpy package.
-Use `include_prefix = "numpy/core/include"` to include headers as `#include
-<numpy/header.h>` instead of `#include <numpy/core/include/numpy/header.h>`
+The top-level Bazel package in the created repository provides two targets for
+use as dependencies in C-language targets elsewhere.
+
+    * `:cc_headers`--for including headers
+    * `:cc_library`--for inclusing headers and linking against a library
+
+The manditory `includes` attribute should be set to a list of
+include dirs to be added to the compile command line.
+
+The optional `libs` attribute should be set to a list of libraries to link with
+the binary target.
+
+Specify all paths relative to the base directory in which the package is
+extracted, something like site-packages/, so these paths typically begin with
+the package's Python namespace or module name, which may differ from the Python
+distribution package name. E.g., The distribution package `tensorflow-gpu`
+distributes the Python namespace package `tensorflow`. It might help to examine
+the directory tree in the external repository for the package created by
+rules_python.
 
 For example, to use the headers from NumPy:
 
-1. Add Python dependencies (numpy is named in requirements.txt) to an external
-repository named `tflm_pip_deps` via @rules_python in the WORKSPACE:
+1. Add Python dependencies (numpy is named in python_requirements.txt), via the
+usual method, to an external repository named `tflm_pip_deps` via @rules_python
+in the WORKSPACE:
 ```
-    load("@rules_python//python:pip.bzl", "pip_install")
-    pip_install(
+    load("@rules_python//python:pip.bzl", "pip_parse")
+    pip_parse(
        name = "tflm_pip_deps",
-       requirements = "//third_party:requirements.txt",
+       requirements_lock = "@//third_party:python_requirements.txt",
     )
+    load("@tflm_pip_deps//:requirements.bzl", "install_deps")
+    install_deps()
 ```
 
 2. Use the repository rule `py_pkg_cc_deps` in the WORKSPACE to create an
 external repository with a target `@numpy_cc_deps//:cc_headers`, passing the
-pkg target from @tflm_pip_deps obtained via requirement(), and an
-`include_prefix` based on an examination of the package and the desired #include
+`:pkg` target from @tflm_pip_deps, obtained via requirement(), and an
+`includes` path based on an examination of the package and the desired #include
 paths in the C code:
 ```
     load("@tflm_pip_deps//:requirements.bzl", "requirement")
@@ -94,7 +142,7 @@ paths in the C code:
     py_pkg_cc_deps(
         name = "numpy_cc_deps",
         pkg = requirement("numpy"),
-        include_prefix = "numpy/core/include",
+        includes = ["numpy/core/include"],
     )
 ```
 
@@ -108,4 +156,7 @@ pybind_library():
         deps = ["@numpy_cc_deps//:cc_headers", ...],
     )
 ```
+
+See the test target @//python/tests:cc_dep_link_test elsewhere for an example
+which links against a library shipped in a Python package.
 """
