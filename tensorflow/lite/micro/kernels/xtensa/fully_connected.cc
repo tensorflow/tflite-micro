@@ -31,6 +31,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
+#ifdef notdef
 TfLiteStatus CalculateOpData(TfLiteContext* context,
                              TfLiteFusedActivation activation,
                              TfLiteType data_type, const TfLiteTensor* input,
@@ -50,6 +51,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context,
                                            &data->output_activation_min,
                                            &data->output_activation_max);
 }
+#endif
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -66,7 +68,9 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 #endif  // defined(VISION_P6)
 }
 
-TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
+template <TfLiteType T = kTfLiteVariant>
+TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
+                                         TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -87,11 +91,16 @@ TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+#ifdef notdef
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+#endif
 
-  if (input->type != kTfLiteInt8) {
-    MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
-                input->type);
-    return kTfLiteError;
+  if (kTfLiteInt8 == T) {
+    if (input->type != kTfLiteInt8) {
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
+      return kTfLiteError;
+    }
   }
 
   if (filter->type == kTfLiteInt4) {
@@ -102,16 +111,17 @@ TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
     context->RequestScratchBufferInArena(context, filter_size,
                                          &data->filter_buffer_index);
   }
-
+#ifdef notdef
   // Filter weights will always be symmetric quantized since we only support
   // int8 quantization.
   TFLITE_DCHECK(filter->params.zero_point == 0);
+#endif
 
   TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
 
-  TF_LITE_ENSURE_OK(
-      context, CalculateOpData(context, params->activation, input->type, input,
-                               filter, bias, output, data));
+  TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
+                                 context, params->activation, input->type,
+                                 input, filter, bias, output, data));
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
@@ -132,8 +142,10 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output) {
+#if !defined(VISION_P6)
   const int32_t* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
+      tflite::micro::GetOptionalTensorData<int32_t>(bias);
+#endif  // !defined(VISION_P6)
 
   // TODO(b/154032858): Investigate removing extra copies (i.e.
   // data.ToQuantizedParams), and also passing by value.
@@ -171,9 +183,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                         output_arr, output_arr, data.output_activation_min,
                         data.output_activation_max, num_batches * output_depth),
                     0);
-  return kTfLiteOk;
 #elif defined(VISION_P6)
-  (void)bias_data;
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data =
@@ -194,7 +204,8 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus XtensaEvalFullyConnectedInt8(TfLiteContext* context,
+                                          TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const auto& data =
       *(static_cast<const OpDataFullyConnected*>(node->user_data));
@@ -204,9 +215,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* filter =
       tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
   const TfLiteEvalTensor* bias =
-      (NumInputs(node) == 3) ? tflite::micro::GetEvalInput(
-                                   context, node, kFullyConnectedBiasTensor)
-                             : nullptr;
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
 
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
@@ -230,14 +239,116 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
-}  // namespace
+TfLiteStatus XtensaEvalFullyConnected(TfLiteContext* context,
+                                      TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  const auto* params =
+      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
-TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
-  return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+  const auto& data =
+      *(static_cast<const OpDataFullyConnected*>(node->user_data));
+
+  // Checks in Prepare ensure input, output and filter types are all the same.
+  switch (input->type) {
+    case kTfLiteFloat32: {
+      tflite::reference_ops::FullyConnected(
+          FullyConnectedParamsFloat(params->activation),
+          tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<float>(input),
+          tflite::micro::GetTensorShape(filter),
+          tflite::micro::GetTensorData<float>(filter),
+          tflite::micro::GetTensorShape(bias),
+          tflite::micro::GetOptionalTensorData<float>(bias),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<float>(output));
+      break;
+    }
+
+    case kTfLiteInt8: {
+      switch (filter->type) {
+        case kTfLiteInt8: {
+          return EvalQuantizedInt8(context, node, data, input, filter, bias,
+                                   output);
+        }
+        case kTfLiteInt4: {
+          int8_t* unpacked_filter_data = static_cast<int8_t*>(
+              context->GetScratchBuffer(context, data.filter_buffer_index));
+          tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
+              FullyConnectedParamsQuantized(data),
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int8_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(filter),
+              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int32_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), input->type);
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    case kTfLiteInt16: {
+      switch (filter->type) {
+        case kTfLiteInt8: {
+          tflite::reference_integer_ops::FullyConnected(
+              FullyConnectedParamsQuantized(data),
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int16_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(filter),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int64_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), input->type);
+          return kTfLiteError;
+        }
+      }
+      break;
+    }
+
+    default: {
+      MicroPrintf("Input type %s (%d) not supported.",
+                  TfLiteTypeGetName(input->type), input->type);
+      return kTfLiteError;
+    }
+  }
+  return kTfLiteOk;
 }
 
+}  // namespace
+
 TfLiteRegistration Register_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
+  return tflite::micro::RegisterOp(Init, XtensaPrepareFullyConnected,
+                                   XtensaEvalFullyConnected);
+}
+
+TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
+  return tflite::micro::RegisterOp(Init,
+                                   XtensaPrepareFullyConnected<kTfLiteInt8>,
+                                   XtensaEvalFullyConnectedInt8);
 }
 
 }  // namespace tflite

@@ -26,10 +26,12 @@ limitations under the License.
 
 namespace tflite {
 
+#ifdef notdef
 const int kFullyConnectedInputTensor = 0;
 const int kFullyConnectedWeightsTensor = 1;
 const int kFullyConnectedBiasTensor = 2;
 const int kFullyConnectedOutputTensor = 0;
+#endif
 
 FullyConnectedParams FullyConnectedParamsQuantized(
     const OpDataFullyConnected& op_data) {
@@ -64,12 +66,13 @@ TfLiteStatus CalculateOpDataFullyConnected(
     QuantizeMultiplier(real_multiplier, &data->output_multiplier,
                        &data->output_shift);
 
-    data->input_zero_point = input->params.zero_point;
     // Filter weights will always be symmetric quantized since we only support
     // int8 quantization. See
     // https://github.com/tensorflow/tensorflow/issues/44912 for additional
     // context.
     TFLITE_DCHECK(filter->params.zero_point == 0);
+
+    data->input_zero_point = input->params.zero_point;
     data->filter_zero_point = filter->params.zero_point;
     data->output_zero_point = output->params.zero_point;
 

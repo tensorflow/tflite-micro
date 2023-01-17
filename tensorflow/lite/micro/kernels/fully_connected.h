@@ -48,10 +48,10 @@ struct OpDataFullyConnected {
 #endif
 };
 
-extern const int kFullyConnectedInputTensor;
-extern const int kFullyConnectedWeightsTensor;
-extern const int kFullyConnectedBiasTensor;
-extern const int kFullyConnectedOutputTensor;
+constexpr int kFullyConnectedInputTensor = 0;
+constexpr int kFullyConnectedWeightsTensor = 1;
+constexpr int kFullyConnectedBiasTensor = 2;
+constexpr int kFullyConnectedOutputTensor = 0;
 
 // Returns a FullyConnectedParams struct with all the parameters needed for a
 // float computation.
