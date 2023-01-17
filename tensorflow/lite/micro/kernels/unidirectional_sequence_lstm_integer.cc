@@ -104,19 +104,18 @@ class LstmTensors {
       TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
       TF_LITE_ENSURE_EQ(context, internal_tensors_[i]->type, bias_type);
     }
-
     // Tensors from LSTM variants are invalid
     // No peephole
     for (size_t i = 9; i < 12; i++) {
-      TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+      TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
     }
     // No projection
     for (size_t i = 16; i < 18; i++) {
-      TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+      TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
     }
     // No internal layer norm
     for (size_t i = 20; i < 24; i++) {
-      TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+      TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
     }
     return kTfLiteOk;
   }
@@ -341,6 +340,8 @@ void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
 
 TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                                TfLiteNode* node) {
+  MicroPrintf("Node Output Size: %d, Input Size: %d", node->outputs->size,
+              node->inputs->size);
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
   TF_LITE_ENSURE_EQ(context, node->inputs->size, 24);
 

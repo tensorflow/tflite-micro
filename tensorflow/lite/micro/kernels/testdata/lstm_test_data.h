@@ -254,11 +254,11 @@ class LstmNodeContent {
 
   // Required by the kernel runner
   TfLiteIntArray* KernelInputs() {
-    return IntArrayFromInts(input_tensor_indeces_);
+    return IntArrayFromInts(input_tensor_indices_);
   }
   // Required by the kernel runner
   TfLiteIntArray* KernelOutputs() {
-    return IntArrayFromInts(output_tensor_indeces_);
+    return IntArrayFromInts(output_tensor_indices_);
   }
 
   // Variable tensors (will be changed, can not be const)
@@ -332,24 +332,30 @@ class LstmNodeContent {
     SetTensor(kLstmOutputGateBiasTensor, output_gate_data_.fused_bias,
               bias_size_);
     // State Tensors
-    SetTensor(kLstmOutputStateTensor, hidden_state_, state_size_);
-    SetTensor(kLstmCellStateTensor, cell_state_, state_size_);
+    SetTensor(kLstmOutputStateTensor, hidden_state_, state_size_,
+              /*is_variable=*/true);
+    SetTensor(kLstmCellStateTensor, cell_state_, state_size_,
+              /*is_variable=*/true);
     // // Output Tensor
-    SetTensor(24, output_, output_size_);
+    SetTensor(24, output_, output_size_, /*is_variable=*/true);
   }
 
   template <typename T>
-  void SetTensor(const int index, const T* data, int* dims) {
+  void SetTensor(const int index, const T* data, int* dims,
+                 const bool is_variable = false) {
     // Lite tensors for kernel level testing
     tensors_[index].data.data = const_cast<T*>(data);
     tensors_[index].dims = IntArrayFromInts(dims);
     tensors_[index].type = typeToTfLiteType<T>();
+    tensors_[index].is_variable = is_variable;
     // Eval tensors for internal computation testing
     eval_tensors_[index].data.data = const_cast<T*>(data);
     eval_tensors_[index].dims = IntArrayFromInts(dims);
     eval_tensors_[index].type = typeToTfLiteType<T>();
     // update the index
-    input_tensor_indices_[index + 1] = index;
+    if (index < 24) {
+      input_tensor_indices_[index + 1] = index;
+    }
   }
 
   void SetTensorQuantizationParam(
@@ -380,8 +386,8 @@ class LstmNodeContent {
   // weight tensor has C-style "row-major" memory ordering
   int activation_weight_size_[3] = {2, state_dimension, input_dimension};
   int recurrent_weight_size_[3] = {2, state_dimension, state_dimension};
-  int bias_size_[3] = {2, batch_size, state_dimension};
-  int state_size_[3] = {2, batch_size, state_dimension};
+  int bias_size_[3] = {1, batch_size, state_dimension};
+  int state_size_[3] = {1, batch_size, state_dimension};
 
   // see lstm_shared.h for tensor names, the last tensor is the output tensor
   TfLiteTensor tensors_[24 + 1];
