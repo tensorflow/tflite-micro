@@ -126,13 +126,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddArgMax() {
-    return AddBuiltin(BuiltinOperator_ARG_MAX,
-                      tflite::ops::micro::Register_ARG_MAX(), ParseArgMax);
+    return AddBuiltin(BuiltinOperator_ARG_MAX, Register_ARG_MAX(), ParseArgMax);
   }
 
   TfLiteStatus AddArgMin() {
-    return AddBuiltin(BuiltinOperator_ARG_MIN,
-                      tflite::ops::micro::Register_ARG_MIN(), ParseArgMin);
+    return AddBuiltin(BuiltinOperator_ARG_MIN, Register_ARG_MIN(), ParseArgMin);
   }
 
   TfLiteStatus AddAssignVariable() {
@@ -392,8 +390,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddNeg() {
-    return AddBuiltin(BuiltinOperator_NEG, tflite::ops::micro::Register_NEG(),
-                      ParseNeg);
+    return AddBuiltin(BuiltinOperator_NEG, Register_NEG(), ParseNeg);
   }
 
   TfLiteStatus AddNotEqual() {
@@ -402,18 +399,15 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddPack() {
-    return AddBuiltin(BuiltinOperator_PACK, tflite::ops::micro::Register_PACK(),
-                      ParsePack);
+    return AddBuiltin(BuiltinOperator_PACK, Register_PACK(), ParsePack);
   }
 
-  TfLiteStatus AddPad() {
-    return AddBuiltin(BuiltinOperator_PAD, tflite::ops::micro::Register_PAD(),
-                      ParsePad);
+  TfLiteStatus AddPad(const TfLiteRegistration& registration = Register_PAD()) {
+    return AddBuiltin(BuiltinOperator_PAD, registration, ParsePad);
   }
 
   TfLiteStatus AddPadV2() {
-    return AddBuiltin(BuiltinOperator_PADV2,
-                      tflite::ops::micro::Register_PADV2(), ParsePadV2);
+    return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
   }
 
   TfLiteStatus AddPrelu() {
