@@ -142,14 +142,14 @@ struct NodeQuantizationParameters {
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-class LstmNodeContents {
+class LstmNodeContent {
  public:
-  LstmNodeContents(const LstmNodeContents& other) = default;
-  LstmNodeContents& operator=(const LstmNodeContents& other) = default;
+  LstmNodeContent(const LstmNodeContent& other) = default;
+  LstmNodeContent& operator=(const LstmNodeContent& other) = default;
   // Use the general model setting (builtin data) and the four gates data to
   // construct the node content. Note the input, hidden state, and cell state
   // data is provided later for flexible testing (initialize as zero now)
-  LstmNodeContents(
+  LstmNodeContent(
       const TfLiteUnidirectionalSequenceLSTMParams builtin_data,
       const GateData<WeightType, BiasType, input_dimension, state_dimension>
           forget_gate_params,
@@ -243,7 +243,7 @@ class LstmNodeContents {
 
   //  see lstm_shared.h for tensor names
   TfLiteEvalTensor* GetEvalTensor(const int tensor_index) {
-    auto valid_index = input_tensor_indeces_[tensor_index + 1];
+    auto valid_index = input_tensor_indices_[tensor_index + 1];
     if (valid_index < 0) {
       return nullptr;
     }
@@ -298,9 +298,9 @@ class LstmNodeContents {
  private:
   void InitializeTensors() {
     // Invalid all the input tensors untill we set it
-    input_tensor_indeces_[0] = 24;  // tot elements
+    input_tensor_indices_[0] = 24;  // tot elements
     for (size_t i = 1; i < 25; i++) {
-      input_tensor_indeces_[i] = kTfLiteOptionalTensor;
+      input_tensor_indices_[i] = kTfLiteOptionalTensor;
     }
     // Input Tensor
     SetTensor(kLstmInputTensor, input_, input_size_);
@@ -349,7 +349,7 @@ class LstmNodeContents {
     eval_tensors_[index].dims = IntArrayFromInts(dims);
     eval_tensors_[index].type = typeToTfLiteType<T>();
     // update the index
-    input_tensor_indeces_[index + 1] = index;
+    input_tensor_indices_[index + 1] = index;
   }
 
   void SetTensorQuantizationParam(
@@ -388,9 +388,9 @@ class LstmNodeContents {
   // Use for internel kernel testing
   TfLiteEvalTensor eval_tensors_[24 + 1];
   // indices for the tensors inside the node (required by kernel runner)
-  int input_tensor_indeces_[1 + 24] = {};
+  int input_tensor_indices_[1 + 24] = {};
   // single output (last in the tensors array)
-  int output_tensor_indeces_[2] = {1, 24};
+  int output_tensor_indices_[2] = {1, 24};
 
   // tennsor data
   // states are initialized to zero
@@ -461,13 +461,13 @@ CreateQuantizedGateData(
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                 time_steps, input_dimension, state_dimension>
+LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                time_steps, input_dimension, state_dimension>
 CreateIntegerNodeContents(
     const NodeQuantizationParameters& quantization_settings,
     const bool fold_zero_point,
-    LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                     input_dimension, state_dimension>& float_node_contents) {
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& float_node_contents) {
   const auto quantized_forget_gate_data =
       CreateQuantizedGateData<WeightType, BiasType, input_dimension,
                               state_dimension>(
@@ -492,8 +492,8 @@ CreateIntegerNodeContents(
           float_node_contents.OutputGateData(), quantization_settings.input,
           quantization_settings.output, quantization_settings.output_gate,
           fold_zero_point);
-  LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                   time_steps, input_dimension, state_dimension>
+  LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                  time_steps, input_dimension, state_dimension>
       quantized_node_content(
           float_node_contents.BuiltinData(), quantized_forget_gate_data,
           quantized_input_gate_data, quantized_cell_gate_data,
@@ -541,7 +541,7 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData();
 
 // Create a 2x2 float node content
 // batch_size = 2; time_steps = 3; input_dimension = 2; state_dimension = 2
-LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
 Create2x3x2X2FloatNodeContents(const float* input_data = nullptr,
                                const float* hidden_state = nullptr,
                                const float* cell_state = nullptr);
@@ -553,7 +553,7 @@ NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings();
 // batch_size = 2; time_steps = 3; input_dimension = 2; state_dimension = 2
 // input is in float format since the source of truth is always the float
 // configuration
-LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
 Create2x3x2X2Int8NodeContents(const float* input_data = nullptr,
                               const float* hidden_state = nullptr,
                               const float* cell_state = nullptr);
@@ -562,7 +562,7 @@ Create2x3x2X2Int8NodeContents(const float* input_data = nullptr,
 // batch_size = 2; time_steps = 3; input_dimension = 2; state_dimension = 2
 // input is in float format since the source of truth is always the float
 // configuration
-LstmNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
+LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
 Create2x3x2X2Int16NodeContents(const float* input_data = nullptr,
                                const float* hidden_state = nullptr,
                                const float* cell_state = nullptr);
