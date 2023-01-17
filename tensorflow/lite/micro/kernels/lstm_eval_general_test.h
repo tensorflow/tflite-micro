@@ -121,14 +121,14 @@ CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
   return cell_state_info;
 }
 
-// Create LSTMKernelContents from LstmNodeContents by copying TfLiteEvalTensor
+// Create LSTMKernelContents from LstmNodeContent by copying TfLiteEvalTensor
 // pointers
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
 LSTMKernelContents CreateLSTMKernelContent(
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         node_contents) {
   LSTMKernelContents kernel_content;
   // Point to correct tensors
@@ -202,18 +202,18 @@ LstmSizeInfo CreateLstmSizeInfo(
   return size_info;
 }
 
-// Create the LstmOpData using the LstmNodeContents and
+// Create the LstmOpData using the LstmNodeContent and
 // NodeQuantizationParameters (defined in test_data/lstm_test_data) During the
 // actual inference phase, OpDataLSTM is created using information from the
 // flatbuffer file. The test divide the complete LSTM node information into
-// LstmNodeContents and NodeQuantizationParameters for easy construction
+// LstmNodeContent and NodeQuantizationParameters for easy construction
 // purposes
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
 OpDataLSTM CreateLstmOpData(
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         node_contents) {
   const auto& builtin_data = node_contents.BuiltinData();
   const auto& quantization_settings = node_contents.QuantizationSettings();
@@ -323,9 +323,8 @@ template <typename ActivationType, typename WeightType, typename BiasType,
 void TestUpdateLstmCellInteger(
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
-        node_content,
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>& node_content,
     const float tolerance) {
   const auto& quantization_settings = node_content.QuantizationSettings();
   CellType quantized_forget_gate[batch_size * state_dimension] = {};
@@ -393,9 +392,8 @@ template <typename ActivationType, typename WeightType, typename BiasType,
 void TestUpdateLstmHiddenInteger(
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
-        node_content,
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>& node_content,
     const float tolerance) {
   const auto& quantization_settings = node_content.QuantizationSettings();
   CellType quantized_output_gate[batch_size * state_dimension] = {};
@@ -451,8 +449,8 @@ void TestLstmStepInteger(
                               batch_size * state_dimension>& gate_output_data,
     const float hidden_state_tolerance, const float cell_state_tolerance,
     /*can not be const, state will be updated*/
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         node_contents) {
   // Mimicking the kernel preparation phase, node_contents approximate the
   LSTMKernelContents kernel_content = CreateLSTMKernelContent(node_contents);
@@ -504,8 +502,8 @@ void TestEvalLstmInteger(
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
     const float hidden_state_tolerance, const float cell_state_tolerance,
-    LstmNodeContents<ActivationType, WeightType, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         node_contents) {
   // Mimicking the kernel preparation phase, node_contents approximate the node
   LSTMKernelContents kernel_content = CreateLSTMKernelContent(node_contents);

@@ -145,7 +145,7 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData() {
   return eval_data;
 }
 
-LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
 Create2x3x2X2FloatNodeContents(const float* input_data,
                                const float* hidden_state_data,
                                const float* cell_state_data) {
@@ -179,7 +179,7 @@ Create2x3x2X2FloatNodeContents(const float* input_data,
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
 
-  LstmNodeContents<float, float, float, float, 2, 3, 2, 2> float_node_contents(
+  LstmNodeContent<float, float, float, float, 2, 3, 2, 2> float_node_contents(
       kDefaultBuiltinData, forget_gate_data, input_gate_data, cell_gate_data,
       output_gate_data);
 
@@ -277,7 +277,7 @@ NodeQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
   return quantization_settings;
 }
 
-LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
 Create2x3x2X2Int8NodeContents(const float* input_data,
                               const float* hidden_state,
                               const float* cell_state) {
@@ -290,7 +290,7 @@ Create2x3x2X2Int8NodeContents(const float* input_data,
                                       float_node_content);
 }
 
-LstmNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
+LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
 Create2x3x2X2Int16NodeContents(const float* input_data,
                                const float* hidden_state,
                                const float* cell_state) {

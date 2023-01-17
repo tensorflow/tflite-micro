@@ -35,8 +35,8 @@ namespace testing {
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 IntegerLstmParameter CreateIntegerParameter(
-    const LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size,
-                           time_steps, input_dimension, state_dimension>&
+    const LstmNodeContent<int8_t, int8_t, int32_t, int16_t, batch_size,
+                          time_steps, input_dimension, state_dimension>&
         quantized_node_contents) {
   IntegerLstmParameter evaluation_params;
   double effective_scale;
@@ -369,8 +369,8 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMFloat(
     /*can not be const, state will be updated*/
-    LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                     input_dimension, state_dimension>& node_contents,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float tolerance) {
@@ -437,8 +437,8 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int state_dimension>
 void TestOneStepLSTMQuantized(
     /*can not be const, state will be updated*/
-    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, int8_t, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         model_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
@@ -550,8 +550,8 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestLSTMEvalFloat(
     /*can not be const, state will be updated*/
-    LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                     input_dimension, state_dimension>& float_model_contents,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& float_model_contents,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
@@ -620,8 +620,8 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int state_dimension>
 void TestLSTMEvalQuantized(
     /*can not be const, state will be updated*/
-    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, int8_t, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         quantized_model_content,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
