@@ -147,4 +147,10 @@ THIRD_PARTY_KERNEL_CC_SRCS += \
 
 THIRD_PARTY_CC_HDRS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
+else ifeq ($(TARGET_ARCH), hifimini)
+THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
+
+THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 endif
