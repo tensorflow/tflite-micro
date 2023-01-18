@@ -40,8 +40,13 @@ TfLiteStatus CalculateOpData(TfLiteContext* context,
   double real_multiplier = 0.0;
   TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
       context, input, filter, bias, output, &real_multiplier));
+#if defined(HIFIMINI)
+  QuantizeMultiplierForInt24(real_multiplier, &data->output_multiplier,
+                             &data->output_shift);
+#else
   QuantizeMultiplier(real_multiplier, &data->output_multiplier,
                      &data->output_shift);
+#endif
   data->input_zero_point = input->params.zero_point;
   data->filter_zero_point = filter->params.zero_point;
   data->output_zero_point = output->params.zero_point;
@@ -59,9 +64,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 #else
   void* data = context->AllocatePersistentBuffer(
       context, sizeof(XtensaFullyConnectedOpData));
+#if !defined(HIFIMINI)
   if (InitXtensaContext()) {
     return nullptr;
   }
+#endif
   return data;
 #endif  // defined(VISION_P6)
 }
@@ -135,14 +142,16 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   const int32_t* bias_data =
       nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
 
-  // TODO(b/154032858): Investigate removing extra copies (i.e.
-  // data.ToQuantizedParams), and also passing by value.
-  //
-  // TODO(b/155656675): Consider passing OpDataFullyConnected by value
-  // once it is also passed to the FullyConnected function. Until it is copied
-  // to a local op_param variable, we do not get any latency improvements from
-  // passing by value.
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFIMINI)
+  FullyConnectedEvalHifimini(FullyConnectedParamsQuantized(data),
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(filter),
+                             tflite::micro::GetTensorData<int8_t>(filter),
+                             tflite::micro::GetTensorShape(bias), bias_data,
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
+#elif defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int num_batches = output_shape.Dims(0);
   const int output_depth = output_shape.Dims(1);
@@ -171,7 +180,6 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                         output_arr, output_arr, data.output_activation_min,
                         data.output_activation_max, num_batches * output_depth),
                     0);
-  return kTfLiteOk;
 #elif defined(VISION_P6)
   (void)bias_data;
   const auto& params =
@@ -189,7 +197,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(bias), bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
   return kTfLiteOk;
 }

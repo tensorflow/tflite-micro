@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ void RunModel(const uint8_t* model,
   TfLiteTensor* output_tensor = interpreter.output(0);
   TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes,
                           golden_size * sizeof(${output_dtype}_t));
-  ${output_dtype}_t* output = GetTensorData<${output_dtype}_t>(output_tensor);
+  ${output_dtype}_t* output = ::tflite::GetTensorData<${output_dtype}_t>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
     // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
     // off by 1.

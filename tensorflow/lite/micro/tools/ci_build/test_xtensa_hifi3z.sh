@@ -35,7 +35,7 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 if [[ ${1} == "INTERNAL" ]]; then
   readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=hifi4_internal \
+    TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
@@ -44,7 +44,7 @@ if [[ ${1} == "INTERNAL" ]]; then
 
   readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=hifi4_internal \
+    TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
@@ -53,7 +53,7 @@ if [[ ${1} == "INTERNAL" ]]; then
 
   readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=hifi4_internal \
+    TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
@@ -62,7 +62,7 @@ if [[ ${1} == "INTERNAL" ]]; then
 
   readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=hifi4_internal \
+    TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
@@ -71,7 +71,7 @@ if [[ ${1} == "INTERNAL" ]]; then
 
   readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
     TARGET=xtensa \
-    TARGET_ARCH=hifi4_internal \
+    TARGET_ARCH=hifi4 \
     OPTIMIZED_KERNEL_DIR=xtensa \
     XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
