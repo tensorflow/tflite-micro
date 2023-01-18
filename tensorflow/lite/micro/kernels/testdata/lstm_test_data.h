@@ -363,7 +363,7 @@ class LstmNodeContents {
   int output_size_[4] = {3, batch_size, time_steps, state_dimension};
   int activation_weight_size_[3] = {2, state_dimension, input_dimension};
   int recurrent_weight_size_[3] = {2, state_dimension, state_dimension};
-  int bias_size_[3] = {2, batch_size, state_dimension};
+  int bias_size_[2] = {1, state_dimension};
   int state_size_[3] = {2, batch_size, state_dimension};
 
   // see lstm_shared.h for tensor names, the last tensor is the output tensor
