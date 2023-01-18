@@ -32,10 +32,12 @@ TF_LITE_MICRO_TESTS_BEGIN
 // kernel is reconciled with reference kernel
 #if !defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
 
   // Forget gate
   // Quantization performs badly here due to integer overflow!!!
@@ -117,10 +119,13 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckGateOutputInt16) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
 
   // Forget gate
   // Quantization performs badly here due to integer overflow (from batch2)!!!
@@ -205,10 +210,12 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt16) {
 }
 
 TF_LITE_MICRO_TEST(CheckCellStateUpdateInt8) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
 
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
@@ -219,10 +226,13 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckCellStateUpdateInt16) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
   // Very high precision. The error is introduced by the
   // quantization error of the clip value (~1e-5), but cannot actually reach
   // the precision due to integer overflow of the elements
@@ -232,10 +242,12 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt16) {
 }
 
 TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.expected_updated_cell);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.expected_updated_cell);
 
   // Theoritical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
@@ -244,10 +256,13 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt16) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.expected_updated_cell);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.expected_updated_cell);
 
   const float tolerance = 1e-4;
   tflite::testing::TestUpdateLstmHiddenInteger(gate_output_data,
@@ -255,10 +270,12 @@ TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt16) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
@@ -269,10 +286,13 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt16) {
-  const auto gate_output_data = tflite::testing::Get2X2GateOutputCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      gate_output_data.input_data, gate_output_data.hidden_state,
-      gate_output_data.cell_state);
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.cell_state);
   const float hidden_state_tolerance = 1e-3;  // actually very close to 1e-4
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-1;
@@ -283,9 +303,11 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt16) {
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
-  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
@@ -296,9 +318,12 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
 }
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt16) {
-  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
 
   const float hidden_state_tolerance = 1e-3;  // actually very close to 1e-4
   // cell state degrade due to integer overflow
