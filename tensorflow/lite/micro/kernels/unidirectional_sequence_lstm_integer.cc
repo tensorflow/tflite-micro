@@ -242,11 +242,18 @@ TfLiteStatus CreateGateParams(
 
   // A temp fc opdata to reuse the helper function on creating fc parameters
   tflite::OpDataFullyConnected fc_data_temp;
-
+  // TODO(http://b/265853320): due to the lack of precision for the float scale,
+  // scale_diff / output_scale <= 0.02 (potentially requires 1e-8 precision) can
+  // not be satisified for the bias. Here we rely on the correctiveness of the
+  // conversion process for tensor scales
   TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(
-      context, kTfLiteActNone, input->type, input, input_weight, input_bias,
-      &fc_output_temp, &fc_data_temp));
+      context, kTfLiteActNone, input->type, input, input_weight,
+      /*input_bias=*/nullptr, &fc_output_temp, &fc_data_temp));
   gate_params.input_fc_params = FullyConnectedParamsQuantized(fc_data_temp);
+  double real_multiplier = 0.0;
+  GetQuantizedConvolutionMultipler(context, input, input_weight, nullptr,
+                                   &fc_output_temp, &real_multiplier);
+
   TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(
       context, kTfLiteActNone, hidden_state->type, hidden_state,
       hidden_state_weight, hidden_state_bias, &fc_output_temp, &fc_data_temp));
@@ -340,8 +347,6 @@ void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
 
 TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                                TfLiteNode* node) {
-  MicroPrintf("Node Output Size: %d, Input Size: %d", node->outputs->size,
-              node->inputs->size);
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
   TF_LITE_ENSURE_EQ(context, node->inputs->size, 24);
 
@@ -368,7 +373,7 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
 
   // Create Gate Parameters
   auto cell_type = lstm_tensors.CellStateTensor()->type;
-  float nonlinear_input_scale = 1e-12;  // Q3.12 -> Q0.15
+  float nonlinear_input_scale = 0.00024414062;  // 2^12 Q3.12 -> Q0.15
   TF_LITE_ENSURE_STATUS(CreateGateParams(
       context, lstm_tensors.GetInternalTensor(kLstmInputTensor),
       lstm_tensors.GetInternalTensor(kLstmInputToForgetWeightsTensor),
@@ -403,7 +408,7 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
       op_data->output_gate_parameters));
 
   // Inter gate multiplication parameters
-  float nonlinear_output_scale = 1e-15;  // Q3.12 -> Q0.15
+  float nonlinear_output_scale = 0.00003051757;  // 2^15 Q3.12 -> Q0.15
   float cell_state_scale = lstm_tensors.CellStateTensor()->params.scale;
   // forget gate output (nonlinear output) x cell state -> cell state
   op_data->inter_gate_parameters.forget_cell_mul_params =

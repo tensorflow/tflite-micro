@@ -54,39 +54,35 @@ void TestUnidirectionalLSTM(
                              //  IntArrayFromInts(test_size),
                              reinterpret_cast<void*>(&buildin_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  //   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  //   const auto& quantization_settings = node_contents.QuantizationSettings();
-  //   float dequantized_hidden_state[batch_size * state_dimension] = {};
-  //   Dequantize(node_contents.GetHiddenStateData(), batch_size *
-  //   state_dimension,
-  //              quantization_settings.hidden_state.scale,
-  //              quantization_settings.hidden_state.zero_point,
-  //              dequantized_hidden_state);
+  const auto& quantization_settings = node_contents.QuantizationSettings();
+  float dequantized_hidden_state[batch_size * state_dimension] = {};
+  Dequantize(node_contents.GetHiddenStateData(), batch_size * state_dimension,
+             quantization_settings.hidden_state.scale,
+             quantization_settings.hidden_state.zero_point,
+             dequantized_hidden_state);
 
-  //   ValidateResultGoldens(eval_check_data.expected_hidden_state,
-  //                         dequantized_hidden_state, batch_size *
-  //                         state_dimension, hidden_state_tolerance);
+  ValidateResultGoldens(eval_check_data.expected_hidden_state,
+                        dequantized_hidden_state, batch_size * state_dimension,
+                        hidden_state_tolerance);
 
-  //   float dequantized_cell_state[batch_size * state_dimension] = {};
-  //   Dequantize(node_contents.GetCellStateData(), batch_size *
-  //   state_dimension,
-  //              quantization_settings.cell_state.scale,
-  //              quantization_settings.cell_state.zero_point,
-  //              dequantized_cell_state);
-  //   ValidateResultGoldens(eval_check_data.expected_cell_state,
-  //                         dequantized_cell_state, batch_size *
-  //                         state_dimension, cell_state_tolerance);
+  float dequantized_cell_state[batch_size * state_dimension] = {};
+  Dequantize(node_contents.GetCellStateData(), batch_size * state_dimension,
+             quantization_settings.cell_state.scale,
+             quantization_settings.cell_state.zero_point,
+             dequantized_cell_state);
+  ValidateResultGoldens(eval_check_data.expected_cell_state,
+                        dequantized_cell_state, batch_size * state_dimension,
+                        cell_state_tolerance);
 
-  //   float dequantized_output[batch_size * state_dimension * time_steps] = {};
-  //   Dequantize(node_contents.GetOutputData(),
-  //              batch_size * state_dimension * time_steps,
-  //              quantization_settings.output.scale,
-  //              quantization_settings.output.zero_point, dequantized_output);
-  //   ValidateResultGoldens(eval_check_data.expected_output,
-  //   dequantized_output,
-  //                         batch_size * state_dimension,
-  //                         hidden_state_tolerance);
+  float dequantized_output[batch_size * state_dimension * time_steps] = {};
+  Dequantize(node_contents.GetOutputData(),
+             batch_size * state_dimension * time_steps,
+             quantization_settings.output.scale,
+             quantization_settings.output.zero_point, dequantized_output);
+  ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
+                        batch_size * state_dimension, hidden_state_tolerance);
 }
 }  // namespace testing
 }  // namespace tflite
@@ -95,6 +91,19 @@ TF_LITE_MICRO_TESTS_BEGIN
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
 #if !defined(XTENSA)
+
+TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
+  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
+  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+
+  const float hidden_state_tolerance = 1e-2;
+  // cell state degrade due to integer overflow
+  const float cell_state_tolerance = 1e-2;
+  tflite::testing::TestUnidirectionalLSTM(
+      kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
+      int8_node_contents);
+}
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
   const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
