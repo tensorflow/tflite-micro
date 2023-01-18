@@ -169,6 +169,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt16) {
       tolerance);
 
   // Output gate
+  // Quantization scale (theoritical lowest range) is at range 1e-5
   tolerance = 1e-4f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
@@ -189,8 +190,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputInt16) {
       tolerance);
 
   // Cell gate
-  // TODO(): Tanh causes some precision loss here, need more investigation
-  tolerance = 1e-3f;
+  tolerance = 1e-4f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
       int16_node_contents.GetEvalTensor(tflite::kLstmInputTensor),

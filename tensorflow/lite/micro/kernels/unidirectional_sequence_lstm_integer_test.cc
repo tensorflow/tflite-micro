@@ -51,7 +51,6 @@ void TestUnidirectionalLSTM(
   micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
                              node_contents.KernelInputs(),
                              node_contents.KernelOutputs(),
-                             //  IntArrayFromInts(test_size),
                              reinterpret_cast<void*>(&buildin_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
