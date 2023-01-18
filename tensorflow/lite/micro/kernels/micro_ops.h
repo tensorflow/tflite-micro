@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -67,8 +67,10 @@ TfLiteRegistration Register_LOGICAL_OR();
 TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
 TfLiteRegistration Register_MIRROR_PAD();
+TfLiteRegistration Register_NEG();
 TfLiteRegistration Register_PRELU();
 TfLiteRegistration Register_MUL();
+TfLiteRegistration Register_PACK();
 TfLiteRegistration Register_PAD();
 TfLiteRegistration Register_PADV2();
 TfLiteRegistration Register_QUANTIZE();
@@ -111,9 +113,7 @@ TfLiteRegistration Register_LOG();
 TfLiteRegistration Register_LOGICAL_NOT();
 TfLiteRegistration Register_MAXIMUM();
 TfLiteRegistration Register_MINIMUM();
-TfLiteRegistration Register_NEG();
 TfLiteRegistration Register_NOT_EQUAL();
-TfLiteRegistration Register_PACK();
 TfLiteRegistration Register_RESHAPE();
 TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TfLiteRegistration Register_ROUND();

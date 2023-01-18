@@ -119,6 +119,28 @@ cc_library(
 )
 
 cc_library(
+    name = "lstm_shared",
+    hdrs = [
+        "lstm_shared.h",
+    ],
+    visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
+)
+
+cc_library(
+    name = "lstm_eval_test_lib",
+    hdrs = [
+        "lstm_eval_test.h",
+    ],
+    deps = [
+        ":kernel_util",
+        ":micro_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/testdata:lstm_test_data",
+    ],
+)
+
+cc_library(
     name = "micro_tensor_utils",
     srcs = [
         "micro_tensor_utils.cc",
@@ -896,10 +918,8 @@ cc_test(
         "lstm_eval_test.cc",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        ":lstm_eval_test_lib",
         "//tensorflow/lite/micro:debug_log",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
