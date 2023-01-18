@@ -28,7 +28,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
-
 namespace tflite {
 namespace {
 
@@ -145,8 +144,10 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   // passing by value.
 #if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int num_batches = FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
-  const int output_depth = output_shape.Dims(output_shape.DimensionsCount()-1);
+  const int num_batches =
+      FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
+  const int output_depth =
+      output_shape.Dims(output_shape.DimensionsCount() - 1);
 
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();
