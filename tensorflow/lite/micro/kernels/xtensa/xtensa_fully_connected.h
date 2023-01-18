@@ -99,11 +99,6 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
     context->RequestScratchBufferInArena(context, filter_size,
                                          &data->filter_buffer_index);
   }
-#ifdef notdef
-  // Filter weights will always be symmetric quantized since we only support
-  // int8 quantization.
-  TFLITE_DCHECK(filter->params.zero_point == 0);
-#endif
 
   TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
 

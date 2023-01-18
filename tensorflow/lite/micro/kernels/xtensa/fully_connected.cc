@@ -30,28 +30,6 @@ limitations under the License.
 
 namespace tflite {
 
-#ifdef notdef
-TfLiteStatus CalculateOpData(TfLiteContext* context,
-                             TfLiteFusedActivation activation,
-                             TfLiteType data_type, const TfLiteTensor* input,
-                             const TfLiteTensor* filter,
-                             const TfLiteTensor* bias, TfLiteTensor* output,
-                             OpDataFullyConnected* data) {
-  double real_multiplier = 0.0;
-  TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
-      context, input, filter, bias, output, &real_multiplier));
-  QuantizeMultiplier(real_multiplier, &data->output_multiplier,
-                     &data->output_shift);
-  data->input_zero_point = input->params.zero_point;
-  data->filter_zero_point = filter->params.zero_point;
-  data->output_zero_point = output->params.zero_point;
-
-  return CalculateActivationRangeQuantized(context, activation, output,
-                                           &data->output_activation_min,
-                                           &data->output_activation_max);
-}
-#endif
-
 namespace {
 
 TfLiteStatus XtensaEvalFullyConnected(TfLiteContext* context,

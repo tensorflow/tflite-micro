@@ -26,13 +26,6 @@ limitations under the License.
 
 namespace tflite {
 
-#ifdef notdef
-const int kFullyConnectedInputTensor = 0;
-const int kFullyConnectedWeightsTensor = 1;
-const int kFullyConnectedBiasTensor = 2;
-const int kFullyConnectedOutputTensor = 0;
-#endif
-
 FullyConnectedParams FullyConnectedParamsQuantized(
     const OpDataFullyConnected& op_data) {
   FullyConnectedParams op_params;
