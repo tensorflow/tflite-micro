@@ -114,7 +114,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // int8 quantization.
   TFLITE_DCHECK(filter->params.zero_point == 0);
 
-  TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
+  TFLITE_DCHECK_GE(GetTensorShape(output).DimensionsCount(), 1);
 
   TF_LITE_ENSURE_OK(
       context, CalculateOpData(context, params->activation, input->type, input,
@@ -153,8 +153,10 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                              tflite::micro::GetTensorData<int8_t>(output));
 #elif defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int num_batches = output_shape.Dims(0);
-  const int output_depth = output_shape.Dims(1);
+  const int num_batches =
+      FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
+  const int output_depth =
+      output_shape.Dims(output_shape.DimensionsCount() - 1);
 
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();
