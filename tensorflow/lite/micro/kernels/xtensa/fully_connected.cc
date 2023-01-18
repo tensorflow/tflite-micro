@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -32,8 +31,7 @@ namespace tflite {
 
 namespace {
 
-TfLiteStatus XtensaEvalFullyConnected(TfLiteContext* context,
-                                      TfLiteNode* node) {
+TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
@@ -135,8 +133,7 @@ TfLiteStatus XtensaEvalFullyConnected(TfLiteContext* context,
 
 TfLiteRegistration Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(XtensaInitFullyConnected,
-                                   XtensaPrepareFullyConnected,
-                                   XtensaEvalFullyConnected);
+                                   XtensaPrepareFullyConnected, Eval);
 }
 
 }  // namespace tflite
