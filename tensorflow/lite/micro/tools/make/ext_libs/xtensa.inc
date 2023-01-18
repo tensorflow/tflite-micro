@@ -16,7 +16,13 @@ MICROLITE_CC_KERNEL_SRCS += \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
 
-ifeq ($(TARGET_ARCH), hifi5)
+ifeq ($(TARGET_ARCH), hifimini)
+  # hifimini optimizations are implemented in the TFLM repository itself.
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc
+
+else ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
@@ -124,7 +130,7 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   INCLUDES += \
     -I$(NNLIB_PATH)/flk/include \
     -I$(NNLIB_PATH)/kernels/include/ \
-    -I$(NNLIB_PATH)/runtime/include/ 
+    -I$(NNLIB_PATH)/runtime/include/
 
   LDFLAGS += -lidma
 else
@@ -141,4 +147,10 @@ THIRD_PARTY_KERNEL_CC_SRCS += \
 
 THIRD_PARTY_CC_HDRS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
+else ifeq ($(TARGET_ARCH), hifimini)
+THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
+
+THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 endif

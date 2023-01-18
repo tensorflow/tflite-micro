@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_svdf.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -113,7 +114,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
 
@@ -140,6 +141,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const int rank = params->rank;
   const int input_size = input->dims->data[1];
   const int batch_size = input->dims->data[0];
+
+#if defined(HIFIMINI)
+  // Ensure the input size is a multiple of two.  This is necessary since
+  // optimized kernels access the memory in chunks of two, and all accesses
+  // must be aligned to 16 bits.
+  // TODO(b/153202598): Remove when padding is allowed in TFLite tensors.
+  TF_LITE_ENSURE_EQ(context, input_size % 2, 0);
+#endif  // defined(HIFIMINI)
 
   const int num_filters = weights_feature->dims->data[0];
   TF_LITE_ENSURE_EQ(context, num_filters % rank, 0);
@@ -211,10 +220,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataSvdf* data = static_cast<OpDataSvdf*>(node->user_data);
 
+#if defined(HIFIMINI)
+  QuantizeMultiplierForInt24(effective_scale_1, &data->effective_scale_1_a,
+                             &data->effective_scale_1_b);
+  QuantizeMultiplierForInt24(effective_scale_2, &data->effective_scale_2_a,
+                             &data->effective_scale_2_b);
+#else
   QuantizeMultiplier(effective_scale_1, &(data->effective_scale_1_a),
                      &(data->effective_scale_1_b));
   QuantizeMultiplier(effective_scale_2, &(data->effective_scale_2_a),
                      &(data->effective_scale_2_b));
+#endif
 
   data->input_zero_point = input->params.zero_point;
   data->output_zero_point = output->params.zero_point;
@@ -241,7 +257,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI4) || defined(HIFI5)
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
@@ -265,7 +281,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI)
+  return EvalIntegerSvdfHifimini(context, node, input, weights_feature,
+                                 weights_time, bias, params, activation_state,
+                                 output, data);
+#elif defined(HIFI4) || defined(HIFI5)
   return EvalIntegerSvdfHifi(context, node, input, weights_feature,
                              weights_time, bias, params, activation_state,
                              output, data);
