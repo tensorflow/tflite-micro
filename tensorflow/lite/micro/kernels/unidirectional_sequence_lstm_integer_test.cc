@@ -93,9 +93,11 @@ TF_LITE_MICRO_TESTS_BEGIN
 #if !defined(XTENSA)
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
-  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
-  auto int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
-      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+      int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
 
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
@@ -106,9 +108,12 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
 }
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
-  const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
-  auto int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
-      kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>
+      int16_node_contents = tflite::testing::Create2x3x2X2Int16NodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
 
   const float hidden_state_tolerance = 1e-3;  // actually very close to 1e-4
   // cell state degrade due to integer overflow
