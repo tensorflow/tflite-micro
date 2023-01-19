@@ -121,6 +121,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI4)
       ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
                      output);
+#elif defined(HIFI5)
+      ConvEvalHifi(context, node, params, op_data, input, filter, bias,
+                     output);
 #else
       return ConvReferenceEvalInt16(context, node);
 #endif  // defined(HIFI4)
