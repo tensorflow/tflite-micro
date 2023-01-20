@@ -35,17 +35,21 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
 #endif  // !defined(VISION_P6)
 
-  // TODO(b/154032858): Investigate removing extra copies (i.e.
-  // data.ToQuantizedParams), and also passing by value.
-  //
-  // TODO(b/155656675): Consider passing OpDataFullyConnected by value
-  // once it is also passed to the FullyConnected function. Until it is copied
-  // to a local op_param variable, we do not get any latency improvements from
-  // passing by value.
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI)
+  FullyConnectedEvalHifimini(FullyConnectedParamsQuantized(data),
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(filter),
+                             tflite::micro::GetTensorData<int8_t>(filter),
+                             tflite::micro::GetTensorShape(bias), bias_data,
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
+#elif defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int num_batches = output_shape.Dims(0);
-  const int output_depth = output_shape.Dims(1);
+  const int num_batches =
+      FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
+  const int output_depth =
+      output_shape.Dims(output_shape.DimensionsCount() - 1);
 
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();

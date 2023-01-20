@@ -16,6 +16,8 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
@@ -31,11 +33,47 @@ void* XtensaInitFullyConnected(TfLiteContext* context, const char* buffer,
 #else
   void* data = context->AllocatePersistentBuffer(
       context, sizeof(XtensaFullyConnectedOpData));
+#if !defined(HIFIMINI)
   if (InitXtensaContext()) {
     return nullptr;
   }
+#endif
   return data;
 #endif  // defined(VISION_P6)
+}
+
+TfLiteStatus XtensaCalculateOpDataFullyConnected(
+    TfLiteContext* context, TfLiteFusedActivation activation,
+    TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
+    const TfLiteTensor* bias, TfLiteTensor* output,
+    OpDataFullyConnected* data) {
+  if (data_type != kTfLiteFloat32) {
+    double real_multiplier = 0.0;
+    TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
+        context, input, filter, bias, output, &real_multiplier));
+#if defined(HIFIMINI)
+    QuantizeMultiplierForInt24(real_multiplier, &data->output_multiplier,
+                               &data->output_shift);
+#else
+    QuantizeMultiplier(real_multiplier, &data->output_multiplier,
+                       &data->output_shift);
+#endif
+
+    // Filter weights will always be symmetric quantized since we only support
+    // int8 quantization. See
+    // https://github.com/tensorflow/tensorflow/issues/44912 for additional
+    // context.
+    TFLITE_DCHECK(filter->params.zero_point == 0);
+
+    data->input_zero_point = input->params.zero_point;
+    data->filter_zero_point = filter->params.zero_point;
+    data->output_zero_point = output->params.zero_point;
+
+    return CalculateActivationRangeQuantized(context, activation, output,
+                                             &data->output_activation_min,
+                                             &data->output_activation_max);
+  }
+  return kTfLiteOk;
 }
 
 }  // namespace tflite

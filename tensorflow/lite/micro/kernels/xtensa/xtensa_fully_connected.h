@@ -35,8 +35,16 @@ struct XtensaFullyConnectedOpData {
 #endif  // VISION_P6
 };
 
-#if defined(VISION_P6)
+#if defined(HIFIMINI)
+void FullyConnectedEvalHifimini(
+    const FullyConnectedParams& params, const RuntimeShape& input_shape,
+    const int8_t* input_data, const RuntimeShape& filter_shape,
+    const int8_t* filter_data, const RuntimeShape& bias_shape,
+    const int32_t* bias_data, const RuntimeShape& output_shape,
+    int8_t* output_data);
+#endif  // defined(HIFIMINI)
 
+#if defined(VISION_P6)
 TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
                                          TfLiteNode* node);
 
@@ -47,7 +55,6 @@ TfLiteStatus FullyConnectedEvalVision(TfLiteContext* context, TfLiteNode* node,
                                       const TfLiteEvalTensor* filter,
                                       const TfLiteEvalTensor* bias,
                                       TfLiteEvalTensor* output);
-
 #endif  // VISION_P6
 
 void* XtensaInitFullyConnected(TfLiteContext* context, const char* buffer,
@@ -58,6 +65,11 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
     const TfLiteEvalTensor* bias, TfLiteEvalTensor* output);
 
+TfLiteStatus XtensaCalculateOpDataFullyConnected(
+    TfLiteContext* context, TfLiteFusedActivation activation,
+    TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
+    const TfLiteTensor* bias, TfLiteTensor* output, OpDataFullyConnected* data);
+
 template <TfLiteType T = kTfLiteVariant>
 TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
                                          TfLiteNode* node) {
@@ -65,8 +77,8 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   auto* data = static_cast<OpDataFullyConnected*>(node->user_data);
-  const auto* params =
-      reinterpret_cast<TfLiteFullyConnectedParams*>(node->builtin_data);
+  const auto params =
+      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   MicroContext* micro_context = GetMicroContext(context);
 
@@ -100,9 +112,9 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
                                          &data->filter_buffer_index);
   }
 
-  TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
+  TFLITE_DCHECK_GE(GetTensorShape(output).DimensionsCount(), 1);
 
-  TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
+  TF_LITE_ENSURE_OK(context, XtensaCalculateOpDataFullyConnected(
                                  context, params->activation, input->type,
                                  input, filter, bias, output, data));
 

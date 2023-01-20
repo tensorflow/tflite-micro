@@ -399,8 +399,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddPack() {
-    return AddBuiltin(BuiltinOperator_PACK, tflite::ops::micro::Register_PACK(),
-                      ParsePack);
+    return AddBuiltin(BuiltinOperator_PACK, Register_PACK(), ParsePack);
   }
 
   TfLiteStatus AddPad(const TfLiteRegistration& registration = Register_PAD()) {
