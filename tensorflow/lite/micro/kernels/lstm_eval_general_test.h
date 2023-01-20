@@ -484,6 +484,42 @@ void TestUpdateLstmCellInteger(
                         tolerance);
 }
 
+template <int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+void TestUpdateLstmHiddenFloat(
+    const GateOutputCheckData<batch_size * input_dimension,
+                              batch_size * state_dimension>& gate_output_data,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_content,
+    const float tolerance) {
+  float buffer[batch_size * state_dimension] = {};
+
+  auto mul_params = CreateInterGateMulParamsFloat();
+
+  int32_t cell_state_scale_power = 0;
+
+  // Create step information: only one time step, no need to update
+  auto size_info = tflite::testing::CreateLstmSizeInfo(
+      /*time_major*/ false,
+      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      node_content.HiddenStateEvalTensor()->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+
+  auto cell_state = node_content.CellStateEvalTensor();
+  auto hidden_state = node_content.HiddenStateEvalTensor();
+
+  tflite::lstm_internal::UpdateLstmHidden<float, float>(
+      step_info, cell_state, hidden_state,
+      gate_output_data.expected_output_gate_output, mul_params,
+      cell_state_scale_power, buffer);
+
+  ValidateResultGoldens(gate_output_data.expected_updated_hidden,
+                        tflite::micro::GetTensorData<float>(hidden_state),
+                        batch_size * state_dimension, tolerance);
+}
+
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>

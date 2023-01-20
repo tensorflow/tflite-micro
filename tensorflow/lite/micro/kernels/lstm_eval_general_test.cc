@@ -325,6 +325,18 @@ TF_LITE_MICRO_TEST(CheckCellStateUpdateInt16) {
                                              int16_node_contents, tolerance);
 }
 
+TF_LITE_MICRO_TEST(CheckHiddenStateUpdateFloat) {
+  const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
+      tflite::testing::Get2X2GateOutputCheckData();
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
+      float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
+          gate_output_data.input_data, gate_output_data.hidden_state,
+          gate_output_data.expected_updated_cell);
+
+  tflite::testing::TestUpdateLstmHiddenFloat(
+      gate_output_data, float_node_contents, kTestFloatTolerance);
+}
+
 TF_LITE_MICRO_TEST(CheckHiddenStateUpdateInt8) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();

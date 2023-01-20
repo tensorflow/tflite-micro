@@ -66,16 +66,26 @@ void Sigmoid(const RuntimeShape& data_shape, float* data) {
   reference_ops::Logistic(data_shape, data, data_shape, data);
 }
 
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const int16_t* input_data,
-          const RuntimeShape& output_data_shape, int16_t* output_data) {
-  reference_integer_ops::Tanh(multiplier, left_shift, input_data_shape,
+void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
+          int16_t* input_data, const RuntimeShape& output_data_shape,
+          int16_t* output_data) {
+  int32_t tanh_input_left_shift = (15 + cell_state_scale_power) - 3;
+  if (tanh_input_left_shift < 0) /* handling negative shift value */
+  {
+    int32_t i;
+    tanh_input_left_shift = -tanh_input_left_shift;
+    for (i = 0; i < input_data_shape.FlatSize(); i++) {
+      input_data[i] = input_data[i] >> tanh_input_left_shift;
+    }
+    tanh_input_left_shift = 0;
+  }
+  reference_integer_ops::Tanh(0, tanh_input_left_shift, input_data_shape,
                               input_data, output_data_shape, output_data);
 }
 
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const float* input_data,
-          const RuntimeShape& output_data_shape, float* output_data) {
+void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
+          float* input_data, const RuntimeShape& output_data_shape,
+          float* output_data) {
   reference_ops::Tanh(input_data_shape, input_data, output_data_shape,
                       output_data);
 }

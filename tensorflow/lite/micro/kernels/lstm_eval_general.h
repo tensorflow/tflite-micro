@@ -32,13 +32,13 @@ void Sigmoid(const RuntimeShape& data_shape, int16_t* data);
 
 void Sigmoid(const RuntimeShape& data_shape, float* data);
 
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const int16_t* input_data,
-          const RuntimeShape& output_data_shape, int16_t* output_data);
+void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
+          int16_t* input_data, const RuntimeShape& output_data_shape,
+          int16_t* output_data);
 
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const float* input_data,
-          const RuntimeShape& output_data_shape, float* output_data);
+void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
+          float* input_data, const RuntimeShape& output_data_shape,
+          float* output_data);
 
 void Mul(const RuntimeShape& shape, const ArithmeticParams& params,
          const int16_t* input1_data, const int16_t* input2_data,
@@ -168,19 +168,15 @@ void CalculateLstmGate(
   AddElementWise(gate_output, fc_output_buffer,
                  /*n_batch=*/gate_output_shape.DimsData()[0],
                  /*n_state=*/gate_output_shape.DimsData()[1], gate_output);
-
-  for (size_t i = 0; i < 4; i++) {
-    MicroPrintf("Before activation :%f", gate_output[i]);
-  }
-
   // Apply activation
   switch (activation) {
     case kTfLiteActSigmoid:
       Sigmoid(gate_output_shape, gate_output);
       break;
     case kTfLiteActTanh: {
-      Tanh(0, 0, gate_output_shape, gate_output, gate_output_shape,
-           gate_output);
+      // Set the scale power to -12 to avoid shift
+      Tanh(/*cell_state_scale_power=*/-12, gate_output_shape, gate_output,
+           gate_output_shape, gate_output);
     } break;
     default:
       // Only Sigmoid or Tanh is used.
@@ -258,20 +254,8 @@ void UpdateLstmHidden(const LstmStepManager& step_info,
       tflite::micro::GetTensorData<CellType>(cell_state) +
       step_info.CellStateOffset();
   // Tanh(cell_state)
-  {
-    int32_t tanh_input_left_shift = (15 + cell_state_scale_power) - 3;
-    if (tanh_input_left_shift < 0) /* handling negative shift value */
-    {
-      int32_t i;
-      tanh_input_left_shift = -tanh_input_left_shift;
-      for (i = 0; i < cell_state_shape.FlatSize(); i++) {
-        cell_state_data[i] = cell_state_data[i] >> tanh_input_left_shift;
-      }
-      tanh_input_left_shift = 0;
-    }
-    Tanh(0, tanh_input_left_shift, cell_state_shape, cell_state_data,
-         cell_state_shape, buffer);
-  }
+  Tanh(cell_state_scale_power, cell_state_shape, cell_state_data,
+       cell_state_shape, buffer);
   // Update the hidden state
   Mul(cell_state_shape, mul_params, buffer, output_gate_output,
       tflite::micro::GetTensorData<ActivationType>(hidden_state) +
