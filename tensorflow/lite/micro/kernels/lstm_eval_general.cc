@@ -14,14 +14,125 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/lstm_eval_general.h"
 
+#include <limits>
+
+#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/mul.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
 #include "tensorflow/lite/kernels/internal/reference/logistic.h"
+#include "tensorflow/lite/kernels/internal/reference/mul.h"
 #include "tensorflow/lite/kernels/internal/reference/tanh.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 namespace lstm_internal {
+
+const int32_t kInt16Max = std::numeric_limits<int16_t>::max();
+const int32_t kInt16Min = std::numeric_limits<int16_t>::min();
+
+void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
+                    int n_input, int16_t* output) {
+  for (int batch = 0; batch < n_batch; ++batch) {
+    for (int i = 0; i < n_input; ++i) {
+      const int index = batch * n_input + i;
+      int32_t sum = input_1[index] + input_2[index];
+      const int32_t sum_clamped = std::min(kInt16Max, std::max(kInt16Min, sum));
+      output[index] = static_cast<int16_t>(sum_clamped);
+    }
+  }
+}
+
+void AddElementWise(const float* input_1, const float* input_2, int n_batch,
+                    int n_input, float* output) {
+  for (int batch = 0; batch < n_batch; ++batch) {
+    for (int i = 0; i < n_input; ++i) {
+      const int index = batch * n_input + i;
+      output[index] = input_1[index] + input_2[index];
+    }
+  }
+}
+
+void Sigmoid(const RuntimeShape& data_shape, int16_t* data) {
+  reference_integer_ops::Logistic(
+      0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
+      data_shape.FlatSize() /*NumElements(input->dims)*/,
+      data /* tflite::micro::GetTensorData<int16_t>(input) */,
+      data /*tflite::micro::GetTensorData<int16_t>(output) */);
+}
+
+void Sigmoid(const RuntimeShape& data_shape, float* data) {
+  reference_ops::Logistic(data_shape, data, data_shape, data);
+}
+
+void Tanh(int32_t multiplier, int32_t left_shift,
+          const RuntimeShape& input_data_shape, const int16_t* input_data,
+          const RuntimeShape& output_data_shape, int16_t* output_data) {
+  reference_integer_ops::Tanh(multiplier, left_shift, input_data_shape,
+                              input_data, output_data_shape, output_data);
+}
+
+void Tanh(int32_t multiplier, int32_t left_shift,
+          const RuntimeShape& input_data_shape, const float* input_data,
+          const RuntimeShape& output_data_shape, float* output_data) {
+  reference_ops::Tanh(input_data_shape, input_data, output_data_shape,
+                      output_data);
+}
+
+// Input and output have the same shape in LSTM
+void Mul(const RuntimeShape& shape, const ArithmeticParams& params,
+         const int16_t* input1_data, const int16_t* input2_data,
+         int8_t* output_data) {
+  return reference_integer_ops::MulElementwise(
+      shape.FlatSize(), params, input1_data, input2_data, output_data);
+}
+
+// Input and output have the same shape in LSTM
+void Mul(const RuntimeShape& shape, const ArithmeticParams& params,
+         const int16_t* input1_data, const int16_t* input2_data,
+         int16_t* output_data) {
+  return reference_integer_ops::MulElementwise(
+      shape.FlatSize(), params, input1_data, input2_data, output_data);
+}
+
+// Input and output have the same shape in LSTM
+void Mul(const RuntimeShape& shape, const ArithmeticParams& params,
+         const float* input1_data, const float* input2_data,
+         float* output_data) {
+  return reference_ops::Mul(params, shape, input1_data, shape, input2_data,
+                            shape, output_data);
+}
+
+void FullyConnected(const FullyConnectedParams& params,
+                    const RuntimeShape& input_shape, const int8_t* input_data,
+                    const RuntimeShape& filter_shape, const int8_t* filter_data,
+                    const RuntimeShape& bias_shape, const int32_t* bias_data,
+                    const RuntimeShape& output_shape, int16_t* output_data) {
+  return tflite::reference_integer_ops::FullyConnected(
+      params, input_shape, input_data, filter_shape, filter_data, bias_shape,
+      bias_data, output_shape, output_data);
+}
+
+void FullyConnected(const FullyConnectedParams& params,
+                    const RuntimeShape& input_shape, const int16_t* input_data,
+                    const RuntimeShape& filter_shape, const int8_t* filter_data,
+                    const RuntimeShape& bias_shape, const int64_t* bias_data,
+                    const RuntimeShape& output_shape, int16_t* output_data) {
+  return tflite::reference_integer_ops::FullyConnected(
+      params, input_shape, input_data, filter_shape, filter_data, bias_shape,
+      bias_data, output_shape, output_data);
+}
+
+void FullyConnected(const FullyConnectedParams& params,
+                    const RuntimeShape& input_shape, const float* input_data,
+                    const RuntimeShape& filter_shape, const float* filter_data,
+                    const RuntimeShape& bias_shape, const float* bias_data,
+                    const RuntimeShape& output_shape, float* output_data) {
+  return tflite::reference_ops::FullyConnected(
+      params, input_shape, input_data, filter_shape, filter_data, bias_shape,
+      bias_data, output_shape, output_data);
+}
 
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
@@ -78,32 +189,6 @@ const RuntimeShape LstmStepManager::StateShape() const {
   const int dims[2] = {batch_size, size_info_.state_dimension};
   const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims);
   return RuntimeShape(2, dims_data);
-}
-
-void Sigmoid(const RuntimeShape& data_shape, int16_t* data) {
-  reference_integer_ops::Logistic(
-      0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
-      data_shape.FlatSize() /*NumElements(input->dims)*/,
-      data /* tflite::micro::GetTensorData<int16_t>(input) */,
-      data /*tflite::micro::GetTensorData<int16_t>(output) */);
-}
-
-void Sigmoid(const RuntimeShape& data_shape, float* data) {
-  reference_ops::Logistic(data_shape, data, data_shape, data);
-}
-
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const int16_t* input_data,
-          const RuntimeShape& output_data_shape, int16_t* output_data) {
-  reference_integer_ops::Tanh(multiplier, left_shift, input_data_shape,
-                              input_data, output_data_shape, output_data);
-}
-
-void Tanh(int32_t multiplier, int32_t left_shift,
-          const RuntimeShape& input_data_shape, const float* input_data,
-          const RuntimeShape& output_data_shape, float* output_data) {
-  reference_ops::Tanh(input_data_shape, input_data, output_data_shape,
-                      output_data);
 }
 
 }  // namespace lstm_internal

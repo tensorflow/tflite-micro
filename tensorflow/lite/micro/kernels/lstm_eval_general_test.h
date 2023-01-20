@@ -57,6 +57,13 @@ tflite::FullyConnectedParams CreateFCParams(
   return tflite::FullyConnectedParamsQuantized(data);
 }
 
+inline tflite::FullyConnectedParams CreateFCParamsFloat() {
+  FullyConnectedParams op_params;
+  CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
+                           &op_params.float_activation_max);
+  return op_params;
+}
+
 // Wrapper function to create gate parameters for the four internal LSTM gates
 template <typename CellType>
 tflite::GateParameters CreateGateParams(
@@ -74,6 +81,12 @@ tflite::GateParameters CreateGateParams(
   return gate_params;
 }
 
+inline tflite::GateParameters CreateGateParamsFloat() {
+  tflite::GateParameters gate_params = {};
+  gate_params.input_fc_params = CreateFCParamsFloat();
+  gate_params.recurrent_fc_params = CreateFCParamsFloat();
+  return gate_params;
+}
 // Create parameters for element wise multiplication that happens in a) cell
 // state update ; b) hidden state update
 // Note that all the output of gates are symmetrically quantized so only scales
@@ -266,6 +279,44 @@ OpDataLSTM CreateLstmOpData(
 }
 
 /*Test Functions Below Here*/
+template <int batch_size, int state_dimension>
+void TestCalculateLstmGateFloat(const TfLiteEvalTensor* input,
+                                const TfLiteEvalTensor* input_weight,
+                                const TfLiteEvalTensor* input_bias,
+                                // Recurrent FC
+                                const TfLiteEvalTensor* recurrent,
+                                const TfLiteEvalTensor* recurrent_weight,
+                                const TfLiteEvalTensor* recurrent_bias,
+                                // Result comparison
+                                TfLiteFusedActivation nonlinear_type,
+                                const float* expected_vals, float tolerance) {
+  float gate_output[batch_size * state_dimension] = {};
+  float fc_output_buffer[batch_size * state_dimension] = {};
+
+  tflite::GateParameters gate_params = CreateGateParamsFloat();
+
+  // Create step information: only one time step, no need to update
+  auto size_info = tflite::testing::CreateLstmSizeInfo(
+      /*time_major*/ false, input->dims, recurrent->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+
+  tflite::lstm_internal::CalculateLstmGate<float, float, float, float>(
+      step_info, gate_params,
+      // Input FC
+      input, input_weight, input_bias,
+      // Recurrent FC
+      recurrent, recurrent_weight, recurrent_bias,
+      // Output
+      gate_output,
+      // Scratch arrays
+      fc_output_buffer, nonlinear_type);
+
+  ValidateResultGoldens(expected_vals, gate_output,
+                        batch_size * state_dimension, tolerance);
+}
+
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int state_dimension>
 void TestCalculateLstmGateInteger(
@@ -296,8 +347,8 @@ void TestCalculateLstmGateInteger(
   tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // only int8 weight is supported now
-  tflite::lstm_internal::CalculateLstmGateInteger<ActivationType, WeightType,
-                                                  CellType, BiasType>(
+  tflite::lstm_internal::CalculateLstmGate<ActivationType, WeightType, CellType,
+                                           BiasType>(
       step_info, gate_params,
       // Input FC
       input, input_weight, input_bias,
@@ -370,7 +421,7 @@ void TestUpdateLstmCellInteger(
   tflite::lstm_internal::LstmStepManager step_info(&size_info);
 
   // Call the function to be tested
-  tflite::lstm_internal::UpdateLstmCellInteger<CellType>(
+  tflite::lstm_internal::UpdateLstmCell<CellType>(
       step_info, cell_state, quantized_forget_gate, quantized_input_gate,
       quantized_cell_gate, forget_cell_mul_params, input_mul_params, buffer,
       quantized_cell_clip);
@@ -426,7 +477,7 @@ void TestUpdateLstmHiddenInteger(
   auto cell_state = node_content.CellStateEvalTensor();
   auto hidden_state = node_content.HiddenStateEvalTensor();
 
-  tflite::lstm_internal::UpdateLstmHiddenInteger<CellType, ActivationType>(
+  tflite::lstm_internal::UpdateLstmHidden<CellType, ActivationType>(
       step_info, cell_state, hidden_state, quantized_output_gate, mul_params,
       cell_state_scale_power, buffer);
 
@@ -468,9 +519,8 @@ void TestLstmStepInteger(
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
   tflite::lstm_internal::LstmStepManager step_info(&op_data.size_info);
-  tflite::lstm_internal::LstmStepInteger<ActivationType, WeightType, CellType,
-                                         BiasType>(step_info, op_data,
-                                                   kernel_content);
+  tflite::lstm_internal::LstmStep<ActivationType, WeightType, CellType,
+                                  BiasType>(step_info, op_data, kernel_content);
 
   const auto& quantization_settings = node_contents.QuantizationSettings();
   float dequantized_hidden_state[batch_size * state_dimension] = {};
@@ -519,7 +569,7 @@ void TestEvalLstmInteger(
 
   OpDataLSTM op_data = CreateLstmOpData(node_contents);
 
-  tflite::EvalLstmInteger<ActivationType, WeightType, CellType, BiasType>(
+  tflite::EvalLstm<ActivationType, WeightType, CellType, BiasType>(
       op_data, kernel_content);
 
   const auto& quantization_settings = node_contents.QuantizationSettings();
