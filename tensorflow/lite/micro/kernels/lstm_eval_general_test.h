@@ -115,6 +115,13 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
+inline tflite::ArithmeticParams CreateInterGateMulParamsFloat() {
+  tflite::ArithmeticParams op_params = {};
+  CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
+                           &op_params.float_activation_max);
+  return op_params;
+}
+
 // Create the additional information about the cell state, which include:
 // cell_state_scale_power: used in integer nonlinear function (e.g., tanh)
 // quantized_cell_clip: quantized cell clip range
@@ -365,6 +372,46 @@ void TestCalculateLstmGateInteger(
              gate_output_float);
 
   ValidateResultGoldens(expected_vals, gate_output_float,
+                        batch_size * state_dimension, tolerance);
+}
+
+template <int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+void TestUpdateLstmCellFloat(
+    const GateOutputCheckData<batch_size * input_dimension,
+                              batch_size * state_dimension>& gate_output_data,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_content,
+    const float tolerance) {
+  float buffer[batch_size * state_dimension] = {};
+
+  auto forget_cell_mul_params = CreateInterGateMulParamsFloat();
+  auto input_mul_params = CreateInterGateMulParamsFloat();
+
+  auto cell_state = node_content.CellStateEvalTensor();
+  // Create step information: only one time step, no need to update
+  auto size_info = tflite::testing::CreateLstmSizeInfo(
+      /*time_major*/ false,
+      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      node_content.HiddenStateEvalTensor()->dims);
+  // revise time_major = true to enable batch inference
+  size_info.time_major = true;
+  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+
+  // copy the data since it will be updated
+  float forget_gate[batch_size * state_dimension] = {};
+  std::memcpy(forget_gate, gate_output_data.expected_forget_gate_output,
+              batch_size * state_dimension * sizeof(float));
+
+  // Call the function to be tested
+  tflite::lstm_internal::UpdateLstmCell<float>(
+      step_info, cell_state, forget_gate,
+      gate_output_data.expected_input_gate_output,
+      gate_output_data.expected_cell_gate_output, forget_cell_mul_params,
+      input_mul_params, buffer, node_content.BuiltinData().cell_clip);
+
+  ValidateResultGoldens(gate_output_data.expected_updated_cell,
+                        tflite::micro::GetTensorData<float>(cell_state),
                         batch_size * state_dimension, tolerance);
 }
 
