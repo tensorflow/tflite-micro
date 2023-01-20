@@ -14,6 +14,10 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/lstm_eval_general.h"
 
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
+#include "tensorflow/lite/kernels/internal/reference/logistic.h"
+#include "tensorflow/lite/kernels/internal/reference/tanh.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
@@ -74,6 +78,32 @@ const RuntimeShape LstmStepManager::StateShape() const {
   const int dims[2] = {batch_size, size_info_.state_dimension};
   const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims);
   return RuntimeShape(2, dims_data);
+}
+
+void Sigmoid(const RuntimeShape& data_shape, int16_t* data) {
+  reference_integer_ops::Logistic(
+      0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
+      data_shape.FlatSize() /*NumElements(input->dims)*/,
+      data /* tflite::micro::GetTensorData<int16_t>(input) */,
+      data /*tflite::micro::GetTensorData<int16_t>(output) */);
+}
+
+void Sigmoid(const RuntimeShape& data_shape, float* data) {
+  reference_ops::Logistic(data_shape, data, data_shape, data);
+}
+
+void Tanh(int32_t multiplier, int32_t left_shift,
+          const RuntimeShape& input_data_shape, const int16_t* input_data,
+          const RuntimeShape& output_data_shape, int16_t* output_data) {
+  reference_integer_ops::Tanh(multiplier, left_shift, input_data_shape,
+                              input_data, output_data_shape, output_data);
+}
+
+void Tanh(int32_t multiplier, int32_t left_shift,
+          const RuntimeShape& input_data_shape, const float* input_data,
+          const RuntimeShape& output_data_shape, float* output_data) {
+  reference_ops::Tanh(input_data_shape, input_data, output_data_shape,
+                      output_data);
 }
 
 }  // namespace lstm_internal
