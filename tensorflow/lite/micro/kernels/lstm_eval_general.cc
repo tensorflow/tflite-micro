@@ -144,6 +144,23 @@ void FullyConnected(const FullyConnectedParams& params,
       bias_data, output_shape, output_data);
 }
 
+void Clipping(const int v_size, const CellStateInfo& cell_state_info,
+              int16_t* vector) {
+  for (int i = 0; i < v_size; i++) {
+    vector[i] =
+        std::max(std::min(cell_state_info.quantized_cell_clip, vector[i]),
+                 static_cast<int16_t>(-cell_state_info.quantized_cell_clip));
+  }
+}
+
+void Clipping(const int v_size, const CellStateInfo& cell_state_info,
+              float* vector) {
+  for (int i = 0; i < v_size; i++) {
+    vector[i] = std::max(std::min(cell_state_info.cell_clip, vector[i]),
+                         -cell_state_info.cell_clip);
+  }
+}
+
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
 void LstmStepManager::UpdateTime() {
