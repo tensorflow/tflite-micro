@@ -409,6 +409,17 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt16) {
       int16_node_contents);
 }
 
+TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
+      float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+
+  tflite::testing::TestEvalLstmFloat(kernel_eval_data, kTestFloatTolerance,
+                                     kTestFloatTolerance, float_node_contents);
+}
+
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
       tflite::testing::Get2X2LstmEvalCheckData();

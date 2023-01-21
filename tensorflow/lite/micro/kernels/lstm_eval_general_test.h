@@ -700,6 +700,46 @@ void TestLstmStepInteger(
                         cell_state_tolerance);
 }
 
+template <int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+void TestEvalLstmFloat(
+    const LstmEvalCheckData<
+        batch_size * time_steps * input_dimension, batch_size * state_dimension,
+        batch_size * state_dimension * time_steps>& eval_check_data,
+    const float hidden_state_tolerance, const float cell_state_tolerance,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_contents) {
+  // Mimicking the kernel preparation phase, node_contents approximate the node
+  LSTMKernelContents kernel_content = CreateLSTMKernelContent(node_contents);
+  // Scratch buffers on the stack
+  LSTMBuffers<float> buffers;
+  float buffer0[batch_size * state_dimension] = {};
+  buffers.buffer0 = buffer0;
+  float buffer1[batch_size * state_dimension] = {};
+  buffers.buffer1 = buffer1;
+  float buffer2[batch_size * state_dimension] = {};
+  buffers.buffer2 = buffer2;
+  float buffer3[batch_size * state_dimension] = {};
+  buffers.buffer3 = buffer3;
+
+  OpDataLSTM op_data = CreateLstmOpDataFloat(node_contents);
+
+  tflite::EvalLstm<float, float, float, float>(op_data, kernel_content,
+                                               buffers);
+
+  ValidateResultGoldens(eval_check_data.expected_hidden_state,
+                        node_contents.GetHiddenStateData(),
+                        batch_size * state_dimension, hidden_state_tolerance);
+
+  ValidateResultGoldens(eval_check_data.expected_cell_state,
+                        node_contents.GetCellStateData(),
+                        batch_size * state_dimension, cell_state_tolerance);
+
+  ValidateResultGoldens(eval_check_data.expected_output,
+                        node_contents.GetOutputData(),
+                        batch_size * state_dimension, hidden_state_tolerance);
+}
+
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
