@@ -3,16 +3,18 @@
 #
 # Helpful YAML parser to clarify YAML syntax:
 # https://yaml-online-parser.appspot.com/
+#
+# This file can not be run stand-alone. It is called from tests_entry.yml as part of
+# the ci automation.
 
 name: Cortex-M on Arm Virtual Hardware
 
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
-  schedule:
-    - cron: '0 4 * * *'
-
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
 
 env:
   AWS_DEFAULT_REGION: eu-west-1
@@ -20,16 +22,12 @@ env:
   AWS_IAM_PROFILE: Proj-s3-orta-vht-role
   AWS_SECURITY_GROUP_ID: sg-03afe5ec007b4bcb0
   AWS_SUBNET_ID: subnet-025b7baebd743a68b
+
 jobs:
-  cortex_m_generic:
+  cortex_m_generic_armclang:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-    name: Cortex-M Generic
+
+    name: Cortex-M Generic Armclang
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
@@ -51,13 +49,10 @@ jobs:
         run: |
           cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic.log
 
-
-  cortex_m_corstone_300:
+  cortex_m_corstone_300_armclang:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-    name: Cortex-M Corstone 300 (FVP)
+
+    name: Cortex-M Corstone 300 (FVP) Armclang
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.10
