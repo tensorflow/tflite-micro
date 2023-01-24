@@ -24,10 +24,10 @@ limitations under the License.
 namespace tflite {
 namespace reference_integer_ops {
 
-template <typename T>
-inline void MulElementwise(int size, const ArithmeticParams& params,
-                           const T* input1_data, const T* input2_data,
-                           T* output_data) {
+template <typename InputType, typename OutputType>
+void MulElementwise(int size, const ArithmeticParams& params,
+                    const InputType* input1_data, const InputType* input2_data,
+                    OutputType* output_data) {
   for (int i = 0; i < size; ++i) {
     const int32_t input1_val = params.input1_offset + input1_data[i];
     const int32_t input2_val = params.input2_offset + input2_data[i];
@@ -39,7 +39,7 @@ inline void MulElementwise(int size, const ArithmeticParams& params,
     const int32_t clamped_output =
         std::min(params.quantized_activation_max,
                  std::max(params.quantized_activation_min, unclamped_result));
-    output_data[i] = static_cast<T>(clamped_output);
+    output_data[i] = static_cast<OutputType>(clamped_output);
   }
 }
 
@@ -125,26 +125,6 @@ inline void BroadcastMul4DSlow(
         }
       }
     }
-  }
-}
-
-template <typename InputType, typename OutputType>
-inline void MulElementwiseGeneral(int size, const ArithmeticParams& params,
-                                  const InputType* input1_data,
-                                  const InputType* input2_data,
-                                  OutputType* output_data) {
-  for (int i = 0; i < size; ++i) {
-    const int32_t input1_val = params.input1_offset + input1_data[i];
-    const int32_t input2_val = params.input2_offset + input2_data[i];
-    const int32_t unclamped_result =
-        params.output_offset +
-        MultiplyByQuantizedMultiplier(input1_val * input2_val,
-                                      params.output_multiplier,
-                                      params.output_shift);
-    const int32_t clamped_output =
-        std::min(params.quantized_activation_max,
-                 std::max(params.quantized_activation_min, unclamped_result));
-    output_data[i] = static_cast<OutputType>(clamped_output);
   }
 }
 

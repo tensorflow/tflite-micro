@@ -91,6 +91,7 @@ struct LstmSizeInfo {
 
 // Contains information about the cell state tensor
 struct CellStateInfo {
+  float cell_clip;
   // clipping range for cell state only 16 bits cell is supported (could be
   // generalized through templatation)
   int16_t quantized_cell_clip;
@@ -134,13 +135,15 @@ struct LSTMKernelContents {
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];
   TfLiteEvalTensor* output_tensor;
+};
 
-  // TFLM buffers requires buffer index from LstmOpData. (only 16bits cell state
-  // is supported)
-  int16_t* buffer0;
-  int16_t* buffer1;
-  int16_t* buffer2;
-  int16_t* buffer3;
+template <typename CellType>
+struct LSTMBuffers {
+  // TFLM buffers requires buffer index from LstmOpData.
+  CellType* buffer0;
+  CellType* buffer1;
+  CellType* buffer2;
+  CellType* buffer3;
 };
 
 }  // namespace tflite
