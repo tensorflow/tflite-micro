@@ -483,6 +483,7 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
   auto cell_state_type =
       lstm_tensors.GetInternalTensor(kLstmCellStateTensor)->type;
   if (cell_state_type == kTfLiteFloat32) {
+    MicroPrintf("Prepared Float!");
     TF_LITE_ENSURE_OK(
         context, PrepareGateParametersFloat(context, lstm_tensors, op_data));
   } else if (cell_state_type == kTfLiteInt16) {

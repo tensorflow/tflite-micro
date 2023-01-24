@@ -25,6 +25,7 @@ limitations under the License.
 
 namespace tflite {
 namespace testing {
+namespace {
 // Validate the output result array with golden values
 template <typename T>
 void ValidateResultGoldens(const T* golden, const T* output_data,
@@ -37,7 +38,7 @@ void ValidateResultGoldens(const T* golden, const T* output_data,
 template <typename ActivationType, typename WeightType, typename BiasType,
           typename CellType, int batch_size, int time_steps,
           int input_dimension, int state_dimension>
-void TestUnidirectionalLSTM(
+void TestUnidirectionalLSTMInteger(
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
@@ -83,6 +84,38 @@ void TestUnidirectionalLSTM(
   ValidateResultGoldens(eval_check_data.expected_output, dequantized_output,
                         batch_size * state_dimension, hidden_state_tolerance);
 }
+
+template <int batch_size, int time_steps, int input_dimension,
+          int state_dimension>
+void TestUnidirectionalLSTMFloat(
+    const LstmEvalCheckData<
+        batch_size * time_steps * input_dimension, batch_size * state_dimension,
+        batch_size * state_dimension * time_steps>& eval_check_data,
+    const float hidden_state_tolerance, const float cell_state_tolerance,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_contents) {
+  const TfLiteRegistration registration =
+      Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTEGER();
+  auto buildin_data = node_contents.BuiltinData();
+  micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
+                             node_contents.KernelInputs(),
+                             node_contents.KernelOutputs(),
+                             reinterpret_cast<void*>(&buildin_data));
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  ValidateResultGoldens(eval_check_data.expected_hidden_state,
+                        node_contents.GetHiddenStateData(),
+                        batch_size * state_dimension, hidden_state_tolerance);
+  ValidateResultGoldens(eval_check_data.expected_cell_state,
+                        node_contents.GetCellStateData(),
+                        batch_size * state_dimension, cell_state_tolerance);
+  ValidateResultGoldens(eval_check_data.expected_output,
+                        node_contents.GetOutputData(),
+                        batch_size * state_dimension, hidden_state_tolerance);
+}
+
+}  // namespace
 }  // namespace testing
 }  // namespace tflite
 
@@ -90,6 +123,17 @@ TF_LITE_MICRO_TESTS_BEGIN
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
 #if !defined(XTENSA)
+TF_LITE_MICRO_TEST(TestUnidirectionalLSTMFloat) {
+  const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
+      tflite::testing::Get2X2LstmEvalCheckData();
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
+      float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
+          kernel_eval_data.input_data, kernel_eval_data.hidden_state);
+
+  const float tolerance = 1e-6;
+  tflite::testing::TestUnidirectionalLSTMFloat(kernel_eval_data, tolerance,
+                                               tolerance, float_node_contents);
+}
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
@@ -101,7 +145,7 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
   const float hidden_state_tolerance = 1e-2;
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-2;
-  tflite::testing::TestUnidirectionalLSTM(
+  tflite::testing::TestUnidirectionalLSTMInteger(
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int8_node_contents);
 }
@@ -117,7 +161,7 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
   const float hidden_state_tolerance = 1e-3;  // actually very close to 1e-4
   // cell state degrade due to integer overflow
   const float cell_state_tolerance = 1e-2;
-  tflite::testing::TestUnidirectionalLSTM(
+  tflite::testing::TestUnidirectionalLSTMInteger(
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int16_node_contents);
 }
