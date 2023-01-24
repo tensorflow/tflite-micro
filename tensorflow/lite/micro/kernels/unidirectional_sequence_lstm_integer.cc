@@ -315,8 +315,7 @@ CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
 }
 
 LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
-                                           TfLiteNode* node,
-                                           const int* buffer_indices) {
+                                           TfLiteNode* node) {
   LSTMKernelContents kernel_content;
   // Point to correct tensors
   for (size_t i = 0; i < 24; i++) {
@@ -325,16 +324,22 @@ LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
   }
   // Output tensor
   kernel_content.output_tensor = tflite::micro::GetEvalOutput(context, node, 0);
-  // buffers
-  kernel_content.buffer0 = reinterpret_cast<int16_t*>(
-      context->GetScratchBuffer(context, buffer_indices[0]));
-  kernel_content.buffer1 = reinterpret_cast<int16_t*>(
-      context->GetScratchBuffer(context, buffer_indices[1]));
-  kernel_content.buffer2 = reinterpret_cast<int16_t*>(
-      context->GetScratchBuffer(context, buffer_indices[2]));
-  kernel_content.buffer3 = reinterpret_cast<int16_t*>(
-      context->GetScratchBuffer(context, buffer_indices[3]));
   return kernel_content;
+}
+
+template <typename CellType>
+LSTMBuffers<CellType> CreateLSTMBuffers(TfLiteContext* context,
+                                        const int* buffer_indices) {
+  LSTMBuffers<CellType> buffers;
+  buffers.buffer0 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[0]));
+  buffers.buffer1 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[1]));
+  buffers.buffer2 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[2]));
+  buffers.buffer3 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[3]));
+  return buffers;
 }
 
 /*Kernel functions*/
@@ -441,8 +446,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
                                             TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataLSTM& op_data = *reinterpret_cast<OpDataLSTM*>(node->user_data);
-  auto kernel_content =
-      CreateLSTMKernelContent(context, node, op_data.buffer_indices);
+  auto kernel_content = CreateLSTMKernelContent(context, node);
 
   const auto activation_type =
       kernel_content.internal_tensors[kLstmInputTensor]->type;
@@ -454,8 +458,10 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
       switch (weight_type) {
         case kTfLiteInt8: {
           // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
-          EvalLstmInteger<int8_t, int8_t, int16_t, int32_t>(op_data,
-                                                            kernel_content);
+          LSTMBuffers<int16_t> buffers =
+              CreateLSTMBuffers<int16_t>(context, op_data.buffer_indices);
+          EvalLstm<int8_t, int8_t, int16_t, int32_t>(op_data, kernel_content,
+                                                     buffers);
           break;
         }
         default: {
@@ -471,8 +477,10 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
       switch (weight_type) {
         case kTfLiteInt8: {
           // 16(activation)x8(weight)->16(cell) LSTM with 64 bits bias
-          EvalLstmInteger<int16_t, int8_t, int16_t, int64_t>(op_data,
-                                                             kernel_content);
+          LSTMBuffers<int16_t> buffers =
+              CreateLSTMBuffers<int16_t>(context, op_data.buffer_indices);
+          EvalLstm<int16_t, int8_t, int16_t, int64_t>(op_data, kernel_content,
+                                                      buffers);
           break;
         }
         default: {
