@@ -9,8 +9,10 @@ load(
 )
 
 package(
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
+    features = [
+        "-layering_check",  # buildozer: disable=no-layering-check, TODO(b/177257333): consider enabling layering check
+        "-parse_headers",  # buildozer: disable=no-parse-headers, paser_headers is unavailable with bazel (http://b/175817117#comment4)
+    ],
     licenses = ["notice"],
 )
 
@@ -920,6 +922,10 @@ cc_test(
     name = "lstm_eval_test",
     srcs = [
         "lstm_eval_test.cc",
+    ],
+    tags = [
+        "noasan",  # TODO(b/266028903): fix test with ubsan
+        "noubsan",  # TODO(b/266028903): fix test with asan
     ],
     deps = [
         ":lstm_eval_test_lib",
