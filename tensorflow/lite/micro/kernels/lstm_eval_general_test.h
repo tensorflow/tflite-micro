@@ -20,7 +20,7 @@ limitations under the License.
 #include <limits>
 
 #include "tensorflow/lite/micro/kernels/lstm_eval_general.h"
-#include "tensorflow/lite/micro/kernels/lstm_eval_test.h"
+#include "tensorflow/lite/micro/kernels/lstm_eval_internal_test.h"
 namespace tflite {
 namespace testing {
 

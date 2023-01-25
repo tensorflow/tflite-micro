@@ -25,9 +25,11 @@ namespace {
 // Only UnidirectionalLSTM is supported now
 constexpr TfLiteUnidirectionalSequenceLSTMParams kDefaultBuiltinData = {
     /*.activation=*/kTfLiteActTanh,
-    /*.cell_clip=*/6, /*.proj_clip=*/3,
+    /*.cell_clip=*/6,
+    /*.proj_clip=*/3,
     /*.time_major=*/false,
-    /*.asymmetric_quantize_inputs=*/true};
+    /*.asymmetric_quantize_inputs=*/true,
+    /*diagonal_recurrent_tensors=*/false};
 }  // namespace
 
 GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
