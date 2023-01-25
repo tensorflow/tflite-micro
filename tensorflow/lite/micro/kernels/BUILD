@@ -129,7 +129,7 @@ cc_library(
 cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
-        "lstm_eval_general_test.h",
+        "lstm_eval_test.h",
         "lstm_eval_internal_test.h",
     ],
     deps = [
@@ -228,7 +228,7 @@ tflm_kernel_cc_library(
         "logistic.cc",
         "logistic_common.cc",
         "lstm_eval_internal.cc",
-        "lstm_eval_general.cc",
+        "lstm_eval.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",
@@ -269,7 +269,7 @@ tflm_kernel_cc_library(
         "transpose.cc",
         "transpose_conv.cc",
         "unidirectional_sequence_lstm_internal.cc",
-        "unidirectional_sequence_lstm_integer.cc",
+        "unidirectional_sequence_lstm.cc",
         "unpack.cc",
         "var_handle.cc",
         "while.cc",
@@ -289,7 +289,7 @@ tflm_kernel_cc_library(
         "logical.h",
         "logistic.h",
         "lstm_eval_internal.h",
-        "lstm_eval_general.h",
+        "lstm_eval.h",
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
@@ -929,9 +929,9 @@ cc_test(
 )
 
 cc_test(
-    name = "lstm_eval_general_test",
+    name = "lstm_eval_test",
     srcs = [
-        "lstm_eval_general_test.cc",
+        "lstm_eval_test.cc",
     ],
     deps = [
         ":lstm_eval_test_lib",
@@ -1382,9 +1382,9 @@ cc_test(
 )
 
 cc_test(
-    name = "unidirectional_sequence_lstm_integer_test",
+    name = "unidirectional_sequence_lstm_test",
     srcs = [
-        "unidirectional_sequence_lstm_integer_test.cc",
+        "unidirectional_sequence_lstm_test.cc",
     ],
     deps = [
         ":kernel_runner",
