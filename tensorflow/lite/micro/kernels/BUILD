@@ -129,8 +129,8 @@ cc_library(
 cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
-        "lstm_eval_test.h",
         "lstm_eval_internal_test.h",
+        "lstm_eval_test.h",
     ],
     deps = [
         ":kernel_util",
@@ -227,8 +227,8 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
-        "lstm_eval_internal.cc",
         "lstm_eval.cc",
+        "lstm_eval_internal.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",
@@ -268,8 +268,8 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
-        "unidirectional_sequence_lstm_internal.cc",
         "unidirectional_sequence_lstm.cc",
+        "unidirectional_sequence_lstm_internal.cc",
         "unpack.cc",
         "var_handle.cc",
         "while.cc",
