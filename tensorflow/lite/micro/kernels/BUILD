@@ -9,10 +9,8 @@ load(
 )
 
 package(
-    features = [
-        "-layering_check",  # buildozer: disable=no-layering-check, TODO(b/177257333): consider enabling layering check
-        "-parse_headers",  # buildozer: disable=no-parse-headers, paser_headers is unavailable with bazel (http://b/175817117#comment4)
-    ],
+    # Disabling layering_check because of http://b/177257332
+    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -132,7 +130,7 @@ cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_general_test.h",
-        "lstm_eval_test.h",
+        "lstm_eval_internal_test.h",
     ],
     deps = [
         ":kernel_util",
@@ -229,7 +227,7 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
-        "lstm_eval.cc",
+        "lstm_eval_internal.cc",
         "lstm_eval_general.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
@@ -270,7 +268,7 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
-        "unidirectional_sequence_lstm.cc",
+        "unidirectional_sequence_lstm_internal.cc",
         "unidirectional_sequence_lstm_integer.cc",
         "unpack.cc",
         "var_handle.cc",
@@ -290,7 +288,7 @@ tflm_kernel_cc_library(
         "leaky_relu.h",
         "logical.h",
         "logistic.h",
-        "lstm_eval.h",
+        "lstm_eval_internal.h",
         "lstm_eval_general.h",
         "lstm_shared.h",
         "micro_ops.h",
@@ -360,9 +358,9 @@ tflm_kernel_cc_library(
 )
 
 cc_library(
-    name = "unidirectional_sequence_lstm_test_config",
-    srcs = ["unidirectional_sequence_lstm_test_config.cc"],
-    hdrs = ["unidirectional_sequence_lstm_test_config.h"],
+    name = "unidirectional_sequence_lstm_internal_test_config",
+    srcs = ["unidirectional_sequence_lstm_internal_test_config.cc"],
+    hdrs = ["unidirectional_sequence_lstm_internal_test_config.h"],
     deps = ["//tensorflow/lite/c:common"],
 )
 
@@ -919,13 +917,9 @@ cc_test(
 )
 
 cc_test(
-    name = "lstm_eval_test",
+    name = "lstm_eval_internal_test",
     srcs = [
-        "lstm_eval_test.cc",
-    ],
-    tags = [
-        "noasan",  # TODO(b/266028903): fix test with ubsan
-        "noubsan",  # TODO(b/266028903): fix test with asan
+        "lstm_eval_internal_test.cc",
     ],
     deps = [
         ":lstm_eval_test_lib",
@@ -1370,9 +1364,9 @@ cc_test(
 )
 
 cc_test(
-    name = "unidirectional_sequence_lstm_test",
+    name = "unidirectional_sequence_lstm_internal_test",
     srcs = [
-        "unidirectional_sequence_lstm_test.cc",
+        "unidirectional_sequence_lstm_internal_test.cc",
     ],
     deps = [
         ":kernel_runner",
@@ -1382,7 +1376,7 @@ cc_test(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_test_config",
+        "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_internal_test_config",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -1396,7 +1390,6 @@ cc_test(
         ":kernel_runner",
         ":lstm_eval_test_lib",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",

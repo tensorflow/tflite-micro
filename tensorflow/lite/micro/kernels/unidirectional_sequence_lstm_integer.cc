@@ -573,7 +573,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
 
 }  // namespace
 
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTEGER() {
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
   return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
                                    UnidirectionalSequenceLstmPrepare,
                                    UnidirectionalSequenceLstmEval);
