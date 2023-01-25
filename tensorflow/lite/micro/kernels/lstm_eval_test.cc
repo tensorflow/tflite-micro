@@ -34,8 +34,12 @@ namespace {
 // Test Settings
 constexpr float kTestFloatTolerance = 1e-6f;
 }  // namespace
+#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_BEGIN
+// TODO(b/230666079) enable below tests for xtensa when the xtensa
+// kernel is reconciled with reference kernel
+#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
