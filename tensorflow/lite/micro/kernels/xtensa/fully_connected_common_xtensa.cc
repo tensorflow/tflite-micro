@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,42 +17,32 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
 
 namespace tflite {
 
-const int kFullyConnectedInputTensor = 0;
-const int kFullyConnectedWeightsTensor = 1;
-const int kFullyConnectedBiasTensor = 2;
-const int kFullyConnectedOutputTensor = 0;
-
-FullyConnectedParams FullyConnectedParamsQuantized(
-    const OpDataFullyConnected& op_data) {
-  FullyConnectedParams op_params;
-  op_params.input_offset = -op_data.input_zero_point;
-  op_params.weights_offset = -op_data.filter_zero_point;
-  op_params.output_offset = op_data.output_zero_point;
-  op_params.output_multiplier = op_data.output_multiplier;
-  op_params.output_shift = op_data.output_shift;
-  op_params.quantized_activation_min = op_data.output_activation_min;
-  op_params.quantized_activation_max = op_data.output_activation_max;
-  return op_params;
+void* XtensaInitFullyConnected(TfLiteContext* context, const char* buffer,
+                               size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+#if !defined(VISION_P6)
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(OpDataFullyConnected));
+#else
+  void* data = context->AllocatePersistentBuffer(
+      context, sizeof(XtensaFullyConnectedOpData));
+#if !defined(HIFIMINI)
+  if (InitXtensaContext()) {
+    return nullptr;
+  }
+#endif
+  return data;
+#endif  // defined(VISION_P6)
 }
 
-FullyConnectedParams FullyConnectedParamsFloat(
-    TfLiteFusedActivation activation) {
-  FullyConnectedParams op_params;
-  CalculateActivationRange(activation, &op_params.float_activation_min,
-                           &op_params.float_activation_max);
-  return op_params;
-}
-
-TfLiteStatus CalculateOpDataFullyConnected(
+TfLiteStatus XtensaCalculateOpDataFullyConnected(
     TfLiteContext* context, TfLiteFusedActivation activation,
     TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
     const TfLiteTensor* bias, TfLiteTensor* output,
@@ -61,8 +51,18 @@ TfLiteStatus CalculateOpDataFullyConnected(
     double real_multiplier = 0.0;
     TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
         context, input, filter, bias, output, &real_multiplier));
+#if defined(HIFIMINI)
+    if (input->type == kTfLiteInt8) {
+      QuantizeMultiplierForInt24(real_multiplier, &data->output_multiplier,
+                                 &data->output_shift);
+    } else {
+      QuantizeMultiplier(real_multiplier, &data->output_multiplier,
+                         &data->output_shift);
+    }
+#else
     QuantizeMultiplier(real_multiplier, &data->output_multiplier,
                        &data->output_shift);
+#endif
 
     // Filter weights will always be symmetric quantized since we only support
     // int8 quantization. See
