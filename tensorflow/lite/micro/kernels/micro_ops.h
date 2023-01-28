@@ -42,6 +42,7 @@ TfLiteRegistration Register_BROADCAST_ARGS();
 TfLiteRegistration Register_BROADCAST_TO();
 TfLiteRegistration Register_CALL_ONCE();
 TfLiteRegistration Register_CAST();
+TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
 TfLiteRegistration* Register_CIRCULAR_BUFFER();
 TfLiteRegistration Register_CUMSUM();
@@ -100,7 +101,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_CEIL();
 TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
 TfLiteRegistration Register_EQUAL();
