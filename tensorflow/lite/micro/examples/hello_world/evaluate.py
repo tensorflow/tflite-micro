@@ -39,8 +39,8 @@ def invoke_tflite_interpreter(input_shape, interpreter, x_quantized,
 def generate_random_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
-  x_values = np.random.uniform(
-      low=0, high=2 * np.pi, size=sample_count).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * np.pi,
+                               size=sample_count).astype(np.float32)
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
   return x_values
@@ -71,12 +71,11 @@ def get_tflm_prediction(tflm_interpreter, x_values):
   for x_value in x_values:
     # Quantize the input from floating-point to integer
     x_quantized = np.int8((x_value / input_scale) + input_zero_point)
-    y_quantized = invoke_tflm_interpreter(
-        input_shape,
-        tflm_interpreter,
-        x_quantized,
-        input_index=0,
-        output_index=0)
+    y_quantized = invoke_tflm_interpreter(input_shape,
+                                          tflm_interpreter,
+                                          x_quantized,
+                                          input_index=0,
+                                          output_index=0)
     y_predictions[i] = float((y_quantized - output_zero_point) * output_scale)
     i += 1
     # print("x : {} y_pred : {} y_expected : {}".format(x_value, y_pred, y_expected))
@@ -98,7 +97,8 @@ def get_tflite_prediction(tflite_interpreter, x_values):
   for x_value in x_values:
     x_quantized = np.int8((x_value / input_scale) + input_zero_point)
     y_quantized = invoke_tflite_interpreter(input_shape, tflite_interpreter,
-                                            x_quantized, input_details['index'],
+                                            x_quantized,
+                                            input_details['index'],
                                             output_details['index'])
     y_predictions[i] = float((y_quantized - output_zero_point) * output_scale)
     i += 1

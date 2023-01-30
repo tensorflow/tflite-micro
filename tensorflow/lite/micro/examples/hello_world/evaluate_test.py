@@ -62,12 +62,11 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
     input_shape = np.array(input_details.get('shape'))
 
     x_quantized = np.int8((x_value / input_scale[0]) + input_zero_point[0])
-    y_quantized = evaluate.invoke_tflm_interpreter(
-        input_shape,
-        self.tflm_interpreter,
-        x_quantized,
-        input_index=0,
-        output_index=0)
+    y_quantized = evaluate.invoke_tflm_interpreter(input_shape,
+                                                   self.tflm_interpreter,
+                                                   x_quantized,
+                                                   input_index=0,
+                                                   output_index=0)
     y_pred = float((y_quantized - output_zero_point[0]) * output_scale[0])
     epsilon = 0.05
     self.assertNear(
