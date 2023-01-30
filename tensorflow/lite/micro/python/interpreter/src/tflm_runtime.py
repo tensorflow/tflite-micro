@@ -44,7 +44,7 @@ class Interpreter(object):
         model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
+  def from_file(cls, model_path, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -63,10 +63,10 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return cls(model_data, custom_op_registerers, arena_size)
 
   @classmethod
-  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
+  def from_bytes(cls, model_data, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -80,7 +80,7 @@ class Interpreter(object):
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return cls(model_data, custom_op_registerers, arena_size)
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.
