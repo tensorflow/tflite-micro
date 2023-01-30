@@ -22,7 +22,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":error_reporter",
-        ":error_reporter_macro",
         ":op_resolver",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -48,23 +47,10 @@ cc_library(
     ],
     deps = [
         ":error_reporter",
-        ":error_reporter_macro",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
-    ],
-)
-
-cc_library(
-    name = "error_reporter_macro",
-    hdrs = ["error_reporter_macro.h"],
-    copts = tflite_copts() + micro_copts(),
-    visibility = [
-        "//tensorflow/lite/core/api:__pkg__",
-    ],
-    deps = [
-        ":error_reporter",
     ],
 )
 

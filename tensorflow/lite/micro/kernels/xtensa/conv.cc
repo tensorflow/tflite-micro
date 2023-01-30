@@ -48,7 +48,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
 #endif
 #if defined(VISION_P6)
@@ -64,8 +64,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5) || \
-    defined(VISION_P6)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
@@ -78,27 +76,54 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       (NumInputs(node) == 3)
           ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
           : nullptr;
-#endif
 
   switch (input->type) {
     case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      ConvEvalHifi(context, node, params, op_data, input, filter, bias, output);
+      switch (filter->type) {
+        case kTfLiteInt8: {
+#if defined(HIFI4) || defined(HIFI5)
+          ConvEvalHifi(context, node, params, op_data, input, filter, bias,
+                       output);
 #elif defined(VISION_P6)
-      return ConvEvalVision(context, node, params, op_data, input, filter, bias,
-                            output);
+          return ConvEvalVision(context, node, params, op_data, input, filter,
+                                bias, output);
 #else
-      return ConvReferenceEvalInt8(context, node);
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
-      break;
+          return ConvReferenceEvalInt8(context, node);
+#endif
+          break;
+        }
+        case kTfLiteInt4: {
+          int8_t* unpacked_filter_data =
+              static_cast<int8_t*>(context->GetScratchBuffer(
+                  context, op_data.reference_op_data.filter_buffer_index));
+          reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
+              ConvParamsQuantized(params, op_data.reference_op_data),
+              op_data.reference_op_data.per_channel_output_multiplier,
+              op_data.reference_op_data.per_channel_output_shift,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int8_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(filter),
+              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int32_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+        default:
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type);
+          return kTfLiteError;
+      }
+      return kTfLiteOk;
     }
     case kTfLiteInt16: {
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       ConvEvalHifi16(context, node, params, op_data, input, filter, bias,
                      output);
 #else
       return ConvReferenceEvalInt16(context, node);
-#endif  // defined(HIFI4_INTERNAL)
+#endif  // defined(HIFI4)
       break;
     }
     default:

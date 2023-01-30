@@ -12,29 +12,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_MICRO_UTILS_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_MICRO_UTILS_H_
+#ifndef TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_MICRO_ERROR_REPORTER_H_
+#define TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_MICRO_ERROR_REPORTER_H_
+
+#include <cstdarg>
+
+#include "tensorflow/lite/core/api/error_reporter.h"
+#include "tensorflow/lite/micro/compatibility.h"
+
 namespace tflite {
-namespace ops {
-namespace micro {
+// Get a pointer to a singleton global error reporter.
+ErrorReporter* GetMicroErrorReporter();
+class MicroErrorReporter : public ErrorReporter {
+ public:
+  ~MicroErrorReporter() override {}
+  int Report(const char* format, va_list args) override;
 
-// Same as gtl::Greater but defined here to reduce dependencies and
-// binary size for micro environment.
-struct Greater {
-  template <typename T>
-  bool operator()(const T& x, const T& y) const {
-    return x > y;
-  }
+ private:
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
-struct Less {
-  template <typename T>
-  bool operator()(const T& x, const T& y) const {
-    return x < y;
-  }
-};
-
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_MICRO_UTILS_H_
+
+#endif  // TENSORFLOW_LITE_MICRO_TFLITE_BRIDGE_MICRO_ERROR_REPORTER_H_

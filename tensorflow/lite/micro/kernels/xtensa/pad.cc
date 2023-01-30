@@ -28,9 +28,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace pad {
+
+namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -217,7 +216,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           constant_values == nullptr
               ? 0
               : *tflite::micro::GetTensorData<int16_t>(constant_values);
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       /* NNLib currently only supports upto 4D input tensors */
       if (tflite::micro::GetTensorShape(input).DimensionsCount() == 4) {
         const TfLiteEvalTensor* paddings =
@@ -235,14 +234,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             pad_value);
         if (err != 0) return kTfLiteError;
       } else {
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4)
         reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
                            tflite::micro::GetTensorData<int16_t>(input),
                            &pad_value, tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int16_t>(output));
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       }
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4)
     } break;
     case kTfLiteInt32: {
       int32_t pad_value =
@@ -263,17 +262,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace pad
+}  // namespace
 
 TfLiteRegistration Register_PAD() {
-  return tflite::micro::RegisterOp(pad::Init, pad::Prepare, pad::Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 // Also register Pad as PadV2.
 TfLiteRegistration Register_PADV2() {
-  return tflite::micro::RegisterOp(pad::Init, pad::Prepare, pad::Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
