@@ -1,0 +1,44 @@
+name: Issue On Error
+
+# This workflow can be called from other workflows in order to generate 
+# an issue on failure. The issue will have the title of the failing workflow
+# and a body with a link to the failure as well as a tag (by default
+# ci:bot_isssue). If such an issue already exists, a comment will be added
+# with a timestamp of the new failure and a link.
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        type: string
+      workflow:
+        type: string
+      run_id:
+        type: string
+      run_number:
+        type: string
+      flag_label:
+        type: string
+        default: 'ci:bot_issue'
+
+    secrets:
+      token:
+        required: true
+
+jobs:
+  error-trap:
+    runs-on: ubuntu-latest
+    name: Error Trap
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Reporting Script
+        env:
+          REPO: ${{ inputs.repo }}
+          WORKFLOW: ${{ inputs.workflow }}
+          RUN_ID: ${{ inputs.run_id }}
+          RUN_NUMBER: ${{ inputs.run_number }}
+          GITHUB_TOKEN: ${{ secrets.token }}
+          FLAG_LABEL: ${{ inputs.flag_label }}
+        run: |
+          python3 ci/issue_on_error.py
+
