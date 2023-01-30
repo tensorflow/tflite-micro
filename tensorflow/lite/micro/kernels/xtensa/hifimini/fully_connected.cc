@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if defined(HIFIMINI)
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -114,3 +115,4 @@ void FullyConnectedEvalHifimini(
 }
 
 }  // namespace tflite
+#endif  // defined(HIFIMINI)

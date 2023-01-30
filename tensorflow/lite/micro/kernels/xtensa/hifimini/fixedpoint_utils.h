@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_HIFIMINI_FIXEDPOINT_UTILS_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_HIFIMINI_FIXEDPOINT_UTILS_H_
 
+#if defined(HIFIMINI)
 #include <xtensa/tie/xt_hifi2.h>
 
 #include <algorithm>
@@ -134,5 +135,5 @@ inline int CreateQConstantForInt24(int integer_bits, float f) {
 }
 
 }  // namespace tflite
-
+#endif  // defined(HIFIMINI)
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_HIFIMINI_FIXEDPOINT_UTILS_H_
