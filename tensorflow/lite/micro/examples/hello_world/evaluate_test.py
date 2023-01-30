@@ -25,30 +25,26 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
       tflm_runtime.Interpreter.from_file('wrong.tflite')
 
   def test_input(self):
-    input_quantize_params = self.tflm_interpreter.get_input_details(0).get(
-        'quantization_parameters')
-    input_scale = input_quantize_params.get('scales')
-    input_zero_point = input_quantize_params.get('zero_points')
-
     input_details = self.tflm_interpreter.get_input_details(0)
+    input_scale, input_zero_point = evaluate.get_metadata(input_details)
+
     self.assertAllEqual(input_details['shape'], self.input_shape)
     self.assertEqual(input_details['dtype'], np.int8)
     self.assertEqual(len(input_scale), 1)
-    self.assertEqual(input_quantize_params['quantized_dimension'], 0)
+    self.assertEqual(
+        input_details['quantization_parameters']['quantized_dimension'], 0)
     self.assertEqual(input_scale.dtype, np.float32)
     self.assertEqual(input_zero_point.dtype, np.int32)
 
   def test_output(self):
-    output_quantize_params = self.tflm_interpreter.get_output_details(0).get(
-        'quantization_parameters')
-    output_scale = output_quantize_params.get('scales')
-    output_zero_point = output_quantize_params.get('zero_points')
-
     output_details = self.tflm_interpreter.get_output_details(0)
+    output_scale, output_zero_point = evaluate.get_metadata(output_details)
+
     self.assertAllEqual(output_details['shape'], self.output_shape)
     self.assertEqual(output_details['dtype'], np.int8)
     self.assertEqual(len(output_scale), 1)
-    self.assertEqual(output_quantize_params['quantized_dimension'], 0)
+    self.assertEqual(
+        output_details['quantization_parameters']['quantized_dimension'], 0)
     self.assertEqual(output_scale.dtype, np.float32)
     self.assertEqual(output_zero_point.dtype, np.int32)
 
@@ -57,23 +53,22 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
     # Calculate the corresponding sine values
     y_true = np.sin(x_value).astype(np.float32)
 
-    input_quantize_params = self.tflm_interpreter.get_input_details(0).get(
-        'quantization_parameters')
-    input_scale = input_quantize_params.get('scales')
-    input_zero_point = input_quantize_params.get('zero_points')
+    input_details = self.tflm_interpreter.get_input_details(0)
+    input_scale, input_zero_point = evaluate.get_metadata(input_details)
 
-    output_quantize_params = self.tflm_interpreter.get_output_details(0).get(
-        'quantization_parameters')
-    output_scale = output_quantize_params.get('scales')
-    output_zero_point = output_quantize_params.get('zero_points')
-    input_shape = np.array(
-        self.tflm_interpreter.get_input_details(0).get('shape'))
+    output_details = self.tflm_interpreter.get_output_details(0)
+    output_scale, output_zero_point = evaluate.get_metadata(output_details)
 
-    y_pred = evaluate.invoke_tflm_interpreter(input_scale[0], input_shape,
-                                              input_zero_point[0],
-                                              self.tflm_interpreter,
-                                              output_scale[0],
-                                              output_zero_point[0], x_value)
+    input_shape = np.array(input_details.get('shape'))
+
+    x_quantized = np.int8((x_value / input_scale[0]) + input_zero_point[0])
+    y_quantized = evaluate.invoke_tflm_interpreter(
+        input_shape,
+        self.tflm_interpreter,
+        x_quantized,
+        input_index=0,
+        output_index=0)
+    y_pred = float((y_quantized - output_zero_point[0]) * output_scale[0])
     epsilon = 0.05
     self.assertNear(
         y_true, y_pred, epsilon,
