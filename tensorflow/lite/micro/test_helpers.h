@@ -180,12 +180,9 @@ const Tensor* CreateQuantizedFlatbufferTensor(int size);
 // Creates a one-dimensional tensor with no quantization metadata.
 const Tensor* CreateMissingQuantizationFlatbufferTensor(int size);
 
-// Creates a vector of flatbuffer buffers.
-const flatbuffers::Vector<flatbuffers::Offset<Buffer>>*
-CreateFlatbufferBuffers();
-
-const flatbuffers::Vector<flatbuffers::Offset<Buffer>>*
-CreateFlatbufferBuffersWithInt8Data();
+// Creates a vector of flatbuffer buffers (with single buffer inside).
+const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* CreateFlatbufferBuffers(
+    const size_t buffer_data_size, const uint8_t* buffer_data);
 
 // Performs a simple string comparison without requiring standard C library.
 int TestStrcmp(const char* a, const char* b);

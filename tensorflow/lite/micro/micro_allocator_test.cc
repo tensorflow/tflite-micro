@@ -169,8 +169,11 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
 
   const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(100);
+  // Empty buffers
+  constexpr size_t buffer_data_size = 0;
+  const uint8_t buffer_data[buffer_data_size] = {};
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
-      tflite::testing::CreateFlatbufferBuffers();
+      tflite::testing::CreateFlatbufferBuffers(buffer_data_size, buffer_data);
 
   TfLiteTensor allocated_tensor;
   TF_LITE_MICRO_EXPECT_EQ(
@@ -194,17 +197,22 @@ TF_LITE_MICRO_TEST(TestInitializeWrongTypeRuntimeTensor) {
   tflite::SingleArenaBufferAllocator* simple_allocator =
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
 
-  // Tensor has TensorType_INT32 (4bytes) type but data has uint8 type (1byte)
-  const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(1);
-  const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* int8buffers =
-      tflite::testing::CreateFlatbufferBuffersWithInt8Data();
+  // Tensor has TensorType_INT32 (4bytes) (hardcoded in
+  // Create1dFlatbufferTensor)
+  const tflite::Tensor* tensor =
+      tflite::testing::Create1dFlatbufferTensor(/*size=*/1);
+  // uint8 buffer
+  constexpr size_t buffer_data_size = 1;
+  const uint8_t buffer_data[buffer_data_size] = {21};
+  const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
+      tflite::testing::CreateFlatbufferBuffers(buffer_data_size, buffer_data);
 
   TfLiteTensor allocated_tensor;
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteError,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
           simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
-          int8buffers, &allocated_tensor));
+          buffers, &allocated_tensor));
 
   simple_allocator->~SingleArenaBufferAllocator();
 }
@@ -219,8 +227,11 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
 
   const tflite::Tensor* tensor = tflite::testing::Create1dFlatbufferTensor(100);
+  // Empty buffers
+  constexpr size_t buffer_data_size = 0;
+  const uint8_t buffer_data[buffer_data_size] = {};
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
-      tflite::testing::CreateFlatbufferBuffers();
+      tflite::testing::CreateFlatbufferBuffers(buffer_data_size, buffer_data);
 
   TfLiteTensor allocated_temp_tensor;
   TF_LITE_MICRO_EXPECT_EQ(
@@ -247,8 +258,11 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
 
   const tflite::Tensor* tensor =
       tflite::testing::CreateQuantizedFlatbufferTensor(100);
+  // Empty buffers
+  constexpr size_t buffer_data_size = 0;
+  const uint8_t buffer_data[buffer_data_size] = {};
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
-      tflite::testing::CreateFlatbufferBuffers();
+      tflite::testing::CreateFlatbufferBuffers(buffer_data_size, buffer_data);
 
   TfLiteTensor allocated_tensor;
   TF_LITE_MICRO_EXPECT_EQ(
@@ -274,8 +288,11 @@ TF_LITE_MICRO_TEST(TestMissingQuantization) {
 
   const tflite::Tensor* tensor =
       tflite::testing::CreateMissingQuantizationFlatbufferTensor(100);
+  // Empty buffers
+  constexpr size_t buffer_data_size = 0;
+  const uint8_t buffer_data[buffer_data_size] = {};
   const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
-      tflite::testing::CreateFlatbufferBuffers();
+      tflite::testing::CreateFlatbufferBuffers(buffer_data_size, buffer_data);
 
   TfLiteTensor allocated_tensor;
   TF_LITE_MICRO_EXPECT_EQ(

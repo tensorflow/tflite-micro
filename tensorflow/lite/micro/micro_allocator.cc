@@ -158,8 +158,15 @@ INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
 
 namespace internal {
 
-// Assign data information from the flatbuffer tensor to the runtime tensor
-// (TFLite Tensor or TFLiteEval Tensor)
+// Assign data information from the flatbuffer to the runtime tensor
+// flatbuffer_tensor: tensor in flatbuffer, contains buffer index and tensor
+// shape
+// buffers: buffers in flatbuffer
+// tensor_data: double pointer to the data content for the runtime tensor
+// data_size: size of the data. Computed from the tensor data type and shape:
+// data_size = tensor type in bytes (e.g., int8 = 1byte) * number of elements in
+// the tensor. It must match the corresponding buffer size (unless buffer is
+// empty in case of variable tensors)
 TfLiteStatus AssignTensorData(
     const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
@@ -178,20 +185,22 @@ TfLiteStatus AssignTensorData(
   TF_LITE_ENSURE_STATUS(
       BytesRequiredForTensor(flatbuffer_tensor, &required_bytes, &type_size));
   // TFLiteTensor contains the information about the data size. Record
-  // it if necessary
+  // it if necessary (TFLiteEvalTensor does not have it)
   if (data_size != nullptr) {
     *data_size = required_bytes;
   }
+  uint32_t buffer_index = flatbuffer_tensor.buffer();
+  const Buffer* buffer = (*buffers)[buffer_index];
 
-  if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
+  if (buffer != nullptr) {
     // If we've found a buffer, does it have any data?
-    if (auto* array = buffer->data()) {
+    const flatbuffers::Vector<uint8_t>* array = buffer->data();
+    if (array != nullptr) {
       if (array->size()) {
         // If it has any data, does the size matches the expectation?
         if (required_bytes != array->size()) {
           MicroPrintf(
-              "Incorrect buffer data size. Please check the flatbuffer file. "
-              "\n");
+              "Incorrect buffer data size. Please check the flatbuffer file. ");
           return kTfLiteError;
         }
         // We've found a buffer with valid data, so update the runtime tensor
@@ -200,11 +209,8 @@ TfLiteStatus AssignTensorData(
             const_cast<void*>(static_cast<const void*>(array->data()));
       }
     }
-    // TODO(petewarden): It's not clear in what circumstances we could have a
-    // buffer in the serialized tensor, but it doesn't have any data in it. Is
-    // that a validly-generated file, and if so what does it mean, or is it an
-    // error condition? It would be good to tighten up the specification to make
-    // it less ambiguous.
+    // Empty buffer in a serialized tensor is permited (e.g., resource
+    // variables) to reduce memory usage.
   }
   return kTfLiteOk;
 }
