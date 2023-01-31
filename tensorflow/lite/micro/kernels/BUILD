@@ -131,7 +131,7 @@ cc_library(
 cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
-        "lstm_eval_test.h",
+        "lstm_eval_internal_test.h",
     ],
     deps = [
         ":kernel_util",
@@ -228,7 +228,7 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
-        "lstm_eval.cc",
+        "lstm_eval_internal.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",
@@ -287,7 +287,7 @@ tflm_kernel_cc_library(
         "leaky_relu.h",
         "logical.h",
         "logistic.h",
-        "lstm_eval.h",
+        "lstm_eval_internal.h",
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
@@ -915,9 +915,9 @@ cc_test(
 )
 
 cc_test(
-    name = "lstm_eval_test",
+    name = "lstm_eval_internal_test",
     srcs = [
-        "lstm_eval_test.cc",
+        "lstm_eval_internal_test.cc",
     ],
     tags = [
         "noasan",  # TODO(b/266028903): fix test with ubsan
