@@ -9,6 +9,7 @@ py_library(
         "@flatbuffers//:runtime_py",
         requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/python:schema_util",
     ],
 )
 
