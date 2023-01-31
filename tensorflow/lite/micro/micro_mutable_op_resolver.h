@@ -252,8 +252,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddFloor() {
-    return AddBuiltin(BuiltinOperator_FLOOR,
-                      tflite::ops::micro::Register_FLOOR(), ParseFloor);
+    return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
   }
 
   TfLiteStatus AddFloorDiv() {
