@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -46,8 +46,7 @@ void TestConcatenateOneInput(int* input1_dims_data, const T* input1_data,
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_CONCATENATION();
+  const TfLiteRegistration registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -81,8 +80,7 @@ void TestConcatenateTwoInputs(int* input1_dims_data, const T* input1_data,
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_CONCATENATION();
+  const TfLiteRegistration registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -136,8 +134,7 @@ void TestConcatenateQuantizedTwoInputs(
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_CONCATENATION();
+  const TfLiteRegistration registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

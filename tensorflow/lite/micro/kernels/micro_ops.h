@@ -45,6 +45,7 @@ TfLiteRegistration Register_CAST();
 TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
 TfLiteRegistration* Register_CIRCULAR_BUFFER();
+TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_CUMSUM();
 TfLiteRegistration Register_DEPTH_TO_SPACE();
 TfLiteRegistration Register_DEPTHWISE_CONV_2D();
@@ -102,7 +103,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
 TfLiteRegistration Register_EQUAL();
 TfLiteRegistration Register_GREATER();
