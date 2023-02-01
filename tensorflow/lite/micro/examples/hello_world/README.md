@@ -10,8 +10,26 @@ microcontroller.
 
 ## Table of contents
 
+-   [Run the evaluate.py script on a development machine](#run-the-evaluate-script-on-a-development-machine)
 -   [Run the tests on a development machine](#run-the-tests-on-a-development-machine)
 -   [Train your own model](#train-your-own-model)
+
+## Run the evaluate.py script on a development machine
+The evaluate.py script runs the hello_world.tflite model with x_values in the 
+range of [0, 2*PI].
+```bash
+bazel build :evaluate
+bazel run :evaluate -- --model_path=hello_world.tflite
+```
+<img src="go/tflm_hello_world"/>
+
+## Run the evaluate_test.py script on a development machine
+
+```bash
+bazel build :evaluate_test
+bazel run :evaluate
+```
+
 
 ## Run the tests on a development machine
 
