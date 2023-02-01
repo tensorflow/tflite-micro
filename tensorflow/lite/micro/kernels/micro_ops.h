@@ -45,6 +45,7 @@ TfLiteRegistration Register_CAST();
 TfLiteRegistration Register_CEIL();
 // TODO(b/160234179): Change custom OPs to also return by value.
 TfLiteRegistration* Register_CIRCULAR_BUFFER();
+TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_CUMSUM();
 TfLiteRegistration Register_DEPTH_TO_SPACE();
 TfLiteRegistration Register_DEPTHWISE_CONV_2D();
@@ -68,6 +69,8 @@ TfLiteRegistration Register_LOGICAL_AND();
 TfLiteRegistration Register_LOGICAL_OR();
 TfLiteRegistration Register_LOGISTIC();
 TfLiteRegistration Register_MAX_POOL_2D();
+TfLiteRegistration Register_MAXIMUM();
+TfLiteRegistration Register_MINIMUM();
 TfLiteRegistration Register_MIRROR_PAD();
 TfLiteRegistration Register_NEG();
 TfLiteRegistration Register_PRELU();
@@ -93,7 +96,7 @@ TfLiteRegistration Register_SVDF();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 // TODO(b/230666079): resolve conflict with xtensa implementation
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTERNAL();
 TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_WHILE();
 TfLiteRegistration Register_ZEROS_LIKE();
@@ -102,7 +105,6 @@ namespace ops {
 namespace micro {
 
 TfLiteRegistration Register_ABS();
-TfLiteRegistration Register_CONCATENATION();
 TfLiteRegistration Register_COS();
 TfLiteRegistration Register_EQUAL();
 TfLiteRegistration Register_GREATER();
@@ -111,8 +113,6 @@ TfLiteRegistration Register_LESS();
 TfLiteRegistration Register_LESS_EQUAL();
 TfLiteRegistration Register_LOG();
 TfLiteRegistration Register_LOGICAL_NOT();
-TfLiteRegistration Register_MAXIMUM();
-TfLiteRegistration Register_MINIMUM();
 TfLiteRegistration Register_NOT_EQUAL();
 TfLiteRegistration Register_RESHAPE();
 TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();

@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/lstm_eval.h"
+#include "tensorflow/lite/micro/kernels/lstm_eval_internal.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_tensor_utils.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -1378,7 +1378,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
 
 }  // namespace
 
-TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTERNAL() {
   return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
                                    UnidirectionalSequenceLstmPrepare,
                                    UnidirectionalSequenceLstmEval);

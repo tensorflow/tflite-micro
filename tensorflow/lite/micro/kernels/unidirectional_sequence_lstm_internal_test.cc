@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
-#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h"
+#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal_test_config.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -397,7 +397,7 @@ void TestUnidirectionalSequenceLstmFloat(
   params.asymmetric_quantize_inputs = asymmetric_quantize_inputs;
 
   const TfLiteRegistration registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+      Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTERNAL();
   micro::KernelRunner runner(registration, tensors, kLstmMaxNumInputTensors + 1,
                              IntArrayFromInts(inputs_array_data),
                              IntArrayFromInts(outputs_array_data),
@@ -762,7 +762,7 @@ void TestUnidirectionalSequenceLstmInteger(LstmIntegerTestConfig* config) {
   params.asymmetric_quantize_inputs = config->asymmetric_quantize_inputs;
 
   const TfLiteRegistration registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+      Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTERNAL();
   micro::KernelRunner runner(
       registration, tensors, kLstmMaxNumInputTensors + 1 + 5,
       IntArrayFromInts(inputs_array_data), IntArrayFromInts(outputs_array_data),
