@@ -240,7 +240,7 @@ class LstmNodeContents {
 
   // Internal tensors, fixed (const). see lstm_shared.h for tensor names
   const TfLiteEvalTensor* GetEvalTensor(const int tensor_index) const {
-    auto valid_index = input_tensor_indeces_[tensor_index + 1];
+    auto valid_index = input_tensor_indices_[tensor_index + 1];
     if (valid_index < 0) {
       return nullptr;
     }
@@ -282,9 +282,9 @@ class LstmNodeContents {
  private:
   void InitializeTensors() {
     // Invalid all the input tensors untill we set it
-    input_tensor_indeces_[0] = 24;  // tot elements
+    input_tensor_indices_[0] = 24;  // tot elements
     for (size_t i = 1; i < 25; i++) {
-      input_tensor_indeces_[i] = kTfLiteOptionalTensor;
+      input_tensor_indices_[i] = kTfLiteOptionalTensor;
     }
     // Input Tensor
     SetTensor(kLstmInputTensor, input_, input_size_);
@@ -373,9 +373,9 @@ class LstmNodeContents {
   // Use for internel kernel testing
   TfLiteEvalTensor eval_tensors_[24 + 1];
   // indices for the tensors inside the node (required by kernel runner)
-  int input_tensor_indeces_[1 + 24] = {};
+  int input_tensor_indices_[1 + 24] = {};
   // single output (last in the tensors array)
-  int output_tensor_indeces_[2] = {1, 24};
+  int output_tensor_indices_[2] = {1, 24};
 
   // tennsor data
   // states are initialized to zero
