@@ -168,8 +168,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCeil() {
-    return AddBuiltin(BuiltinOperator_CEIL, tflite::ops::micro::Register_CEIL(),
-                      ParseCeil);
+    return AddBuiltin(BuiltinOperator_CEIL, Register_CEIL(), ParseCeil);
   }
 
   TfLiteStatus AddCircularBuffer() {
@@ -177,8 +176,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddConcatenation() {
-    return AddBuiltin(BuiltinOperator_CONCATENATION,
-                      tflite::ops::micro::Register_CONCATENATION(),
+    return AddBuiltin(BuiltinOperator_CONCATENATION, Register_CONCATENATION(),
                       ParseConcatenation);
   }
 
@@ -253,8 +251,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddFloor() {
-    return AddBuiltin(BuiltinOperator_FLOOR,
-                      tflite::ops::micro::Register_FLOOR(), ParseFloor);
+    return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
   }
 
   TfLiteStatus AddFloorDiv() {
@@ -362,8 +359,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMaximum() {
-    return AddBuiltin(BuiltinOperator_MAXIMUM,
-                      tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
+    return AddBuiltin(BuiltinOperator_MAXIMUM, Register_MAXIMUM(),
+                      ParseMaximum);
   }
 
   TfLiteStatus AddMaxPool2D(
@@ -381,8 +378,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMinimum() {
-    return AddBuiltin(BuiltinOperator_MINIMUM,
-                      tflite::ops::micro::Register_MINIMUM(), ParseMinimum);
+    return AddBuiltin(BuiltinOperator_MINIMUM, Register_MINIMUM(),
+                      ParseMinimum);
   }
 
   TfLiteStatus AddMul(const TfLiteRegistration& registration = Register_MUL()) {
@@ -570,7 +567,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {
     return AddBuiltin(BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM,
-                      Register_UNIDIRECTIONAL_SEQUENCE_LSTM(),
+                      Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INTERNAL(),
                       ParseUnidirectionalSequenceLSTM);
   }
 
