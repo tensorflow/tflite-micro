@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test_config.h"
+#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal_test_config.h"
 
 #include "tensorflow/lite/c/common.h"
 
