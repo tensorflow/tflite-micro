@@ -176,8 +176,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddConcatenation() {
-    return AddBuiltin(BuiltinOperator_CONCATENATION,
-                      tflite::ops::micro::Register_CONCATENATION(),
+    return AddBuiltin(BuiltinOperator_CONCATENATION, Register_CONCATENATION(),
                       ParseConcatenation);
   }
 
@@ -252,8 +251,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddFloor() {
-    return AddBuiltin(BuiltinOperator_FLOOR,
-                      tflite::ops::micro::Register_FLOOR(), ParseFloor);
+    return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
   }
 
   TfLiteStatus AddFloorDiv() {
