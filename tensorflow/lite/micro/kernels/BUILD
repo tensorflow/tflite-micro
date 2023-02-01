@@ -919,10 +919,6 @@ cc_test(
     srcs = [
         "lstm_eval_internal_test.cc",
     ],
-    tags = [
-        "noasan",  # TODO(b/266028903): fix test with ubsan
-        "noubsan",  # TODO(b/266028903): fix test with asan
-    ],
     deps = [
         ":lstm_eval_test_lib",
         "//tensorflow/lite/micro:debug_log",

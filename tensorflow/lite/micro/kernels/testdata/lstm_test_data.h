@@ -333,7 +333,9 @@ class LstmNodeContents {
     eval_tensors_[index].dims = IntArrayFromInts(dims);
     eval_tensors_[index].type = typeToTfLiteType<T>();
     // update the index
-    input_tensor_indeces_[index + 1] = index;
+    if (index < 24) {
+      input_tensor_indices_[index + 1] = index;
+    }
   }
 
   void SetTensorQuantizationParam(
