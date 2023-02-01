@@ -815,7 +815,8 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   TF_LITE_ENSURE_STATUS(
       builder.GetOfflinePlannedOffsets(&offline_planner_offsets));
 
-  // Allocate buffers for variable tensors.
+  // We allocate buffers for variable tensors here since the offline planner
+  // offsets are conviently available here.
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);

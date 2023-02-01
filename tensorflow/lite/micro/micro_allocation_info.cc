@@ -204,10 +204,14 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
           (current->bytes != 0);
       if (offline_offsets) {
         current->offline_offset = offline_offsets[i];
+
+        // Mark offline planned variable tensors so they can get an offline
+        // offset and be handled offline.
         if (subgraph->tensors()->Get(i)->is_variable() &&
             current->offline_offset != kOnlinePlannedBuffer) {
           current->needs_allocating = true;
         }
+
       } else {
         current->offline_offset = kOnlinePlannedBuffer;
       }
