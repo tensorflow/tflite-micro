@@ -21,7 +21,7 @@ range of [0, 2*PI].
 bazel build :evaluate
 bazel run :evaluate -- --model_path=hello_world.tflite
 ```
-<img src="go/tflm_hello_world"/>
+![TFLM hello_world sinwave prediction VS actual values](images/hello_world.png)
 
 ## Run the evaluate_test.py script on a development machine
 
