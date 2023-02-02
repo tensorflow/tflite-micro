@@ -102,8 +102,8 @@ class LstmStepManager {
   void UpdateBatch();
 
   void ResetTime() { current_time_ = 0; }
-  const RuntimeShape InputShape() const;
-  const RuntimeShape StateShape() const;
+  RuntimeShape InputShape() const;
+  RuntimeShape StateShape() const;
 
   int InputOffset() const { return input_offset_; }
   int OutputOffset() const { return output_offset_; }

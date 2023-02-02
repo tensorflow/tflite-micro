@@ -300,6 +300,8 @@ OpDataLSTM CreateLstmOpDataFloat(
                          node_contents.GetEvalTensor(kLstmInputTensor)->dims,
                          node_contents.HiddenStateEvalTensor()->dims);
   op_data.cell_state_info.cell_clip = builtin_data.cell_clip;
+  op_data.cell_state_info.quantized_cell_clip = 0;     // No quantization
+  op_data.cell_state_info.cell_state_scale_power = 0;  // No quantization
 
   // Gate Parameters
   op_data.forget_gate_parameters = CreateGateParamsFloat();
