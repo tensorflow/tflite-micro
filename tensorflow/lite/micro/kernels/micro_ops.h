@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ TfLiteRegistration Register_SPACE_TO_BATCH_ND();
 TfLiteRegistration Register_SPACE_TO_DEPTH();
 TfLiteRegistration Register_SQUARED_DIFFERENCE();
 TfLiteRegistration Register_SQUEEZE();
+TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SUM();
 TfLiteRegistration Register_SVDF();
@@ -124,7 +125,6 @@ TfLiteRegistration Register_SPLIT();
 TfLiteRegistration Register_SPLIT_V();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
-TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_TANH();
