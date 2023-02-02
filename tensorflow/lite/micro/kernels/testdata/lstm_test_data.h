@@ -241,8 +241,8 @@ class LstmNodeContent {
   CellType* GetCellStateData() { return cell_state_; }
   ActivationType* GetOutputData() { return output_; }
 
-  //  see lstm_shared.h for tensor names
-  TfLiteEvalTensor* GetEvalTensor(const int tensor_index) {
+  // Internal tensors, fixed (const). see lstm_shared.h for tensor names
+  const TfLiteEvalTensor* GetEvalTensor(const int tensor_index) const {
     auto valid_index = input_tensor_indices_[tensor_index + 1];
     if (valid_index < 0) {
       return nullptr;
