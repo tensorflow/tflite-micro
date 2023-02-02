@@ -79,7 +79,7 @@ class RecordingMicroAllocator : public MicroAllocator {
       const Model* model, SubgraphAllocations* subgraph_allocations) override;
   TfLiteStatus AllocateVariables(
       const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors,
-      const int32_t* offline_planner_offsets = nullptr) override;
+      const int32_t* offline_planner_offsets) override;
   // TODO(b/162311891): Once all kernels have been updated to the new API drop
   // this method. It is only used to record TfLiteTensor persistent allocations.
   TfLiteTensor* AllocatePersistentTfLiteTensorInternal() override;

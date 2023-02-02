@@ -247,10 +247,13 @@ class MicroAllocator {
   // for all tensor buffers.
   virtual TfLiteStatus AllocateTfLiteEvalTensors(
       const Model* model, SubgraphAllocations* subgraph_allocations);
+
   // Allocates persistent tensor buffers for variable tensors in the subgraph.
+  // Online and offline variable tensors are handled differently hence the
+  // offline_planner_offsets parameter is needed.
   virtual TfLiteStatus AllocateVariables(
       const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors,
-      const int32_t* offline_planner_offsets = nullptr);
+      const int32_t* offline_planner_offsets);
 
   // Allocate and return a persistent TfLiteTensor.
   // TODO(b/162311891): Drop this method when the interpreter has an API for
