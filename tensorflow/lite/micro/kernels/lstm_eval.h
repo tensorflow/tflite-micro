@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -102,8 +102,8 @@ class LstmStepManager {
   void UpdateBatch();
 
   void ResetTime() { current_time_ = 0; }
-  const RuntimeShape InputShape() const;
-  const RuntimeShape StateShape() const;
+  RuntimeShape InputShape() const;
+  RuntimeShape StateShape() const;
 
   int InputOffset() const { return input_offset_; }
   int OutputOffset() const { return output_offset_; }
