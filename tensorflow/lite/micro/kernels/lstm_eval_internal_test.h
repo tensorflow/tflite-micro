@@ -35,8 +35,8 @@ namespace testing {
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 IntegerLstmParameter CreateIntegerParameter(
-    const LstmNodeContents<int8_t, int8_t, int32_t, int16_t, batch_size,
-                           time_steps, input_dimension, state_dimension>&
+    const LstmNodeContent<int8_t, int8_t, int32_t, int16_t, batch_size,
+                          time_steps, input_dimension, state_dimension>&
         quantized_node_contents) {
   IntegerLstmParameter evaluation_params;
   double effective_scale;
@@ -368,10 +368,9 @@ void TestHiddenStateUpdateQuantized(
 template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestOneStepLSTMFloat(
-    const TfLiteLSTMParams& general_model_settings,
     /*can not be const, state will be updated*/
-    LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                     input_dimension, state_dimension>& node_contents,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& node_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
     const float tolerance) {
@@ -385,6 +384,15 @@ void TestOneStepLSTMFloat(
   float* hidden_state = node_contents.GetHiddenStateData();
   float* cell_state = node_contents.GetCellStateData();
   float* output = node_contents.GetOutputData();
+
+  const auto builtin_data = node_contents.BuiltinData();
+  // Copy out the LSTM specific params so they can be passed in the function.
+  TfLiteLSTMParams general_model_settings;
+  general_model_settings.activation = builtin_data.activation;
+  general_model_settings.cell_clip = builtin_data.cell_clip;
+  general_model_settings.proj_clip = builtin_data.proj_clip;
+  general_model_settings.asymmetric_quantize_inputs =
+      builtin_data.asymmetric_quantize_inputs;
 
   tflite::lstm_internal::LstmStepFloat(
       gate_output_data.input_data,
@@ -429,8 +437,8 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int state_dimension>
 void TestOneStepLSTMQuantized(
     /*can not be const, state will be updated*/
-    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, int8_t, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         model_contents,
     const GateOutputCheckData<batch_size * input_dimension,
                               batch_size * state_dimension>& gate_output_data,
@@ -542,14 +550,23 @@ template <int batch_size, int time_steps, int input_dimension,
           int state_dimension>
 void TestLSTMEvalFloat(
     /*can not be const, state will be updated*/
-    LstmNodeContents<float, float, float, float, batch_size, time_steps,
-                     input_dimension, state_dimension>& float_model_contents,
+    LstmNodeContent<float, float, float, float, batch_size, time_steps,
+                    input_dimension, state_dimension>& float_model_contents,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
         batch_size * state_dimension * time_steps>& eval_check_data,
     const float tolerance) {
   float scratch_buffers[4 * batch_size * state_dimension] = {};
-  auto general_model_settings = float_model_contents.BuiltinData();
+
+  const auto builtin_data = float_model_contents.BuiltinData();
+  // Copy out the LSTM specific params so they can be passed in the function.
+  TfLiteLSTMParams general_model_settings;
+  general_model_settings.activation = builtin_data.activation;
+  general_model_settings.cell_clip = builtin_data.cell_clip;
+  general_model_settings.proj_clip = builtin_data.proj_clip;
+  general_model_settings.asymmetric_quantize_inputs =
+      builtin_data.asymmetric_quantize_inputs;
+
   tflite::EvalFloatLstm(
       float_model_contents.GetEvalTensor(kLstmInputTensor),
       float_model_contents.GetEvalTensor(kLstmInputToInputWeightsTensor),
@@ -603,8 +620,8 @@ template <typename ActivationType, typename BiasType, typename CellType,
           int state_dimension>
 void TestLSTMEvalQuantized(
     /*can not be const, state will be updated*/
-    LstmNodeContents<ActivationType, int8_t, BiasType, CellType, batch_size,
-                     time_steps, input_dimension, state_dimension>&
+    LstmNodeContent<ActivationType, int8_t, BiasType, CellType, batch_size,
+                    time_steps, input_dimension, state_dimension>&
         quantized_model_content,
     const LstmEvalCheckData<
         batch_size * time_steps * input_dimension, batch_size * state_dimension,
@@ -622,7 +639,15 @@ void TestLSTMEvalQuantized(
       quantized_model_content.QuantizationSettings();
   const auto evaluation_params =
       tflite::testing::CreateIntegerParameter(quantized_model_content);
-  const auto general_model_settings = quantized_model_content.BuiltinData();
+  const auto builtin_data = quantized_model_content.BuiltinData();
+
+  // Copy out the LSTM specific params so they can be passed in the function.
+  TfLiteLSTMParams general_model_settings;
+  general_model_settings.activation = builtin_data.activation;
+  general_model_settings.cell_clip = builtin_data.cell_clip;
+  general_model_settings.proj_clip = builtin_data.proj_clip;
+  general_model_settings.asymmetric_quantize_inputs =
+      builtin_data.asymmetric_quantize_inputs;
 
   EvalInteger8x8_16Lstm(
       quantized_model_content.GetEvalTensor(kLstmInputTensor),

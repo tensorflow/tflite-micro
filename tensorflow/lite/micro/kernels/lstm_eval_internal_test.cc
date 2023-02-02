@@ -48,7 +48,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
-  tflite::testing::LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
       float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
           gate_output_data.input_data, gate_output_data.hidden_state,
           gate_output_data.cell_state);
@@ -86,8 +86,7 @@ TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
 TF_LITE_MICRO_TEST(CheckGateOutputInt8) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
-  tflite::testing::LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
-                                    2>
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
       int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
           gate_output_data.input_data, gate_output_data.hidden_state,
           gate_output_data.cell_state);
@@ -166,8 +165,7 @@ TF_LITE_MICRO_TEST(CheckCellUpdateFloat) {
 TF_LITE_MICRO_TEST(CheckCellUpdateInt8) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
-  tflite::testing::LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
-                                    2>
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
       int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents();
   const tflite::IntegerLstmParameter evaluation_params =
       tflite::testing::CreateIntegerParameter(int8_node_contents);
@@ -193,8 +191,7 @@ TF_LITE_MICRO_TEST(CheckOutputCalculationFloat) {
 TF_LITE_MICRO_TEST(CheckOutputCalculationInt8) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
-  tflite::testing::LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
-                                    2>
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
       int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents();
   const tflite::IntegerLstmParameter evaluation_params =
       tflite::testing::CreateIntegerParameter(int8_node_contents);
@@ -211,20 +208,19 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMFloat) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
 
-  tflite::testing::LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
       float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
           gate_output_data.input_data, gate_output_data.hidden_state,
           gate_output_data.cell_state);
   tflite::testing::TestOneStepLSTMFloat<2, 3, 2, 2>(
-      float_node_contents.BuiltinData(), float_node_contents, gate_output_data,
+      float_node_contents, gate_output_data,
       tflite::testing::kTestFloatTolerance);
 }
 
 TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
-  tflite::testing::LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
-                                    2>
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
       int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
           gate_output_data.input_data, gate_output_data.hidden_state,
           gate_output_data.cell_state);
@@ -241,7 +237,7 @@ TF_LITE_MICRO_TEST(CheckOneStepLSTMInt8) {
 TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
   const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
 
-  tflite::testing::LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+  tflite::testing::LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
       float_node_contents = tflite::testing::Create2x3x2X2FloatNodeContents(
           kernel_eval_data.input_data, kernel_eval_data.hidden_state);
   tflite::testing::TestLSTMEvalFloat(float_node_contents, kernel_eval_data,
@@ -250,8 +246,7 @@ TF_LITE_MICRO_TEST(TestLSTMEvalFloat) {
 
 TF_LITE_MICRO_TEST(TestLSTMEvalInt8) {
   const auto kernel_eval_data = tflite::testing::Get2X2LstmEvalCheckData();
-  tflite::testing::LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
-                                    2>
+  tflite::testing::LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
       int8_node_contents = tflite::testing::Create2x3x2X2Int8NodeContents(
           kernel_eval_data.input_data, kernel_eval_data.hidden_state);
 
