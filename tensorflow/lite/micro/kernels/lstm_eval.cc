@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -196,7 +196,7 @@ void LstmStepManager::UpdateBatch() {
 
 // Input shape for each single time LSTM invocation.
 // Multi-batch for time_major input
-const RuntimeShape LstmStepManager::InputShape() const {
+RuntimeShape LstmStepManager::InputShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {
     batch_size = size_info_.batch_size;
@@ -208,7 +208,7 @@ const RuntimeShape LstmStepManager::InputShape() const {
 
 // State shape (both hidden and cell) for each single time LSTM invocation.
 // Multi-batch for time_major input
-const RuntimeShape LstmStepManager::StateShape() const {
+RuntimeShape LstmStepManager::StateShape() const {
   int batch_size = 1;
   if (size_info_.time_major) {
     batch_size = size_info_.batch_size;

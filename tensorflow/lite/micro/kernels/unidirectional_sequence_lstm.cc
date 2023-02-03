@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -239,7 +239,7 @@ TfLiteStatus CreateGateParams(
 
   // A temp fc opdata to reuse the helper function on creating fc parameters
   tflite::OpDataFullyConnected fc_data_temp;
-  // TODO(http://b/265853320): due to the lack of precision for the float scale,
+  // TODO(b/265853320): due to the lack of precision for the float scale,
   // scale_diff / output_scale <= 0.02 (potentially requires 1e-8 precision) can
   // not be satisified for the bias. Here we rely on the correctiveness of the
   // conversion process (set input_bias=nullptr to avoid checking) for
@@ -310,6 +310,14 @@ CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
                             static_cast<double>(cell_state_scale),
                         -32768.0),
                32767.0));
+  return cell_state_info;
+}
+
+CellStateInfo CreateLstmCellStateInfoFloat(const float cell_clip) {
+  CellStateInfo cell_state_info;
+  cell_state_info.cell_clip = cell_clip;
+  cell_state_info.cell_state_scale_power = 0;  // no quantization
+  cell_state_info.quantized_cell_clip = 0;     // no quantization
   return cell_state_info;
 }
 
@@ -473,20 +481,20 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
       CreateLstmSizeInfo(builtin_data->time_major,
                          lstm_tensors.GetInternalTensor(kLstmInputTensor)->dims,
                          lstm_tensors.HiddenStateTensor()->dims);
-
-  op_data->cell_state_info = CreateLstmCellStateInfo(
-      lstm_tensors.CellStateTensor()->params.scale, builtin_data->cell_clip);
   TF_LITE_ENSURE_OK(
       context, ValidateTensorSize(context, lstm_tensors, op_data->size_info));
 
-  // Create Gate Parameters (Fully Connected and Mul)
+  // Create cell state information and gate parameters (Fully Connected and Mul)
   auto cell_state_type =
       lstm_tensors.GetInternalTensor(kLstmCellStateTensor)->type;
   if (cell_state_type == kTfLiteFloat32) {
-    MicroPrintf("Prepared Float!");
+    op_data->cell_state_info =
+        CreateLstmCellStateInfoFloat(builtin_data->cell_clip);
     TF_LITE_ENSURE_OK(
         context, PrepareGateParametersFloat(context, lstm_tensors, op_data));
   } else if (cell_state_type == kTfLiteInt16) {
+    op_data->cell_state_info = CreateLstmCellStateInfo(
+        lstm_tensors.CellStateTensor()->params.scale, builtin_data->cell_clip);
     TF_LITE_ENSURE_OK(
         context, PrepareGateParametersInteger(context, lstm_tensors, op_data));
   } else {
