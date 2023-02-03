@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,9 +26,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace strided_slice {
+
+namespace {
 
 constexpr int kInputTensor = 0;
 constexpr int kBeginTensor = 1;
@@ -198,13 +197,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
   return kTfLiteOk;
 }
-}  // namespace strided_slice
+
+}  // namespace
 
 TfLiteRegistration Register_STRIDED_SLICE() {
-  return tflite::micro::RegisterOp(strided_slice::Init, strided_slice::Prepare,
-                                   strided_slice::Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
