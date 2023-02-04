@@ -110,7 +110,7 @@ sh_test(
 py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
-    data = ["hello_world.tflite"],
+    data = ["hello_world_no_quant.tflite"],
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
@@ -126,7 +126,7 @@ py_binary(
 py_binary(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
-    data = ["hello_world.tflite"],
+    data = ["hello_world_no_quant.tflite"],
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
