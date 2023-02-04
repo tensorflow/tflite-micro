@@ -54,8 +54,8 @@ def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
 def generate_random_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
-  x_values = np.random.uniform(
-      low=0, high=2 * np.pi, size=sample_count).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * np.pi,
+                               size=sample_count).astype(np.float32)
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
   return x_values
@@ -81,8 +81,11 @@ def get_tflm_prediction(hello_world_model_path, x_values):
   y_predictions = np.empty(x_values.size, dtype=np.float32)
   i = 0
   for x_value in x_values:
-    y_predictions[i] = invoke_tflm_interpreter(
-        input_shape, tflm_interpreter, x_value, input_index=0, output_index=0)
+    y_predictions[i] = invoke_tflm_interpreter(input_shape,
+                                               tflm_interpreter,
+                                               x_value,
+                                               input_index=0,
+                                               output_index=0)
     i += 1
   return y_predictions
 
@@ -113,8 +116,8 @@ def get_tflite_prediction(hello_world_model_path, x_values):
 
 
 def main(_):
-  hello_world_no_quant_model_path = os.path.join(PREFIX_PATH,
-                                                 'hello_world_no_quant.tflite')
+  hello_world_no_quant_model_path = os.path.join(
+      PREFIX_PATH, 'hello_world_no_quant.tflite')
 
   x_values = generate_random_input()
 

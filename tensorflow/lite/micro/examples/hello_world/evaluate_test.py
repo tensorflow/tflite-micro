@@ -71,12 +71,12 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
     input_shape = np.array(
         self.tflm_interpreter.get_input_details(0).get('shape'))
 
-    y_pred = evaluate.invoke_tflm_interpreter(
-        input_shape,
-        self.tflm_interpreter,
-        x_value,
-        input_index=0,
-        output_index=0)
+    y_pred = evaluate.invoke_tflm_interpreter(input_shape,
+                                              self.tflm_interpreter,
+                                              x_value,
+                                              input_index=0,
+                                              output_index=0)
+
     epsilon = 0.05
     self.assertNear(
         y_true, y_pred, epsilon,
@@ -85,7 +85,8 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_input()
 
-    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path, x_values)
+    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path,
+                                                      x_values)
 
     tflite_y_predictions = evaluate.get_tflite_prediction(
         self.model_path, x_values)
