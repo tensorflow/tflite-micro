@@ -336,6 +336,22 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       (NumInputs(node) == 3)
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
+    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
+        context, data.reference_op_data.filter_buffer_index));
+
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+
+  } else {
+    filter_int8 = *filter;
+  }
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
@@ -353,27 +369,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8:
       switch (filter->type) {
+        case kTfLiteInt4:
         case kTfLiteInt8: {
-          EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                  bias, output);
-          break;
-        }
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data =
-              static_cast<int8_t*>(context->GetScratchBuffer(
-                  context, data.reference_op_data.filter_buffer_index));
-          reference_integer_ops::DepthwiseConvPerChannelWithPackedInt4Weights(
-              DepthwiseConvParamsQuantized(params, data.reference_op_data),
-              data.reference_op_data.per_channel_output_multiplier,
-              data.reference_op_data.per_channel_output_shift,
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int8_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int8_t>(output));
+          EvalQuantizedPerChannel(context, node, params, data, input,
+                                  &filter_int8, bias, output);
           break;
         }
         default: {
