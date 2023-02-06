@@ -222,19 +222,18 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
   if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4) {
-    int8_t* unpacked_filter_data = static_cast<int8_t*>(
+    TfLiteEvalTensor filter_int8;
+    filter_int8.data.data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
-    tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
-        FullyConnectedParamsQuantized(data),
-        tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(filter),
-        tflite::micro::GetTensorData<int8_t>(filter), unpacked_filter_data,
-        tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<int32_t>(bias),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-    return kTfLiteOk;
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+
+    return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
+                             output);
   } else {
     return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
   }
