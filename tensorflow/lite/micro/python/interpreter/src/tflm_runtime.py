@@ -17,7 +17,7 @@
 import os
 
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interpreter_wrapper_pybind
-
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 class Interpreter(object):
 
@@ -37,8 +37,14 @@ class Interpreter(object):
     if arena_size is None:
       arena_size = len(model_data) * 10
 
+    # Some models make use of resource variables ops, get the count here
+    if num_resource_variables != 0:
+      print('WARNING: num_resource_variables is deprecated. Resource variable count is ',
+        'calculated automatically.')
+    kNumResourceVariables = flatbuffer_utils.count_resource_variables(model_data)
+
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size, num_resource_variables)
+        model_data, custom_op_registerers, arena_size, kNumResourceVariables)
 
   @classmethod
   def from_file(self,
