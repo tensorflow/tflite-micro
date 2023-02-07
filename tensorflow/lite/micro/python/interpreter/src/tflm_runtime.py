@@ -43,11 +43,11 @@ class Interpreter(object):
       print(
           'WARNING: num_resource_variables is deprecated. Resource variable count is ',
           'calculated automatically.')
-    kNumResourceVariables = flatbuffer_utils.count_resource_variables(
+    number_resource_variables = flatbuffer_utils.count_resource_variables(
         model_data)
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size, kNumResourceVariables)
+        model_data, custom_op_registerers, arena_size, number_resource_variables)
 
   @classmethod
   def from_file(self,
