@@ -22,11 +22,14 @@ namespace testing {
 
 namespace {
 // LSTM internal setting (e.g., nonlinear activation type)
-constexpr TfLiteLSTMParams kDefaultBuiltinData = {
+// Only UnidirectionalLSTM is supported now
+constexpr TfLiteUnidirectionalSequenceLSTMParams kDefaultBuiltinData = {
     /*.activation=*/kTfLiteActTanh,
-    /*.cell_clip=*/6, /*.proj_clip=*/3,
-    /*.kernel_type=*/kTfLiteLSTMFullKernel,
-    /*.asymmetric_quantize_inputs=*/true};
+    /*.cell_clip=*/6,
+    /*.proj_clip=*/3,
+    /*.time_major=*/false,
+    /*.asymmetric_quantize_inputs=*/true,
+    /*diagonal_recurrent_tensors=*/false};
 }  // namespace
 
 GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
@@ -144,7 +147,7 @@ LstmEvalCheckData<12, 4, 12> Get2X2LstmEvalCheckData() {
   return eval_data;
 }
 
-LstmNodeContents<float, float, float, float, 2, 3, 2, 2>
+LstmNodeContent<float, float, float, float, 2, 3, 2, 2>
 Create2x3x2X2FloatNodeContents(const float* input_data,
                                const float* hidden_state_data,
                                const float* cell_state_data) {
@@ -178,7 +181,7 @@ Create2x3x2X2FloatNodeContents(const float* input_data,
       /*activation_zp_folded_bias=*/{0, 0},
       /*recurrent_zp_folded_bias=*/{0, 0}};
 
-  LstmNodeContents<float, float, float, float, 2, 3, 2, 2> float_node_contents(
+  LstmNodeContent<float, float, float, float, 2, 3, 2, 2> float_node_contents(
       kDefaultBuiltinData, forget_gate_data, input_gate_data, cell_gate_data,
       output_gate_data);
 
@@ -229,14 +232,54 @@ NodeQuantizationParameters Get2X2Int8LstmQuantizationSettings() {
       {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
       {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
   quantization_settings.output_gate = {
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true},
-      {/*scale=*/0.1, /*zp=*/0, /*symmetry=*/true}};
-
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/6.175698625907056e-5, /*zp=*/0, /*symmetry=*/true}};
   return quantization_settings;
 }
 
-LstmNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
+NodeQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
+  NodeQuantizationParameters quantization_settings;
+  quantization_settings.activation_type = kTfLiteInt16;
+  quantization_settings.weight_type = kTfLiteInt8;
+  quantization_settings.cell_type = kTfLiteInt16;
+  quantization_settings.bias_type = kTfLiteInt64;
+  quantization_settings.nonlinear_activation_input_scale =
+      0.00024414062;  // std::pow(2.0f, -12.0f)
+  quantization_settings.nonlinear_activation_output_scale =
+      0.00003051757;  // std::pow(2.0f, -15.0f)
+
+  // state quantization parameters
+  quantization_settings.input = {/*scale=*/3.0518044e-5, /*zp=*/0,
+                                 /*symmetry=*/false};
+  quantization_settings.output = {/*scale=*/1.8310826e-5, /*zp=*/-5461,
+                                  /*symmetry=*/false};
+  quantization_settings.hidden_state = {/*scale=*/1.8310826e-5, /*zp=*/-5461,
+                                        /*symmetry=*/false};
+  quantization_settings.cell_state = {/*scale=*/0.00024414062, /*zp=*/0,
+                                      /*symmetry=*/true};
+
+  // gate quantization parameters
+  quantization_settings.forget_gate = {
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.input_gate = {
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.15748031496062992, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/4.8059911474468205e-06, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.cell_gate = {
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
+  quantization_settings.output_gate = {
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/0.007874015748031496, /*zp=*/0, /*symmetry=*/true},
+      {/*scale=*/2.40299557372341e-07, /*zp=*/0, /*symmetry=*/true}};
+  return quantization_settings;
+}
+
+LstmNodeContent<int8_t, int8_t, int32_t, int16_t, 2, 3, 2, 2>
 Create2x3x2X2Int8NodeContents(const float* input_data,
                               const float* hidden_state,
                               const float* cell_state) {
@@ -245,6 +288,20 @@ Create2x3x2X2Int8NodeContents(const float* input_data,
   const auto quantization_settings = Get2X2Int8LstmQuantizationSettings();
   return CreateIntegerNodeContents<int8_t, int8_t, int32_t, int16_t, 2, 3, 2,
                                    2>(quantization_settings,
+                                      /*fold_zero_point=*/true,
+                                      float_node_content);
+}
+
+LstmNodeContent<int16_t, int8_t, int64_t, int16_t, 2, 3, 2, 2>
+Create2x3x2X2Int16NodeContents(const float* input_data,
+                               const float* hidden_state,
+                               const float* cell_state) {
+  auto float_node_content =
+      Create2x3x2X2FloatNodeContents(input_data, hidden_state, cell_state);
+  const auto quantization_settings = Get2X2Int16LstmQuantizationSettings();
+  return CreateIntegerNodeContents<int16_t, int8_t, int64_t, int16_t, 2, 3, 2,
+                                   2>(quantization_settings,
+                                      /*fold_zero_point=*/false,
                                       float_node_content);
 }
 

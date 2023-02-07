@@ -132,6 +132,7 @@ cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_internal_test.h",
+        "lstm_eval_test.h",
     ],
     deps = [
         ":kernel_util",
@@ -228,6 +229,7 @@ tflm_kernel_cc_library(
         "logical_common.cc",
         "logistic.cc",
         "logistic_common.cc",
+        "lstm_eval.cc",
         "lstm_eval_internal.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
@@ -268,6 +270,7 @@ tflm_kernel_cc_library(
         "tanh.cc",
         "transpose.cc",
         "transpose_conv.cc",
+        "unidirectional_sequence_lstm.cc",
         "unidirectional_sequence_lstm_internal.cc",
         "unpack.cc",
         "var_handle.cc",
@@ -288,6 +291,7 @@ tflm_kernel_cc_library(
         "logical.h",
         "logistic.h",
         "lstm_eval_internal.h",
+        "lstm_eval.h",
         "lstm_shared.h",
         "micro_ops.h",
         "mul.h",
@@ -919,9 +923,17 @@ cc_test(
     srcs = [
         "lstm_eval_internal_test.cc",
     ],
-    tags = [
-        "noasan",  # TODO(b/266028903): fix test with ubsan
-        "noubsan",  # TODO(b/266028903): fix test with asan
+    deps = [
+        ":lstm_eval_test_lib",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "lstm_eval_test",
+    srcs = [
+        "lstm_eval_test.cc",
     ],
     deps = [
         ":lstm_eval_test_lib",
@@ -1367,6 +1379,23 @@ cc_test(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_internal_test_config",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "unidirectional_sequence_lstm_test",
+    srcs = [
+        "unidirectional_sequence_lstm_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":lstm_eval_test_lib",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
