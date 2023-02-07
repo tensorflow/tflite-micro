@@ -47,7 +47,8 @@ class Interpreter(object):
         model_data)
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size, number_resource_variables)
+        model_data, custom_op_registerers, arena_size,
+        number_resource_variables)
 
   @classmethod
   def from_file(self,
