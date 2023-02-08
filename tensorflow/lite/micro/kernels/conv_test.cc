@@ -61,6 +61,11 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
+#if !defined(XTENSA)  // TODO(b/170321206): xtensa kernels are less general than
+                      // reference kernels and we ifdef out test cases that are
+                      // currently known to fail.
+
+
 TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
   const int output_dims_count = 12;
   int8_t output_data[output_dims_count];
@@ -90,9 +95,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
           &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
           output_data, kTfLiteInt4));
 }
-#if !defined(XTENSA)  // TODO(b/170321206): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
+
 
 TF_LITE_MICRO_TEST(SimpleTestFloat) {
   float output_data[tflite::testing::kOutputElements];
