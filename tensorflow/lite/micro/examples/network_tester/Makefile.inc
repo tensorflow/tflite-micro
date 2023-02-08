@@ -50,3 +50,9 @@ endif
 # Builds a standalone object recognition binary.
 $(eval $(call microlite_test,network_tester_test,\
 $(NETWORK_TESTER_TEST_SRCS),$(NETWORK_TESTER_TEST_HDRS),$(NETWORK_TESTER_GENERATOR_INPUTS)))
+
+list_network_tester_example_sources:
+	@echo $(NETWORK_TESTER_TEST_SRCS)
+
+list_network_tester_example_headers:
+	@echo $(NETWORK_TESTER_TEST_HDRS)
