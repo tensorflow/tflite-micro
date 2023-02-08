@@ -240,7 +240,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                            output);
 }
 
-
 }  // namespace
 
 TfLiteRegistration Register_FULLY_CONNECTED() {
