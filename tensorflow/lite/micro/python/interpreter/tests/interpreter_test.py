@@ -166,13 +166,11 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       self.assertEqual(tflm_output.shape, self.output_shape)
       self.assertAllEqual(tflite_output, tflm_output)
 
-  def _helperModelFromFileAndBufferEqual(self, number_resource_variables=0):
+  def _helperModelFromFileAndBufferEqual(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    file_interpreter = tflm_runtime.Interpreter.from_file(
-        self.filename, num_resource_variables=number_resource_variables)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(
-        model_data, num_resource_variables=number_resource_variables)
+    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
+    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
 
     num_steps = 100
     for i in range(0, num_steps):
@@ -268,13 +266,6 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
       interpreter = tflm_runtime.Interpreter.from_bytes(
           model_data, custom_op_registerers)
-
-  def testResourceVariableFunctionCall(self):
-    # Both interpreter function call cases should be valid for various
-    # number of resource variables.
-    self._helperModelFromFileAndBufferEqual(-2)
-    self._helperModelFromFileAndBufferEqual(1)
-    self._helperModelFromFileAndBufferEqual(12)
 
 
 if __name__ == "__main__":
