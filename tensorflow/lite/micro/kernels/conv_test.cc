@@ -61,8 +61,8 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(VISION_P6) // TODO(b/268384678): xtensa vision p6 kernels break 
-                        // this test, will if def till properly investigated.
+#if !defined(VISION_P6)  // TODO(b/268384678): xtensa vision p6 kernels break
+                         // this test, will if def till properly investigated.
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
   const int output_dims_count = 12;
