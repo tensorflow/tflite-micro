@@ -221,8 +221,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4) {
-    TfLiteEvalTensor filter_int8;
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
     filter_int8.data.data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
     filter_int8.dims = filter->dims;
@@ -232,12 +233,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorShape(filter).FlatSize(),
         tflite::micro::GetTensorData<int8_t>(&filter_int8));
 
-    return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
-                             output);
   } else {
-    return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+    filter_int8 = *filter;
   }
+  return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
+                           output);
 }
+
 
 }  // namespace
 

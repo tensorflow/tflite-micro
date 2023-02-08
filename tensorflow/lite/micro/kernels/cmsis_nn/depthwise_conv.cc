@@ -341,14 +341,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   if (filter->type == kTfLiteInt4) {
     filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
         context, data.reference_op_data.filter_buffer_index));
-
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;
     tflite::tensor_utils::UnpackDenseInt4IntoInt8(
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(filter).FlatSize(),
         tflite::micro::GetTensorData<int8_t>(&filter_int8));
-
   } else {
     filter_int8 = *filter;
   }
@@ -368,8 +366,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      switch (filter->type) {
-        case kTfLiteInt4:
+      switch (filter_int8.type) {
         case kTfLiteInt8: {
           EvalQuantizedPerChannel(context, node, params, data, input,
                                   &filter_int8, bias, output);
