@@ -26,7 +26,7 @@ PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
 
 class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
-  model_path = os.path.join(PREFIX_PATH, 'hello_world_no_quant.tflite')
+  model_path = os.path.join(PREFIX_PATH, 'hello_world.tflite')
   input_shape = (1, 1)
   output_shape = (1, 1)
   # Create the tflm interpreter
