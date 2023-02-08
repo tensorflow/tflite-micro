@@ -61,9 +61,8 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA)  // TODO(b/170321206): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
+#if !defined(VISION_P6) // TODO(b/268384678): xtensa vision p6 kernels break 
+                        // this test, will if def till properly investigated.
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
   const int output_dims_count = 12;
@@ -94,6 +93,12 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
           &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
           output_data, kTfLiteInt4));
 }
+
+#endif  // !defined(VISION_P6)
+
+#if !defined(XTENSA)  // TODO(b/170321206): xtensa kernels are less general than
+                      // reference kernels and we ifdef out test cases that are
+                      // currently known to fail.
 
 TF_LITE_MICRO_TEST(SimpleTestFloat) {
   float output_data[tflite::testing::kOutputElements];
