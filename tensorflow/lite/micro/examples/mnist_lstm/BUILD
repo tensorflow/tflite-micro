@@ -22,8 +22,9 @@ py_binary(
 
 py_binary(
     name = "convert8to16",
-    srcs = ["converter/convert8to16.py",
-    "converter/converter_utils.py"
+    srcs = [
+        "converter/convert8to16.py",
+        "converter/converter_utils.py",
     ],
     srcs_version = "PY3",
     deps = [
@@ -54,9 +55,9 @@ py_test(
         "noubsan",
     ],
     deps = [
+        ":convert8to16",
         ":evaluate",
         ":train",
-        ":convert8to16"
     ],
 )
 
