@@ -86,6 +86,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Assign to output the input type.
   output->type = params->type;
 
+  // The tensor output dims must be relocated
+  // from the FlatBuffer to the persistant storage arena.
+  TfLiteEvalTensor* output_eval =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+  TF_LITE_ENSURE_OK(context, tflite::micro::CreateWritableTensorDimsWithCopy(
+                                 context, output, output_eval));
+
   // TFLM gather_nd does not create the output tensor, but it needs to ensure
   // that the output shape is correct. The result shape is
   // indices.shape[:-1] + params.shape[indices.shape[-1]:]
