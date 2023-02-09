@@ -22,7 +22,9 @@ py_binary(
 
 py_binary(
     name = "convert8to16",
-    srcs = ["converter/convert8to16.py"],
+    srcs = ["converter/convert8to16.py",
+    "converter/converter_utils.py"
+    ],
     srcs_version = "PY3",
     deps = [
         requirement("numpy"),
@@ -41,7 +43,7 @@ py_test(
     srcs = ["evaluate_test.py"],
     data = [
         "trained_lstm.tflite",
-        "trained_lstm_quant.tflite",
+        "trained_lstm_int8.tflite",
         ":sample_images",
     ],
     main = "evaluate_test.py",
@@ -54,6 +56,7 @@ py_test(
     deps = [
         ":evaluate",
         ":train",
+        ":convert8to16"
     ],
 )
 
