@@ -108,6 +108,8 @@ void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
                                conv_params, 1e-5, tensors_size, tensors);
 }
 
+#endif  // !defined(XTENSA)
+
 void TestDepthwiseConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
@@ -176,9 +178,6 @@ void TestDepthwiseConvQuantizedPerChannel(
                                               output_dims_count, conv_params,
                                               1.0, tensors_size, tensors));
 }
-
-#endif  // !defined(XTENSA)
-
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
