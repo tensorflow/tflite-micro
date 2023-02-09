@@ -42,7 +42,7 @@ from absl import flags
 from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-import converter_utils as utils
+import tflite_micro.tensorflow.lite.micro.examples.mnist_lstm.converter.converter_utils as utils
 
 FLAGS = flags.FLAGS
 
@@ -161,6 +161,10 @@ class Int8ToInt16Converter:
   def save_model(self, output_path):
     """Save the requantized model to a specificed location."""
     flatbuffer_utils.write_model(self.model, output_path)
+
+  def model_bytearray(self):
+    """Get the flatbuffer bytearray"""
+    return flatbuffer_utils.convert_object_to_bytearray(self.model)
 
 
 def main(_):
