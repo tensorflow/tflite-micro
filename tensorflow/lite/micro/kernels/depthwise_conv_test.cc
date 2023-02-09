@@ -936,7 +936,7 @@ TF_LITE_MICRO_TEST(Int8Input32x1Filter32x1ShouldMatchGolden) {
                               kQuantizationTolerance, kTensorsSize, tensors));
 }
 
-#if !defined(VISION_P6) && !defined(XTENSA)
+#if !defined(VISION_P6)
 // TODO(b/268384678): xtensa vision p6 kernels break
 // this test, will if def till properly investigated.
 
