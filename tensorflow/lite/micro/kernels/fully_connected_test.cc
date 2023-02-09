@@ -44,7 +44,7 @@ const float simple_weights_data[] = {
 };
 // TODO(b/258710417): INT4 isn't currently supported on Hexagon.
 // TODO(b/265349042): INT4 isn't currently supported on Hifimini.
-#if !defined(HEXAGON) && !defined(HIFIMINI)
+#if !defined(HEXAGON) && !defined(HIFIMINI) && !defined(VISION_P6)
 const float simple_int4_weights_data[] = {
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 1
