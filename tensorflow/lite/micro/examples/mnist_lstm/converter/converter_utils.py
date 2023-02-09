@@ -15,9 +15,9 @@
 import numpy as np
 from absl import logging
 
-MIN_INT8, MAX_INT8 = -128, 128 # Wide 
+MIN_INT8, MAX_INT8 = -128, 128  # Wide
 
-MIN_INT16, MAX_INT16 = -32767, 32767 # Narrow range 
+MIN_INT16, MAX_INT16 = -32767, 32767  # Narrow range
 
 # Map flatbuffer tensor type code to numpy data type. see Table TensorType in tensorflow/lite/schema/schema.fbs
 TENSOR_CODE_TYPE = {
@@ -42,10 +42,11 @@ TENSOR_CODE_TYPE = {
 }
 
 TENSOR_TYPE_CODE = dict((reversed(item) for item in TENSOR_CODE_TYPE.items()))
-
 """
 Quantization utils functions
 """
+
+
 def clip_range(vals, bit_width):
   """Mimic integer calculation.
 
@@ -103,12 +104,13 @@ def dequantize_data(quantized_data, scale, zero_point=0):
 
 
 '''Conversion Util Functions'''
+
+
 def change_quantization_settings_8to16(tensor):
   if not tensor.quantization:
     return
-  assert (
-      tensor.quantization.quantizedDimension == 0
-  )  # Only layer quantization supported
+  assert (tensor.quantization.quantizedDimension == 0
+          )  # Only layer quantization supported
   scale, zero_point = (
       tensor.quantization.scale[0],
       tensor.quantization.zeroPoint[0],
@@ -141,13 +143,11 @@ def set_bias_type_int64(buffers, input, weight, bias):
   if len(bias_buffer.data):
     data = np.frombuffer(bias_buffer.data, dtype=np.int32)
     dequantized_data = dequantize_data(data, bias_scale, bias_zero_pt)
-    bias_scale_int64 = (
-        input.quantization.scale[0] * weight.quantization.scale[0]
-    )
+    bias_scale_int64 = (input.quantization.scale[0] *
+                        weight.quantization.scale[0])
     bias_zero_pt_int64 = 0  # symmetrical quantized
-    int64_data = quantize_data(
-        dequantized_data, bias_scale_int64, bias_zero_pt_int64, 64
-    ).astype(np.int64)
+    int64_data = quantize_data(dequantized_data, bias_scale_int64,
+                               bias_zero_pt_int64, 64).astype(np.int64)
     bias_buffer.data = int64_data.tobytes()
 
   # Set tensor type
@@ -155,8 +155,8 @@ def set_bias_type_int64(buffers, input, weight, bias):
   bias.quantization.scale = [bias_scale_int64]
   bias.quantization.zeroPoint = [bias_zero_pt_int64]
   logging.info(f"Set {bias.name} from int32 to int64")
-
   '''Specific op conversion functions'''
+
 
 def convert_fully_connected(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
@@ -173,7 +173,8 @@ def convert_fully_connected(tensors, buffers, op):
   if bias_tensor:
     set_bias_type_int64(buffers, input_tensor, weight_tensor, bias_tensor)
   # weight stays the same, no change needed
-  
+
+
 def convert_unidirectional_sequence_lstm(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
   hidden_state_tensor = tensors[op.inputs[18]]
@@ -196,6 +197,7 @@ def convert_unidirectional_sequence_lstm(tensors, buffers, op):
   for weight_id in recurrent_weights_idx:
     weight_tensor = tensors[op.inputs[weight_id]]
 
+
 def convert_softmax(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
   output_tensor = tensors[op.outputs[0]]
@@ -206,7 +208,7 @@ def convert_softmax(tensors, buffers, op):
   # Output range is always [0,1]
   if output_tensor.type == TENSOR_TYPE_CODE[np.int8]:
     # change quantization settings
-    output_tensor.quantization.scale = [1/32768]
+    output_tensor.quantization.scale = [1 / 32768]
     output_tensor.quantization.zeroPoint = [0]
     # Set tensor type
     output_tensor.type = TENSOR_TYPE_CODE[np.int16]

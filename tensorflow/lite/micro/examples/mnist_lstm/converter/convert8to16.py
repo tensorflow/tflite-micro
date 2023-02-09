@@ -52,14 +52,16 @@ flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
                     "path to save the converted model.")
 
 # key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
-_OP_CONVERSION_REGISTRATION = {9: utils.convert_fully_connected,
-                               44: utils.convert_unidirectional_sequence_lstm,
-                               25: utils.convert_softmax}
-
+_OP_CONVERSION_REGISTRATION = {
+    9: utils.convert_fully_connected,
+    44: utils.convert_unidirectional_sequence_lstm,
+    25: utils.convert_softmax
+}
 
 
 class Int8ToInt16Converter:
   """Convert an int8 activation model to int16"""
+
   def __init__(self, int8_model):
     """Initialize the int8 to int16 converter.
 
@@ -84,7 +86,7 @@ class Int8ToInt16Converter:
     """
     int8_model = flatbuffer_utils.read_model(model_path)
     return Int8ToInt16Converter(int8_model)
-    
+
   @classmethod
   def from_bytes(self, bytearray):
     """Instantiates a converter from a int8 quantized .tflite bytearray.
@@ -123,7 +125,9 @@ class Int8ToInt16Converter:
       for op in subgraph.operators:
         op_code = op_codes[op.opcodeIndex].builtinCode
         if op_code in _OP_CONVERSION_REGISTRATION:
-          logging.info(f"Convert operator {flatbuffer_utils.opcode_to_name(self.model,op.opcodeIndex)}")
+          logging.info(
+              f"Convert operator {flatbuffer_utils.opcode_to_name(self.model,op.opcodeIndex)}"
+          )
           _OP_CONVERSION_REGISTRATION[op_code](tensors, self.model.buffers, op)
           self._remove_op_tensors(tensors, op)
 
@@ -131,11 +135,9 @@ class Int8ToInt16Converter:
     """Change all remaining tensor types from int8 to int16"""
     for subgraph in self.model.subgraphs:
       for tensor in subgraph.tensors:
-        if (
-            (tensor in self.remaining_tensors)
+        if ((tensor in self.remaining_tensors)
             and (utils.TENSOR_CODE_TYPE[tensor.type] == np.int8)
-            and ("const" not in str(tensor.name))
-        ):
+            and ("const" not in str(tensor.name))):
           utils.change_activation_tensor_8to16(tensor)
           self._remove_tensor(tensor)
 
@@ -148,17 +150,18 @@ class Int8ToInt16Converter:
 
     logging.info("Reset OPS")
     self._convert_ops()
-    logging.info(
-        "Set Remaining Activation Types"
-    )
+    logging.info("Set Remaining Activation Types")
     self._change_tensor_activation_type()
     logging.info("Remaining Tensors:")
     for tensor in self.remaining_tensors:
-       logging.info(f"{tensor.name}, tensor type {flatbuffer_utils.type_to_name(tensor.type)}")
+      logging.info(
+          f"{tensor.name}, tensor type {flatbuffer_utils.type_to_name(tensor.type)}"
+      )
 
   def save_model(self, output_path):
     """Save the requantized model to a specificed location."""
     flatbuffer_utils.write_model(self.model, output_path)
+
 
 def main(_):
   if not os.path.exists(FLAGS.int8_model_path):
@@ -167,6 +170,7 @@ def main(_):
   converter = Int8ToInt16Converter.from_file(FLAGS.int8_model_path)
   converter.convert()
   converter.save_model(FLAGS.save_path)
+
 
 if __name__ == "__main__":
   app.run(main)
