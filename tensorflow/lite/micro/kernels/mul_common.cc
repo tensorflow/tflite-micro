@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
 
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
 
-  if (output->type == kTfLiteInt8) {
+  if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
         context, params->activation, output, &data->output_activation_min,
         &data->output_activation_max));
@@ -68,6 +68,12 @@ TfLiteStatus CalculateOpDataMul(TfLiteContext* context, TfLiteNode* node,
     data->input1_zero_point = input1->params.zero_point;
     data->input2_zero_point = input2->params.zero_point;
     data->output_zero_point = output->params.zero_point;
+
+    if (input1->type == kTfLiteInt16) {
+      TF_LITE_ENSURE_EQ(context, data->input1_zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, data->input2_zero_point, 0);
+      TF_LITE_ENSURE_EQ(context, data->output_zero_point, 0);
+    }
   } else if (output->type == kTfLiteInt32) {
     CalculateActivationRange(params->activation, &data->output_activation_min,
                              &data->output_activation_max);
@@ -148,9 +154,9 @@ TfLiteStatus EvalMulQuantizedReference(TfLiteContext* context, TfLiteNode* node,
                          tflite::micro::GetTensorData<int32_t>(output));
     }
   } else if (input1->type == kTfLiteInt16) {
-    TF_LITE_ENSURE_EQ(context, op_params.input1_offset, 0.0);
-    TF_LITE_ENSURE_EQ(context, op_params.input2_offset, 0.0);
-    TF_LITE_ENSURE_EQ(context, op_params.output_offset, 0.0);
+    TF_LITE_ENSURE_EQ(context, op_params.input1_offset, 0);
+    TF_LITE_ENSURE_EQ(context, op_params.input2_offset, 0);
+    TF_LITE_ENSURE_EQ(context, op_params.output_offset, 0);
 
     if (need_broadcast) {
       reference_integer_ops::BroadcastMul4DSlow(
