@@ -75,6 +75,8 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   return kTfLiteOk;
 }
 
+// TODO(b/268384678): xtensa vision p6 kernels break
+// this test, will if def till properly investigated.
 #if !defined(VISION_P6)
 
 constexpr int kMaxFilterChannels = 64;
@@ -149,7 +151,10 @@ void TestDepthwiseConvQuantizedPerChannel(
 }
 #endif  // !defined(VISION_P6)
 
-#if !defined(XTENSA)  // Needed to avoid build errors from unsused functions.
+// Xtensa kernels do not support float activations., and the corresponding tests are
+// disabled. As a result, helper functions that are only needed for float kernel tests
+// also need to be ifdef'd out to avoid build errors due to unused functions.
+#if !defined(XTENSA)
 void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
                             int* filter_dims_data, const float* filter_data,
                             int* bias_dims_data, const float* bias_data,
