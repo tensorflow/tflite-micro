@@ -25,8 +25,8 @@ namespace tflite {
 namespace testing {
 namespace {
 
-constexpr int kMaxFilterChannels = 64;
-constexpr int kMaxBiasChannels = 64;
+
+
 
 // Index of the output tensor in context->tensors, specific to
 // DepthwiseConv.
@@ -78,37 +78,10 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   return kTfLiteOk;
 }
 
-#if !defined(XTENSA)  // Needed to avoid build errors from unsused functions.
-void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
-                            int* filter_dims_data, const float* filter_data,
-                            int* bias_dims_data, const float* bias_data,
-                            const float* expected_output_data,
-                            int* output_dims_data,
-                            TfLiteDepthwiseConvParams* conv_params,
-                            float* output_data) {
-  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
-  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
-  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
-  const int output_dims_count = ElementCount(*output_dims);
-
-  constexpr int inputs_size = 3;
-  constexpr int outputs_size = 1;
-  constexpr int tensors_size = inputs_size + outputs_size;
-  TfLiteTensor tensors[tensors_size] = {
-      CreateTensor(input_data, input_dims),
-      CreateTensor(filter_data, filter_dims),
-      CreateTensor(bias_data, bias_dims),
-      CreateTensor(output_data, output_dims),
-  };
-
-  ValidateDepthwiseConvGoldens(expected_output_data, output_dims_count,
-                               conv_params, 1e-5, tensors_size, tensors);
-}
-
-#endif  // !defined(XTENSA)
-
 #if !defined(VISION_P6)
+
+constexpr int kMaxFilterChannels = 64;
+constexpr int kMaxBiasChannels = 64;
 void TestDepthwiseConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
@@ -178,6 +151,36 @@ void TestDepthwiseConvQuantizedPerChannel(
                                               1.0, tensors_size, tensors));
 }
 #endif  // !defined(VISION_P6)
+
+#if !defined(XTENSA)  // Needed to avoid build errors from unsused functions.
+void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
+                            int* filter_dims_data, const float* filter_data,
+                            int* bias_dims_data, const float* bias_data,
+                            const float* expected_output_data,
+                            int* output_dims_data,
+                            TfLiteDepthwiseConvParams* conv_params,
+                            float* output_data) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_dims_count = ElementCount(*output_dims);
+
+  constexpr int inputs_size = 3;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(filter_data, filter_dims),
+      CreateTensor(bias_data, bias_dims),
+      CreateTensor(output_data, output_dims),
+  };
+
+  ValidateDepthwiseConvGoldens(expected_output_data, output_dims_count,
+                               conv_params, 1e-5, tensors_size, tensors);
+}
+
+#endif  // !defined(XTENSA)
 
 }  // namespace
 }  // namespace testing
