@@ -106,7 +106,8 @@ inline void InitializeTest() { InitializeTarget(); }
   } else {                                                               \
     MicroPrintf("~~~SOME TESTS FAILED~~~\n");                            \
     return kTfLiteError;                                                 \
-  }             }
+  }                                                                      \
+  }
 
 // TODO(petewarden): I'm going to hell for what I'm doing to this poor for loop.
 #define TF_LITE_MICRO_TEST(name)                                           \
