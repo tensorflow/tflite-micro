@@ -29,6 +29,20 @@ namespace {
 // DepthwiseConv.
 constexpr int kOutputTensorIndex = 3;
 
+// TODO(b/268384678): xtensa vision p6 kernels breaks int4 test
+// due to recent added optimized kernel support to xtensa for int4.
+// The corresponding test is disabled while 
+// investigation is being done. Corresponding variables
+// used only in that test have to be if def'd out
+// to avoid unused variable errors for vision p6.  
+
+#if !defined(VISION_P6)
+
+constexpr int kMaxFilterChannels = 64;
+constexpr int kMaxBiasChannels = 64;
+
+#endif  // !defined(VISION_P6)
+
 // Creates a DepthwiseConv opeerator, calls it with the provided input tensors
 // and some defaults parameters, and compares the output with
 // expected_output_data.
@@ -75,12 +89,12 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   return kTfLiteOk;
 }
 
-// TODO(b/268384678): xtensa vision p6 kernels break
-// this test, will if def till properly investigated.
+// TODO(b/268384678): xtensa vision p6 kernels breaks int4 test
+// due to recent added optimized kernel support to xtensa for int4.
+// The corresponding test is disabled while this is investegated in 
+// order for the vision p6 nightly build to be green. 
 #if !defined(VISION_P6)
 
-constexpr int kMaxFilterChannels = 64;
-constexpr int kMaxBiasChannels = 64;
 void TestDepthwiseConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
