@@ -91,7 +91,7 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
 class LSTMQuantModelTest(test_util.TensorFlowTestCase):
 
-  quant_model_path = os.path.join(PREFIX_PATH, "trained_lstm_quant.tflite")
+  quant_model_path = os.path.join(PREFIX_PATH, "trained_lstm_int8.tflite")
   input_shape = (1, 28, 28)
   output_shape = (1, 10)
 
