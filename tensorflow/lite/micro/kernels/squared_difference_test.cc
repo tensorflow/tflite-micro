@@ -136,6 +136,39 @@ void TestSquaredDifferenceQuantized(
   }
 }
 
+template <typename T>
+void TestSquaredDifferenceQuantized(int* input1_dims_data, const float* input1_data,
+                      T* input1_quantized, float input1_scale,
+                      int input1_zero_point, int* input2_dims_data,
+                      const float* input2_data, T* input2_quantized,
+                      float input2_scale, int input2_zero_point,
+                      int* output_dims_data, const float* golden,
+                      T* golden_quantized, float output_scale,
+                      int output_zero_point, T* output_data) {
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      tflite::testing::CreateQuantizedTensor(input1_data, input1_quantized,
+                                             input1_dims, input1_scale,
+                                             input1_zero_point),
+      tflite::testing::CreateQuantizedTensor(input2_data, input2_quantized,
+                                             input2_dims, input2_scale,
+                                             input2_zero_point),
+      tflite::testing::CreateQuantizedTensor(output_data, output_dims,
+                                             output_scale, output_zero_point),
+  };
+  tflite::Quantize(golden, golden_quantized, ElementCount(*output_dims),
+                   output_scale, output_zero_point);
+
+  ValidateSquaredDifferenceGoldens(tensors, tensors_size, golden_quantized, output_data,
+                     ElementCount(*output_dims));
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -262,7 +295,7 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
   }
 }
 
-TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceWithBroadcast) {
   constexpr int data_size = 6;
 
   // input 2 is a scalar
@@ -280,6 +313,72 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
         1.1f, input2_shape, input2_values, input2_quantized, 0.0f, 1.0f,
         tflite::testing::test_shape[i], output, 0.0f, 1.0f, output_dequantized,
         golden_values, 2.0f / 255.0f);
+  }
+}
+
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShapeInt16) {
+  const float scales[] = {0.0025, 0.005, 0.001};
+  const int zero_points[] = {0, 0, 0};
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const float input1_values[] = {-0.2, 0.2, -1.2, 0.8};
+  const float input2_values[] = {0.5, 0.2, -1.5, 0.5};
+  const float golden_values[] = {0.49, 0.0, 0.09, 0.09};
+
+  constexpr int output_dims_count = 4;
+  int16_t input1_quantized[output_dims_count];
+  int16_t input2_quantized[output_dims_count];
+  int16_t golden_quantized[output_dims_count];
+  int16_t output[output_dims_count];
+
+  tflite::testing::TestSquaredDifferenceQuantized(
+      inout_shape, input1_values, input1_quantized, scales[0], zero_points[0],
+      inout_shape, input2_values, input2_quantized, scales[1], zero_points[1],
+      inout_shape, golden_values, golden_quantized, scales[2], zero_points[2],
+      output);
+}
+
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapesInt16) {
+  const float scales[] = {0.0025, 0.005, 0.001};
+  const int zero_points[] = {0, 0, 0};
+  const float input1_values[] = {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0};
+  const float input2_values[] = {1.0, 0.2, 0.6, 0.4, -1.0, -0.0};
+  const float golden_values[] = {9.0, 0.0, 0.09, 0.16, 4.41, 4.0};
+
+  constexpr int output_dims_count = 6;
+  int16_t input1_quantized[output_dims_count];
+  int16_t input2_quantized[output_dims_count];
+  int16_t golden_quantized[output_dims_count];
+  int16_t output[output_dims_count];
+
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifferenceQuantized(
+        tflite::testing::test_shape[i], input1_values, input1_quantized, scales[0], zero_points[0],
+        tflite::testing::test_shape[i], input2_values, input2_quantized, scales[1], zero_points[1],
+        tflite::testing::test_shape[i], golden_values, golden_quantized, scales[2], zero_points[2],
+        output);
+  }
+}
+
+TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceWithBroadcastInt16) {
+  const float scales[] = {0.0025, 0.005, 0.001};
+  const int zero_points[] = {0, 0, 0};
+  const float input1_values[] = {-0.2, 0.2, 0.5, 0.8, 0.11, 1.1};
+  const float input2_values[] = {0.1};
+  const float golden_values[] = {0.09, 0.01, 0.16, 0.49, 0.0001, 1.0};
+
+  constexpr int output_dims_count = 6;
+  int input2_shape[] = {1, 1};
+  int16_t input1_quantized[output_dims_count];
+  int16_t input2_quantized[1];
+  int16_t golden_quantized[output_dims_count];
+  int16_t output[output_dims_count];
+
+  for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
+    tflite::testing::TestSquaredDifferenceQuantized(
+        tflite::testing::test_shape[i], input1_values, input1_quantized, scales[0], zero_points[0],
+        input2_shape, input2_values, input2_quantized, scales[1], zero_points[1],
+        tflite::testing::test_shape[i], golden_values, golden_quantized, scales[2], zero_points[2],
+        output);
   }
 }
 
