@@ -25,9 +25,6 @@ namespace tflite {
 namespace testing {
 namespace {
 
-
-
-
 // Index of the output tensor in context->tensors, specific to
 // DepthwiseConv.
 constexpr int kOutputTensorIndex = 3;
