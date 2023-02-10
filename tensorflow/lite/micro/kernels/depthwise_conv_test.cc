@@ -34,7 +34,6 @@ constexpr int kOutputTensorIndex = 3;
 // The corresponding test is disabled while investigation is being
 // done. Corresponding variables used only in that test have to be
 // if def'd out to avoid unused variable errors for vision p6.
- 
 
 #if !defined(VISION_P6)
 
