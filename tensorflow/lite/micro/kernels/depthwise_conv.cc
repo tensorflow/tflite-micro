@@ -17,6 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -66,6 +67,25 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8: {
       switch (filter->type) {
+        case kTfLiteInt4: {
+          int8_t* unpacked_filter_data = static_cast<int8_t*>(
+              context->GetScratchBuffer(context, data.filter_buffer_index));
+          tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+              tflite::micro::GetTensorData<int8_t>(filter),
+              tflite::micro::GetTensorShape(filter).FlatSize(),
+              unpacked_filter_data);
+          reference_integer_ops::DepthwiseConvPerChannel(
+              DepthwiseConvParamsQuantized(params, data),
+              data.per_channel_output_multiplier, data.per_channel_output_shift,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int8_t>(input),
+              tflite::micro::GetTensorShape(filter), unpacked_filter_data,
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int32_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
         case kTfLiteInt8: {
           reference_integer_ops::DepthwiseConvPerChannel(
               DepthwiseConvParamsQuantized(params, data),
@@ -75,22 +95,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(filter),
               tflite::micro::GetTensorData<int8_t>(filter),
               tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int8_t>(output));
-          break;
-        }
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data = static_cast<int8_t*>(
-              context->GetScratchBuffer(context, data.filter_buffer_index));
-          reference_integer_ops::DepthwiseConvPerChannelWithPackedInt4Weights(
-              DepthwiseConvParamsQuantized(params, data),
-              data.per_channel_output_multiplier, data.per_channel_output_shift,
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int8_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
