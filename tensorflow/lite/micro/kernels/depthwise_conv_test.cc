@@ -31,10 +31,10 @@ constexpr int kOutputTensorIndex = 3;
 
 // TODO(b/268384678): xtensa vision p6 kernels breaks int4 test
 // due to recent added optimized kernel support to xtensa for int4.
-// The corresponding test is disabled while 
-// investigation is being done. Corresponding variables
-// used only in that test have to be if def'd out
-// to avoid unused variable errors for vision p6.  
+// The corresponding test is disabled while investigation is being
+// done. Corresponding variables used only in that test have to be 
+// if def'd out to avoid unused variable errors for vision p6.
+ 
 
 #if !defined(VISION_P6)
 
@@ -92,7 +92,7 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
 // TODO(b/268384678): xtensa vision p6 kernels breaks int4 test
 // due to recent added optimized kernel support to xtensa for int4.
 // The corresponding test is disabled while this is investegated in 
-// order for the vision p6 nightly build to be green. 
+// order for the vision p6 nightly build to be green.
 #if !defined(VISION_P6)
 
 void TestDepthwiseConvQuantizedPerChannel(
