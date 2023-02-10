@@ -24,11 +24,9 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
-
-#if !defined(VISION_P6)  // Needed to avoid build errors from unused variables.
+    
 constexpr int kMaxFilterChannels = 64;
 constexpr int kMaxBiasChannels = 64;
-#endif  // !defined(XTENSA)
 
 // Index of the output tensor in context->tensors, specific to
 // DepthwiseConv.
