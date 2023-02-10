@@ -151,9 +151,10 @@ void TestDepthwiseConvQuantizedPerChannel(
 }
 #endif  // !defined(VISION_P6)
 
-// Xtensa kernels do not support float activations., and the corresponding tests are
-// disabled. As a result, helper functions that are only needed for float kernel tests
-// also need to be ifdef'd out to avoid build errors due to unused functions.
+// Xtensa kernels do not support float activations., and the corresponding tests
+// are disabled. As a result, helper functions that are only needed for float
+// kernel tests also need to be ifdef'd out to avoid build errors due to unused
+// functions.
 #if !defined(XTENSA)
 void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
                             int* filter_dims_data, const float* filter_data,
