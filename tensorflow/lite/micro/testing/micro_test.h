@@ -56,6 +56,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/micro_time.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
 namespace micro_test {
@@ -78,30 +79,34 @@ namespace tflite {
 inline void InitializeTest() { InitializeTarget(); }
 }  // namespace tflite
 
-#define TF_LITE_MICRO_TESTS_BEGIN   \
-  namespace micro_test {            \
-  int tests_passed;                 \
-  int tests_failed;                 \
-  bool is_test_complete;            \
-  bool did_test_fail;               \
-  }                                 \
-                                    \
-  int main(int argc, char** argv) { \
-    micro_test::tests_passed = 0;   \
-    micro_test::tests_failed = 0;   \
+#define TF_LITE_MICRO_TESTS_BEGIN                           \
+  namespace micro_test {                                    \
+  int start_time;                                           \
+  int tests_passed;                                         \
+  int tests_failed;                                         \
+  bool is_test_complete;                                    \
+  bool did_test_fail;                                       \
+  }                                                         \
+                                                            \
+  int main(int argc, char** argv) {                         \
+    micro_test::start_time = tflite::GetCurrentTimeTicks(); \
+    micro_test::tests_passed = 0;                           \
+    micro_test::tests_failed = 0;                           \
     tflite::InitializeTest();
 
-#define TF_LITE_MICRO_TESTS_END                                       \
-  MicroPrintf("%d/%d tests passed", micro_test::tests_passed,         \
-              (micro_test::tests_failed + micro_test::tests_passed)); \
-  if (micro_test::tests_failed == 0) {                                \
-    MicroPrintf("~~~ALL TESTS PASSED~~~\n");                          \
-    return kTfLiteOk;                                                 \
-  } else {                                                            \
-    MicroPrintf("~~~SOME TESTS FAILED~~~\n");                         \
-    return kTfLiteError;                                              \
-  }                                                                   \
-  }
+#define TF_LITE_MICRO_TESTS_END                                          \
+  MicroPrintf(                                                           \
+      "Testing file %s took %d milliseconds to complete.\n", __FILE__,   \
+      (tflite::GetCurrentTimeTicks() - micro_test::start_time) / 10000); \
+  MicroPrintf("%d/%d tests passed", micro_test::tests_passed,            \
+              (micro_test::tests_failed + micro_test::tests_passed));    \
+  if (micro_test::tests_failed == 0) {                                   \
+    MicroPrintf("~~~ALL TESTS PASSED~~~\n");                             \
+    return kTfLiteOk;                                                    \
+  } else {                                                               \
+    MicroPrintf("~~~SOME TESTS FAILED~~~\n");                            \
+    return kTfLiteError;                                                 \
+  }             }
 
 // TODO(petewarden): I'm going to hell for what I'm doing to this poor for loop.
 #define TF_LITE_MICRO_TEST(name)                                           \
