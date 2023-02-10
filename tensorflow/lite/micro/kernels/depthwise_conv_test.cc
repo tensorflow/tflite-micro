@@ -25,7 +25,7 @@ namespace tflite {
 namespace testing {
 namespace {
 
-#if !defined(XTENSA)  // Needed to avoid build errors from unused variables.
+#if !defined(VISION_P6)  // Needed to avoid build errors from unused variables.
 constexpr int kMaxFilterChannels = 64;
 constexpr int kMaxBiasChannels = 64;
 #endif  // !defined(XTENSA)
