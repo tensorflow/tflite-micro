@@ -24,7 +24,7 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
-    
+
 constexpr int kMaxFilterChannels = 64;
 constexpr int kMaxBiasChannels = 64;
 
