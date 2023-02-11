@@ -38,27 +38,15 @@ $(eval $(call microlite_test,kernel_transpose_conv_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_test_common.cc,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_test.h))
 
-$(eval $(call microlite_test,kernel_lstm_eval_internal_test,\
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_internal_test.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_internal_test.h \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
-
 $(eval $(call microlite_test,kernel_lstm_eval_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_test.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_internal_test.h \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
 
 $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_test.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
-
-$(eval $(call microlite_test,unidirectional_sequence_lstm_internal_test,\
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal_test.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal_test_config.cc,\
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal_test_config.h))
 
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),
 # use simple for loop to generate their make targets in a common way.
