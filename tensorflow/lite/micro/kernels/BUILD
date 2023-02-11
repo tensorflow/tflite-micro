@@ -355,7 +355,6 @@ tflm_kernel_cc_library(
     }),
 )
 
-
 ####################################
 # C++ tests
 ####################################
@@ -908,7 +907,6 @@ cc_test(
     ],
 )
 
-
 cc_test(
     name = "lstm_eval_test",
     srcs = [
@@ -1343,7 +1341,6 @@ cc_test(
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
-
 
 cc_test(
     name = "unidirectional_sequence_lstm_test",
