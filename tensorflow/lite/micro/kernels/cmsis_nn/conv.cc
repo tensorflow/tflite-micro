@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/conv.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
@@ -418,6 +419,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
+    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
+        context, data.reference_op_data.filter_buffer_index));
+
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+
+  } else {
+    filter_int8 = *filter;
+  }
+
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
       tflite::reference_ops::Conv(
@@ -434,30 +452,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      switch (filter->type) {
+      switch (filter_int8.type) {
         case kTfLiteInt8: {
           return EvalQuantizedPerChannel(context, node, params, data, input,
-                                         filter, bias, output);
+                                         &filter_int8, bias, output);
         }
 
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data =
-              static_cast<int8_t*>(context->GetScratchBuffer(
-                  context, data.reference_op_data.filter_buffer_index));
-          reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
-              ConvParamsQuantized(params, data.reference_op_data),
-              data.reference_op_data.per_channel_output_multiplier,
-              data.reference_op_data.per_channel_output_shift,
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int8_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int8_t>(output));
-          return kTfLiteOk;
-        }
         default: {
           MicroPrintf("Filter type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);
