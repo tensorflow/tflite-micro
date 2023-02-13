@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""An experimental tool to convert a int8 activation, int8 weight LSTM based model to int16 activation, int8 weight
+"""An experimental tool to requantize a int8 activation, int8 weight LSTM based model to int16 activation, int8 weight
 
 Steps: 
 1. Convert the trained model to int8 using the TFLite converter. See https://www.tensorflow.org/lite/performance/post_training_quantization#full_integer_quantization
-2. Use this tool to convert the int8 model to int16.
-3. Check if the converted model match the expectation (e.g., read the conversion printout, perform inference tests)
+2. Use this tool to requantize the int8 model to int16.
+3. Check if the requantized model match the expectation (e.g., read the conversion printout, perform inference tests)
 
 The conversion process: 
-1. Convert the ops specified in _COMPLEX_OP_REQUANTIZE_REGISTRATION using the registered function. Bias type conversion (int32 to int64) only happens here. 
-2. Convert all non-constant tensors with int8 type to int16 (and fix the quantization parameters)
+1. Requantize the ops specified in _COMPLEX_OP_REQUANTIZE_REGISTRATION using the registered function. Bias type conversion (int32 to int64) only happens here. 
+2. Requantize all non-constant tensors with int8 type to int16 (and fix the quantization parameters)
 
 Run:
-`bazel build tensorflow/lite/micro/tool:requantize`
-`bazel-bin/tensorflow/lite/micro/tool:requantize
+bazel build tensorflow/lite/micro/tools:requantize
+bazel-bin/tensorflow/lite/micro/tools/requantize
 --int8_model_path=".tflite file path"` --save_path="save path"
 
 CAVEAT: 
