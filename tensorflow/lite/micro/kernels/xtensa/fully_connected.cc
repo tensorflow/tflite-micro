@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
@@ -221,23 +222,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4) {
-    int8_t* unpacked_filter_data = static_cast<int8_t*>(
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
+    filter_int8.data.data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
-    tflite::reference_integer_ops::FullyConnectedWithPackedInt4Weights(
-        FullyConnectedParamsQuantized(data),
-        tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(filter),
-        tflite::micro::GetTensorData<int8_t>(filter), unpacked_filter_data,
-        tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<int32_t>(bias),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-    return kTfLiteOk;
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+
   } else {
-    return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+    filter_int8 = *filter;
   }
+  return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
+                           output);
 }
 
 }  // namespace
