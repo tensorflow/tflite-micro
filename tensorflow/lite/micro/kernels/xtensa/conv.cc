@@ -81,9 +81,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor filter_int8;
 
   if (filter->type == kTfLiteInt4) {
-    filter_int8.data.data =
-        const_cast<int8_t*>(static_cast<int8_t*>(context->GetScratchBuffer(
-            context, op_data.reference_op_data.filter_buffer_index)));
+    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
+        context, op_data.reference_op_data.filter_buffer_index));
 
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;

@@ -22,6 +22,35 @@ py_binary(
     srcs = ["generate_cc_arrays.py"],
 )
 
+py_binary(
+    name = "requantize",
+    srcs = [
+        "requantize.py",
+        "requantize_utils.py",
+    ],
+    srcs_version = "PY3",
+    deps = [
+        "//tensorflow/lite/tools:flatbuffer_utils",
+        "@absl_py//absl:app",
+    ],
+)
+
+py_test(
+    name = "requantize_test",
+    srcs = ["requantize_test.py"],
+    main = "requantize_test.py",
+    python_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "noubsan",
+    ],
+    deps = [
+        ":requantize",
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+    ],
+)
+
 cc_binary(
     name = "tflite_flatbuffer_align",
     srcs = [

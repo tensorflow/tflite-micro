@@ -20,20 +20,6 @@ py_binary(
     ],
 )
 
-py_binary(
-    name = "convert8to16",
-    srcs = [
-        "converter/convert8to16.py",
-        "converter/converter_utils.py",
-    ],
-    srcs_version = "PY3",
-    deps = [
-        requirement("numpy"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
-        "@absl_py//absl:app",
-    ],
-)
-
 filegroup(
     name = "sample_images",
     srcs = glob(["samples/*.png"]),
@@ -58,21 +44,5 @@ py_test(
         ":convert8to16",
         ":evaluate",
         ":train",
-    ],
-)
-
-py_test(
-    name = "converter_test",
-    srcs = ["converter/convert8to16_test.py"],
-    main = "converter/convert8to16_test.py",
-    python_version = "PY3",
-    tags = [
-        "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
-        "noubsan",
-    ],
-    deps = [
-        ":convert8to16",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )

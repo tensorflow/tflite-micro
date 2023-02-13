@@ -12,26 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""An experimental tool to convert a int8 activation, int8 weight LSTM based model to int16 activation, int8 weight
+"""An experimental tool to requantize a int8 activation, int8 weight LSTM based model to int16 activation, int8 weight
 
 Steps: 
 1. Convert the trained model to int8 using the TFLite converter. See https://www.tensorflow.org/lite/performance/post_training_quantization#full_integer_quantization
-2. Use this tool to convert the int8 model to int16.
-3. Check if the converted model match the expectation (e.g., read the conversion printout, perform inference tests)
+2. Use this tool to requantize the int8 model to int16.
+3. Check if the requantized model match the expectation (e.g., read the conversion printout, perform inference tests)
 
 The conversion process: 
-1. Convert the ops specified in _OP_CONVERSION_REGISTRATION using the registered function. Bias type conversion (int32 to int64) only happens here. 
-2. Convert all non-constant tensors with int8 type to int16 (and fix the quantization parameters)
+1. Requantize the ops specified in _COMPLEX_OP_REQUANTIZE_REGISTRATION using the registered function. Bias type conversion (int32 to int64) only happens here. 
+2. Requantize all non-constant tensors with int8 type to int16 (and fix the quantization parameters)
 
 Run:
-`bazel build tensorflow/lite/micro/examples/mnist_lstm:convert8to16`
-`bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/convert8to16
+bazel build tensorflow/lite/micro/tools:requantize
+bazel-bin/tensorflow/lite/micro/tools/requantize
 --int8_model_path=".tflite file path"` --save_path="save path"
 
 CAVEAT: 
 1. Use this tool ONLY for models that contain the LSTM layer. All other models should use the standard tflite conversion process.
 2. This is an experimental tool. ALWAYS check if the converted model matches your expectation
-3. Add the custom op conversion function for complex ops (e.g., convolution). 
+3. Add the custom op requantization function for complex ops (e.g., convolution). 
+4. We assume ops not in _COMPLEX_OP_REQUANTIZE_REGISTRATION only have activation tensors (i.e. no weights and bias). Check the quantized model performance if you add additional ops to _TESTED_SIMPLE_OPS 
 
 """
 import os
@@ -42,25 +43,31 @@ from absl import flags
 from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-import tflite_micro.tensorflow.lite.micro.examples.mnist_lstm.converter.converter_utils as utils
+import tflite_micro.tensorflow.lite.micro.tools.requantize_utils as utils
 
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string("int8_model_path", "../trained_lstm_quant.tflite",
                     "the int8 model path.")
 flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
-                    "path to save the converted model.")
+                    "path to save the requantized model.")
 
 # key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
-_OP_CONVERSION_REGISTRATION = {
-    9: utils.convert_fully_connected,
-    44: utils.convert_unidirectional_sequence_lstm,
-    25: utils.convert_softmax
+_COMPLEX_OP_REQUANTIZE_REGISTRATION = {
+    9: utils.requantize_fully_connected,
+    44: utils.requantize_unidirectional_sequence_lstm,
+    25: utils.requantize_softmax
 }
 
+# List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
+_TESTED_SIMPLE_OPS = [22, 114, 6]  # reshape, quantize, dequantize
 
-class Int8ToInt16Converter:
-  """Convert an int8 activation model to int16"""
+_SUPPORTED_OPS = set(
+    list(_COMPLEX_OP_REQUANTIZE_REGISTRATION.keys()) + _TESTED_SIMPLE_OPS)
+
+
+class Requantizer:
+  """Requantize an int8 activation model to int16"""
 
   def __init__(self, int8_model):
     """Initialize the int8 to int16 converter.
@@ -85,7 +92,7 @@ class Int8ToInt16Converter:
       An Int8ToInt16Converter instance
     """
     int8_model = flatbuffer_utils.read_model(model_path)
-    return Int8ToInt16Converter(int8_model)
+    return Requantizer(int8_model)
 
   @classmethod
   def from_bytes(self, bytearray):
@@ -98,7 +105,7 @@ class Int8ToInt16Converter:
       An Int8ToInt16Converter instance
     """
     int8_model = flatbuffer_utils.convert_bytearray_to_object(bytearray)
-    return Int8ToInt16Converter(int8_model)
+    return Requantizer(int8_model)
 
   def _remove_tensor(self, tensor):
     """Remove tensor from the tensor pool"""
@@ -124,11 +131,15 @@ class Int8ToInt16Converter:
       tensors = subgraph.tensors
       for op in subgraph.operators:
         op_code = op_codes[op.opcodeIndex].builtinCode
-        if op_code in _OP_CONVERSION_REGISTRATION:
-          logging.info(
-              f"Convert operator {flatbuffer_utils.opcode_to_name(self.model,op.opcodeIndex)}"
+        op_name = flatbuffer_utils.opcode_to_name(self.model, op.opcodeIndex)
+        if op_code not in _SUPPORTED_OPS:
+          raise RuntimeError(
+              f"Operator {op_name} is not supported. If the operator contains weight/bias, develop and register the corresponding requantize function in _COMPLEX_OP_CONVERSION_REGISTRATION. Otherwise, try add the op code to  _TESTED_SIMPLE_OPS and validate the requantized model "
           )
-          _OP_CONVERSION_REGISTRATION[op_code](tensors, self.model.buffers, op)
+        if op_code in _COMPLEX_OP_REQUANTIZE_REGISTRATION:
+          logging.info(f"Convert operator {op_name}")
+          _COMPLEX_OP_REQUANTIZE_REGISTRATION[op_code](tensors,
+                                                       self.model.buffers, op)
           self._remove_op_tensors(tensors, op)
 
   def _change_tensor_activation_type(self):
@@ -141,14 +152,14 @@ class Int8ToInt16Converter:
           utils.change_activation_tensor_8to16(tensor)
           self._remove_tensor(tensor)
 
-  def convert(self):
+  def requantize_8to16(self):
     '''
-    The conversion process has two phase:
+    The requantize process has two phase:
     1. Go through the registered ops and perform the custom op transformation 
     2. Go through the rest of tensors and convert int8 non-const tensor to int16
     '''
 
-    logging.info("Reset OPS")
+    logging.info("Reset Operators")
     self._convert_ops()
     logging.info("Set Remaining Activation Types")
     self._change_tensor_activation_type()
@@ -171,9 +182,9 @@ def main(_):
   if not os.path.exists(FLAGS.int8_model_path):
     raise ValueError(
         "Model file does not exist. Please check the .tflite model path.")
-  converter = Int8ToInt16Converter.from_file(FLAGS.int8_model_path)
-  converter.convert()
-  converter.save_model(FLAGS.save_path)
+  requantizer = Requantizer.from_file(FLAGS.int8_model_path)
+  requantizer.requantize_8to16()
+  requantizer.save_model(FLAGS.save_path)
 
 
 if __name__ == "__main__":

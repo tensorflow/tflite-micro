@@ -158,7 +158,7 @@ def set_bias_type_int64(buffers, input, weight, bias):
   '''Specific op conversion functions'''
 
 
-def convert_fully_connected(tensors, buffers, op):
+def requantize_fully_connected(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
   weight_tensor = tensors[op.inputs[1]]
   bias_tensor = None
@@ -175,7 +175,7 @@ def convert_fully_connected(tensors, buffers, op):
   # weight stays the same, no change needed
 
 
-def convert_unidirectional_sequence_lstm(tensors, buffers, op):
+def requantize_unidirectional_sequence_lstm(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
   hidden_state_tensor = tensors[op.inputs[18]]
   output_tensor = tensors[op.outputs[0]]
@@ -198,7 +198,7 @@ def convert_unidirectional_sequence_lstm(tensors, buffers, op):
     weight_tensor = tensors[op.inputs[weight_id]]
 
 
-def convert_softmax(tensors, buffers, op):
+def requantize_softmax(tensors, buffers, op):
   input_tensor = tensors[op.inputs[0]]
   output_tensor = tensors[op.outputs[0]]
 

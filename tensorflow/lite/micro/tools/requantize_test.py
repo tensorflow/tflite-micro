@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm.converter.convert8to16 import Int8ToInt16Converter
+from tflite_micro.tensorflow.lite.micro.tools.requantize import Requantizer
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
@@ -70,9 +70,9 @@ def convert_8to16_converter(keras_model, representative_dataset_gen):
                                      int16=False)
   int8_model = flatbuffer_utils.convert_bytearray_to_object(int8_model)
   # Use the tool to convert to int16
-  converter = Int8ToInt16Converter(int8_model)
-  converter.convert()
-  return flatbuffer_utils.convert_object_to_bytearray(converter.model)
+  requantizer = Requantizer(int8_model)
+  requantizer.requantize_8to16()
+  return flatbuffer_utils.convert_object_to_bytearray(requantizer.model)
 
 
 class SimpleFCModelTest(test_util.TensorFlowTestCase):
