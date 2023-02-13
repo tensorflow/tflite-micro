@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -204,6 +204,14 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
           (current->bytes != 0);
       if (offline_offsets) {
         current->offline_offset = offline_offsets[i];
+
+        // Mark offline planned variable tensors so they can get an offline
+        // offset and be handled offline.
+        if (subgraph->tensors()->Get(i)->is_variable() &&
+            current->offline_offset != kOnlinePlannedBuffer) {
+          current->needs_allocating = true;
+        }
+
       } else {
         current->offline_offset = kOnlinePlannedBuffer;
       }

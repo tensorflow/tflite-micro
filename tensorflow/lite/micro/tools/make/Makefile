@@ -267,8 +267,8 @@ endif
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
-MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
 
