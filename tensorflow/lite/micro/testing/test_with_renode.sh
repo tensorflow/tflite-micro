@@ -39,7 +39,7 @@ ROBOT_RESOURCE=${TFLM_ROOT_DIR}/testing/robot.resource.txt
 TARGET_RESOURCE=${TFLM_ROOT_DIR}/testing/${TARGET}.resource.txt
 
 # Renode's entrypoint for using the Robot Framework.
-RENODE_TEST_SCRIPT=${TFLM_ROOT_DIR}/tools/make/downloads/renode/test.sh
+RENODE_TEST_SCRIPT=${TFLM_ROOT_DIR}/tools/make/downloads/renode/renode-test
 
 if [ ! -f "${RENODE_TEST_SCRIPT}" ]; then
   echo "The renode test script: ${RENODE_TEST_SCRIPT} does not exist. Please " \

@@ -16,7 +16,13 @@ MICROLITE_CC_KERNEL_SRCS += \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
 
-ifeq ($(TARGET_ARCH), hifi5)
+ifeq ($(TARGET_ARCH), hifimini)
+  # hifimini optimizations are implemented in the TFLM repository itself.
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc
+
+else ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
@@ -56,7 +62,7 @@ ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
 
-else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi4 hifi4_internal))
+else ifeq ($(TARGET_ARCH), hifi4)
 
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -124,7 +130,7 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   INCLUDES += \
     -I$(NNLIB_PATH)/flk/include \
     -I$(NNLIB_PATH)/kernels/include/ \
-    -I$(NNLIB_PATH)/runtime/include/ 
+    -I$(NNLIB_PATH)/runtime/include/
 
   LDFLAGS += -lidma
 else
@@ -135,10 +141,16 @@ FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
 
 INCLUDES += -I$(FFT_PATH)/
 
-ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi4_internal hifi5))
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi5))
 THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
 
 THIRD_PARTY_CC_HDRS += \
     $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
+else ifeq ($(TARGET_ARCH), hifimini)
+THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
+
+THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 endif

@@ -1,0 +1,15 @@
+# standalone BUILD file used to test project generation with bazel.
+
+cc_library(
+  name = "libtflm",
+  srcs = glob(["tensorflow/**/*.cc", "tensorflow/**/*.c", "third_party/**/*.cc", "third_party/**/*.c"]),
+  hdrs = glob(["tensorflow/**/*.h", "third_party/**/*.h"]),
+  copts = [
+    "-Ithird_party/gemmlowp",
+    "-Ithird_party/flatbuffers/include",
+    "-Ithird_party/kissfft",
+    "-Ithird_party/kissfft/tools",
+    "-Ithird_party/ruy",
+  ]
+)
+

@@ -84,7 +84,8 @@ TfLiteStatus TestConvQuantizedPerChannel(
     float* bias_scales, int* bias_zero_points, int* output_dims_data,
     const float* expected_output_data, int8_t* expected_output_data_quantized,
     float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
-    TfLiteRegistration registration, int8_t* output_data);
+    TfLiteRegistration registration, int8_t* output_data,
+    TfLiteType tensor_weight_type = kTfLiteNoType);
 
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,

@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,9 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace maximum_minimum {
+
 namespace {
 
 // This file has a reference implementation of TFMaximum/TFMinimum.
@@ -64,8 +62,6 @@ struct MinimumOp {
     return el1 < el2 ? el1 : el2;
   }
 };
-
-}  // namespace
 
 template <typename data_type, typename op_type>
 void TFLiteOperation(TfLiteContext* context, TfLiteNode* node,
@@ -111,22 +107,16 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace maximum_minimum
+}  // namespace
 
 TfLiteRegistration Register_MAXIMUM() {
-  return tflite::micro::RegisterOp(
-      nullptr, nullptr,
-      maximum_minimum::Eval<maximum_minimum::kReference,
-                            maximum_minimum::MaximumOp>);
+  return tflite::micro::RegisterOp(nullptr, nullptr,
+                                   Eval<kReference, MaximumOp>);
 }
 
 TfLiteRegistration Register_MINIMUM() {
-  return tflite::micro::RegisterOp(
-      nullptr, nullptr,
-      maximum_minimum::Eval<maximum_minimum::kReference,
-                            maximum_minimum::MinimumOp>);
+  return tflite::micro::RegisterOp(nullptr, nullptr,
+                                   Eval<kReference, MinimumOp>);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

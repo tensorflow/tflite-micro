@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
@@ -116,6 +117,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     data->reference_op_data.per_channel_output_shift =
         reinterpret_cast<int32_t*>(context->AllocatePersistentBuffer(
             context, num_channels * sizeof(int32_t)));
+  }
+
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(
+        context, filter_size, &data->reference_op_data.filter_buffer_index);
   }
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataDepthwiseConv(
@@ -327,6 +337,20 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       (NumInputs(node) == 3)
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
+    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
+        context, data.reference_op_data.filter_buffer_index));
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+  } else {
+    filter_int8 = *filter;
+  }
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
@@ -343,8 +367,18 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      EvalQuantizedPerChannel(context, node, params, data, input, filter, bias,
-                              output);
+      switch (filter_int8.type) {
+        case kTfLiteInt8: {
+          EvalQuantizedPerChannel(context, node, params, data, input,
+                                  &filter_int8, bias, output);
+          break;
+        }
+        default: {
+          MicroPrintf("Filter type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type);
+          return kTfLiteError;
+        }
+      }
       break;
     case kTfLiteInt16:
       EvalQuantizedPerChannel16x8(context, node, params, data, input, filter,
