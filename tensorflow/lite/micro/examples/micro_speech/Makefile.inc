@@ -233,9 +233,13 @@ $(MICRO_FEATURES_GENERATOR_TEST_SRCS),$(MICRO_FEATURES_GENERATOR_TEST_HDRS),$(MI
 $(eval $(call microlite_test,micro_speech_test,\
 $(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
-# Test the code for feature generation.
-$(eval $(call microlite_test,simple_features_generator_test,\
-$(SIMPLE_FEATURES_GENERATOR_TEST_SRCS),$(SIMPLE_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+# TODO(b/268568089): This test is taking very long time to finish; causing the
+# CI to run for a long time to finish.
+ifneq ($(TARGET_ARCH), hifimini)
+  # Test the code for feature generation.
+  $(eval $(call microlite_test,simple_features_generator_test,\
+  $(SIMPLE_FEATURES_GENERATOR_TEST_SRCS),$(SIMPLE_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+endif
 
 # Tests the audio provider module.
 $(eval $(call microlite_test,audio_provider_test,\
