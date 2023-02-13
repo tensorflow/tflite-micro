@@ -13,14 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_TEST_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_TEST_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_TEST_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_TEST_H_
 
 #include <algorithm>
 #include <limits>
 
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
-#include "tensorflow/lite/micro/kernels/lstm_eval_internal_test.h"
+#include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
+#include "tensorflow/lite/micro/test_helpers.h"
+#include "tensorflow/lite/micro/testing/micro_test.h"
+
 namespace tflite {
 namespace testing {
 
@@ -319,6 +322,14 @@ OpDataLSTM CreateLstmOpDataFloat(
 }
 
 /*Test Functions Below Here*/
+template <typename T>
+void ValidateResultGoldens(const T* golden, const T* output_data,
+                           const int output_len, const float tolerance) {
+  for (int i = 0; i < output_len; ++i) {
+    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], tolerance);
+  }
+}
+
 template <int batch_size, int state_dimension>
 void TestCalculateLstmGateFloat(const TfLiteEvalTensor* input,
                                 const TfLiteEvalTensor* input_weight,
@@ -803,4 +814,4 @@ void TestEvalLstmInteger(
 }  // namespace testing
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_16ACT_TEST_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_TEST_H_
