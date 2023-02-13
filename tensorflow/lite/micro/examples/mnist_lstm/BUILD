@@ -41,8 +41,8 @@ py_test(
         "noubsan",
     ],
     deps = [
-        ":convert8to16",
         ":evaluate",
         ":train",
+        "//tensorflow/lite/micro/tools:requantize",
     ],
 )
