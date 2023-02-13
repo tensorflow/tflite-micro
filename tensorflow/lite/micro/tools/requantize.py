@@ -60,9 +60,10 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
-_TESTED_SIMPLE_OPS = [22, 114, 6] # reshape, quantize, dequantize
+_TESTED_SIMPLE_OPS = [22, 114, 6]  # reshape, quantize, dequantize
 
-_SUPPORTED_OPS = set(list(_COMPLEX_OP_REQUANTIZE_REGISTRATION.keys())+_TESTED_SIMPLE_OPS)
+_SUPPORTED_OPS = set(
+    list(_COMPLEX_OP_REQUANTIZE_REGISTRATION.keys()) + _TESTED_SIMPLE_OPS)
 
 
 class Requantizer:
@@ -130,14 +131,15 @@ class Requantizer:
       tensors = subgraph.tensors
       for op in subgraph.operators:
         op_code = op_codes[op.opcodeIndex].builtinCode
-        op_name = flatbuffer_utils.opcode_to_name(self.model,op.opcodeIndex)
+        op_name = flatbuffer_utils.opcode_to_name(self.model, op.opcodeIndex)
         if op_code not in _SUPPORTED_OPS:
-          raise RuntimeError(f"Operator {op_name} is not supported. If the operator contains weight/bias, develop and register the corresponding requantize function in _COMPLEX_OP_CONVERSION_REGISTRATION. Otherwise, try add the op code to  _TESTED_SIMPLE_OPS and validate the requantized model ")
-        if op_code in _COMPLEX_OP_REQUANTIZE_REGISTRATION:
-          logging.info(
-              f"Convert operator {op_name}"
+          raise RuntimeError(
+              f"Operator {op_name} is not supported. If the operator contains weight/bias, develop and register the corresponding requantize function in _COMPLEX_OP_CONVERSION_REGISTRATION. Otherwise, try add the op code to  _TESTED_SIMPLE_OPS and validate the requantized model "
           )
-          _COMPLEX_OP_REQUANTIZE_REGISTRATION[op_code](tensors, self.model.buffers, op)
+        if op_code in _COMPLEX_OP_REQUANTIZE_REGISTRATION:
+          logging.info(f"Convert operator {op_name}")
+          _COMPLEX_OP_REQUANTIZE_REGISTRATION[op_code](tensors,
+                                                       self.model.buffers, op)
           self._remove_op_tensors(tensors, op)
 
   def _change_tensor_activation_type(self):
