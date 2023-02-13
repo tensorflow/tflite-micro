@@ -58,7 +58,6 @@ py_test(
         ":convert8to16",
         ":evaluate",
         ":train",
-        ":convert8to16"
     ],
 )
 
