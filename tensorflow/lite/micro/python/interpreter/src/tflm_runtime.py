@@ -37,9 +37,8 @@ class Interpreter(object):
     # Some models make use of resource variables ops, get the count here
     num_resource_variables = flatbuffer_utils.count_resource_variables(
         model_data)
-    if num_resource_variables != 0:
-      print("Note: Model makes use of resource variables, count = ",
-            num_resource_variables)
+    print("Number of resource variables the model uses = ",
+          num_resource_variables)
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
         model_data, custom_op_registerers, arena_size, num_resource_variables)
