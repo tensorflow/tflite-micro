@@ -30,8 +30,8 @@ py_binary(
     ],
     srcs_version = "PY3",
     deps = [
-        "//tensorflow/lite/tools:flatbuffer_utils",
         "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl:app",
     ],
 )

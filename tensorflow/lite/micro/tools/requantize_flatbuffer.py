@@ -56,12 +56,16 @@ flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
 # key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
     BuiltinOperator.FULLY_CONNECTED: utils.requantize_fully_connected,
-    BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM: utils.requantize_unidirectional_sequence_lstm,
+    BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
+    utils.requantize_unidirectional_sequence_lstm,
     BuiltinOperator.SOFTMAX: utils.requantize_softmax
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
-_TESTED_SIMPLE_OPS = [BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE, BuiltinOperator.DEQUANTIZE] 
+_TESTED_SIMPLE_OPS = [
+    BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE,
+    BuiltinOperator.DEQUANTIZE
+]
 
 _SUPPORTED_OPS = set(
     list(_COMPLEX_OP_REQUANTIZE_REGISTRATION.keys()) + _TESTED_SIMPLE_OPS)
