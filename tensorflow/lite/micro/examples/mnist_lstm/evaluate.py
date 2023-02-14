@@ -60,23 +60,25 @@ def read_img(img_path):
   data = data.reshape((1, 28, 28))
   return data
 
-def quantize_input_data(data,input_details):
+
+def quantize_input_data(data, input_details):
   """quantize the input data using scale and zero point
 
   Args:
       data (np.array in float): input data for the interpreter 
       input_details : output of get_input_details from the tflm interpreter.
   """
-  # Get input quantization parameters 
+  # Get input quantization parameters
   data_type = input_details["dtype"]
   input_quantization_parameters = input_details["quantization_parameters"]
   input_scale, input_zero_point = input_quantization_parameters["scales"][
-  0], input_quantization_parameters["zero_points"][0]
+      0], input_quantization_parameters["zero_points"][0]
   # quantize the input data
   data = data / input_scale + input_zero_point
   return data.astype(data_type)
 
-def dequantize_output_data(data,output_details):
+
+def dequantize_output_data(data, output_details):
   """Dequantize the data 
 
   Args:
@@ -89,8 +91,8 @@ def dequantize_output_data(data,output_details):
   # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
   # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
   # can produce different results (int8 calculation)
-  return output_scale * (
-          data.astype("float") - output_zero_point)
+  return output_scale * (data.astype("float") - output_zero_point)
+
 
 def predict_image(interpreter, image_path):
   """Use TFLM interpreter to predict a MNIST image
@@ -110,7 +112,7 @@ def predict_image(interpreter, image_path):
   interpreter.set_input(data, 0)
   interpreter.invoke()
   tflm_output = interpreter.get_output(0)
-  
+
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
   output_details = interpreter.get_output_details(0)
@@ -118,7 +120,8 @@ def predict_image(interpreter, image_path):
     return tflm_output[0].astype("float")
 
   # Dequantize the output for quantized model
-  return dequantize_output_data(tflm_output[0],output_details)
+  return dequantize_output_data(tflm_output[0], output_details)
+
 
 def main(_):
   if not os.path.exists(FLAGS.model_path):
@@ -128,7 +131,7 @@ def main(_):
     raise ValueError("Image file does not exist. Please check the image path.")
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
-  category_probabilities = predict_image(tflm_interpreter,FLAGS.img_path)
+  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
   predicted_category = np.argmax(category_probabilities)
   logging.info("Model predicts the image as %i with probability %.2f",
                predicted_category, category_probabilities[predicted_category])
