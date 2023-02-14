@@ -22,9 +22,10 @@ from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
-from tflite_micro.tensorflow.lite.micro.tools.requantize import Requantizer
+from tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer import Requantizer
 
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
+
 
 def tflm_predict(tflm_interpreter, data):
   """Predict using the tflm interpreter 
@@ -39,6 +40,7 @@ def tflm_predict(tflm_interpreter, data):
   tflm_interpreter.set_input(data, 0)
   tflm_interpreter.invoke()
   return tflm_interpreter.get_output(0)
+
 
 class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
@@ -81,7 +83,7 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
           tflite_output_details["index"])
 
       # Run inference on TFLM
-      tflm_output = tflm_predict(self.tflm_interpreter,data_x)
+      tflm_output = tflm_predict(self.tflm_interpreter, data_x)
 
       # Check that TFLM has correct output
       self.assertDTypeEqual(tflm_output, np.float32)
@@ -111,7 +113,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
   np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
-    # Get input/output information of the quantized model 
+    # Get input/output information of the quantized model
     input_details = self.tflm_interpreter_quant.get_input_details(0)
     output_details = self.tflm_interpreter_quant.get_output_details(0)
 
@@ -130,19 +132,21 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       data_x = data_x.astype("float32")
 
       # Run float inference on TFLM
-      tflm_output_float = tflm_predict(tflm_interpreter_float,data_x)
+      tflm_output_float = tflm_predict(tflm_interpreter_float, data_x)
 
       # Quantized the input data into int8
-      data_x_quant = evaluate.quantize_input_data(data_x,input_details)
+      data_x_quant = evaluate.quantize_input_data(data_x, input_details)
 
       # Run integer inference on the quantilzed TFLM model
-      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,data_x_quant)
+      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,
+                                       data_x_quant)
       # Check shape and type
       self.assertDTypeEqual(tflm_output_quant, np.int8)
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
 
       # Convert the integer output back to float for comparison
-      tflm_output_quant_float = evaluate.dequantize_output_data(tflm_output_quant,output_details)
+      tflm_output_quant_float = evaluate.dequantize_output_data(
+          tflm_output_quant, output_details)
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-2)
@@ -158,6 +162,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       predicted_category = np.argmax(category_probabilities_quant)
       # Check the prediction
       self.assertEqual(predicted_category, label)
+
 
 class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
   # Convert the int8 model to int16
@@ -192,23 +197,25 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       data_x = data_x.astype("float32")
 
       # Run float inference on TFLM
-      tflm_output_float = tflm_predict(self.tflm_interpreter_float,data_x)
+      tflm_output_float = tflm_predict(tflm_interpreter_float, data_x)
 
       # Quantized the input data into int8
-      data_x_quant = evaluate.quantize_input_data(data_x,input_details)
+      data_x_quant = evaluate.quantize_input_data(data_x, input_details)
 
       # Run integer inference on the quantilzed TFLM model
-      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,data_x_quant)
+      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,
+                                       data_x_quant)
       # Check shape and type
       self.assertDTypeEqual(tflm_output_quant, np.int16)
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
 
       # Convert the integer output back to float for comparison
-      tflm_output_quant_float = evaluate.dequantize_output_data(tflm_output_quant,output_details)
+      tflm_output_quant_float = evaluate.dequantize_output_data(
+          tflm_output_quant, output_details)
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-3)
-  
+
   def testQuantModelAccuracy(self):
     for label in range(10):
       image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
@@ -220,6 +227,7 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       predicted_category = np.argmax(category_probabilities_quant)
       # Check the prediction
       self.assertEqual(predicted_category, label)
+
 
 if __name__ == "__main__":
   test.main()
