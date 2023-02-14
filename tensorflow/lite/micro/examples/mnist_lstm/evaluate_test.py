@@ -27,6 +27,15 @@ from tflite_micro.tensorflow.lite.micro.tools.requantize import Requantizer
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
 def tflm_predict(tflm_interpreter, data):
+  """Predict using the tflm interpreter 
+
+  Args:
+      tflm_interpreter (Interpreter): TFLM interpreter
+      data (np.array): data that need to be predicted 
+
+  Returns:
+      prediction (np.array): predicted results from the model using TFLM interpreter 
+  """
   tflm_interpreter.set_input(data, 0)
   tflm_interpreter.invoke()
   return tflm_interpreter.get_output(0)
@@ -121,17 +130,13 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       data_x = data_x.astype("float32")
 
       # Run float inference on TFLM
-      tflm_interpreter_float.set_input(data_x, 0)
-      tflm_interpreter_float.invoke()
-      tflm_output_float = tflm_interpreter_float.get_output(0)
+      tflm_output_float = tflm_predict(tflm_interpreter_float,data_x)
 
       # Quantized the input data into int8
       data_x_quant = evaluate.quantize_input_data(data_x,input_details)
 
       # Run integer inference on the quantilzed TFLM model
-      self.tflm_interpreter_quant.set_input(data_x_quant, 0)
-      self.tflm_interpreter_quant.invoke()
-      tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
+      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,data_x_quant)
       # Check shape and type
       self.assertDTypeEqual(tflm_output_quant, np.int8)
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
@@ -187,17 +192,13 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       data_x = data_x.astype("float32")
 
       # Run float inference on TFLM
-      tflm_interpreter_float.set_input(data_x, 0)
-      tflm_interpreter_float.invoke()
-      tflm_output_float = tflm_interpreter_float.get_output(0)
+      tflm_output_float = tflm_predict(self.tflm_interpreter_float,data_x)
 
       # Quantized the input data into int8
       data_x_quant = evaluate.quantize_input_data(data_x,input_details)
 
       # Run integer inference on the quantilzed TFLM model
-      self.tflm_interpreter_quant.set_input(data_x_quant, 0)
-      self.tflm_interpreter_quant.invoke()
-      tflm_output_quant = self.tflm_interpreter_quant.get_output(0)
+      tflm_output_quant = tflm_predict(self.tflm_interpreter_quant,data_x_quant)
       # Check shape and type
       self.assertDTypeEqual(tflm_output_quant, np.int16)
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
