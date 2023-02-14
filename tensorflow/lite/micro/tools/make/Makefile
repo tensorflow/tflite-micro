@@ -267,8 +267,8 @@ endif
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
-MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
 
@@ -356,7 +356,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logical_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/log_softmax.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_internal.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/maximum_minimum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
@@ -399,7 +398,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm_internal.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
