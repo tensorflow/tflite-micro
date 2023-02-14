@@ -86,6 +86,9 @@ def dequantize_output_data(data,output_details):
   output_quantization_parameters = output_details["quantization_parameters"]
   output_scale, output_zero_point = output_quantization_parameters["scales"][
       0], output_quantization_parameters["zero_points"][0]
+  # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
+  # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
+  # can produce different results (int8 calculation)
   return output_scale * (
           data.astype("float") - output_zero_point)
 

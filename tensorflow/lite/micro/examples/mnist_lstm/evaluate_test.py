@@ -26,6 +26,10 @@ from tflite_micro.tensorflow.lite.micro.tools.requantize import Requantizer
 
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
+def tflm_predict(tflm_interpreter, data):
+  tflm_interpreter.set_input(data, 0)
+  tflm_interpreter.invoke()
+  return tflm_interpreter.get_output(0)
 
 class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
@@ -68,9 +72,7 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
           tflite_output_details["index"])
 
       # Run inference on TFLM
-      self.tflm_interpreter.set_input(data_x, 0)
-      self.tflm_interpreter.invoke()
-      tflm_output = self.tflm_interpreter.get_output(0)
+      tflm_output = tflm_predict(self.tflm_interpreter,data_x)
 
       # Check that TFLM has correct output
       self.assertDTypeEqual(tflm_output, np.float32)
@@ -100,15 +102,10 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
   np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
-    # Get input/output quantization parameters
-    input_quantization_parameters = self.tflm_interpreter_quant.get_input_details(
-        0)["quantization_parameters"]
-    output_quantization_parameters = self.tflm_interpreter_quant.get_output_details(
-        0)["quantization_parameters"]
-    input_scale, input_zero_point = input_quantization_parameters["scales"][
-        0], input_quantization_parameters["zero_points"][0]
-    output_scale, output_zero_point = output_quantization_parameters["scales"][
-        0], output_quantization_parameters["zero_points"][0]
+    # Get input/output information of the quantized model 
+    input_details = self.tflm_interpreter_quant.get_input_details(0)
+    output_details = self.tflm_interpreter_quant.get_output_details(0)
+
     # Create a float model for results comparison
     float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
     tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
@@ -129,8 +126,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       tflm_output_float = tflm_interpreter_float.get_output(0)
 
       # Quantized the input data into int8
-      data_x_quant = data_x / input_scale + input_zero_point
-      data_x_quant = data_x_quant.astype("int8")
+      data_x_quant = evaluate.quantize_input_data(data_x,input_details)
 
       # Run integer inference on the quantilzed TFLM model
       self.tflm_interpreter_quant.set_input(data_x_quant, 0)
@@ -141,11 +137,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
 
       # Convert the integer output back to float for comparison
-      # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
-      # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
-      # can produce different results (int8 calculation)
-      tflm_output_quant_float = output_scale * (
-          tflm_output_quant.astype("float") - output_zero_point)
+      tflm_output_quant_float = evaluate.dequantize_output_data(tflm_output_quant,output_details)
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-2)
@@ -176,15 +168,10 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
   np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
-    # Get input/output quantization parameters
-    input_quantization_parameters = self.tflm_interpreter_quant.get_input_details(
-        0)["quantization_parameters"]
-    output_quantization_parameters = self.tflm_interpreter_quant.get_output_details(
-        0)["quantization_parameters"]
-    input_scale, input_zero_point = input_quantization_parameters["scales"][
-        0], input_quantization_parameters["zero_points"][0]
-    output_scale, output_zero_point = output_quantization_parameters["scales"][
-        0], output_quantization_parameters["zero_points"][0]
+    # Get input/output information
+    input_details = self.tflm_interpreter_quant.get_input_details(0)
+    output_details = self.tflm_interpreter_quant.get_output_details(0)
+
     # Create a float model for results comparison
     float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
     tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
@@ -205,8 +192,7 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       tflm_output_float = tflm_interpreter_float.get_output(0)
 
       # Quantized the input data into int8
-      data_x_quant = data_x / input_scale + input_zero_point
-      data_x_quant = data_x_quant.astype("int16")
+      data_x_quant = evaluate.quantize_input_data(data_x,input_details)
 
       # Run integer inference on the quantilzed TFLM model
       self.tflm_interpreter_quant.set_input(data_x_quant, 0)
@@ -217,11 +203,7 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       self.assertEqual(tflm_output_quant.shape, self.output_shape)
 
       # Convert the integer output back to float for comparison
-      # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
-      # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
-      # can produce different results (int8 calculation)
-      tflm_output_quant_float = output_scale * (
-          tflm_output_quant.astype("float") - output_zero_point)
+      tflm_output_quant_float = evaluate.dequantize_output_data(tflm_output_quant,output_details)
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-3)
