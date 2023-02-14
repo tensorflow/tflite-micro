@@ -24,8 +24,8 @@ The conversion process:
 2. Requantize all non-constant tensors with int8 type to int16 (and fix the quantization parameters)
 
 Run:
-bazel build tensorflow/lite/micro/tools:requantize
-bazel-bin/tensorflow/lite/micro/tools/requantize
+bazel build tensorflow/lite/micro/tools:requantize_flatbuffer
+bazel-bin/tensorflow/lite/micro/tools/requantize_flatbuffer
 --int8_model_path=".tflite file path"` --save_path="save path"
 
 CAVEAT: 
@@ -43,7 +43,8 @@ from absl import flags
 from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-import tflite_micro.tensorflow.lite.micro.tools.requantize_utils as utils
+import tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer_utils as utils
+from tflite_micro.tensorflow.lite.python.schema_py_generated import BuiltinOperator
 
 FLAGS = flags.FLAGS
 
@@ -54,13 +55,17 @@ flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
 
 # key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
-    9: utils.requantize_fully_connected,
-    44: utils.requantize_unidirectional_sequence_lstm,
-    25: utils.requantize_softmax
+    BuiltinOperator.FULLY_CONNECTED: utils.requantize_fully_connected,
+    BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
+    utils.requantize_unidirectional_sequence_lstm,
+    BuiltinOperator.SOFTMAX: utils.requantize_softmax
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
-_TESTED_SIMPLE_OPS = [22, 114, 6]  # reshape, quantize, dequantize
+_TESTED_SIMPLE_OPS = [
+    BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE,
+    BuiltinOperator.DEQUANTIZE
+]
 
 _SUPPORTED_OPS = set(
     list(_COMPLEX_OP_REQUANTIZE_REGISTRATION.keys()) + _TESTED_SIMPLE_OPS)

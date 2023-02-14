@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.tools.requantize import Requantizer
+from tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer import Requantizer
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 

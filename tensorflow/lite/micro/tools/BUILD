@@ -23,22 +23,23 @@ py_binary(
 )
 
 py_binary(
-    name = "requantize",
+    name = "requantize_flatbuffer",
     srcs = [
-        "requantize.py",
-        "requantize_utils.py",
+        "requantize_flatbuffer.py",
+        "requantize_flatbuffer_utils.py",
     ],
     srcs_version = "PY3",
     deps = [
+        "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl:app",
     ],
 )
 
 py_test(
-    name = "requantize_test",
-    srcs = ["requantize_test.py"],
-    main = "requantize_test.py",
+    name = "requantize_flatbuffer_test",
+    srcs = ["requantize_flatbuffer_test.py"],
+    main = "requantize_flatbuffer_test.py",
     python_version = "PY3",
     tags = [
         "noasan",
@@ -46,7 +47,7 @@ py_test(
         "noubsan",
     ],
     deps = [
-        ":requantize",
+        ":requantize_flatbuffer",
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
