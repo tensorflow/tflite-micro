@@ -156,7 +156,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
       # Run integer inference (quantized) on the sample image
       # Note that the TFLM state is reset inside the predict_image function.
       category_probabilities_quant = evaluate.predict_image(
-          self.tflm_interpreter_quant, image_path, quantized=True)
+          self.tflm_interpreter_quant, image_path)
       # Check the prediction result
       predicted_category = np.argmax(category_probabilities_quant)
       # Check the prediction
@@ -225,17 +225,18 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
       # Make sure the difference is within the error margin
       self.assertAllLess(abs(tflm_output_float - tflm_output_quant_float),
                          1e-3)
-  # def testQuantModelAccuracy(self):
-  #   for label in range(10):
-  #     image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
-  #     # Run integer inference (quantized) on the sample image
-  #     # Note that the TFLM state is reset inside the predict_image function.
-  #     category_probabilities_quant = evaluate.predict_image(
-  #         self.tflm_interpreter_quant, image_path, quantized=True)
-  #     # Check the prediction result
-  #     predicted_category = np.argmax(category_probabilities_quant)
-  #     # Check the prediction
-  #     self.assertEqual(predicted_category, label)
+  
+  def testQuantModelAccuracy(self):
+    for label in range(10):
+      image_path = os.path.join(PREFIX_PATH, f"samples/sample{label}.png")
+      # Run integer inference (quantized) on the sample image
+      # Note that the TFLM state is reset inside the predict_image function.
+      category_probabilities_quant = evaluate.predict_image(
+          self.tflm_interpreter_quant, image_path)
+      # Check the prediction result
+      predicted_category = np.argmax(category_probabilities_quant)
+      # Check the prediction
+      self.assertEqual(predicted_category, label)
 
 if __name__ == "__main__":
   test.main()
