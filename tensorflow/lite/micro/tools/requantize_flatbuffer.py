@@ -25,8 +25,7 @@ The conversion process:
 
 Run:
 bazel build tensorflow/lite/micro/tools:requantize_flatbuffer
-bazel-bin/tensorflow/lite/micro/tools/requantize_flatbuffer
---int8_model_path=".tflite file path"` --save_path="save path"
+bazel-bin/tensorflow/lite/micro/tools/requantize_flatbuffer --int8_model_path=".tflite file path"` --save_path="save path"
 
 CAVEAT: 
 1. Use this tool ONLY for models that contain the LSTM layer. All other models should use the standard tflite conversion process.
@@ -43,7 +42,7 @@ from absl import flags
 from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-import tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer_utils as utils
+from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer_utils
 from tflite_micro.tensorflow.lite.python.schema_py_generated import BuiltinOperator
 
 FLAGS = flags.FLAGS
@@ -53,12 +52,14 @@ flags.DEFINE_string("int8_model_path", "../trained_lstm_quant.tflite",
 flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
                     "path to save the requantized model.")
 
-# key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
+# key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
+# Val: the requantize function defined in requantize_flatbuffer_utils.py
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
-    BuiltinOperator.FULLY_CONNECTED: utils.requantize_fully_connected,
+    BuiltinOperator.FULLY_CONNECTED:
+    requantize_flatbuffer_utils.requantize_fully_connected,
     BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
-    utils.requantize_unidirectional_sequence_lstm,
-    BuiltinOperator.SOFTMAX: utils.requantize_softmax
+    requantize_flatbuffer_utils.requantize_unidirectional_sequence_lstm,
+    BuiltinOperator.SOFTMAX: requantize_flatbuffer_utils.requantize_softmax
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
@@ -154,9 +155,10 @@ class Requantizer:
     for subgraph in self.model.subgraphs:
       for tensor in subgraph.tensors:
         if ((tensor in self.remaining_tensors)
-            and (utils.TENSOR_CODE_TYPE[tensor.type] == np.int8)
-            and ("const" not in str(tensor.name))):
-          utils.change_activation_tensor_8to16(tensor)
+            and (requantize_flatbuffer_utils.TENSOR_CODE_TYPE[tensor.type]
+                 == np.int8) and ("const" not in str(tensor.name))):
+          requantize_flatbuffer_utils.change_activation_tensor_8to16(
+              tensor, self.model.buffers)
           self._remove_tensor(tensor)
 
   def requantize_8to16(self):
