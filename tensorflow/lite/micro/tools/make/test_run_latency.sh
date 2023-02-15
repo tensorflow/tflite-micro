@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,50 @@
 #
 # Called with following arguments:
 # 1 - Name of the test file
+# 2 - Name of the test script
+# 3 - Name of the binary
+# 4 - String output after all the tests are passed
+# 5 - Name of the target
+# The first parameter is used for logging purpose. The last four parameters are
+# used to run the test.
 
 set -e
 
 TEST_FILE_NAME=${1}
-TEST_LATENCY_FILE=${TEST_FILE_NAME}
+TEST_SCRIPT=${2}
+BINARY_NAME=${3}
+TEST_PASS_STRING=${4}
+TARGET_NAME=${5}
 
-if [ ! -e ${TEST_LATENCY_FILE} ]; then
-  exit 0
-fi
+var=$({ time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME}; } 2>&1)
 
-REQUIRED_LOG=$(head -n -3 ${TEST_LATENCY_FILE})
-echo "${REQUIRED_LOG}"
-END_TIME=$(tail -n 3 ${TEST_LATENCY_FILE} | head -n 1 | cut -c 5- | xargs echo -n)
-echo "Run and Build of ${TEST_FILE_NAME} took ${END_TIME}"
-rm ${TEST_LATENCY_FILE}
+IFS=$'\n'
+# Split the output of the command into sentences
+sentences=$(echo "${var}" | sed 's/\n//g')
+
+# Get the number of lines
+line_count=0
+for sentence in $sentences; do
+  let "line_count += 1"
+done
+
+# Reduce the line_count by 3 lines as those are the time related data.
+let "line_count -= 3"
+
+pos=0
+test_latency=''
+for sentence in $sentences; do
+  # Print all but time related logs
+  if [ $pos -lt $line_count ]; then
+    echo "$sentence"
+  else
+    # Just get the first time related log
+    test_latency=$sentence
+    break;
+  fi
+  let "pos += 1"
+done
+
+# Discard the 'real' part of the log message
+latency=${test_latency:5:${#test_latency}}
+echo "Running of ${TEST_FILE_NAME} took ${latency}"

@@ -71,8 +71,7 @@ endif
 
 TIMEFORMAT=%R
 test_$(1):$$($(1)_BINARY)
-	@{ time $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET); } 2>$(1)
-	$(MAKEFILE_DIR)/test_run_latency.sh $(1)
+	$(MAKEFILE_DIR)/test_run_latency.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 
 else
 run_$(1): $$($(1)_BINARY)
