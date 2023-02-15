@@ -61,17 +61,19 @@ QuantizationParams ChooseQuantizationParams(double rmin, double rmax,
   // The arithmetic error on the zero point computed from either pair
   // will be roughly machine_epsilon * (sum of absolute values of terms)
   // so we want to use the variant that adds the smaller terms.
-  const double zero_point_from_min = qmin_double - rmin / scale;
-  const double zero_point_from_max = qmax_double - rmax / scale;
-  const double zero_point_from_min_error =
-      std::abs(qmin_double) + std::abs(rmin / scale);
-  const double zero_point_from_max_error =
-      std::abs(qmax_double) + std::abs(rmax / scale);
+  double zero_point_double = 0;
+  if (-rmin != rmax) {
+    const double zero_point_from_min = qmin_double - rmin / scale;
+    const double zero_point_from_max = qmax_double - rmax / scale;
+    const double zero_point_from_min_error =
+        std::abs(qmin_double) + std::abs(rmin / scale);
+    const double zero_point_from_max_error =
+        std::abs(qmax_double) + std::abs(rmax / scale);
 
-  const double zero_point_double =
-      zero_point_from_min_error < zero_point_from_max_error
-          ? zero_point_from_min
-          : zero_point_from_max;
+    zero_point_double = zero_point_from_min_error < zero_point_from_max_error
+                            ? zero_point_from_min
+                            : zero_point_from_max;
+  }
 
   // Now we need to nudge the zero point to be an integer
   // (our zero points are integer, and this is motivated by the requirement
