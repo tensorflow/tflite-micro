@@ -47,6 +47,11 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
 
   hifi5_unit_tests:
+    # runs only scheduled or dispatched but is also run by ci in
+    # tests_post.yml after pr merge.
+    if: |
+      inputs.is-scheduled == 'TRUE' ||
+      inputs.is-dispatched == 'TRUE'  
     runs-on: ubuntu-latest
 
     name: Hifi5 Unit Tests (presubmit)
