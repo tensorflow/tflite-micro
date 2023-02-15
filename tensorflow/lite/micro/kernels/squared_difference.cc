@@ -201,8 +201,8 @@ T SquaredDifference(T x, T y, const ArithmeticParams& params) {
   // Max of this is 32767^2 * (1 << 0), so won't overflow 32 bits.
   const int32_t squared_raw_diff = raw_diff * raw_diff;
   const int32_t raw_output =
-      MultiplyByQuantizedMultiplierSmallerThanOneExp(
-          squared_raw_diff, params.output_multiplier, params.output_shift) +
+      MultiplyByQuantizedMultiplier(squared_raw_diff, params.output_multiplier,
+                                    params.output_shift) +
       params.output_offset;
   const int32_t clamped_output =
       std::min(params.quantized_activation_max,
