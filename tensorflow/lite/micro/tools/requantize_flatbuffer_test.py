@@ -24,6 +24,7 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runti
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
+#TODO(b/248061370): replace the keras model creation process with flatbuffer manipulation to speed up test
 def create_simple_fc_model():
   '''Create a simple model with two fully connected(fc) layers'''
   model = tf.keras.models.Sequential([
