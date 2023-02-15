@@ -102,7 +102,7 @@ def dequantize_data(quantized_data, scale, zero_point=0):
 def change_quantization_settings_8to16(tensor):
   """Change the quantization seeting of the tensor from int8 to int16"""
 
-  if (tensor.quantization.quantizedDimension == 0):
+  if (tensor.quantization.quantizedDimension != 0):
     raise RuntimeError(
         "Only layer level quantization is supported. Per channel quantization is not supported now"
     )
