@@ -149,22 +149,23 @@ def set_bias_type_int64(buffers, input, weight, bias):
       weight (Tensor): the corresponding weight tensor for the bias
       bias (Tensor): the bias tensor that need to be modified
   """
-  bias_buffer = buffers[bias.buffer]
-  bias_scale = bias.quantization.scale[0]
-  bias_zero_pt = bias.quantization.zeroPoint[0]
-  data = np.frombuffer(bias_buffer.data, dtype=np.int32)
-  dequantized_data = dequantize_data(data, bias_scale, bias_zero_pt)
-  bias_scale_int64 = (input.quantization.scale[0] *
-                      weight.quantization.scale[0])
-  bias_zero_pt_int64 = 0  # symmetrical quantized
-  int64_data = quantize_data(dequantized_data, bias_scale_int64,
-                             bias_zero_pt_int64, 64).astype(np.int64)
-  bias_buffer.data = int64_data.tobytes()
+  if bias.type == TENSOR_TYPE_CODE[np.int32]:
+    bias_buffer = buffers[bias.buffer]
+    bias_scale = bias.quantization.scale[0]
+    bias_zero_pt = bias.quantization.zeroPoint[0]
+    data = np.frombuffer(bias_buffer.data, dtype=np.int32)
+    dequantized_data = dequantize_data(data, bias_scale, bias_zero_pt)
+    bias_scale_int64 = (input.quantization.scale[0] *
+                        weight.quantization.scale[0])
+    bias_zero_pt_int64 = 0  # symmetrical quantized
+    int64_data = quantize_data(dequantized_data, bias_scale_int64,
+                               bias_zero_pt_int64, 64).astype(np.int64)
+    bias_buffer.data = int64_data.tobytes()
 
-  bias.type = TENSOR_TYPE_CODE[np.int64]
-  bias.quantization.scale = [bias_scale_int64]
-  bias.quantization.zeroPoint = [bias_zero_pt_int64]
-  logging.info(f"Set {bias.name} from int32 to int64")
+    bias.type = TENSOR_TYPE_CODE[np.int64]
+    bias.quantization.scale = [bias_scale_int64]
+    bias.quantization.zeroPoint = [bias_zero_pt_int64]
+    logging.info(f"Set {bias.name} from int32 to int64")
 
 
 def requantize_fully_connected(tensors, buffers, op):
