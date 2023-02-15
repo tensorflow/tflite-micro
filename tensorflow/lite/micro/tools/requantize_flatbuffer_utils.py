@@ -99,7 +99,7 @@ def dequantize_data(quantized_data, scale, zero_point=0):
   return scale * (quantized_data - zero_point)
 
 
-def change_quantization_settings_8to16(tensor):
+def change_quantization_settings_8to16(tensor, buffers):
   """Change the quantization seeting of the tensor from int8 to int16"""
 
   if (tensor.quantization.quantizedDimension != 0):
@@ -118,15 +118,24 @@ def change_quantization_settings_8to16(tensor):
   rmin = scale * (MIN_INT8 - zero_point)
   # symmertical quantized: scale * qmax = rmax
   scale_16 = max(abs(rmax), abs(rmin)) / abs(MIN_INT16)
+  tensor_buffer = buffers[tensor.buffer]
+  # requantize the data to int16 if necessary
+  if tensor_buffer.data != None:
+    data = tensor_buffer.data
+    dequantized_data = dequantize_data(data, tensor.quantization.scale,
+                                       tensor.quantization.zeroPoint)
+    int16_data = quantize_data(dequantized_data, scale_16, 0,
+                               16).astype(np.int16)
+    tensor_buffer.data = int16_data.tobytes()
   # Change scale: Symmetrical Quantized
   tensor.quantization.scale = [scale_16]
   tensor.quantization.zeroPoint = [0]
 
 
-def change_activation_tensor_8to16(tensor):
+def change_activation_tensor_8to16(tensor, buffers):
   """Change the quantization setting of a activation tensor from int8 to int16"""
   if tensor.type == TENSOR_TYPE_CODE[np.int8]:
-    change_quantization_settings_8to16(tensor)
+    change_quantization_settings_8to16(tensor, buffers)
     tensor.type = TENSOR_TYPE_CODE[np.int16]
     logging.info(f"Set {tensor.name} from int8 to int16 ")
 
@@ -166,8 +175,8 @@ def requantize_fully_connected(tensors, buffers, op):
   weight_tensor = tensors[op.inputs[1]]
   output_tensor = tensors[op.outputs[0]]
 
-  change_activation_tensor_8to16(input_tensor)
-  change_activation_tensor_8to16(output_tensor)
+  change_activation_tensor_8to16(input_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
   # if the bias does not exist, op.inputs[2] == -1
   if op.inputs[2] != -1:
     bias_tensor = tensors[op.inputs[2]]
@@ -185,9 +194,9 @@ def requantize_unidirectional_sequence_lstm(tensors, buffers, op):
   recurrent_weights_idx = [5, 6, 7, 8]
   bias_idx = [12, 13, 14, 15]
 
-  change_activation_tensor_8to16(input_tensor)
-  change_activation_tensor_8to16(hidden_state_tensor)
-  change_activation_tensor_8to16(output_tensor)
+  change_activation_tensor_8to16(input_tensor, buffers)
+  change_activation_tensor_8to16(hidden_state_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
 
   for weight_id, bias_id in zip(input_weights_idx, bias_idx):
     weight_tensor = tensors[op.inputs[weight_id]]
@@ -205,7 +214,7 @@ def requantize_softmax(tensors, buffers, op):
   output_tensor = tensors[op.outputs[0]]
 
   # Change input type
-  change_activation_tensor_8to16(input_tensor)
+  change_activation_tensor_8to16(input_tensor, buffers)
 
   # Output range is always [0,1]
   if output_tensor.type == TENSOR_TYPE_CODE[np.int8]:

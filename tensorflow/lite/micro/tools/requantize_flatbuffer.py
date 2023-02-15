@@ -155,7 +155,8 @@ class Requantizer:
         if ((tensor in self.remaining_tensors)
             and (requantize_flatbuffer_utils.TENSOR_CODE_TYPE[tensor.type]
                  == np.int8) and ("const" not in str(tensor.name))):
-          requantize_flatbuffer_utils.change_activation_tensor_8to16(tensor)
+          requantize_flatbuffer_utils.change_activation_tensor_8to16(
+              tensor, self.model.buffers)
           self._remove_tensor(tensor)
 
   def requantize_8to16(self):
