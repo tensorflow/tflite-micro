@@ -279,6 +279,5 @@ TfLiteEvalTensor MakeInt8Tensor(TfLiteContext* context,
   return new_tensor;
 }
 
-
 }  // namespace micro
 }  // namespace tflite
