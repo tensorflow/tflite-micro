@@ -22,5 +22,13 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run bazel test tensorflow/lite/tools/... \
+# We are using a bazel build followed by bazel test to make sure that the CI
+# covers non-test binary targets as well. These were previousbly covered by
+# having build_test but that was removed with #194.
+
+CC=clang readable_run bazel build tensorflow/lite/micro/... \
+  --config=msan --build_tag_filters=-no_oss,-nomsan
+CC=clang readable_run bazel test tensorflow/lite/micro/... \
+  --config=msan \
+  --test_tag_filters=-no_oss,-nomsan --build_tag_filters=-no_oss,-nomsan \
   --test_output=errors

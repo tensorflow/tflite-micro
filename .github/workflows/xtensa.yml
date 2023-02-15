@@ -28,7 +28,12 @@ on:
 jobs:
   f1_unit_tests:
     runs-on: ubuntu-latest
-
+    # runs only scheduled or dispatched but is also run by ci in
+    # tests_post.yml after pr merge.
+    if: |
+      inputs.is-scheduled == 'TRUE' ||
+      inputs.is-dispatched == 'TRUE'
+      
     name: Fusion F1 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
@@ -114,10 +119,15 @@ jobs:
 
   hifimini_unit_tests:
     runs-on: ubuntu-latest
+    # runs only scheduled or dispatched but is also run by ci in
+    # tests_post.yml after pr merge.
+    if: |
+      inputs.is-scheduled == 'TRUE' ||
+      inputs.is-dispatched == 'TRUE'
 
-    name: Hifimini Unit Tests (presubmit)
+    name: Hifimini Unit Tests (nightly)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
@@ -126,3 +136,4 @@ jobs:
           docker run --env XTENSA_TOOLS_VERSION=RI-2019.2-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifimini.sh tflite-micro/"
+        
