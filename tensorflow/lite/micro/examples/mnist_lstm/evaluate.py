@@ -157,7 +157,7 @@ def evaluate_test_dataset(interpreter):
   y_test_pred = []
   for x, y in zip(x_test, y_test):
     x = np.expand_dims(x, axis=0).astype(np.float32)
-    category_probabilities = tflm_predict(interpreter, x)
+    category_probabilities = predict(interpreter, x)
     predicted_category = np.argmax(category_probabilities)
     y_test_pred.append(predicted_category)
 
