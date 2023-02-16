@@ -126,6 +126,7 @@ class Requantizer:
         op : the operator
     """
     for id in op.inputs:
+      # -1 means non-used tensor
       if id != -1:
         self._remove_tensor(tensors[id])
     for id in op.outputs:
