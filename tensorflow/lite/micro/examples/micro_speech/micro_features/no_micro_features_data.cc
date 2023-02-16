@@ -20,7 +20,7 @@ limitations under the License.
 
 const int g_no_micro_f9643d42_nohash_4_width = 40;
 const int g_no_micro_f9643d42_nohash_4_height = 49;
-const signed char g_no_micro_f9643d42_nohash_4_data[] = {
+alignas(16) const signed char g_no_micro_f9643d42_nohash_4_data[] = {
     103,  78,   64,   76,   75,   54,   53,   67,   77,   60,   56,   70,
     76,   71,   68,   58,   74,   32,   23,   -2,   -18,  11,   13,   15,
     9,    20,   5,    -7,   -18,  -2,   -10,  -18,  -10,  -12,  9,    7,

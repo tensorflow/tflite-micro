@@ -52,5 +52,6 @@ py_library(
     srcs_version = "PY3",
     deps = [
         requirement("numpy"),
+        "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )

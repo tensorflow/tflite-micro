@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
@@ -40,8 +41,13 @@ TfLiteStatus CalculateOpData(TfLiteContext* context,
   double real_multiplier = 0.0;
   TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
       context, input, filter, bias, output, &real_multiplier));
+#if defined(HIFIMINI)
+  QuantizeMultiplierForInt24(real_multiplier, &data->output_multiplier,
+                             &data->output_shift);
+#else
   QuantizeMultiplier(real_multiplier, &data->output_multiplier,
                      &data->output_shift);
+#endif
   data->input_zero_point = input->params.zero_point;
   data->filter_zero_point = filter->params.zero_point;
   data->output_zero_point = output->params.zero_point;
@@ -59,9 +65,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 #else
   void* data = context->AllocatePersistentBuffer(
       context, sizeof(XtensaFullyConnectedOpData));
+#if !defined(HIFIMINI)
   if (InitXtensaContext()) {
     return nullptr;
   }
+#endif
   return data;
 #endif  // defined(VISION_P6)
 }
@@ -94,11 +102,20 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(context, filter_size,
+                                         &data->filter_buffer_index);
+  }
+
   // Filter weights will always be symmetric quantized since we only support
   // int8 quantization.
   TFLITE_DCHECK(filter->params.zero_point == 0);
 
-  TFLITE_DCHECK(GetTensorShape(output).DimensionsCount() == 2);
+  TFLITE_DCHECK_GE(GetTensorShape(output).DimensionsCount(), 1);
 
   TF_LITE_ENSURE_OK(
       context, CalculateOpData(context, params->activation, input->type, input,
@@ -126,17 +143,21 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   const int32_t* bias_data =
       nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
 
-  // TODO(b/154032858): Investigate removing extra copies (i.e.
-  // data.ToQuantizedParams), and also passing by value.
-  //
-  // TODO(b/155656675): Consider passing OpDataFullyConnected by value
-  // once it is also passed to the FullyConnected function. Until it is copied
-  // to a local op_param variable, we do not get any latency improvements from
-  // passing by value.
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFIMINI)
+  FullyConnectedEvalHifimini(FullyConnectedParamsQuantized(data),
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(filter),
+                             tflite::micro::GetTensorData<int8_t>(filter),
+                             tflite::micro::GetTensorShape(bias), bias_data,
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
+#elif defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
-  const int num_batches = output_shape.Dims(0);
-  const int output_depth = output_shape.Dims(1);
+  const int num_batches =
+      FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
+  const int output_depth =
+      output_shape.Dims(output_shape.DimensionsCount() - 1);
 
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
   const int filter_dim_count = filter_shape.DimensionsCount();
@@ -162,7 +183,6 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                         output_arr, output_arr, data.output_activation_min,
                         data.output_activation_max, num_batches * output_depth),
                     0);
-  return kTfLiteOk;
 #elif defined(VISION_P6)
   (void)bias_data;
   const auto& params =
@@ -180,7 +200,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetTensorShape(bias), bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
   return kTfLiteOk;
 }
@@ -202,7 +222,23 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+  TfLiteEvalTensor filter_int8;
+
+  if (filter->type == kTfLiteInt4) {
+    filter_int8.data.data = static_cast<int8_t*>(
+        context->GetScratchBuffer(context, data.filter_buffer_index));
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        tflite::micro::GetTensorData<int8_t>(filter),
+        tflite::micro::GetTensorShape(filter).FlatSize(),
+        tflite::micro::GetTensorData<int8_t>(&filter_int8));
+
+  } else {
+    filter_int8 = *filter;
+  }
+  return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
+                           output);
 }
 
 }  // namespace

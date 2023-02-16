@@ -37,6 +37,7 @@ struct OpDataReduce {
   int output_zp;
   float output_scale;
   int num_output_elements;
+  int num_axis;
 };
 
 TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
