@@ -67,7 +67,8 @@ _TESTED_SIMPLE_OPS = [
     BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE,
     BuiltinOperator.DEQUANTIZE, BuiltinOperator.MEAN,
     BuiltinOperator.SQUARED_DIFFERENCE, BuiltinOperator.ADD,
-    BuiltinOperator.RSQRT, BuiltinOperator.MUL, BuiltinOperator.SUB
+    BuiltinOperator.RSQRT, BuiltinOperator.MUL, BuiltinOperator.SUB,
+    BuiltinOperator.LEAKY_RELU, BuiltinOperator.TRANSPOSE
 ]
 
 _SUPPORTED_OPS = set(
