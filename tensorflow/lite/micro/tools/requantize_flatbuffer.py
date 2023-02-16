@@ -68,7 +68,7 @@ _TESTED_SIMPLE_OPS = [
     BuiltinOperator.DEQUANTIZE, BuiltinOperator.MEAN,
     BuiltinOperator.SQUARED_DIFFERENCE, BuiltinOperator.ADD,
     BuiltinOperator.RSQRT, BuiltinOperator.MUL, BuiltinOperator.SUB,
-    BuiltinOperator.LEAKY_RELU, BuiltinOperator.TRANSPOSE
+    BuiltinOperator.LEAKY_RELU, BuiltinOperator.LOGISTIC
 ]
 
 _SUPPORTED_OPS = set(
@@ -119,6 +119,7 @@ class Requantizer:
   def _remove_tensor(self, tensor):
     """Remove tensor from the tensor pool"""
     if tensor in self.remaining_tensors:
+      print(f"remove tensor {tensor.name}")
       self.remaining_tensors.remove(tensor)
 
   def _remove_op_tensors(self, tensors, op):
@@ -129,9 +130,11 @@ class Requantizer:
         op : the operator
     """
     for id in op.inputs:
-      self._remove_tensor(tensors[id])
+      if id != -1:
+        self._remove_tensor(tensors[id])
     for id in op.outputs:
-      self._remove_tensor(tensors[id])
+      if id != -1:
+        self._remove_tensor(tensors[id])
 
   def _convert_ops(self):
     """Convert all ops registered in _OP_CONVERSION_REGISTRATION from int8 to int16 (activation type)"""
