@@ -451,21 +451,19 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
 
     TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt8);
 
-    const double effective_scale_1 =
-        static_cast<double>(input->params.scale) *
-        static_cast<double>(weights_feature->params.scale) /
-        static_cast<double>(activation_state->params.scale);
+    const double effective_scale_1 = static_cast<double>(
+        input->params.scale * weights_feature->params.scale /
+        activation_state->params.scale);
     const double effective_scale_2 =
-        static_cast<double>(activation_state->params.scale) *
-        static_cast<double>(weights_time->params.scale) /
-        static_cast<double>(output->params.scale);
+        static_cast<double>(activation_state->params.scale *
+                            weights_time->params.scale / output->params.scale);
 
     // TODO(b/162018098): Use TF_LITE_ENSURE_NEAR when it is ready.
     TF_LITE_ENSURE(
         context,
         std::abs(static_cast<double>(bias->params.scale) -
-                 (static_cast<double>(activation_state->params.scale) *
-                  static_cast<double>(weights_time->params.scale))) < 1e-5);
+                 static_cast<double>(activation_state->params.scale *
+                                     weights_time->params.scale)) < 1e-5);
 
     QuantizeMultiplier(effective_scale_1, &(data->effective_scale_1_a),
                        &(data->effective_scale_1_b));
