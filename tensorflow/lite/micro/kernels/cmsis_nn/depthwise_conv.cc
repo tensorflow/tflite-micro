@@ -337,7 +337,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
 
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   switch (input->type) {  // Already know in/out types are same.
@@ -399,7 +399,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
 
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   EvalQuantizedPerChannel(context, node, params, data, input, &filter_int8,

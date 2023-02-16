@@ -319,7 +319,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   // Checks in Prepare ensure input, output and filter types are all the same.
@@ -339,7 +339,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
-      switch (filter->type) {
+      switch (filter_int8.type) {
         case kTfLiteInt8:
           return EvalQuantizedInt8(context, node, data, input, &filter_int8,
                                    bias, output);
@@ -389,7 +389,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,

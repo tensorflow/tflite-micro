@@ -365,7 +365,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   return EvalQuantizedPerChannel(context, node, params, data, input,
@@ -420,7 +420,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
-  TfLiteEvalTensor filter_int8 = tflite::micro::MakeInt8Tensor(
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, data.reference_op_data.filter_buffer_index, filter);
 
   switch (input->type) {  // Already know in/out types are same.

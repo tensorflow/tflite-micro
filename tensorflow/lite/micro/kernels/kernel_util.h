@@ -132,13 +132,13 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
                                             int subgraph_idx);
 
 // If tensor is INT4, make a new TfLiteEvalTensor with data unpacked into
-// a scratch buffer. Assume scratch buffer is previously requested in Prepare,
-// and scratch_buffer_index can be used to retrieve that buffer.
-// If the tensor is INT8, a shallow copy is performed.
-// All other types will error out with TFLITE_DCHECK.
-TfLiteEvalTensor MakeInt8Tensor(TfLiteContext* context,
-                                int scratch_buffer_index,
-                                const TfLiteEvalTensor* tensor);
+// a scratch buffer. The returned tensor will have the kTfLiteInt8 type.
+// Assume scratch buffer is previously requested in Prepare, and
+// scratch_buffer_index can be used to retrieve that buffer.
+// If the tensor is not INT4, a shallow copy is returned.
+TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
+                                        int scratch_buffer_index,
+                                        const TfLiteEvalTensor* tensor);
 }  // namespace micro
 }  // namespace tflite
 
