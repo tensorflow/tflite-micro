@@ -33,7 +33,7 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
 
   # Get the metadata like scales and zero_points from the interpreter input/output
   # details.
-  def get_quantization_params(interpreter_io_details):
+  def get_quantization_params(self, interpreter_io_details):
     quantize_params = interpreter_io_details.get('quantization_parameters')
     scale = quantize_params.get('scales')
     zero_point = quantize_params.get('zero_points')
@@ -47,23 +47,19 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
     self.assertEqual(input_details['dtype'], np.float32)
     self.assertEqual(len(input_scale), 0)
     self.assertEqual(
-        input_details['quantization_parameters']['quantized_dimension'], 0
-    )
+        input_details['quantization_parameters']['quantized_dimension'], 0)
     self.assertEqual(input_scale.dtype, np.float32)
     self.assertEqual(input_zero_point.dtype, np.int32)
 
   def test_output(self):
     output_details = self.tflm_interpreter.get_output_details(0)
     output_scale, output_zero_point = self.get_quantization_params(
-        output_details
-    )
-
+        output_details)
     self.assertAllEqual(output_details['shape'], self.output_shape)
     self.assertEqual(output_details['dtype'], np.float32)
     self.assertEqual(len(output_scale), 0)
     self.assertEqual(
-        output_details['quantization_parameters']['quantized_dimension'], 0
-    )
+        output_details['quantization_parameters']['quantized_dimension'], 0)
     self.assertEqual(output_scale.dtype, np.float32)
     self.assertEqual(output_zero_point.dtype, np.int32)
 
@@ -73,8 +69,7 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
     y_true = np.sin(x_value).astype(np.float32)
 
     input_shape = np.array(
-        self.tflm_interpreter.get_input_details(0).get('shape')
-    )
+        self.tflm_interpreter.get_input_details(0).get('shape'))
 
     y_pred = evaluate.invoke_tflm_interpreter(
         input_shape,
@@ -95,11 +90,11 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_input()
 
-    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path, x_values)
+    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path,
+                                                      x_values)
 
     tflite_y_predictions = evaluate.get_tflite_prediction(
-        self.model_path, x_values
-    )
+        self.model_path, x_values)
 
     self.assertAllEqual(tflm_y_predictions, tflite_y_predictions)
 
