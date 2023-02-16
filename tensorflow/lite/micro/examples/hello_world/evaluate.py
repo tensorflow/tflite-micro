@@ -19,20 +19,22 @@ from absl import flags
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.python.platform import resource_loader
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import \
-  tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
-    'use_tflite', False,
-    'Inference with the TF Lite interpreter instead of the TFLM interpreter')
+    'use_tflite',
+    False,
+    'Inference with the TF Lite interpreter instead of the TFLM interpreter',
+)
 
 x_range = 2 * np.pi
 inferences_per_cycle = 1000
 PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
 
-def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
-                            output_index):
+def invoke_tflm_interpreter(
+    input_shape, interpreter, x_value, input_index, output_index
+):
   input_data = np.reshape(x_value, input_shape)
   interpreter.set_input(input_data, input_index)
   interpreter.invoke()
@@ -40,8 +42,9 @@ def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
   return y_quantized
 
 
-def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
-                              output_index):
+def invoke_tflite_interpreter(
+    input_shape, interpreter, x_value, input_index, output_index
+):
   input_data = np.reshape(x_value, input_shape)
   interpreter.set_tensor(input_index, input_data)
   interpreter.invoke()
@@ -54,50 +57,39 @@ def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
 def generate_random_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
-  x_values = np.random.uniform(low=0, high=2 * np.pi,
-                               size=sample_count).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * np.pi, size=sample_count).astype(
+      np.float32
+  )
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
   return x_values
 
 
-# Get the metadata like scales and zero_points from the interpreter input/output
-# details.
-def get_quantization_params(interpreter_io_details):
-  quantize_params = interpreter_io_details.get('quantization_parameters')
-  scale = quantize_params.get('scales')
-  zero_point = quantize_params.get('zero_points')
-  return scale, zero_point
-
-
 # Invoke the tflm interpreter with x_values in the range of [0, 2*PI] and
 # returns the prediction of the interpreter.
-def get_tflm_prediction(hello_world_model_path, x_values):
+def get_tflm_prediction(model_path, x_values):
   # Create the tflm interpreter
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(hello_world_model_path)
+  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
 
   input_shape = np.array(tflm_interpreter.get_input_details(0).get('shape'))
 
   y_predictions = np.empty(x_values.size, dtype=np.float32)
-  i = 0
-  for x_value in x_values:
-    y_predictions[i] = invoke_tflm_interpreter(input_shape,
-                                               tflm_interpreter,
-                                               x_value,
-                                               input_index=0,
-                                               output_index=0)
-    i += 1
+
+  for i, x_value in enumerate(x_values):
+    y_predictions[i] = invoke_tflm_interpreter(
+        input_shape, tflm_interpreter, x_value, input_index=0, output_index=0
+    )
   return y_predictions
 
 
 # Invoke the tflite interpreter with x_values in the range of [0, 2*PI] and
 # returns the prediction of the interpreter.
-def get_tflite_prediction(hello_world_model_path, x_values):
+def get_tflite_prediction(model_path, x_values):
   # TFLite interpreter
   tflite_interpreter = tf.lite.Interpreter(
-        model_path=hello_world_model_path,
-        experimental_op_resolver_type= \
-          tf.lite.experimental.OpResolverType.BUILTIN_REF)
+      model_path=model_path,
+      experimental_op_resolver_type=tf.lite.experimental.OpResolverType.BUILTIN_REF,
+  )
   tflite_interpreter.allocate_tensors()
 
   input_details = tflite_interpreter.get_input_details()[0]
@@ -105,19 +97,22 @@ def get_tflite_prediction(hello_world_model_path, x_values):
   input_shape = np.array(input_details.get('shape'))
 
   y_predictions = np.empty(x_values.size, dtype=np.float32)
-  i = 0
-  for x_value in x_values:
-    y_predictions[i] = invoke_tflite_interpreter(input_shape,
-                                                 tflite_interpreter, x_value,
-                                                 input_details['index'],
-                                                 output_details['index'])
-    i += 1
+
+  for i, x_value in enumerate(x_values):
+    y_predictions[i] = invoke_tflite_interpreter(
+        input_shape,
+        tflite_interpreter,
+        x_value,
+        input_details['index'],
+        output_details['index'],
+    )
   return y_predictions
 
 
 def main(_):
-  hello_world_no_quant_model_path = os.path.join(PREFIX_PATH,
-                                                 'hello_world.tflite')
+  hello_world_no_quant_model_path = os.path.join(
+      PREFIX_PATH, 'hello_world.tflite'
+  )
 
   x_values = generate_random_input()
 
@@ -125,12 +120,14 @@ def main(_):
   y_true_values = np.sin(x_values).astype(np.float32)
 
   if _USE_TFLITE_INTERPRETER.value:
-    y_predictions = get_tflite_prediction(hello_world_no_quant_model_path,
-                                          x_values)
+    y_predictions = get_tflite_prediction(
+        hello_world_no_quant_model_path, x_values
+    )
     plt.plot(x_values, y_predictions, 'b.', label='TFLite Prediction')
   else:
-    y_predictions = get_tflm_prediction(hello_world_no_quant_model_path,
-                                        x_values)
+    y_predictions = get_tflm_prediction(
+        hello_world_no_quant_model_path, x_values
+    )
     plt.plot(x_values, y_predictions, 'b.', label='TFLM Prediction')
 
   plt.plot(x_values, y_true_values, 'r.', label='Actual values')
