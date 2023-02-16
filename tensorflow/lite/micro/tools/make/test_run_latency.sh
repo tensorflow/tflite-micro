@@ -31,12 +31,9 @@ BINARY_NAME=${3}
 TEST_PASS_STRING=${4}
 TARGET_NAME=${5}
 
-if [[ "$TARGET_NAME" == "bluepill" ]]; then
-  ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME};
-else
-  starttime=$(date +%s%N)
-  ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME};
-  endtime=$(date +%s%N)
-  let "diff = (endtime - starttime)/1000000"
-  echo "Running ${TEST_FILE_NAME} took ${diff} milliseconds"
-fi
+starttime=$(date +%s%N)
+${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME};
+endtime=$(date +%s%N)
+let "diff = (endtime - starttime)/1000000"
+echo "Running ${TEST_FILE_NAME} took ${diff} milliseconds"
+
