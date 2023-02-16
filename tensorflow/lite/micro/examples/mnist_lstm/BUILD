@@ -46,3 +46,14 @@ py_test(
         "//tensorflow/lite/micro/tools:requantize_flatbuffer",
     ],
 )
+
+py_binary(
+    name = "amd_example",
+    srcs = ["amd_example.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":evaluate",
+        "//tensorflow/lite/micro/tools:requantize_flatbuffer",
+    ],
+)
+
