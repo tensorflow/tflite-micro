@@ -126,9 +126,11 @@ class Requantizer:
         op : the operator
     """
     for id in op.inputs:
-      self._remove_tensor(tensors[id])
+      if id != -1:
+        self._remove_tensor(tensors[id])
     for id in op.outputs:
-      self._remove_tensor(tensors[id])
+      if id != -1:
+        self._remove_tensor(tensors[id])
 
   def _convert_ops(self):
     """Convert all ops registered in _OP_CONVERSION_REGISTRATION from int8 to int16 (activation type)"""
