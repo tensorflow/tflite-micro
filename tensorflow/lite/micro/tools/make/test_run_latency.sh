@@ -31,39 +31,35 @@ BINARY_NAME=${3}
 TEST_PASS_STRING=${4}
 TARGET_NAME=${5}
 
-if [[ "$TARGET_NAME" == "bluepill" ]]; then
-  ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME};
-else
-  var=$({ time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME}; } 2>&1)
+var=$({ time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME}; } 2>&1)
 
-  IFS=$'\n'
-  # Split the output of the command into sentences
-  sentences=$(echo "${var}" | sed 's/\n//g')
+IFS=$'\n'
+# Split the output of the command into sentences
+sentences=$(echo "${var}" | sed 's/\n//g')
 
-  # Get the number of lines
-  line_count=0
-  for sentence in $sentences; do
-    let "line_count += 1"
-  done
+# Get the number of lines
+line_count=0
+for sentence in $sentences; do
+  let "line_count += 1"
+done
 
-  # Reduce the line_count by 3 lines as those are the time related data.
-  let "line_count -= 3"
+# Reduce the line_count by 3 lines as those are the time related data.
+let "line_count -= 3"
 
-  pos=0
-  test_latency=''
-  for sentence in $sentences; do
-    # Print all but time related logs
-    if [ $pos -lt $line_count ]; then
-      echo "$sentence"
-    else
-      # Just get the first time related log
-      test_latency=$sentence
-      break;
-    fi
-    let "pos += 1"
-  done
+pos=0
+test_latency=''
+for sentence in $sentences; do
+  # Print all but time related logs
+  if [ $pos -lt $line_count ]; then
+    echo "$sentence"
+  else
+    # Just get the first time related log
+    test_latency=$sentence
+    break;
+  fi
+  let "pos += 1"
+done
 
-  # Discard the 'real' part of the log message
-  latency=${test_latency:5:${#test_latency}}
-  echo "Running of ${TEST_FILE_NAME} took ${latency}"
-fi
+# Discard the 'real' part of the log message
+latency=${test_latency:5:${#test_latency}}
+echo "Running of ${TEST_FILE_NAME} took ${latency}"
