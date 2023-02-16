@@ -258,8 +258,8 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
 }
 
 TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
-                                    int scratch_buffer_index,
-                                    const TfLiteEvalTensor* tensor) {
+                                        int scratch_buffer_index,
+                                        const TfLiteEvalTensor* tensor) {
   if (tensor->type != kTfLiteInt4) {
     return *tensor;
   }
