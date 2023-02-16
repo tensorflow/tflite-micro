@@ -110,7 +110,8 @@ def change_quantization_settings_8to16(tensor):
   scale = tensor.quantization.scale[0]
   zero_point = tensor.quantization.zeroPoint[0]
 
-  MIN_INT8, MAX_INT8 = -128, 127
+  # Set MAX_INT8 from 127 to 128 to compromise the range precision loss due to int8 quantization
+  MIN_INT8, MAX_INT8 = -128, 128
   MIN_INT16, MAX_INT16 = -32768, 32767
 
   # Asymmertical quantized: scale * (qmax - zero_point) = rmax
