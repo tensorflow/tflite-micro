@@ -109,6 +109,34 @@ def tflm_predict(tflm_interpreter, data):
   return tflm_interpreter.get_output(0)
 
 
+def predict(interpreter, data):
+  """Use TFLM interpreter to predict a MNIST image
+
+  Args:
+      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      data (np.array): data to be predicted
+
+  Returns:
+      np.array : predicted probability (integer version if quantized) for each class (digit 0-9)
+  """
+
+  input_details = interpreter.get_input_details(0)
+  # Quantize the input if the model is quantized
+  if input_details["dtype"] != np.float32:
+    data = quantize_input_data(data, input_details)
+  interpreter.set_input(data, 0)
+  interpreter.invoke()
+  tflm_output = interpreter.get_output(0)
+
+  # LSTM is stateful, reset the state after the usage since each image is independent
+  interpreter.reset()
+  output_details = interpreter.get_output_details(0)
+  if output_details["dtype"] == np.float32:
+    return tflm_output[0].astype("float")
+  # Dequantize the output for quantized model
+  return dequantize_output_data(tflm_output[0], output_details)
+
+
 def predict_image(interpreter, image_path):
   """Use TFLM interpreter to predict a MNIST image
 
@@ -120,20 +148,7 @@ def predict_image(interpreter, image_path):
       np.array : predicted probability (integer version if quantized) for each class (digit 0-9)
   """
   data = read_img(image_path)
-  input_details = interpreter.get_input_details(0)
-  # Quantize the input if the model is quantized
-  if input_details["dtype"] != np.float32:
-    data = quantize_input_data(data, input_details)
-  tflm_output = tflm_predict(interpreter, data)
-
-  # LSTM is stateful, reset the state after the usage since each image is independent
-  interpreter.reset()
-  output_details = interpreter.get_output_details(0)
-  if output_details["dtype"] == np.float32:
-    return tflm_output[0].astype("float")
-
-  # Dequantize the output for quantized model
-  return dequantize_output_data(tflm_output[0], output_details)
+  return predict(interpreter, data)
 
 
 def main(_):
