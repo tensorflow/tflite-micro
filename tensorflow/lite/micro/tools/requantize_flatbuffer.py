@@ -65,7 +65,10 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
 _TESTED_SIMPLE_OPS = [
     BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE,
-    BuiltinOperator.DEQUANTIZE
+    BuiltinOperator.DEQUANTIZE, BuiltinOperator.MEAN,
+    BuiltinOperator.SQUARED_DIFFERENCE, BuiltinOperator.ADD,
+    BuiltinOperator.RSQRT, BuiltinOperator.MUL, BuiltinOperator.SUB,
+    BuiltinOperator.LEAKY_RELU, BuiltinOperator.LOGISTIC
 ]
 
 _SUPPORTED_OPS = set(
