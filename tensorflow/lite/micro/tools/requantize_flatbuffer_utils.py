@@ -121,7 +121,7 @@ def change_quantization_settings_8to16(tensor, buffers):
   scale_16 = max(abs(rmax), abs(rmin)) / abs(MIN_INT16)
   tensor_buffer = buffers[tensor.buffer]
   # requantize the data to int16 if necessary
-  if type(tensor_buffer.data) == list:
+  if type(tensor_buffer.data) != type(None):
     data = np.frombuffer(tensor_buffer.data, dtype=np.int8)
     dequantized_data = dequantize_data(data, tensor.quantization.scale,
                                        tensor.quantization.zeroPoint)
