@@ -16,8 +16,7 @@
 
 Run:
 bazel build tensorflow/lite/micro/examples/mnist_lstm:evaluate
-bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
---model_path=".tflite file path" --img_path="MNIST image path"
+bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate --model_path=".tflite file path"
 
 """
 import os
@@ -27,6 +26,7 @@ from absl import flags
 from absl import logging
 import numpy as np
 from PIL import Image
+import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
@@ -136,18 +136,31 @@ def predict_image(interpreter, image_path):
   return dequantize_output_data(tflm_output[0], output_details)
 
 
+def evaluate_test_dataset(interpreter):
+  _, (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+  x_test = x_test / 255.0  # normalize pixel values to 0-1
+  y_test_pred = []
+  for x, y in zip(x_test, y_test):
+    x = np.expand_dims(x, axis=0).astype(np.float32)
+    category_probabilities = tflm_predict(interpreter, x)
+    predicted_category = np.argmax(category_probabilities)
+    y_test_pred.append(predicted_category)
+
+  y_test_pred = np.array(y_test_pred)
+  # accuracy
+  accuracy = (y_test == y_test_pred).mean()
+  return accuracy
+
+
 def main(_):
   if not os.path.exists(FLAGS.model_path):
     raise ValueError(
         "Model file does not exist. Please check the .tflite model path.")
-  if not os.path.exists(FLAGS.img_path):
-    raise ValueError("Image file does not exist. Please check the image path.")
 
   tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
-  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
-  predicted_category = np.argmax(category_probabilities)
-  logging.info("Model predicts the image as %i with probability %.2f",
-               predicted_category, category_probabilities[predicted_category])
+  test_accuracy = evaluate_test_dataset(tflm_interpreter)
+  logging.info("Model accuracy against the MNIST test dataset:  %.2f",
+               test_accuracy)
 
 
 if __name__ == "__main__":
