@@ -94,6 +94,21 @@ def dequantize_output_data(data, output_details):
   return output_scale * (data.astype("float") - output_zero_point)
 
 
+def tflm_predict(tflm_interpreter, data):
+  """Predict using the tflm interpreter 
+
+  Args:
+      tflm_interpreter (Interpreter): TFLM interpreter
+      data (np.array): data that need to be predicted 
+
+  Returns:
+      prediction (np.array): predicted results from the model using TFLM interpreter 
+  """
+  tflm_interpreter.set_input(data, 0)
+  tflm_interpreter.invoke()
+  return tflm_interpreter.get_output(0)
+
+
 def predict_image(interpreter, image_path):
   """Use TFLM interpreter to predict a MNIST image
 
@@ -109,9 +124,7 @@ def predict_image(interpreter, image_path):
   # Quantize the input if the model is quantized
   if input_details["dtype"] != np.float32:
     data = quantize_input_data(data, input_details)
-  interpreter.set_input(data, 0)
-  interpreter.invoke()
-  tflm_output = interpreter.get_output(0)
+  tflm_output = tflm_predict(interpreter, data)
 
   # LSTM is stateful, reset the state after the usage since each image is independent
   interpreter.reset()
