@@ -69,14 +69,8 @@ else
   MICROLITE_TEST_TARGETS += test_$(1)
 endif
 
-ifneq ($(TARGET), bluepill)
-TIMEFORMAT=%R
 test_$(1):$$($(1)_BINARY)
 	$(MAKEFILE_DIR)/test_run_latency.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-else
-test_$(1):$$($(1)_BINARY)
-	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-endif
 
 else
 run_$(1): $$($(1)_BINARY)

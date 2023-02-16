@@ -31,35 +31,9 @@ BINARY_NAME=${3}
 TEST_PASS_STRING=${4}
 TARGET_NAME=${5}
 
-var=$({ time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME}; } 2>&1)
+# Output to stdout and stderr go to their normal places:
+exec 3>&1 4>&2
+time_log=$( { TIMEFORMAT="%R"; time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME} 1>&3 2>&4; } 2>&1 ) # Captures time output only.
+exec 3>&- 4>&-
 
-IFS=$'\n'
-# Split the output of the command into sentences
-sentences=$(echo "${var}" | sed 's/\n//g')
-
-# Get the number of lines
-line_count=0
-for sentence in $sentences; do
-  let "line_count += 1"
-done
-
-# Reduce the line_count by 3 lines as those are the time related data.
-let "line_count -= 3"
-
-pos=0
-test_latency=''
-for sentence in $sentences; do
-  # Print all but time related logs
-  if [ $pos -lt $line_count ]; then
-    echo "$sentence"
-  else
-    # Just get the first time related log
-    test_latency=$sentence
-    break;
-  fi
-  let "pos += 1"
-done
-
-# Discard the 'real' part of the log message
-latency=${test_latency:5:${#test_latency}}
-echo "Running of ${TEST_FILE_NAME} took ${latency}"
+echo "Running ${TEST_FILE_NAME} took ${time_log} seconds"
