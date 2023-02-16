@@ -56,4 +56,3 @@ py_binary(
         "//tensorflow/lite/micro/tools:requantize_flatbuffer",
     ],
 )
-
