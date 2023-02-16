@@ -20,7 +20,6 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/conv.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
@@ -366,9 +365,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
 
-  return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                 bias, output);
+  return EvalQuantizedPerChannel(context, node, params, data, input,
+                                 &filter_int8, bias, output);
 }
 
 TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
@@ -419,22 +420,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
-  TfLiteEvalTensor filter_int8;
-
-  if (filter->type == kTfLiteInt4) {
-    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
-        context, data.reference_op_data.filter_buffer_index));
-
-    filter_int8.dims = filter->dims;
-    filter_int8.type = kTfLiteInt8;
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
-        tflite::micro::GetTensorData<int8_t>(filter),
-        tflite::micro::GetTensorShape(filter).FlatSize(),
-        tflite::micro::GetTensorData<int8_t>(&filter_int8));
-
-  } else {
-    filter_int8 = *filter;
-  }
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
