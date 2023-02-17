@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -490,15 +490,6 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
   TF_LITE_ENSURE_STATUS(AllocateScratchBufferHandles(
       scratch_buffer_handles, scratch_buffer_request_count_));
 
-  // Allocate buffers for variable tensors.
-  for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
-       subgraph_idx++) {
-    const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
-    TFLITE_DCHECK(subgraph != nullptr);
-    TF_LITE_ENSURE_STATUS(AllocateVariables(
-        subgraph, subgraph_allocations[subgraph_idx].tensors));
-  }
-
   // Plan all subgraphs and scratch buffers together.
   TF_LITE_ENSURE_STATUS(CommitStaticMemoryPlan(model, subgraph_allocations,
                                                *scratch_buffer_handles));
@@ -754,23 +745,27 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroAllocator::AllocateVariables(const SubGraph* subgraph,
-                                               TfLiteEvalTensor* eval_tensors) {
+TfLiteStatus MicroAllocator::AllocateVariables(
+    const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors,
+    const int32_t* offline_planner_offsets) {
   for (size_t i = 0; i < subgraph->tensors()->size(); ++i) {
     auto* tensor = subgraph->tensors()->Get(i);
     if (tensor->is_variable()) {
-      size_t buffer_size;
-      TF_LITE_ENSURE_STATUS(
-          TfLiteEvalTensorByteLength(&eval_tensors[i], &buffer_size));
+      if (offline_planner_offsets == nullptr ||
+          offline_planner_offsets[i] == kOnlinePlannedBuffer) {
+        size_t buffer_size;
+        TF_LITE_ENSURE_STATUS(
+            TfLiteEvalTensorByteLength(&eval_tensors[i], &buffer_size));
 
-      eval_tensors[i].data.data =
-          persistent_buffer_allocator_->AllocatePersistentBuffer(
-              buffer_size, MicroArenaBufferAlignment());
+        eval_tensors[i].data.data =
+            persistent_buffer_allocator_->AllocatePersistentBuffer(
+                buffer_size, MicroArenaBufferAlignment());
 
-      if (eval_tensors[i].data.data == nullptr) {
-        MicroPrintf("Failed to allocate variable tensor of size %d",
-                    buffer_size);
-        return kTfLiteError;
+        if (eval_tensors[i].data.data == nullptr) {
+          MicroPrintf("Failed to allocate variable tensor of size %d",
+                      buffer_size);
+          return kTfLiteError;
+        }
       }
     }
   }
@@ -819,6 +814,17 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   const int32_t* offline_planner_offsets = nullptr;
   TF_LITE_ENSURE_STATUS(
       builder.GetOfflinePlannedOffsets(&offline_planner_offsets));
+
+  // We allocate buffers for variable tensors here since the offline planner
+  // offsets are conviently available here.
+  for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+       subgraph_idx++) {
+    const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
+    TFLITE_DCHECK(subgraph != nullptr);
+    TF_LITE_ENSURE_STATUS(AllocateVariables(
+        subgraph, allocations[subgraph_idx].tensors, offline_planner_offsets));
+  }
+
   TF_LITE_ENSURE_STATUS(
       builder.InitializeAllocationInfo(offline_planner_offsets, allocations));
 

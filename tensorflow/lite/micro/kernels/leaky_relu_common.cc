@@ -51,16 +51,15 @@ TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context,
     data->output_zero_point = output->params.zero_point;
 
     int output_shift_alpha;
-    double alpha_multiplier = static_cast<double>(input->params.scale) *
-                              static_cast<double>(params->alpha) /
-                              static_cast<double>(output->params.scale);
+    double alpha_multiplier = static_cast<double>(
+        input->params.scale * params->alpha / output->params.scale);
     QuantizeMultiplier(alpha_multiplier, &data->output_multiplier_alpha,
                        &output_shift_alpha);
     data->output_shift_alpha = static_cast<int32_t>(output_shift_alpha);
 
     int output_shift_identity;
-    double identity_multiplier = static_cast<double>(input->params.scale) /
-                                 static_cast<double>(output->params.scale);
+    double identity_multiplier =
+        static_cast<double>(input->params.scale / output->params.scale);
     QuantizeMultiplier(identity_multiplier, &data->output_multiplier_identity,
                        &output_shift_identity);
     data->output_shift_identity = static_cast<int32_t>(output_shift_identity);
