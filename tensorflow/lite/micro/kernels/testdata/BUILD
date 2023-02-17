@@ -1,3 +1,5 @@
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
+
 package(
     default_visibility = ["//tensorflow/lite/micro/kernels:__pkg__"],
     # Disabling layering_check because of http://b/177257332
@@ -26,5 +28,19 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:lstm_shared",
+    ],
+)
+
+####################################
+# Python 
+####################################
+py_binary(
+    name = "lstm_test_data_generator",
+    srcs = ["lstm_test_data_generator.py", "lstm_test_data_utils.py"],
+    srcs_version = "PY3",
+    deps = [
+        "@absl_py//absl:app",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
     ],
 )
