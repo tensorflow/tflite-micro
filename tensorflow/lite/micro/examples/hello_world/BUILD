@@ -1,5 +1,6 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers "hello world" example.
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
@@ -104,4 +105,31 @@ sh_test(
     name = "hello_world_binary_test",
     srcs = ["hello_world_binary_test.sh"],
     data = [":hello_world"],
+)
+
+py_binary(
+    name = "evaluate",
+    srcs = ["evaluate.py"],
+    data = ["hello_world.tflite"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@absl_py//absl/logging",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+    ],
+)
+
+py_binary(
+    name = "evaluate_test",
+    srcs = ["evaluate_test.py"],
+    data = ["hello_world.tflite"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":evaluate",
+    ],
 )
