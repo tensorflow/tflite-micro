@@ -1,3 +1,5 @@
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
+
 package(
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],
@@ -49,6 +51,8 @@ py_test(
     deps = [
         ":requantize_flatbuffer",
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
