@@ -19,7 +19,6 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
@@ -337,20 +336,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       (NumInputs(node) == 3)
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
-  TfLiteEvalTensor filter_int8;
 
-  if (filter->type == kTfLiteInt4) {
-    filter_int8.data.data = static_cast<int8_t*>(context->GetScratchBuffer(
-        context, data.reference_op_data.filter_buffer_index));
-    filter_int8.dims = filter->dims;
-    filter_int8.type = kTfLiteInt8;
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
-        tflite::micro::GetTensorData<int8_t>(filter),
-        tflite::micro::GetTensorShape(filter).FlatSize(),
-        tflite::micro::GetTensorData<int8_t>(&filter_int8));
-  } else {
-    filter_int8 = *filter;
-  }
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
@@ -411,8 +399,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
 
-  EvalQuantizedPerChannel(context, node, params, data, input, filter, bias,
-                          output);
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
+  EvalQuantizedPerChannel(context, node, params, data, input, &filter_int8,
+                          bias, output);
   return kTfLiteOk;
 }
 
