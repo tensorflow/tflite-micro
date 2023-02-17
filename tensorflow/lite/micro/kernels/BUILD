@@ -114,7 +114,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_context",
@@ -155,7 +155,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:cppmath",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
     ],
 )
 
@@ -326,7 +326,7 @@ tflm_kernel_cc_library(
     ],
     deps = [
         ":micro_tensor_utils",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         ":activation_utils",
         ":kernel_util",
         "//tensorflow/lite/c:common",
