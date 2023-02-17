@@ -70,8 +70,7 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   @classmethod
   def from_bytes(self,
@@ -95,8 +94,7 @@ class Interpreter(object):
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.
