@@ -18,7 +18,6 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
@@ -218,25 +217,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       (NumInputs(node) == 3) ? tflite::micro::GetEvalInput(
                                    context, node, kFullyConnectedBiasTensor)
                              : nullptr;
-
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  TfLiteEvalTensor filter_int8;
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.filter_buffer_index, filter);
 
-  if (filter->type == kTfLiteInt4) {
-    filter_int8.data.data = static_cast<int8_t*>(
-        context->GetScratchBuffer(context, data.filter_buffer_index));
-    filter_int8.dims = filter->dims;
-    filter_int8.type = kTfLiteInt8;
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
-        tflite::micro::GetTensorData<int8_t>(filter),
-        tflite::micro::GetTensorShape(filter).FlatSize(),
-        tflite::micro::GetTensorData<int8_t>(&filter_int8));
-
-  } else {
-    filter_int8 = *filter;
-  }
   return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
                            output);
 }
