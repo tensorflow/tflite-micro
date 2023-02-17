@@ -27,9 +27,7 @@ _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'Inference with the TF Lite interpreter instead of the TFLM interpreter',
 )
 
-x_range = 2 * np.pi
-inferences_per_cycle = 1000
-PREFIX_PATH = resource_loader.get_path_to_datafile('')
+_PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
 
 def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
@@ -110,7 +108,7 @@ def get_tflite_prediction(model_path, x_values):
 
 
 def main(_):
-  model_path = os.path.join(PREFIX_PATH, 'hello_world.tflite')
+  model_path = os.path.join(_PREFIX_PATH, 'hello_world.tflite')
 
   x_values = generate_random_input()
 
