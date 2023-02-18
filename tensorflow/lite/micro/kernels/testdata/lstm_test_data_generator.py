@@ -60,7 +60,7 @@ _MULTISTEP_TEST_DATA = {
 
 
 def one_step():
-  lstm_debugger = QuantizedLSTM(
+  lstm_debugger = QuantizedLSTMDebugger(
       _KERNEL_CONFIG,
       _KERNEL_PARAMETERS,
       _GATE_TEST_DATA['init_hidden_state_vals'],
@@ -77,7 +77,7 @@ def one_step():
 
 
 def multi_step():
-  lstm_debugger = QuantizedLSTM(
+  lstm_debugger = QuantizedLSTMDebugger(
       _KERNEL_CONFIG,
       _KERNEL_PARAMETERS,
       _MULTISTEP_TEST_DATA['init_hidden_state_vals'],

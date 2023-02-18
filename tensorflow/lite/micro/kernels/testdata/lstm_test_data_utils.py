@@ -1,9 +1,6 @@
 import numpy as np
 from copy import deepcopy
 
-INPUT_DIM = 2
-STATE_DIM = 2
-
 
 # Tools
 def rescale(data, effective_scale, zero_point, num_bits):

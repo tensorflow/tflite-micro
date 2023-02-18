@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-
 import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.framework import test_util
-from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
-from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
+from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils import *
 
 _KERNEL_CONFIG = {
     'quantization_settings': {
@@ -59,6 +55,13 @@ _KERNEL_PARAMETERS = {
     },
 }
 
+_KERNEL_INITIALIZATION_SETTINGS = {
+    'init_hidden_state_vals': [0, 0],
+    'init_cell_state_vals': [0, 0],
+    'hidden_state_range': (-1, 1),
+    'cell_state_range': [-8, 8],
+}
+
 
 def create_keras_lstm(stateful=True):
   input_layer = tf.keras.layers.Input(shape=(1, 2), batch_size=1, name="input")
@@ -74,4 +77,30 @@ def create_keras_lstm(stateful=True):
 
 
 class QuantizedLSTMDebuggerTest(test_util.TensorFlowTestCase):
-  keras_lstm = create_keras_lstm()
+
+  # only the float output from the debugger is used to setup the test data in .cc
+  def testFloatCompareWithKeras(self):
+    keras_lstm = create_keras_lstm()
+    lstm_debugger = QuantizedLSTMDebugger(
+        _KERNEL_CONFIG,
+        _KERNEL_PARAMETERS,
+        _KERNEL_INITIALIZATION_SETTINGS['init_hidden_state_vals'],
+        _KERNEL_INITIALIZATION_SETTINGS['hidden_state_range'],
+        _KERNEL_INITIALIZATION_SETTINGS['init_cell_state_vals'],
+        _KERNEL_INITIALIZATION_SETTINGS['cell_state_range'],
+    )
+
+    num_steps = 100
+    for _ in range(num_steps):
+      # debugger has input shape (input_dim, 1)
+      test_data = np.random.rand(2, 1)
+      input_tensor = assemble_quantized_tensor(test_data, -1, 1, False)
+      _, output_float = lstm_debugger.invoke(input_tensor)
+      output_keras, _, _ = keras_lstm.predict(test_data.reshape(1, 1, 2))
+
+      diff = abs(output_float.flatten() - output_keras.flatten())
+      self.assertAllLess(diff, 1e-6)
+
+
+if __name__ == "__main__":
+  test.main()
