@@ -195,6 +195,13 @@ class MicroAllocator {
 
   virtual void DeallocateTempTfLiteTensor(TfLiteTensor*);
 
+  // Allocates a temporary buffer of a given size and aligment.This
+  //buffer will only be available at prepare time
+  virtual int8_t* AllocateTempBuffer(size_t size, size_t alignment);
+
+  //Dealocates a temporary buffer, allocated via AllocateTempBuffer()
+  virtual void DeallocateTempBuffer(int8_t* buffer);
+
   // Resets all temporary allocations. This method should be called after a
   // chain of temp allocations (e.g. chain of TfLiteTensor objects via
   // AllocateTfLiteTensor()).

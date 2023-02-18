@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
@@ -90,6 +91,22 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
     data->context_size = context_size;
   }
 
+  TfLiteTensor filter_int8;        
+
+  if (filter->type == kTfLiteInt4) {
+    const size_t bytes_unpacked = filter->bytes * 2;    
+    filter_int8.data.data =  micro_context->AllocateTempBuffer(bytes_unpacked,0);;
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+      GetTensorData<int8_t>(filter),
+      GetTensorShape(filter).FlatSize(),
+      GetTensorData<int8_t>(&filter_int8));
+
+  } else {
+    filter_int8 = *filter;
+  }
+
   status = xiFullyConnectedSetContext(
       data->p_context, data->context_size, inputDims, outputDims, filterDims, 1,
       input->params.zero_point, filter->params.zero_point,
@@ -97,7 +114,7 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
       data->reference_op_data.output_activation_max,
-      (uint8_t*)GetTensorData<uint8_t>(filter));
+      (uint8_t*)GetTensorData<uint8_t>(&filter_int8));
 
   if (status) {
     return kTfLiteError;
@@ -122,7 +139,7 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
       data->p_context, data->context_size,
       reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
       data->reorder_coefficient_bias_size,
-      const_cast<uint8_t*>(GetTensorData<uint8_t>(filter)),
+      const_cast<uint8_t*>(GetTensorData<uint8_t>(&filter_int8)),
       const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
   if (status) {
     return kTfLiteError;
