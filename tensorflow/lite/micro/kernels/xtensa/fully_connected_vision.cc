@@ -95,7 +95,7 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
 
   if (filter->type == kTfLiteInt4) {
     const size_t bytes_unpacked = filter->bytes * 2;    
-    filter_int8.data.data =  micro_context->AllocateTempBuffer(bytes_unpacked,0);;
+    filter_int8.data.data =  micro_context->AllocateTempBuffer(bytes_unpacked, alignof(int8_t));
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;
     tflite::tensor_utils::UnpackDenseInt4IntoInt8(
