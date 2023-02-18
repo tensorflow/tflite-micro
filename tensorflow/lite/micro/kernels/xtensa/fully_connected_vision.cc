@@ -91,17 +91,17 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
     data->context_size = context_size;
   }
 
-  TfLiteTensor filter_int8;        
+  TfLiteTensor filter_int8;
 
   if (filter->type == kTfLiteInt4) {
-    const size_t bytes_unpacked = filter->bytes * 2;    
-    filter_int8.data.data =  micro_context->AllocateTempBuffer(bytes_unpacked, alignof(int8_t));
+    const size_t bytes_unpacked = filter->bytes * 2;
+    filter_int8.data.data =
+        micro_context->AllocateTempBuffer(bytes_unpacked, alignof(int8_t));
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;
     tflite::tensor_utils::UnpackDenseInt4IntoInt8(
-      GetTensorData<int8_t>(filter),
-      GetTensorShape(filter).FlatSize(),
-      GetTensorData<int8_t>(&filter_int8));
+        GetTensorData<int8_t>(filter), GetTensorShape(filter).FlatSize(),
+        GetTensorData<int8_t>(&filter_int8));
 
   } else {
     filter_int8 = *filter;
