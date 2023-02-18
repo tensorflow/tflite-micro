@@ -133,8 +133,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
   return tflite::micro::RegisterOp(XtensaInitFullyConnected,
-                                   XtensaPrepareFullyConnected<kTfLiteInt8>,
-                                   EvalInt8);
+                                   XtensaPrepareFullyConnected, EvalInt8);
 }
 
 }  // namespace tflite

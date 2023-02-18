@@ -81,4 +81,60 @@ TfLiteStatus XtensaCalculateOpDataFullyConnected(
   return kTfLiteOk;
 }
 
+TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
+                                         TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
+  auto* data = static_cast<OpDataFullyConnected*>(node->user_data);
+  const auto params =
+      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* filter = micro_context->AllocateTempInputTensor(
+      node, kFullyConnectedWeightsTensor);
+  TF_LITE_ENSURE(context, filter != nullptr);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kFullyConnectedBiasTensor);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kFullyConnectedOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(context, filter_size,
+                                         &data->filter_buffer_index);
+  }
+
+  TFLITE_DCHECK_GE(GetTensorShape(output).DimensionsCount(), 1);
+
+  TF_LITE_ENSURE_OK(context, XtensaCalculateOpDataFullyConnected(
+                                 context, params->activation, input->type,
+                                 input, filter, bias, output, data));
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  if (bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(bias);
+  }
+  micro_context->DeallocateTempTfLiteTensor(output);
+#if defined(VISION_P6)
+  // P6 Vision Prepare only handles input and filter of type INT8
+  // Otherwise, we will execute a reference version during Eval
+  if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt8) {
+    TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
+  }
+#endif  // defined(VISION_P6)
+
+  return kTfLiteOk;
+}
+
 }  // namespace tflite
