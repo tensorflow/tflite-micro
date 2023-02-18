@@ -94,13 +94,13 @@ void MicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
   return allocator_.DeallocateTempTfLiteTensor(tensor);
 }
 
-int8_t* MicroContext::AllocateTempBuffer(size_t size, size_t alignment){
-    return allocator_.AllocateTempBuffer(size,alignment);
-  }
+int8_t* MicroContext::AllocateTempBuffer(size_t size, size_t alignment) {
+  return allocator_.AllocateTempBuffer(size, alignment);
+}
 
-void MicroContext::DeallocateTempBuffer(int8_t* buffer){
-    allocator_.DeallocateTempBuffer(buffer);
-  }
+void MicroContext::DeallocateTempBuffer(int8_t* buffer) {
+  allocator_.DeallocateTempBuffer(buffer);
+}
 
 TfLiteEvalTensor* MicroContext::GetEvalTensor(int tensor_idx) {
   return &graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()]

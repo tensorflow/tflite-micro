@@ -84,7 +84,7 @@ class MicroContext {
   // Virtual so that it can be faked for kernel tests.
   virtual void DeallocateTempTfLiteTensor(TfLiteTensor* tensor);
 
-  // Returns a temporary buffer only available during prepare time of a 
+  // Returns a temporary buffer only available during prepare time of a
   // given size and alignment The returned tensor shall be freed via calling
   // DeallocateTempBuffer.
   virtual int8_t* AllocateTempBuffer(size_t size, size_t alignment);
