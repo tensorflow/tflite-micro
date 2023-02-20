@@ -32,11 +32,14 @@ cc_library(
 )
 
 ####################################
-# Python 
+# Python
 ####################################
 py_binary(
     name = "lstm_test_data_generator",
-    srcs = ["lstm_test_data_generator.py", "lstm_test_data_utils.py"],
+    srcs = [
+        "lstm_test_data_generator.py",
+        "lstm_test_data_utils.py",
+    ],
     srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
