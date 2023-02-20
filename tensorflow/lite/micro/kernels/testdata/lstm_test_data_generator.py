@@ -25,6 +25,8 @@ Every invocation gives three types information:
 Note: 
 1. Change quantization settings in _KERNEL_CONFIG to see the outcomes from various quantization schema (e.g., 8x8 Vs. 16x8)
 2. Only single batch inference is supporte here. Change _GATE_TEST_DATA or _MULTISTEP_TEST_DATA to see kernel outputs on different input data
+3. The quantization computation here is not the exact as the c++ implementation. The integer calculation is mimiced here using floating point. 
+No fixed point math is implemented here. The purpose is to illustrate the computation procedure and possible quantization error accumulation, not for bit exactness.
 """
 from absl import app
 import numpy as np
@@ -32,6 +34,7 @@ import numpy as np
 from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils import *
 
 # Basic kernel information (defaul a 2x2 model with int8 quantization)
+# change activation_bits to 16 for 16x8 case
 _KERNEL_CONFIG = {
     'quantization_settings': {
         'weight_bits': 8,
@@ -45,6 +48,7 @@ _KERNEL_CONFIG = {
     }
 }
 
+# Kernel data setting (weight data for every gate). Corresponds to Create2x3x2X2FloatNodeContents in .cc
 _KERNEL_PARAMETERS = {
     'forget_gate_data': {
         'activation_weight_data': [-10, -10, -20, -20],
@@ -68,6 +72,8 @@ _KERNEL_PARAMETERS = {
     },
 }
 
+# Input and states setting for gate level testing (Get2X2GateOutputCheckData in .cc)
+# Only single batch inference is supported (default as batch1 in .cc)
 _GATE_TEST_DATA = {
     'init_hidden_state_vals': [-0.1, 0.2],
     'init_cell_state_vals': [-1.3, 6.2],
@@ -77,6 +83,8 @@ _GATE_TEST_DATA = {
     'input_data_range': [-1, 1]
 }
 
+# Input and states setting for multi-step kernel testing (Get2X2LstmEvalCheckData in .cc)
+# Only single batch inference is supported (default as batch1 in .cc)
 _MULTISTEP_TEST_DATA = {
     'init_hidden_state_vals': [0, 0],
     'init_cell_state_vals': [0, 0],
@@ -88,17 +96,20 @@ _MULTISTEP_TEST_DATA = {
 
 
 def print_tensor_quantization_params(tensor_name, tensor):
+  """Print the tensor quantization information (scale and zero point)"""
   print(f"{tensor_name}, scale: {tensor.scale}, zero_point:"
         f" {tensor.zero_point}")
 
 
 def print_gate_tensor_params(gate_name, gate):
+  """Print the quantization information for a gate (input/forget/cell/output gate)"""
   print(f"###### Quantization settings for {gate_name} ######")
   print_tensor_quantization_params("activation weight", gate.activation_weight)
   print_tensor_quantization_params("recurrent weight", gate.activation_weight)
 
 
 def print_quantization_settings(lstm_debugger):
+  """Print the quantization information for a LSTM kernel"""
   print_gate_tensor_params("forget gate", lstm_debugger.forget_gate_params)
   print_gate_tensor_params("input gate", lstm_debugger.input_gate_params)
   print_gate_tensor_params("cell gate", lstm_debugger.modulation_gate_params)
@@ -111,6 +122,7 @@ def print_quantization_settings(lstm_debugger):
 
 
 def print_one_step(lstm_debugger):
+  """Print the intermediate calculation results for one step LSTM invocation (Get2X2GateOutputCheckData in .cc)"""
   test_data = np.array(_GATE_TEST_DATA['input_data']).reshape((-1, 1))
   input_data_range = _GATE_TEST_DATA['input_data_range']
   input_tensor = assemble_quantized_tensor(
@@ -123,6 +135,7 @@ def print_one_step(lstm_debugger):
 
 
 def print_multi_step(lstm_debugger, debug=False):
+  """Print the output of every step for multi step LSTM invocation (Get2X2LstmEvalCheckData in .cc)"""
   input_data = _MULTISTEP_TEST_DATA['input_data']
   input_data_range = _MULTISTEP_TEST_DATA['input_data_range']
   input_data_size = _KERNEL_CONFIG['shape_info']['input_dim']

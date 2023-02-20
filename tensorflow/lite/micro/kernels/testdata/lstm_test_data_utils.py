@@ -94,14 +94,14 @@ def quantized_sigmoid(input, input_scale, output_scale, num_bits=16):
   """Sigmoid (interger)"""
   float_input = input * input_scale
   float_result = sigmoid(float_input)
-  return quantize_data(float_result, output_scale, num_bits=num_bits)
+  return quantize_data(float_result, output_scale, bit_width=num_bits)
 
 
 def quantized_tanh(input, input_scale, output_scale, num_bits=16):
   """Tanh (interger)"""
   float_input = input * input_scale
   float_result = np.tanh(float_input)
-  return quantize_data(float_result, output_scale, num_bits=num_bits)
+  return quantize_data(float_result, output_scale, bit_width=num_bits)
 
 
 class QuantizedTensor:
