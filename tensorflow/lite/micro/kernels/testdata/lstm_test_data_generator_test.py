@@ -22,7 +22,7 @@ from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils im
 _KERNEL_CONFIG = {
     'quantization_settings': {
         'weight_bits': 8,
-        'activation_bits': 16,
+        'activation_bits': 8,
         'bias_bits': 32,
         'cell_bits': 16,
     },
