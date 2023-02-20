@@ -12,19 +12,67 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""Utils to generate the test data for lstm kernel"""
+"""Utils to lstm_test_data_generator.py that helps to generate the test data for lstm kernel (lstm_test_data.cc)"""
 
 import numpy as np
 from copy import deepcopy
 
 
-# Tools
+def clip_range(vals, bit_width):
+  """Mimic integer calculation.
+  Clip the range of vals based on bit width.
+  e.g., clip_range([300], 8) = [127] since int8 have range [-128, 127]
+  Args:
+      vals (np.array): float representation of the integer values
+      bit_width (int): number of desired bits for vals
+  Returns:
+      np.array : clipped vals
+  """
+  # Numpy integer calculation does not do saturation. Implement here
+  min_val = -2**(bit_width - 1)
+  max_val = 2**(bit_width - 1) - 1
+  if vals.max() > max_val or vals.min() < min_val:
+    print(f"WARNING: integer overflow!")
+  return np.clip(vals, min_val, max_val)
+
+
+def quantize_data(data, scale, zero_point=0, bit_width=8):
+  """Quantize the data to integer type with desired bit width.
+  The quantized data is represented using float since integer calculation in
+  numpy may differ from other implementations (e.g., no integer saturation
+  protection in numpy)
+  Args:
+      data (np.array): float data
+      scale (float): quantization scale of the data
+      zero_point (integer): quantization zero point of the data
+      bit_width (int): number of representative bits for vals
+  Returns:
+      np.array : quantized data in float but clipped range
+  """
+  vals = np.round(data / scale) + zero_point
+  return clip_range(vals, bit_width)
+
+
+def dequantize_data(quantized_data, scale, zero_point=0):
+  """Dequantize the data to integer type with desired bit width.
+  Args:
+      quantized_data (np.array): quantized data
+      scale (float): quantization scale of the data
+      zero_point (integer): quantization zero point of the data
+  Returns:
+      np.array : dequantized data
+  """
+  return scale * (quantized_data - zero_point)
+
+
 def rescale(data, effective_scale, zero_point, num_bits):
+  """Rescale the data to the effective scale """
   rescaled = data * effective_scale + zero_point
   return clip_range(rescaled, num_bits)
 
 
 def calculate_scale(min_val, max_val, num_bits=8, symmetry=False):
+  """Calculate quantization scale from the range and bit width"""
   num_bins = np.power(2, num_bits) - 1
   if symmetry:
     return max(abs(min_val), abs(max_val)) / int(num_bins / 2)
@@ -32,53 +80,35 @@ def calculate_scale(min_val, max_val, num_bits=8, symmetry=False):
 
 
 def calculate_zp(min_val, scale, num_bits=8):
+  """Calculate the zero point from the minimal value"""
   quantized_floor = -np.power(2, num_bits) / 2
   return int(quantized_floor - min_val / scale)
 
 
-def rescale(data, effective_scale, zero_point, num_bits):
-  rescaled = data * effective_scale + zero_point
-  return clip_range(rescaled, num_bits)
-
-
-def clip_range(vals, num_bits):
-  # Numpy integer calculation does not do saturation. Implement here
-  half = np.power(2., num_bits) / 2
-  min_val, max_val = -half, half - 1
-  if vals.max() > max_val or vals.min() < min_val:
-    print(f'WARNING: integer overflow!')
-  return np.round(np.clip(vals, min_val, max_val))
-
-
-def quantize_data(data, scale, zero_point=0, num_bits=8):
-  vals = np.round(data / scale) + zero_point
-  return clip_range(vals, num_bits)
-
-
-def dequantize_data(quantized_data, scale, zero_point=0):
-  return scale * (quantized_data - zero_point)
-
-
 def sigmoid(x):
+  """Sigmoid (floating point)"""
   return 1 / (1 + np.exp(-x))
 
 
 def quantized_sigmoid(input, input_scale, output_scale, num_bits=16):
+  """Sigmoid (interger)"""
   float_input = input * input_scale
   float_result = sigmoid(float_input)
   return quantize_data(float_result, output_scale, num_bits=num_bits)
 
 
 def quantized_tanh(input, input_scale, output_scale, num_bits=16):
+  """Tanh (interger)"""
   float_input = input * input_scale
   float_result = np.tanh(float_input)
   return quantize_data(float_result, output_scale, num_bits=num_bits)
 
 
-# Data structures
 class QuantizedTensor:
+  """Data structure for a quantized tensor"""
 
   def __init__(self, float_data, scale, zero_point, symmetry, num_bits=8):
+    """Tensor is initialized using the floating point data"""
     self.float_data = float_data
     self.scale = scale
     self.zero_point = int(zero_point)
@@ -89,11 +119,13 @@ class QuantizedTensor:
 
   @property
   def dequantized_data(self):
+    """Dequantize the quantized tensor data back to floating point"""
     return dequantize_data(self.quantized_data, self.scale,
                            self.zero_point).flatten()
 
 
 class QuantizedGateParams:
+  """Hold the quantization data and corresponding information for a LSTM gate (forget/input/cell/output gate) """
 
   def __init__(
       self,
@@ -112,7 +144,9 @@ class QuantizedGateParams:
     self.modulation = modulation
     self.bias_num_bits = bias_num_bits
     self.cell_num_bits = cell_num_bits
+    # For INT16 cell state, the input scale is Q3.12
     self.nonlinear_input_scale = np.power(2.0, -(cell_num_bits - 4))
+    # For INT16 cell state, the output scale is Q0.15
     self.nonlinear_output_scale = np.power(2.0, -(cell_num_bits - 1))
 
   def quantize_bias_data(self, input_scale):
@@ -140,20 +174,22 @@ class QuantizedGateParams:
                                recurrent_zp)
 
   def effective_activation_scale(self, input_scale):
+    # Combine input scale with output scale. Used for fc calculation
     return (self.activation_weight.scale * input_scale /
             self.nonlinear_input_scale)
 
   def effective_recurrence_scale(self, recurrent_scale):
+    # Combine input scale with output scale. Used for fc calculation
     return (self.recurrent_weight.scale * recurrent_scale /
             self.nonlinear_input_scale)
 
 
-# Helper functions
 def assemble_quantized_tensor(float_data,
                               min_val,
                               max_val,
                               symmetry,
                               num_bits=8):
+  """Create a QuantizedTensor using floating point data, range information, and bit width"""
   scale = calculate_scale(min_val, max_val, num_bits, symmetry)
   zp = 0
   if not symmetry:
@@ -166,6 +202,7 @@ def assemble_quantized_tensor(float_data,
 
 
 def create_gate_params(gate_parameters, model_config, modulation=False):
+  """Create a QuantizedGateParams using the gate paramater information and the model configuration"""
   shape_info = model_config['shape_info']
   quantization_settings = model_config['quantization_settings']
 
@@ -206,8 +243,13 @@ def create_gate_params(gate_parameters, model_config, modulation=False):
   return gate_params
 
 
-# Gate Calculation
 def gate_calculation(input, hidden_state, gate_params, debug=False):
+  """
+  A gate calculation is tanh(FC(activation, activation weight) + FC(recurrent, recurrent weight)). 
+  For modulation gate, sigmoid is used instead of tanh.
+
+  Note: for debugging purpose, floating point calculation is conducted in parallel with the integer calculation
+  """
   # Quantized Version
   input_fc = np.dot(gate_params.activation_weight.quantized_data,
                     input.quantized_data)
@@ -273,6 +315,10 @@ def gate_calculation(input, hidden_state, gate_params, debug=False):
 
 # The LSTM class
 class QuantizedLSTMDebugger(object):
+  """Help the debugging process of the LSTM kernel implementation by
+  1. Exposing the kernel internal computation 
+  2. Run floating point calculation in parallel with the integer version
+  """
 
   def __init__(
       self,
