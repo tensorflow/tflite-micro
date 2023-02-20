@@ -43,7 +43,7 @@ jobs:
   bazel_tests_nooss:
     runs-on: ubuntu-latest
 
-    name: Bazel nooss (presubmit)
+    name: Bazel TFLite Tools (presubmit)
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -58,7 +58,7 @@ jobs:
           pip3 install Wave
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_nooss.sh
+          tensorflow/lite/micro/tools/ci_build/test_bazel_tflite_tools.sh
 
   bazel_msan:
     runs-on: ubuntu-latest
@@ -260,7 +260,7 @@ jobs:
   x86_no_release:
     runs-on: ubuntu-latest
 
-    name: Makefile x86 No Release (presubmit)
+    name: Makefile x86 Default (presubmit)
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -276,12 +276,12 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_no_release.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_default.sh tflite-micro/
 
   x86_example:
     runs-on: ubuntu-latest
 
-    name: Makefile x86 Example (presubmit)
+    name: Makefile x86 Out Of Tree (presubmit)
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -297,12 +297,12 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_example.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_out_of_tree.sh tflite-micro/
  
   x86_no_static:
     runs-on: ubuntu-latest
 
-    name: Makefile x86 No Static (presubmit)
+    name: Makefile x86 No TFLite Static Memory (presubmit)
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -318,4 +318,4 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_no_static.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_no_tflite_static_memory.sh tflite-micro/

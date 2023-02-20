@@ -22,16 +22,5 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-# We are using a bazel build followed by bazel test to make sure that the CI
-# covers non-test binary targets as well. These were previousbly covered by
-# having build_test but that was removed with #194.
-
-CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --build_tag_filters=-no_oss
-CC=clang readable_run bazel test tensorflow/lite/micro/... \
-  --test_tag_filters=-no_oss --build_tag_filters=-no_oss \
+readable_run bazel test tensorflow/lite/tools/... \
   --test_output=errors
-
-# TODO(b/178621680): enable ubsan once bazel + clang + ubsan errors are fixed.
-#CC=clang readable_run bazel test tensorflow/lite/micro/... --config=ubsan --test_tag_filters=-no_oss,-noubsan --build_tag_filters=-no_oss,-noubsan
-
