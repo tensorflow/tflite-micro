@@ -12,8 +12,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-xtensa-dispatched:
-    uses: ./.github/workflows/xtensa.yml
+  call-xtensa-presubmit-dispatched:
+    uses: ./.github/workflows/xtensa_presubmit.yml
     if: |
       github.event_name == 'workflow_dispatch' 
     with:
@@ -22,8 +22,28 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-xtensa-scheduled:
-    uses: ./.github/workflows/xtensa.yml
+  call-xtensa-postmerge-dispatched:
+    uses: ./.github/workflows/xtensa_postmerge.yml
+    if: |
+      github.event_name == 'workflow_dispatch' 
+    with:
+      trigger-sha: ${{ github.sha }}
+      is-dispatched: 'TRUE'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa-presubmit-scheduled:
+    uses: ./.github/workflows/xtensa_presubmit.yml
+    if: |
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    with:
+      trigger-sha: ${{ github.sha }}
+      is-scheduled: 'TRUE'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa-postmerge-scheduled:
+    uses: ./.github/workflows/xtensa_postmerge.yml
     if: |
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:
@@ -33,7 +53,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
-    needs: [call-xtensa-scheduled]
+    needs: [call-xtensa-presubmit-scheduled,call-xtensa-postmerge-scheduled]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:
