@@ -12,13 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+""" Generate the LSTM kernel test data settings in lstm_test_data.cc
+1. Print the quantization settings for the test model (Get2X2Int8LstmQuantizationSettings in .cc)
+2. Print the intermediate step outputs inside the LSTM for a single step LSTM invocation (Get2X2GateOutputCheckData in .cc)
+3. Print the outputs for multi-step LSTM invocation (Get2X2LstmEvalCheckData in .cc)
 
-import tensorflow as tf
+Every invocation gives three types information: 
+1. Quantized output: kernel output in integer 
+2. Dequantized output: Quantized output in floating point representation
+3. Float output: output from the floating point computation (i.e., float kernel)
+
+Note: 
+1. Change quantization settings in _KERNEL_CONFIG to see the outcomes from various quantization schema (e.g., 8x8 Vs. 16x8)
+2. Only single batch inference is supporte here. Change _GATE_TEST_DATA or _MULTISTEP_TEST_DATA to see kernel outputs on different input data
+"""
 from absl import app
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils import *
 
+# Basic kernel information (defaul a 2x2 model with int8 quantization)
 _KERNEL_CONFIG = {
     'quantization_settings': {
         'weight_bits': 8,

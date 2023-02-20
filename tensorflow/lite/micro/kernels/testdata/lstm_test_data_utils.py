@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""Utils to generate the test data for lstm kernel"""
 
 import numpy as np
 from copy import deepcopy
