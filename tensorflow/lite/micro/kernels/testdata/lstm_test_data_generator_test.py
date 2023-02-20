@@ -64,6 +64,7 @@ _KERNEL_INITIALIZATION_SETTINGS = {
 
 
 def create_keras_lstm(stateful=True):
+  """Create a keras model with LSTM layer only for testing"""
   input_layer = tf.keras.layers.Input(shape=(1, 2), batch_size=1, name="input")
   lstm_output = tf.keras.layers.LSTM(units=2,
                                      return_sequences=True,
