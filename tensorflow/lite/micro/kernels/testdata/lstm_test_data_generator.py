@@ -100,8 +100,12 @@ def print_quantization_settings(lstm_debugger):
 def print_one_step(lstm_debugger):
   test_data = np.array(_GATE_TEST_DATA['input_data']).reshape((-1, 1))
   input_data_range = _GATE_TEST_DATA['input_data_range']
-  input_tensor = assemble_quantized_tensor(test_data, input_data_range[0],
-                                           input_data_range[1], False)
+  input_tensor = assemble_quantized_tensor(
+      test_data,
+      input_data_range[0],
+      input_data_range[1],
+      symmetry=False,
+      num_bits=_KERNEL_CONFIG['quantization_settings']['activation_bits'])
   lstm_debugger.invoke(input_tensor, debug=True)
 
 
@@ -114,9 +118,12 @@ def print_multi_step(lstm_debugger, debug=False):
   while input_start_pos < len(input_data):
     one_step_data = np.array(input_data[input_start_pos:input_start_pos +
                                         input_data_size]).reshape((-1, 1))
-    input_tensor = assemble_quantized_tensor(one_step_data,
-                                             input_data_range[0],
-                                             input_data_range[1], False)
+    input_tensor = assemble_quantized_tensor(
+        one_step_data,
+        input_data_range[0],
+        input_data_range[1],
+        symmetry=False,
+        num_bits=_KERNEL_CONFIG['quantization_settings']['activation_bits'])
     output_quant, output_float = lstm_debugger.invoke(input_tensor,
                                                       debug=debug)
     print(f"##### Step: {steps} #####")
