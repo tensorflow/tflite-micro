@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/reshape.h"
+
 #include <cstring>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -43,63 +45,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 #endif  // defined(VISION_P6)
 
-TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
-  MicroContext* micro_context = GetMicroContext(context);
-
-  TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kReshapeInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kReshapeOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-  // Tensorflow's Reshape allows one of the shape components to have the
-  // special -1 value, meaning it will be calculated automatically based on the
-  // input. Here we calculate what that dimension should be so that the number
-  // of output elements in the same as the number of input elements.
-  int num_input_elements = NumElements(input);
-  TfLiteIntArray* output_shape = output->dims;
-
-  if (NumInputs(node) == 1 &&  // Legacy scalar supported with params.
-      output_shape->size == 1 && output_shape->data[0] == 0) {
-    // Legacy tflite models use a shape parameter of [0] to indicate scalars,
-    // so adjust accordingly. TODO(b/111614235): Allow zero-sized buffers during
-    // toco conversion.
-    output_shape->size = 0;
-  }
-
-  int num_output_elements = 1;
-  int stretch_dim = -1;
-  for (int i = 0; i < output_shape->size; ++i) {
-    int value = output_shape->data[i];
-    if (value == -1) {
-      TF_LITE_ENSURE_EQ(context, stretch_dim, -1);
-      stretch_dim = i;
-    } else {
-      num_output_elements *= value;
-    }
-  }
-  if (stretch_dim != -1) {
-    TfLiteEvalTensor* output_eval =
-        tflite::micro::GetEvalOutput(context, node, kReshapeOutputTensor);
-    TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
-        context, output, output_eval));
-    output_shape = output->dims;  // output tensor dims were moved
-    output_shape->data[stretch_dim] = num_input_elements / num_output_elements;
-    num_output_elements *= output_shape->data[stretch_dim];
-  }
-
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_EQ(context, num_input_elements, num_output_elements);
-
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(output);
-  return kTfLiteOk;
-}
-
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE(context, NumInputs(node) == 1 || NumInputs(node) == 2);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TF_LITE_ENSURE_EQ(context, ReshapeOutput(context, node), kTfLiteOk);
+  TF_LITE_ENSURE_STATUS(PrepareReshapeReference(context, node));
 #if defined(VISION_P6)
   {
     MicroContext* micro_context = GetMicroContext(context);
@@ -123,17 +70,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   // TODO(b/162522304): storing input bytes in OpData increases some models
   // significantly, possibly due to alignment issues.
-  size_t input_bytes;
-  TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(input->type, &input_bytes));
-  input_bytes *= ElementCount(*input->dims);
+  size_t input_bytes = EvalTensorBytes(input);
 
   // Do nothing for in-place reshape.
   if (input->data.raw != output->data.raw) {
     // Otherwise perform reshape with copy.
 #if defined(VISION_P6)
-    // Vision P6 currently only supports up to 4D int8 input tensors
-    if (tflite::micro::GetTensorShape(input).DimensionsCount() <= 4 &&
-        input->type == kTfLiteInt8) {
+    // Vision P6 currently only supports upto 4D int8 input tensors
+    if (input->dims->size <= 4 && input->type == kTfLiteInt8) {
       XtensaReshapeData* op_data_xtensa =
           static_cast<XtensaReshapeData*>(node->user_data);
       ReshapeEvalVision(*op_data_xtensa, input, output);
