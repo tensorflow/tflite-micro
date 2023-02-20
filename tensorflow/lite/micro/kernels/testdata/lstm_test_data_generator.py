@@ -31,7 +31,7 @@ No fixed point math is implemented here. The purpose is to illustrate the comput
 from absl import app
 import numpy as np
 
-from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils import *
+from tflite_micro.tensorflow.lite.micro.kernels.testdata import lstm_test_data_utils
 
 # Basic kernel information (defaul a 2x2 model with int8 quantization)
 # change activation_bits to 16 for 16x8 case
@@ -125,7 +125,7 @@ def print_one_step(lstm_debugger):
   """Print the intermediate calculation results for one step LSTM invocation (Get2X2GateOutputCheckData in .cc)"""
   test_data = np.array(_GATE_TEST_DATA['input_data']).reshape((-1, 1))
   input_data_range = _GATE_TEST_DATA['input_data_range']
-  input_tensor = assemble_quantized_tensor(
+  input_tensor = lstm_test_data_utils.assemble_quantized_tensor(
       test_data,
       input_data_range[0],
       input_data_range[1],
@@ -144,7 +144,7 @@ def print_multi_step(lstm_debugger, debug=False):
   while input_start_pos < len(input_data):
     one_step_data = np.array(input_data[input_start_pos:input_start_pos +
                                         input_data_size]).reshape((-1, 1))
-    input_tensor = assemble_quantized_tensor(
+    input_tensor = lstm_test_data_utils.assemble_quantized_tensor(
         one_step_data,
         input_data_range[0],
         input_data_range[1],
@@ -163,7 +163,7 @@ def print_multi_step(lstm_debugger, debug=False):
 
 
 def main(_):
-  one_step_lstm_debugger = QuantizedLSTMDebugger(
+  one_step_lstm_debugger = lstm_test_data_utils.QuantizedLSTMDebugger(
       _KERNEL_CONFIG,
       _KERNEL_PARAMETERS,
       _GATE_TEST_DATA['init_hidden_state_vals'],
@@ -176,7 +176,7 @@ def main(_):
   print("========== Single Step Invocation Intermediates  ========== ")
   print_one_step(one_step_lstm_debugger)
 
-  multi_step_lstm_debugger = QuantizedLSTMDebugger(
+  multi_step_lstm_debugger = lstm_test_data_utils.QuantizedLSTMDebugger(
       _KERNEL_CONFIG,
       _KERNEL_PARAMETERS,
       _MULTISTEP_TEST_DATA['init_hidden_state_vals'],

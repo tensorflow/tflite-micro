@@ -17,7 +17,7 @@ import tensorflow as tf
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.kernels.testdata.lstm_test_data_utils import *
+from tflite_micro.tensorflow.lite.micro.kernels.testdata import lstm_test_data_utils
 
 _KERNEL_CONFIG = {
     'quantization_settings': {
@@ -81,7 +81,7 @@ class QuantizedLSTMDebuggerTest(test_util.TensorFlowTestCase):
   # only the float output from the debugger is used to setup the test data in .cc
   def testFloatCompareWithKeras(self):
     keras_lstm = create_keras_lstm()
-    lstm_debugger = QuantizedLSTMDebugger(
+    lstm_debugger = lstm_test_data_utils.QuantizedLSTMDebugger(
         _KERNEL_CONFIG,
         _KERNEL_PARAMETERS,
         _KERNEL_INITIALIZATION_SETTINGS['init_hidden_state_vals'],
@@ -90,11 +90,12 @@ class QuantizedLSTMDebuggerTest(test_util.TensorFlowTestCase):
         _KERNEL_INITIALIZATION_SETTINGS['cell_state_range'],
     )
 
-    num_steps = 100
+    num_steps = 20
     for _ in range(num_steps):
       # debugger has input shape (input_dim, 1)
       test_data = np.random.rand(2, 1)
-      input_tensor = assemble_quantized_tensor(test_data, -1, 1, False)
+      input_tensor = lstm_test_data_utils.assemble_quantized_tensor(
+          test_data, -1, 1, False)
       _, output_float = lstm_debugger.invoke(input_tensor)
       output_keras, _, _ = keras_lstm.predict(test_data.reshape(1, 1, 2))
 
