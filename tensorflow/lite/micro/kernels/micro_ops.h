@@ -109,6 +109,7 @@ TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SUM();
 TfLiteRegistration Register_SVDF();
+TfLiteRegistration Register_TANH();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 // TODO(b/230666079): resolve conflict with xtensa implementation
@@ -132,8 +133,6 @@ TfLiteRegistration Register_SIN();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
 TfLiteRegistration Register_L2_NORMALIZATION();
-TfLiteRegistration Register_TANH();
-
 }  // namespace micro
 }  // namespace ops
 }  // namespace tflite
