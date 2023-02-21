@@ -554,8 +554,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK,
-                      tflite::ops::micro::Register_UNPACK(), ParseUnpack);
+    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {
