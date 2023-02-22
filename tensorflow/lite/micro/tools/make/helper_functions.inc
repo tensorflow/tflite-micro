@@ -74,7 +74,7 @@ endif
 # https://b.corp.google.com/issues/268565399#comment11 for more details.
 ifneq ($(TARGET), bluepill)
 test_$(1):$$($(1)_BINARY)
-	$(MAKEFILE_DIR)/test_run_latency.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
+	$(MAKEFILE_DIR)/test_latency_log.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 else
 test_$(1):$$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
