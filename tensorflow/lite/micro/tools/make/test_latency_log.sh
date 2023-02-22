@@ -32,6 +32,17 @@ TEST_PASS_STRING=${4}
 TARGET_NAME=${5}
 
 # Output to stdout and stderr go to their normal places:
+# Here we are opening 2 file descriptor, 3 and 4. FD 3 
+# will redirect all the contents to stdout and 4 will
+# redirect all the contents to stderr. Now when executing 
+# the TEST_SCRIPT command, we are redirecting all the stdout 
+# output of the command to FD 3 which will redirect everything 
+# to FD 1 (stdout) and all the stderr output of the command to 
+# FD 4 which will redirect everything to FD 2 (stderr). The 
+# output of the time command is captured in the time_log
+# variable with the redirection of FD 2 (stderr) to FD 1 
+# (stdout). Finally we are closing the FD 3 and 4.For more info
+# https://stackoverflow.com/questions/4617489/get-values-from-time-command-via-bash-script
 exec 3>&1 4>&2
 time_log=$( { TIMEFORMAT="%R"; time ${TEST_SCRIPT} ${BINARY_NAME} ${TEST_PASS_STRING} ${TARGET_NAME} 1>&3 2>&4; } 2>&1 ) # Captures time output only.
 exec 3>&- 4>&-
