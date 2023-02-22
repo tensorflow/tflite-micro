@@ -43,10 +43,7 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
 // TODO(b/258710417): INT4 isn't currently supported on Hexagon.
-// TODO(b/265349042): INT4 isn't currently supported on Hifimini.
-// TODO(b/268384678): xtensa vision p6 kernels break
-// this test, will if def till properly investigated.
-#if !defined(HEXAGON) && !defined(HIFIMINI) && !defined(VISION_P6)
+#if !defined(HEXAGON) && !defined(VISION_P6)
 const float simple_int4_weights_data[] = {
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 1
@@ -295,7 +292,6 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   return kTfLiteOk;
 }
 
-#if !defined(XTENSA)  // Needed to avoid build error from unused functions.
 TfLiteStatus TestFullyConnectedFloat(
     int* input_dims_data, const float* input_data, int* weights_dims_data,
     const float* weights_data, int* bias_dims_data, const float* bias_data,
@@ -328,7 +324,6 @@ TfLiteStatus TestFullyConnectedFloat(
                                        activation, 1e-4f, output_dims_count,
                                        golden, output_data);
 }
-#endif
 
 template <typename dataT, typename weightT, typename biasT>
 TfLiteStatus TestFullyConnectedQuantized(
@@ -383,16 +378,6 @@ TfLiteStatus TestFullyConnectedQuantized(
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA) && !defined(CEVA_BX1) && !defined(CEVA_SP500)
-// TODO(b/170503075): xtensa kernels are less general
-// than reference kernels and we ifdef out test cases that are currently known
-// to fail.
-
-// CEVA's fully connected implementation assumes weights_zero_point=0 as
-// described in TFLite's quantization specification. tests which use a different
-// zero point will so ifdefed out.
-// See tflite quantization spec:
-// https://www.tensorflow.org/lite/performance/quantization_spec
 TF_LITE_MICRO_TEST(SimpleTest) {
   float output_data[tflite::testing::simple_output_size];
   TF_LITE_MICRO_EXPECT_EQ(
@@ -419,8 +404,6 @@ TF_LITE_MICRO_TEST(SimpleTestNullBias) {
           tflite::testing::simple_output_dims, kTfLiteActNone, output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
   const float input_scale = 1.0f;
@@ -450,7 +433,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
       kTfLiteOk);
 }
 
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
@@ -539,9 +522,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Relu) {
       kTfLiteOk);
 }
 
-#if !defined(XTENSA)  // TODO(b/170503075): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SimpleTest4DInput) {
   int input_dims_4d[] = {4, 1, 1, 2, 10};
 
@@ -574,8 +554,6 @@ TF_LITE_MICRO_TEST(Representative1x64Input1x16Output) {
           output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(Representative1x64Input1x16OutputQuantizedInt8) {
   const float input_scale = 0.051445;
@@ -636,10 +614,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
 }
 
 // TODO(b/258710417): INT4 isn't currently supported on Hexagon.
-// TODO(b/265349042): INT4 isn't currently supported on Hifimini.
-// TODO(b/268384678): xtensa vision p6 kernels break
-// this test, will if def till properly investigated.
-#if !defined(HEXAGON) && !defined(HIFIMINI) && !defined(VISION_P6)
+#if !defined(HEXAGON) && !defined(VISION_P6)
 // This test was created by handcrafting simple_int4_weights_data, and
 // simple_golden_null_bias_int4_weights was obtained by running
 // TestFullyConnectedQuantized() with int8 quantization, and ensuring that int4

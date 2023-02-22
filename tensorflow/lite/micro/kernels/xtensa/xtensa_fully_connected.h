@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 struct XtensaFullyConnectedOpData {
@@ -55,6 +56,22 @@ TfLiteStatus FullyConnectedEvalVision(TfLiteContext* context, TfLiteNode* node,
                                       const TfLiteEvalTensor* bias,
                                       TfLiteEvalTensor* output);
 #endif  // VISION_P6
+
+void* XtensaInitFullyConnected(TfLiteContext* context, const char* buffer,
+                               size_t length);
+
+TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
+    TfLiteContext* context, TfLiteNode* node, const OpDataFullyConnected& data,
+    const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
+    const TfLiteEvalTensor* bias, TfLiteEvalTensor* output);
+
+TfLiteStatus XtensaCalculateOpDataFullyConnected(
+    TfLiteContext* context, TfLiteFusedActivation activation,
+    TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
+    const TfLiteTensor* bias, TfLiteTensor* output, OpDataFullyConnected* data);
+
+TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
+                                         TfLiteNode* node);
 
 }  // namespace tflite
 
