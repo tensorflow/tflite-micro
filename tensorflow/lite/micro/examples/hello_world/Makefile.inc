@@ -1,7 +1,7 @@
 EXAMPLE_NAME:=hello_world
 
 HELLO_WORLD_TEST_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/$(EXAMPLE_NAME)_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/evaluate_test.cc
 
 OUTPUT_HANDLER_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/output_handler_test.cc \
@@ -23,19 +23,19 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/main_functions.h
 
 HELLO_WORLD_GENERATOR_INPUTS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world.tflite
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float.tflite
 
 HELLO_WORLD_GENERATED_SRCS := \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world_model_data.cc
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.cc
 
 HELLO_WORLD_GENERATED_HDRS := \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world_model_data.h
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/*/Makefile.inc)
 
 # Tests loading and running the sine model.
-$(eval $(call microlite_test,$(EXAMPLE_NAME)_test,\
+$(eval $(call microlite_test,evaluate_cc_test,\
 $(HELLO_WORLD_TEST_SRCS),,$(HELLO_WORLD_GENERATOR_INPUTS)))
 
 # Tests producing an output.

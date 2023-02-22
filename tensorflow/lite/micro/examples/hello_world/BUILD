@@ -14,33 +14,21 @@ package(
     licenses = ["notice"],
 )
 
-generate_cc_arrays(
-    name = "generated_hello_world_model_cc",
-    src = "hello_world.tflite",
-    out = "hello_world_model_data.cc",
-)
-
-generate_cc_arrays(
-    name = "generated_hello_world_model_hdr",
-    src = "hello_world.tflite",
-    out = "hello_world_model_data.h",
-)
-
 cc_library(
     name = "model",
     srcs = [
-        ":generated_hello_world_model_cc",
+        "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_cc",
     ],
     hdrs = [
-        ":generated_hello_world_model_hdr",
+        "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_hdr",
     ],
     copts = micro_copts(),
 )
 
 cc_test(
-    name = "hello_world_test",
+    name = "evaluate_cc_test",
     srcs = [
-        "hello_world_test.cc",
+        "evaluate_test.cc",
     ],
     deps = [
         ":model",
@@ -110,7 +98,7 @@ sh_test(
 py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
-    data = ["hello_world.tflite"],
+    data = ["//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite"],
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
@@ -126,7 +114,7 @@ py_binary(
 py_binary(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
-    data = ["hello_world.tflite"],
+    data = ["//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite"],
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
