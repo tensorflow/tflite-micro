@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# This script is responsible for running the tests and also to log out the
+# time (in seconds) it took to run the test file. It is using the linux time 
+# command to measure the latency. Setting the TIMEFORMAT to '%R' is providing 
+# us the real time latency.
 #
 # Called with following arguments:
 # 1 - Name of the test file
