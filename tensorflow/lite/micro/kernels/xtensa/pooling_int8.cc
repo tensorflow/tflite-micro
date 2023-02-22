@@ -24,6 +24,85 @@ limitations under the License.
 
 namespace tflite {
 
+namespace {
+
+TfLiteStatus AverageEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+  const TfLiteEvalTensor* input =
+      micro::GetEvalInput(context, node, kPoolingInputTensor);
+  TfLiteEvalTensor* output =
+      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
+
+  // Inputs and outputs share the same type, guaranteed by the converter.
+  switch (input->type) {
+    case kTfLiteInt8: {
+#if defined(HIFI5)
+      auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
+      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#elif defined(VISION_P6)
+      const auto& op_data =
+          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
+      PoolEvalVision(context, node, *params, op_data, input, output);
+#else
+      const OpDataPooling* reference_op_data =
+          static_cast<const OpDataPooling*>(node->user_data);
+      AveragePoolingEvalQuantized<int8_t>(context, node, params,
+                                          reference_op_data, input, output);
+#endif
+      break;
+    }
+    default: {
+      MicroPrintf("Input type %s is not currently supported",
+                  TfLiteTypeGetName(input->type));
+      return kTfLiteError;
+    }
+  }
+  return kTfLiteOk;
+}
+
+TfLiteStatus MaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+  const TfLiteEvalTensor* input =
+      micro::GetEvalInput(context, node, kPoolingInputTensor);
+  TfLiteEvalTensor* output =
+      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
+
+  switch (input->type) {
+    case kTfLiteInt8: {
+#if defined(HIFI5)
+      auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
+      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+#elif defined(VISION_P6)
+      const auto& op_data =
+          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
+      PoolEvalVision(context, node, *params, op_data, input, output);
+#else
+      const OpDataPooling* reference_op_data =
+          static_cast<const OpDataPooling*>(node->user_data);
+      MaxPoolingEvalQuantized<int8_t>(context, node, params, reference_op_data,
+                                      input, output);
+#endif
+      break;
+    }
+    default: {
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(input->type));
+      return kTfLiteError;
+    }
+  }
+  return kTfLiteOk;
+}
+
+}  // namespace
+
 #if defined(HIFI5)
 
 TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
@@ -212,85 +291,6 @@ TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
 }
 
 #endif  // defined(HIFI5)
-
-namespace {
-
-TfLiteStatus AverageEvalInt8(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-  const TfLiteEvalTensor* input =
-      micro::GetEvalInput(context, node, kPoolingInputTensor);
-  TfLiteEvalTensor* output =
-      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
-
-  // Inputs and outputs share the same type, guaranteed by the converter.
-  switch (input->type) {
-    case kTfLiteInt8: {
-#if defined(HIFI5)
-      auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
-      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
-#elif defined(VISION_P6)
-      const auto& op_data =
-          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
-      PoolEvalVision(context, node, *params, op_data, input, output);
-#else
-      const OpDataPooling* reference_op_data =
-          static_cast<const OpDataPooling*>(node->user_data);
-      AveragePoolingEvalQuantized<int8_t>(context, node, params,
-                                          reference_op_data, input, output);
-#endif
-      break;
-    }
-    default: {
-      MicroPrintf("Input type %s is not currently supported",
-                  TfLiteTypeGetName(input->type));
-      return kTfLiteError;
-    }
-  }
-  return kTfLiteOk;
-}
-
-TfLiteStatus MaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-  auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-  const TfLiteEvalTensor* input =
-      micro::GetEvalInput(context, node, kPoolingInputTensor);
-  TfLiteEvalTensor* output =
-      micro::GetEvalOutput(context, node, kPoolingOutputTensor);
-
-  switch (input->type) {
-    case kTfLiteInt8: {
-#if defined(HIFI5)
-      auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
-      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
-#elif defined(VISION_P6)
-      const auto& op_data =
-          *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
-      PoolEvalVision(context, node, *params, op_data, input, output);
-#else
-      const OpDataPooling* reference_op_data =
-          static_cast<const OpDataPooling*>(node->user_data);
-      MaxPoolingEvalQuantized<int8_t>(context, node, params, reference_op_data,
-                                      input, output);
-#endif
-      break;
-    }
-    default: {
-      MicroPrintf("Type %s not currently supported.",
-                  TfLiteTypeGetName(input->type));
-      return kTfLiteError;
-    }
-  }
-  return kTfLiteOk;
-}
-
-}  // namespace
 
 void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
