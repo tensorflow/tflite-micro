@@ -54,6 +54,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_TYPES_EQ(context, output->type, filter->type);
 
   if (filter->type == kTfLiteInt4) {
     int filter_size =
@@ -163,6 +164,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorData<int16_t>(input),
               tflite::micro::GetTensorShape(filter),
               tflite::micro::GetTensorData<int8_t>(filter),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int64_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+        case kTfLiteInt16: {
+          tflite::reference_integer_ops::FullyConnected(
+              FullyConnectedParamsQuantized(data),
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int16_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int16_t>(filter),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int64_t>(bias),
               tflite::micro::GetTensorShape(output),
