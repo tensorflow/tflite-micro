@@ -142,6 +142,54 @@ def change_activation_tensor_8to16(tensor, buffers):
     logging.info(f"Set {tensor.name} from int8 to int16 ")
 
 
+def requantize_bias_perlayer(buffers, input, weight, bias):
+  bias_buffer = buffers[bias.buffer]
+  bias_scale = bias.quantization.scale[0]
+  bias_zero_pt = bias.quantization.zeroPoint[0]
+  data = np.frombuffer(bias_buffer.data, dtype=np.int32)
+  dequantized_data = dequantize_data(data, bias_scale, bias_zero_pt)
+  bias_scale_int64 = (input.quantization.scale[0] *
+                      weight.quantization.scale[0])
+  bias_zero_pt_int64 = 0  # symmetrical quantized
+  int64_data = quantize_data(dequantized_data, bias_scale_int64,
+                             bias_zero_pt_int64, 64).astype(np.int64)
+  bias_buffer.data = int64_data.tobytes()
+
+  bias.type = TENSOR_TYPE_CODE[np.int64]
+  bias.quantization.scale = [bias_scale_int64]
+  bias.quantization.zeroPoint = [bias_zero_pt_int64]
+  logging.info(f"Set {bias.name} from int32 to int64")
+
+
+def requantize_bias_perchannel(buffers, input, weight, bias):
+  bias_buffer = buffers[bias.buffer]
+  data = np.frombuffer(bias_buffer.data, dtype=np.int32)
+  if len(bias.quantization.scale) != len(data) != len(
+      weight.quantization.scale):
+    raise RuntimeError(
+        f" Per channel quantization requires bias size ({len(data) })\
+         equals to number of bias scales ({len(bias.quantization.scale)}),\
+         equals to number of weight scales ({len(weight.quantization.scale)}) "
+    )
+  requantized_data = []
+  for element_data, bias_scale, weight_scale, bias_zero_point in zip(
+      data, bias.quantization.scale, weight.quantization.scale,
+      bias.quantization.zeroPoint):
+    dequantized_data = dequantize_data(element_data, bias_scale,
+                                       bias_zero_point)
+    bias_scale_int64 = (input.quantization.scale[0] * weight_scale)
+    bias_zero_pt_int64 = 0  # symmetrical quantized
+    int64_data = quantize_data(dequantized_data, bias_scale_int64,
+                               bias_zero_pt_int64, 64).astype(np.int64)
+    requantized_data.append(int64_data)
+
+  bias_buffer.data = np.array(requantized_data).tobytes()
+  bias.type = TENSOR_TYPE_CODE[np.int64]
+  bias.quantization.scale = [bias_scale_int64]
+  bias.quantization.zeroPoint = [bias_zero_pt_int64]
+  logging.info(f"Set {bias.name} from int32 to int64")
+
+
 def set_bias_type_int64(buffers, input, weight, bias):
   """Set the bias tensor quantization setting from int32 to int64
 
@@ -152,22 +200,10 @@ def set_bias_type_int64(buffers, input, weight, bias):
       bias (Tensor): the bias tensor that need to be modified
   """
   if bias.type == TENSOR_TYPE_CODE[np.int32]:
-    bias_buffer = buffers[bias.buffer]
-    bias_scale = bias.quantization.scale[0]
-    bias_zero_pt = bias.quantization.zeroPoint[0]
-    data = np.frombuffer(bias_buffer.data, dtype=np.int32)
-    dequantized_data = dequantize_data(data, bias_scale, bias_zero_pt)
-    bias_scale_int64 = (input.quantization.scale[0] *
-                        weight.quantization.scale[0])
-    bias_zero_pt_int64 = 0  # symmetrical quantized
-    int64_data = quantize_data(dequantized_data, bias_scale_int64,
-                               bias_zero_pt_int64, 64).astype(np.int64)
-    bias_buffer.data = int64_data.tobytes()
-
-    bias.type = TENSOR_TYPE_CODE[np.int64]
-    bias.quantization.scale = [bias_scale_int64]
-    bias.quantization.zeroPoint = [bias_zero_pt_int64]
-    logging.info(f"Set {bias.name} from int32 to int64")
+    if len(bias.quantization.scale) == 1:
+      requantize_bias_perlayer(buffers, input, weight, bias)
+    else:
+      requantize_bias_perchannel(buffers, input, weight, bias)
 
 
 def requantize_fully_connected(tensors, buffers, op):
@@ -227,3 +263,20 @@ def requantize_softmax(tensors, buffers, op):
     # Set tensor type
     output_tensor.type = TENSOR_TYPE_CODE[np.int16]
     logging.info(f"Set {output_tensor.name} from int8 to int16 ")
+
+
+def requantize_transpose_conv(tensors, buffers, op):
+  """Requantize the transpose conv op from int8 to int16"""
+  # Indices are from tensorflow/lite/micro/kernels/transpose_conv.cc
+  input_tensor = tensors[op.inputs[2]]
+  # weight stays the same, no change needed
+  weight_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+  # if the bias does not exist, op.inputs[2] == -1
+  if len(op.inputs) > 3:
+    if op.inputs[3] != -1:
+      bias_tensor = tensors[op.inputs[3]]
+      set_bias_type_int64(buffers, input_tensor, weight_tensor, bias_tensor)

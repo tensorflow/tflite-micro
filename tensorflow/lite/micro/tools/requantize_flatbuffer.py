@@ -59,7 +59,14 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
     requantize_flatbuffer_utils.requantize_fully_connected,
     BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
     requantize_flatbuffer_utils.requantize_unidirectional_sequence_lstm,
-    BuiltinOperator.SOFTMAX: requantize_flatbuffer_utils.requantize_softmax
+    BuiltinOperator.SOFTMAX:
+    requantize_flatbuffer_utils.requantize_softmax,
+    BuiltinOperator.CONV_2D:
+    requantize_flatbuffer_utils.requantize_fully_connected,
+    BuiltinOperator.DEPTHWISE_CONV_2D:
+    requantize_flatbuffer_utils.requantize_fully_connected,
+    BuiltinOperator.TRANSPOSE_CONV:
+    requantize_flatbuffer_utils.requantize_transpose_conv,
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
@@ -68,7 +75,7 @@ _TESTED_SIMPLE_OPS = [
     BuiltinOperator.DEQUANTIZE, BuiltinOperator.MEAN,
     BuiltinOperator.SQUARED_DIFFERENCE, BuiltinOperator.ADD,
     BuiltinOperator.RSQRT, BuiltinOperator.MUL, BuiltinOperator.SUB,
-    BuiltinOperator.LEAKY_RELU, BuiltinOperator.LOGISTIC
+    BuiltinOperator.LEAKY_RELU, BuiltinOperator.LOGISTIC, BuiltinOperator.PAD
 ]
 
 _SUPPORTED_OPS = set(
