@@ -145,8 +145,8 @@ def train_model(epochs, x_train, y_train, x_validate, y_validate):
 
 def main(_):
   x_train, y_train, x_validate, y_validate = get_train_data()
-  trained_model = train_model(FLAGS.epochs, x_train, y_train,
-                              x_validate, y_validate)
+  trained_model = train_model(FLAGS.epochs, x_train, y_train, x_validate,
+                              y_validate)
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(trained_model)
