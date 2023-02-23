@@ -34,9 +34,6 @@ flags.DEFINE_string("save_dir", "/tmp/hello_world_models",
                     "the directory to save the trained model.")
 flags.DEFINE_boolean("save_tf_model", False,
                      "store the original unconverted tf model.")
-flags.DEFINE_boolean(
-    "quantize", False,
-    "convert and save the full integer (int8) quantized model.")
 
 
 def get_train_data():
@@ -67,11 +64,11 @@ def get_train_data():
   # be split. We provide two indices, so the data will be divided into three
   # chunks.
   splits = np.split(x_values, [train_split, test_split])
-  x_train = splits[0]
+  x_train, x_validate = splits[0], splits[2]
   splits = np.split(y_values, [train_split, test_split])
-  y_train = splits[0]
+  y_train, y_validate = splits[0], splits[2]
 
-  return (x_train, y_train)
+  return (x_train, y_train, x_validate, y_validate)
 
 
 def create_model() -> tf.keras.Model:
@@ -122,7 +119,7 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def train_model(epochs, x_train, y_train):
+def train_model(epochs, x_train, y_train, x_validate, y_validate):
   """Train keras hello_world model
     Args: epochs (int) : number of epochs to train the model
         x_train (numpy.array): list of the training data
@@ -135,7 +132,9 @@ def train_model(epochs, x_train, y_train):
             y_train,
             epochs=epochs,
             validation_split=0.2,
-            batch_size=64)
+            batch_size=64,
+            validation_data=(x_validate, y_validate),
+            verbose=2)
 
   if FLAGS.save_tf_model:
     model.save(FLAGS.save_dir, save_format="tf")
@@ -144,52 +143,16 @@ def train_model(epochs, x_train, y_train):
   return model
 
 
-def convert_quantized_tflite_model(model, x_train):
-  """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
-
-    See
-    https://www.tensorflow.org/lite/performance/post_training_integer_quant#convert_using_integer-only_quantization
-
-    Args:
-        model (tf.keras.Model): the trained hello_world Model
-        x_train (numpy.array): list of the training data
-
-    Returns:
-        The converted model in serialized format.
-  """
-
-  # Convert the model to the TensorFlow Lite format with quantization
-  def representative_dataset(num_samples=500):
-    for i in range(num_samples):
-      yield [x_train[i].reshape(1, 1)]
-
-  converter = tf.lite.TFLiteConverter.from_keras_model(model)
-  converter.optimizations = [tf.lite.Optimize.DEFAULT]
-  converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-  converter.inference_input_type = tf.int8
-  converter.inference_output_type = tf.int8
-  converter.representative_dataset = representative_dataset
-  tflite_model = converter.convert()
-  return tflite_model
-
-
 def main(_):
-  x_train, y_train = get_train_data()
-  trained_model = train_model(FLAGS.epochs, x_train, y_train)
+  x_train, y_train, x_validate, y_validate = get_train_data()
+  trained_model = train_model(FLAGS.epochs, x_train, y_train,
+                              x_validate, y_validate)
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(trained_model)
   save_tflite_model(tflite_model,
                     FLAGS.save_dir,
                     model_name="hello_world_float.tflite")
-
-  # Convert and save the quantized model
-  if FLAGS.quantize:
-    quantized_tflite_model = convert_quantized_tflite_model(
-        trained_model, x_train)
-    save_tflite_model(quantized_tflite_model,
-                      FLAGS.save_dir,
-                      model_name="hello_world_int8.tflite")
 
 
 if __name__ == "__main__":

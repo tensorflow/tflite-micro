@@ -23,16 +23,13 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/constants.h \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/main_functions.h
 
 HELLO_WORLD_GENERATOR_INPUTS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float.tflite \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_int8.tflite
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float.tflite
 
 HELLO_WORLD_GENERATED_SRCS := \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.cc \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_int8_model_data.cc
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.cc
 
 HELLO_WORLD_GENERATED_HDRS := \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h \
-$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_int8_model_data.h
+$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h
 
 #Find any platform - specific rules for this example.
 include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/$(EXAMPLE_NAME)/*/Makefile.inc)
