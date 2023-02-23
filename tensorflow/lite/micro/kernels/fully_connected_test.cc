@@ -43,6 +43,7 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
 
+// TODO(b/258710417): INT4 isn't currently supported on Hexagon.
 #if !defined(HEXAGON)
 const float simple_int4_weights_data[] = {
     -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
@@ -632,6 +633,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
       kTfLiteOk);
 }
 
+// TODO(b/258710417): INT4 isn't currently supported on Hexagon.
 #if !defined(HEXAGON)
 // This test was created by handcrafting simple_int4_weights_data, and
 // simple_golden_null_bias_int4_weights was obtained by running
