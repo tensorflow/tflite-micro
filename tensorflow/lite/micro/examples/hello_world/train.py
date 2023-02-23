@@ -157,6 +157,7 @@ def convert_quantized_tflite_model(model, x_train):
     Returns:
         The converted model in serialized format.
   """
+
   # Convert the model to the TensorFlow Lite format with quantization
   def representative_dataset(num_samples=500):
     for i in range(num_samples):
