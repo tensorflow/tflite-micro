@@ -153,6 +153,7 @@ def change_activation_tensor_8to16(tensor, buffers):
 
 
 def requantize_bias_perlayer(buffers, input, weight, bias):
+  """Bias is layer wise quantized """
   bias_buffer = buffers[bias.buffer]
   bias_scale = bias.quantization.scale[0]
   bias_zero_pt = bias.quantization.zeroPoint[0]
@@ -182,6 +183,7 @@ def requantize_bias_perlayer(buffers, input, weight, bias):
 
 
 def requantize_bias_perchannel(buffers, input, weight, bias):
+  """Bias is channel wise quantized. Requantize bias one by one """
   bias_buffer = buffers[bias.buffer]
   data = np.frombuffer(bias_buffer.data, dtype=np.int32)
   expected_buffer_size = bias.shape[0]  # bias has only one dimension
