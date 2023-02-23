@@ -121,3 +121,13 @@ py_binary(
         ":evaluate",
     ],
 )
+
+py_binary(
+    name = "train",
+    srcs = ["train.py"],
+    srcs_version = "PY3",
+    deps = [
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
