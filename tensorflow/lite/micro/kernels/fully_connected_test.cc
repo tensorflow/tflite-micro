@@ -293,7 +293,6 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   return kTfLiteOk;
 }
 
-#if !defined(XTENSA)  // Needed to avoid build error from unused functions.
 TfLiteStatus TestFullyConnectedFloat(
     int* input_dims_data, const float* input_data, int* weights_dims_data,
     const float* weights_data, int* bias_dims_data, const float* bias_data,
@@ -326,7 +325,6 @@ TfLiteStatus TestFullyConnectedFloat(
                                        activation, 1e-4f, output_dims_count,
                                        golden, output_data);
 }
-#endif
 
 template <typename dataT, typename weightT, typename biasT>
 TfLiteStatus TestFullyConnectedQuantized(
@@ -381,16 +379,6 @@ TfLiteStatus TestFullyConnectedQuantized(
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA) && !defined(CEVA_BX1) && !defined(CEVA_SP500)
-// TODO(b/170503075): xtensa kernels are less general
-// than reference kernels and we ifdef out test cases that are currently known
-// to fail.
-
-// CEVA's fully connected implementation assumes weights_zero_point=0 as
-// described in TFLite's quantization specification. tests which use a different
-// zero point will so ifdefed out.
-// See tflite quantization spec:
-// https://www.tensorflow.org/lite/performance/quantization_spec
 TF_LITE_MICRO_TEST(SimpleTest) {
   float output_data[tflite::testing::simple_output_size];
   TF_LITE_MICRO_EXPECT_EQ(
@@ -417,8 +405,6 @@ TF_LITE_MICRO_TEST(SimpleTestNullBias) {
           tflite::testing::simple_output_dims, kTfLiteActNone, output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
   const float input_scale = 1.0f;
@@ -448,7 +434,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
       kTfLiteOk);
 }
 
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
@@ -537,9 +523,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Relu) {
       kTfLiteOk);
 }
 
-#if !defined(XTENSA)  // TODO(b/170503075): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SimpleTest4DInput) {
   int input_dims_4d[] = {4, 1, 1, 2, 10};
 
@@ -572,8 +555,6 @@ TF_LITE_MICRO_TEST(Representative1x64Input1x16Output) {
           output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(Representative1x64Input1x16OutputQuantizedInt8) {
   const float input_scale = 0.051445;

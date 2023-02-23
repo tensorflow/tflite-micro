@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ void TestSplitTwoOutputsFloat(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_SPLIT();
+  const TfLiteRegistration registration = Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -131,7 +131,7 @@ void TestSplitFourOutputsFloat(
   int outputs_array_data[] = {4, 2, 3, 4, 5};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_SPLIT();
+  const TfLiteRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -194,7 +194,7 @@ void TestSplitTwoOutputsQuantized(int* input_dims_data,
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_SPLIT();
+  const TfLiteRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -249,7 +249,7 @@ void TestSplitTwoOutputsQuantized32(
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_SPLIT();
+  const TfLiteRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
