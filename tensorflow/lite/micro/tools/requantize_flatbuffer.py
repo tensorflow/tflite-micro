@@ -47,10 +47,12 @@ from tflite_micro.tensorflow.lite.python import schema_py_generated
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("int8_model_path", "../trained_lstm_quant.tflite",
-                    "the int8 model path.")
-flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
-                    "path to save the requantized model.")
+flags.DEFINE_string("int8_model_path",
+                    default=None,
+                    help="the int8 model path.")
+flags.DEFINE_string("save_path",
+                    default=None,
+                    help="path to save the requantized model.")
 
 # key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py
