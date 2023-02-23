@@ -87,17 +87,20 @@ void TestSquaredDifferenceQuantized(
     int* output_dims_data, T* output_data, float output_min, float output_max,
     float* dequantized_output, const float* golden,
 
-    float tolerance) {
+    float tolerance, bool narrow_range = false) {
   QuantizationParams input1_qparams;
   QuantizationParams input2_qparams;
   QuantizationParams output_qparams;
 
   input1_qparams = ChooseQuantizationParams<T>(static_cast<double>(input1_min),
-                                               static_cast<double>(input1_max));
+                                               static_cast<double>(input1_max),
+                                               narrow_range);
   input2_qparams = ChooseQuantizationParams<T>(static_cast<double>(input2_min),
-                                               static_cast<double>(input2_max));
+                                               static_cast<double>(input2_max),
+                                               narrow_range);
   output_qparams = ChooseQuantizationParams<T>(static_cast<double>(output_min),
-                                               static_cast<double>(output_max));
+                                               static_cast<double>(output_max),
+                                               narrow_range);
 
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
@@ -248,14 +251,13 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShape) {
   int16_t input1_int16[data_size];
   int16_t input2_int16[data_size];
   int16_t output_int16[data_size];
-  // Symmetrical quantization: (rmin == -rmax).
-  // TODO(b/269352046): have to increase the tolerance from 2/32768 to 6/32768
-  // to pass the test. More investigation is needed to understand the reason for
-  // the precision drop
+  // Symmetrical quantization: (rmin == -rmax), requires narrow range (qmin =
+  // -qmax).
   tflite::testing::TestSquaredDifferenceQuantized(
       inout_shape, input1_values, input1_int16, -1.2f, 1.2f, inout_shape,
       input2_values, input2_int16, -1.5f, 1.5f, inout_shape, output_int16,
-      -0.5f, 0.5f, output_dequantized, golden_values, 6.0f / 32768.0f);
+      -0.5f, 0.5f, output_dequantized, golden_values, 6.0f / 32768.0f,
+      /*narrow_range=*/true);
 }
 
 TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
@@ -280,13 +282,15 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
   int16_t input1_int16[data_size];
   int16_t input2_int16[data_size];
   int16_t output_int16[data_size];
-  // Symmetrical quantization: (rmin == -rmax)
+  // Symmetrical quantization: (rmin == -rmax), requires narrow range (qmin =
+  // -qmax).
   for (int i = 0; i < tflite::testing::kNumTestShapes; ++i) {
     tflite::testing::TestSquaredDifferenceQuantized(
         tflite::testing::test_shape[i], input1_values, input1_int16, -2.0f,
         2.0f, tflite::testing::test_shape[i], input2_values, input2_int16,
         -1.0f, 1.0f, tflite::testing::test_shape[i], output_int16, -9.0f, 9.0f,
-        output_dequantized, golden_values, 18.0f / 32768.0f);
+        output_dequantized, golden_values, 18.0f / 32768.0f,
+        /*narrow_range=*/true);
   }
 }
 
@@ -321,7 +325,8 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
         tflite::testing::test_shape[i], input1_values, input1_int16, -1.1f,
         1.1f, input2_shape, input2_values, input2_int16, -1.0f, 1.0f,
         tflite::testing::test_shape[i], output_int16, -1.0f, 1.0f,
-        output_dequantized, golden_values, 2.0f / 32768.0f);
+        output_dequantized, golden_values, 2.0f / 32768.0f,
+        /*narrow_range=*/true);
   }
 }
 
