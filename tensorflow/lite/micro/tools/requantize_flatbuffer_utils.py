@@ -120,18 +120,28 @@ def change_quantization_settings_8to16(tensor, buffers):
   rmin = scale * (MIN_INT8 - zero_point)
   # symmertical quantized: scale * qmax = rmax
   scale_16 = max(abs(rmax), abs(rmin)) / abs(MIN_INT16)
+  # Change scale: Symmetrical Quantized
+  tensor.quantization.scale = [scale_16]
+  tensor.quantization.zeroPoint = [0]
+
+  # requantize the buffer data to int16 if necessary
   tensor_buffer = buffers[tensor.buffer]
-  # requantize the data to int16 if necessary
   if type(tensor_buffer.data) != type(None):
+    expected_buffer_size = np.prod(tensor.shape)
+    # Different ops may share one buffer. No need to requantize the buffer
+    # if the buffer has already been processed to int16 (2 bytes)
+    if data.nbytes == expected_buffer_size * 2:
+      return
+    elif data.nbytes != expected_buffer_size:
+      raise RuntimeError(
+          f"Bias buffer size {data.nbytes} does not match the expected size {expected_buffer_size * 4}"
+      )
     data = np.frombuffer(tensor_buffer.data, dtype=np.int8)
     dequantized_data = dequantize_data(data, tensor.quantization.scale,
                                        tensor.quantization.zeroPoint)
     int16_data = quantize_data(dequantized_data, scale_16, 0,
                                16).astype(np.int16)
     tensor_buffer.data = int16_data.tobytes()
-  # Change scale: Symmetrical Quantized
-  tensor.quantization.scale = [scale_16]
-  tensor.quantization.zeroPoint = [0]
 
 
 def change_activation_tensor_8to16(tensor, buffers):
