@@ -38,6 +38,7 @@ flags.DEFINE_boolean(
     "quantize", False,
     "convert and save the full integer (int8) quantized model.")
 
+
 def get_train_data():
   """
   ### 1. Generate Data
@@ -54,6 +55,9 @@ def get_train_data():
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
 
+  # Calculate the corresponding sine values
+  y_values = np.sin(x_values).astype(np.float32)
+
   # We'll use 60% of our data for training
   train_split = int(0.6 * 1000)
   test_split = int(0.2 * 1000 + train_split)
@@ -63,23 +67,14 @@ def get_train_data():
   # be split. We provide two indices, so the data will be divided into three
   # chunks.
   splits = np.split(x_values, [train_split, test_split])
-  x_train, x_test, x_validate = splits[0], splits[1], splits[2]
-  y_train, y_test, y_validate = splits[0], splits[1], splits[2]
+  x_train = splits[0]
+  splits = np.split(y_values, [train_split, test_split])
+  y_train = splits[0]
 
   return (x_train, y_train)
 
+
 def create_model() -> tf.keras.Model:
-  """
-  ## Training
-  ## Training a Larger Model
-
-  ### 1. Design the Model
-  To make our model bigger, let's add an additional layer of neurons.
-  The following cell redefines our model in the same way as earlier, but with
-  16 neurons in the first layer and an additional layer of 16 neurons in the
-  middle:
-  """
-
   model = tf.keras.Sequential()
 
   # First layer takes a scalar input and feeds it through 16 "neurons". The
@@ -98,6 +93,7 @@ def create_model() -> tf.keras.Model:
   model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 
   return model
+
 
 def convert_tflite_model(model):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
@@ -147,6 +143,7 @@ def train_model(epochs, x_train, y_train):
 
   return model
 
+
 def convert_quantized_tflite_model(model, x_train):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
 
@@ -174,6 +171,7 @@ def convert_quantized_tflite_model(model, x_train):
   tflite_model = converter.convert()
   return tflite_model
 
+
 def main(_):
   x_train, y_train = get_train_data()
   trained_model = train_model(FLAGS.epochs, x_train, y_train)
@@ -186,8 +184,8 @@ def main(_):
 
   # Convert and save the quantized model
   if FLAGS.quantize:
-    quantized_tflite_model = convert_quantized_tflite_model(trained_model,
-                                                            x_train)
+    quantized_tflite_model = convert_quantized_tflite_model(
+        trained_model, x_train)
     save_tflite_model(quantized_tflite_model,
                       FLAGS.save_dir,
                       model_name="hello_world_int8.tflite")
