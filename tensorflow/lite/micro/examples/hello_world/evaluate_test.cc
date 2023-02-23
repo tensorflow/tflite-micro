@@ -114,7 +114,6 @@ TF_LITE_MICRO_TEST(LoadFloatModelAndPerformInference) {
   TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
 }
 
-
 TF_LITE_MICRO_TEST(LoadQuantModelAndPerformInference) {
   // Define the input and the expected output
   float x = 0.0f;
@@ -157,7 +156,7 @@ TF_LITE_MICRO_TEST(LoadQuantModelAndPerformInference) {
   // other).
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[1]);
-// The input is an 8 bit integer value
+  // The input is an 8 bit integer value
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
 
   // Get the input quantization parameters
@@ -179,7 +178,7 @@ TF_LITE_MICRO_TEST(LoadQuantModelAndPerformInference) {
   TF_LITE_MICRO_EXPECT_EQ(2, output->dims->size);
   TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
   TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[1]);
-   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
 
   // Get the output quantization parameters
   float output_scale = output->params.scale;
