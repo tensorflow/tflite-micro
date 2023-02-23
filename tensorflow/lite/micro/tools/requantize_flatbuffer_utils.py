@@ -221,7 +221,7 @@ def requantize_bias_perchannel(buffers, input, weight, bias):
       requantized_data.append(int64_data)
 
   bias.type = TENSOR_TYPE_CODE[np.int64]
-  bias.quantization.scale = requantized_data
+  bias.quantization.scale = requantized_scales
   bias.quantization.zeroPoint = requantized_zero_points
   if requantize_buffer:
     bias_buffer.data = np.array(requantized_data).tobytes()
