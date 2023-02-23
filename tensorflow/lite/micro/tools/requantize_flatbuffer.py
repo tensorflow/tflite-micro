@@ -63,6 +63,8 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
     requantize_flatbuffer_utils.requantize_unidirectional_sequence_lstm,
     schema_py_generated.BuiltinOperator.SOFTMAX:
     requantize_flatbuffer_utils.requantize_softmax,
+    schema_py_generated.BuiltinOperator.LOGISTIC:
+    requantize_flatbuffer_utils.requantize_softmax,
     schema_py_generated.BuiltinOperator.CONV_2D:
     requantize_flatbuffer_utils.requantize_fully_connected,
     schema_py_generated.BuiltinOperator.DEPTHWISE_CONV_2D:
