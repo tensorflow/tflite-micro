@@ -38,11 +38,8 @@ flags.DEFINE_boolean("save_tf_model", False,
 
 def get_train_data():
   """
-  ### 1. Generate Data
-  The code in the following cell will generate a set of random `x` values,
-  calculate their sine values, and display them on a graph.
-
-  Throws: AssertionError
+  The code will generate a set of random `x` values,calculate their sine
+  values.
   """
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
