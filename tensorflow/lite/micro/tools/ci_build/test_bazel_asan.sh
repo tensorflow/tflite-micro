@@ -27,11 +27,8 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # having build_test but that was removed with #194.
 
 CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --build_tag_filters=-no_oss
+  --config=asan --build_tag_filters=-no_oss,-noasan
 CC=clang readable_run bazel test tensorflow/lite/micro/... \
-  --test_tag_filters=-no_oss --build_tag_filters=-no_oss \
+  --config=asan \
+  --test_tag_filters=-no_oss,-noasan --build_tag_filters=-no_oss,-noasan \
   --test_output=errors
-
-# TODO(b/178621680): enable ubsan once bazel + clang + ubsan errors are fixed.
-#CC=clang readable_run bazel test tensorflow/lite/micro/... --config=ubsan --test_tag_filters=-no_oss,-noubsan --build_tag_filters=-no_oss,-noubsan
-
