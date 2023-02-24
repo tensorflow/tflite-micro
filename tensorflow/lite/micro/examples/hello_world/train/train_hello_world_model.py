@@ -468,8 +468,6 @@ def create_tflite_models(config: ConfigData, ds: Dataset) -> None:
   converter.optimizations = [tf.lite.Optimize.DEFAULT]
   # Enforce integer only quantization
   converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-  converter.inference_input_type = tf.int8
-  converter.inference_output_type = tf.int8
   # Provide a representative dataset to ensure we quantize correctly.
   converter.representative_dataset = representative_dataset
   model_quant_tflite = converter.convert()
