@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,9 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace unpack {
+
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -100,13 +98,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
+
 }  // namespace
-}  // namespace unpack
 
 TfLiteRegistration Register_UNPACK() {
-  return tflite::micro::RegisterOp(nullptr, nullptr, unpack::Eval);
+  return tflite::micro::RegisterOp(nullptr, nullptr, Eval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

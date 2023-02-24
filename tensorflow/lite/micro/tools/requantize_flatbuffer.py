@@ -25,8 +25,7 @@ The conversion process:
 
 Run:
 bazel build tensorflow/lite/micro/tools:requantize_flatbuffer
-bazel-bin/tensorflow/lite/micro/tools/requantize_flatbuffer
---int8_model_path=".tflite file path"` --save_path="save path"
+bazel-bin/tensorflow/lite/micro/tools/requantize_flatbuffer --int8_model_path=".tflite file path"` --save_path="save path"
 
 CAVEAT: 
 1. Use this tool ONLY for models that contain the LSTM layer. All other models should use the standard tflite conversion process.
@@ -43,28 +42,34 @@ from absl import flags
 from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-import tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer_utils as utils
-from tflite_micro.tensorflow.lite.python.schema_py_generated import BuiltinOperator
+from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer_utils
+from tflite_micro.tensorflow.lite.python import schema_py_generated
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("int8_model_path", "../trained_lstm_quant.tflite",
-                    "the int8 model path.")
-flags.DEFINE_string("save_path", "/tmp/8to16model.tflite",
-                    "path to save the requantized model.")
+flags.DEFINE_string("int8_model_path",
+                    default=None,
+                    help="the int8 model path.")
+flags.DEFINE_string("save_path",
+                    default=None,
+                    help="path to save the requantized model.")
 
-# key: BuiltinOperator; Val: the conversion function (see tensorflow/lite/schema/schema.fbs)
+# key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
+# Val: the requantize function defined in requantize_flatbuffer_utils.py
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
-    BuiltinOperator.FULLY_CONNECTED: utils.requantize_fully_connected,
-    BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
-    utils.requantize_unidirectional_sequence_lstm,
-    BuiltinOperator.SOFTMAX: utils.requantize_softmax
+    schema_py_generated.BuiltinOperator.FULLY_CONNECTED:
+    requantize_flatbuffer_utils.requantize_fully_connected,
+    schema_py_generated.BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
+    requantize_flatbuffer_utils.requantize_unidirectional_sequence_lstm,
+    schema_py_generated.BuiltinOperator.SOFTMAX:
+    requantize_flatbuffer_utils.requantize_softmax
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
 _TESTED_SIMPLE_OPS = [
-    BuiltinOperator.RESHAPE, BuiltinOperator.QUANTIZE,
-    BuiltinOperator.DEQUANTIZE
+    schema_py_generated.BuiltinOperator.RESHAPE,
+    schema_py_generated.BuiltinOperator.QUANTIZE,
+    schema_py_generated.BuiltinOperator.DEQUANTIZE
 ]
 
 _SUPPORTED_OPS = set(
@@ -125,9 +130,12 @@ class Requantizer:
         op : the operator
     """
     for id in op.inputs:
-      self._remove_tensor(tensors[id])
+      # -1 means non-used tensor
+      if id != -1:
+        self._remove_tensor(tensors[id])
     for id in op.outputs:
-      self._remove_tensor(tensors[id])
+      if id != -1:
+        self._remove_tensor(tensors[id])
 
   def _convert_ops(self):
     """Convert all ops registered in _OP_CONVERSION_REGISTRATION from int8 to int16 (activation type)"""
@@ -152,9 +160,9 @@ class Requantizer:
     for subgraph in self.model.subgraphs:
       for tensor in subgraph.tensors:
         if ((tensor in self.remaining_tensors)
-            and (utils.TENSOR_CODE_TYPE[tensor.type] == np.int8)
-            and ("const" not in str(tensor.name))):
-          utils.change_activation_tensor_8to16(tensor)
+            and (requantize_flatbuffer_utils.TENSOR_CODE_TYPE[tensor.type]
+                 == np.int8) and ("const" not in str(tensor.name))):
+          requantize_flatbuffer_utils.change_activation_tensor_8to16(tensor)
           self._remove_tensor(tensor)
 
   def requantize_8to16(self):

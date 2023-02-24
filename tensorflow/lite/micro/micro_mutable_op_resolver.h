@@ -444,7 +444,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddResizeNearestNeighbor() {
     return AddBuiltin(BuiltinOperator_RESIZE_NEAREST_NEIGHBOR,
-                      tflite::ops::micro::Register_RESIZE_NEAREST_NEIGHBOR(),
+                      Register_RESIZE_NEAREST_NEIGHBOR(),
                       ParseResizeNearestNeighbor);
   }
 
@@ -492,13 +492,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSplit() {
-    return AddBuiltin(BuiltinOperator_SPLIT,
-                      tflite::ops::micro::Register_SPLIT(), ParseSplit);
+    return AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT(), ParseSplit);
   }
 
   TfLiteStatus AddSplitV() {
-    return AddBuiltin(BuiltinOperator_SPLIT_V,
-                      tflite::ops::micro::Register_SPLIT_V(), ParseSplitV);
+    return AddBuiltin(BuiltinOperator_SPLIT_V, Register_SPLIT_V(), ParseSplitV);
   }
 
   TfLiteStatus AddSqueeze() {
@@ -556,8 +554,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK,
-                      tflite::ops::micro::Register_UNPACK(), ParseUnpack);
+    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {

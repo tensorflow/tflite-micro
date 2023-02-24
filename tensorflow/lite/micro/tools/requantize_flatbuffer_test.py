@@ -19,11 +19,12 @@ import tensorflow as tf
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer import Requantizer
+from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
+#TODO(b/248061370): replace the keras model creation process with flatbuffer manipulation to speed up test
 def create_simple_fc_model():
   '''Create a simple model with two fully connected(fc) layers'''
   model = tf.keras.models.Sequential([
@@ -62,7 +63,7 @@ def convert_tfl_converter(keras_model,
   return converter.convert()
 
 
-def convert_8to16_converter(keras_model, representative_dataset_gen):
+def convert_8to16_requantizer(keras_model, representative_dataset_gen):
   '''Convert and quantize the keras model using the int8 to int16 conversion tool'''
   # Convert to int8 first
   int8_model = convert_tfl_converter(keras_model,
@@ -70,7 +71,7 @@ def convert_8to16_converter(keras_model, representative_dataset_gen):
                                      int16=False)
   int8_model = flatbuffer_utils.convert_bytearray_to_object(int8_model)
   # Use the tool to convert to int16
-  requantizer = Requantizer(int8_model)
+  requantizer = requantize_flatbuffer.Requantizer(int8_model)
   requantizer.requantize_8to16()
   return flatbuffer_utils.convert_object_to_bytearray(requantizer.model)
 
@@ -88,7 +89,7 @@ class SimpleFCModelTest(test_util.TensorFlowTestCase):
     )  # int16 fc is supported in tflite converter
     tfl_converted_int16_model = convert_tfl_converter(
         keras_model, representative_dataset_gen, int16=True)
-    int8_converted_int16_model = convert_8to16_converter(
+    int8_converted_int16_model = convert_8to16_requantizer(
         keras_model, representative_dataset_gen)
 
     interpreter_tfl_converted = tflm_runtime.Interpreter.from_bytes(
