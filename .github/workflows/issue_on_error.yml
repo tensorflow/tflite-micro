@@ -1,25 +1,40 @@
 name: Issue On Error
 
 # This workflow can be called from other workflows in order to generate 
-# an issue on failure. The issue will have the title of the failing workflow
-# and a body with a link to the failure as well as a tag (by default
-# ci:bot_isssue). If such an issue already exists, a comment will be added
-# with a timestamp of the new failure and a link.
+# an issue on failure.
+#
+# With only the required inputs issue will have the title of the failing workflow
+# and a link to it.
+#
+# If the optional pr_number and link are provided the title and link will be for 
+# the PR.
+# 
+# Either type of issue will be tagged (by default with ci:bot_issue). 
+# If an issue already exists, a comment will be added with a timestamp of the
+# new failure and a link.
 
 on:
   workflow_call:
     inputs:
       repo:
         type: string
+        required: true
       workflow:
         type: string
+        required: true
       run_id:
         type: string
+        required: true
       run_number:
         type: string
+        required: true
       flag_label:
         type: string
         default: 'ci:bot_issue'
+      pr_number:
+        type: string
+      pr_link:
+        type: string
 
     secrets:
       token:
@@ -39,6 +54,8 @@ jobs:
           RUN_NUMBER: ${{ inputs.run_number }}
           GITHUB_TOKEN: ${{ secrets.token }}
           FLAG_LABEL: ${{ inputs.flag_label }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          PR_LINK: ${{ inputs.pr_link }}
         run: |
           python3 ci/issue_on_error.py
 
