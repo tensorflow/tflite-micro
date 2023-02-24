@@ -157,6 +157,6 @@ pybind_library():
     )
 ```
 
-See the test target @//python/tests:cc_dep_link_test elsewhere for an example
+See the test target //python/tests:cc_dep_link_test elsewhere for an example
 which links against a library shipped in a Python package.
 """

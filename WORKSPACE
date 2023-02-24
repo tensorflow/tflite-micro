@@ -37,13 +37,13 @@ http_archive(
 load("@rules_python//python:pip.bzl", "pip_parse")
 pip_parse(
     name = "tflm_pip_deps",
-    requirements_lock = "@//third_party:python_requirements.txt",
+    requirements_lock = "//third_party:python_requirements.txt",
 )
 
 load("@tflm_pip_deps//:requirements.bzl", "install_deps")
 install_deps()
 
-load("@//tensorflow:workspace.bzl", "workspace")
+load("//tensorflow:workspace.bzl", "workspace")
 workspace()
 
 http_archive(
@@ -65,7 +65,7 @@ load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python", python_version = "3")
 
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+load("//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
 
 py_pkg_cc_deps(
     name = "numpy_cc_deps",
