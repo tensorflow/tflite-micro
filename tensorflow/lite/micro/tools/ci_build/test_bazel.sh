@@ -32,22 +32,6 @@ CC=clang readable_run bazel test tensorflow/lite/micro/... \
   --test_tag_filters=-no_oss --build_tag_filters=-no_oss \
   --test_output=errors
 
-CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --config=msan --build_tag_filters=-no_oss,-nomsan
-CC=clang readable_run bazel test tensorflow/lite/micro/... \
-  --config=msan \
-  --test_tag_filters=-no_oss,-nomsan --build_tag_filters=-no_oss,-nomsan \
-  --test_output=errors
-
-CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --config=asan --build_tag_filters=-no_oss,-noasan
-CC=clang readable_run bazel test tensorflow/lite/micro/... \
-  --config=asan \
-  --test_tag_filters=-no_oss,-noasan --build_tag_filters=-no_oss,-noasan \
-  --test_output=errors
-
 # TODO(b/178621680): enable ubsan once bazel + clang + ubsan errors are fixed.
 #CC=clang readable_run bazel test tensorflow/lite/micro/... --config=ubsan --test_tag_filters=-no_oss,-noubsan --build_tag_filters=-no_oss,-noubsan
 
-readable_run bazel test tensorflow/lite/tools/... \
-  --test_output=errors

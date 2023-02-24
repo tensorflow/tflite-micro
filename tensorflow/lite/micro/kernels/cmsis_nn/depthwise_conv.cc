@@ -337,6 +337,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
 
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
       tflite::reference_ops::DepthwiseConv(
@@ -352,28 +355,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      switch (filter->type) {
+      switch (filter_int8.type) {
         case kTfLiteInt8: {
-          EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                  bias, output);
-          break;
-        }
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data =
-              static_cast<int8_t*>(context->GetScratchBuffer(
-                  context, data.reference_op_data.filter_buffer_index));
-          reference_integer_ops::DepthwiseConvPerChannelWithPackedInt4Weights(
-              DepthwiseConvParamsQuantized(params, data.reference_op_data),
-              data.reference_op_data.per_channel_output_multiplier,
-              data.reference_op_data.per_channel_output_shift,
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int8_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int8_t>(output));
+          EvalQuantizedPerChannel(context, node, params, data, input,
+                                  &filter_int8, bias, output);
           break;
         }
         default: {
@@ -414,8 +399,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor)
           : nullptr;
 
-  EvalQuantizedPerChannel(context, node, params, data, input, filter, bias,
-                          output);
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
+  EvalQuantizedPerChannel(context, node, params, data, input, &filter_int8,
+                          bias, output);
   return kTfLiteOk;
 }
 

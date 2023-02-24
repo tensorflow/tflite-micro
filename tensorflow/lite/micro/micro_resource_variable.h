@@ -69,6 +69,8 @@ class MicroResourceVariables {
 
     // This is only for verifying read size.
     size_t bytes;
+    // Initialization default value
+    int8_t default_value;
   };
 
   MicroResourceVariables(MicroResourceVariable* variables,

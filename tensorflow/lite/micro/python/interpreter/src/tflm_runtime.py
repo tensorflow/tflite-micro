@@ -17,15 +17,12 @@
 import os
 
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interpreter_wrapper_pybind
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
 class Interpreter(object):
 
-  def __init__(self,
-               model_data,
-               custom_op_registerers,
-               arena_size,
-               num_resource_variables=0):
+  def __init__(self, model_data, custom_op_registerers, arena_size):
     if model_data is None:
       raise ValueError("Model must not be None")
 
@@ -36,6 +33,12 @@ class Interpreter(object):
     # This is a heuristic to ensure that the arena is sufficiently sized.
     if arena_size is None:
       arena_size = len(model_data) * 10
+
+    # Some models make use of resource variables ops, get the count here
+    num_resource_variables = flatbuffer_utils.count_resource_variables(
+        model_data)
+    print("Number of resource variables the model uses = ",
+          num_resource_variables)
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
         model_data, custom_op_registerers, arena_size, num_resource_variables)
@@ -67,8 +70,7 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   @classmethod
   def from_bytes(self,
@@ -92,8 +94,7 @@ class Interpreter(object):
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.

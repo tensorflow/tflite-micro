@@ -77,39 +77,37 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
           : nullptr;
 
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, op_data.reference_op_data.filter_buffer_index, filter);
+
   switch (input->type) {
     case kTfLiteInt8: {
-      switch (filter->type) {
+      switch (filter_int8.type) {
         case kTfLiteInt8: {
 #if defined(HIFI4) || defined(HIFI5)
-          ConvEvalHifi(context, node, params, op_data, input, filter, bias,
-                       output);
+          ConvEvalHifi(context, node, params, op_data, input, &filter_int8,
+                       bias, output);
 #elif defined(VISION_P6)
-          return ConvEvalVision(context, node, params, op_data, input, filter,
-                                bias, output);
+          return ConvEvalVision(context, node, params, op_data, input,
+                                &filter_int8, bias, output);
 #else
-          return ConvReferenceEvalInt8(context, node);
-#endif
-          break;
-        }
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data =
-              static_cast<int8_t*>(context->GetScratchBuffer(
-                  context, op_data.reference_op_data.filter_buffer_index));
-          reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
+          reference_integer_ops::ConvPerChannel(
               ConvParamsQuantized(params, op_data.reference_op_data),
               op_data.reference_op_data.per_channel_output_multiplier,
               op_data.reference_op_data.per_channel_output_shift,
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int8_t>(input),
               tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetTensorData<int8_t>(&filter_int8),
+              tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
+          return kTfLiteOk;
+#endif
           break;
         }
+
         default:
           MicroPrintf("Filter type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);

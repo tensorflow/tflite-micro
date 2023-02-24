@@ -139,7 +139,7 @@ cc_library(
 )
 
 cc_library(
-    name = "tensor_utils",
+    name = "tensor_utils_no_eigen",
     srcs = [
         "portable_tensor_utils.cc",
         "reference/portable_tensor_utils.cc",

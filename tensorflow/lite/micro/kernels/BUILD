@@ -9,8 +9,10 @@ load(
 )
 
 package(
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
+    features = [
+        "-layering_check",  # buildozer: disable=no-layering-check, TODO(b/177257333): consider enabling layering check
+        "-parse_headers",  # buildozer: disable=no-parse-headers, paser_headers is unavailable with bazel (http://b/175817117#comment4)
+    ],
     licenses = ["notice"],
 )
 
@@ -112,6 +114,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_context",
@@ -152,7 +155,7 @@ cc_library(
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/kernels/internal:cppmath",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
     ],
 )
 
@@ -323,7 +326,7 @@ tflm_kernel_cc_library(
     ],
     deps = [
         ":micro_tensor_utils",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         ":activation_utils",
         ":kernel_util",
         "//tensorflow/lite/c:common",
@@ -351,13 +354,6 @@ tflm_kernel_cc_library(
         xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
         "//conditions:default": [],
     }),
-)
-
-cc_library(
-    name = "unidirectional_sequence_lstm_test_config",
-    srcs = ["unidirectional_sequence_lstm_test_config.cc"],
-    hdrs = ["unidirectional_sequence_lstm_test_config.h"],
-    deps = ["//tensorflow/lite/c:common"],
 )
 
 ####################################
@@ -1354,13 +1350,12 @@ cc_test(
     ],
     deps = [
         ":kernel_runner",
+        ":lstm_eval_test_lib",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:tensor_utils",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/kernels:unidirectional_sequence_lstm_test_config",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -168,8 +168,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCeil() {
-    return AddBuiltin(BuiltinOperator_CEIL, tflite::ops::micro::Register_CEIL(),
-                      ParseCeil);
+    return AddBuiltin(BuiltinOperator_CEIL, Register_CEIL(), ParseCeil);
   }
 
   TfLiteStatus AddCircularBuffer() {
@@ -177,8 +176,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddConcatenation() {
-    return AddBuiltin(BuiltinOperator_CONCATENATION,
-                      tflite::ops::micro::Register_CONCATENATION(),
+    return AddBuiltin(BuiltinOperator_CONCATENATION, Register_CONCATENATION(),
                       ParseConcatenation);
   }
 
@@ -227,8 +225,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddEqual() {
-    return AddBuiltin(BuiltinOperator_EQUAL,
-                      tflite::ops::micro::Register_EQUAL(), ParseEqual);
+    return AddBuiltin(BuiltinOperator_EQUAL, Register_EQUAL(), ParseEqual);
   }
 
   TfLiteStatus AddEthosU() {
@@ -253,8 +250,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddFloor() {
-    return AddBuiltin(BuiltinOperator_FLOOR,
-                      tflite::ops::micro::Register_FLOOR(), ParseFloor);
+    return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
   }
 
   TfLiteStatus AddFloorDiv() {
@@ -284,13 +280,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddGreater() {
-    return AddBuiltin(BuiltinOperator_GREATER,
-                      tflite::ops::micro::Register_GREATER(), ParseGreater);
+    return AddBuiltin(BuiltinOperator_GREATER, Register_GREATER(),
+                      ParseGreater);
   }
 
   TfLiteStatus AddGreaterEqual() {
-    return AddBuiltin(BuiltinOperator_GREATER_EQUAL,
-                      tflite::ops::micro::Register_GREATER_EQUAL(),
+    return AddBuiltin(BuiltinOperator_GREATER_EQUAL, Register_GREATER_EQUAL(),
                       ParseGreaterEqual);
   }
 
@@ -320,13 +315,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLess() {
-    return AddBuiltin(BuiltinOperator_LESS, tflite::ops::micro::Register_LESS(),
-                      ParseLess);
+    return AddBuiltin(BuiltinOperator_LESS, Register_LESS(), ParseLess);
   }
 
   TfLiteStatus AddLessEqual() {
-    return AddBuiltin(BuiltinOperator_LESS_EQUAL,
-                      tflite::ops::micro::Register_LESS_EQUAL(),
+    return AddBuiltin(BuiltinOperator_LESS_EQUAL, Register_LESS_EQUAL(),
                       ParseLessEqual);
   }
 
@@ -362,8 +355,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMaximum() {
-    return AddBuiltin(BuiltinOperator_MAXIMUM,
-                      tflite::ops::micro::Register_MAXIMUM(), ParseMaximum);
+    return AddBuiltin(BuiltinOperator_MAXIMUM, Register_MAXIMUM(),
+                      ParseMaximum);
   }
 
   TfLiteStatus AddMaxPool2D(
@@ -381,8 +374,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddMinimum() {
-    return AddBuiltin(BuiltinOperator_MINIMUM,
-                      tflite::ops::micro::Register_MINIMUM(), ParseMinimum);
+    return AddBuiltin(BuiltinOperator_MINIMUM, Register_MINIMUM(),
+                      ParseMinimum);
   }
 
   TfLiteStatus AddMul(const TfLiteRegistration& registration = Register_MUL()) {
@@ -394,8 +387,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddNotEqual() {
-    return AddBuiltin(BuiltinOperator_NOT_EQUAL,
-                      tflite::ops::micro::Register_NOT_EQUAL(), ParseNotEqual);
+    return AddBuiltin(BuiltinOperator_NOT_EQUAL, Register_NOT_EQUAL(),
+                      ParseNotEqual);
   }
 
   TfLiteStatus AddPack() {
@@ -451,7 +444,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddResizeNearestNeighbor() {
     return AddBuiltin(BuiltinOperator_RESIZE_NEAREST_NEIGHBOR,
-                      tflite::ops::micro::Register_RESIZE_NEAREST_NEIGHBOR(),
+                      Register_RESIZE_NEAREST_NEIGHBOR(),
                       ParseResizeNearestNeighbor);
   }
 
@@ -499,13 +492,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSplit() {
-    return AddBuiltin(BuiltinOperator_SPLIT,
-                      tflite::ops::micro::Register_SPLIT(), ParseSplit);
+    return AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT(), ParseSplit);
   }
 
   TfLiteStatus AddSplitV() {
-    return AddBuiltin(BuiltinOperator_SPLIT_V,
-                      tflite::ops::micro::Register_SPLIT_V(), ParseSplitV);
+    return AddBuiltin(BuiltinOperator_SPLIT_V, Register_SPLIT_V(), ParseSplitV);
   }
 
   TfLiteStatus AddSqueeze() {
@@ -530,8 +521,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddStridedSlice() {
-    return AddBuiltin(BuiltinOperator_STRIDED_SLICE,
-                      tflite::ops::micro::Register_STRIDED_SLICE(),
+    return AddBuiltin(BuiltinOperator_STRIDED_SLICE, Register_STRIDED_SLICE(),
                       ParseStridedSlice);
   }
 
@@ -564,8 +554,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK,
-                      tflite::ops::micro::Register_UNPACK(), ParseUnpack);
+    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {
