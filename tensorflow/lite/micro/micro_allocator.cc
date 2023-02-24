@@ -711,6 +711,7 @@ int8_t* MicroAllocator::AllocateTempBuffer(size_t size, size_t alignment) {
 void MicroAllocator::DeallocateTempBuffer(int8_t* buffer) {
   non_persistent_buffer_allocator_->DeallocateTemp(
       reinterpret_cast<uint8_t*>(buffer));
+  buffer = nullptr;
 }
 
 TfLiteStatus MicroAllocator::ResetTempAllocations() {
