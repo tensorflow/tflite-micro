@@ -22,7 +22,7 @@ from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
-from tflite_micro.tensorflow.lite.micro.tools.requantize_flatbuffer import Requantizer
+from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer
 
 PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
@@ -152,7 +152,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
 class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
   # Convert the int8 model to int16
   int8_model_path = os.path.join(PREFIX_PATH, "trained_lstm_int8.tflite")
-  requantizer = Requantizer.from_file(int8_model_path)
+  requantizer = requantize_flatbuffer.Requantizer.from_file(int8_model_path)
   requantizer.requantize_8to16()
   int16_model = requantizer.model_bytearray()
 
