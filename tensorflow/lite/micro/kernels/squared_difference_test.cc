@@ -253,6 +253,8 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShape) {
   int16_t output_int16[data_size];
   // Symmetrical quantization: (rmin == -rmax), requires narrow range (qmin =
   // -qmax).
+  // TODO(b/269352046): understand the tolerance level
+  // http://b/269352046#comment7
   tflite::testing::TestSquaredDifferenceQuantized(
       inout_shape, input1_values, input1_int16, -1.2f, 1.2f, inout_shape,
       input2_values, input2_int16, -1.5f, 1.5f, inout_shape, output_int16,
