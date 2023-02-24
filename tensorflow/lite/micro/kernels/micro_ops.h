@@ -113,6 +113,7 @@ TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 // TODO(b/230666079): resolve conflict with xtensa implementation
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_WHILE();
 TfLiteRegistration Register_ZEROS_LIKE();
@@ -130,7 +131,6 @@ TfLiteRegistration Register_RSQRT();
 TfLiteRegistration Register_SIN();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
-TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_TANH();
 
