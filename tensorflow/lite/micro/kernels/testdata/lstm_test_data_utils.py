@@ -67,7 +67,8 @@ def dequantize_data(quantized_data, scale, zero_point=0):
 
 def rescale(data, effective_scale, zero_point, num_bits):
   """Rescale the data to the effective scale """
-  rescaled = data * effective_scale + zero_point
+  # q = r/s + z
+  rescaled = np.round(data * effective_scale) + zero_point
   return clip_range(rescaled, num_bits)
 
 
