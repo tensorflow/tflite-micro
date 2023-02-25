@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,10 +28,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace activations {
+
 namespace {
+
 constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
 
@@ -148,8 +147,6 @@ TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace
-
 TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
@@ -193,12 +190,10 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
-}  // namespace activations
+}  // namespace
 
 TfLiteRegistration Register_TANH() {
-  return tflite::micro::RegisterOp(
-      activations::TanhInit, activations::TanhPrepare, activations::TanhEval);
+  return tflite::micro::RegisterOp(TanhInit, TanhPrepare, TanhEval);
 }
-}  // namespace micro
-}  // namespace ops
+
 }  // namespace tflite
