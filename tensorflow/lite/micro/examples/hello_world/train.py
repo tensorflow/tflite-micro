@@ -36,7 +36,7 @@ flags.DEFINE_boolean("save_tf_model", False,
                      "store the original unconverted tf model.")
 
 
-def get_train_data():
+def get_data():
   """
   The code will generate a set of random `x` values,calculate their sine
   values.
@@ -52,20 +52,7 @@ def get_train_data():
   # Calculate the corresponding sine values
   y_values = np.sin(x_values).astype(np.float32)
 
-  # We'll use 60% of our data for training
-  train_split = int(0.6 * 1000)
-  test_split = int(0.2 * 1000 + train_split)
-
-  # Use np.split to chop our data into three parts.
-  # The second argument to np.split is an array of indices where the data will
-  # be split. We provide two indices, so the data will be divided into three
-  # chunks.
-  splits = np.split(x_values, [train_split, test_split])
-  x_train, x_validate = splits[0], splits[2]
-  splits = np.split(y_values, [train_split, test_split])
-  y_train, y_validate = splits[0], splits[2]
-
-  return (x_train, y_train, x_validate, y_validate)
+  return (x_values, y_values)
 
 
 def create_model() -> tf.keras.Model:
@@ -116,7 +103,7 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def train_model(epochs, x_train, y_train, x_validate, y_validate):
+def train_model(epochs, x_values, y_values):
   """Train keras hello_world model
     Args: epochs (int) : number of epochs to train the model
         x_train (numpy.array): list of the training data
@@ -125,12 +112,11 @@ def train_model(epochs, x_train, y_train, x_validate, y_validate):
         tf.keras.Model: A trained keras hello_world model
   """
   model = create_model()
-  model.fit(x_train,
-            y_train,
+  model.fit(x_values,
+            y_values,
             epochs=epochs,
             validation_split=0.2,
             batch_size=64,
-            validation_data=(x_validate, y_validate),
             verbose=2)
 
   if FLAGS.save_tf_model:
@@ -141,9 +127,8 @@ def train_model(epochs, x_train, y_train, x_validate, y_validate):
 
 
 def main(_):
-  x_train, y_train, x_validate, y_validate = get_train_data()
-  trained_model = train_model(FLAGS.epochs, x_train, y_train, x_validate,
-                              y_validate)
+  x_values, y_values = get_data()
+  trained_model = train_model(FLAGS.epochs, x_values, y_values)
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(trained_model)

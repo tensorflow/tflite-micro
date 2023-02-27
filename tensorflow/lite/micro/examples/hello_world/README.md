@@ -38,8 +38,12 @@ bazel run :evaluate_test
 
 ## Run the tests on a development machine
 
+Run the cc test using bazel
 ```bash
-make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
+bazel run tensorflow/lite/micro/examples/hello_world:evaluate_cc_test
+```
+And to run it using make 
+```bash
 make -f tensorflow/lite/micro/tools/make/Makefile test_evaluate_cc_test
 ```
 
