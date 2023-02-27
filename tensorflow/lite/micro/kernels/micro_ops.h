@@ -68,6 +68,7 @@ TfLiteRegistration Register_GREATER();
 TfLiteRegistration Register_GREATER_EQUAL();
 TfLiteRegistration Register_HARD_SWISH();
 TfLiteRegistration Register_IF();
+TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_L2_POOL_2D();
 TfLiteRegistration Register_LEAKY_RELU();
 TfLiteRegistration Register_LESS();
@@ -109,6 +110,7 @@ TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SUM();
 TfLiteRegistration Register_SVDF();
+TfLiteRegistration Register_TANH();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 // TODO(b/230666079): resolve conflict with xtensa implementation
@@ -131,9 +133,6 @@ TfLiteRegistration Register_RSQRT();
 TfLiteRegistration Register_SIN();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
-TfLiteRegistration Register_L2_NORMALIZATION();
-TfLiteRegistration Register_TANH();
-
 }  // namespace micro
 }  // namespace ops
 }  // namespace tflite
