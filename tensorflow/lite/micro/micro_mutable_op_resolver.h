@@ -539,8 +539,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddTanh() {
-    return AddBuiltin(BuiltinOperator_TANH, tflite::ops::micro::Register_TANH(),
-                      ParseTanh);
+    return AddBuiltin(BuiltinOperator_TANH, Register_TANH(), ParseTanh);
   }
 
   TfLiteStatus AddTransposeConv() {
@@ -554,8 +553,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK,
-                      tflite::ops::micro::Register_UNPACK(), ParseUnpack);
+    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {
