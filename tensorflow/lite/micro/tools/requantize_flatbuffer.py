@@ -56,6 +56,8 @@ flags.DEFINE_string("save_path",
 
 # key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py
+# FULLY_CONNECTED, CONV_2D, DEPTHWISE_CONV_2D share the same requantize function
+# since they all share the same input/weight/bias configuration.
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
     schema_py_generated.BuiltinOperator.FULLY_CONNECTED:
     requantize_flatbuffer_utils.requantize_fully_connected,

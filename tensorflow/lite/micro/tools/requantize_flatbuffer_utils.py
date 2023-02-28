@@ -263,7 +263,13 @@ def set_bias_type_int64(buffers, input, weight, bias):
 
 
 def requantize_fully_connected(tensors, buffers, op):
-  """Requantize the fully connected op from int8 to int16"""
+  """Requantize the fully connected op from int8 to int16
+  
+  Note: CONV_2D and DEPTHWISE_CONV_2D also use this requantize function since they all share the same input/weight/bias configuration. 
+  See tensorflow/lite/micro/kernels/fully_connected_common.cc
+  tflite_micro/tensorflow/lite/micro/kernels/depthwise_conv_common.cc
+  tflite_micro/tensorflow/lite/micro/kernels/conv_common.cc
+  """
   # Indices are from tensorflow/lite/micro/kernels/fully_connected_common.cc
   input_tensor = tensors[op.inputs[0]]
   # weight stays the same, no change needed
