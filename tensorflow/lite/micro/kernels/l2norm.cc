@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace l2norm {
 
 namespace {
 
@@ -36,8 +33,6 @@ enum KernelType {
 
 constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
-
-}  // namespace
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -135,14 +130,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace l2norm
+}  // namespace
 
 TfLiteRegistration Register_L2NORM_REF() {
-  return tflite::micro::RegisterOp(l2norm::Init, l2norm::Prepare, l2norm::Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 TfLiteRegistration Register_L2_NORMALIZATION() { return Register_L2NORM_REF(); }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
