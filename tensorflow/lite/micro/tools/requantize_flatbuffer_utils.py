@@ -143,25 +143,6 @@ def change_quantization_settings_8to16(tensor, buffers):
                                16).astype(np.int16)
     tensor_buffer.data = int16_data.tobytes()
 
-  # requantize the buffer data to int16 if necessary
-  tensor_buffer = buffers[tensor.buffer]
-  if type(tensor_buffer.data) != type(None):
-    expected_buffer_size = np.prod(tensor.shape)
-    data = np.frombuffer(tensor_buffer.data, dtype=np.int8)
-    # Different ops may share one buffer. No need to requantize the buffer
-    # if the buffer has already been processed to int16 (2 bytes)
-    if data.nbytes == expected_buffer_size * 2:
-      return
-    elif data.nbytes != expected_buffer_size:
-      raise RuntimeError(
-          f"Bias buffer size {data.nbytes} does not match the expected size {expected_buffer_size * 4}"
-      )
-    dequantized_data = dequantize_data(data, tensor.quantization.scale,
-                                       tensor.quantization.zeroPoint)
-    int16_data = quantize_data(dequantized_data, scale_16, 0,
-                               16).astype(np.int16)
-    tensor_buffer.data = int16_data.tobytes()
-
 
 def change_activation_tensor_8to16(tensor, buffers):
   """Change the quantization setting of a activation tensor from int8 to int16"""
