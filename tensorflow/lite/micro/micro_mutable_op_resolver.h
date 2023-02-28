@@ -300,8 +300,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddL2Normalization() {
     return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
-                      tflite::ops::micro::Register_L2_NORMALIZATION(),
-                      ParseL2Normalization);
+                      Register_L2_NORMALIZATION(), ParseL2Normalization);
   }
 
   TfLiteStatus AddL2Pool2D() {
