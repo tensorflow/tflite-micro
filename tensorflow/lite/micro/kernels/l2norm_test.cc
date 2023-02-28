@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -75,8 +75,7 @@ void TestL2Normalization(int* input_dims_data, const T* input_data,
       .activation = kTfLiteActNone,
   };
 
-  const TfLiteRegistration registration =
-      ops::micro::Register_L2_NORMALIZATION();
+  const TfLiteRegistration registration = tflite::Register_L2_NORMALIZATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

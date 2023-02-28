@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,10 +25,15 @@ namespace tflite {
 
 struct XtensaOpDataPooling {
   OpDataPooling reference_op_data;
+
 #if defined(VISION_P6)
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
-#endif  // VISION_P6
+#endif  // defined(VISION_P6)
+
+#if defined(HIFI5)
+  int scratch_tensor_index;
+#endif  // defined(HIFI5)
 };
 
 #if defined(VISION_P6)
@@ -43,6 +48,28 @@ TfLiteStatus PoolEvalVision(TfLiteContext* context, TfLiteNode* node,
                             const TfLiteEvalTensor* input,
                             TfLiteEvalTensor* output);
 #endif
+
+#if defined(HIFI5)
+
+TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus AverageEvalQuantizedHifi(TfLiteContext* context,
+                                      const TfLiteNode* node,
+                                      const TfLitePoolParams* params,
+                                      const XtensaOpDataPooling* data,
+                                      const TfLiteEvalTensor* input,
+                                      TfLiteEvalTensor* output);
+
+TfLiteStatus MaxPrepareHifi(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
+                                  TfLitePoolParams* params,
+                                  const XtensaOpDataPooling* data,
+                                  const TfLiteEvalTensor* input,
+                                  TfLiteEvalTensor* output);
+
+#endif  // defined(HIFI5)
+
+void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
+                        size_t length);
 
 }  // namespace tflite
 
