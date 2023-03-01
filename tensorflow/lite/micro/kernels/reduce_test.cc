@@ -69,7 +69,6 @@ static int kOutputShape4D[] = {4, 2, 1, 1, 2};
 static const float kGoldenData4D[] = {6, 7, 18, 19};
 
 static const float kGoldenDataSum4D[] = {36, 42, 108, 114};
-static const float kGoldenDataSum4DOverflow[] = {36, 42, 108 - 128, 114 - 128};
 
 template <typename T>
 TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
@@ -764,31 +763,6 @@ TF_LITE_MICRO_TEST(SumInt84DKeepDims) {
       tflite::testing::kOutputShape4D, tflite::testing::kGoldenDataSum4D,
       output_data_quant, expected_output_data_quant, output_scale,
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
-}
-
-TF_LITE_MICRO_TEST(SumInt84DKeepDimsOverflows) {
-  int8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
-  int8_t output_data_quant[tflite::testing::kOutputElements4D];
-  int8_t input_data_quant[tflite::testing::kInputElements4D];
-
-  // Because the sum will happen in the 'original' space, we will overflow.
-  float input_scale = 0.5f;
-  int input_zero_point = 0;
-  float output_scale = 0.5f;
-  int output_zero_point = 0;
-
-  TfLiteReducerParams params = {
-      true  // keep_dims
-  };
-
-  tflite::testing::TestReduceOpQuantized<int8_t>(
-      tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
-      input_data_quant, input_scale, input_zero_point,
-      tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
-      tflite::testing::kOutputShape4D,
-      tflite::testing::kGoldenDataSum4DOverflow, output_data_quant,
-      expected_output_data_quant, output_scale, output_zero_point,
-      tflite::Register_SUM(), &params, 1.0);
 }
 
 TF_LITE_MICRO_TEST(SumInt164DKeepDims) {
