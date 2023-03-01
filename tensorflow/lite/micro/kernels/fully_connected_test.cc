@@ -444,7 +444,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
 
   const float simple_golden[] = {24, 25, 26, 58, 59, 60};
   int16_t input_quantized[tflite::testing::simple_input_size];
-  int16_t weights_quantized[tflite::testing::simple_weights_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
   int64_t bias_quantized[tflite::testing::simple_output_size];
   int16_t golden_quantized[tflite::testing::simple_output_size];
   int16_t output_data[tflite::testing::simple_output_size];

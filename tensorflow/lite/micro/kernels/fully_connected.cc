@@ -54,7 +54,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-  TF_LITE_ENSURE_TYPES_EQ(context, output->type, filter->type);
+
+  if ((input->type == kTfLiteFloat32 && filter->type != kTfLiteFloat32) ||
+     (input->type == kTfLiteInt8 &&
+       (filter->type != kTfLiteInt8 && filter->type != kTfLiteInt4)) ||
+      (input->type == kTfLiteInt16 && filter->type != kTfLiteInt8)) {
+
+      MicroPrintf("Input type: %s with filter type : %s not supported.",
+                  TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(filter->type));
+      return kTfLiteError;
+  }
 
   if (filter->type == kTfLiteInt4) {
     int filter_size =
@@ -164,19 +174,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorData<int16_t>(input),
               tflite::micro::GetTensorShape(filter),
               tflite::micro::GetTensorData<int8_t>(filter),
-              tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int64_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int16_t>(output));
-          break;
-        }
-        case kTfLiteInt16: {
-          tflite::reference_integer_ops::FullyConnected(
-              FullyConnectedParamsQuantized(data),
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int16_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int16_t>(filter),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int64_t>(bias),
               tflite::micro::GetTensorShape(output),
