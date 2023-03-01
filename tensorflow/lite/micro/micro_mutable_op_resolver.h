@@ -300,8 +300,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddL2Normalization() {
     return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
-                      tflite::ops::micro::Register_L2_NORMALIZATION(),
-                      ParseL2Normalization);
+                      Register_L2_NORMALIZATION(), ParseL2Normalization);
   }
 
   TfLiteStatus AddL2Pool2D() {
@@ -444,7 +443,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddResizeNearestNeighbor() {
     return AddBuiltin(BuiltinOperator_RESIZE_NEAREST_NEIGHBOR,
-                      tflite::ops::micro::Register_RESIZE_NEAREST_NEIGHBOR(),
+                      Register_RESIZE_NEAREST_NEIGHBOR(),
                       ParseResizeNearestNeighbor);
   }
 
@@ -492,8 +491,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSplit() {
-    return AddBuiltin(BuiltinOperator_SPLIT,
-                      tflite::ops::micro::Register_SPLIT(), ParseSplit);
+    return AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT(), ParseSplit);
   }
 
   TfLiteStatus AddSplitV() {
@@ -540,8 +538,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddTanh() {
-    return AddBuiltin(BuiltinOperator_TANH, tflite::ops::micro::Register_TANH(),
-                      ParseTanh);
+    return AddBuiltin(BuiltinOperator_TANH, Register_TANH(), ParseTanh);
   }
 
   TfLiteStatus AddTransposeConv() {
@@ -555,8 +552,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK,
-                      tflite::ops::micro::Register_UNPACK(), ParseUnpack);
+    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM() {

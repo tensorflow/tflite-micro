@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -254,6 +255,25 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
     memcpy(output->data.raw, subgraph_output->data.raw, bytes);
   }
   return kTfLiteOk;
+}
+
+TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
+                                        int scratch_buffer_index,
+                                        const TfLiteEvalTensor* tensor) {
+  if (tensor->type != kTfLiteInt4) {
+    return *tensor;
+  }
+
+  TfLiteEvalTensor new_tensor;
+  new_tensor.data.data = static_cast<int8_t*>(
+      context->GetScratchBuffer(context, scratch_buffer_index));
+  new_tensor.dims = tensor->dims;
+  new_tensor.type = kTfLiteInt8;
+  tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+      tflite::micro::GetTensorData<int8_t>(tensor),
+      tflite::micro::GetTensorShape(tensor).FlatSize(),
+      tflite::micro::GetTensorData<int8_t>(&new_tensor));
+  return new_tensor;
 }
 
 }  // namespace micro
