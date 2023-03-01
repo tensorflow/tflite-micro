@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ limitations under the License.
 #include <math.h>
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/examples/hello_world/hello_world_model_data.h"
+#include "tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -24,14 +24,15 @@ limitations under the License.
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-TF_LITE_MICRO_TEST(LoadModelAndPerformInference) {
+TF_LITE_MICRO_TEST(LoadFloatModelAndPerformInference) {
   // Define the input and the expected output
   float x = 0.0f;
   float y_true = sin(x);
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
-  const tflite::Model* model = ::tflite::GetModel(g_hello_world_model_data);
+  const tflite::Model* model =
+      ::tflite::GetModel(g_hello_world_float_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     MicroPrintf(
         "Model provided is schema version %d not equal "
