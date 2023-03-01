@@ -108,7 +108,7 @@ def get_tflite_prediction(model_path, x_values):
 
 
 def main(_):
-  model_path = os.path.join(_PREFIX_PATH, 'hello_world.tflite')
+  model_path = os.path.join(_PREFIX_PATH, 'models/hello_world_float.tflite')
 
   x_values = generate_random_input()
 
