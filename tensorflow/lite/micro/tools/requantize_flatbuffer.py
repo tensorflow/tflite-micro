@@ -69,7 +69,15 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
 _TESTED_SIMPLE_OPS = [
     schema_py_generated.BuiltinOperator.RESHAPE,
     schema_py_generated.BuiltinOperator.QUANTIZE,
-    schema_py_generated.BuiltinOperator.DEQUANTIZE
+    schema_py_generated.BuiltinOperator.DEQUANTIZE,
+    schema_py_generated.BuiltinOperator.MEAN,
+    schema_py_generated.BuiltinOperator.SQUARED_DIFFERENCE,
+    schema_py_generated.BuiltinOperator.ADD,
+    schema_py_generated.BuiltinOperator.RSQRT,
+    schema_py_generated.BuiltinOperator.MUL,
+    schema_py_generated.BuiltinOperator.SUB,
+    schema_py_generated.BuiltinOperator.LEAKY_RELU,
+    schema_py_generated.BuiltinOperator.LOGISTIC
 ]
 
 _SUPPORTED_OPS = set(
@@ -162,7 +170,8 @@ class Requantizer:
         if ((tensor in self.remaining_tensors)
             and (requantize_flatbuffer_utils.TENSOR_CODE_TYPE[tensor.type]
                  == np.int8) and ("const" not in str(tensor.name))):
-          requantize_flatbuffer_utils.change_activation_tensor_8to16(tensor)
+          requantize_flatbuffer_utils.change_activation_tensor_8to16(
+              tensor, self.model.buffers)
           self._remove_tensor(tensor)
 
   def requantize_8to16(self):
