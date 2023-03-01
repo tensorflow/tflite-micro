@@ -129,6 +129,9 @@ int LoadFloatModelAndPerformInference() {
 
 int main(int argc, char* argv[]) {
   int status = LoadFloatModelAndPerformInference();
+  // To be part of the unit test suite, each test file needs to print out
+  // either one of the following strings. These strings are required to
+  // be considered as a unit test for the tflm makefiles.
   if (status == kTfLiteOk) {
     MicroPrintf("~~~ALL TESTS PASSED~~~\n");
     return kTfLiteOk;
