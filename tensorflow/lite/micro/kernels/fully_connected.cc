@@ -59,7 +59,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       (input->type == kTfLiteInt8 &&
        (filter->type != kTfLiteInt8 && filter->type != kTfLiteInt4)) ||
       (input->type == kTfLiteInt16 && filter->type != kTfLiteInt8)) {
-
     MicroPrintf("Input type: %s with filter type : %s not supported.",
                 TfLiteTypeGetName(input->type),
                 TfLiteTypeGetName(filter->type));
