@@ -68,6 +68,7 @@ TfLiteRegistration Register_GREATER();
 TfLiteRegistration Register_GREATER_EQUAL();
 TfLiteRegistration Register_HARD_SWISH();
 TfLiteRegistration Register_IF();
+TfLiteRegistration Register_L2_NORMALIZATION();
 TfLiteRegistration Register_L2_POOL_2D();
 TfLiteRegistration Register_LEAKY_RELU();
 TfLiteRegistration Register_LESS();
@@ -94,12 +95,14 @@ TfLiteRegistration Register_REDUCE_MAX();
 TfLiteRegistration Register_RELU();
 TfLiteRegistration Register_RELU6();
 TfLiteRegistration Register_RESIZE_BILINEAR();
+TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TfLiteRegistration Register_SELECT_V2();
 TfLiteRegistration Register_SHAPE();
 TfLiteRegistration Register_SLICE();
 TfLiteRegistration Register_SOFTMAX();
 TfLiteRegistration Register_SPACE_TO_BATCH_ND();
 TfLiteRegistration Register_SPACE_TO_DEPTH();
+TfLiteRegistration Register_SPLIT();
 TfLiteRegistration Register_SPLIT_V();
 TfLiteRegistration Register_SQUARED_DIFFERENCE();
 TfLiteRegistration Register_SQUEEZE();
@@ -107,10 +110,12 @@ TfLiteRegistration Register_STRIDED_SLICE();
 TfLiteRegistration Register_SUB();
 TfLiteRegistration Register_SUM();
 TfLiteRegistration Register_SVDF();
+TfLiteRegistration Register_TANH();
 TfLiteRegistration Register_TRANSPOSE();
 TfLiteRegistration Register_TRANSPOSE_CONV();
 // TODO(b/230666079): resolve conflict with xtensa implementation
 TfLiteRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+TfLiteRegistration Register_UNPACK();
 TfLiteRegistration Register_VAR_HANDLE();
 TfLiteRegistration Register_WHILE();
 TfLiteRegistration Register_ZEROS_LIKE();
@@ -123,17 +128,11 @@ TfLiteRegistration Register_COS();
 TfLiteRegistration Register_LOG();
 TfLiteRegistration Register_LOGICAL_NOT();
 TfLiteRegistration Register_RESHAPE();
-TfLiteRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TfLiteRegistration Register_ROUND();
 TfLiteRegistration Register_RSQRT();
 TfLiteRegistration Register_SIN();
-TfLiteRegistration Register_SPLIT();
 TfLiteRegistration Register_SQRT();
 TfLiteRegistration Register_SQUARE();
-TfLiteRegistration Register_UNPACK();
-TfLiteRegistration Register_L2_NORMALIZATION();
-TfLiteRegistration Register_TANH();
-
 }  // namespace micro
 }  // namespace ops
 }  // namespace tflite
