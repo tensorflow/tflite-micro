@@ -44,11 +44,7 @@ class Interpreter(object):
         model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_file(self,
-                model_path,
-                custom_op_registerers=[],
-                arena_size=None,
-                num_resource_variables=0):
+  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -57,9 +53,6 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
-      num_resource_variables: (Only required if using MicroResourceVariables)
-        The number of resource variables can be found by counting the
-        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
@@ -73,11 +66,7 @@ class Interpreter(object):
     return Interpreter(model_data, custom_op_registerers, arena_size)
 
   @classmethod
-  def from_bytes(self,
-                 model_data,
-                 custom_op_registerers=[],
-                 arena_size=None,
-                 num_resource_variables=0):
+  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -86,9 +75,6 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
-      num_resource_variables: (Only required if using MicroResourceVariables)
-        The number of resource variables can be found by counting the
-        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
