@@ -56,13 +56,21 @@ flags.DEFINE_string("save_path",
 
 # key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py
+# FULLY_CONNECTED, CONV_2D, DEPTHWISE_CONV_2D share the same requantize function
+# since they all share the same input/weight/bias configuration.
 _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
     schema_py_generated.BuiltinOperator.FULLY_CONNECTED:
     requantize_flatbuffer_utils.requantize_fully_connected,
     schema_py_generated.BuiltinOperator.UNIDIRECTIONAL_SEQUENCE_LSTM:
     requantize_flatbuffer_utils.requantize_unidirectional_sequence_lstm,
     schema_py_generated.BuiltinOperator.SOFTMAX:
-    requantize_flatbuffer_utils.requantize_softmax
+    requantize_flatbuffer_utils.requantize_softmax,
+    schema_py_generated.BuiltinOperator.CONV_2D:
+    requantize_flatbuffer_utils.requantize_fully_connected,
+    schema_py_generated.BuiltinOperator.DEPTHWISE_CONV_2D:
+    requantize_flatbuffer_utils.requantize_fully_connected,
+    schema_py_generated.BuiltinOperator.TRANSPOSE_CONV:
+    requantize_flatbuffer_utils.requantize_transpose_conv,
 }
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
@@ -77,7 +85,8 @@ _TESTED_SIMPLE_OPS = [
     schema_py_generated.BuiltinOperator.MUL,
     schema_py_generated.BuiltinOperator.SUB,
     schema_py_generated.BuiltinOperator.LEAKY_RELU,
-    schema_py_generated.BuiltinOperator.LOGISTIC
+    schema_py_generated.BuiltinOperator.LOGISTIC,
+    schema_py_generated.BuiltinOperator.PAD
 ]
 
 _SUPPORTED_OPS = set(
