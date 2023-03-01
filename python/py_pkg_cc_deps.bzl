@@ -3,13 +3,13 @@
 # This extends the standard rules_python rules to expose C-language dependences
 # contained in some Python packages like NumPy. It extends rules_python to
 # avoid duplicating the download mechanism, and to ensure the Python package
-# versions used throughout the WWORKSPACE are consistent.
+# versions used throughout the WORKSPACE are consistent.
 
 def _rules_python_path(ctx, pkg):
     # Make an absolute path to the rules_python repository for the Python
     # package `pkg`.
 
-    # WARNING: To get a flesystem path via ctx.path(), its argument must be a
+    # WARNING: To get a filesystem path via ctx.path(), its argument must be a
     # label to a non-generated file. ctx.path() does not work on non-file
     # A standard technique for finding the path to a repository (see,
     # e.g., rules_go) is to use the repository's BUILD file; however, the exact
@@ -60,6 +60,9 @@ def _py_pkg_cc_deps(ctx):
     #     repository/
     #               |- _site --> @specific_rules_python_pkg/site-packages
     #               \_ BUILD
+    #
+    # When debugging, it might help to examine the tree and BUILD file of this
+    # repository, created in the bazel cache.
 
     # Symlink to the rules_python repository of pkg
     srcdir = _join_paths(_rules_python_path(ctx, ctx.attr.pkg), "site-packages")
@@ -100,21 +103,23 @@ The top-level Bazel package in the created repository provides two targets for
 use as dependencies in C-language targets elsewhere.
 
     * `:cc_headers`--for including headers
-    * `:cc_library`--for inclusing headers and linking against a library
+    * `:cc_library`--for including headers and linking against a library
 
-The manditory `includes` attribute should be set to a list of
+The mandatory `includes` attribute should be set to a list of
 include dirs to be added to the compile command line.
 
 The optional `libs` attribute should be set to a list of libraries to link with
 the binary target.
 
-Specify all paths relative to the base directory in which the package is
-extracted, something like site-packages/, so these paths typically begin with
-the package's Python namespace or module name, which may differ from the Python
-distribution package name. E.g., The distribution package `tensorflow-gpu`
-distributes the Python namespace package `tensorflow`. It might help to examine
-the directory tree in the external repository for the package created by
-rules_python.
+Specify all paths relative to the parent directory in which the package is
+extracted (e.g., site-packages/). Thus paths will begin with the package's
+Python namespace or module name. Note this name may differ from the Python
+distribution package name---e.g., the distribution package `tensorflow-gpu`
+distributes the Python namespace package `tensorflow`. To see what paths are
+available, it might help to examine the directory tree in the external
+repository created for the package by rules_python. The external repository is
+created in the bazel cache; in the example below, in a subdirectory
+`external/tflm_pip_deps_numpy`.
 
 For example, to use the headers from NumPy:
 
