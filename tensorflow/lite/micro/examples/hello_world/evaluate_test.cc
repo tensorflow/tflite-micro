@@ -21,7 +21,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-
 int LoadFloatModelAndPerformInference() {
   // Define the input and the expected output
   float x = 0.0f;
