@@ -56,14 +56,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   if ((input->type == kTfLiteFloat32 && filter->type != kTfLiteFloat32) ||
-     (input->type == kTfLiteInt8 &&
+      (input->type == kTfLiteInt8 &&
        (filter->type != kTfLiteInt8 && filter->type != kTfLiteInt4)) ||
       (input->type == kTfLiteInt16 && filter->type != kTfLiteInt8)) {
 
-      MicroPrintf("Input type: %s with filter type : %s not supported.",
-                  TfLiteTypeGetName(input->type),
+    MicroPrintf("Input type: %s with filter type : %s not supported.",
+                TfLiteTypeGetName(input->type),
                 TfLiteTypeGetName(filter->type));
-      return kTfLiteError;
+    return kTfLiteError;
   }
 
   if (filter->type == kTfLiteInt4) {
