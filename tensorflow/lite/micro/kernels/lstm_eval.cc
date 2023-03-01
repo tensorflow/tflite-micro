@@ -70,17 +70,15 @@ void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
           int16_t* input_data, const RuntimeShape& output_data_shape,
           int16_t* output_data) {
   int32_t tanh_input_left_shift = (15 + cell_state_scale_power) - 3;
+  int32_t input_multiplier = 0;
   if (tanh_input_left_shift < 0) /* handling negative shift value */
   {
-    int32_t i;
     tanh_input_left_shift = -tanh_input_left_shift;
-    for (i = 0; i < input_data_shape.FlatSize(); i++) {
-      input_data[i] = input_data[i] >> tanh_input_left_shift;
-    }
-    tanh_input_left_shift = 0;
+    input_multiplier = 3;
   }
-  reference_integer_ops::Tanh(0, tanh_input_left_shift, input_data_shape,
-                              input_data, output_data_shape, output_data);
+  reference_integer_ops::Tanh(input_multiplier, tanh_input_left_shift,
+                              input_data_shape, input_data, output_data_shape,
+                              output_data);
 }
 
 void Tanh(int32_t cell_state_scale_power, const RuntimeShape& input_data_shape,
