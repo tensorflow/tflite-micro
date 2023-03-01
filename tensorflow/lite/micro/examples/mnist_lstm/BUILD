@@ -43,5 +43,6 @@ py_test(
     deps = [
         ":evaluate",
         ":train",
+        "//tensorflow/lite/micro/tools:requantize_flatbuffer",
     ],
 )
