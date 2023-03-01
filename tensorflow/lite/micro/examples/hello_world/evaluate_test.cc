@@ -82,7 +82,8 @@ int LoadFloatModelAndPerformInference() {
   // Check if the output is within a small range of the expected output
   float epsilon = 0.05f;
   if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf("Difference between predicted and actual y value "
+    MicroPrintf(
+        "Difference between predicted and actual y value "
         "is significant.");
     return kTfLiteError;
   }
@@ -94,7 +95,8 @@ int LoadFloatModelAndPerformInference() {
   interpreter.Invoke();
   y_pred = output->data.f[0];
   if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf("Difference between predicted and actual y value "
+    MicroPrintf(
+        "Difference between predicted and actual y value "
         "is significant.");
     return kTfLiteError;
   }
@@ -105,7 +107,8 @@ int LoadFloatModelAndPerformInference() {
   interpreter.Invoke();
   y_pred = output->data.f[0];
   if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf("Difference between predicted and actual y value "
+    MicroPrintf(
+        "Difference between predicted and actual y value "
         "is significant.");
     return kTfLiteError;
   }
@@ -116,7 +119,8 @@ int LoadFloatModelAndPerformInference() {
   interpreter.Invoke();
   y_pred = output->data.f[0];
   if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf("Difference between predicted and actual y value "
+    MicroPrintf(
+        "Difference between predicted and actual y value "
         "is significant.");
     return kTfLiteError;
   }
