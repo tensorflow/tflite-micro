@@ -36,7 +36,6 @@ namespace {
 struct OpData {
   OpDataLSTM params_ref;
   cmsis_nn_lstm_params params_cmsis_nn;
-  bool cmsis_nn_unsupported_config;
 };
 
 /*Helper Functions*/
@@ -120,11 +119,9 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   const bool use_peephole = (cell_to_output_weights != nullptr);
   const bool use_projection = (projection_weights != nullptr);
   const bool use_cifg = (input_to_input_weights == nullptr);
-  op_data->cmsis_nn_unsupported_config =
+  const bool lstm_unsupported_config =
       use_layer_norm || use_peephole || use_projection || use_cifg;
-  if (op_data->cmsis_nn_unsupported_config) {
-    return kTfLiteOk;
-  }
+  TFLITE_DCHECK(!lstm_unsupported_config);
 
   // Pre-calculate bias + zero_point * weight.
   int32_t* input_to_forget_effective_bias = nullptr;
@@ -602,13 +599,8 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
           // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
           LSTMBuffers<int16_t> buffers =
               CreateLSTMBuffers<int16_t>(context, op_data_lstm.buffer_indices);
-          if (op_data.cmsis_nn_unsupported_config) {
-            EvalLstm<int8_t, int8_t, int16_t, int32_t>(op_data_lstm,
-                                                       kernel_content, buffers);
-          } else {
-            return CMSIS_NN_EvalInteger8x8_16Lstm<int16_t>(
-                op_data, kernel_content, buffers);
-          }
+          return CMSIS_NN_EvalInteger8x8_16Lstm<int16_t>(
+              op_data, kernel_content, buffers);
           break;
         }
         default: {
@@ -650,11 +642,6 @@ TfLiteStatus UnidirectionalSequenceLstmEvalInt8(TfLiteContext* context,
                                                 TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& op_data = *reinterpret_cast<const OpData*>(node->user_data);
-
-  TFLITE_DCHECK(!op_data.cmsis_nn_unsupported_config &&
-                "LSTM config not supported with int8 specific registration, "
-                "please register the full Eval version instead.");
-
   const OpDataLSTM& op_data_lstm = op_data.params_ref;
   auto kernel_content = CreateLSTMKernelContent(context, node);
   const auto activation_type =

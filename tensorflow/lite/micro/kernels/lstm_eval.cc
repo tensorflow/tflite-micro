@@ -27,6 +27,81 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
+
+LstmTensors::LstmTensors(TfLiteContext* context, TfLiteNode* node) {
+  micro_context_ = GetMicroContext(context);
+  // 24 internal tensors. see lstm_shared.h for tensor names
+  for (size_t i = 0; i < 24; i++) {
+    internal_tensors_[i] = micro_context_->AllocateTempInputTensor(node, i);
+  }
+  output_tensor_ =
+      micro_context_->AllocateTempOutputTensor(node, kLstmOutputTensor);
+}
+
+LstmTensors::~LstmTensors() {
+  for (size_t i = 0; i < 24; i++) {
+    if (internal_tensors_[i] != nullptr) {
+      micro_context_->DeallocateTempTfLiteTensor(internal_tensors_[i]);
+    }
+  }
+  micro_context_->DeallocateTempTfLiteTensor(output_tensor_);
+}
+
+// Verify the LSTM internal tensor properties (e.g., type checks)
+// Input/output/states/fc weights tensors are required for kernel evaulation.
+// The state tensors should be variables. Variants of the standard LSTM
+// are not supported here, therefore their corresponding tensors should be
+// invalid
+TfLiteStatus LstmTensors::ValidateTensorStatus(TfLiteContext* context) const {
+  // Verify certain tensor properties
+  // input tensor
+  TF_LITE_ENSURE(context, internal_tensors_[kLstmInputTensor] != nullptr);
+  // hidden state
+  TF_LITE_ENSURE(context, internal_tensors_[kLstmOutputStateTensor] != nullptr);
+  TF_LITE_ENSURE(context,
+                 internal_tensors_[kLstmOutputStateTensor]->is_variable);
+  // hidden state becomes input so they must have the same type
+  TF_LITE_ENSURE_EQ(context, internal_tensors_[kLstmOutputStateTensor]->type,
+                    internal_tensors_[kLstmInputTensor]->type);
+  // cell state
+  TF_LITE_ENSURE(context, internal_tensors_[kLstmCellStateTensor] != nullptr);
+  TF_LITE_ENSURE(context, internal_tensors_[kLstmCellStateTensor]->is_variable);
+  // output
+  TF_LITE_ENSURE(context, output_tensor_ != nullptr);
+  // output type is the same as the input type (activations)
+  TF_LITE_ENSURE_EQ(context, output_tensor_->type,
+                    internal_tensors_[kLstmInputTensor]->type);
+
+  // weight tensors (1-9, see lstm_shared for index definition)
+  const auto weight_type =
+      internal_tensors_[kLstmInputToForgetWeightsTensor]->type;
+  for (size_t i = 1; i < 9; i++) {
+    TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+    TF_LITE_ENSURE_EQ(context, internal_tensors_[i]->type, weight_type);
+  }
+
+  // bias tensors (12-15, see lstm_shared for index definition)
+  const auto bias_type = internal_tensors_[kLstmForgetGateBiasTensor]->type;
+  for (size_t i = 12; i < 16; i++) {
+    TF_LITE_ENSURE(context, internal_tensors_[i] != nullptr);
+    TF_LITE_ENSURE_EQ(context, internal_tensors_[i]->type, bias_type);
+  }
+  // Tensors from LSTM variants are invalid
+  // No peephole
+  for (size_t i = 9; i < 12; i++) {
+    TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
+  }
+  // No projection
+  for (size_t i = 16; i < 18; i++) {
+    TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
+  }
+  // No internal layer norm
+  for (size_t i = 20; i < 24; i++) {
+    TF_LITE_ENSURE(context, internal_tensors_[i] == nullptr);
+  }
+  return kTfLiteOk;
+}
+
 namespace lstm_internal {
 
 const int32_t kInt16Max = std::numeric_limits<int16_t>::max();
