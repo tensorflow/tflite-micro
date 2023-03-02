@@ -555,10 +555,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
-  TfLiteStatus AddUnidirectionalSequenceLSTM() {
+  TfLiteStatus AddUnidirectionalSequenceLSTM(
+      const TfLiteRegistration& registration =
+          Register_UNIDIRECTIONAL_SEQUENCE_LSTM()) {
     return AddBuiltin(BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM,
-                      Register_UNIDIRECTIONAL_SEQUENCE_LSTM(),
-                      ParseUnidirectionalSequenceLSTM);
+                      registration, ParseUnidirectionalSequenceLSTM);
   }
 
   TfLiteStatus AddVarHandle() {
