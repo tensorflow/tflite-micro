@@ -55,8 +55,6 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
   source $TEMPFILE/bin/activate
   python3 -m pip install --upgrade pip >&2
   pip install --upgrade cython >&2
-  pip install numpy==1.21.3 >&2  # Some types are removed in the latest numpy.
-                                 # Use an older version until the ethos-u-vela package is updated.
   pip install --prefer-binary ethos-u-vela >&2
   vela --accelerator-config=ethos-u55-256 ${DOWNLOADS_DIR}/../../../models/person_detect.tflite \
        --output-dir ${MODEL_DIR} >&2
