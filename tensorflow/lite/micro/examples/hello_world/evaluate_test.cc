@@ -184,8 +184,7 @@ int LoadQuantModelAndPerformInference() {
     return kTfLiteError;
   }
 
-  // Obtain a pointer to the output tensor and make sure it has the
-  // properties we expect. It should be the same as the input tensor.
+  // Obtain a pointer to the output tensor.
   TfLiteTensor* output = interpreter.output(0);
 
   // Get the output quantization parameters
