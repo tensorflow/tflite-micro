@@ -2,7 +2,7 @@ HELLO_WORLD_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/evaluate_test.cc
 
 HELLO_WORLD_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/main.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/evaluate_test.cc
 
 HELLO_WORLD_HDRS :=
 
