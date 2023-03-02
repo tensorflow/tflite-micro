@@ -129,7 +129,7 @@ int LoadFloatModelAndPerformInference() {
 }
 
 int LoadQuantModelAndPerformInference() {
-// Define the input and the expected output
+  // Define the input and the expected output
   float x = 0.0f;
   float y_true = sin(x);
 
@@ -139,7 +139,7 @@ int LoadQuantModelAndPerformInference() {
       ::tflite::GetModel(g_hello_world_int8_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     MicroPrintf(
-       "Model provided is schema version %d not equal "
+        "Model provided is schema version %d not equal "
         "to supported version %d.\n",
         model->version(), TFLITE_SCHEMA_VERSION);
   }

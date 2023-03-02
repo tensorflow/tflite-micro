@@ -34,8 +34,9 @@ flags.DEFINE_string("save_dir", "/tmp/hello_world_models",
                     "the directory to save the trained model.")
 flags.DEFINE_boolean("save_tf_model", False,
                      "store the original unconverted tf model.")
-flags.DEFINE_boolean("quantize", False,
-                     "convert and save the full integer (int8) quantized model.")
+flags.DEFINE_boolean(
+    "quantize", False,
+    "convert and save the full integer (int8) quantized model.")
 
 
 def get_data():
@@ -127,6 +128,7 @@ def train_model(epochs, x_values, y_values):
 
   return model
 
+
 def convert_quantized_tflite_model(model, x_values):
   """Convert the save TF model to tflite model, then save it as .tflite
     flatbuffer format
@@ -153,6 +155,7 @@ def convert_quantized_tflite_model(model, x_values):
   tflite_model = converter.convert()
   return tflite_model
 
+
 def main(_):
   x_values, y_values = get_data()
   trained_model = train_model(FLAGS.epochs, x_values, y_values)
@@ -170,7 +173,6 @@ def main(_):
     save_tflite_model(quantized_tflite_model,
                       FLAGS.save_dir,
                       model_name="hello_world_int8.tflite")
-
 
 
 if __name__ == "__main__":
