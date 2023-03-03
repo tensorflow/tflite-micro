@@ -29,12 +29,12 @@ PREFIX_PATH = resource_loader.get_path_to_datafile("")
 
 class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
-  model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
-  input_shape = (1, 28, 28)
-  output_shape = (1, 10)
-
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
-  np.random.seed(42)  #Seed the random number generator
+  def setUp(self):
+    self.model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
+    self.input_shape = (1, 28, 28)
+    self.output_shape = (1, 10)
+    self.tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
+    np.random.seed(42)  #Seed the random number generator
 
   def testInputErrHandling(self):
     wrong_size_image_path = os.path.join(PREFIX_PATH, "samples/resized9.png")
@@ -90,12 +90,14 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
 
 class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
 
-  int8_model_path = os.path.join(PREFIX_PATH, "trained_lstm_int8.tflite")
-  input_shape = (1, 28, 28)
-  output_shape = (1, 10)
-
-  tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(int8_model_path)
-  np.random.seed(42)  #Seed the random number generator
+  def setUp(self):
+    self.int8_model_path = os.path.join(PREFIX_PATH,
+                                        "trained_lstm_int8.tflite")
+    self.input_shape = (1, 28, 28)
+    self.output_shape = (1, 10)
+    self.tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(
+        self.int8_model_path)
+    np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
     # Get input/output information of the quantized model
@@ -150,17 +152,20 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
 
 
 class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
-  # Convert the int8 model to int16
-  int8_model_path = os.path.join(PREFIX_PATH, "trained_lstm_int8.tflite")
-  requantizer = requantize_flatbuffer.Requantizer.from_file(int8_model_path)
-  requantizer.requantize_8to16()
-  int16_model = requantizer.model_bytearray()
 
-  input_shape = (1, 28, 28)
-  output_shape = (1, 10)
-
-  tflm_interpreter_quant = tflm_runtime.Interpreter.from_bytes(int16_model)
-  np.random.seed(42)  #Seed the random number generator
+  def setUp(self):
+    # Convert the int8 model to int16
+    self.int8_model_path = os.path.join(PREFIX_PATH,
+                                        "trained_lstm_int8.tflite")
+    self.requantizer = requantize_flatbuffer.Requantizer.from_file(
+        self.int8_model_path)
+    self.requantizer.requantize_8to16()
+    self.int16_model = self.requantizer.model_bytearray()
+    self.input_shape = (1, 28, 28)
+    self.output_shape = (1, 10)
+    self.tflm_interpreter_quant = tflm_runtime.Interpreter.from_bytes(
+        self.int16_model)
+    np.random.seed(42)  #Seed the random number generator
 
   def testQuantOutputs(self):
     # Get input/output information
