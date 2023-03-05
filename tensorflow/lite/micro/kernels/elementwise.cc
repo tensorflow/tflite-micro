@@ -354,6 +354,10 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
       return EvalImplQuantized<int8_t>(context, node,
                                        elementwise::RsqrtEvalQuantized,
                                        elementwise::validate_input_func, type);
+    case kTfLiteInt16:
+      return EvalImplQuantized<int16_t>(context, node,
+                                        elementwise::RsqrtEvalQuantized,
+                                        elementwise::validate_input_func, type);
 
     default:
       MicroPrintf("Current data type %s is not supported.",

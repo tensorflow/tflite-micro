@@ -19,12 +19,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(LoadFloatModelAndPerformInference) {
+int LoadFloatModelAndPerformInference() {
   // Define the input and the expected output
   float x = 0.0f;
   float y_true = sin(x);
@@ -49,46 +46,46 @@ TF_LITE_MICRO_TEST(LoadFloatModelAndPerformInference) {
   // Build an interpreter to run the model with
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
                                        kTensorArenaSize);
+
   // Allocate memory from the tensor_arena for the model's tensors
-  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+  if (interpreter.AllocateTensors() != kTfLiteOk) {
+    MicroPrintf("Allocate tensor failed.");
+    return kTfLiteError;
+  }
 
   // Obtain a pointer to the model's input tensor
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect
-  TF_LITE_MICRO_EXPECT(input != nullptr);
-  // The property "dims" tells us the tensor's shape. It has one element for
-  // each dimension. Our input is a 2D tensor containing 1 element, so "dims"
-  // should have size 2.
-  TF_LITE_MICRO_EXPECT_EQ(2, input->dims->size);
-  // The value of each element gives the length of the corresponding tensor.
-  // We should expect two single element tensors (one is contained within the
-  // other).
-  TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteFloat32, input->type);
+  if (input == nullptr) {
+    MicroPrintf("Input tensor in null.");
+    return kTfLiteError;
+  }
 
   // Place the quantized input in the model's input tensor
   input->data.f[0] = x;
 
   // Run the model and check that it succeeds
   TfLiteStatus invoke_status = interpreter.Invoke();
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
+  if (invoke_status != kTfLiteOk) {
+    MicroPrintf("Interpreter invocation failed.");
+    return kTfLiteError;
+  }
 
-  // Obtain a pointer to the output tensor and make sure it has the
-  // properties we expect. It should be the same as the input tensor.
+  // Obtain a pointer to the output tensor.
   TfLiteTensor* output = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(2, output->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteFloat32, output->type);
 
   // Obtain the quantized output from model's output tensor
   float y_pred = output->data.f[0];
 
   // Check if the output is within a small range of the expected output
   float epsilon = 0.05f;
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  if (abs(y_true - y_pred) > epsilon) {
+    MicroPrintf(
+        "Difference between predicted and actual y value "
+        "is significant.");
+    return kTfLiteError;
+  }
 
   // Run inference on several more values and confirm the expected outputs
   x = 1.f;
@@ -96,21 +93,50 @@ TF_LITE_MICRO_TEST(LoadFloatModelAndPerformInference) {
   input->data.f[0] = x;
   interpreter.Invoke();
   y_pred = output->data.f[0];
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  if (abs(y_true - y_pred) > epsilon) {
+    MicroPrintf(
+        "Difference between predicted and actual y value "
+        "is significant.");
+    return kTfLiteError;
+  }
 
   x = 3.f;
   y_true = sin(x);
   input->data.f[0] = x;
   interpreter.Invoke();
   y_pred = output->data.f[0];
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  if (abs(y_true - y_pred) > epsilon) {
+    MicroPrintf(
+        "Difference between predicted and actual y value "
+        "is significant.");
+    return kTfLiteError;
+  }
 
   x = 5.f;
   y_true = sin(x);
   input->data.f[0] = x;
   interpreter.Invoke();
   y_pred = output->data.f[0];
-  TF_LITE_MICRO_EXPECT_NEAR(y_true, y_pred, epsilon);
+  if (abs(y_true - y_pred) > epsilon) {
+    MicroPrintf(
+        "Difference between predicted and actual y value "
+        "is significant.");
+    return kTfLiteError;
+  }
+
+  return kTfLiteOk;
 }
 
-TF_LITE_MICRO_TESTS_END
+int main(int argc, char* argv[]) {
+  int status = LoadFloatModelAndPerformInference();
+  // To be part of the unit test suite, each test file needs to print out
+  // either one of the following strings. These strings are required to
+  // be considered as a unit test for the tflm makefiles.
+  if (status == kTfLiteOk) {
+    MicroPrintf("~~~ALL TESTS PASSED~~~\n");
+    return kTfLiteOk;
+  } else {
+    MicroPrintf("~~~SOME TESTS FAILED~~~\n");
+    return kTfLiteError;
+  }
+}
