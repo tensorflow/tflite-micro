@@ -45,6 +45,7 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
   -e python/schema_py_generated.py \
+  -e python_requirements.in \
   -e tools/make/downloads \
   -e tools/make/targets/ecm3531 \
   -e BUILD\

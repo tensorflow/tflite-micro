@@ -29,20 +29,21 @@ hedron_compile_commands_setup()
 
 http_archive(
     name = "rules_python",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.4.0/rules_python-0.4.0.tar.gz",
-    sha256 = "954aa89b491be4a083304a2cb838019c8b8c3720a7abb9c4cb81ac7a24230cea",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
-load("@rules_python//python:pip.bzl", "pip_install")
-
-# Create a central external repo that contains Bazel targets for all the
-# third-party packages specified in the requirements.txt file.
-pip_install(
-   name = "tflm_pip_deps",
-   requirements = "//third_party:requirements.txt",
+load("@rules_python//python:pip.bzl", "pip_parse")
+pip_parse(
+    name = "tflm_pip_deps",
+    requirements_lock = "//third_party:python_requirements.txt",
 )
 
-load("@//tensorflow:workspace.bzl", "workspace")
+load("@tflm_pip_deps//:requirements.bzl", "install_deps")
+install_deps()
+
+load("//tensorflow:workspace.bzl", "workspace")
 workspace()
 
 http_archive(
@@ -64,9 +65,17 @@ load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python", python_version = "3")
 
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("@//tensorflow/lite/micro/python:py_cc_headers.bzl", "tflm_py_cc_headers")
-tflm_py_cc_headers(
-    name = "numpy_headers",
-    py_library = requirement("numpy"),
-    include_prefix = "numpy/core/include",
+load("//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+
+py_pkg_cc_deps(
+    name = "numpy_cc_deps",
+    includes = ["numpy/core/include"],
+    pkg = requirement("numpy"),
+)
+
+py_pkg_cc_deps(
+    name = "tensorflow_cc_deps",
+    includes = ["tensorflow/include"],
+    libs = ["tensorflow/libtensorflow_framework.so.2"],
+    pkg = requirement("tensorflow-cpu"),
 )
