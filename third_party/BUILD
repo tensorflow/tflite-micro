@@ -21,4 +21,9 @@ compile_pip_requirements(
     ],
     requirements_in = "python_requirements.in",
     requirements_txt = "python_requirements.txt",
+    tags = [
+        "manual",
+        # ^ exclude .update and _test targets from wildcards in,
+        # e.g., `bazel test ...`
+    ],
 )
