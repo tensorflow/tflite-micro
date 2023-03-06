@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
@@ -271,6 +272,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 }
 
 TfLiteStatus MicroInterpreter::Invoke() {
+  micro_context_.state = Eval;
   if (initialization_status_ != kTfLiteOk) {
     MicroPrintf("Invoke() called after initialization failed\n");
     return kTfLiteError;
