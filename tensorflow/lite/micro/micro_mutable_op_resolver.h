@@ -300,8 +300,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddL2Normalization() {
     return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
-                      tflite::ops::micro::Register_L2_NORMALIZATION(),
-                      ParseL2Normalization);
+                      Register_L2_NORMALIZATION(), ParseL2Normalization);
   }
 
   TfLiteStatus AddL2Pool2D() {
@@ -556,10 +555,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
   }
 
-  TfLiteStatus AddUnidirectionalSequenceLSTM() {
+  TfLiteStatus AddUnidirectionalSequenceLSTM(
+      const TfLiteRegistration& registration =
+          Register_UNIDIRECTIONAL_SEQUENCE_LSTM()) {
     return AddBuiltin(BuiltinOperator_UNIDIRECTIONAL_SEQUENCE_LSTM,
-                      Register_UNIDIRECTIONAL_SEQUENCE_LSTM(),
-                      ParseUnidirectionalSequenceLSTM);
+                      registration, ParseUnidirectionalSequenceLSTM);
   }
 
   TfLiteStatus AddVarHandle() {

@@ -109,9 +109,13 @@ clean:
 
 libtflm: $(LIB)
 
+HELLO_WORLD_SRCS := $(wildcard examples/hello_world/*.cc)
+HELLO_WORLD_SRCS += $(wildcard examples/hello_world/models/*.cc)
+HELLO_WORLD_INCLUDES := $(INCLUDES) -I./examples/hello_world
+
 hello_world: libtflm
 	@mkdir -p $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(wildcard examples/hello_world/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
+	$(CXX) $(CXXFLAGS) $(HELLO_WORLD_SRCS) $(HELLO_WORLD_INCLUDES) $(LIB) -o $(BINDIR)/$@
 
 magic_wand: libtflm
 	@mkdir -p $(BINDIR)
