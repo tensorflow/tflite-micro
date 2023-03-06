@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -131,8 +132,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
       }
     }
     micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(output);
     micro_context->DeallocateTempTfLiteTensor(filter);
+    micro_context->DeallocateTempTfLiteTensor(output);
     if (bias != nullptr) {
       micro_context->DeallocateTempTfLiteTensor(bias);
     }
@@ -192,10 +193,31 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
+#if defined(HIFI4) || defined(HIFI5)
+    const int stride_width = params->stride_width;
+    const int stride_height = params->stride_height;
+
+    const int input_height = SizeOfDimension(input, 1);
+    const int input_width = SizeOfDimension(input, 2);
+    const int input_depth = SizeOfDimension(input, 3);
+    const int output_height = height;
+    const int output_width = width;
+    int32_t scratch_buffer_size = 0;
+    scratch_buffer_size = xa_nn_transpose_conv_getsize(input_height,
+                              input_width, input_depth, filter_height,
+                              filter_width, stride_width, stride_height,
+                              output_height, output_width, num_channels,
+                              PREC_SYM8S, PREC_SYM16S);
+    TFLITE_DCHECK(context->RequestScratchBufferInArena(
+                      context,
+                      scratch_buffer_size,
+                      &(data->scratch_buffer_index)) == kTfLiteOk);
+#else // #if defined(HIFI4) || defined(HIFI5)
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(std::int64_t),
                       &(data->scratch_buffer_index)) == kTfLiteOk);
+#endif // #if defined(HIFI4) || defined(HIFI5)
   }
 
   // All per-channel quantized tensors need valid zero point and scale arrays.
@@ -273,7 +295,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(filter),
           tflite::micro::GetTensorData<float>(filter),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<float>(bias),
+          tflite::micro::GetOptionalTensorData<float>(bias),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output),
           tflite::micro::GetTensorShape(nullptr), nullptr);
@@ -289,7 +311,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(filter),
           tflite::micro::GetTensorData<int8_t>(filter),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<int32_t>(bias),
+          tflite::micro::GetOptionalTensorData<int32_t>(bias),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int8_t>(output),
           tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
@@ -300,7 +322,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           context->GetScratchBuffer(context, data.scratch_buffer_index));
       // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
       // 64-bit biases.
-      if (bias->type == kTfLiteInt16) {
+      if (bias != nullptr && bias->type == kTfLiteInt16) {
         std::int64_t* bias_converted_buffer =
             static_cast<int64_t*>(context->GetScratchBuffer(
                 context, data.bias_converted_buffer_index));
@@ -319,7 +341,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
       } else {
-#if defined(HIFI4)
+#if defined(HIFI4) || defined(HIFI5)
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
         const RuntimeShape& filter_shape =
             tflite::micro::GetTensorShape(filter);
@@ -350,10 +372,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         const int num_elements = output_shape.FlatSize();
 
         for (int b = 0; b < batches; b++) {
-// TODO(b/239852051): Internal and OSS nnlib have slightly different APIs but
-// the same underlying implementation. Once we switch to all OSS, this ifdef can
-// be removed.
-#if defined(HIFI4)
           xa_nn_transpose_conv_sym8sxsym16s(
               &output_data[b * output_height * output_width * output_depth],
               const_cast<WORD16*>(
@@ -363,10 +381,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               output_depth, input_height, input_width, filter_height,
               filter_width, output_height, output_width, num_elements / batches,
               data.per_channel_output_shift, data.per_channel_output_multiplier,
-              &scratch_buffer[b * output_height * output_width * output_depth]);
-#endif  // defined(HIFI4)
+              scratch_buffer);
         }
-#else
+#else // #if defined(HIFI4) || defined(HIFI5)
         reference_integer_ops::TransposeConv(
             data.params, data.per_channel_output_multiplier,
             data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
@@ -374,11 +391,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorShape(filter),
             tflite::micro::GetTensorData<int8_t>(filter),
             tflite::micro::GetTensorShape(bias),
-            tflite::micro::GetTensorData<std::int64_t>(bias),
+            tflite::micro::GetOptionalTensorData<std::int64_t>(bias),
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
-#endif  // defined(HIFI4)
+#endif // #if defined(HIFI4) || defined(HIFI5)
       }
       break;
     }
