@@ -225,7 +225,7 @@ def _rename_cc_to_cpp(output_dir):
 def main():
   parser = argparse.ArgumentParser(
       description="Starting script for TFLM project generation")
-  parser.add_argument("output_dir",
+  parser.add_argument("--output_dir",
                       help="Output directory for generated TFLM tree")
   parser.add_argument("--no_copy",
                       action="store_true",
