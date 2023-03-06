@@ -28,19 +28,36 @@ MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
 
 MicroContext::~MicroContext() {}
 
+inference_state state; 
+
 void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
-  return allocator_.AllocatePersistentBuffer(bytes);
+  if(state == Prepare){
+    return allocator_.AllocatePersistentBuffer(bytes);
+  }
+  else {
+    MicroPrintf("AllocatePersistentBuffer can only be used during the Prepare stage");
+  }
 }
 
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
-  return allocator_.RequestScratchBufferInArena(
+  if(state == Prepare){
+    return allocator_.RequestScratchBufferInArena(
       bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
+  }
+  else {
+    MicroPrintf("RequestScratchBufferInArena can only be used during the Prepare stage");
+  }
 }
 
 void* MicroContext::GetScratchBuffer(int buffer_idx) {
-  ScratchBufferHandle* handle = scratch_buffer_handles_ + buffer_idx;
-  return handle->data;
+  if(state == Eval){
+    ScratchBufferHandle* handle = scratch_buffer_handles_ + buffer_idx;
+    return handle->data;
+  }
+  else {
+    MicroPrintf("GetScratchBuffer can only be used during the Eval stage");
+  }
 }
 
 TfLiteTensor* MicroContext::AllocateTempTfLiteTensor(int tensor_idx) {

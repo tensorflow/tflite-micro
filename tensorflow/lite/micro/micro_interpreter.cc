@@ -78,6 +78,7 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
+  micro_context_.state = Init;
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
@@ -194,6 +195,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
   // Only allow AllocatePersistentBuffer in Init stage.
+  micro_context_.state = Init;
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = nullptr;
@@ -202,6 +204,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
   // Both AllocatePersistentBuffer and RequestScratchBufferInArena is
   // available in Prepare stage.
+  micro_context_.state = Prepare;
   context_.RequestScratchBufferInArena =
       MicroContextRequestScratchBufferInArena;
   // external_context become available in Prepare stage.
@@ -211,6 +214,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
   // Prepare is done, we're ready for Invoke. Memory allocation is no longer
   // allowed. Kernels can only fetch scratch buffers via GetScratchBuffer.
+  micro_context_.state = Eval;
   context_.AllocatePersistentBuffer = nullptr;
   context_.RequestScratchBufferInArena = nullptr;
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
@@ -272,7 +276,6 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 }
 
 TfLiteStatus MicroInterpreter::Invoke() {
-  micro_context_.state = Eval;
   if (initialization_status_ != kTfLiteOk) {
     MicroPrintf("Invoke() called after initialization failed\n");
     return kTfLiteError;
