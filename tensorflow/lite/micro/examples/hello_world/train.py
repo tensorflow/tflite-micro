@@ -16,7 +16,7 @@
 
 Run:
 `bazel build tensorflow/lite/micro/examples/hello_world:train`
-`bazel-bin/tensorflow/lite/micro/examples/hello_world/train --quantize --save_tf_model --save_dir=/tmp/model_created/`
+`bazel-bin/tensorflow/lite/micro/examples/hello_world/train --save_tf_model --save_dir=/tmp/model_created/`
 """
 import math
 import os
@@ -34,9 +34,6 @@ flags.DEFINE_string("save_dir", "/tmp/hello_world_models",
                     "the directory to save the trained model.")
 flags.DEFINE_boolean("save_tf_model", False,
                      "store the original unconverted tf model.")
-flags.DEFINE_boolean(
-    "quantize", False,
-    "convert and save the full integer (int8) quantized model.")
 
 
 def get_data():
@@ -129,33 +126,6 @@ def train_model(epochs, x_values, y_values):
   return model
 
 
-def convert_quantized_tflite_model(model, x_values):
-  """Convert the save TF model to tflite model, then save it as .tflite
-    flatbuffer format
-
-    Args:
-        model (tf.keras.Model): the trained hello_world Model
-        x_train (numpy.array): list of the training data
-
-    Returns:
-        The converted model in serialized format.
-  """
-
-  # Convert the model to the TensorFlow Lite format with quantization
-  def representative_dataset(num_samples=500):
-    for i in range(num_samples):
-      yield [x_values[i].reshape(1, 1)]
-
-  converter = tf.lite.TFLiteConverter.from_keras_model(model)
-  converter.optimizations = [tf.lite.Optimize.DEFAULT]
-  converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-  converter.inference_input_type = tf.int8
-  converter.inference_output_type = tf.int8
-  converter.representative_dataset = representative_dataset
-  tflite_model = converter.convert()
-  return tflite_model
-
-
 def main(_):
   x_values, y_values = get_data()
   trained_model = train_model(FLAGS.epochs, x_values, y_values)
@@ -165,14 +135,6 @@ def main(_):
   save_tflite_model(tflite_model,
                     FLAGS.save_dir,
                     model_name="hello_world_float.tflite")
-
-  # Convert and save the quantized model
-  if FLAGS.quantize:
-    quantized_tflite_model = convert_quantized_tflite_model(
-        trained_model, x_values)
-    save_tflite_model(quantized_tflite_model,
-                      FLAGS.save_dir,
-                      model_name="hello_world_int8.tflite")
 
 
 if __name__ == "__main__":
