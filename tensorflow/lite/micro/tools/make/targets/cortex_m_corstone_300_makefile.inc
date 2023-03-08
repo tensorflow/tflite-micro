@@ -199,7 +199,9 @@ INCLUDES += \
 EXCLUDED_TESTS := \
   tensorflow/lite/micro/memory_arena_threshold_test.cc  \
   tensorflow/lite/micro/recording_micro_allocator_test.cc
-  
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+EXCLUDED_EXAMPLE_TESTS := \
+ tensorflow/lite/micro/examples/hello_world/Makefile.inc
+MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh
