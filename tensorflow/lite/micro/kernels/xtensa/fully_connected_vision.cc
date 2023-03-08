@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 
 namespace tflite {
 
