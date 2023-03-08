@@ -304,6 +304,26 @@ TF_LITE_MICRO_TEST(RsqrtInt8) {
       output_scale, output_zero_point);
 }
 
+TF_LITE_MICRO_TEST(RsqrtInt16) {
+  int shape[] = {2, 1, 8};
+
+  const float input_data[] = {15., 46., 78., 142., 1., 17., 49., 113.};
+  int16_t input_quantized[8];
+
+  const float golden[] = {0.2582, 0.14744, 0.11323,  0.08392,
+                          1.,     0.24254, 0.142857, 0.09407};
+  int16_t output_quantized[8];
+
+  const float input_scale = 142.0 / 32768.0;
+  const float output_scale = 1.0 / 32768.0;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+  tflite::testing::TestElementwiseQuantized<int16_t>(
+      tflite::ops::micro::Register_RSQRT(), shape, input_data, input_quantized,
+      input_scale, input_zero_point, shape, golden, output_quantized,
+      output_scale, output_zero_point);
+}
+
 TF_LITE_MICRO_TEST(RsqrtCloseTo0Int8) {
   int shape[] = {2, 1, 8};
 
