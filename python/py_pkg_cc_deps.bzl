@@ -69,7 +69,6 @@ See the test target //python/tests:cc_dep_link_test elsewhere for an example
 which links against a library shipped in a Python package.
 """
 
-
 # This extends the standard rules_python rules to expose C-language dependences
 # contained in some Python packages like NumPy. It extends rules_python to
 # avoid duplicating the download mechanism, and to ensure the Python package
