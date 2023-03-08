@@ -962,10 +962,10 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateTempBuffer) {
       tflite::MicroAllocator::Create(arena, arena_size);
   TF_LITE_MICRO_EXPECT(allocator != nullptr);
   TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
-  int8_t* buffer1 = allocator->AllocateTempBuffer(10, alignof(int8_t));
+  uint8_t* buffer1 =
+      allocator->AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
   TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
-
-  // Deallocate only one temp TfLiteTensor does not deallocate all temp buffers.
+  TF_LITE_MICRO_EXPECT_FALSE(allocator->IsAllTempDeallocated());
   allocator->DeallocateTempBuffer(buffer1);
   TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
 }

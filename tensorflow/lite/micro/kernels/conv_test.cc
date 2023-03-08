@@ -61,8 +61,9 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(VISION_P6)  // TODO(b/270720625): xtensa vision p6 kernels is
-                         // currently not working with per chanel quantization
+#if !defined(VISION_P6)  // TODO(b/270720625): disabled int8 and int4 test for
+// conv for fully connected vision p6 kernels, because vision p6 conv doesn't
+// work with per channel quantization
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
   const int output_dims_count = 12;

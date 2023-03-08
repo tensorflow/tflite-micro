@@ -139,7 +139,8 @@ TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateTempBuffer) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
-  int8_t* buffer1 = micro_context.AllocateTempBuffer(10, alignof(int8_t));
+  uint8_t* buffer1 =
+      micro_context.AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
   TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
 }
 

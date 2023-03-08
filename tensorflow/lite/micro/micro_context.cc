@@ -94,11 +94,11 @@ void MicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
   return allocator_.DeallocateTempTfLiteTensor(tensor);
 }
 
-int8_t* MicroContext::AllocateTempBuffer(size_t size, size_t alignment) {
+uint8_t* MicroContext::AllocateTempBuffer(size_t size, size_t alignment) {
   return allocator_.AllocateTempBuffer(size, alignment);
 }
 
-void MicroContext::DeallocateTempBuffer(int8_t* buffer) {
+void MicroContext::DeallocateTempBuffer(uint8_t* buffer) {
   allocator_.DeallocateTempBuffer(buffer);
 }
 

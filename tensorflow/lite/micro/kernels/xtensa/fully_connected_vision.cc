@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_fully_connected.h"
+#include "third_party/tflite_micro/tensorflow/lite/micro/micro_arena_constants.h"
 
 namespace tflite {
 
@@ -95,8 +96,8 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
 
   if (filter->type == kTfLiteInt4) {
     const size_t bytes_unpacked = filter->bytes * 2;
-    filter_int8.data.data =
-        micro_context->AllocateTempBuffer(bytes_unpacked, alignof(int8_t));
+    filter_int8.data.data = micro_context->AllocateTempBuffer(
+        bytes_unpacked, tflite::MicroArenaBufferAlignment());
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;
     tflite::tensor_utils::UnpackDenseInt4IntoInt8(
@@ -145,6 +146,9 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
     return kTfLiteError;
   }
 
+  if (filter->type == kTfLiteInt4) {
+    micro_context->DeallocateTempBuffer(GetTensorData<uint8_t>(&filter_int8));
+  }
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
