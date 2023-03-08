@@ -1,4 +1,73 @@
-"Repository rule exporting C-language dependencies contained in a Python package."
+"""Repository rule for creating an external repository `name` with C-language
+dependencies from the Python package `pkg`, published by rules_python. Set
+`pkg` using the `requirement` function from rules_python.
+
+The top-level Bazel package in the created repository provides two targets for
+use as dependencies in C-language targets elsewhere.
+
+    * `:cc_headers`--for including headers
+    * `:cc_library`--for including headers and linking against a library
+
+The mandatory `includes` attribute should be set to a list of
+include dirs to be added to the compile command line.
+
+The optional `libs` attribute should be set to a list of libraries to link with
+the binary target.
+
+Specify all paths relative to the parent directory in which the package is
+extracted (e.g., site-packages/). Thus paths will begin with the package's
+Python namespace or module name. Note this name may differ from the Python
+distribution package name---e.g., the distribution package `tensorflow-gpu`
+distributes the Python namespace package `tensorflow`. To see what paths are
+available, it might help to examine the directory tree in the external
+repository created for the package by rules_python. The external repository is
+created in the bazel cache; in the example below, in a subdirectory
+`external/tflm_pip_deps_numpy`.
+
+For example, to use the headers from NumPy:
+
+1. Add Python dependencies (numpy is named in python_requirements.txt), via the
+usual method, to an external repository named `tflm_pip_deps` via @rules_python
+in the WORKSPACE:
+```
+    load("@rules_python//python:pip.bzl", "pip_parse")
+    pip_parse(
+       name = "tflm_pip_deps",
+       requirements_lock = "@//third_party:python_requirements.txt",
+    )
+    load("@tflm_pip_deps//:requirements.bzl", "install_deps")
+    install_deps()
+```
+
+2. Use the repository rule `py_pkg_cc_deps` in the WORKSPACE to create an
+external repository with a target `@numpy_cc_deps//:cc_headers`, passing the
+`:pkg` target from @tflm_pip_deps, obtained via requirement(), and an
+`includes` path based on an examination of the package and the desired #include
+paths in the C code:
+```
+    load("@tflm_pip_deps//:requirements.bzl", "requirement")
+    load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+    py_pkg_cc_deps(
+        name = "numpy_cc_deps",
+        pkg = requirement("numpy"),
+        includes = ["numpy/core/include"],
+    )
+```
+
+3. Use the cc_library target `@numpy_cc_deps//:cc_headers` in a BUILD file as
+a dependency to a rule that needs the headers, e.g., the cc_library()-based
+pybind_library():
+```
+    pybind_library(
+        name = "your_extension_lib",
+        srcs = [...],
+        deps = ["@numpy_cc_deps//:cc_headers", ...],
+    )
+```
+
+See the test target //python/tests:cc_dep_link_test elsewhere for an example
+which links against a library shipped in a Python package.
+"""
 
 # This extends the standard rules_python rules to expose C-language dependences
 # contained in some Python packages like NumPy. It extends rules_python to
@@ -19,6 +88,7 @@ def _rules_python_path(ctx, pkg):
     return abspath
 
 def _join_paths(a, b):
+    result = ""
     if type(a) == "string" and type(b) == "string":
         result = "/".join((a, b))
 
@@ -95,73 +165,3 @@ py_pkg_cc_deps = repository_rule(
         ),
     },
 )
-"""Repository rule for creating an external repository `name` with C-language
-dependencies from the Python package `pkg`, published by rules_python. Set
-`pkg` using the `requirement` function from rules_python.
-
-The top-level Bazel package in the created repository provides two targets for
-use as dependencies in C-language targets elsewhere.
-
-    * `:cc_headers`--for including headers
-    * `:cc_library`--for including headers and linking against a library
-
-The mandatory `includes` attribute should be set to a list of
-include dirs to be added to the compile command line.
-
-The optional `libs` attribute should be set to a list of libraries to link with
-the binary target.
-
-Specify all paths relative to the parent directory in which the package is
-extracted (e.g., site-packages/). Thus paths will begin with the package's
-Python namespace or module name. Note this name may differ from the Python
-distribution package name---e.g., the distribution package `tensorflow-gpu`
-distributes the Python namespace package `tensorflow`. To see what paths are
-available, it might help to examine the directory tree in the external
-repository created for the package by rules_python. The external repository is
-created in the bazel cache; in the example below, in a subdirectory
-`external/tflm_pip_deps_numpy`.
-
-For example, to use the headers from NumPy:
-
-1. Add Python dependencies (numpy is named in python_requirements.txt), via the
-usual method, to an external repository named `tflm_pip_deps` via @rules_python
-in the WORKSPACE:
-```
-    load("@rules_python//python:pip.bzl", "pip_parse")
-    pip_parse(
-       name = "tflm_pip_deps",
-       requirements_lock = "@//third_party:python_requirements.txt",
-    )
-    load("@tflm_pip_deps//:requirements.bzl", "install_deps")
-    install_deps()
-```
-
-2. Use the repository rule `py_pkg_cc_deps` in the WORKSPACE to create an
-external repository with a target `@numpy_cc_deps//:cc_headers`, passing the
-`:pkg` target from @tflm_pip_deps, obtained via requirement(), and an
-`includes` path based on an examination of the package and the desired #include
-paths in the C code:
-```
-    load("@tflm_pip_deps//:requirements.bzl", "requirement")
-    load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
-    py_pkg_cc_deps(
-        name = "numpy_cc_deps",
-        pkg = requirement("numpy"),
-        includes = ["numpy/core/include"],
-    )
-```
-
-3. Use the cc_library target `@numpy_cc_deps//:cc_headers` in a BUILD file as
-a dependency to a rule that needs the headers, e.g., the cc_library()-based
-pybind_library():
-```
-    pybind_library(
-        name = "your_extension_lib",
-        srcs = [...],
-        deps = ["@numpy_cc_deps//:cc_headers", ...],
-    )
-```
-
-See the test target //python/tests:cc_dep_link_test elsewhere for an example
-which links against a library shipped in a Python package.
-"""
