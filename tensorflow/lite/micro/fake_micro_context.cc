@@ -61,7 +61,6 @@ void FakeMicroContext::DeallocateTempBuffer(uint8_t* buffer) {
   allocator_->DeallocateTemp(buffer);
 }
 
-
 TfLiteEvalTensor* FakeMicroContext::GetEvalTensor(int tensor_index) {
   TfLiteEvalTensor* eval_tensor =
       reinterpret_cast<TfLiteEvalTensor*>(allocator_->AllocateTemp(
