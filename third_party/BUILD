@@ -1,7 +1,8 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements") # tflm:github-only
 
 licenses(["notice"])
 
+# tflm:github-begin
 compile_pip_requirements(
     # Defines targets which use pip-compile to keep the Python locked
     # requirements up-to-date:
@@ -27,3 +28,4 @@ compile_pip_requirements(
         # e.g., `bazel test ...`
     ],
 )
+# tflm:github-end
