@@ -35,6 +35,9 @@ class FakeMicroContext : public MicroContext {
   void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override;
   bool IsAllTempTfLiteTensorDeallocated();
 
+  uint8_t* AllocateTempBuffer(size_t size, size_t alignment) override;
+  void DeallocateTempBuffer(uint8_t* buffer) override;
+
   TfLiteEvalTensor* GetEvalTensor(int tensor_index) override;
 
  private:
@@ -44,7 +47,7 @@ class FakeMicroContext : public MicroContext {
   uint8_t* scratch_buffers_[kNumScratchBuffers_];
 
   TfLiteTensor* tensors_;
-  int allocated_tensor_count_ = 0;
+  int allocated_temp_count_ = 0;
 
   SingleArenaBufferAllocator* allocator_;
 
