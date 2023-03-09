@@ -1,8 +1,14 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements") # tflm:github-only
+# tflm:github-begin
+# This line of code is only required for github. This part is not required
+# for google3
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+# tflm:github-end
 
 licenses(["notice"])
 
 # tflm:github-begin
+# This block of code is only required for github. This part is not required
+# for google3
 compile_pip_requirements(
     # Defines targets which use pip-compile to keep the Python locked
     # requirements up-to-date:
