@@ -127,7 +127,7 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   }
   micro_context->DeallocateTempTfLiteTensor(output);
 #if defined(VISION_P6)
-    TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
+  TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
 #endif  // defined(VISION_P6)
 
   return kTfLiteOk;
