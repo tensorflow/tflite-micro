@@ -59,14 +59,16 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TfLiteRegistration_V1 registration, float* output_data) {
+                        TfLiteRegistration_V1 registration,
+                        float* output_data) {
   return InvokeConv<float>(tensors, tensors_size, output_length, conv_params,
                            registration, output_data);
 }
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TfLiteRegistration_V1 registration, int8_t* output_data) {
+                        TfLiteRegistration_V1 registration,
+                        int8_t* output_data) {
   return InvokeConv<int8_t>(tensors, tensors_size, output_length, conv_params,
                             registration, output_data);
 }

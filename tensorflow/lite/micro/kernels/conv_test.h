@@ -32,11 +32,13 @@ TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TfLiteRegistration_V1 registration, int8_t* output_data);
+                        TfLiteRegistration_V1 registration,
+                        int8_t* output_data);
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TfLiteRegistration_V1 registration, uint8_t* output_data);
+                        TfLiteRegistration_V1 registration,
+                        uint8_t* output_data);
 
 TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const float* expected_output_data,
@@ -65,7 +67,8 @@ TfLiteStatus TestConvFloat(int* input_dims_data, const float* input_data,
                            int* output_dims_data,
                            const float* expected_output_data,
                            TfLiteConvParams* conv_params,
-                           TfLiteRegistration_V1 registration, float* output_data);
+                           TfLiteRegistration_V1 registration,
+                           float* output_data);
 
 TfLiteStatus TestConvQuantizedPerLayer(
     int* input_dims_data, const float* input_data, uint8_t* input_quantized,

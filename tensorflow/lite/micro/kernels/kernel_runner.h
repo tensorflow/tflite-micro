@@ -38,8 +38,8 @@ class KernelRunner {
                TfLiteIntArray* outputs, void* builtin_data,
                TfLiteIntArray* intermediates = nullptr);
 
-  // Calls init and prepare on the kernel (i.e. TfLiteRegistration_V1) struct. Any
-  // exceptions will be DebugLog'd and returned as a status code.
+  // Calls init and prepare on the kernel (i.e. TfLiteRegistration_V1) struct.
+  // Any exceptions will be DebugLog'd and returned as a status code.
   TfLiteStatus InitAndPrepare(const char* init_data = nullptr,
                               size_t length = 0);
 

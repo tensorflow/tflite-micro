@@ -76,9 +76,9 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
 TfLiteRegistration_V1 Register_CONV_2D();
 
 #if defined(XTENSA)
@@ -104,7 +104,9 @@ TfLiteRegistration_V1 Register_CONV_2D_INT8();
 TfLiteRegistration_V1 Register_CONV_2D_INT16();
 
 #else
-inline TfLiteRegistration_V1 Register_CONV_2D_INT8() { return Register_CONV_2D(); }
+inline TfLiteRegistration_V1 Register_CONV_2D_INT8() {
+  return Register_CONV_2D();
+}
 
 inline TfLiteRegistration_V1 Register_CONV_2D_INT16() {
   return Register_CONV_2D();

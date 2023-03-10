@@ -77,9 +77,9 @@ void EvalFloatSvdfReference(
 
 TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
 TfLiteRegistration_V1 Register_SVDF();
 
 #if defined(HEXAGON) || defined(CMSIS_NN)

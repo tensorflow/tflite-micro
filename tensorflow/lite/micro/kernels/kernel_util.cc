@@ -50,8 +50,7 @@ TfLiteRegistration_V1 RegisterOp(
           /*profiling_string=*/nullptr,
           /*builtin_code=*/0,
           /*custom_name=*/nullptr,
-          /*version=*/0,
-          /*registration_external=*/nullptr};
+          /*version=*/0};
 }
 
 // Returns a mutable tensor for a given input index. is_variable must be checked

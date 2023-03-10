@@ -24,9 +24,9 @@ limitations under the License.
 
 namespace tflite {
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
 // TODO(b/230666079): resolve conflict with xtensa implementation
 TfLiteRegistration_V1 Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 

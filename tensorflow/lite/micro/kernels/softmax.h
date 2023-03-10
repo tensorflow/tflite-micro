@@ -32,9 +32,9 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 
 TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
 TfLiteRegistration_V1 Register_SOFTMAX();
 
 #if defined(XTENSA) || defined(CMSIS_NN)
@@ -57,7 +57,9 @@ TfLiteRegistration_V1 Register_SOFTMAX_INT8();
 TfLiteRegistration_V1 Register_SOFTMAX_INT16();
 
 #else
-inline TfLiteRegistration_V1 Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
+inline TfLiteRegistration_V1 Register_SOFTMAX_INT8() {
+  return Register_SOFTMAX();
+}
 
 inline TfLiteRegistration_V1 Register_SOFTMAX_INT16() {
   return Register_SOFTMAX();

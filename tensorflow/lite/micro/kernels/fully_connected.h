@@ -68,9 +68,9 @@ TfLiteStatus CalculateOpDataFullyConnected(
     TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
     const TfLiteTensor* bias, TfLiteTensor* output, OpDataFullyConnected* data);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
 TfLiteRegistration_V1 Register_FULLY_CONNECTED();
 
 #if defined(CMSIS_NN) || defined(HEXAGON) || defined(XTENSA)
