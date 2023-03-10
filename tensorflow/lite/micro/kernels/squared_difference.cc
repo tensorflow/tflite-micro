@@ -44,6 +44,44 @@ void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
+void PrepareQuantized(
+    const TfLiteQuantizationParams& input1_quantization_params,
+    const TfLiteQuantizationParams& input2_quantization_params,
+    const TfLiteQuantizationParams& output_quantization_params,
+    const int left_shift, const int32_t quantized_activation_min,
+    const int32_t quantized_activation_max, OpData* data) {
+  data->arithmetic_params.input1_offset =
+      -input1_quantization_params.zero_point;
+  data->arithmetic_params.input2_offset =
+      -input2_quantization_params.zero_point;
+  data->arithmetic_params.output_offset = output_quantization_params.zero_point;
+  data->arithmetic_params.left_shift = left_shift;
+  const double twice_max_input_scale =
+      2.0 * static_cast<double>(std::max(input1_quantization_params.scale,
+                                         input2_quantization_params.scale));
+  const double real_input1_multiplier =
+      static_cast<double>(input1_quantization_params.scale) /
+      twice_max_input_scale;
+  double real_input2_multiplier =
+      static_cast<double>(input2_quantization_params.scale) /
+      twice_max_input_scale;
+  const double real_output_multiplier =
+      (twice_max_input_scale * twice_max_input_scale) /
+      static_cast<double>((1 << data->arithmetic_params.left_shift * 2) *
+                          output_quantization_params.scale);
+  QuantizeMultiplierSmallerThanOneExp(
+      real_input1_multiplier, &data->arithmetic_params.input1_multiplier,
+      &data->arithmetic_params.input1_shift);
+  QuantizeMultiplierSmallerThanOneExp(
+      real_input2_multiplier, &data->arithmetic_params.input2_multiplier,
+      &data->arithmetic_params.input2_shift);
+  QuantizeMultiplier(real_output_multiplier,
+                     &data->arithmetic_params.output_multiplier,
+                     &data->arithmetic_params.output_shift);
+  data->arithmetic_params.quantized_activation_min = quantized_activation_min;
+  data->arithmetic_params.quantized_activation_max = quantized_activation_max;
+}
+
 TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
                                       TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -68,11 +106,10 @@ TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
   TF_LITE_ENSURE_TYPES_EQ(context, input1->type, input2->type);
   output->type = input2->type;
 
-  // Ensure the quantization parameters are equivalent.
+  const TfLiteQuantizationParams& input1_quantization_params = input1->params;
+  const TfLiteQuantizationParams& input2_quantization_params = input2->params;
+  const TfLiteQuantizationParams& output_quantization_params = output->params;
   if (input1->type == kTfLiteInt8) {
-    const auto& input1_quantization_params = input1->params;
-    const auto& input2_quantization_params = input2->params;
-    const auto& output_quantization_params = output->params;
     const int32_t integer_type_min = std::numeric_limits<int8_t>::min();
     const int32_t integer_type_max = std::numeric_limits<int8_t>::max();
     TF_LITE_ENSURE(context,
@@ -87,43 +124,25 @@ TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
                    output_quantization_params.zero_point >= integer_type_min);
     TF_LITE_ENSURE(context,
                    output_quantization_params.zero_point <= integer_type_max);
-    data->arithmetic_params.input1_offset =
-        -input1_quantization_params.zero_point;
-    data->arithmetic_params.input2_offset =
-        -input2_quantization_params.zero_point;
-    data->arithmetic_params.output_offset =
-        output_quantization_params.zero_point;
+    // leftshift = 7 is selected so that maximum shifted result 255^2 * (1 << (7
+    // * 2 )) does not overflow signed 32-bit integer
+    PrepareQuantized(input1_quantization_params, input2_quantization_params,
+                     output_quantization_params, /*left_shift=*/7,
+                     /*quantized_activation_min*/ integer_type_min,
+                     /*quantized_activation_max*/ integer_type_max, data);
+  } else if (input1->type == kTfLiteInt16) {
+    const int32_t integer_type_min = std::numeric_limits<int16_t>::min();
+    const int32_t integer_type_max = std::numeric_limits<int16_t>::max();
+    TF_LITE_ENSURE(context, input1_quantization_params.zero_point == 0);
+    TF_LITE_ENSURE(context, input2_quantization_params.zero_point == 0);
+    TF_LITE_ENSURE(context, output_quantization_params.zero_point == 0);
 
-    // shift to make integer for scales.
-    // 7 is selected so that maximum shifted result 255^2 * (1 << (7 * 2 ))
-    // does not overflow signed 32-bit integer
-    data->arithmetic_params.left_shift = 7;
-    const double twice_max_input_scale =
-        2.0 * static_cast<double>(std::max(input1_quantization_params.scale,
-                                           input2_quantization_params.scale));
-    const double real_input1_multiplier =
-        static_cast<double>(input1_quantization_params.scale) /
-        twice_max_input_scale;
-    double real_input2_multiplier =
-        static_cast<double>(input2_quantization_params.scale) /
-        twice_max_input_scale;
-    const double real_output_multiplier =
-        (twice_max_input_scale * twice_max_input_scale) /
-        static_cast<double>((1 << data->arithmetic_params.left_shift * 2) *
-                            output_quantization_params.scale);
-    QuantizeMultiplierSmallerThanOneExp(
-        real_input1_multiplier, &data->arithmetic_params.input1_multiplier,
-        &data->arithmetic_params.input1_shift);
-    QuantizeMultiplierSmallerThanOneExp(
-        real_input2_multiplier, &data->arithmetic_params.input2_multiplier,
-        &data->arithmetic_params.input2_shift);
-    QuantizeMultiplierSmallerThanOneExp(
-        real_output_multiplier, &data->arithmetic_params.output_multiplier,
-        &data->arithmetic_params.output_shift);
-    data->arithmetic_params.quantized_activation_min =
-        std::numeric_limits<int8_t>::min();
-    data->arithmetic_params.quantized_activation_max =
-        std::numeric_limits<int8_t>::max();
+    // leftshift = 0 as number is already 16-bit. so that maximum shifted result
+    // 32767^2 * (1 << (0 * 2 ))
+    PrepareQuantized(input1_quantization_params, input2_quantization_params,
+                     output_quantization_params, /*left_shift=*/0,
+                     /*quantized_activation_min*/ integer_type_min,
+                     /*quantized_activation_max*/ integer_type_max, data);
   }
 
   data->requires_broadcast = !HaveSameShapes(input1, input2);
@@ -134,8 +153,8 @@ TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-inline int8_t SquaredDifference(int8_t x, int8_t y,
-                                const ArithmeticParams& params) {
+template <typename T>
+T SquaredDifference(T x, T y, const ArithmeticParams& params) {
   const int32_t input1_val = params.input1_offset + x;
   const int32_t input2_val = params.input2_offset + y;
   const int32_t shifted_input1_val = input1_val * (1 << params.left_shift);
@@ -148,16 +167,16 @@ inline int8_t SquaredDifference(int8_t x, int8_t y,
           shifted_input2_val, params.input2_multiplier, params.input2_shift);
   const int32_t raw_diff = scaled_input1_val - scaled_input2_val;
 
-  // Max of this is 255^2 * (1 << 14), so won't overflow 32 bits.
+  // Max of this is 32767^2 * (1 << 0), so won't overflow 32 bits.
   const int32_t squared_raw_diff = raw_diff * raw_diff;
   const int32_t raw_output =
-      MultiplyByQuantizedMultiplierSmallerThanOneExp(
-          squared_raw_diff, params.output_multiplier, params.output_shift) +
+      MultiplyByQuantizedMultiplier(squared_raw_diff, params.output_multiplier,
+                                    params.output_shift) +
       params.output_offset;
   const int32_t clamped_output =
       std::min(params.quantized_activation_max,
                std::max(params.quantized_activation_min, raw_output));
-  return static_cast<int8_t>(clamped_output);
+  return static_cast<T>(clamped_output);
 }
 
 template <typename T>
@@ -180,9 +199,9 @@ void EvalQuantizedSquaredDifference(TfLiteContext* context, TfLiteNode* node,
     const int flat_size = tflite::micro::GetTensorShape(input1).FlatSize();
     reference_integer_ops::ElementWise(
         flat_size, op_data->arithmetic_params,
-        tflite::micro::GetTensorData<int8_t>(input1),
-        tflite::micro::GetTensorData<int8_t>(input2),
-        tflite::micro::GetTensorData<int8_t>(output),
+        tflite::micro::GetTensorData<T>(input1),
+        tflite::micro::GetTensorData<T>(input2),
+        tflite::micro::GetTensorData<T>(output),
         reference_integer_ops::CheckArithmeticParams, SquaredDifference);
   }
 }
@@ -228,9 +247,13 @@ TfLiteStatus SquaredDifferenceEval(TfLiteContext* context, TfLiteNode* node) {
   } else if (output->type == kTfLiteInt8) {
     EvalQuantizedSquaredDifference<int8_t>(context, node, data, input1, input2,
                                            output);
+  } else if (output->type == kTfLiteInt16) {
+    EvalQuantizedSquaredDifference<int16_t>(context, node, data, input1, input2,
+                                            output);
   } else {
     MicroPrintf(
-        "SquaredDifference only supports FLOAT32, INT32 and INT8 now, got %d.",
+        "SquaredDifference only supports FLOAT32, INT32 , INT16 and INT8 now, "
+        "got %d.",
         output->type);
     return kTfLiteError;
   }
