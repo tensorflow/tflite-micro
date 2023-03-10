@@ -25,7 +25,7 @@ namespace tflite {
 
 TfLiteStatus GetRegistrationFromOpCode(
     const OperatorCode* opcode, const OpResolver& op_resolver,
-    const TfLiteRegistration** registration) {
+    const TfLiteRegistration_V1** registration) {
   return GetRegistrationFromOpCode(
       opcode, op_resolver, tflite::GetMicroErrorReporter(), registration);
 }

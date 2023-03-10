@@ -31,7 +31,7 @@ using TfLiteBridgeOpResolver = OpResolver;
 // implementation.
 TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const OpResolver& op_resolver,
-                                       const TfLiteRegistration** registration);
+                                       const TfLiteRegistration_V1** registration);
 
 }  // namespace tflite
 

@@ -135,7 +135,7 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_L2_POOL_2D() {
+TfLiteRegistration_V1 Register_L2_POOL_2D() {
   return tflite::micro::RegisterOp(nullptr, L2Prepare, L2Eval);
 }
 

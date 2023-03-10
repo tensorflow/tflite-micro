@@ -23,7 +23,7 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-void TestElementwiseFloat(const TfLiteRegistration& registration,
+void TestElementwiseFloat(const TfLiteRegistration_V1& registration,
                           int* input_dims_data, const float* input_data,
                           int* output_dims_data,
                           const float* expected_output_data,
@@ -61,7 +61,7 @@ void TestElementwiseFloat(const TfLiteRegistration& registration,
 }
 
 template <typename T>
-void TestElementwiseQuantized(const TfLiteRegistration& registration,
+void TestElementwiseQuantized(const TfLiteRegistration_V1& registration,
                               int* input_dims_data, const float* input_data,
                               T* input_quantized, float input_scale,
                               int32_t input_zero_point, int* output_dims_data,
@@ -116,7 +116,7 @@ void TestElementwiseQuantized(const TfLiteRegistration& registration,
   }
 }
 
-void TestElementwiseBool(const TfLiteRegistration& registration,
+void TestElementwiseBool(const TfLiteRegistration_V1& registration,
                          int* input_dims_data, const bool* input_data,
                          int* output_dims_data,
                          const bool* expected_output_data, bool* output_data) {

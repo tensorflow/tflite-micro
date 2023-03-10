@@ -64,7 +64,7 @@ TF_LITE_MICRO_TEST(TestOperations) {
   using tflite::BuiltinOperator_RELU;
   using tflite::MicroMutableOpResolver;
 
-  static TfLiteRegistration r = {};
+  static TfLiteRegistration_V1 r = {};
   r.init = tflite::MockInit;
   r.free = tflite::MockFree;
   r.prepare = tflite::MockPrepare;
@@ -83,7 +83,7 @@ TF_LITE_MICRO_TEST(TestOperations) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1),
                           micro_op_resolver.GetRegistrationLength());
 
-  const TfLiteRegistration* registration =
+  const TfLiteRegistration_V1* registration =
       resolver->FindOp(BuiltinOperator_RELU);
   TF_LITE_MICRO_EXPECT(nullptr == registration);
 
