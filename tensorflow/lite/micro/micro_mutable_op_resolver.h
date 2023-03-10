@@ -46,7 +46,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   explicit MicroMutableOpResolver() {}
 
-  const TfLiteRegistration_V1* FindOp(tflite::BuiltinOperator op) const override {
+  const TfLiteRegistration_V1* FindOp(
+      tflite::BuiltinOperator op) const override {
     if (op == BuiltinOperator_CUSTOM) return nullptr;
 
     for (unsigned int i = 0; i < registrations_len_; ++i) {
@@ -84,7 +85,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // function is called again for a previously added Custom Operator, the
   // MicroOpResolver will be unchanged and this function will return
   // kTfLiteError.
-  TfLiteStatus AddCustom(const char* name, TfLiteRegistration_V1* registration) {
+  TfLiteStatus AddCustom(const char* name,
+                         TfLiteRegistration_V1* registration) {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf(
           "Couldn't register custom op '%s', resolver size is too"
@@ -99,7 +101,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
       return kTfLiteError;
     }
 
-    TfLiteRegistration_V1* new_registration = &registrations_[registrations_len_];
+    TfLiteRegistration_V1* new_registration =
+        &registrations_[registrations_len_];
     registrations_len_ += 1;
 
     *new_registration = *registration;
@@ -116,7 +119,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseAbs);
   }
 
-  TfLiteStatus AddAdd(const TfLiteRegistration_V1& registration = Register_ADD()) {
+  TfLiteStatus AddAdd(
+      const TfLiteRegistration_V1& registration = Register_ADD()) {
     return AddBuiltin(BuiltinOperator_ADD, registration, ParseAdd);
   }
 
@@ -200,8 +204,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::Register_DEPTH_TO_SPACE(), ParseDepthToSpace);
   }
 
-  TfLiteStatus AddDepthwiseConv2D(
-      const TfLiteRegistration_V1& registration = Register_DEPTHWISE_CONV_2D()) {
+  TfLiteStatus AddDepthwiseConv2D(const TfLiteRegistration_V1& registration =
+                                      Register_DEPTHWISE_CONV_2D()) {
     return AddBuiltin(BuiltinOperator_DEPTHWISE_CONV_2D, registration,
                       ParseDepthwiseConv2D);
   }
@@ -377,7 +381,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseMinimum);
   }
 
-  TfLiteStatus AddMul(const TfLiteRegistration_V1& registration = Register_MUL()) {
+  TfLiteStatus AddMul(
+      const TfLiteRegistration_V1& registration = Register_MUL()) {
     return AddBuiltin(BuiltinOperator_MUL, registration, ParseMul);
   }
 
@@ -394,7 +399,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_PACK, Register_PACK(), ParsePack);
   }
 
-  TfLiteStatus AddPad(const TfLiteRegistration_V1& registration = Register_PAD()) {
+  TfLiteStatus AddPad(
+      const TfLiteRegistration_V1& registration = Register_PAD()) {
     return AddBuiltin(BuiltinOperator_PAD, registration, ParsePad);
   }
 
