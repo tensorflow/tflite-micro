@@ -3,7 +3,6 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "generate_cc_arrays",
     "micro_copts",
 )
 
