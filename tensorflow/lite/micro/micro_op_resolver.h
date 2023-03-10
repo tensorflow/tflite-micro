@@ -54,7 +54,7 @@ class MicroOpResolver {
 // implementation.
 TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const MicroOpResolver& op_resolver,
-                                       const TfLiteRegistration** registration);
+                                       const TfLiteRegistration_V1** registration);
 
 }  // namespace tflite
 
