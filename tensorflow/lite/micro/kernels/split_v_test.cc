@@ -81,7 +81,7 @@ void TestSplitVFloat(int* input_dims_data, const float* input_data,
   for (int i = 0; i < N; i++) outputs_array_data[i + 1] = i + 3;
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_SPLIT_V();
+  const TfLiteRegistration_V1 registration = Register_SPLIT_V();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 

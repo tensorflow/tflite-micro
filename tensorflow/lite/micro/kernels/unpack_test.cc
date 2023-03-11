@@ -69,7 +69,7 @@ void TestUnpackThreeOutputsFloat(
   int outputs_array_data[] = {3, 1, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::Register_UNPACK();
+  const TfLiteRegistration_V1 registration = tflite::Register_UNPACK();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -119,7 +119,7 @@ void TestUnpackOneOutputFloat(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::Register_UNPACK();
+  const TfLiteRegistration_V1 registration = tflite::Register_UNPACK();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -178,7 +178,7 @@ void TestUnpackThreeOutputsQuantized32(
   int outputs_array_data[] = {3, 1, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::Register_UNPACK();
+  const TfLiteRegistration_V1 registration = tflite::Register_UNPACK();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

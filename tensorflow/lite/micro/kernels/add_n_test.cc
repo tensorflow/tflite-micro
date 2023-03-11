@@ -38,7 +38,7 @@ void ExecuteAddN(TfLiteTensor* tensors, int tensors_count) {
   int kOutputArrayData[] = {1, tensors_count - 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_ADD_N();
+  const TfLiteRegistration_V1 registration = tflite::Register_ADD_N();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 

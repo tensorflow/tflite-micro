@@ -100,17 +100,17 @@ TfLiteStatus XtensaEvalSum(TfLiteContext* context, TfLiteNode* node) {
   return EvalSumHelper(context, node, op_data);
 }
 
-TfLiteRegistration Register_MEAN() {
+TfLiteRegistration_V1 Register_MEAN() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalMean);
 }
 
-TfLiteRegistration Register_REDUCE_MAX() {
+TfLiteRegistration_V1 Register_REDUCE_MAX() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMax,
                                    XtensaEvalMax);
 }
 
-TfLiteRegistration Register_SUM() {
+TfLiteRegistration_V1 Register_SUM() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalSum);
 }

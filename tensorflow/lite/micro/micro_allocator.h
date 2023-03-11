@@ -68,7 +68,7 @@ struct ScratchBufferRequest {
 
 struct NodeAndRegistration {
   TfLiteNode node;
-  const TfLiteRegistration* registration;
+  const TfLiteRegistration_V1* registration;
 };
 
 // Holds a pointer to a buffer for a scratch buffer requested by a kernel during

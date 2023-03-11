@@ -132,7 +132,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_AVERAGE_POOL_2D() {
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(XtensaPoolingInit, AveragePrepareHifi,
                                    AverageEval);
@@ -145,7 +145,7 @@ TfLiteRegistration Register_AVERAGE_POOL_2D() {
 #endif
 }
 
-TfLiteRegistration Register_MAX_POOL_2D() {
+TfLiteRegistration_V1 Register_MAX_POOL_2D() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(XtensaPoolingInit, MaxPrepareHifi, MaxEval);
 #elif defined(VISION_P6)
@@ -156,11 +156,11 @@ TfLiteRegistration Register_MAX_POOL_2D() {
 #endif
 }
 
-TfLiteRegistration Register_AVERAGE_POOL_2D_INT16() {
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16() {
   return Register_AVERAGE_POOL_2D();
 }
 
-TfLiteRegistration Register_MAX_POOL_2D_INT16() {
+TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16() {
   return Register_MAX_POOL_2D();
 }
 
