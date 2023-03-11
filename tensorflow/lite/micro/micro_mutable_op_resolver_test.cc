@@ -63,7 +63,6 @@ TF_LITE_MICRO_TEST(TestOperations) {
   using tflite::BuiltinOperator_CONV_2D;
   using tflite::BuiltinOperator_RELU;
   using tflite::MicroMutableOpResolver;
-  using tflite::OpResolver;
 
   static TfLiteRegistration r = {};
   r.init = tflite::MockInit;
