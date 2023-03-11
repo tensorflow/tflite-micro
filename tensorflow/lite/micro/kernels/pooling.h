@@ -113,27 +113,27 @@ void MaxPoolingEvalQuantized(TfLiteContext* context, TfLiteNode* node,
 }
 
 #if defined(CMSIS_NN) || defined(XTENSA)
-TfLiteRegistration Register_AVERAGE_POOL_2D_INT8();
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8();
 
-TfLiteRegistration Register_MAX_POOL_2D_INT8();
+TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8();
 
-TfLiteRegistration Register_AVERAGE_POOL_2D_INT16();
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16();
 
-TfLiteRegistration Register_MAX_POOL_2D_INT16();
+TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16();
 #else
-inline TfLiteRegistration Register_AVERAGE_POOL_2D_INT8() {
+inline TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8() {
   return tflite::Register_AVERAGE_POOL_2D();
 }
 
-inline TfLiteRegistration Register_MAX_POOL_2D_INT8() {
+inline TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8() {
   return tflite::Register_MAX_POOL_2D();
 }
 
-inline TfLiteRegistration Register_AVERAGE_POOL_2D_INT16() {
+inline TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16() {
   return tflite::Register_AVERAGE_POOL_2D();
 }
 
-inline TfLiteRegistration Register_MAX_POOL_2D_INT16() {
+inline TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16() {
   return tflite::Register_MAX_POOL_2D();
 }
 #endif

@@ -135,7 +135,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_DEPTH_TO_SPACE() {
+TfLiteRegistration_V1 Register_DEPTH_TO_SPACE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

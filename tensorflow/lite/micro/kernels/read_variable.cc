@@ -80,7 +80,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace.
 
-TfLiteRegistration Register_READ_VARIABLE() {
+TfLiteRegistration_V1 Register_READ_VARIABLE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

@@ -107,11 +107,11 @@ TfLiteStatus ArgMaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_ARG_MAX() {
+TfLiteRegistration_V1 Register_ARG_MAX() {
   return tflite::micro::RegisterOp(nullptr, nullptr, ArgMaxEval);
 }
 
-TfLiteRegistration Register_ARG_MIN() {
+TfLiteRegistration_V1 Register_ARG_MIN() {
   return tflite::micro::RegisterOp(nullptr, nullptr, ArgMinEval);
 }
 

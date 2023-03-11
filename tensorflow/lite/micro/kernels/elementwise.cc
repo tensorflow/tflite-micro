@@ -377,7 +377,7 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 }  // namespace elementwise
 
-TfLiteRegistration Register_ABS() {
+TfLiteRegistration_V1 Register_ABS() {
   return tflite::micro::RegisterOp(
       elementwise::ElementWiseAbsRsqrtInit,
       elementwise::PrepareAbsRsqrt<elementwise::IsAbsSupportedType,
@@ -385,31 +385,31 @@ TfLiteRegistration Register_ABS() {
       elementwise::AbsEval);
 }
 
-TfLiteRegistration Register_SIN() {
+TfLiteRegistration_V1 Register_SIN() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
       elementwise::SinEval);
 }
 
-TfLiteRegistration Register_COS() {
+TfLiteRegistration_V1 Register_COS() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
       elementwise::CosEval);
 }
 
-TfLiteRegistration Register_LOG() {
+TfLiteRegistration_V1 Register_LOG() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
       elementwise::LogEval);
 }
 
-TfLiteRegistration Register_SQRT() {
+TfLiteRegistration_V1 Register_SQRT() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
       elementwise::SqrtEval);
 }
 
-TfLiteRegistration Register_RSQRT() {
+TfLiteRegistration_V1 Register_RSQRT() {
   return tflite::micro::RegisterOp(
       elementwise::ElementWiseAbsRsqrtInit,
       elementwise::PrepareAbsRsqrt<elementwise::IsRsqrtSupportedType,
@@ -417,13 +417,13 @@ TfLiteRegistration Register_RSQRT() {
       elementwise::RsqrtEval);
 }
 
-TfLiteRegistration Register_SQUARE() {
+TfLiteRegistration_V1 Register_SQUARE() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
       elementwise::SquareEval);
 }
 
-TfLiteRegistration Register_LOGICAL_NOT() {
+TfLiteRegistration_V1 Register_LOGICAL_NOT() {
   return tflite::micro::RegisterOp(
       nullptr, elementwise::GenericPrepare<elementwise::IsLogicalSupportedType>,
       elementwise::LogicalNotEval);

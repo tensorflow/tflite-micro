@@ -118,7 +118,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_SPLIT() {
+TfLiteRegistration_V1 Register_SPLIT() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

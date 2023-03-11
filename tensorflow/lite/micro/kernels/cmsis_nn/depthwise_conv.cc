@@ -433,15 +433,15 @@ TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_DEPTHWISE_CONV_2D() {
+TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration Register_DEPTHWISE_CONV_2D_INT8() {
+TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
-TfLiteRegistration Register_DEPTHWISE_CONV_2D_INT16() {
+TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt16x8);
 }
 

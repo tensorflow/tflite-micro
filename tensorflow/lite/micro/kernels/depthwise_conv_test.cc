@@ -58,7 +58,7 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   int outputs_array_data[] = {1, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_DEPTHWISE_CONV_2D();
+  const TfLiteRegistration_V1 registration = Register_DEPTHWISE_CONV_2D();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(conv_params));

@@ -46,7 +46,7 @@ void TestConcatenateOneInput(int* input1_dims_data, const T* input1_data,
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration = Register_CONCATENATION();
+  const TfLiteRegistration_V1 registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -80,7 +80,7 @@ void TestConcatenateTwoInputs(int* input1_dims_data, const T* input1_data,
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration = Register_CONCATENATION();
+  const TfLiteRegistration_V1 registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -134,7 +134,7 @@ void TestConcatenateQuantizedTwoInputs(
       .activation = kTfLiteActNone  // Only activation supported in this impl
   };
 
-  const TfLiteRegistration registration = Register_CONCATENATION();
+  const TfLiteRegistration_V1 registration = Register_CONCATENATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

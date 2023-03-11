@@ -81,7 +81,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration Register_ZEROS_LIKE() {
+TfLiteRegistration_V1 Register_ZEROS_LIKE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

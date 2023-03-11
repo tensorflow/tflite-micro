@@ -23,7 +23,7 @@ namespace tflite {
 
 TfLiteStatus GetRegistrationFromOpCode(
     const OperatorCode* opcode, const MicroOpResolver& op_resolver,
-    const TfLiteRegistration** registration) {
+    const TfLiteRegistration_V1** registration) {
   TfLiteStatus status = kTfLiteOk;
   *registration = nullptr;
   auto builtin_code = GetBuiltinCode(opcode);
