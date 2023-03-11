@@ -123,7 +123,7 @@ TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(HexagonFullyConnectedInit,
                                    HexagonFullyConnectedPrepare,
                                    HexagonFullyConnectedEval);
