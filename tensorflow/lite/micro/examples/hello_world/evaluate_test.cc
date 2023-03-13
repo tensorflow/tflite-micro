@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 TfLiteStatus LoadFloatModelAndPerformInference() {
-
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model =
@@ -157,5 +156,6 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
 int main(int argc, char* argv[]) {
   TF_LITE_ENSURE_STATUS(LoadFloatModelAndPerformInference());
   TF_LITE_ENSURE_STATUS(LoadQuantModelAndPerformInference());
+  MicroPrintf("~~~ALL TESTS PASSED~~~\n");
   return kTfLiteOk;
 }
