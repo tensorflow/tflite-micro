@@ -15,13 +15,13 @@ limitations under the License.
 
 #include <math.h>
 
+#include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/examples/hello_world/models/hello_world_float_model_data.h"
 #include "tensorflow/lite/micro/examples/hello_world/models/hello_world_int8_model_data.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/core/c/common.h"
 
 TfLiteStatus LoadFloatModelAndPerformInference() {
 
@@ -70,7 +70,7 @@ TfLiteStatus LoadFloatModelAndPerformInference() {
   constexpr int kNumTestValues = 4;
   float golden_inputs[kNumTestValues] = {0.f, 1.f, 3.f, 5.f};
 
-  for (int i=0; i<kNumTestValues; ++i) {
+  for (int i = 0; i < kNumTestValues; ++i) {
     input->data.f[0] = golden_inputs[i];
     interpreter.Invoke();
     float y_pred = output->data.f[0];
@@ -139,7 +139,7 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
   constexpr int kNumTestValues = 4;
   float golden_inputs[kNumTestValues] = {0.f, 1.f, 3.f, 5.f};
 
-  for (int i=0; i<kNumTestValues; ++i) {
+  for (int i = 0; i < kNumTestValues; ++i) {
     input->data.int8[0] = golden_inputs[i] / input_scale + input_zero_point;
     interpreter.Invoke();
     float y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
