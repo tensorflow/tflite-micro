@@ -21,11 +21,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/core/c/common.h"
 
-int LoadFloatModelAndPerformInference() {
-  // Define the input and the expected output
-  float x = 0.0f;
-  float y_true = sin(x);
+TfLiteStatus LoadFloatModelAndPerformInference() {
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
@@ -63,76 +61,31 @@ int LoadFloatModelAndPerformInference() {
     return kTfLiteError;
   }
 
-  // Place the quantized input in the model's input tensor
-  input->data.f[0] = x;
-
-  // Run the model and check that it succeeds
-  TfLiteStatus invoke_status = interpreter.Invoke();
-  if (invoke_status != kTfLiteOk) {
-    MicroPrintf("Interpreter invocation failed.");
-    return kTfLiteError;
-  }
-
   // Obtain a pointer to the output tensor.
   TfLiteTensor* output = interpreter.output(0);
 
-  // Obtain the quantized output from model's output tensor
-  float y_pred = output->data.f[0];
-
   // Check if the output is within a small range of the expected output
   float epsilon = 0.05f;
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
 
-  // Run inference on several more values and confirm the expected outputs
-  x = 1.f;
-  y_true = sin(x);
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  y_pred = output->data.f[0];
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
+  constexpr int kNumTestValues = 4;
+  float golden_inputs[kNumTestValues] = {0.f, 1.f, 3.f, 5.f};
 
-  x = 3.f;
-  y_true = sin(x);
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  y_pred = output->data.f[0];
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
-
-  x = 5.f;
-  y_true = sin(x);
-  input->data.f[0] = x;
-  interpreter.Invoke();
-  y_pred = output->data.f[0];
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
+  for (int i=0; i<kNumTestValues; ++i) {
+    input->data.f[0] = golden_inputs[i];
+    interpreter.Invoke();
+    float y_pred = output->data.f[0];
+    if (abs(sin(golden_inputs[i]) - y_pred) > epsilon) {
+      MicroPrintf(
+          "Difference between predicted and actual y value "
+          "is significant.");
+      return kTfLiteError;
+    }
   }
 
   return kTfLiteOk;
 }
 
-int LoadQuantModelAndPerformInference() {
-  // Define the input and the expected output
-  float x = 0.0f;
-  float y_true = sin(x);
-
+TfLiteStatus LoadQuantModelAndPerformInference() {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model =
@@ -173,17 +126,6 @@ int LoadQuantModelAndPerformInference() {
   float input_scale = input->params.scale;
   int input_zero_point = input->params.zero_point;
 
-  // Quantize the input from floating-point to integer
-  int8_t x_quantized = x / input_scale + input_zero_point;
-  // Place the quantized input in the model's input tensor
-  input->data.int8[0] = x_quantized;
-  // Run the model and check that it succeeds
-  TfLiteStatus invoke_status = interpreter.Invoke();
-  if (invoke_status != kTfLiteOk) {
-    MicroPrintf("Interpreter invocation failed.");
-    return kTfLiteError;
-  }
-
   // Obtain a pointer to the output tensor.
   TfLiteTensor* output = interpreter.output(0);
 
@@ -191,71 +133,29 @@ int LoadQuantModelAndPerformInference() {
   float output_scale = output->params.scale;
   int output_zero_point = output->params.zero_point;
 
-  // Obtain the quantized output from model's output tensor
-  int8_t y_pred_quantized = output->data.int8[0];
-  // Dequantize the output from integer to floating-point
-  float y_pred = (y_pred_quantized - output_zero_point) * output_scale;
-
   // Check if the output is within a small range of the expected output
   float epsilon = 0.05f;
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
 
-  // Run inference on several more values and confirm the expected outputs
-  x = 1.f;
-  y_true = sin(x);
-  input->data.int8[0] = x / input_scale + input_zero_point;
-  interpreter.Invoke();
-  y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
+  constexpr int kNumTestValues = 4;
+  float golden_inputs[kNumTestValues] = {0.f, 1.f, 3.f, 5.f};
 
-  x = 3.f;
-  y_true = sin(x);
-  input->data.int8[0] = x / input_scale + input_zero_point;
-  interpreter.Invoke();
-  y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
-  }
-
-  x = 5.f;
-  y_true = sin(x);
-  input->data.int8[0] = x / input_scale + input_zero_point;
-  interpreter.Invoke();
-  y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
-  if (abs(y_true - y_pred) > epsilon) {
-    MicroPrintf(
-        "Difference between predicted and actual y value "
-        "is significant.");
-    return kTfLiteError;
+  for (int i=0; i<kNumTestValues; ++i) {
+    input->data.int8[0] = golden_inputs[i] / input_scale + input_zero_point;
+    interpreter.Invoke();
+    float y_pred = (output->data.int8[0] - output_zero_point) * output_scale;
+    if (abs(sin(golden_inputs[i]) - y_pred) > epsilon) {
+      MicroPrintf(
+          "Difference between predicted and actual y value "
+          "is significant.");
+      return kTfLiteError;
+    }
   }
 
   return kTfLiteOk;
 }
 
 int main(int argc, char* argv[]) {
-  int status = LoadFloatModelAndPerformInference();
-  int status_1 = LoadQuantModelAndPerformInference();
-  // To be part of the unit test suite, each test file needs to print out
-  // either one of the following strings. These strings are required to
-  // be considered as a unit test for the tflm makefiles.
-  if (status == kTfLiteOk && status_1 == kTfLiteOk) {
-    MicroPrintf("~~~ALL TESTS PASSED~~~\n");
-    return kTfLiteOk;
-  } else {
-    MicroPrintf("~~~SOME TESTS FAILED~~~\n");
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE_STATUS(LoadFloatModelAndPerformInference());
+  TF_LITE_ENSURE_STATUS(LoadQuantModelAndPerformInference());
+  return kTfLiteOk;
 }
