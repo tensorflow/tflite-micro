@@ -15,12 +15,6 @@ on:
       trigger-sha:
         required: true
         type: string
-      is-scheduled:
-        type: string
-        default: 'FALSE'
-      is-dispatched:
-        type: string
-        default: 'FALSE'
     secrets:
       tflm-bot-token:
         required: true
@@ -41,10 +35,10 @@ jobs:
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
 
-  hifi5_unit_tests:
+  vision_p6_unit_tests:
     runs-on: ubuntu-latest
 
-    name: Hifi5 Unit Tests (postmerge)
+    name: Vision P6 Unit Tests (postmerge)
     steps:
       - uses: actions/checkout@v2
         with:
@@ -52,9 +46,9 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --env XTENSA_TOOLS_VERSION=RI-2022.9-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
+          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
           /bin/bash -c \
-          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/"
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
   hifimini_unit_tests:
     runs-on: ubuntu-latest

@@ -15,12 +15,6 @@ on:
       trigger-sha:
         required: true
         type: string
-      is-scheduled:
-        type: string
-        default: 'FALSE'
-      is-dispatched:
-        type: string
-        default: 'FALSE'
     secrets:
       tflm-bot-token:
         required: true
@@ -29,9 +23,6 @@ jobs:
 
   vision_p6_presubmit:
     runs-on: ubuntu-latest
-    #does not run scheduled
-    if: |
-      ${{ (inputs.is-scheduled == 'FALSE') }}
       
     name: Vision P6 Build (presubmit)
     steps:
@@ -45,14 +36,10 @@ jobs:
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/"
 
-  vision_p6_unit_tests:
+  hifi5_unit_tests:
     runs-on: ubuntu-latest
-    # only runs scheduled or dispatched
-    if: |
-      inputs.is-scheduled == 'TRUE' ||
-      inputs.is-dispatched == 'TRUE'
 
-    name: Vision P6 Unit Tests (nightly)
+    name: Hifi5 Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:
@@ -60,18 +47,14 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
+          docker run --env XTENSA_TOOLS_VERSION=RI-2022.9-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
           /bin/bash -c \
-          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/"
 
   hifi_3z_unit_tests:
     runs-on: ubuntu-latest
-    # only runs scheduled or dispatched
-    if: |
-      inputs.is-scheduled == 'TRUE' ||
-      inputs.is-dispatched == 'TRUE'
 
-    name: Hifi3z Unit Tests (nightly regression)
+    name: Hifi3z Unit Tests (presubmit)
     steps:
       - uses: actions/checkout@v2
         with:

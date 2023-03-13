@@ -11,6 +11,7 @@ on:
 jobs:
 
   xtensa_postmerge:
+    if: ${{ github.event.pull_request.merged == true }}
     uses: ./.github/workflows/xtensa_postmerge.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
