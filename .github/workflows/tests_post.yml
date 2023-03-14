@@ -1,0 +1,35 @@
+name: Post Tests
+# This is for tests that run on a PR post merge. This to optimize CI test suite time
+# for exceptionally long running test processes. Errors will still generate an
+# issue against the PR/commit so will be caught.
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+
+  xtensa_postmerge:
+    if: ${{ github.event.pull_request.merged == true }}
+    uses: ./.github/workflows/xtensa_postmerge.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  issue_on_error:
+    needs: [xtensa_postmerge]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository}}
+      workflow: ${{ github.workflow }}
+      run_number: ${{ github.run_number }}
+      run_id: ${{ github.run_id }}
+      flag_label: ci:bot_issue
+      pr_number: ${{ github.event.number }}
+      pr_link: ${{ github.event.pull_request._links.html.href }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      
