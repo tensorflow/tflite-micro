@@ -103,7 +103,7 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_SVDF() {
+TfLiteRegistration_V1 Register_SVDF() {
   return tflite::micro::RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare,
                                    SvdfEval);
 }

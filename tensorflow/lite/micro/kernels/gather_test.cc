@@ -48,7 +48,7 @@ void TestGather(int* input_dims, const InType* input_data, int* positions_dims,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_GATHER();
+  const TfLiteRegistration_V1 registration = Register_GATHER();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, &params);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());

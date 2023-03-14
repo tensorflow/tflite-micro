@@ -80,7 +80,7 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_DEQUANTIZE() {
+TfLiteRegistration_V1 Register_DEQUANTIZE() {
   return tflite::micro::RegisterOp(DequantizeInit, DequantizePrepare,
                                    DequantizeEval);
 }

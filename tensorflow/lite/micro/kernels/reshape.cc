@@ -114,7 +114,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace reshape
 
-TfLiteRegistration Register_RESHAPE() {
+TfLiteRegistration_V1 Register_RESHAPE() {
   return tflite::micro::RegisterOp(nullptr, reshape::Prepare, reshape::Eval);
 }
 

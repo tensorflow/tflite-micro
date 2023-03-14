@@ -36,7 +36,7 @@ void ValidateStridedSliceGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 4};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_STRIDED_SLICE();
+  const TfLiteRegistration_V1 registration = Register_STRIDED_SLICE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(params));
   if (expect_prepare_err) {

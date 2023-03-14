@@ -36,12 +36,12 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-const TfLiteRegistration* PackerOp::getRegistration() {
+const TfLiteRegistration_V1* PackerOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration* PackerOp::GetMutableRegistration() {
-  static TfLiteRegistration r;
+TfLiteRegistration_V1* PackerOp::GetMutableRegistration() {
+  static TfLiteRegistration_V1 r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;

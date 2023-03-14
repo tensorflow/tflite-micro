@@ -57,7 +57,7 @@ void TestResizeNearestNeighbor(int* input_dims_data, const T* input_data,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_RESIZE_NEAREST_NEIGHBOR();
+  const TfLiteRegistration_V1 registration = Register_RESIZE_NEAREST_NEIGHBOR();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, &builtin_data);
 
