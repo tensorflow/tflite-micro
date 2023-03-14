@@ -262,7 +262,7 @@ TfLiteStatus SquaredDifferenceEval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration Register_SQUARED_DIFFERENCE() {
+TfLiteRegistration_V1 Register_SQUARED_DIFFERENCE() {
   return tflite::micro::RegisterOp(
       SquaredDifferenceInit, SquaredDifferencePrepare, SquaredDifferenceEval);
 }

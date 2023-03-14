@@ -190,19 +190,19 @@ TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_SOFTMAX() {
+TfLiteRegistration_V1 Register_SOFTMAX() {
   return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEval);
 }
 
-TfLiteRegistration Register_SOFTMAX_INT8() {
+TfLiteRegistration_V1 Register_SOFTMAX_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8);
 }
 
-TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
+TfLiteRegistration_V1 Register_SOFTMAX_INT8_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8_Int16);
 }
 
-TfLiteRegistration Register_SOFTMAX_INT16() {
+TfLiteRegistration_V1 Register_SOFTMAX_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt16);
 }
 

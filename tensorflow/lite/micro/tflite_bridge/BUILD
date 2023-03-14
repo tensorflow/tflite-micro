@@ -30,23 +30,6 @@ cc_library(
 )
 
 cc_library(
-    name = "op_resolver_bridge",
-    srcs = ["op_resolver_bridge.cc"],
-    hdrs = ["op_resolver_bridge.h"],
-    copts = micro_copts(),
-    visibility = [
-        "//tensorflow/lite/micro:__pkg__",
-    ],
-    deps = [
-        ":micro_error_reporter",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api:error_reporter",
-        "//tensorflow/lite/core/api:op_resolver",
-        "//tensorflow/lite/schema:schema_fbs",
-    ],
-)
-
-cc_library(
     name = "micro_error_reporter",
     srcs = [
         "micro_error_reporter.cc",

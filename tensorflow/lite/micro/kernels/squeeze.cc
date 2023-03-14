@@ -111,7 +111,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_SQUEEZE() {
+TfLiteRegistration_V1 Register_SQUEEZE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

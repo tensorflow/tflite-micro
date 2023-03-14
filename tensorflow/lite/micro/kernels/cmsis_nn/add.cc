@@ -356,15 +356,15 @@ TfLiteStatus EvalAddInt16(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_ADD() {
+TfLiteRegistration_V1 Register_ADD() {
   return tflite::micro::RegisterOp(InitAdd, PrepareAdd, EvalAdd);
 }
 
-TfLiteRegistration Register_ADD_INT8() {
+TfLiteRegistration_V1 Register_ADD_INT8() {
   return tflite::micro::RegisterOp(InitAdd, PrepareAdd, EvalAddInt8);
 }
 
-TfLiteRegistration Register_ADD_INT16() {
+TfLiteRegistration_V1 Register_ADD_INT16() {
   return tflite::micro::RegisterOp(InitAdd, PrepareAdd, EvalAddInt16);
 }
 

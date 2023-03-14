@@ -24,7 +24,7 @@ namespace tflite {
 namespace testing {
 namespace {
 
-void TestLogicalOp(const TfLiteRegistration& registration,
+void TestLogicalOp(const TfLiteRegistration_V1& registration,
                    int* input1_dims_data, const bool* input1_data,
                    int* input2_dims_data, const bool* input2_data,
                    int* output_dims_data, const bool* expected_output_data,

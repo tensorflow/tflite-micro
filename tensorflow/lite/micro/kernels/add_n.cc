@@ -208,7 +208,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_ADD_N() {
+TfLiteRegistration_V1 Register_ADD_N() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
