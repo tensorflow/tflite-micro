@@ -16,13 +16,13 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "third_party/tensorflow/lite/c/builtin_op_data.h"
-#include "third_party/tensorflow/lite/c/common.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/all_ops_resolver.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/kernels/kernel_runner.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/micro_utils.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/test_helpers.h"
-#include "third_party/tflite_micro/tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/test_helpers.h"
+#include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
 namespace testing {
