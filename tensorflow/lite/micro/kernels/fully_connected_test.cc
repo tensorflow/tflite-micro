@@ -271,7 +271,7 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_FULLY_CONNECTED();
+  const TfLiteRegistration_V1 registration = Register_FULLY_CONNECTED();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -431,6 +431,34 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
           tflite::testing::simple_output_dims, output_scale, output_zero_point,
           kTfLiteActNone, output_data),
       kTfLiteOk);
+}
+
+TF_LITE_MICRO_TEST(TestInputTypeAndFilterTypeIncompatibility) {
+  const float input_scale = 1.0f;
+  const int input_zero_point = -1;
+  const float weights_scale = 1.0f;
+  const int weights_zero_point = 0;
+  const float output_scale = 0.5f;
+  const int output_zero_point = -1;
+
+  int8_t input_quantized[tflite::testing::simple_input_size];
+  int16_t weights_quantized[tflite::testing::simple_weights_size];
+  int32_t bias_quantized[tflite::testing::simple_output_size];
+  int8_t golden_quantized[tflite::testing::simple_output_size];
+  int8_t output_data[tflite::testing::simple_output_size];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantized(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, weights_quantized,
+          weights_scale, weights_zero_point, tflite::testing::simple_bias_dims,
+          tflite::testing::simple_bias_data, bias_quantized,
+          tflite::testing::simple_golden, golden_quantized,
+          tflite::testing::simple_output_dims, output_scale, output_zero_point,
+          kTfLiteActNone, output_data),
+      kTfLiteError);
 }
 
 #if !defined(HEXAGON)

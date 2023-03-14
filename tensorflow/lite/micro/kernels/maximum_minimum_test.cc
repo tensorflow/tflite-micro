@@ -24,7 +24,7 @@ namespace tflite {
 namespace testing {
 namespace {
 
-void TestMaxMinFloat(const TfLiteRegistration& registration,
+void TestMaxMinFloat(const TfLiteRegistration_V1& registration,
                      int* input1_dims_data, const float* input1_data,
                      int* input2_dims_data, const float* input2_data,
                      const float* expected_output_data, int* output_dims_data,
@@ -60,7 +60,7 @@ void TestMaxMinFloat(const TfLiteRegistration& registration,
   }
 }
 
-void TestMaxMinQuantized(const TfLiteRegistration& registration,
+void TestMaxMinQuantized(const TfLiteRegistration_V1& registration,
                          int* input1_dims_data, const int8_t* input1_data,
                          float const input1_scale, const int input1_zero_point,
                          int* input2_dims_data, const int8_t* input2_data,
@@ -102,7 +102,7 @@ void TestMaxMinQuantized(const TfLiteRegistration& registration,
   }
 }
 
-void TestMaxMinQuantizedInt32(const TfLiteRegistration& registration,
+void TestMaxMinQuantizedInt32(const TfLiteRegistration_V1& registration,
                               int* input1_dims_data, const int32_t* input1_data,
                               int* input2_dims_data, const int32_t* input2_data,
                               const int32_t* expected_output_data,
