@@ -90,7 +90,7 @@ class MicroContext {
   // Virtual so that it can be faked for kernel tests.
   virtual uint8_t* AllocateTempBuffer(size_t size, size_t alignment);
 
-  // Signals that the temporary buffer no longer needed.
+  // Signals that the temporary buffer is no longer needed.
   // Virtual so that it can be faked for kernel tests.
   virtual void DeallocateTempBuffer(uint8_t* buffer);
 
