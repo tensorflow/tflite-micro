@@ -4,7 +4,7 @@ name: Post Tests
 # issue against the PR/commit so will be caught.
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
 
