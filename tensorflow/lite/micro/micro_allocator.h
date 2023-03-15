@@ -195,6 +195,13 @@ class MicroAllocator {
 
   virtual void DeallocateTempTfLiteTensor(TfLiteTensor*);
 
+  // Returns a pointer to a buffer from the temporary arena memory and is only
+  // guaranteed until a call is made to ResetTempAllocations().
+  virtual uint8_t* AllocateTempBuffer(size_t size, size_t alignment);
+
+  // Signals that the temporary buffer no longer needed.
+  virtual void DeallocateTempBuffer(uint8_t* buffer);
+
   // Resets all temporary allocations. This method should be called after a
   // chain of temp allocations (e.g. chain of TfLiteTensor objects via
   // AllocateTfLiteTensor()).

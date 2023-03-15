@@ -16,9 +16,11 @@ cc_library(
     name = "model",
     srcs = [
         "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_cc",
+        "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_int8_model_cc",
     ],
     hdrs = [
         "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_hdr",
+        "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_int8_model_hdr",
     ],
     copts = micro_copts(),
 )

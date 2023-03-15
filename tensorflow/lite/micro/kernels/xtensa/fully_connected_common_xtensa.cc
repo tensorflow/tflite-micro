@@ -127,11 +127,7 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   }
   micro_context->DeallocateTempTfLiteTensor(output);
 #if defined(VISION_P6)
-  // P6 Vision Prepare only handles input and filter of type INT8
-  // Otherwise, we will execute a reference version during Eval
-  if (input->type == kTfLiteInt8 && filter->type == kTfLiteInt8) {
-    TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
-  }
+  TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
 #endif  // defined(VISION_P6)
 
   return kTfLiteOk;

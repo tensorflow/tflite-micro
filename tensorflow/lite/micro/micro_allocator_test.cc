@@ -955,6 +955,21 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
   TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
 }
 
+TF_LITE_MICRO_TEST(TestAllocateAndDeallocateTempBuffer) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, arena_size);
+  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
+  uint8_t* buffer1 =
+      allocator->AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
+  TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
+  TF_LITE_MICRO_EXPECT_FALSE(allocator->IsAllTempDeallocated());
+  allocator->DeallocateTempBuffer(buffer1);
+  TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
+}
+
 TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   constexpr size_t arena_size = 1024;
