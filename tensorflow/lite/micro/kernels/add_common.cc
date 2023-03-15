@@ -90,6 +90,7 @@ TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kAddOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+  TFLITE_CHECK_NE(output->quantization.type, kTfLiteNoQuantization);
 
   OpDataAdd* data = static_cast<OpDataAdd*>(node->user_data);
   auto* params = reinterpret_cast<TfLiteAddParams*>(node->builtin_data);
