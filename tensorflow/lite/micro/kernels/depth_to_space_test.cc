@@ -42,7 +42,7 @@ void ExecuteDepthToSpaceTest(const DepthToSpaceTestParams& params,
   TfLiteDepthToSpaceParams op_params = {};
   op_params.block_size = params.block_size;
 
-  const TfLiteRegistration registration = tflite::Register_DEPTH_TO_SPACE();
+  const TfLiteRegistration_V1 registration = tflite::Register_DEPTH_TO_SPACE();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&op_params));
 

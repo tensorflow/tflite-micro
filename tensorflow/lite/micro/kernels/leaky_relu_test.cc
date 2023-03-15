@@ -50,7 +50,7 @@ void ExecuteLeakyReluTest(const float alpha, const int tensors_count,
   int kOutputArrayData[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_LEAKY_RELU();
+  const TfLiteRegistration_V1 registration = tflite::Register_LEAKY_RELU();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&builtin_data));
 

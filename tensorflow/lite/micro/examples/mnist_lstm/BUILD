@@ -30,7 +30,7 @@ py_test(
     srcs = ["evaluate_test.py"],
     data = [
         "trained_lstm.tflite",
-        "trained_lstm_quant.tflite",
+        "trained_lstm_int8.tflite",
         ":sample_images",
     ],
     main = "evaluate_test.py",
@@ -43,5 +43,6 @@ py_test(
     deps = [
         ":evaluate",
         ":train",
+        "//tensorflow/lite/micro/tools:requantize_flatbuffer",
     ],
 )

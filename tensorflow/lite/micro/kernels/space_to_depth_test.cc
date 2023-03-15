@@ -63,7 +63,7 @@ void TestSpaceToDepth(const SpaceToDepthTest<T>& args) {
   TfLiteTensor tensors[] = {CreateTensor(args.input_data, input_dims),
                             CreateTensor(args.output_data, output_dims)};
 
-  const TfLiteRegistration registration = tflite::Register_SPACE_TO_DEPTH();
+  const TfLiteRegistration_V1 registration = tflite::Register_SPACE_TO_DEPTH();
   constexpr int tensor_count = ArrayLength(tensors);
   constexpr int kInputIndex = 0;
   int input_indexes_data[] = {1, kInputIndex};

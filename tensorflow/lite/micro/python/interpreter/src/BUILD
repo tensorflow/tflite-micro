@@ -27,7 +27,7 @@ pybind_library(
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
-        "@numpy_headers",
+        "@numpy_cc_deps//:cc_headers",
     ],
 )
 
@@ -52,5 +52,6 @@ py_library(
     srcs_version = "PY3",
     deps = [
         requirement("numpy"),
+        "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )

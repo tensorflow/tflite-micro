@@ -31,7 +31,7 @@ void ExecuteFloorDivTest(TfLiteTensor* tensors, int tensors_count) {
   int kOutputArrayData[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_FLOOR_DIV();
+  const TfLiteRegistration_V1 registration = tflite::Register_FLOOR_DIV();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
