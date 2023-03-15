@@ -17,6 +17,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -135,6 +136,13 @@ TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
   TfLiteTensor* invalid_output =
       micro_context.AllocateTempOutputTensor(&node, 1);
   TF_LITE_MICRO_EXPECT_TRUE(invalid_output == nullptr);
+}
+
+TF_LITE_MICRO_TEST(TestAllocateTempBuffer) {
+  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  uint8_t* buffer1 =
+      micro_context.AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
+  TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
 }
 
 TF_LITE_MICRO_TEST(TestGetTempIntermediateTensor) {
