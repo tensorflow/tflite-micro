@@ -51,7 +51,7 @@ void TestSlice(int* input_dims_data, const dataT* input_data,
   int outputs_array_data[] = {1, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::Register_SLICE();
+  const TfLiteRegistration_V1 registration = tflite::Register_SLICE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 

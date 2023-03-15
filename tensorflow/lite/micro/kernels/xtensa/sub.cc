@@ -252,7 +252,7 @@ TfLiteStatus SubEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_SUB() {
+TfLiteRegistration_V1 Register_SUB() {
   return tflite::micro::RegisterOp(SubInit, SubPrepare, SubEval);
 }
 

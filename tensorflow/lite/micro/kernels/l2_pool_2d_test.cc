@@ -55,7 +55,7 @@ void ExecuteL2Pool2DTest(const L2Pool2DTestParams& params,
   op_params.stride_height = params.stride_height;
   op_params.stride_width = params.stride_width;
 
-  const TfLiteRegistration registration = tflite::Register_L2_POOL_2D();
+  const TfLiteRegistration_V1 registration = tflite::Register_L2_POOL_2D();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&op_params));
 

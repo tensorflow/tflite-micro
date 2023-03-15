@@ -81,7 +81,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace.
 
-TfLiteRegistration Register_CALL_ONCE() {
+TfLiteRegistration_V1 Register_CALL_ONCE() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

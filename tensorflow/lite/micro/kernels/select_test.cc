@@ -49,7 +49,7 @@ void TestSelect(int* input1_dims_data, const bool* input1_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteSelectParams builtin_data;
-  const TfLiteRegistration registration = tflite::Register_SELECT_V2();
+  const TfLiteRegistration_V1 registration = tflite::Register_SELECT_V2();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

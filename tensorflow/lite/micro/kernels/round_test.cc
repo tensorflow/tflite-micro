@@ -42,7 +42,8 @@ void TestRound(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::ops::micro::Register_ROUND();
+  const TfLiteRegistration_V1 registration =
+      tflite::ops::micro::Register_ROUND();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 

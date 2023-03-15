@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -192,11 +192,12 @@ TfLiteStatus RecordingMicroAllocator::AllocateTfLiteEvalTensors(
 }
 
 TfLiteStatus RecordingMicroAllocator::AllocateVariables(
-    const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors) {
+    const SubGraph* subgraph, TfLiteEvalTensor* eval_tensors,
+    const int32_t* offline_planner_offsets) {
   RecordedAllocation allocations = SnapshotAllocationUsage();
 
-  TfLiteStatus status =
-      MicroAllocator::AllocateVariables(subgraph, eval_tensors);
+  TfLiteStatus status = MicroAllocator::AllocateVariables(
+      subgraph, eval_tensors, offline_planner_offsets);
 
   RecordAllocationUsage(allocations,
                         recorded_tflite_tensor_variable_buffer_data_);

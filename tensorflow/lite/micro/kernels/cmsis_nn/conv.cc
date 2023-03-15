@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/conv.h"
 
-#include "Include/arm_nn_types.h"
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -365,9 +364,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
 
-  return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                 bias, output);
+  return EvalQuantizedPerChannel(context, node, params, data, input,
+                                 &filter_int8, bias, output);
 }
 
 TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
@@ -418,6 +419,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
       tflite::reference_ops::Conv(
@@ -434,30 +438,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8:
-      switch (filter->type) {
+      switch (filter_int8.type) {
         case kTfLiteInt8: {
           return EvalQuantizedPerChannel(context, node, params, data, input,
-                                         filter, bias, output);
+                                         &filter_int8, bias, output);
         }
 
-        case kTfLiteInt4: {
-          int8_t* unpacked_filter_data =
-              static_cast<int8_t*>(context->GetScratchBuffer(
-                  context, data.reference_op_data.filter_buffer_index));
-          reference_integer_ops::ConvPerChannelWithPackedInt4Weights(
-              ConvParamsQuantized(params, data.reference_op_data),
-              data.reference_op_data.per_channel_output_multiplier,
-              data.reference_op_data.per_channel_output_shift,
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int8_t>(input),
-              tflite::micro::GetTensorShape(filter),
-              tflite::micro::GetTensorData<int8_t>(filter),
-              unpacked_filter_data, tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(bias),
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int8_t>(output));
-          return kTfLiteOk;
-        }
         default: {
           MicroPrintf("Filter type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);
@@ -480,15 +466,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_CONV_2D() {
+TfLiteRegistration_V1 Register_CONV_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration Register_CONV_2D_INT8() {
+TfLiteRegistration_V1 Register_CONV_2D_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
-TfLiteRegistration Register_CONV_2D_INT16() {
+TfLiteRegistration_V1 Register_CONV_2D_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt16x8);
 }
 
