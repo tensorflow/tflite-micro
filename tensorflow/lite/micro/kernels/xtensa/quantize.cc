@@ -227,6 +227,16 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
     case kTfLiteFloat32: {
       switch (output->type) {
+        case kTfLiteInt8: {
+          reference_ops::AffineQuantize(
+              op_data->quantization_params,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<float>(input),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+
         case kTfLiteInt16: {
           reference_ops::AffineQuantize(
               op_data->quantization_params,
