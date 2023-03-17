@@ -493,6 +493,11 @@ const int8_t kConvInput1x5x5x1[1 * 5 * 5 * 1]{
     -128, -111, -95, -79, -63, -47, -31, -15, 1,  17, 33,  49, 65,
     81,   97,   113, 127, 100, 80,  60,  40,  20, 0,  -20, -40};
 
+// Conv Test Case: Int16Filter1x3x3x1ShouldThrowError
+const int16_t kConvInput16_1x5x5x1[1 * 5 * 5 * 1]{
+    -129, -1110, -950, -790, -630, -470, -310, -150, 10000,  17000, 3300,  4900, 6500,
+    8100, 9700,   11300, 12700, 10000, 8000,  6000,  4000,  20000, 0,  -20000, -4000};
+
 // Conv Test Case: Int8Filter1x3x3x1ShouldMatchGoldenEvenInputPaddingSame
 const int8_t kConvGoldenOutput4x4InputPaddingSame2x2[1 * 2 * 2 * 1] = {38, 24,
                                                                        16, -58};

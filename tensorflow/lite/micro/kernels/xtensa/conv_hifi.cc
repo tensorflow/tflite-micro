@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -279,6 +280,10 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
         p_out_temp = &output_data[batch * out_length];
 
         {
+          MicroPrintf("Inside ConvEvalHifi...3");
+          MicroPrintf("value at pos 0 is %d, value at pos 10 is %d",
+                      input_data[0], input_data[10]);
+
           TF_LITE_ENSURE_EQ(
               context,
               xa_nn_conv2d_std_per_chan_sym8sxasym8s(
