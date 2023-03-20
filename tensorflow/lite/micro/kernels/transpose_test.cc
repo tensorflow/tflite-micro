@@ -68,7 +68,7 @@ TfLiteStatus InvokeTranspose(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_TRANSPOSE();
+  const TfLiteRegistration_V1 registration = Register_TRANSPOSE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(params));
 

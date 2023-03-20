@@ -22,11 +22,7 @@ from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 class Interpreter(object):
 
-  def __init__(self,
-               model_data,
-               custom_op_registerers,
-               arena_size,
-               num_resource_variables=0):
+  def __init__(self, model_data, custom_op_registerers, arena_size):
     if model_data is None:
       raise ValueError("Model must not be None")
 
@@ -39,23 +35,16 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
 
     # Some models make use of resource variables ops, get the count here
-    if num_resource_variables != 0:
-      print(
-          'WARNING: num_resource_variables is deprecated. Resource variable count is ',
-          'calculated automatically.')
-    number_resource_variables = flatbuffer_utils.count_resource_variables(
+    num_resource_variables = flatbuffer_utils.count_resource_variables(
         model_data)
+    print("Number of resource variables the model uses = ",
+          num_resource_variables)
 
     self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size,
-        number_resource_variables)
+        model_data, custom_op_registerers, arena_size, num_resource_variables)
 
   @classmethod
-  def from_file(self,
-                model_path,
-                custom_op_registerers=[],
-                arena_size=None,
-                num_resource_variables=0):
+  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -64,9 +53,6 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
-      num_resource_variables: (Only required if using MicroResourceVariables)
-        The number of resource variables can be found by counting the
-        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
@@ -77,15 +63,10 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   @classmethod
-  def from_bytes(self,
-                 model_data,
-                 custom_op_registerers=[],
-                 arena_size=None,
-                 num_resource_variables=0):
+  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -94,16 +75,12 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
-      num_resource_variables: (Only required if using MicroResourceVariables)
-        The number of resource variables can be found by counting the
-        ASSIGN_VARIBLE operators in the initialization subgraph.
 
     Returns:
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size,
-                       num_resource_variables)
+    return Interpreter(model_data, custom_op_registerers, arena_size)
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.

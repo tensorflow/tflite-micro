@@ -17,7 +17,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
-#include "tensorflow/lite/micro/tflite_bridge/op_resolver_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -31,37 +30,31 @@ namespace tflite {
 // We need an interface class instead of directly using MicroMutableOpResolver
 // because MicroMutableOpResolver is a class template with the number of
 // registered Ops as the template parameter.
-class MicroOpResolver : public TfLiteBridgeOpResolver {
+class MicroOpResolver {
  public:
   // Returns the Op registration struct corresponding to the enum code from the
   // flatbuffer schema. Returns nullptr if the op is not found or if op ==
   // BuiltinOperator_CUSTOM.
-  virtual const TfLiteRegistration* FindOp(BuiltinOperator op) const = 0;
+  virtual const TfLiteRegistration_V1* FindOp(BuiltinOperator op) const = 0;
 
   // Returns the Op registration struct corresponding to the custom operator by
   // name.
-  virtual const TfLiteRegistration* FindOp(const char* op) const = 0;
-
-  // This implementation exists for compatibility with the OpResolver base class
-  // and disregards the version parameter.
-  const TfLiteRegistration* FindOp(BuiltinOperator op,
-                                   int version) const final {
-    return FindOp(op);
-  }
-
-  // This implementation exists for compatibility with the OpResolver base class
-  // and disregards the version parameter.
-  const TfLiteRegistration* FindOp(const char* op, int version) const final {
-    return FindOp(op);
-  }
+  virtual const TfLiteRegistration_V1* FindOp(const char* op) const = 0;
 
   // Returns the operator specific parsing function for the OpData for a
   // BuiltinOperator (if registered), else nullptr.
   virtual TfLiteBridgeBuiltinParseFunction GetOpDataParser(
       BuiltinOperator op) const = 0;
 
-  ~MicroOpResolver() override {}
+  virtual ~MicroOpResolver() {}
 };
+
+// Handles the logic for converting between an OperatorCode structure extracted
+// from a flatbuffer and information about a registered operator
+// implementation.
+TfLiteStatus GetRegistrationFromOpCode(
+    const OperatorCode* opcode, const MicroOpResolver& op_resolver,
+    const TfLiteRegistration_V1** registration);
 
 }  // namespace tflite
 

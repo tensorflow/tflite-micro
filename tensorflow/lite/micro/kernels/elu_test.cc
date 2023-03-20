@@ -59,7 +59,7 @@ void ExecuteEluTest(TfLiteTensor* tensors, int tensors_count) {
   int kOutputArrayData[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_ELU();
+  const TfLiteRegistration_V1 registration = tflite::Register_ELU();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 

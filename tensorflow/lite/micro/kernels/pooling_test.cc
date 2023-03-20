@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace {
 
 template <typename T>
 void ValidatePoolingGoldens(TfLiteTensor* tensors, int tensors_size,
-                            const TfLiteRegistration registration,
+                            const TfLiteRegistration_V1 registration,
                             const int filter_height, const int filter_width,
                             const int stride_height, const int stride_width,
                             const T* golden, const int output_length,
@@ -77,7 +77,7 @@ void TestAveragePoolFloat(int* input_dims_data, const float* input_data,
       CreateTensor(output_data, output_dims),
   };
 
-  const TfLiteRegistration registration = Register_AVERAGE_POOL_2D();
+  const TfLiteRegistration_V1 registration = Register_AVERAGE_POOL_2D();
 
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
@@ -110,7 +110,7 @@ void TestAveragePoolQuantized(
                             output_zero_point),
   };
 
-  const TfLiteRegistration registration = Register_AVERAGE_POOL_2D();
+  const TfLiteRegistration_V1 registration = Register_AVERAGE_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
@@ -134,7 +134,7 @@ void TestMaxPoolFloat(int* input_dims_data, const float* input_data,
       CreateTensor(output_data, output_dims),
   };
 
-  const TfLiteRegistration registration = Register_MAX_POOL_2D();
+  const TfLiteRegistration_V1 registration = Register_MAX_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
@@ -164,7 +164,7 @@ void TestMaxPoolQuantized(int* input_dims_data, const T* input_data,
                             output_zero_point),
   };
 
-  const TfLiteRegistration registration = Register_MAX_POOL_2D();
+  const TfLiteRegistration_V1 registration = Register_MAX_POOL_2D();
   ValidatePoolingGoldens(tensors, tensors_size, registration, filter_height,
                          filter_width, stride_height, stride_width,
                          expected_output_data, output_dims_count, padding,
@@ -305,7 +305,6 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingSameStride1ActNone) {
       output_data);
 }
 
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride2ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
@@ -416,7 +415,6 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingSameStride1ActNone) {
       output_scale, output_zero_point, kTfLitePaddingValid, kTfLiteActNone,
       output_data);
 }
-#endif
 
 TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloat) {
   int input_shape[] = {4, 1, 2, 4, 1};
@@ -616,7 +614,6 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt8ActRelu6) {
       output_data);
 }
 
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(SimpleMaxPoolTestInt16ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values1[] = {0, 6, 2, 4, 3, 2, 10, 7};
@@ -704,6 +701,5 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt16ActRelu6) {
       output_scale, output_zero_point, kTfLitePaddingValid, kTfLiteActRelu6,
       output_data);
 }
-#endif
 
 TF_LITE_MICRO_TESTS_END

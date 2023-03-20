@@ -20,7 +20,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteRegistration* Register_ETHOSU() { return nullptr; }
+TfLiteRegistration_V1* Register_ETHOSU() { return nullptr; }
 
 const char* GetString_ETHOSU() { return ""; }
 

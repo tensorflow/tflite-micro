@@ -29,6 +29,130 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+
+// Interface to access all the TempTfLiteTensors of the LSTM kernel during the
+// preparation phase. Can only be constructed through the constructor to avoid
+// memory leakage. All TempTfLiteTensors will be deallocated through the
+// destructor.
+class LstmTensors {
+ public:
+  LstmTensors(const LstmTensors& other) = delete;
+  LstmTensors& operator=(const LstmTensors& other) = delete;
+
+  LstmTensors(TfLiteContext* context, TfLiteNode* node);
+  ~LstmTensors();
+
+  // Verify the LSTM internal tensor properties (e.g., type checks)
+  // Input/output/states/fc weights tensors are required for kernel evaulation.
+  // The state tensors should be variables. Variants of the standard LSTM
+  // are not supported here, therefore their corresponding tensors should be
+  // invalid
+  TfLiteStatus ValidateTensorStatus(TfLiteContext* context) const;
+
+  // Internal tensors. see lstm_shared.h for tensor names
+  const TfLiteTensor* GetInternalTensor(const int tensor_index) const {
+    return internal_tensors_[tensor_index];
+  }
+
+  const TfLiteTensor* HiddenStateTensor() const {
+    return internal_tensors_[kLstmOutputStateTensor];
+  }
+  const TfLiteTensor* CellStateTensor() const {
+    return internal_tensors_[kLstmCellStateTensor];
+  }
+  const TfLiteTensor* OutputTensor() const { return output_tensor_; }
+
+ private:
+  // see lstm_shared.h for tensor names
+  MicroContext* micro_context_;
+  TfLiteTensor* internal_tensors_[24];
+  TfLiteTensor* output_tensor_;
+};
+
+// Deduce the size information (Batch (B), Time Steps (T), Input dimension (I),
+// State dimension (S)) that defines the LSTM using the input and hidden state
+// tensor
+LstmSizeInfo CreateLstmSizeInfo(
+    const bool time_major, const TfLiteIntArray* input_tensor_shape,
+    const TfLiteIntArray* hidden_state_tensor_shape);
+
+TfLiteStatus ValidateWeightTensorSize(TfLiteContext* context,
+                                      const TfLiteTensor* tensor, int dim1_size,
+                                      int dim2_size);
+
+TfLiteStatus ValidateBiasTensorSize(TfLiteContext* context,
+                                    const TfLiteTensor* tensor, int size);
+
+// Go through every tensors and make sure their shape match the kernel
+// configuration
+TfLiteStatus ValidateTensorSize(TfLiteContext* context,
+                                const LstmTensors& tensors,
+                                const LstmSizeInfo& size_info);
+
+// Wrapper function to create gate parameters for the four internal LSTM gates
+TfLiteStatus CreateGateParams(
+    TfLiteContext* context,
+    /*Input tensors*/
+    const TfLiteTensor* input, const TfLiteTensor* input_weight,
+    const TfLiteTensor* input_bias,
+    /*Hidden state tensors*/
+    const TfLiteTensor* hidden_state, const TfLiteTensor* hidden_state_weight,
+    const TfLiteTensor* hidden_state_bias,
+    /*Scale of the fc output (input to non-linear activation)*/
+    const float nonlinear_activation_input_scale, const TfLiteType cell_type,
+    const tflite::GateParameters& gate_params);
+
+// Create parameters for element wise multiplication that happens in a) cell
+// state update ; b) hidden state update
+// Note that all the output of gates are symmetrically quantized so only scales
+// are required for input. However, during the hidden state update phase, the
+// output is the updated hidden state, which is asymmetrically quantized. Thus
+// output may require zero point
+tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
+                                                  const float input2_scale,
+                                                  const float output_scale,
+                                                  const TfLiteType output_type,
+                                                  const int output_zp = 0);
+
+// Create the additional information about the cell state, which include:
+// cell_state_scale_power: used in integer nonlinear function (e.g., tanh)
+// quantized_cell_clip: quantized cell clip range
+CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
+                                      const float cell_clip);
+
+CellStateInfo CreateLstmCellStateInfoFloat(const float cell_clip);
+tflite::FullyConnectedParams CreateFCParamsFloat();
+
+tflite::GateParameters CreateGateParamsFloat();
+
+tflite::ArithmeticParams CreateInterGateMulParamsFloat();
+
+TfLiteStatus PrepareGateParametersFloat(TfLiteContext* context,
+                                        const LstmTensors& lstm_tensors,
+                                        OpDataLSTM* op_data_lstm);
+
+TfLiteStatus PrepareGateParametersInteger(TfLiteContext* context,
+                                          const LstmTensors& lstm_tensors,
+                                          OpDataLSTM* op_data_lstm);
+
+LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
+                                           TfLiteNode* node);
+
+template <typename CellType>
+LSTMBuffers<CellType> CreateLSTMBuffers(TfLiteContext* context,
+                                        const int* buffer_indices) {
+  LSTMBuffers<CellType> buffers;
+  buffers.buffer0 = reinterpret_cast<CellType*>(
+      context->GetScratchBuffer(context, buffer_indices[0]));
+  buffers.buffer1 = reinterpret_cast<CellType*>(
+      context->GetScratchBuffer(context, buffer_indices[1]));
+  buffers.buffer2 = reinterpret_cast<CellType*>(
+      context->GetScratchBuffer(context, buffer_indices[2]));
+  buffers.buffer3 = reinterpret_cast<CellType*>(
+      context->GetScratchBuffer(context, buffer_indices[3]));
+  return buffers;
+}
+
 // Since LSTM includes multiple intermediate stages, introducing the internal
 // namespace to expose them for testing
 namespace lstm_internal {
@@ -269,7 +393,7 @@ template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
               LSTMKernelContents& kernel_content,
-              LSTMBuffers<CellType>& buffers) {
+              const LSTMBuffers<CellType>& buffers) {
   /*Step1: Calculate gate outputs to prepare cell state update*/
   CellType* gate_internal_buffer = buffers.buffer3;
   CellType* forget_gate_output = buffers.buffer0;
@@ -385,7 +509,7 @@ template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 TfLiteStatus EvalLstm(const OpDataLSTM& op_data,
                       LSTMKernelContents& kernel_content,
-                      LSTMBuffers<CellType>& buffers) {
+                      const LSTMBuffers<CellType>& buffers) {
   lstm_internal::LstmStepManager step_info(&op_data.size_info);
   const auto& size_info = op_data.size_info;
   // time is the first dimention, enable batch computation

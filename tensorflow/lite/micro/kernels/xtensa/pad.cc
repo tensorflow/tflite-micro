@@ -264,12 +264,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_PAD() {
+TfLiteRegistration_V1 Register_PAD() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 // Also register Pad as PadV2.
-TfLiteRegistration Register_PADV2() {
+TfLiteRegistration_V1 Register_PADV2() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

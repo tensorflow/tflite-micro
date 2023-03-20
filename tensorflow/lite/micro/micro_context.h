@@ -84,6 +84,16 @@ class MicroContext {
   // Virtual so that it can be faked for kernel tests.
   virtual void DeallocateTempTfLiteTensor(TfLiteTensor* tensor);
 
+  // Returns a pointer to a temporary buffer (from the arena).
+  // This API is only valid from the kernel's Prepare function and
+  // the buffer's lifetime is also that of the Prepare function.
+  // Virtual so that it can be faked for kernel tests.
+  virtual uint8_t* AllocateTempBuffer(size_t size, size_t alignment);
+
+  // Signals that the temporary buffer is no longer needed.
+  // Virtual so that it can be faked for kernel tests.
+  virtual void DeallocateTempBuffer(uint8_t* buffer);
+
   // Returns a TfLiteEvalTensor struct for a given index.
   // Virtual so that it can be faked for kernel tests.
   virtual TfLiteEvalTensor* GetEvalTensor(int tensor_idx);

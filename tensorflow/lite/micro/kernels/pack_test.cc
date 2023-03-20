@@ -33,7 +33,7 @@ void ValidatePackGoldens(TfLiteTensor* tensors, int tensors_size,
     output[i] = 23;
   }
 
-  const TfLiteRegistration registration = Register_PACK();
+  const TfLiteRegistration_V1 registration = Register_PACK();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(&params));
 

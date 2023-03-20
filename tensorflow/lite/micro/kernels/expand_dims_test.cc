@@ -43,7 +43,7 @@ micro::KernelRunner CreateExpandDimsKernelRunner(
   // the test need to place non-transitent memories in static variables. This is
   // safe because tests are guarateed to run serially.
   // Both below structures are trivially destructible.
-  static TfLiteRegistration registration;
+  static TfLiteRegistration_V1 registration;
   static TfLiteTensor tensors[kTensorsSize];
 
   TfLiteIntArray* in_dims = IntArrayFromInts(input_dims);
