@@ -1,0 +1,30 @@
+name: 'Stale Handler'
+# This workflow will create a message and add a 'stale' tag to PRs and Issues.
+# This will happen after 40 days for both Issues and PRs.
+# For issues only, five days after the stale tag has been added,
+# the issue will be closed. 
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  
+  workflow_dispatch: {}
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v7
+        with:
+          stale-issue-message: >
+            "This issue is stale. It has been open 40
+            days with no activity. Remove the stale label or
+            comment or this will be closed in 5 days"
+          stale-pr-message: >
+            "This PR is stale. It has been open 40 days
+             with no activity."
+          close-issue-message: >
+            "This issue was closed because it has been 
+            stalled for 5 days with no activity."
+          days-before-stale: 40
+          days-before-close: 5
+          days-before-pr-close: -1
