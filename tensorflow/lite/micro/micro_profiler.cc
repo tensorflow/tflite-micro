@@ -30,7 +30,7 @@ uint32_t MicroProfiler::BeginEvent(const char* tag) {
         "MicroProfiler errored out because total number of events exceeded the "
         "maximum of %d.",
         kMaxEvents);
-    TFLITE_DCHECK(false);
+    TFLITE_ASSERT_FALSE;
   }
 
   tags_[num_events_] = tag;
