@@ -29,6 +29,15 @@ namespace tflite {
 // micro_context-><TFLM kernel API>
 class MicroContext {
  public:
+  // Enum that allows MicroContext to keep track of the stages different memory
+  // planning APIs are available to kernels.
+  enum class InterpreterState {
+    kInit,
+    kPrepare,
+    kMemoryPlanning,
+    kInvoke,
+  };
+
   // Does not take any ownership, and all pointers must refer to valid objects
   // that outlive the one constructed.
   explicit MicroContext(MicroAllocator* allocator, const Model* model,
@@ -98,6 +107,12 @@ class MicroContext {
   // Virtual so that it can be faked for kernel tests.
   virtual TfLiteEvalTensor* GetEvalTensor(int tensor_idx);
 
+  // Sets the State of MemoryPlanning MicroContext
+  void SetInterpreterState(MicroContext::InterpreterState state);
+
+  // Sets the State of MemoryPlanning MicroContext
+  MicroContext::InterpreterState GetInterpreterState() const;
+
   // Does not take ownership of the pointer and the pointer must refer to valid
   // an object that outlive this class instance.
   // This can only be called once to set one external context.
@@ -120,6 +135,7 @@ class MicroContext {
   MicroAllocator& allocator_;
   MicroGraph& graph_;
   const Model* model_;
+  InterpreterState state_;
 
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;

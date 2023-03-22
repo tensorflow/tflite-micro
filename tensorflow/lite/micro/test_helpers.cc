@@ -1445,10 +1445,6 @@ TfLiteRegistration_V1* SimpleStatefulOp::GetMutableRegistration() {
 
 void* SimpleStatefulOp::Init(TfLiteContext* context, const char* buffer,
                              size_t length) {
-  TFLITE_DCHECK(context->AllocateBufferForEval == nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer == nullptr);
-  TFLITE_DCHECK(context->RequestScratchBufferInArena == nullptr);
-
   void* raw = context->AllocatePersistentBuffer(context, sizeof(OpData));
   OpData* data = reinterpret_cast<OpData*>(raw);
   *data = {};
