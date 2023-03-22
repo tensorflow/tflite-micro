@@ -12,7 +12,7 @@ bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_mic
 
 Note that if having only one tflite as input, the final output directory will be <output directory>/<base name of model>.
 
-Example1:
+Example:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
@@ -22,7 +22,7 @@ bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_mic
 
 A header file called, gen_micro_mutable_op_resolver.h will be created in /tmp/gen_dir/person_detect.
 
-Example2:
+Example:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
@@ -69,27 +69,31 @@ bazel run gen_dir/person_detect:micro_mutable_op_resolver_test
 
 By default the model will run without any generated input or verifying the output. This can be done by adding the flag --verify_output=1.
 
-Example:
+Example assuming gen_dir and /tmp/my_model.tflite exists:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_files=/tmp/my_model.tflite --output_dir=$(realpath gen_dir)
+             --common_tflite_path=/tmp/ \
+             --input_tflite_files=my_model.tflite --output_dir=$(realpath gen_dir/my_model)
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_files=/tmp/my_model.tflite --output_dir=$(realpath gen_dir) --verify_output=1
+             --input_tflite_file=/tmp/my_model.tflite --output_dir=$(realpath gen_dir) --verify_output=1
 bazel run gen_dir/my_model:micro_mutable_op_resolver_test
 
 ```
 
+Note that since test script appends the name of the model in the output directory, we add that to the output directory for the generated header (gen_dir/my_model) so that header and test files ends up in same directory.
+
 Depending on the size of the input model the arena size may need to be increased. Arena size can be set with --arena_size=<size>.
 
-Example:
+Example assuming gen_dir and /tmp/big_model.tflite exists:
 
 ```
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --input_tflite_files=/tmp/big_model.tflite --output_dir=gen_dir
+             --common_tflite_path=/tmp/ \
+             --input_tflite_files=big_model.tflite --output_dir=$(realpath gen_dir/big_model)
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_files=/tmp/big_model.tflite --output_dir=gen_dir --verify_output=1 --arena_size=1000000
-bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver/generated/big_model:micro_mutable_op_resolver_test
+             --input_tflite_file=/tmp/big_model.tflite --output_dir=$(realpath gen_dir) --verify_output=1 --arena_size=1000000
+bazel run gen_dir/big_model:micro_mutable_op_resolver_test
 
 ```
 
