@@ -69,7 +69,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // Maximum number of events that this class can keep track of. If we call
   // AddEvent more than kMaxEvents number of times, then the oldest event's
   // profiling information will be overwritten.
-  static constexpr int kMaxEvents = 1024;
+  static constexpr int kMaxEvents = 4096;
 
   const char* tags_[kMaxEvents];
   uint32_t start_ticks_[kMaxEvents];
