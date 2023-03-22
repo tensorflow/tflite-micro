@@ -14,12 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
 
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
