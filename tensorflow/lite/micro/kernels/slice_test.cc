@@ -320,4 +320,22 @@ TF_LITE_MICRO_TEST(SliceInt16) {
                              output_shape, expected_output_data, output_data);
 }
 
+TF_LITE_MICRO_TEST(SliceBool) {
+  int input_shape[] = {4, 3, 2, 3, 1};
+  bool input_values[] = {false, false, false, false, false, false,
+                         true,  false, true,  false, false, false,
+                         false, false, true,  false, false, false};
+  int begin_shape[] = {1, 4};
+  int32_t begin_values[] = {1, 0, 0, 0};
+  int size_shape[] = {1, 4};
+  int32_t size_values[] = {2, 1, -1, 1};
+  int output_shape[] = {4, 2, 1, 3, 1};
+  bool expected_output_data[] = {true, false, true, false, false, true};
+  bool output_data[6];
+
+  tflite::testing::TestSlice(input_shape, input_values, begin_shape,
+                             begin_values, size_shape, size_values,
+                             output_shape, expected_output_data, output_data);
+}
+
 TF_LITE_MICRO_TESTS_END

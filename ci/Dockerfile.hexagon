@@ -19,8 +19,12 @@ WORKDIR /opt/hexagon
 COPY ./qualcomm_hexagon_sdk_3_5_1_linux.zip .
 
 RUN \
+  pip3 install --upgrade pip setuptools wheel
+
+RUN \
   pip3 install Pillow
 
+RUN apt install -y python-numpy
 
 RUN unzip qualcomm_hexagon_sdk_3_5_1_linux.zip && \
   rm qualcomm_hexagon_sdk_3_5_1_linux.zip && \
