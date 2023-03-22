@@ -47,7 +47,6 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
-        "//tensorflow/lite/micro/tflite_bridge:op_resolver_bridge",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",
         "@flatbuffers//:runtime_cc",
@@ -216,6 +215,7 @@ cc_library(
     name = "op_resolvers",
     srcs = [
         "all_ops_resolver.cc",
+        "micro_op_resolver.cc",
     ],
     hdrs = [
         "all_ops_resolver.h",
@@ -232,7 +232,6 @@ cc_library(
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
-        "//tensorflow/lite/micro/tflite_bridge:op_resolver_bridge",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

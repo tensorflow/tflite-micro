@@ -98,9 +98,9 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-xtensa:
+  call-xtensa-presubmit:
     needs: ci-run
-    uses: ./.github/workflows/xtensa.yml
+    uses: ./.github/workflows/xtensa_presubmit.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:

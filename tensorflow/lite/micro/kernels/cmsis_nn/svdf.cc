@@ -212,11 +212,11 @@ TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_SVDF() {
+TfLiteRegistration_V1 Register_SVDF() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdf);
 }
 
-TfLiteRegistration Register_SVDF_INT8() {
+TfLiteRegistration_V1 Register_SVDF_INT8() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdfInt8);
 }
 

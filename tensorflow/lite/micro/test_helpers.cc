@@ -1431,12 +1431,12 @@ const Model* BuildSimpleMockModelWithNullInputsOutputs() {
 
 }  // namespace
 
-const TfLiteRegistration* SimpleStatefulOp::getRegistration() {
+const TfLiteRegistration_V1* SimpleStatefulOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration* SimpleStatefulOp::GetMutableRegistration() {
-  static TfLiteRegistration r;
+TfLiteRegistration_V1* SimpleStatefulOp::GetMutableRegistration() {
+  static TfLiteRegistration_V1 r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1521,12 +1521,12 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-const TfLiteRegistration* MockCustom::getRegistration() {
+const TfLiteRegistration_V1* MockCustom::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration* MockCustom::GetMutableRegistration() {
-  static TfLiteRegistration r;
+TfLiteRegistration_V1* MockCustom::GetMutableRegistration() {
+  static TfLiteRegistration_V1 r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1569,12 +1569,12 @@ TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool MockCustom::freed_ = false;
 
-const TfLiteRegistration* MultipleInputs::getRegistration() {
+const TfLiteRegistration_V1* MultipleInputs::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration* MultipleInputs::GetMutableRegistration() {
-  static TfLiteRegistration r;
+TfLiteRegistration_V1* MultipleInputs::GetMutableRegistration() {
+  static TfLiteRegistration_V1 r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1624,12 +1624,12 @@ TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool MultipleInputs::freed_ = false;
 
-const TfLiteRegistration* NoOp::getRegistration() {
+const TfLiteRegistration_V1* NoOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration* NoOp::GetMutableRegistration() {
-  static TfLiteRegistration r;
+TfLiteRegistration_V1* NoOp::GetMutableRegistration() {
+  static TfLiteRegistration_V1 r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
