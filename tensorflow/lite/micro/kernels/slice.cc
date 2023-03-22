@@ -140,6 +140,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
       break;
+    case kTfLiteBool:
+      reference_ops::Slice<bool>(op_params,
+                                 tflite::micro::GetTensorShape(input),
+                                 tflite::micro::GetTensorData<bool>(input),
+                                 tflite::micro::GetTensorShape(output),
+                                 tflite::micro::GetTensorData<bool>(output));
+      break;
     default:
       MicroPrintf("Input tensor type %s (%d) not supported.",
                   TfLiteTypeGetName(input->type), input->type);
