@@ -110,7 +110,7 @@ class MicroContext {
   // Sets the State of MemoryPlanning MicroContext
   void SetInterpreterState(MicroContext::InterpreterState state);
 
-  // Sets the State of MemoryPlanning MicroContext is at
+  // Sets the State of MemoryPlanning MicroContext
   MicroContext::InterpreterState GetInterpreterState() const;
 
   // Does not take ownership of the pointer and the pointer must refer to valid
