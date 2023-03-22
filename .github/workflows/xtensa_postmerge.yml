@@ -31,7 +31,7 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
+          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.5 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
 
@@ -46,7 +46,7 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
+          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.5 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
@@ -61,6 +61,6 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --env XTENSA_TOOLS_VERSION=RI-2019.2-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.4 \
+          docker run --env XTENSA_TOOLS_VERSION=RI-2019.2-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa:0.5 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifimini.sh tflite-micro/"
