@@ -85,6 +85,30 @@ void ValidateAddGoldens(TfLiteTensor* tensors, int tensors_size,
   }
 }
 
+template <typename T>
+void ValidateAddGoldensInt(TfLiteTensor* tensors, int tensors_size,
+                           const T* golden, T* output, int output_size,
+                           TfLiteFusedActivation activation) {
+  TfLiteAddParams builtin_data;
+  builtin_data.activation = activation;
+
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TfLiteRegistration_V1 registration = Register_ADD();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, &builtin_data);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  for (int i = 0; i < output_size; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
+  }
+}
+
 void TestAddFloat(int* input1_dims_data, const float* input1_data,
                   int* input2_dims_data, const float* input2_data,
                   int* output_dims_data, const float* expected_output,
@@ -104,6 +128,29 @@ void TestAddFloat(int* input1_dims_data, const float* input1_data,
 
   ValidateAddGoldens(tensors, tensors_size, expected_output, output_data,
                      ElementCount(*output_dims), activation);
+}
+
+void TestAddInt32(int* input1_dims_data, const int32_t* input1_data,
+                  int* input2_dims_data, const int32_t* input2_data,
+                  int* output_dims_data, const int32_t* expected_output,
+                  TfLiteFusedActivation activation, int32_t* output_data) {
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input1_data, input1_dims),
+      CreateTensor(input2_data, input2_dims),
+      CreateTensor(output_data, output_dims),
+  };
+  for (int i = 0; i < tensors_size; i++) {
+    tensors[i].quantization.type = kTfLiteNoQuantization;
+  }
+  ValidateAddGoldensInt(tensors, tensors_size, expected_output, output_data,
+                        ElementCount(*output_dims), activation);
 }
 
 template <typename T>
@@ -218,6 +265,18 @@ TF_LITE_MICRO_TEST(FloatAddWithScalarBroadcast) {
                                   input2_values, test_shapes[i],
                                   expected_output, kTfLiteActNone, output_data);
   }
+}
+
+TF_LITE_MICRO_TEST(Int32AddNoActivation) {
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const int32_t input1_values[] = {-2, 2147483647, -1, 1146622854};
+  const int32_t input2_values[] = {3, 1, -2147483648, -726978367};
+  const int32_t golden_values[] = {1, -2147483648, 2147483647, 419644487};
+  constexpr int kOutputDimsCount = 4;
+  int32_t output_data[kOutputDimsCount];
+  tflite::testing::TestAddInt32(inout_shape, input1_values, inout_shape,
+                                input2_values, inout_shape, golden_values,
+                                kTfLiteActNone, output_data);
 }
 
 TF_LITE_MICRO_TEST(QuantizedAddNoActivationInt8) {
