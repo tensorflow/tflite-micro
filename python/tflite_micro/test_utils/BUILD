@@ -31,3 +31,13 @@ py_test(
         ":crosscheck",
     ],
 )
+
+py_binary(
+    name = "crosscheck_tool",
+    srcs = [
+        "crosscheck_tool.py",
+    ],
+    deps = [
+        ":crosscheck",
+    ],
+)
