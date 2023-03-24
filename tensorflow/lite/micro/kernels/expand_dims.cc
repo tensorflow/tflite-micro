@@ -142,7 +142,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration Register_EXPAND_DIMS() {
+TfLiteRegistration_V1 Register_EXPAND_DIMS() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

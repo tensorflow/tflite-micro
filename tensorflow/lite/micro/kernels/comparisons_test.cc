@@ -29,7 +29,7 @@ constexpr int inputs_size = 2;
 constexpr int outputs_size = 1;
 constexpr int tensors_size = inputs_size + outputs_size;
 
-void TestComparison(const TfLiteRegistration& registration,
+void TestComparison(const TfLiteRegistration_V1& registration,
                     TfLiteTensor* tensors, bool* expected_output_data,
                     bool* output_data) {
   const int output_dims_count = ElementCount(*tensors[inputs_size].dims);
@@ -50,7 +50,7 @@ void TestComparison(const TfLiteRegistration& registration,
   }
 }
 
-void TestComparisonFloat(const TfLiteRegistration& registration,
+void TestComparisonFloat(const TfLiteRegistration_V1& registration,
                          int* input1_dims_data, float* input1_data,
                          int* input2_dims_data, float* input2_data,
                          bool* expected_output_data, int* output_dims_data,
@@ -68,7 +68,7 @@ void TestComparisonFloat(const TfLiteRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
-void TestComparisonBool(const TfLiteRegistration& registration,
+void TestComparisonBool(const TfLiteRegistration_V1& registration,
                         int* input1_dims_data, bool* input1_data,
                         int* input2_dims_data, bool* input2_data,
                         bool* expected_output_data, int* output_dims_data,
@@ -86,7 +86,7 @@ void TestComparisonBool(const TfLiteRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
-void TestComparisonInt(const TfLiteRegistration& registration,
+void TestComparisonInt(const TfLiteRegistration_V1& registration,
                        int* input1_dims_data, int32_t* input1_data,
                        int* input2_dims_data, int32_t* input2_data,
                        bool* expected_output_data, int* output_dims_data,
@@ -104,7 +104,7 @@ void TestComparisonInt(const TfLiteRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
-void TestComparisonQuantizedInt8(const TfLiteRegistration& registration,
+void TestComparisonQuantizedInt8(const TfLiteRegistration_V1& registration,
                                  int* input1_dims_data, float* input1_data,
                                  int8_t* input1_quantized, float input1_scale,
                                  int input1_zero_point, int* input2_dims_data,

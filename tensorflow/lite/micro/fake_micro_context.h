@@ -21,6 +21,10 @@ limitations under the License.
 
 namespace tflite {
 // A fake of MicroContext for kernel util tests.
+// TODO(b/272759060): FakeMicroContext currently inherits from MicroContext.
+// Which allow tests to use functions from MicroContext that weren't added to
+// FakeMicroContext in tests. This should be looked into further.
+
 class FakeMicroContext : public MicroContext {
  public:
   FakeMicroContext(TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
@@ -35,6 +39,9 @@ class FakeMicroContext : public MicroContext {
   void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override;
   bool IsAllTempTfLiteTensorDeallocated();
 
+  uint8_t* AllocateTempBuffer(size_t size, size_t alignment) override;
+  void DeallocateTempBuffer(uint8_t* buffer) override;
+
   TfLiteEvalTensor* GetEvalTensor(int tensor_index) override;
 
  private:
@@ -44,7 +51,7 @@ class FakeMicroContext : public MicroContext {
   uint8_t* scratch_buffers_[kNumScratchBuffers_];
 
   TfLiteTensor* tensors_;
-  int allocated_tensor_count_ = 0;
+  int allocated_temp_count_ = 0;
 
   SingleArenaBufferAllocator* allocator_;
 

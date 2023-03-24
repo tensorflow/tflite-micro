@@ -61,8 +61,9 @@ static TfLiteConvParams common_conv_params = {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(VISION_P6)  // TODO(b/268384678): xtensa vision p6 kernels break
-                         // this test, will if def till properly investigated.
+#if !defined(VISION_P6)  // TODO(b/270720625): disabled int8 and int4 test for
+// conv for fully connected vision p6 kernels, because vision p6 conv doesn't
+// work with per channel quantization
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
   const int output_dims_count = 12;
@@ -92,6 +93,36 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized4bitPerChannel) {
           golden_quantized, output_scale, output_zero_point,
           &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
           output_data, kTfLiteInt4));
+}
+
+TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannel) {
+  const int output_dims_count = 12;
+  int8_t output_data[output_dims_count];
+
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int8_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int32_t bias_quantized[tflite::testing::kBiasElements];
+  int8_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestConvQuantizedPerChannel(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kFilterShape, tflite::testing::kFilterData,
+          filter_quantized, tflite::testing::kBiasShape,
+          tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+          golden_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
+          output_data));
 }
 
 #endif  // !defined(VISION_P6)
@@ -192,36 +223,6 @@ TF_LITE_MICRO_TEST(HybridModeIsError) {
       tflite::testing::InvokeConv(tensors, tensors_size, output_dims_count,
                                   &tflite::testing::common_conv_params,
                                   tflite::Register_CONV_2D(), output_data));
-}
-
-TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannel) {
-  const int output_dims_count = 12;
-  int8_t output_data[output_dims_count];
-
-  const float input_scale = 0.5f;
-  const float output_scale = 1.0f;
-  const int input_zero_point = 0;
-  const int output_zero_point = 0;
-
-  int8_t input_quantized[tflite::testing::kInputElements];
-  int8_t filter_quantized[tflite::testing::kFilterElements];
-  int32_t bias_quantized[tflite::testing::kBiasElements];
-  int8_t golden_quantized[tflite::testing::kOutputElements];
-  int zero_points[tflite::testing::kBiasElements + 1];
-  float scales[tflite::testing::kBiasElements + 1];
-
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestConvQuantizedPerChannel(
-          tflite::testing::kInputShape, tflite::testing::kInputData,
-          input_quantized, input_scale, input_zero_point,
-          tflite::testing::kFilterShape, tflite::testing::kFilterData,
-          filter_quantized, tflite::testing::kBiasShape,
-          tflite::testing::kBiasData, bias_quantized, scales, zero_points,
-          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-          golden_quantized, output_scale, output_zero_point,
-          &tflite::testing::common_conv_params, tflite::Register_CONV_2D(),
-          output_data));
 }
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBias) {

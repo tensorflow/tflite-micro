@@ -169,15 +169,15 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_MUL() {
+TfLiteRegistration_V1 Register_MUL() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, Eval);
 }
 
-TfLiteRegistration Register_MUL_INT8() {
+TfLiteRegistration_V1 Register_MUL_INT8() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, EvalInt8);
 }
 
-TfLiteRegistration Register_MUL_INT16() {
+TfLiteRegistration_V1 Register_MUL_INT16() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, EvalInt16);
 }
 

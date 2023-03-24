@@ -230,6 +230,7 @@ tflm_kernel_cc_library(
         "logistic.cc",
         "logistic_common.cc",
         "lstm_eval.cc",
+        "lstm_eval_common.cc",
         "maximum_minimum.cc",
         "mirror_pad.cc",
         "mul.cc",

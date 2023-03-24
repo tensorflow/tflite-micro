@@ -25,7 +25,7 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-// Helper class to perform a simulated kernel (i.e. TfLiteRegistration)
+// Helper class to perform a simulated kernel (i.e. TfLiteRegistration_V1)
 // lifecycle (init, prepare, invoke). All internal allocations are handled by
 // this class. Simply pass in the registration, list of required tensors, inputs
 // array, outputs array, and any pre-builtin data. Calling Invoke() will
@@ -33,22 +33,22 @@ namespace micro {
 // output provided during construction.
 class KernelRunner {
  public:
-  KernelRunner(const TfLiteRegistration& registration, TfLiteTensor* tensors,
+  KernelRunner(const TfLiteRegistration_V1& registration, TfLiteTensor* tensors,
                int tensors_size, TfLiteIntArray* inputs,
                TfLiteIntArray* outputs, void* builtin_data,
                TfLiteIntArray* intermediates = nullptr);
 
-  // Calls init and prepare on the kernel (i.e. TfLiteRegistration) struct. Any
-  // exceptions will be DebugLog'd and returned as a status code.
+  // Calls init and prepare on the kernel (i.e. TfLiteRegistration_V1) struct.
+  // Any exceptions will be DebugLog'd and returned as a status code.
   TfLiteStatus InitAndPrepare(const char* init_data = nullptr,
                               size_t length = 0);
 
-  // Calls init, prepare, and invoke on a given TfLiteRegistration pointer.
+  // Calls init, prepare, and invoke on a given TfLiteRegistration_V1 pointer.
   // After successful invoke, results will be available in the output tensor as
   // passed into the constructor of this class.
   TfLiteStatus Invoke();
 
-  // Calls Free on a given TfLiteRegistration pointer(if it's implemented).
+  // Calls Free on a given TfLiteRegistration_V1 pointer(if it's implemented).
   // After successful Free, kTfLiteOk status will be returned. If Free is not
   // implemented for a given kernel kTfLiteError will be returned.
   TfLiteStatus Free();
@@ -68,7 +68,7 @@ class KernelRunner {
 
   TfLiteContext context_ = {};
   TfLiteNode node_ = {};
-  const TfLiteRegistration& registration_;
+  const TfLiteRegistration_V1& registration_;
 
   SingleArenaBufferAllocator* allocator_;
   MockMicroGraph mock_micro_graph_;

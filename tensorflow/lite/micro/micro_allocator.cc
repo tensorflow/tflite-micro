@@ -703,6 +703,14 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
   return tensor;
 }
 
+uint8_t* MicroAllocator::AllocateTempBuffer(size_t size, size_t alignment) {
+  return non_persistent_buffer_allocator_->AllocateTemp(size, alignment);
+}
+
+void MicroAllocator::DeallocateTempBuffer(uint8_t* buffer) {
+  non_persistent_buffer_allocator_->DeallocateTemp(buffer);
+}
+
 TfLiteStatus MicroAllocator::ResetTempAllocations() {
   return non_persistent_buffer_allocator_->ResetTempAllocations();
 }

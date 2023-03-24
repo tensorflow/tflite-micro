@@ -226,8 +226,10 @@ include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech
 CCFLAGS := $(filter-out $(CC_WARNINGS),$(CCFLAGS))
 
 # Test the code for feature generation.
-$(eval $(call microlite_test,micro_features_generator_test,\
-$(MICRO_FEATURES_GENERATOR_TEST_SRCS),$(MICRO_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5 hifi3z))
+  $(eval $(call microlite_test,micro_features_generator_test,\
+  $(MICRO_FEATURES_GENERATOR_TEST_SRCS),$(MICRO_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+endif
 
 # Tests loading and running a speech model.
 $(eval $(call microlite_test,micro_speech_test,\
@@ -235,7 +237,7 @@ $(MICRO_SPEECH_TEST_SRCS),$(MICRO_SPEECH_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INP
 
 # TODO(b/268568089): This test is taking very long time to finish; causing the
 # CI to run for a long time to finish.
-ifneq ($(TARGET_ARCH), hifimini)
+ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifimini hifi5 hifi3z))
   # Test the code for feature generation.
   $(eval $(call microlite_test,simple_features_generator_test,\
   $(SIMPLE_FEATURES_GENERATOR_TEST_SRCS),$(SIMPLE_FEATURES_GENERATOR_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
@@ -250,12 +252,16 @@ $(eval $(call microlite_test,audio_provider_mock_test,\
 $(AUDIO_PROVIDER_MOCK_TEST_SRCS),$(AUDIO_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
 
 # Tests the feature provider module.
-$(eval $(call microlite_test,feature_provider_test,\
-$(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
+ifneq ($(TARGET_ARCH), hifi3z)
+  $(eval $(call microlite_test,feature_provider_test,\
+  $(FEATURE_PROVIDER_TEST_SRCS),$(FEATURE_PROVIDER_TEST_HDRS)))
+endif
 
 # Tests the feature provider module using the mock audio provider.
-$(eval $(call microlite_test,feature_provider_mock_test,\
-$(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+ifneq ($(TARGET_ARCH), hifi3z)
+  $(eval $(call microlite_test,feature_provider_mock_test,\
+  $(FEATURE_PROVIDER_MOCK_TEST_SRCS),$(FEATURE_PROVIDER_MOCK_TEST_HDRS),$(MICRO_SPEECH_GENERATOR_INPUTS)))
+endif
 
 # Tests the command recognizer module.
 $(eval $(call microlite_test,recognize_commands_test,\

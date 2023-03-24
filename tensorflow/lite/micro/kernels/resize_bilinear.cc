@@ -109,7 +109,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_RESIZE_BILINEAR() {
+TfLiteRegistration_V1 Register_RESIZE_BILINEAR() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

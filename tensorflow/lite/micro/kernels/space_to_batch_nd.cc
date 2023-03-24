@@ -114,7 +114,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace.
 
-TfLiteRegistration Register_SPACE_TO_BATCH_ND() {
+TfLiteRegistration_V1 Register_SPACE_TO_BATCH_ND() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

@@ -149,7 +149,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace reshape
 
-TfLiteRegistration Register_RESHAPE() {
+TfLiteRegistration_V1 Register_RESHAPE() {
 #if defined(VISION_P6)
   return tflite::micro::RegisterOp(reshape::Init, reshape::Prepare,
                                    reshape::Eval);
