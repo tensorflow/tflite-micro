@@ -31,7 +31,7 @@ jobs:
       - run: |
           rm -rf .git
           echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.3 \
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.4 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/"
 
