@@ -148,9 +148,6 @@ void TestAddInt32(int* input1_dims_data, const int32_t* input1_data,
       CreateTensor(input2_data, input2_dims),
       CreateTensor(output_data, output_dims),
   };
-  for (int i = 0; i < tensors_size; i++) {
-    tensors[i].quantization.type = kTfLiteNoQuantization;
-  }
   ValidateAddGoldensInt(tensors, tensors_size, expected_output, output_data,
                         ElementCount(*output_dims), activation);
 }
