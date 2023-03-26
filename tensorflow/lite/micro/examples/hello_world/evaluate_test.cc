@@ -57,7 +57,7 @@ TfLiteStatus LoadFloatModelAndPerformInference() {
 
   // Make sure the input has the properties we expect
   if (input == nullptr) {
-    MicroPrintf("Input tensor in null.");
+    MicroPrintf("Input tensor is null.");
     return kTfLiteError;
   }
 
@@ -118,7 +118,7 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
 
   // Make sure the input has the properties we expect
   if (input == nullptr) {
-    MicroPrintf("Input tensor in null.");
+    MicroPrintf("Input tensor is null.");
     return kTfLiteError;
   }
 
