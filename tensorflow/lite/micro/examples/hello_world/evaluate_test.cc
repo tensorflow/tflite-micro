@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/hello_world/models/hello_world_int8_model_data.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 TfLiteStatus LoadFloatModelAndPerformInference() {
@@ -154,6 +155,7 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
 }
 
 int main(int argc, char* argv[]) {
+  tflite::InitializeTarget();
   TF_LITE_ENSURE_STATUS(LoadFloatModelAndPerformInference());
   TF_LITE_ENSURE_STATUS(LoadQuantModelAndPerformInference());
   MicroPrintf("~~~ALL TESTS PASSED~~~\n");
