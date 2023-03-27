@@ -62,7 +62,6 @@ MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 EXCLUDED_EXAMPLE_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/Makefile.inc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/magic_wand/Makefile.inc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/memory_footprint/Makefile.inc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/network_tester/Makefile.inc \
