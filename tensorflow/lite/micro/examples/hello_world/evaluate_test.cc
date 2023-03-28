@@ -28,7 +28,7 @@ namespace {
 using HelloWorldOpResolver = tflite::MicroMutableOpResolver<1>;
 alignas(alignof(HelloWorldOpResolver)) uint8_t
     op_resolver_buffer[sizeof(HelloWorldOpResolver)];
-}
+}  // namespace
 
 namespace tflite {
 TfLiteStatus GetOpResolver(HelloWorldOpResolver** op_resolver) {
