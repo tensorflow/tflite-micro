@@ -24,6 +24,20 @@ limitations under the License.
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+namespace {
+using HelloWorldOpResolver = tflite::MicroMutableOpResolver<1>;
+alignas(alignof(HelloWorldOpResolver)) uint8_t
+    op_resolver_buffer[sizeof(HelloWorldOpResolver)];
+}
+
+namespace tflite {
+TfLiteStatus GetOpResolver(HelloWorldOpResolver** op_resolver) {
+  *op_resolver = new (op_resolver_buffer) HelloWorldOpResolver();
+  TF_LITE_ENSURE_STATUS((*op_resolver)->AddFullyConnected());
+  return kTfLiteOk;
+}
+}  // namespace tflite
+
 TfLiteStatus LoadFloatModelAndPerformInference() {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
@@ -36,14 +50,17 @@ TfLiteStatus LoadFloatModelAndPerformInference() {
         model->version(), TFLITE_SCHEMA_VERSION);
   }
 
-  // This pulls in all the operation implementations we need
-  tflite::AllOpsResolver resolver;
+  HelloWorldOpResolver* op_resolver = nullptr;
+  if (tflite::GetOpResolver(&op_resolver) != kTfLiteOk) {
+    MicroPrintf("Could not resolve all the ops.");
+    return kTfLiteError;
+  }
 
   constexpr int kTensorArenaSize = 2056;
   uint8_t tensor_arena[kTensorArenaSize];
 
   // Build an interpreter to run the model with
-  tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
+  tflite::MicroInterpreter interpreter(model, *op_resolver, tensor_arena,
                                        kTensorArenaSize);
 
   // Allocate memory from the tensor_arena for the model's tensors
@@ -97,14 +114,17 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
         model->version(), TFLITE_SCHEMA_VERSION);
   }
 
-  // This pulls in all the operation implementations we need
-  tflite::AllOpsResolver resolver;
+  HelloWorldOpResolver* op_resolver = nullptr;
+  if (tflite::GetOpResolver(&op_resolver) != kTfLiteOk) {
+    MicroPrintf("Could not resolve all the ops.");
+    return kTfLiteError;
+  }
 
   constexpr int kTensorArenaSize = 2056;
   uint8_t tensor_arena[kTensorArenaSize];
 
   // Build an interpreter to run the model with
-  tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
+  tflite::MicroInterpreter interpreter(model, *op_resolver, tensor_arena,
                                        kTensorArenaSize);
 
   // Allocate memory from the tensor_arena for the model's tensors
