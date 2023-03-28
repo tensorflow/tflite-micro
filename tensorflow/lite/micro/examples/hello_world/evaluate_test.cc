@@ -111,7 +111,7 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
   HelloWorldOpResolver op_resolver;
   TF_LITE_ENSURE_STATUS(RegisterOps(op_resolver));
 
-   // Arena size just a round number. The exact arena usage can be determined
+  // Arena size just a round number. The exact arena usage can be determined
   // using the RecordingMicroInterpreter.
   constexpr int kTensorArenaSize = 2056;
   uint8_t tensor_arena[kTensorArenaSize];
