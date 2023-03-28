@@ -1,0 +1,18 @@
+# Specify Python package dependencies here, and always run
+#
+#   `bazel run //third_party:python_requirements.update`
+#
+# to compile (using pip-compile) this file into a pinned requirements file in
+# this same directory. The pinned requirements file is the input to
+# @rules_python's pip_parse() in the WORKSPACE file, which satisfies Python
+# package dependencies for targets run by Bazel.
+#
+# Both this file and the compiled, pinned requirements file should be committed
+# to git.
+
+tensorflow-cpu
+numpy
+mako
+pillow
+yapf
+protobuf

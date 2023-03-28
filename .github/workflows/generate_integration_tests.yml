@@ -23,6 +23,9 @@ jobs:
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     name: Generate Integration Tests
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
@@ -42,3 +45,17 @@ jobs:
         run: |
           pip3 install PyGithub
           python3 ci/issue_on_error.py
+
+  issue-on-error:
+    needs: [generate_integration_tests]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository }}
+      workflow: ${{ github.workflow }}
+      run_id: ${{ github.run_id }}
+      run_number: ${{ github.run_number }}
+      flag_label: ci:bot_issue
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+

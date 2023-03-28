@@ -32,7 +32,7 @@ void ExecuteLogSoftmaxTest(int tensors_count, TfLiteTensor* tensors) {
   int kOutputArrayData[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_LOG_SOFTMAX();
+  const TfLiteRegistration_V1 registration = tflite::Register_LOG_SOFTMAX();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 

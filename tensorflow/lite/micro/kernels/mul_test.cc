@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ void ValidateMulGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = tflite::Register_MUL();
+  const TfLiteRegistration_V1 registration = tflite::Register_MUL();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -128,7 +128,7 @@ void TestMulQuantized(int* input1_dims_data, const float* input1_data,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-TF_LITE_MICRO_TEST(SimpleFloatNoAcativationShouldMatchGolden) {
+TF_LITE_MICRO_TEST(SimpleFloatNoActivationShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_simple];
 
   tflite::testing::TestMulFloat(
@@ -148,11 +148,26 @@ TF_LITE_MICRO_TEST(SimpleFloatReluShouldMatchGolden) {
       output_data, kTfLiteActRelu);
 }
 
-TF_LITE_MICRO_TEST(SimpleInt8NoAcativationShouldMatchGolden) {
+TF_LITE_MICRO_TEST(SimpleInt8NoActivationShouldMatchGolden) {
   int8_t input1_quantized[tflite::testing::flat_size_simple];
   int8_t input2_quantized[tflite::testing::flat_size_simple];
   int8_t golden_quantized[tflite::testing::flat_size_simple];
   int8_t output_data[tflite::testing::flat_size_simple];
+
+  tflite::testing::TestMulQuantized(
+      tflite::testing::dims_simple, tflite::testing::input1_simple,
+      input1_quantized, tflite::testing::dims_simple,
+      tflite::testing::input2_simple, input2_quantized,
+      tflite::testing::scale_simple, 0, tflite::testing::dims_simple,
+      tflite::testing::golden_simple, golden_quantized,
+      tflite::testing::scale_simple, 0, output_data, kTfLiteActNone);
+}
+
+TF_LITE_MICRO_TEST(SimpleInt16NoActivationShouldMatchGolden) {
+  int16_t input1_quantized[tflite::testing::flat_size_simple];
+  int16_t input2_quantized[tflite::testing::flat_size_simple];
+  int16_t golden_quantized[tflite::testing::flat_size_simple];
+  int16_t output_data[tflite::testing::flat_size_simple];
 
   tflite::testing::TestMulQuantized(
       tflite::testing::dims_simple, tflite::testing::input1_simple,
@@ -183,7 +198,7 @@ TF_LITE_MICRO_TEST(BroadcastFloatReluShouldMatchGolden) {
       output_data, kTfLiteActRelu);
 }
 
-TF_LITE_MICRO_TEST(BroadcastInt8NoAcativationShouldMatchGolden) {
+TF_LITE_MICRO_TEST(BroadcastInt8NoActivationShouldMatchGolden) {
   int8_t input1_quantized[tflite::testing::flat_size_broadcast];
   int8_t input2_quantized[tflite::testing::flat_size_broadcast];
   int8_t golden_quantized[tflite::testing::flat_size_broadcast];
@@ -199,7 +214,23 @@ TF_LITE_MICRO_TEST(BroadcastInt8NoAcativationShouldMatchGolden) {
       kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(SimpleInt32NoAcativationShouldMatchGolden) {
+TF_LITE_MICRO_TEST(BroadcastInt16NoActivationShouldMatchGolden) {
+  int16_t input1_quantized[tflite::testing::flat_size_broadcast];
+  int16_t input2_quantized[tflite::testing::flat_size_broadcast];
+  int16_t golden_quantized[tflite::testing::flat_size_broadcast];
+  int16_t output_data[tflite::testing::flat_size_broadcast];
+
+  tflite::testing::TestMulQuantized(
+      tflite::testing::dims_broadcast, tflite::testing::input1_broadcast,
+      input1_quantized, tflite::testing::dims_scalar_broadcast,
+      tflite::testing::input2_broadcast, input2_quantized,
+      tflite::testing::input_scale_broadcast, 0,
+      tflite::testing::dims_broadcast, tflite::testing::golden_broadcast,
+      golden_quantized, tflite::testing::output_scale_broadcast, 0, output_data,
+      kTfLiteActNone);
+}
+
+TF_LITE_MICRO_TEST(SimpleInt32NoActivationShouldMatchGolden) {
   int32_t input1_quantized[tflite::testing::flat_size_simple];
   int32_t input2_quantized[tflite::testing::flat_size_simple];
   int32_t golden_quantized[tflite::testing::flat_size_simple];

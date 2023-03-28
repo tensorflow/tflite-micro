@@ -32,34 +32,36 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 
 TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration. The actual supported types may
-// still be target dependent. The only requirement is that every implementation
-// (reference or optimized) must define this function.
-TfLiteRegistration Register_SOFTMAX();
+// This is the most generic TfLiteRegistration_V1. The actual supported types
+// may still be target dependent. The only requirement is that every
+// implementation (reference or optimized) must define this function.
+TfLiteRegistration_V1 Register_SOFTMAX();
 
 #if defined(XTENSA) || defined(CMSIS_NN)
-// Returns a TfLiteRegistration struct for kernel variant that only supports
+// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
 // int8 input and int16 output.
-TfLiteRegistration Register_SOFTMAX_INT8_INT16();
+TfLiteRegistration_V1 Register_SOFTMAX_INT8_INT16();
 #else
-inline TfLiteRegistration Register_SOFTMAX_INT8_INT16() {
+inline TfLiteRegistration_V1 Register_SOFTMAX_INT8_INT16() {
   return Register_SOFTMAX();
 }
 #endif
 
 #if defined(CMSIS_NN)
-// Returns a TfLiteRegistration struct for kernel variant that only supports
+// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
 // int8 input/output and uses the latency optimized implementations.
-TfLiteRegistration Register_SOFTMAX_INT8();
+TfLiteRegistration_V1 Register_SOFTMAX_INT8();
 
-// Returns a TfLiteRegistration struct for kernel variant that only supports
+// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
 // int16 input/output and uses the latency optimized implementations.
-TfLiteRegistration Register_SOFTMAX_INT16();
+TfLiteRegistration_V1 Register_SOFTMAX_INT16();
 
 #else
-inline TfLiteRegistration Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
+inline TfLiteRegistration_V1 Register_SOFTMAX_INT8() {
+  return Register_SOFTMAX();
+}
 
-inline TfLiteRegistration Register_SOFTMAX_INT16() {
+inline TfLiteRegistration_V1 Register_SOFTMAX_INT16() {
   return Register_SOFTMAX();
 }
 #endif

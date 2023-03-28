@@ -65,20 +65,26 @@ class TestDataGenerator:
     input_tensor0 = interpreter.tensor(0)
     filter_tensor = interpreter.tensor(1)
     input_tensor1 = interpreter.tensor(2)
-    output_shape = np.array([
-        1,
-        filter_tensor().shape[1] + input_tensor1().shape[1] - 1,
-        int(input_tensor1().shape[2] * 2 + filter_tensor().shape[2] / 2),
-        filter_tensor().shape[0]
-    ],
-                            dtype=np.int32)
-    return [
-        output_shape,
-        np.random.randint(low=np.iinfo(dtype).min,
-                          high=np.iinfo(dtype).max,
-                          dtype=dtype,
-                          size=input_tensor1().shape)
-    ]
+
+    output_shape = interpreter.get_output_details()[0]['shape_signature']
+    output_height = output_shape[1]
+    output_width = output_shape[2]
+
+    output_shape = np.array(
+        [1, output_height, output_width,
+         filter_tensor().shape[0]],
+        dtype=np.int32)
+    if dtype == float or dtype == np.float32 or dtype == np.float64:
+      random = np.random.uniform(low=1, high=100, size=input_tensor1().shape)
+      return [output_shape, random.astype(np.float32)]
+    else:
+      return [
+          output_shape,
+          np.random.randint(low=np.iinfo(dtype).min,
+                            high=np.iinfo(dtype).max,
+                            dtype=dtype,
+                            size=input_tensor1().shape)
+      ]
 
   def _GetTypeStringFromTensor(self, tensor):
     if tensor.dtype == np.int8:
@@ -87,7 +93,7 @@ class TestDataGenerator:
       return 'int16'
     if tensor.dtype == np.int32:
       return 'int32'
-    if tensor.dtype == np.float:
+    if tensor.dtype == float or tensor.dtype == np.float32:
       return 'float'
 
   def generate_golden_single_in_single_out(self):
@@ -97,7 +103,9 @@ class TestDataGenerator:
     if (len(self.model_paths) != 1):
       raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
-    interpreter = tf.lite.Interpreter(model_path=model_path)
+    interpreter = tf.lite.Interpreter(model_path=model_path,
+                                      experimental_op_resolver_type=\
+                                      tf.lite.experimental.OpResolverType.BUILTIN_REF)
 
     interpreter.allocate_tensors()
 
@@ -132,7 +140,10 @@ class TestDataGenerator:
 
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
-      interpreter = tf.lite.Interpreter(model_path=model_path)
+      interpreter = tf.lite.Interpreter(
+          model_path=model_path,
+          experimental_op_resolver_type=\
+          tf.lite.experimental.OpResolverType.BUILTIN_REF)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
           interpreter.get_input_details()[0]['index'])

@@ -29,7 +29,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
 TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
@@ -227,6 +227,16 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
     case kTfLiteFloat32: {
       switch (output->type) {
+        case kTfLiteInt8: {
+          reference_ops::AffineQuantize(
+              op_data->quantization_params,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<float>(input),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+          break;
+        }
+
         case kTfLiteInt16: {
           reference_ops::AffineQuantize(
               op_data->quantization_params,
@@ -257,7 +267,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -291,16 +301,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4) || defined(HIFI4_INTERNAL) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5)
   return EvalXtensa(context, node);
 #else
   return EvalQuantizeReference(context, node);
-#endif  // defined(HIFI4) || defined (HIFI4_INTERNAL) || defined(HIFI5)
+#endif  // defined(HIFI4) || defined(HIFI5)
 }
 
 }  // namespace
 
-TfLiteRegistration Register_QUANTIZE() {
+TfLiteRegistration_V1 Register_QUANTIZE() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

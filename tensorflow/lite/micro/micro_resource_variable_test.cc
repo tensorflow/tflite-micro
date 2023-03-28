@@ -85,7 +85,7 @@ TF_LITE_MICRO_TEST(AllocateResourceBuffers) {
   int id2 = resource_variables->CreateIdIfNoneFound("", "var2");
   TF_LITE_MICRO_EXPECT_NE(id1, id2);
 
-  TfLiteTensor tensor;
+  TfLiteTensor tensor = {};
   tensor.bytes = 42;
   resource_variables->Allocate(id1, tflite::GetMockContext(), &tensor);
   TF_LITE_MICRO_EXPECT_EQ(42, tflite::last_allocation_size_);
@@ -104,7 +104,7 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
   int id = resource_variables->CreateIdIfNoneFound("", "var1");
   TF_LITE_MICRO_EXPECT_GE(id, 0);
 
-  TfLiteTensor tensor;
+  TfLiteTensor tensor = {};
   const int bytes = 32 * sizeof(int32_t);
   tensor.bytes = bytes;
   resource_variables->Allocate(id, tflite::GetMockContext(), &tensor);

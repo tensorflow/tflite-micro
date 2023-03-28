@@ -32,9 +32,8 @@ void ValidateArgMinMaxGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = using_min
-                                              ? ops::micro::Register_ARG_MIN()
-                                              : ops::micro::Register_ARG_MAX();
+  const TfLiteRegistration_V1 registration =
+      using_min ? Register_ARG_MIN() : Register_ARG_MAX();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);

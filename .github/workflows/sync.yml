@@ -24,14 +24,16 @@ jobs:
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
 
       - name: Install dependencies for sync
         run: |
-          sudo ./ci/install_bazel.sh
+          sudo ./ci/install_bazelisk.sh
           pip3 install numpy
 
       - name: Sync the code

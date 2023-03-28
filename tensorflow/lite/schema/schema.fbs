@@ -413,7 +413,8 @@ enum BuiltinOperator : int32 {
   UNSORTED_SEGMENT_SUM = 155,
   ATAN2 = 156,
   UNSORTED_SEGMENT_MIN = 157,
-  SIGN = 158
+  SIGN = 158,
+  BITCAST = 159
 }
 // LINT.ThenChange(nnapi_linter/linter.proto)
 
@@ -541,7 +542,8 @@ union BuiltinOptions {
   UnsortedSegmentMinOptions,
   UnsortedSegmentSumOptions,
   ATan2Options,
-  SignOptions
+  SignOptions,
+  BitcastOptions
 }
 
 // LINT.IfChange
@@ -742,6 +744,9 @@ table UnidirectionalSequenceLSTMOptions {
 
   // Parameter for Unidirectional Sequence LSTM version 3.
   asymmetric_quantize_inputs:bool;
+
+  // Parameter for unidirectional sequence RNN version 4.
+  diagonal_recurrent_tensors:bool;
 }
 
 table BidirectionalSequenceLSTMOptions {
@@ -920,9 +925,13 @@ table SliceOptions {
 }
 
 table TransposeConvOptions {
+  // Parameters supported by version 1, 2, 3:
   padding:Padding;
   stride_w:int;
   stride_h:int;
+
+  // Parameters supported by version 4:
+  fused_activation_function:ActivationFunctionType = NONE;
 }
 
 table ExpandDimsOptions {
@@ -1169,6 +1178,9 @@ table UnsortedSegmentMinOptions{
 }
 
 table SignOptions {
+}
+
+table BitcastOptions {
 }
 
 

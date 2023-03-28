@@ -35,7 +35,7 @@ void ExecuteDivTest(TfLiteTensor* tensors, int tensors_count,
   int kOutputArrayData[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration registration = tflite::Register_DIV();
+  const TfLiteRegistration_V1 registration = tflite::Register_DIV();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&builtin_data));
 

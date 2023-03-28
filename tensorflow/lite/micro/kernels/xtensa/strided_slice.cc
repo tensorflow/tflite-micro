@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,9 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace strided_slice {
+namespace {
 
 constexpr int kInputTensor = 0;
 constexpr int kBeginTensor = 1;
@@ -147,7 +145,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return CheckOutputSize(context, &op_context);
 }
 
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
 void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
                                  const RuntimeShape& unextended_input_shape,
                                  const int16_t* input_data,
@@ -183,15 +181,18 @@ void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
   const int start_4 = StartForAxis(params_copy, input_shape, 4);
   const int stop_4 = StopForAxis(params_copy, input_shape, 4, start_4);
 
-  xa_nn_strided_slice_int16(
-      output_data, input_data, (int)start_0, (int)stop_0, (int)start_1,
-      (int)stop_1, (int)start_2, (int)stop_2, (int)start_3, (int)stop_3,
-      (int)start_4, (int)stop_4, params_copy.strides[0], params_copy.strides[1],
-      params_copy.strides[2], params_copy.strides[3], params_copy.strides[4],
-      input_shape.Dims(1), input_shape.Dims(2), input_shape.Dims(3),
-      input_shape.Dims(4));
+  xa_nn_strided_slice_int16(output_data, input_data, static_cast<int>(start_0),
+                            static_cast<int>(stop_0), static_cast<int>(start_1),
+                            static_cast<int>(stop_1), static_cast<int>(start_2),
+                            static_cast<int>(stop_2), static_cast<int>(start_3),
+                            static_cast<int>(stop_3), static_cast<int>(start_4),
+                            static_cast<int>(stop_4), params_copy.strides[0],
+                            params_copy.strides[1], params_copy.strides[2],
+                            params_copy.strides[3], params_copy.strides[4],
+                            input_shape.Dims(1), input_shape.Dims(2),
+                            input_shape.Dims(3), input_shape.Dims(4));
 }
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4)
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -218,7 +219,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorData<int8_t>(output));
       break;
     case kTfLiteInt16:
-#if defined(HIFI4_INTERNAL)
+#if defined(HIFI4)
       StridedSlice_int16_hifi4opt(
           op_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int16_t>(input),
@@ -230,7 +231,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int16_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
-#endif  // HIFI4_INTERNAL
+#endif  // defined(HIFI4)
       break;
     case kTfLiteInt32:
       reference_ops::StridedSlice(
@@ -239,6 +240,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int32_t>(output));
       break;
+    case kTfLiteBool:
+      reference_ops::StridedSlice(op_params,
+                                  tflite::micro::GetTensorShape(input),
+                                  tflite::micro::GetTensorData<bool>(input),
+                                  tflite::micro::GetTensorShape(output),
+                                  tflite::micro::GetTensorData<bool>(output));
+      break;
     default:
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                   input->type);
@@ -246,13 +254,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
   return kTfLiteOk;
 }
-}  // namespace strided_slice
+}  // namespace
 
-TfLiteRegistration Register_STRIDED_SLICE() {
-  return tflite::micro::RegisterOp(strided_slice::Init, strided_slice::Prepare,
-                                   strided_slice::Eval);
+TfLiteRegistration_V1 Register_STRIDED_SLICE() {
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

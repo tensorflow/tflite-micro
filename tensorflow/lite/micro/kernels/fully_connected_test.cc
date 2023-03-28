@@ -42,6 +42,18 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 1
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
+
+// TODO(b/258710417): INT4 isn't currently supported on Hexagon.
+#if !defined(HEXAGON)
+const float simple_int4_weights_data[] = {
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 0
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 1
+    -2, -1, 0, 1, 2, 3, 4, 5, 6, 7,  // u = 2
+};
+const float simple_golden_null_bias_int4_weights[] = {
+    -28, -28, -28, 0, 0, 0,
+};
+#endif
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 const float simple_golden[] = {
@@ -260,7 +272,7 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration = Register_FULLY_CONNECTED();
+  const TfLiteRegistration_V1 registration = Register_FULLY_CONNECTED();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
@@ -281,7 +293,6 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   return kTfLiteOk;
 }
 
-#if !defined(XTENSA)  // Needed to avoid build error from unused functions.
 TfLiteStatus TestFullyConnectedFloat(
     int* input_dims_data, const float* input_data, int* weights_dims_data,
     const float* weights_data, int* bias_dims_data, const float* bias_data,
@@ -314,7 +325,6 @@ TfLiteStatus TestFullyConnectedFloat(
                                        activation, 1e-4f, output_dims_count,
                                        golden, output_data);
 }
-#endif
 
 template <typename dataT, typename weightT, typename biasT>
 TfLiteStatus TestFullyConnectedQuantized(
@@ -325,7 +335,8 @@ TfLiteStatus TestFullyConnectedQuantized(
     int* bias_dims_data, const float* bias_data, biasT* bias_quantized,
     const float* golden, dataT* golden_quantized, int* output_dims_data,
     const float output_scale, const int output_zero_point,
-    TfLiteFusedActivation activation, dataT* output_data) {
+    TfLiteFusedActivation activation, dataT* output_data,
+    TfLiteType weights_packed_type = kTfLiteNoType) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* weights_dims = IntArrayFromInts(weights_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -341,9 +352,9 @@ TfLiteStatus TestFullyConnectedQuantized(
 
   tensors[0] = CreateQuantizedTensor(input_data, input_quantized, input_dims,
                                      input_scale, input_zero_point);
-  tensors[1] =
-      CreateQuantizedTensor(weights_data, weights_quantized, weights_dims,
-                            weights_scale, weights_zero_point);
+  tensors[1] = CreateQuantizedTensor(
+      weights_data, weights_quantized, weights_dims, weights_scale,
+      weights_zero_point, false, weights_packed_type);
   if (bias_data == nullptr) {
     tensors[2] = CreateQuantizedTensor(output_data, output_dims, output_scale,
                                        output_zero_point);
@@ -368,16 +379,6 @@ TfLiteStatus TestFullyConnectedQuantized(
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA) && !defined(CEVA_BX1) && !defined(CEVA_SP500)
-// TODO(b/170503075): xtensa kernels are less general
-// than reference kernels and we ifdef out test cases that are currently known
-// to fail.
-
-// CEVA's fully connected implementation assumes weights_zero_point=0 as
-// described in TFLite's quantization specification. tests which use a different
-// zero point will so ifdefed out.
-// See tflite quantization spec:
-// https://www.tensorflow.org/lite/performance/quantization_spec
 TF_LITE_MICRO_TEST(SimpleTest) {
   float output_data[tflite::testing::simple_output_size];
   TF_LITE_MICRO_EXPECT_EQ(
@@ -404,8 +405,6 @@ TF_LITE_MICRO_TEST(SimpleTestNullBias) {
           tflite::testing::simple_output_dims, kTfLiteActNone, output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
   const float input_scale = 1.0f;
@@ -435,7 +434,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8) {
       kTfLiteOk);
 }
 
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
@@ -524,9 +523,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Relu) {
       kTfLiteOk);
 }
 
-#if !defined(XTENSA)  // TODO(b/170503075): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SimpleTest4DInput) {
   int input_dims_4d[] = {4, 1, 1, 2, 10};
 
@@ -559,8 +555,6 @@ TF_LITE_MICRO_TEST(Representative1x64Input1x16Output) {
           output_data),
       kTfLiteOk);
 }
-
-#endif
 
 TF_LITE_MICRO_TEST(Representative1x64Input1x16OutputQuantizedInt8) {
   const float input_scale = 0.051445;
@@ -619,5 +613,39 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8NullBias) {
           kTfLiteActNone, output_data),
       kTfLiteOk);
 }
+
+// TODO(b/258710417): INT4 isn't currently supported on Hexagon.
+#if !defined(HEXAGON)
+// This test was created by handcrafting simple_int4_weights_data, and
+// simple_golden_null_bias_int4_weights was obtained by running
+// TestFullyConnectedQuantized() with int8 quantization, and ensuring that int4
+// quantization yields the same outputs.
+TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
+  const float input_scale = 1.0f;
+  const int input_zero_point = -1;
+  const float weights_scale = 1.0f;
+  const int weights_zero_point = 0;
+  const float output_scale = 0.5f;
+  const int output_zero_point = -1;
+
+  int8_t input_quantized[tflite::testing::simple_input_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int8_t golden_quantized[tflite::testing::simple_output_size];
+  int8_t output_data[tflite::testing::simple_output_size];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantized(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_int4_weights_data, weights_quantized,
+          weights_scale, weights_zero_point, nullptr, nullptr,
+          static_cast<int32_t*>(nullptr),
+          tflite::testing::simple_golden_null_bias_int4_weights,
+          golden_quantized, tflite::testing::simple_output_dims, output_scale,
+          output_zero_point, kTfLiteActNone, output_data, kTfLiteInt4),
+      kTfLiteOk);
+}
+#endif
 
 TF_LITE_MICRO_TESTS_END

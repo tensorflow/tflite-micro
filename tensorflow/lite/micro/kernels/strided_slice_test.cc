@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,8 +36,7 @@ void ValidateStridedSliceGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 4};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration registration =
-      tflite::ops::micro::Register_STRIDED_SLICE();
+  const TfLiteRegistration_V1 registration = Register_STRIDED_SLICE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(params));
   if (expect_prepare_err) {
@@ -1110,6 +1109,28 @@ TF_LITE_MICRO_TEST(In3D_Strided2int32) {
   TfLiteStridedSliceParams builtin_data = {};
 
   tflite::testing::TestStridedSliceQuantized(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TF_LITE_MICRO_TEST(In3D_Strided2bool) {
+  int input_shape[] = {3, 2, 3, 2};
+  int begin_shape[] = {1, 3};
+  int end_shape[] = {1, 3};
+  int strides_shape[] = {1, 3};
+  int output_shape[] = {3, 1, 2, 1};
+  bool input_data[] = {true,  false, false, false, true,  false,
+                       false, false, false, false, false, false};
+  int32_t begin_data[] = {0, 0, 0};
+  int32_t end_data[] = {2, 3, 2};
+  int32_t strides_data[] = {2, 2, 2};
+  bool golden[] = {true, true};
+  bool output_data[16];
+
+  TfLiteStridedSliceParams builtin_data = {};
+
+  tflite::testing::TestStridedSliceQuantized<bool>(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
       input_data, begin_data, end_data, strides_data, output_shape, output_data,
       golden, false);

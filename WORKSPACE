@@ -17,29 +17,40 @@ workspace(name = "tflite_micro")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# compile_commands.json generator
+http_archive(
+    name = "hedron_compile_commands",
+    url = "https://github.com/hedronvision/bazel-compile-commands-extractor/archive/1266d6a25314d165ca78d0061d3399e909b7920e.tar.gz",
+    strip_prefix = "bazel-compile-commands-extractor-1266d6a25314d165ca78d0061d3399e909b7920e",
+    sha256 = "bacabfe758676fdc19e4bea7c4a3ac99c7e7378d259a9f1054d341c6a6b44ff6",
+)
+load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
+hedron_compile_commands_setup()
+
 http_archive(
     name = "rules_python",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.4.0/rules_python-0.4.0.tar.gz",
-    sha256 = "954aa89b491be4a083304a2cb838019c8b8c3720a7abb9c4cb81ac7a24230cea",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
-load("@rules_python//python:pip.bzl", "pip_install")
-
-# Create a central external repo that contains Bazel targets for all the
-# third-party packages specified in the requirements.txt file.
-pip_install(
-   name = "tflm_pip_deps",
-   requirements = "//third_party:requirements.txt",
+load("@rules_python//python:pip.bzl", "pip_parse")
+pip_parse(
+    name = "tflm_pip_deps",
+    requirements_lock = "//third_party:python_requirements.txt",
 )
 
-load("@//tensorflow:workspace.bzl", "workspace")
+load("@tflm_pip_deps//:requirements.bzl", "install_deps", "requirement")
+install_deps()
+
+load("//tensorflow:workspace.bzl", "workspace")
 workspace()
 
 http_archive(
   name = "pybind11_bazel",
-  strip_prefix = "pybind11_bazel-72cbbf1fbc830e487e3012862b7b720001b70672",
-  urls = ["https://github.com/pybind/pybind11_bazel/archive/72cbbf1fbc830e487e3012862b7b720001b70672.zip"],
-  sha256 = "fec6281e4109115c5157ca720b8fe20c8f655f773172290b03f57353c11869c2",
+  strip_prefix = "pybind11_bazel-faf56fb3df11287f26dbc66fdedf60a2fc2c6631",
+  urls = ["https://github.com/pybind/pybind11_bazel/archive/faf56fb3df11287f26dbc66fdedf60a2fc2c6631.zip"],
+  sha256 = "a185aa68c93b9f62c80fcb3aadc3c83c763854750dc3f38be1dadcb7be223837",
 )
 
 http_archive(
@@ -53,10 +64,17 @@ http_archive(
 load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python", python_version = "3")
 
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("@//tensorflow/lite/micro/python:py_cc_headers.bzl", "tflm_py_cc_headers")
-tflm_py_cc_headers(
-    name = "numpy_headers",
-    py_library = requirement("numpy"),
-    include_prefix = "numpy/core/include",
+load("//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
+
+py_pkg_cc_deps(
+    name = "numpy_cc_deps",
+    includes = ["numpy/core/include"],
+    pkg = requirement("numpy"),
+)
+
+py_pkg_cc_deps(
+    name = "tensorflow_cc_deps",
+    includes = ["tensorflow/include"],
+    libs = ["tensorflow/libtensorflow_framework.so.2"],
+    pkg = requirement("tensorflow-cpu"),
 )

@@ -1,4 +1,4 @@
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -267,8 +267,8 @@ endif
 # Kernel integration tests must be excluded on certain targets.
 MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests -name Makefile.inc)
 
-MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += $(shell find \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect -name Makefile.inc)
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
 
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
 
@@ -357,6 +357,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/log_softmax.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/maximum_minimum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \
@@ -418,6 +419,7 @@ MICROLITE_CC_BASE_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
+$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
 $(TFL_CC_SRCS)
 
 MICROLITE_CC_HDRS := \
@@ -426,6 +428,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
 $(TENSORFLOW_ROOT)LICENSE \
 $(TFL_CC_HDRS)
 
@@ -617,6 +620,9 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
+
+# Load generated micro mutable op resolver test.
+include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
 
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)

@@ -138,10 +138,8 @@ void VerifyRegistrationAndNodeAllocation(
 size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
   const int tensor_count = 4;
   const int node_count = 2;
-  size_t eval_tensor_size = AlignSizeUp(sizeof(TfLiteEvalTensor) * tensor_count,
-                                        alignof(TfLiteEvalTensor));
-  size_t node_registration_size = AlignSizeUp(
-      sizeof(NodeAndRegistration) * node_count, alignof(NodeAndRegistration));
+  size_t eval_tensor_size = AlignSizeUp<TfLiteEvalTensor>(tensor_count);
+  size_t node_registration_size = AlignSizeUp<NodeAndRegistration>(node_count);
 
   const int activation_tensor_count = 3;
   size_t activation_tensor_buffer =
@@ -954,6 +952,21 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
 
   // Deallocate both temp TfLiteTensor deallocate all temp buffers.
   allocator->DeallocateTempTfLiteTensor(tensor2);
+  TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
+}
+
+TF_LITE_MICRO_TEST(TestAllocateAndDeallocateTempBuffer) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, arena_size);
+  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
+  uint8_t* buffer1 =
+      allocator->AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
+  TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
+  TF_LITE_MICRO_EXPECT_FALSE(allocator->IsAllTempDeallocated());
+  allocator->DeallocateTempBuffer(buffer1);
   TF_LITE_MICRO_EXPECT_TRUE(allocator->IsAllTempDeallocated());
 }
 

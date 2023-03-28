@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,7 +20,14 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/reference/integer_ops/pooling.h"
+#include "tensorflow/lite/kernels/internal/reference/pooling.h"
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -50,33 +57,83 @@ void AveragePoolingEvalFloat(const TfLiteContext* context,
                              const TfLiteEvalTensor* input,
                              TfLiteEvalTensor* output);
 
+template <typename T>
 void AveragePoolingEvalQuantized(TfLiteContext* context, const TfLiteNode* node,
                                  const TfLitePoolParams* params,
                                  const OpDataPooling* data,
                                  const TfLiteEvalTensor* input,
-                                 TfLiteEvalTensor* output);
+                                 TfLiteEvalTensor* output) {
+  TFLITE_DCHECK(input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
+
+  PoolParams op_params;
+  op_params.stride_height = params->stride_height;
+  op_params.stride_width = params->stride_width;
+  op_params.filter_height = params->filter_height;
+  op_params.filter_width = params->filter_width;
+  op_params.padding_values.height = data->padding.height;
+  op_params.padding_values.width = data->padding.width;
+  op_params.quantized_activation_min = data->activation_min;
+  op_params.quantized_activation_max = data->activation_max;
+
+  reference_integer_ops::AveragePool(op_params,
+                                     tflite::micro::GetTensorShape(input),
+                                     tflite::micro::GetTensorData<T>(input),
+                                     tflite::micro::GetTensorShape(output),
+                                     tflite::micro::GetTensorData<T>(output));
+}
 
 void MaxPoolingEvalFloat(TfLiteContext* context, TfLiteNode* node,
                          TfLitePoolParams* params, const OpDataPooling* data,
                          const TfLiteEvalTensor* input,
                          TfLiteEvalTensor* output);
 
+template <typename T>
 void MaxPoolingEvalQuantized(TfLiteContext* context, TfLiteNode* node,
                              TfLitePoolParams* params,
                              const OpDataPooling* data,
                              const TfLiteEvalTensor* input,
-                             TfLiteEvalTensor* output);
+                             TfLiteEvalTensor* output) {
+  TFLITE_DCHECK(input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
 
-#if defined(CMSIS_NN)
-TfLiteRegistration Register_AVERAGE_POOL_2D_INT8();
+  tflite::PoolParams op_params;
+  op_params.stride_height = params->stride_height;
+  op_params.stride_width = params->stride_width;
+  op_params.filter_height = params->filter_height;
+  op_params.filter_width = params->filter_width;
+  op_params.padding_values.height = data->padding.height;
+  op_params.padding_values.width = data->padding.width;
+  op_params.quantized_activation_min = data->activation_min;
+  op_params.quantized_activation_max = data->activation_max;
 
-TfLiteRegistration Register_MAX_POOL_2D_INT8();
+  reference_integer_ops::MaxPool(op_params,
+                                 tflite::micro::GetTensorShape(input),
+                                 tflite::micro::GetTensorData<T>(input),
+                                 tflite::micro::GetTensorShape(output),
+                                 tflite::micro::GetTensorData<T>(output));
+}
+
+#if defined(CMSIS_NN) || defined(XTENSA)
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8();
+
+TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8();
+
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16();
+
+TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16();
 #else
-inline TfLiteRegistration Register_AVERAGE_POOL_2D_INT8() {
+inline TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8() {
   return tflite::Register_AVERAGE_POOL_2D();
 }
 
-inline TfLiteRegistration Register_MAX_POOL_2D_INT8() {
+inline TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8() {
+  return tflite::Register_MAX_POOL_2D();
+}
+
+inline TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16() {
+  return tflite::Register_AVERAGE_POOL_2D();
+}
+
+inline TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16() {
   return tflite::Register_MAX_POOL_2D();
 }
 #endif

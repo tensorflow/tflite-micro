@@ -20,6 +20,9 @@ jobs:
 
     name: RISC-V Continuous Builds
     steps:
+      - uses: actions/setup-python@v4
+        with: 
+          python-version: '3.10'
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
@@ -28,3 +31,16 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_riscv.sh
+
+  issue-on-error:
+    needs: [riscv_daily]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository }}
+      workflow: ${{ github.workflow }}
+      run_id: ${{ github.run_id }}
+      run_number: ${{ github.run_number }}
+      flag_label: ci:bot_issue
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

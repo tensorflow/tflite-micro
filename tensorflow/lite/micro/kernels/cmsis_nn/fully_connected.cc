@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
@@ -124,6 +125,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     } else {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
     }
+  }
+
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(
+        context, filter_size, &data->reference_op_data.filter_buffer_index);
   }
 
   if (buf_size > 0) {
@@ -309,12 +319,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
   // Checks in Prepare ensure input, output and filter types are all the same.
   switch (input->type) {
     case kTfLiteFloat32: {
       const float* bias_data =
           tflite::micro::GetOptionalTensorData<float>(bias);
-
       tflite::reference_ops::FullyConnected(
           FullyConnectedParamsFloat(params->activation),
           tflite::micro::GetTensorShape(input),
@@ -327,8 +339,16 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
-      return EvalQuantizedInt8(context, node, data, input, filter, bias,
-                               output);
+      switch (filter_int8.type) {
+        case kTfLiteInt8:
+          return EvalQuantizedInt8(context, node, data, input, &filter_int8,
+                                   bias, output);
+        default:
+          MicroPrintf("Filter Type %s (%d) not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type);
+          return kTfLiteError;
+      }
+      break;
     }
     case kTfLiteInt16: {
       return EvalQuantizedInt16(context, node, data, input, filter, bias,
@@ -369,7 +389,11 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
-  return EvalQuantizedInt8(context, node, data, input, filter, bias, output);
+  TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
+      context, data.reference_op_data.filter_buffer_index, filter);
+
+  return EvalQuantizedInt8(context, node, data, input, &filter_int8, bias,
+                           output);
 }
 
 TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
@@ -397,15 +421,15 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_FULLY_CONNECTED() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED_INT16() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt16);
 }
 

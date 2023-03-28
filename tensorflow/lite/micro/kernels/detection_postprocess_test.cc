@@ -106,7 +106,7 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   tensors[6] = CreateTensor(output_data4, output_dims4);
 
   ::tflite::AllOpsResolver resolver;
-  const TfLiteRegistration* registration =
+  const TfLiteRegistration_V1* registration =
       resolver.FindOp("TFLite_Detection_PostProcess");
   TF_LITE_MICRO_EXPECT(registration != nullptr);
 
