@@ -341,8 +341,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData* data = static_cast<const OpData*>(node->user_data);
 
-  if (output->type == kTfLiteFloat32 ||
-      (input1->type == kTfLiteInt32 && input2->type == kTfLiteInt32)) {
+  if (output->type == kTfLiteFloat32 || output->type == kTfLiteInt32) {
     TF_LITE_ENSURE_OK(
         context, EvalAdd(context, node, params, data, input1, input2, output));
   } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {

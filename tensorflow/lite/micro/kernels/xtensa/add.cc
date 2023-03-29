@@ -253,8 +253,7 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kAddOutputTensor);
 
-  if (output->type == kTfLiteFloat32 ||
-      (input1->type == kTfLiteInt32 && input2->type == kTfLiteInt32)) {
+  if (output->type == kTfLiteFloat32 || output->type == kTfLiteInt32) {
     TF_LITE_ENSURE_OK(
         context, EvalAdd(context, node, params, data, input1, input2, output));
   } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
