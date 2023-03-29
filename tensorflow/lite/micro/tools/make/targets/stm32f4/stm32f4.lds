@@ -31,13 +31,6 @@ the constraints of the hardware.
 ENTRY(_main)
 
 MEMORY {
-RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 16384K
-FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 16384K
-}
-
-
-
-MEMORY {
  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 16384K
  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 16384K
 }
