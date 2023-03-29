@@ -19,17 +19,12 @@ ENTRY(_main)
 /* 256K of RAM and 2048K of FLASH. Source: */
 /* https://github.com/renode/renode/blob/master/platforms/cpus/stm32f4.repl*/
 /* Modifications:
-    * increased the flash and RAM to 16MB (which far exceeds the actual
-      hardware)
-
-The primary purpose of using Renode in the TFLM repository is to be
-able to run tests on a variety of models in simulation without being limited by
-the constraints of the hardware.
+    * increased the RAM to 512K. This far exceeds the
+      actual hardware but enables running the tests in the emulator.
 */
-
 MEMORY {
- RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 16384K
- FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 16384K
+ RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 512K
+ FLASH (rx) : ORIGIN = 0x8000000, LENGTH =  2048K
 }
 
 /* Compute where the stack ends rather than hard coding it */
