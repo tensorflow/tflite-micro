@@ -27,9 +27,6 @@ able to run tests on a variety of models in simulation without being limited by
 the constraints of the hardware.
 */
 
-/* Define main entry point */
-ENTRY(_main)
-
 MEMORY {
  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 16384K
  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 16384K
