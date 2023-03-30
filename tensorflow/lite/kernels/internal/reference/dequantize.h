@@ -33,11 +33,11 @@ inline void Dequantize(const tflite::DequantizationParams& op_params,
                        const InputT* input_data,
                        const RuntimeShape& output_shape, OutputT* output_data) {
   int32_t zero_point = op_params.zero_point;
-  const double scale = op_params.scale;
+  const float scale = static_cast<float>(op_params.scale);
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
 
   for (int i = 0; i < flat_size; i++) {
-    const int32_t val = input_data[i];
+    const InputT val = input_data[i];
     const OutputT result = static_cast<OutputT>(scale * (val - zero_point));
     output_data[i] = result;
   }
