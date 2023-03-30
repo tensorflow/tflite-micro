@@ -1,0 +1,61 @@
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+index 7f31b75..a010d45 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+@@ -157,7 +157,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 	 */
+ 	if(input_data && filter_data && output_data && scratch_buffer &&
+ 			(((unsigned int)input_data&0x7)==0) && (((unsigned int)filter_data&0x3)==0) && (((unsigned int)output_data&0x7) == 0) &&
+-			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0xF)==0) && ((filter_height*filter_width&0x3)==0))
++			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0x3)==0))
+ 	{
+ 		{
+ 			//tbd : batch = 1, need to handle other values and in_x_min/max= 0 .. need toc heck for other values
+@@ -180,7 +180,8 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 					filt_y_max = (filt_y_max < filter_height) ? filt_y_max : filter_height;
+ 					filt_y_max = (filt_y_max < 0) ? 0 : filt_y_max;
+ 					pinp =  (WORD16*)&input_data[in_y*input_width*input_depth+in_x*input_depth];
+-					for (int in_channel = 0; in_channel < input_depth; in_channel+=16)
++					int in_channel = 0;
++					for (; in_channel + 15 < input_depth; in_channel+=16)
+ 					{
+ 						ae_int16x4 d_inp, d_inp1, d_inp2, d_inp3;
+ 						AE_L16X4_IP(d_inp, (ae_int16x4*)pinp, sizeof(WORD64));
+@@ -235,36 +236,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 							}
+ 						}
+ 					}
+-				}
+-			}
+-		}
+-	}
+-	else if(input_data && filter_data && output_data && scratch_buffer &&
+-			(((unsigned int)input_data&0x7)==0) && (((unsigned int)filter_data&0x3)==0) && (((unsigned int)output_data&0x7) == 0) &&
+-			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0x3)==0) && ((filter_height*filter_width&0x3)==0))
+-	{
+-		{
+-			//tbd : batch = 1, need to handle other values and in_x_min/max= 0 .. need toc heck for other values
+-			for (int in_y = 0; in_y < input_height; ++in_y)
+-			{
+-				for (int in_x = 0; in_x < input_width; ++in_x)
+-				{
+-					const int out_x_orig = in_x*stride_width - pad_width;
+-					const int out_y_orig = in_y*stride_height - pad_height;
+-					int filt_x_min = -out_x_orig; 
+-					int filt_x_max = output_width - out_x_orig; 
+-					int filt_y_min = -out_y_orig; 
+-					int filt_y_max = output_height - out_y_orig; 
+-					filt_x_min = (filt_x_min < filter_width) ? filt_x_min : filter_width;
+-					filt_x_min = (filt_x_min < 0) ? 0 : filt_x_min;
+-					filt_x_max = (filt_x_max < filter_width) ? filt_x_max : filter_width;
+-					filt_x_max = (filt_x_max < 0) ? 0 : filt_x_max;
+-					filt_y_min = (filt_y_min < filter_height) ? filt_y_min : filter_height;
+-					filt_y_min = (filt_y_min < 0) ? 0 : filt_y_min;
+-					filt_y_max = (filt_y_max < filter_height) ? filt_y_max : filter_height;
+-					filt_y_max = (filt_y_max < 0) ? 0 : filt_y_max;
+-					pinp =  (WORD16*)&input_data[in_y*input_width*input_depth+in_x*input_depth];
+-					for (int in_channel = 0; in_channel < input_depth; in_channel+=4)
++					for (; in_channel + 3 < input_depth; in_channel+=4)
+ 					{
+ 						ae_int16x4 d_inp;
+ 						AE_L16X4_IP(d_inp, (ae_int16x4*)pinp, sizeof(WORD64));
