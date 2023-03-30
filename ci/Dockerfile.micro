@@ -50,5 +50,5 @@ RUN pip install six
 RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 COPY ci/*.sh /install/
-RUN /install/install_bazel.sh
+RUN /install/install_bazelisk.sh
 RUN /install/install_buildifier.sh

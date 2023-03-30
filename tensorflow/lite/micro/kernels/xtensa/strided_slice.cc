@@ -181,13 +181,16 @@ void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
   const int start_4 = StartForAxis(params_copy, input_shape, 4);
   const int stop_4 = StopForAxis(params_copy, input_shape, 4, start_4);
 
-  xa_nn_strided_slice_int16(
-      output_data, input_data, (int)start_0, (int)stop_0, (int)start_1,
-      (int)stop_1, (int)start_2, (int)stop_2, (int)start_3, (int)stop_3,
-      (int)start_4, (int)stop_4, params_copy.strides[0], params_copy.strides[1],
-      params_copy.strides[2], params_copy.strides[3], params_copy.strides[4],
-      input_shape.Dims(1), input_shape.Dims(2), input_shape.Dims(3),
-      input_shape.Dims(4));
+  xa_nn_strided_slice_int16(output_data, input_data, static_cast<int>(start_0),
+                            static_cast<int>(stop_0), static_cast<int>(start_1),
+                            static_cast<int>(stop_1), static_cast<int>(start_2),
+                            static_cast<int>(stop_2), static_cast<int>(start_3),
+                            static_cast<int>(stop_3), static_cast<int>(start_4),
+                            static_cast<int>(stop_4), params_copy.strides[0],
+                            params_copy.strides[1], params_copy.strides[2],
+                            params_copy.strides[3], params_copy.strides[4],
+                            input_shape.Dims(1), input_shape.Dims(2),
+                            input_shape.Dims(3), input_shape.Dims(4));
 }
 #endif  // defined(HIFI4)
 
@@ -236,6 +239,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int32_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int32_t>(output));
+      break;
+    case kTfLiteBool:
+      reference_ops::StridedSlice(op_params,
+                                  tflite::micro::GetTensorShape(input),
+                                  tflite::micro::GetTensorData<bool>(input),
+                                  tflite::micro::GetTensorShape(output),
+                                  tflite::micro::GetTensorData<bool>(output));
       break;
     default:
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),

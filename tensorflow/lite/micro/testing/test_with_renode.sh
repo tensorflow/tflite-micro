@@ -18,7 +18,7 @@
 # Parameters:
 #  ${1} - space-separated list of binaries to test
 #  ${2} - String that is checked for pass/fail.
-#  ${3} - target (bluepill, stm32f4 etc.)
+#  ${3} - target (bluepill etc.)
 
 set -e
 
