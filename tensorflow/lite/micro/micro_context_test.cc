@@ -59,6 +59,8 @@ TF_LITE_MICRO_TESTS_BEGIN
 // Ensures that a regular set and get pair works ok.
 TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  micro_context.SetInterpreterState(
+      tflite::MicroContext::InterpreterState::kInvoke);
 
   tflite::TestExternalContextPayloadData payload;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -85,7 +87,8 @@ TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
 
 TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
-
+  micro_context.SetInterpreterState(
+      tflite::MicroContext::InterpreterState::kPrepare);
   tflite::TestExternalContextPayloadData payload;
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -98,7 +101,8 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
 
 TF_LITE_MICRO_TEST(TestSetExternalContextToNullShouldFail) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
-
+  micro_context.SetInterpreterState(
+      tflite::MicroContext::InterpreterState::kPrepare);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           micro_context.set_external_context(nullptr));
 }
@@ -140,6 +144,8 @@ TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateTempBuffer) {
   tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  micro_context.SetInterpreterState(
+      tflite::MicroContext::InterpreterState::kPrepare);
   uint8_t* buffer1 =
       micro_context.AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
   TF_LITE_MICRO_EXPECT(buffer1 != nullptr);

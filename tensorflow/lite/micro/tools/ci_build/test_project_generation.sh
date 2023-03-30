@@ -52,7 +52,7 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 # Next, we test that create_tflm_tree can be used to build example binaries. We
 # perform this test with a Makefile (instead of bazel) because make is more
 # commonly understood and because we use make for cross-compilation.
-EXAMPLES="-e hello_world -e magic_wand -e micro_speech -e person_detection"
+EXAMPLES="-e hello_world -e micro_speech -e person_detection"
 
 TEST_OUTPUT_DIR="$(mktemp -d)"
 

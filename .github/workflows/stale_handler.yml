@@ -1,0 +1,29 @@
+name: 'Stale Handler'
+on:
+  schedule:
+    - cron: '0 10 * * *'
+
+  workflow_dispatch: {}
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v7
+        with:
+          stale-issue-message: >
+            "This issue is being marked as stale due to inactivity. Remove label or 
+            comment to prevent closure in 5 days."
+          stale-pr-message: >
+            "This PR is being marked as stale due to inactivity. Remove label or 
+            comment to prevent closure in 5 days."
+          close-issue-message: >
+            "This issue is being closed because it has been marked as
+             stale for 5 days with no further activity."
+          close-pr-message: >
+            "This PR is being closed because it has been marked as
+             stale for 5 days with no further activity."
+          days-before-issue-stale: 25
+          days-before-issue-close: 5
+          days-before-pr-stale: 40
+          days-before-pr-close: 5

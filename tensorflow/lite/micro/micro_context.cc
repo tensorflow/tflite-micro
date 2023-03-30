@@ -19,26 +19,34 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
                            MicroGraph* graph)
-    : allocator_(*allocator), graph_(*graph), model_(model) {}
+    : allocator_(*allocator),
+      graph_(*graph),
+      model_(model),
+      state_(InterpreterState::kInit) {}
 
 MicroContext::~MicroContext() {}
 
 void* MicroContext::AllocatePersistentBuffer(size_t bytes) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInit);
   return allocator_.AllocatePersistentBuffer(bytes);
 }
 
 TfLiteStatus MicroContext::RequestScratchBufferInArena(size_t bytes,
                                                        int* buffer_idx) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
   return allocator_.RequestScratchBufferInArena(
       bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
 }
 
 void* MicroContext::GetScratchBuffer(int buffer_idx) {
+  TFLITE_DCHECK(state_ == InterpreterState::kInvoke);
   ScratchBufferHandle* handle = scratch_buffer_handles_ + buffer_idx;
   return handle->data;
 }
@@ -95,10 +103,12 @@ void MicroContext::DeallocateTempTfLiteTensor(TfLiteTensor* tensor) {
 }
 
 uint8_t* MicroContext::AllocateTempBuffer(size_t size, size_t alignment) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
   return allocator_.AllocateTempBuffer(size, alignment);
 }
 
 void MicroContext::DeallocateTempBuffer(uint8_t* buffer) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
   allocator_.DeallocateTempBuffer(buffer);
 }
 
@@ -114,6 +124,8 @@ void MicroContext::SetScratchBufferHandles(
 
 TfLiteStatus MicroContext::set_external_context(
     void* external_context_payload) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
   if (external_context_payload == nullptr ||
       external_context_payload_ != nullptr) {
     MicroPrintf(
@@ -132,6 +144,14 @@ void MicroContextReportOpError(struct TfLiteContext* context,
   va_start(args, format);
   Log(format, args);
   va_end(args);
+}
+
+void MicroContext::SetInterpreterState(MicroContext::InterpreterState state) {
+  state_ = state;
+}
+
+MicroContext::InterpreterState MicroContext::GetInterpreterState() const {
+  return state_;
 }
 
 }  // namespace tflite
