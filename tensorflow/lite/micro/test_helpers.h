@@ -216,7 +216,6 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
   result.is_variable = is_variable;
   result.allocation_type = kTfLiteMemNone;
   result.data.data = const_cast<T*>(data);
-  result.quantization = {kTfLiteAffineQuantization, nullptr};
   result.bytes = ElementCount(*dims) * sizeof(T);
   result.data.data = const_cast<T*>(data);
 
