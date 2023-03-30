@@ -117,10 +117,6 @@ hello_world: libtflm
 	@mkdir -p $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(HELLO_WORLD_SRCS) $(HELLO_WORLD_INCLUDES) $(LIB) -o $(BINDIR)/$@
 
-magic_wand: libtflm
-	@mkdir -p $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(wildcard examples/magic_wand/*.cc) $(INCLUDES) $(LIB) -o $(BINDIR)/$@
-
 MICRO_SPEECH_SRCS := $(wildcard examples/micro_speech/*.cc)
 MICRO_SPEECH_SRCS += $(wildcard examples/micro_speech/*/*.cc)
 MICRO_SPEECH_THIRD_PARTY_SRCS :=
@@ -138,4 +134,4 @@ person_detection: libtflm
 	@mkdir -p $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(PERSON_DETECTION_SRCS) $(PERSON_DETECTION_THIRD_PARTY_SRCS) $(PERSON_DETECTION_INCLUDES) $(LIB) -o $(BINDIR)/$@
 
-examples: hello_world magic_wand micro_speech person_detection
+examples: hello_world micro_speech person_detection

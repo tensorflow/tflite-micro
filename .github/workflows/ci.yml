@@ -33,7 +33,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
-          sudo ci/install_bazel.sh
+          sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
       - name: Test
@@ -53,7 +53,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
-          sudo ci/install_bazel.sh
+          sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
       - name: Test
@@ -73,7 +73,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
-          sudo ci/install_bazel.sh
+          sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
       - name: Test
@@ -93,7 +93,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
         run: |
-          sudo ci/install_bazel.sh
+          sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
       - name: Test
