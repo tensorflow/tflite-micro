@@ -99,6 +99,14 @@ TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(
       CalculateOpDataAdd(context, params, input1, input2, output, data));
 
+  if (output->type == kTfLiteInt32) {
+    // Only support int32 unquantized add for now.
+    TF_LITE_ENSURE_EQ(context, input1->quantization.type,
+                      kTfLiteNoQuantization);
+    TF_LITE_ENSURE_EQ(context, input2->quantization.type,
+                      kTfLiteNoQuantization);
+  }
+
   micro_context->DeallocateTempTfLiteTensor(input1);
   micro_context->DeallocateTempTfLiteTensor(input2);
   micro_context->DeallocateTempTfLiteTensor(output);
