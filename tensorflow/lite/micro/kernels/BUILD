@@ -302,6 +302,7 @@ tflm_kernel_cc_library(
         "softmax.h",
         "sub.h",
         "svdf.h",
+        "unidirectional_sequence_lstm.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),

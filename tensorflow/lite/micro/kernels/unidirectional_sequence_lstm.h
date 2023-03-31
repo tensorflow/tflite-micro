@@ -30,8 +30,11 @@ namespace tflite {
 // TODO(b/230666079): resolve conflict with xtensa implementation
 TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 
-#if defined(CMSIS_NN)
-// Returns a TFLMRegistration struct for kernel variant that only supports
+TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
+                                               TfLiteNode* node);
+
+#if defined(CMSIS_NN) || defined(XTENSA)
+// Returns a TfLiteRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and uses the latency optimized
 // implementations.
 TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8();

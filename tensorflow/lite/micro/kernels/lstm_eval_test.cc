@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,19 +27,12 @@ limitations under the License.
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-#if !defined(XTENSA)
 namespace {
 // Test Settings
 constexpr float kTestFloatTolerance = 1e-6f;
 }  // namespace
-#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_BEGIN
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(CheckGateOutputFloat) {
   const tflite::testing::GateOutputCheckData<4, 4> gate_output_data =
       tflite::testing::Get2X2GateOutputCheckData();
@@ -455,5 +448,4 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt16) {
                                        int16_node_contents);
 }
 
-#endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END

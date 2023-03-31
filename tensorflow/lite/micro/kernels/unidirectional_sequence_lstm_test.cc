@@ -118,9 +118,6 @@ void TestUnidirectionalLSTMFloat(
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
-// TODO(b/230666079) enable below tests for xtensa when the xtensa
-// kernel is reconciled with reference kernel
-#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMFloat) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
       tflite::testing::Get2X2LstmEvalCheckData();
@@ -148,7 +145,7 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int8_node_contents);
 }
-#endif
+#endif  // !defined(CMSIS_NN)
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
@@ -165,5 +162,4 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int16_node_contents);
 }
-#endif  // !defined(XTENSA)
 TF_LITE_MICRO_TESTS_END

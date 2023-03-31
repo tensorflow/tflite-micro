@@ -323,4 +323,64 @@ LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
   return kernel_content;
 }
 
+TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
+                                               TfLiteNode* node) {
+  TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
+  TF_LITE_ENSURE_EQ(context, node->inputs->size, 24);
+
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+  OpDataLSTM* op_data = reinterpret_cast<OpDataLSTM*>(node->user_data);
+  const auto* builtin_data =
+      static_cast<TfLiteUnidirectionalSequenceLSTMParams*>(node->builtin_data);
+  // All TempTfLiteTensors will be deallocated through the destructor.
+  LstmTensors lstm_tensors(context, node);
+  TF_LITE_ENSURE_OK(context, lstm_tensors.ValidateTensorStatus(context));
+
+  op_data->cell_gate_nonlinear_type = builtin_data->activation;
+  op_data->size_info =
+      CreateLstmSizeInfo(builtin_data->time_major,
+                         lstm_tensors.GetInternalTensor(kLstmInputTensor)->dims,
+                         lstm_tensors.HiddenStateTensor()->dims);
+  TF_LITE_ENSURE_OK(
+      context, ValidateTensorSize(context, lstm_tensors, op_data->size_info));
+
+  // Making sure clipping parameters have valid values.
+  // == 0 means no clipping
+  //  > 0 means clipping
+  TF_LITE_ENSURE(context, builtin_data->cell_clip >= 0);
+
+  // Create cell state information and gate parameters (Fully Connected and Mul)
+  auto cell_state_type =
+      lstm_tensors.GetInternalTensor(kLstmCellStateTensor)->type;
+  if (cell_state_type == kTfLiteFloat32) {
+    op_data->cell_state_info =
+        CreateLstmCellStateInfoFloat(builtin_data->cell_clip);
+    TF_LITE_ENSURE_OK(
+        context, PrepareGateParametersFloat(context, lstm_tensors, op_data));
+  } else if (cell_state_type == kTfLiteInt16) {
+    op_data->cell_state_info = CreateLstmCellStateInfo(
+        lstm_tensors.CellStateTensor()->params.scale, builtin_data->cell_clip);
+    TF_LITE_ENSURE_OK(
+        context, PrepareGateParametersInteger(context, lstm_tensors, op_data));
+  } else {
+    MicroPrintf(
+        "Cell state type %s (%d) not supported. The quantized Unidirectional "
+        "Sequence LSTM Op only support int16 cell state",
+        TfLiteTypeGetName(cell_state_type), cell_state_type);
+    return kTfLiteError;
+  }
+  // request buffers (four buffers)
+  for (size_t i = 0; i < 4; i++) {
+    TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                   context,
+                                   op_data->size_info.batch_size *
+                                       op_data->size_info.state_dimension *
+                                       TfLiteTypeGetSize(cell_state_type),
+                                   &(op_data->buffer_indices[i])));
+  }
+  return kTfLiteOk;
+}
+
 }  // namespace tflite

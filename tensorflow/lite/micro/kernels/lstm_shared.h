@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -132,6 +132,7 @@ struct LSTMKernelContents {
   TfLiteEvalTensor* CellStateTensor() {
     return internal_tensors[kLstmCellStateTensor];
   }
+  TfLiteEvalTensor* OutputTensor() { return output_tensor; }
   // Node internal tensors with indexes defined at the beginning of the file
   TfLiteEvalTensor* internal_tensors[24];
   TfLiteEvalTensor* output_tensor;
