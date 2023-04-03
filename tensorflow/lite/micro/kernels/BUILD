@@ -207,6 +207,7 @@ tflm_kernel_cc_library(
         "div.cc",
         "elementwise.cc",
         "elu.cc",
+        "embedding_lookup.cc",
         "ethosu.cc",
         "exp.cc",
         "expand_dims.cc",
@@ -670,6 +671,21 @@ cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+)
+
+cc_test(
+  name = "embedding_lookup_test",
+  srcs = [
+      "embedding_lookup_test.cc",
+  ],
+  deps = [
+      ":kernel_runner",
+      "//tensorflow/lite/c:common",
+      "//tensorflow/lite/micro:debug_log",
+      "//tensorflow/lite/micro:op_resolvers",
+      "//tensorflow/lite/micro:test_helpers",
+      "//tensorflow/lite/micro/testing:micro_test",
+  ],
 )
 
 cc_test(

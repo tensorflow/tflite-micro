@@ -69,6 +69,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/exp_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/expand_dims_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fill_test.cc \
