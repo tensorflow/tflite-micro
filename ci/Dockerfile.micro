@@ -25,6 +25,8 @@ RUN chmod +x llvm.sh
 RUN ./llvm.sh 16
 RUN ln -s /usr/bin/clang-16 /usr/bin/clang
 RUN ln -s /usr/bin/clang++-16 /usr/bin/clang++
+
+RUN apt-get install clang-format-16
 RUN ln -s /usr/bin/clang-format-16 /usr/bin/clang-format
 
 # Install yapf to check for Python formatting as part of the TFLM continuous

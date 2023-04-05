@@ -34,6 +34,8 @@ set +e
 # --fix_formatting to let the script fix both code and build file format error.
 FIX_FORMAT_FLAG=${1}
 
+git config --global --add safe.directory $(pwd)
+
 ############################################################
 # License Check
 ############################################################
