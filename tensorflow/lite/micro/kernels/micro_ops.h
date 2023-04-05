@@ -31,6 +31,7 @@ namespace tflite {
 // (https://abseil.io/tips/130). Any new ops (or cleanup of existing ops should
 // have their Register function declarations in the tflite namespace.
 
+TfLiteRegistration_V1 Register_ABS();
 TfLiteRegistration_V1 Register_ADD();
 TfLiteRegistration_V1 Register_ADD_N();
 TfLiteRegistration_V1 Register_ARG_MAX();
@@ -47,6 +48,7 @@ TfLiteRegistration_V1 Register_CEIL();
 TfLiteRegistration_V1* Register_CIRCULAR_BUFFER();
 TfLiteRegistration_V1 Register_CONCATENATION();
 TfLiteRegistration_V1 Register_CONV_2D();
+TfLiteRegistration_V1 Register_COS();
 TfLiteRegistration_V1 Register_CUMSUM();
 TfLiteRegistration_V1 Register_DEPTH_TO_SPACE();
 TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D();
@@ -73,8 +75,10 @@ TfLiteRegistration_V1 Register_L2_POOL_2D();
 TfLiteRegistration_V1 Register_LEAKY_RELU();
 TfLiteRegistration_V1 Register_LESS();
 TfLiteRegistration_V1 Register_LESS_EQUAL();
+TfLiteRegistration_V1 Register_LOG();
 TfLiteRegistration_V1 Register_LOG_SOFTMAX();
 TfLiteRegistration_V1 Register_LOGICAL_AND();
+TfLiteRegistration_V1 Register_LOGICAL_NOT();
 TfLiteRegistration_V1 Register_LOGICAL_OR();
 TfLiteRegistration_V1 Register_LOGISTIC();
 TfLiteRegistration_V1 Register_MAX_POOL_2D();
@@ -96,14 +100,18 @@ TfLiteRegistration_V1 Register_RELU();
 TfLiteRegistration_V1 Register_RELU6();
 TfLiteRegistration_V1 Register_RESIZE_BILINEAR();
 TfLiteRegistration_V1 Register_RESIZE_NEAREST_NEIGHBOR();
+TfLiteRegistration_V1 Register_RSQRT();
 TfLiteRegistration_V1 Register_SELECT_V2();
 TfLiteRegistration_V1 Register_SHAPE();
+TfLiteRegistration_V1 Register_SIN();
 TfLiteRegistration_V1 Register_SLICE();
 TfLiteRegistration_V1 Register_SOFTMAX();
 TfLiteRegistration_V1 Register_SPACE_TO_BATCH_ND();
 TfLiteRegistration_V1 Register_SPACE_TO_DEPTH();
 TfLiteRegistration_V1 Register_SPLIT();
 TfLiteRegistration_V1 Register_SPLIT_V();
+TfLiteRegistration_V1 Register_SQRT();
+TfLiteRegistration_V1 Register_SQUARE();
 TfLiteRegistration_V1 Register_SQUARED_DIFFERENCE();
 TfLiteRegistration_V1 Register_SQUEEZE();
 TfLiteRegistration_V1 Register_STRIDED_SLICE();
@@ -122,17 +130,8 @@ TfLiteRegistration_V1 Register_ZEROS_LIKE();
 
 namespace ops {
 namespace micro {
-
-TfLiteRegistration_V1 Register_ABS();
-TfLiteRegistration_V1 Register_COS();
-TfLiteRegistration_V1 Register_LOG();
-TfLiteRegistration_V1 Register_LOGICAL_NOT();
 TfLiteRegistration_V1 Register_RESHAPE();
 TfLiteRegistration_V1 Register_ROUND();
-TfLiteRegistration_V1 Register_RSQRT();
-TfLiteRegistration_V1 Register_SIN();
-TfLiteRegistration_V1 Register_SQRT();
-TfLiteRegistration_V1 Register_SQUARE();
 }  // namespace micro
 }  // namespace ops
 }  // namespace tflite
