@@ -1,4 +1,5 @@
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+#!/usr/bin/env bash
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +14,9 @@
 # limitations under the License.
 # ==============================================================================
 
-using sysbus
-
-mach create
-machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
-
-# These lines are needed to show the results of DebugLog calls in the output.
-machine LoadPlatformDescriptionFromString "uartSemihosting: UART.SemihostingUart @ cpu"
-showAnalyzer cpu.uartSemihosting Antmicro.Renode.Analyzers.LoggingUartAnalyzer
-cpu.uartSemihosting CreateFileBackend $logfile true
+set -e
+wget https://github.com/bazelbuild/bazelisk/releases/download/v1.16.0/bazelisk-linux-amd64
+mv bazelisk-linux-amd64 bazel
+chmod +x bazel
+sudo mv bazel /usr/local/bin
 

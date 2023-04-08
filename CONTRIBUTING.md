@@ -168,6 +168,9 @@ Below are some tips that might be useful and improve the development experience.
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
   or install it:
 
+* Install Pillow and Wave.  For example, [here](ci/Dockerfile.micro) is what we
+  do for the TFLM continuous integration Docker container.
+
   ```
   pip install cpplint
   ```
@@ -204,7 +207,7 @@ Below are some tips that might be useful and improve the development experience.
 1.  Run all the tests for x86, and any other platform that you are modifying.
 
     ```
-    tensorflow/lite/micro/tools/ci_build/test_x86.sh
+    tensorflow/lite/micro/tools/ci_build/test_x86_default.sh
     ```
 
     Please check the READMEs in the optimized kernel directories for specific

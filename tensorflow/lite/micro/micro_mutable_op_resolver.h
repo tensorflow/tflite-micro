@@ -115,8 +115,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // MicroMutableOpResolver object.
 
   TfLiteStatus AddAbs() {
-    return AddBuiltin(BuiltinOperator_ABS, tflite::ops::micro::Register_ABS(),
-                      ParseAbs);
+    return AddBuiltin(BuiltinOperator_ABS, Register_ABS(), ParseAbs);
   }
 
   TfLiteStatus AddAdd(
@@ -190,8 +189,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddCos() {
-    return AddBuiltin(BuiltinOperator_COS, tflite::ops::micro::Register_COS(),
-                      ParseCos);
+    return AddBuiltin(BuiltinOperator_COS, tflite::Register_COS(), ParseCos);
   }
 
   TfLiteStatus AddCumSum() {
@@ -327,8 +325,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLog() {
-    return AddBuiltin(BuiltinOperator_LOG, tflite::ops::micro::Register_LOG(),
-                      ParseLog);
+    return AddBuiltin(BuiltinOperator_LOG, Register_LOG(), ParseLog);
   }
 
   TfLiteStatus AddLogicalAnd() {
@@ -337,8 +334,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddLogicalNot() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_NOT,
-                      tflite::ops::micro::Register_LOGICAL_NOT(),
+    return AddBuiltin(BuiltinOperator_LOGICAL_NOT, Register_LOGICAL_NOT(),
                       ParseLogicalNot);
   }
 
@@ -459,8 +455,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddRsqrt() {
-    return AddBuiltin(BuiltinOperator_RSQRT,
-                      tflite::ops::micro::Register_RSQRT(), ParseRsqrt);
+    return AddBuiltin(BuiltinOperator_RSQRT, Register_RSQRT(), ParseRsqrt);
   }
 
   TfLiteStatus AddSelectV2() {
@@ -473,8 +468,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSin() {
-    return AddBuiltin(BuiltinOperator_SIN, tflite::ops::micro::Register_SIN(),
-                      ParseSin);
+    return AddBuiltin(BuiltinOperator_SIN, Register_SIN(), ParseSin);
   }
 
   TfLiteStatus AddSlice() {
@@ -510,13 +504,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddSqrt() {
-    return AddBuiltin(BuiltinOperator_SQRT, tflite::ops::micro::Register_SQRT(),
-                      ParseSqrt);
+    return AddBuiltin(BuiltinOperator_SQRT, Register_SQRT(), ParseSqrt);
   }
 
   TfLiteStatus AddSquare() {
-    return AddBuiltin(BuiltinOperator_SQUARE,
-                      tflite::ops::micro::Register_SQUARE(), ParseSquare);
+    return AddBuiltin(BuiltinOperator_SQUARE, Register_SQUARE(), ParseSquare);
   }
 
   TfLiteStatus AddSquaredDifference() {
