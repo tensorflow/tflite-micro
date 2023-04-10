@@ -12,7 +12,7 @@ RUN \
     wget \
     python3 \
     python \
-    python3-pip
+    python3-pip 
 
 WORKDIR /opt/hexagon
 
@@ -26,6 +26,9 @@ RUN \
 
 RUN \
   pip3 install numpy
+
+# Install QEMU requirements emulation based tests.
+RUN apt-get install -y libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
 
 RUN unzip qualcomm_hexagon_sdk_3_5_1_linux.zip && \
   rm qualcomm_hexagon_sdk_3_5_1_linux.zip && \

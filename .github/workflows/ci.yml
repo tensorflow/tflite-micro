@@ -140,6 +140,28 @@ jobs:
           cd ../
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill_no_release.sh tflite-micro/
 
+    cortex_m_qemu:
+    runs-on: ubuntu-latest
+
+    name: Cortex-M QEMU (presubmit)
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install QEMU dependencies
+        run: sudo apt-get install -y libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+      - name: Install python dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install Wave
+      - name: Test
+        run: |
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_qemu.sh tflite-micro/
+
   cortex_m_bluepill_renode:
     runs-on: ubuntu-latest
 

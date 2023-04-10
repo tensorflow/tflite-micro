@@ -15,6 +15,10 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_time.h"
 
+#ifdef USE_SEMIHOSTING
+#include <chrono>
+#endif
+
 // Set in micro/tools/make/targets/cortex_m_generic_makefile.inc.
 // Needed for the DWT and PMU counters.
 #ifdef CMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE
@@ -30,6 +34,18 @@ namespace tflite {
 // TFLM project generation will be a part of.
 uint32_t ticks_per_second() { return 0; }
 uint32_t GetCurrentTimeTicks() { return 0; }
+
+#elif defined(USE_SEMIHOSTING)
+
+// For QEMU Semihosting these reqeusts are passed to the host OS.
+uint32_t ticks_per_second() { return 0; }
+
+uint32_t GetCurrentTimeTicks() {
+  uint32_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch())
+                    .count();
+  return ms;
+}
 
 #else
 

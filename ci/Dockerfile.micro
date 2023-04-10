@@ -29,6 +29,9 @@ RUN ln -s /usr/bin/clang-12 /usr/bin/clang
 RUN ln -s /usr/bin/clang++-12 /usr/bin/clang++
 RUN ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
 
+# Install QEMU requirements emulation based tests.
+RUN apt-get install -y libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+
 # Install yapf to check for Python formatting as part of the TFLM continuous
 # integration.
 RUN pip install yapf==0.32.0
@@ -46,8 +49,7 @@ RUN pip install matplotlib
 
 RUN pip install six
 
-# Install Renode test dependencies
-RUN pip install pyyaml requests psutil robotframework==4.0.1
+# RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 COPY ci/*.sh /install/
 RUN /install/install_bazelisk.sh

@@ -22,9 +22,22 @@ extern "C" {
 
 #include "tensorflow/lite/micro/debug_log.h"
 
+#include <stdio.h>
+
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
+// Implements the debug log callback when using Semihosting.
+// Semihosting uses the host os for system calls so using
+// stdio seems appropriate here.
+void SemiHostingCallback(const char* s) { printf("%s", s); }
+
+#ifdef USE_SEMIHOSTING
+// Semihosting will output to stdio of the host machine.
+static DebugLogCallback debug_log_callback = (*SemiHostingCallback);
+#else
+// Otherwise use a stub.
 static DebugLogCallback debug_log_callback = nullptr;
+#endif
 
 void RegisterDebugLogCallback(void (*cb)(const char* s)) {
   debug_log_callback = cb;

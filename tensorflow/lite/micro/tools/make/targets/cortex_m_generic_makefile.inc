@@ -16,6 +16,21 @@
 # Generic Makefile target for ARM Cortex M builds.
 # For more info see: tensorflow/lite/micro/cortex_m_generic/README.md
 
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+endif
+
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
+endif
+
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/qemu_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+  $(error Something went wrong with the qemu download: $(DOWNLOAD_RESULT))
+endif
+
 FLOAT := soft
 GCC_TARGET_ARCH := $(TARGET_ARCH)
 
@@ -25,29 +40,35 @@ INCLUDE_MICRO_SPEECH := false
 ifeq ($(TARGET_ARCH), cortex-m0)
   CORE=M0
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0
+  QEMU_TARGET_ARCH := cortex-m0
 
 else ifeq ($(TARGET_ARCH), cortex-m0plus)
   CORE=M0plus
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M0plus
+  QEMU_TARGET_ARCH := cortex-m0
 
 else ifeq ($(TARGET_ARCH), cortex-m3)
   CORE=M3
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M3
+  QEMU_TARGET_ARCH := cortex-m3
 
 else ifeq ($(TARGET_ARCH), cortex-m33)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33
   CMSIS_ARM_FEATURES := _DSP_FP
   FLOAT=hard
+  QEMU_TARGET_ARCH := cortex-m33
 
 else ifeq ($(TARGET_ARCH), cortex-m33+nodsp)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33.no_dsp.no_fp
+  QEMU_TARGET_ARCH := cortex-m33
 
 else ifeq ($(TARGET_ARCH), cortex-m4)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4.no_fp
   GCC_TARGET_ARCH := cortex-m4+nofp
+  QEMU_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CORE=M4
@@ -55,6 +76,7 @@ else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CMSIS_ARM_FEATURES := _FP
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m4
+  QEMU_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
   CORE=M4
@@ -62,24 +84,29 @@ else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
   CMSIS_ARM_FEATURES := _FP
   FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
+  QEMU_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
   FLOAT=hard
+  QEMU_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.no_dsp.no_fp
+  QEMU_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), cortex-m55+nofp)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.no_fp
+  QEMU_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), cortex-m7)
   CORE=M7
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M7.no_fp
   GCC_TARGET_ARCH := cortex-m7+nofp
+  QEMU_TARGET_ARCH := cortex-m7
 
 else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   CORE=M7
@@ -87,6 +114,7 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
   CMSIS_ARM_FEATURES := _DP
+  QEMU_TARGET_ARCH := cortex-m7
 
 else ifeq ($(TARGET_ARCH), cortex-m85)
   CORE=M85
@@ -94,6 +122,7 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
   FLOAT=hard
   # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
   GCC_TARGET_ARCH := cortex-m55
+  QEMU_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), project_generation)
   # No flags needed here as project_generation does not build anything.
@@ -187,6 +216,14 @@ ifneq ($(filter "ARMCM55" "ARMCM85",$(ARM_CPU)),)
   PLATFORM_FLAGS += -DARM_MODEL_USE_PMU_COUNTERS
 endif
 
+# Enable semihosting for QEMU.
+ifneq ($(QEMU_TARGET_ARCH),)
+  # USE_SEMIHOSTING enables host system calls for debug_log and micro_time.
+  # Please see micro/cortex_m_generic micro_time.cc and debug_log.cc for more.
+  PLATFORM_FLAGS += -DUSE_SEMIHOSTING
+  PLATFORM_FLAGS += --specs=rdimon.specs
+endif
+
 # Common + C/C++ flags
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
@@ -203,4 +240,24 @@ ifneq ($(TARGET_ARCH), project_generation)
   EXCLUDED_EXAMPLE_TESTS := \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
+endif
+
+# Excludes micro_allocator_test because it calls CreateQuantizedFlatbufferTensor,
+# which use std::vector constructor which then invokes new.
+# Excludes memory_arena_threshold_test because the size difference of some
+# allocator classes between different architectures.
+# TODO(b/158651472): Fix the memory_arena_threshold_test
+EXCLUDED_TESTS := \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+# flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder
+# uses dynamic memory.
+EXCLUDED_TESTS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc
+
+MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
+# If the target is supported by QEMU, setup the test and size scripts.
+ifneq ($(QEMU_TARGET_ARCH),)
+  TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh $(QEMU_TARGET_ARCH)
 endif
