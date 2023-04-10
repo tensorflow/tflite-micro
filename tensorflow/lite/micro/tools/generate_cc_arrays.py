@@ -22,6 +22,7 @@ import argparse
 import os
 import struct
 import wave
+import numpy as np
 
 from PIL import Image
 
@@ -88,6 +89,12 @@ def generate_array(input_fname):
       # Assume one array per csv file.
       elements = input_file.readline()
       return [len(elements.split(',')), elements]
+  elif input_fname.endswith('.npy'):
+    data = np.float32(np.load(input_fname, allow_pickle=False))
+    data_1d = data.flatten()
+    out_string = ','.join([str(x) for x in data_1d])
+    return [len(data_1d), out_string]
+
   else:
     raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
 
@@ -109,6 +116,8 @@ def get_array_name(input_fname):
   elif input_fname.endswith('_int8.csv'):
     return [base_array_name + '_test_data', 'int8_t']
   elif input_fname.endswith('_float.csv'):
+    return [base_array_name + '_test_data', 'float']
+  elif input_fname.endswith('npy'):
     return [base_array_name + '_test_data', 'float']
 
 
@@ -144,8 +153,12 @@ def main():
         output_base_fname = output_base_fname + '_audio_data'
       elif input_file.endswith('.csv'):
         output_base_fname = output_base_fname + '_test_data'
+      elif input_file.endswith('.npy'):
+        output_base_fname = output_base_fname + '_test_data'
       else:
-        raise ValueError('input file must be .tflite, .bmp, .wav or .csv')
+        raise ValueError(
+            'input file must be .tflite, .bmp, .wav , .npy or .csv'
+        )
 
       output_cc_fname = output_base_fname + '.cc'
       # Print output cc filename for Make to include it in the build.
