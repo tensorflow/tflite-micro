@@ -213,6 +213,8 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+      - name: Install QEMU dependencies
+        run: sudo apt-get install -y libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
       - name: Test
         run: |
           cd ../
