@@ -16,19 +16,23 @@
 # Generic Makefile target for ARM Cortex M builds.
 # For more info see: tensorflow/lite/micro/cortex_m_generic/README.md
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
-endif
+# Downloads aren't required for project generation build
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-endif
+ifneq ($(TARGET_ARCH), project_generation)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+  endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/qemu_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the qemu download: $(DOWNLOAD_RESULT))
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
+  endif
+
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/qemu_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the qemu download: $(DOWNLOAD_RESULT))
+  endif
 endif
 
 FLOAT := soft
@@ -177,7 +181,7 @@ else ifeq ($(TOOLCHAIN), gcc)
       $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
     endif
   endif
-  
+
   export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
@@ -258,4 +262,6 @@ EXCLUDED_TESTS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 # Setup the test and size scripts.
-TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_emulated_binary.sh $(QEMU_TARGET_ARCH)
+ifneq ($(QEMU_TARGET_ARCH),) #Dont bulid for project_generation
+  TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_emulated_binary.sh $(QEMU_TARGET_ARCH)
+endif
