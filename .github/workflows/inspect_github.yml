@@ -1,0 +1,16 @@
+name: Inspect Github 
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+
+jobs:
+  dump-github-context:
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:inspect') }}
+    steps:
+      - name: Dump GitHub Context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
