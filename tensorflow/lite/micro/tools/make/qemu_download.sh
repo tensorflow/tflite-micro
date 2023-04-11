@@ -45,6 +45,8 @@ DOWNLOADED_QEMU_PATH=${DOWNLOADS_DIR}/qemu
 if [ -d ${DOWNLOADED_QEMU_PATH} ]; then
   echo >&2 "${DOWNLOADED_QEMU_PATH} already exists, skipping the download."
 else
+  # TODO remove this once ci.yaml is updated.
+  sudo apt-get install -y ninja-build
   mkdir ${DOWNLOADED_QEMU_PATH}
   LINUX_PORTABLE_URL="https://download.qemu.org/qemu-6.2.0.tar.xz"
   TEMP_ARCHIVE="/tmp/qemu.tar.xz"
