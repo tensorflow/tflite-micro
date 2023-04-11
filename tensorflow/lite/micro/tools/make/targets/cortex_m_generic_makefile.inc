@@ -177,6 +177,8 @@ else ifeq ($(TOOLCHAIN), gcc)
       $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
     endif
   endif
+  
+  export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 

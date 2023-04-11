@@ -60,3 +60,4 @@ else
 fi
 
 echo "SUCCESS"
+exit 0
