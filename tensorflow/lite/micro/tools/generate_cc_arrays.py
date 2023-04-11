@@ -157,8 +157,7 @@ def main():
         output_base_fname = output_base_fname + '_test_data'
       else:
         raise ValueError(
-            'input file must be .tflite, .bmp, .wav , .npy or .csv'
-        )
++            'input file must be .tflite, .bmp, .wav , .npy or .csv')
 
       output_cc_fname = output_base_fname + '.cc'
       # Print output cc filename for Make to include it in the build.
