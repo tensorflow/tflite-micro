@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-#
 """Simple TF model creation using resource variables.
+
+Model is built either with basic TF functions (concrete function model), or via
+Keras. The model simply mimics an accumulator (via the persistent memory / state
+functionality of resource variables), taking in two inputs: 
+1) A boolean for choosing addition/subtraction.
+2) The value to add/subtract from the accumulator variable.
+
 
 Useful links:
 https://www.tensorflow.org/lite/models/convert/convert_models#convert_concrete_functions_
@@ -83,11 +89,18 @@ class CompareAndAccumulateKerasLayer(tf.keras.layers.Layer):
     return self._accum.read_value()
 
 
-def get_tf_model(concrete_model=False):
-  """Returns a TF custom accumulator model: by default a Keras model, otherwise concrete function model."""
-  if concrete_model:
-    return CompareAndAccumulate("CompareAndAccumulate")
+def get_model_from_concrete_function():
+  """Accumulator model built via TF concrete functions."""
+  model = CompareAndAccumulate("CompareAndAccumulate")
+  concrete_func = model.__call__.get_concrete_function()
+  converter = tf.lite.TFLiteConverter.from_concrete_functions(
+      [concrete_func], model
+  )
+  return converter.convert()
 
+
+def get_model_from_keras():
+  """Accumulator model built via Keras custom layer."""
   input_layer_int = tf.keras.layers.Input(
       shape=[100], dtype=tf.float32, name="accum_val"
   )
@@ -98,32 +111,8 @@ def get_tf_model(concrete_model=False):
       input_layer_int, input_layer_bool
   )
 
-  return tf.keras.models.Model(
+  model = tf.keras.models.Model(
       inputs=[input_layer_int, input_layer_bool], outputs=accumulate_out
   )
-
-
-def convert_and_save_model(
-    model, concrete_model=False, filename="/tmp/resource_var_model.tflite"
-):
-  """Converts a TF model into a .tflite model and saves to path given by filename.
-
-  If model was created via concrete functions, use concrete_model,
-  otherwise assumes a keras model.
-  Args:
-    model: TF Keras Model or TF.Module concrete function model
-    concrete_model: if model is Keras or concrete
-    filename: path to write the converted model to
-  Returns:
-    The converted tflite model
-  """
-  if concrete_model:
-    concrete_func = model.__call__.get_concrete_function()
-    converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete_func],
-                                                                model)
-  else:
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-  tflite_model = converter.convert()
-  with open(filename, "wb") as f:
-    f.write(tflite_model)
-  return tflite_model
+  converter = tf.lite.TFLiteConverter.from_keras_model(model)
+  return converter.convert()

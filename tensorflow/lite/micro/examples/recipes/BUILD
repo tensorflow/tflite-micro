@@ -15,8 +15,8 @@ py_library(
 )
 
 py_test(
-    name = "recipes_test",
-    srcs = ["recipes_test.py"],
+    name = "resource_variables_test",
+    srcs = ["resource_variables_test.py"],
     srcs_version = "PY3",
     deps = [
         ":resource_variables_lib",
