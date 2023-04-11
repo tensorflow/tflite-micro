@@ -51,7 +51,7 @@ else
 
   echo >&2 "Downloading from url: ${LINUX_PORTABLE_URL}"
   wget ${LINUX_PORTABLE_URL} -O ${TEMP_ARCHIVE} >&2
-  tar xvJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${DOWNLOADED_QEMU_PATH} >&2
+  tar xJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${DOWNLOADED_QEMU_PATH} >&2
   cd ${DOWNLOADED_QEMU_PATH}
   ./configure
   make -j8

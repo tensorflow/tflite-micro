@@ -217,12 +217,10 @@ ifneq ($(filter "ARMCM55" "ARMCM85",$(ARM_CPU)),)
 endif
 
 # Enable semihosting for QEMU.
-ifneq ($(QEMU_TARGET_ARCH),)
-  # USE_SEMIHOSTING enables host system calls for debug_log and micro_time.
-  # Please see micro/cortex_m_generic micro_time.cc and debug_log.cc for more.
-  PLATFORM_FLAGS += -DUSE_SEMIHOSTING
-  PLATFORM_FLAGS += --specs=rdimon.specs
-endif
+# USE_SEMIHOSTING enables host system calls for debug_log and micro_time.
+# Please see micro/cortex_m_generic micro_time.cc and debug_log.cc for more.
+PLATFORM_FLAGS += -DUSE_SEMIHOSTING
+PLATFORM_FLAGS += --specs=rdimon.specs
 
 # Common + C/C++ flags
 CXXFLAGS += $(PLATFORM_FLAGS)
@@ -257,7 +255,5 @@ EXCLUDED_TESTS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
-# If the target is supported by QEMU, setup the test and size scripts.
-ifneq ($(QEMU_TARGET_ARCH),)
-  TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh $(QEMU_TARGET_ARCH)
-endif
+# Setup the test and size scripts.
+TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_emulated_binary.sh $(QEMU_TARGET_ARCH)

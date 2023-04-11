@@ -160,7 +160,7 @@ jobs:
       - name: Test
         run: |
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_qemu.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_emulated_binary.sh tflite-micro/
 
   cortex_m_bluepill_renode:
     runs-on: ubuntu-latest
