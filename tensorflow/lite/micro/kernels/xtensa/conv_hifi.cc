@@ -96,7 +96,8 @@ TfLiteStatus ConvEvalHifi16(TfLiteContext* context, TfLiteNode* node,
                             TfLiteEvalTensor* output) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
-  /* Dilation is currently not supported on HiFi 4 NN Library */
+  /* TODO(b/277112516):Dilation is currently not supported on HiFi 4 NN Library
+   */
   if ((params.dilation_width_factor == 1) &&
       (params.dilation_height_factor == 1) &&
       input_shape.Dims(1) >= filter_shape.Dims(1) &&
@@ -210,7 +211,8 @@ TfLiteStatus ConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                           TfLiteEvalTensor* output) {
   const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
   const RuntimeShape& filter_shape = tflite::micro::GetTensorShape(filter);
-  /* Dilation is currently not supported on HiFi 4 NN Library */
+  /* TODO(b/277112516):Dilation is currently not supported on HiFi 4 NN
+  Library */
   if ((params.dilation_width_factor == 1) &&
       (params.dilation_height_factor == 1) &&
       input_shape.Dims(1) >= filter_shape.Dims(1) &&
