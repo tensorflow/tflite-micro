@@ -36,6 +36,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
@@ -56,6 +57,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_tflite_tools.sh
@@ -76,6 +78,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_msan.sh
@@ -96,6 +99,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_asan.sh
@@ -115,6 +119,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -135,6 +140,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -155,6 +161,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -191,6 +198,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -211,6 +219,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -232,6 +241,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -253,6 +263,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -274,6 +285,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
