@@ -29,6 +29,12 @@ RUN ln -s /usr/bin/clang++-16 /usr/bin/clang++
 RUN apt-get install clang-format-16
 RUN ln -s /usr/bin/clang-format-16 /usr/bin/clang-format
 
+# Needed when using the Dockerfile locally.
+RUN git config --global --add safe.directory /opt/tflm
+
+# Needed when the docker container is used with GitHub actions.
+RUN git config --global --add safe.directory /github/workspace
+
 # Install yapf to check for Python formatting as part of the TFLM continuous
 # integration.
 RUN pip install yapf==0.32.0
