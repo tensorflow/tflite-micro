@@ -45,4 +45,19 @@ PLATFORM_FLAGS += -DUSE_SEMIHOSTING
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
+# Excludes micro_allocator_test because it calls CreateQuantizedFlatbufferTensor,
+# which use std::vector constructor which then invokes new.
+# Excludes memory_arena_threshold_test because the size difference of some
+# allocator classes between different architectures.
+# TODO(b/158651472): Fix the memory_arena_threshold_test
+EXCLUDED_TESTS := \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+# flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder
+# uses dynamic memory.
+EXCLUDED_TESTS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc
+
+MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh arm $(TARGET_ARCH)
