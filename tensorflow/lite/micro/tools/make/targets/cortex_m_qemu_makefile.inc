@@ -14,7 +14,6 @@
 # ==============================================================================
 
 export PATH := $(DOWNLOADS_DIR)/gcc_embedded/bin/:$(PATH)
-TARGET_ARCH := cortex-m3
 TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
@@ -25,11 +24,6 @@ endif
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-endif
-
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/qemu_download.sh  ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the qemu download: $(DOWNLOAD_RESULT))
 endif
 
 PLATFORM_FLAGS = \
@@ -44,6 +38,9 @@ PLATFORM_FLAGS = \
 
 # Enable semihosting for QEMU to enable host system calls for debug_log and micro_time.
 PLATFORM_FLAGS += --specs=rdimon.specs
+# USE_SEMIHOSTING enables host system calls for debug_log and micro_time.
+# Please see micro/cortex_m_generic micro_time.cc and debug_log.cc for more.
+PLATFORM_FLAGS += -DUSE_SEMIHOSTING
 
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)

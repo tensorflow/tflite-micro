@@ -24,14 +24,13 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TFLM_ROOT_DIR=${SCRIPT_DIR}/../../../../
-QEMU_BIN=${TFLM_ROOT_DIR}/tensorflow/lite/micro/tools/make/downloads/qemu/build
 
 TEST_TMPDIR=/tmp/test_${5}
 MICRO_LOG_PATH=${TEST_TMPDIR}/${3}
 MICRO_LOG_FILENAME=${MICRO_LOG_PATH}/logs.txt
 
 mkdir -p ${MICRO_LOG_PATH}
-${QEMU_BIN}/qemu-${1} -cpu ${2} ${3} 2>&1 | tee ${MICRO_LOG_FILENAME}
+qemu-${1} -cpu ${2} ${3} 2>&1 | tee ${MICRO_LOG_FILENAME}
 if [[ ${4} != "non_test_binary" ]]
 then
   if grep -q "${4}" ${MICRO_LOG_FILENAME}

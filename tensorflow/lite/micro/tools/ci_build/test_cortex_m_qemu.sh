@@ -23,13 +23,12 @@ pwd
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
+TARGET=cortex_m_qemu
+TARGET_ARCH=${3:-cortex-m3}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
-TARGET=cortex_m_generic
-TARGET_ARCH=cortex-m3
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
 readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
