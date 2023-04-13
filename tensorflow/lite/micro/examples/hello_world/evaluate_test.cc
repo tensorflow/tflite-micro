@@ -21,10 +21,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/micro/recording_micro_interpreter.h"
-#include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace {
 using HelloWorldOpResolver = tflite::MicroMutableOpResolver<1>;
@@ -49,8 +49,7 @@ TfLiteStatus ProfileMemoryAndLatency() {
   tflite::RecordingMicroAllocator* allocator(
       tflite::RecordingMicroAllocator::Create(tensor_arena, kTensorArenaSize));
   tflite::RecordingMicroInterpreter interpreter(
-      tflite::GetModel(g_hello_world_float_model_data),
-      op_resolver, allocator,
+      tflite::GetModel(g_hello_world_float_model_data), op_resolver, allocator,
       tflite::MicroResourceVariables::Create(allocator, kNumResourceVariables),
       &profiler);
 

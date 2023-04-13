@@ -18,7 +18,8 @@ import numpy as np
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import \
+  tflm_runtime
 from tflite_micro.tensorflow.lite.micro.examples.hello_world import evaluate
 
 PREFIX_PATH = resource_loader.get_path_to_datafile('')
@@ -40,6 +41,7 @@ class HelloWorldFloatModelTest(test_util.TensorFlowTestCase):
         self.model_path, x_values)
 
     self.assertAllEqual(tflm_y_predictions, tflite_y_predictions)
+
 
 class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
   model_path = os.path.join(PREFIX_PATH, 'models/hello_world_int8.tflite')

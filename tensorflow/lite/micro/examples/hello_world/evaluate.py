@@ -59,6 +59,7 @@ def generate_random_int8_input(sample_count=1000):
   np.random.shuffle(x_values)
   return x_values
 
+
 # Generate a list of 1000 random floats in the range of 0 to 2*pi.
 def generate_random_float_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
