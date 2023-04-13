@@ -32,6 +32,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
@@ -53,6 +54,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
