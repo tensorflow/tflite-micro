@@ -60,9 +60,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroGraph& graph_info = micro_context->graph();
 
   MicroResourceVariables* resources = graph_info.GetResourceVariables();
-  TF_LITE_ENSURE_OK(context,
-                    resources->Allocate(input_resource_id_tensor->data.i32[0],
-                                        context, input_value));
+  // If the data field of this tensor is nullptr, we assume that this is a case
+  // of using resource variables in another subgraph, and the resource_id
+  // will be valid during Eval time. In case it wasn't valid, this will
+  // still be caught during Invoke. More info in b/277231654.
+  if (input_resource_id_tensor->data.i32 != nullptr) {
+    TF_LITE_ENSURE_OK(context,
+                      resources->Allocate(input_resource_id_tensor->data.i32[0],
+                                          context, input_value));
+  }
 
   micro_context->DeallocateTempTfLiteTensor(input_value);
   return kTfLiteOk;
