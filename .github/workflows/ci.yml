@@ -198,7 +198,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
-        run: pip3 install numpy
+          pip3 install numpy
       - name: Test
         run: |
           cd ../

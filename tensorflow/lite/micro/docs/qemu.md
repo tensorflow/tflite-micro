@@ -24,4 +24,4 @@ All unit tests can be ran using `tensorflow/lite/micro/tools/ci_build/test_corte
 # Useful External Links for QEMU
 The current QEMU implementation uses `user` mode.  The documentation for [user mode is here](https://www.qemu.org/docs/master/user/index.html).
 
-QEMU uses ARM [semihosting](https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst) to replace newlib system calls for specific boards with the host OS.  Further documentation on how this works is contained in `cortex_m_generic_makefile.inc` as well as `tensorflow/lite/micro/cortex_m_generic/`.
+QEMU uses ARM [semihosting](https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst) to replace newlib system calls for specific boards with the host OS.  Further documentation on how this works is contained in `cortex_m_qemu_makefile.inc`.

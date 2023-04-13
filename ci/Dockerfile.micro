@@ -29,9 +29,6 @@ RUN ln -s /usr/bin/clang++-16 /usr/bin/clang++
 RUN apt-get install clang-format-16
 RUN ln -s /usr/bin/clang-format-16 /usr/bin/clang-format
 
-# Install QEMU requirements emulation based tests.
-RUN apt-get install -y libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
-
 # Needed when using the Dockerfile locally.
 RUN git config --global --add safe.directory /opt/tflm
 
@@ -54,6 +51,9 @@ RUN pip install pandas
 RUN pip install matplotlib
 
 RUN pip install six
+
+# Install Renode test dependencies
+RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 COPY ci/*.sh /install/
 RUN /install/install_bazelisk.sh
