@@ -66,8 +66,8 @@ RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 # Install QEMU from build container qemu_builder into tflm-ci container.
 # We're using a two stage build to keep the CI container smaller.
-ENV QEMU_HOME = /usr/local/qemu
-COPY --from=qemu_builder $QEMU_HOME/build ${QEMU_HOME}
+ENV QEMU_HOME /usr/local/qemu
+COPY --from=qemu_builder ${QEMU_HOME}/build ${QEMU_HOME}
 ENV PATH ${QEMU_HOME}:${PATH}
 #Sets path for interactive users as well.
 RUN echo "export PATH=${QEMU_HOME}:${PATH}" >> /etc/profile
