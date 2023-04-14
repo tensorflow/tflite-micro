@@ -13,7 +13,17 @@
 # Use a prebuilt Python image instead of base Ubuntu to speed up the build process,
 # since it has all the build dependencies we need for Micro and downloads much faster
 # than the install process.
-FROM python:3.10-bullseye
+
+# Using a multistage build so that the build tools required for stage 1 don't make the
+# CI container unnecessarily large.
+FROM python:3.10-bullseye AS qemu_builder
+RUN apt-get update
+RUN apt-get install -y ninja-build wget xz-utils
+COPY ci/install_qemu.sh ./
+RUN ./install_qemu.sh
+
+# This stage is the final CI container.
+FROM python:3.10-bullseye as tflm-ci
 
 RUN apt-get update
 
@@ -49,11 +59,18 @@ RUN pip install Wave
 # necessary bits for create_size_log scripts
 RUN pip install pandas
 RUN pip install matplotlib
-
 RUN pip install six
 
 # Install Renode test dependencies
 RUN pip install pyyaml requests psutil robotframework==4.0.1
+
+# Install QEMU from build container qemu_builder into tflm-ci container.
+# We're using a two stage build to keep the CI container smaller.
+ENV QEMU_HOME = /usr/local/qemu
+COPY --from=qemu_builder $QEMU_HOME/build ${QEMU_HOME}
+ENV PATH ${QEMU_HOME}:${PATH}
+#Sets path for interactive users as well.
+RUN echo "export PATH=${QEMU_HOME}:${PATH}" >> /etc/profile
 
 COPY ci/*.sh /install/
 RUN /install/install_bazelisk.sh

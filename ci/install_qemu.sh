@@ -15,16 +15,16 @@
 # ==============================================================================
 
 sudo apt-get install -y ninja-build
-mkdir ${DOWNLOADED_QEMU_PATH}
 LINUX_PORTABLE_URL="https://download.qemu.org/qemu-6.2.0.tar.xz"
 TEMP_ARCHIVE="/tmp/qemu.tar.xz"
 
 echo >&2 "Downloading from url: ${LINUX_PORTABLE_URL}"
 wget ${LINUX_PORTABLE_URL} -O ${TEMP_ARCHIVE} >&2
 
-TEMP_DIR="$(mktemp -d)"
-tar xJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${TEMP_DIR} >&2
-cd ${TEMP_DIR}
+QEMU_HOME="/usr/local/qemu"
+mkdir ${QEMU_HOME}
+tar xJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${QEMU_HOME} >&2
+cd ${QEMU_HOME}
 ./configure
 make -j8
 make install
