@@ -55,6 +55,40 @@ with the model and sample inputs.
 ## Train your own model
 
 So far you have used an existing trained model to run inference on
-microcontrollers. If you wish to train your own model, follow the instructions
-given in the [train/](train/) directory.
+microcontrollers. If you wish to train your own model, here are the scripts 
+that can help you to achieve that. 
+
+```bash
+bazel build tensorflow/lite/micro/examples/hello_world:train
+```
+And to run it
+```bash
+bazel-bin/tensorflow/lite/micro/examples/hello_world/train --save_tf_model 
+--save_dir=/tmp/model_created/
+```
+The above script will create a TF model and TFlite model inside the 
+`/tmp/model_created` directory. 
+
+Now the above model is a `float` model. Means it can take floating point input
+and can produce floating point output. 
+
+If we want a fully quantized model we can use the `ptq.py` script inside the 
+quantization directory. The `ptq.py` script can take a floating point TF model 
+and can produce a quantized model.
+
+Build the `ptq.py` script like
+```bash
+bazel build tensorflow/lite/micro/examples/hello_world/quantization:ptq
+```
+
+Then we can run the `ptq` script to convert the float model to quant model as 
+follows. Note that we are using the directory (`/tmp/model_created`) of the 
+TF model as the source_model_dir here. The quant model 
+(named `hello_world_int8.tflite`) will be created inside the target_dir.
+The `ptq.py` script will convert the `TF model` found inside the 
+`/tmp/model_created` folder and convert it to a `int8` TFlite model.
+```bash
+bazel-bin/tensorflow/lite/micro/examples/hello_world/quantization/ptq  
+--source_model_dir=/tmp/model_created --target_dir=/tmp/quant_model/
+```
 

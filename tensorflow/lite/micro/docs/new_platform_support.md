@@ -45,7 +45,6 @@ only the sources that are necessary to build the code TFLM library.
 python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
   -e hello_world \
   -e micro_speech \
-  -e magic_wand \
   -e person_detection \
   /tmp/tflm-tree
 ```
@@ -114,7 +113,7 @@ optimized kernel implementations (and associated third party dependencies).
 For example:
 ```
 python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  -e hello_world -e magic_wand -e micro_speech -e person_detection \
+  -e hello_world -e micro_speech -e person_detection \
   --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation" \
   /tmp/tflm-cmsis
 ```

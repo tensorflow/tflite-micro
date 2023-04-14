@@ -7,14 +7,14 @@
 # - If ci:ready_to_merge is on the PR and the pull_request_target type is synchronize not triggered
 #   by the mergify[bot] user, remove label and fail job.
 # - If ci:ready_to_merge label is on PR and pull_request_target type is labeled, run the test scripts.
-# 
+#
 # The end result is labeling ci:run or ci:ready_to_merge will run the test scripts,
-# If Mergify merges to the PR, the test scripts will run. If anyone else tries to add 
+# If Mergify merges to the PR, the test scripts will run. If anyone else tries to add
 # a commit to the PR or merge , the script will fail and ci:ready_to_merge will be
 # removed.
 #
-# This script runs the test scripts directly. Scheduled or manual runs use 
-# run_<scriptname>.yml as the entry point. 
+# This script runs the test scripts directly. Scheduled or manual runs use
+# run_<scriptname>.yml as the entry point.
 
 name: Tests Entry Point
 on:
@@ -98,9 +98,9 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-xtensa:
+  call-xtensa-presubmit:
     needs: ci-run
-    uses: ./.github/workflows/xtensa.yml
+    uses: ./.github/workflows/xtensa_presubmit.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:

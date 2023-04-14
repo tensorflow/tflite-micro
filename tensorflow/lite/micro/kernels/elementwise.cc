@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace elementwise {
 namespace {
 
 constexpr int kAbsNameId = 0;
@@ -351,9 +348,11 @@ TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
           context, node, [](float f) { return 1.f / std::sqrt(f); },
           /*validate_input_func=*/nullptr, type);
     case kTfLiteInt8:
-      return EvalImplQuantized<int8_t>(context, node,
-                                       elementwise::RsqrtEvalQuantized,
-                                       elementwise::validate_input_func, type);
+      return EvalImplQuantized<int8_t>(context, node, RsqrtEvalQuantized,
+                                       validate_input_func, type);
+    case kTfLiteInt16:
+      return EvalImplQuantized<int16_t>(context, node, RsqrtEvalQuantized,
+                                        validate_input_func, type);
 
     default:
       MicroPrintf("Current data type %s is not supported.",
@@ -371,60 +370,47 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 }  // namespace
-}  // namespace elementwise
 
-TfLiteRegistration Register_ABS() {
+TfLiteRegistration_V1 Register_ABS() {
   return tflite::micro::RegisterOp(
-      elementwise::ElementWiseAbsRsqrtInit,
-      elementwise::PrepareAbsRsqrt<elementwise::IsAbsSupportedType,
-                                   elementwise::kAbsNameId>,
-      elementwise::AbsEval);
+      ElementWiseAbsRsqrtInit, PrepareAbsRsqrt<IsAbsSupportedType, kAbsNameId>,
+      AbsEval);
 }
 
-TfLiteRegistration Register_SIN() {
+TfLiteRegistration_V1 Register_SIN() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SinEval);
+      nullptr, GenericPrepare<IsNumericSupportedType>, SinEval);
 }
 
-TfLiteRegistration Register_COS() {
+TfLiteRegistration_V1 Register_COS() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::CosEval);
+      nullptr, GenericPrepare<IsNumericSupportedType>, CosEval);
 }
 
-TfLiteRegistration Register_LOG() {
+TfLiteRegistration_V1 Register_LOG() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::LogEval);
+      nullptr, GenericPrepare<IsNumericSupportedType>, LogEval);
 }
 
-TfLiteRegistration Register_SQRT() {
+TfLiteRegistration_V1 Register_SQRT() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SqrtEval);
+      nullptr, GenericPrepare<IsNumericSupportedType>, SqrtEval);
 }
 
-TfLiteRegistration Register_RSQRT() {
+TfLiteRegistration_V1 Register_RSQRT() {
   return tflite::micro::RegisterOp(
-      elementwise::ElementWiseAbsRsqrtInit,
-      elementwise::PrepareAbsRsqrt<elementwise::IsRsqrtSupportedType,
-                                   elementwise::kRsrqtNameId>,
-      elementwise::RsqrtEval);
+      ElementWiseAbsRsqrtInit,
+      PrepareAbsRsqrt<IsRsqrtSupportedType, kRsrqtNameId>, RsqrtEval);
 }
 
-TfLiteRegistration Register_SQUARE() {
+TfLiteRegistration_V1 Register_SQUARE() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsNumericSupportedType>,
-      elementwise::SquareEval);
+      nullptr, GenericPrepare<IsNumericSupportedType>, SquareEval);
 }
 
-TfLiteRegistration Register_LOGICAL_NOT() {
+TfLiteRegistration_V1 Register_LOGICAL_NOT() {
   return tflite::micro::RegisterOp(
-      nullptr, elementwise::GenericPrepare<elementwise::IsLogicalSupportedType>,
-      elementwise::LogicalNotEval);
+      nullptr, GenericPrepare<IsLogicalSupportedType>, LogicalNotEval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

@@ -408,11 +408,11 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_AVERAGE_POOL_2D() {
+TfLiteRegistration_V1 Register_AVERAGE_POOL_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, AverageEval);
 }
 
-TfLiteRegistration Register_MAX_POOL_2D() {
+TfLiteRegistration_V1 Register_MAX_POOL_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, MaxEval);
 }
 

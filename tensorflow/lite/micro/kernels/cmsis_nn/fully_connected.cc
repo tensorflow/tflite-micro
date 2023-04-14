@@ -421,15 +421,15 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_FULLY_CONNECTED() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED_INT8() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
-TfLiteRegistration Register_FULLY_CONNECTED_INT16() {
+TfLiteRegistration_V1 Register_FULLY_CONNECTED_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt16);
 }
 

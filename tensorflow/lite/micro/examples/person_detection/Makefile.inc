@@ -56,7 +56,7 @@ include $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detec
 
 # TODO(b/268568089): This test is taking very long time to finish; causing the
 # CI to run for a long time to finish.
-ifneq ($(TARGET_ARCH), hifimini)
+ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifimini hifi3z))
   # Tests loading and running a vision model.
   $(eval $(call microlite_test,person_detection_test,\
   $(person_detection_TEST_SRCS),$(person_detection_TEST_HDRS),$(person_detection_GENERATOR_INPUTS)))

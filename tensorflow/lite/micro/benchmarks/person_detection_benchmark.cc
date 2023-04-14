@@ -50,7 +50,7 @@ uint8_t benchmark_runner_buffer[sizeof(PersonDetectionBenchmarkRunner)];
 
 // Initialize benchmark runner instance explicitly to avoid global init order
 // issues on Sparkfun. Use new since static variables within a method
-// are automatically surrounded by locking, which breaks bluepill and stm32f4.
+// are automatically surrounded by locking, which breaks bluepill.
 PersonDetectionBenchmarkRunner* CreateBenchmarkRunner(MicroProfiler* profiler) {
   // We allocate PersonDetectionOpResolver from a global buffer
   // because the object's lifetime must exceed that of the

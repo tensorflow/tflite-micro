@@ -43,7 +43,7 @@ void ExecuteCumSumTest(CumSumTestParams& test_params, TfLiteTensor* tensors,
   params.exclusive = test_params.exclusive;
   params.reverse = test_params.reverse;
 
-  const TfLiteRegistration registration = tflite::Register_CUMSUM();
+  const TfLiteRegistration_V1 registration = tflite::Register_CUMSUM();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&params));
 

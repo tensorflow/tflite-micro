@@ -121,7 +121,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_FLOOR_MOD() {
+TfLiteRegistration_V1 Register_FLOOR_MOD() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

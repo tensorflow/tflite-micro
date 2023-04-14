@@ -16,7 +16,7 @@
 
 Run:
 `bazel build tensorflow/lite/micro/examples/hello_world:train`
-`bazel-bin/tensorflow/lite/micro/examples/hello_world/train --quantize --save_tf_model --save_dir=/tmp/model_created/`
+`bazel-bin/tensorflow/lite/micro/examples/hello_world/train --save_tf_model --save_dir=/tmp/model_created/`
 """
 import math
 import os

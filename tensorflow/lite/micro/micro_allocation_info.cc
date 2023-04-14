@@ -179,6 +179,7 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
     const int32_t* offline_offsets, SubgraphAllocations* allocations) {
   AllocationInfo* allocation_info = info_.allocation_info;
   // Initialize allocation info for every tensor in every subgraph.
+  int offline_index = 0;
   for (size_t subgraph_idx = 0; subgraph_idx < model_->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model_->subgraphs()->Get(subgraph_idx);
@@ -203,7 +204,7 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
           (!subgraph->tensors()->Get(i)->is_variable()) &&
           (current->bytes != 0);
       if (offline_offsets) {
-        current->offline_offset = offline_offsets[i];
+        current->offline_offset = offline_offsets[offline_index++];
 
         // Mark offline planned variable tensors so they can get an offline
         // offset and be handled offline.
@@ -211,7 +212,6 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
             current->offline_offset != kOnlinePlannedBuffer) {
           current->needs_allocating = true;
         }
-
       } else {
         current->offline_offset = kOnlinePlannedBuffer;
       }

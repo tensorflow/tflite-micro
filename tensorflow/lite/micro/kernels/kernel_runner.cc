@@ -34,7 +34,7 @@ void ClearBufferApi(TfLiteContext* context_) {
   context_->RequestScratchBufferInArena = nullptr;
 }
 
-KernelRunner::KernelRunner(const TfLiteRegistration& registration,
+KernelRunner::KernelRunner(const TfLiteRegistration_V1& registration,
                            TfLiteTensor* tensors, int tensors_size,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
                            void* builtin_data, TfLiteIntArray* intermediates)
@@ -94,7 +94,7 @@ TfLiteStatus KernelRunner::Invoke() {
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.invoke == nullptr) {
-    MicroPrintf("TfLiteRegistration missing invoke function pointer!");
+    MicroPrintf("TfLiteRegistration_V1 missing invoke function pointer!");
     return kTfLiteError;
   }
 
@@ -110,7 +110,7 @@ TfLiteStatus KernelRunner::Free() {
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   if (registration_.free == nullptr) {
-    MicroPrintf("TfLiteRegistration missing free function pointer!");
+    MicroPrintf("TfLiteRegistration_V1 missing free function pointer!");
     return kTfLiteError;
   }
 

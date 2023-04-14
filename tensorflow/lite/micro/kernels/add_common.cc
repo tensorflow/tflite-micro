@@ -39,6 +39,8 @@ TfLiteStatus CalculateOpDataAdd(TfLiteContext* context, TfLiteAddParams* params,
   data->requires_broadcast = !HaveSameShapes(input1, input2);
 
   if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
+    TFLITE_CHECK_NE(output->quantization.type, kTfLiteNoQuantization);
+
     // 8bit -> 8bit general quantized path, with general rescalings
     data->input1_offset = -input1->params.zero_point;
     data->input2_offset = -input2->params.zero_point;
@@ -96,6 +98,14 @@ TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(
       CalculateOpDataAdd(context, params, input1, input2, output, data));
+
+  if (output->type == kTfLiteInt32) {
+    // Only support int32 unquantized add for now.
+    TF_LITE_ENSURE_EQ(context, input1->quantization.type,
+                      kTfLiteNoQuantization);
+    TF_LITE_ENSURE_EQ(context, input2->quantization.type,
+                      kTfLiteNoQuantization);
+  }
 
   micro_context->DeallocateTempTfLiteTensor(input1);
   micro_context->DeallocateTempTfLiteTensor(input2);

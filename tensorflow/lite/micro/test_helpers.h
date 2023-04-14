@@ -55,8 +55,8 @@ class SimpleStatefulOp {
   };
 
  public:
-  static const TfLiteRegistration* getRegistration();
-  static TfLiteRegistration* GetMutableRegistration();
+  static const TfLiteRegistration_V1* getRegistration();
+  static TfLiteRegistration_V1* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
   static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
@@ -64,8 +64,8 @@ class SimpleStatefulOp {
 
 class MockCustom {
  public:
-  static const TfLiteRegistration* getRegistration();
-  static TfLiteRegistration* GetMutableRegistration();
+  static const TfLiteRegistration_V1* getRegistration();
+  static TfLiteRegistration_V1* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -78,8 +78,8 @@ class MockCustom {
 // the sum of the inputs.
 class MultipleInputs {
  public:
-  static const TfLiteRegistration* getRegistration();
-  static TfLiteRegistration* GetMutableRegistration();
+  static const TfLiteRegistration_V1* getRegistration();
+  static TfLiteRegistration_V1* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -91,8 +91,8 @@ class MultipleInputs {
 // A simple no-op operator.
 class NoOp {
  public:
-  static const TfLiteRegistration* getRegistration();
-  static TfLiteRegistration* GetMutableRegistration();
+  static const TfLiteRegistration_V1* getRegistration();
+  static TfLiteRegistration_V1* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -216,7 +216,6 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
   result.is_variable = is_variable;
   result.allocation_type = kTfLiteMemNone;
   result.data.data = const_cast<T*>(data);
-  result.quantization = {kTfLiteAffineQuantization, nullptr};
   result.bytes = ElementCount(*dims) * sizeof(T);
   result.data.data = const_cast<T*>(data);
 

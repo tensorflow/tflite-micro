@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ if [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_NN_PATH} already exists, skipping the download."
 else
 
-  ZIP_PREFIX_NN="e98ee09a03dd12d4b3eac6f7efa25d3ad62a24b9"
+  ZIP_PREFIX_NN="d071e9f70195559e7242709b8df3adeb7c50d0fb"
   CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
-  CMSIS_NN_MD5="a0e4b5f2c5c62405c304c7ffcc64af3b"
+  CMSIS_NN_MD5="0364a1a83f86a5104b893a4d21df7874"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.

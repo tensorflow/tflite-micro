@@ -38,20 +38,20 @@ class MicroGraph {
              MicroResourceVariables* resource_variables);
   virtual ~MicroGraph();
 
-  // Sets up builtin data and calls TfLiteRegistration->Init for every operator
-  // in every subgraph in the model.
+  // Sets up builtin data and calls TfLiteRegistration_V1->Init for every
+  // operator in every subgraph in the model.
   virtual TfLiteStatus InitSubgraphs();
 
-  // Calls TfLiteRegistration->Prepare for every operator in every subgraph in
-  // the model.
+  // Calls TfLiteRegistration_V1->Prepare for every operator in every subgraph
+  // in the model.
   virtual TfLiteStatus PrepareSubgraphs();
 
-  // Calls TfLiteRegistration->Free for every operator in every subgraph in the
-  // model.
+  // Calls TfLiteRegistration_V1->Free for every operator in every subgraph in
+  // the model.
   virtual TfLiteStatus FreeSubgraphs();
 
-  // Calls TfLiteRegistration->Invoke for every operator in a single subgraph in
-  // the model.
+  // Calls TfLiteRegistration_V1->Invoke for every operator in a single subgraph
+  // in the model.
   virtual TfLiteStatus InvokeSubgraph(int subgraph_idx);
 
   // Zeros out all variable tensors in all subgraphs in the model.

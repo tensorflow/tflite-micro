@@ -26,7 +26,11 @@ namespace tflite {
 
 uint32_t MicroProfiler::BeginEvent(const char* tag) {
   if (num_events_ == kMaxEvents) {
-    num_events_ = 0;
+    MicroPrintf(
+        "MicroProfiler errored out because total number of events exceeded the "
+        "maximum of %d.",
+        kMaxEvents);
+    TFLITE_ASSERT_FALSE;
   }
 
   tags_[num_events_] = tag;
@@ -52,8 +56,7 @@ void MicroProfiler::Log() const {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-    MicroPrintf("%s took %" PRIu32 " ticks (%d ms).", tags_[i], ticks,
-                TicksToMs(ticks));
+    MicroPrintf("%s took %u ticks (%d ms).", tags_[i], ticks, TicksToMs(ticks));
   }
 #endif
 }
