@@ -35,7 +35,7 @@ PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
       }))
       .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
       .def("Reset", &InterpreterWrapper::Reset)
-      .def("Invoke", [](InterpreterWrapper& self) { self.Invoke(); })
+      .def("Invoke", &InterpreterWrapper::Invoke)
       .def(
           "SetInputTensor",
           [](InterpreterWrapper& self, py::handle& x, size_t index) {
