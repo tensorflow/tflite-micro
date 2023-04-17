@@ -257,7 +257,7 @@ void InterpreterWrapper::Invoke() {
   if (interpreter_->Invoke() != kTfLiteOk) {
     char err_strbuf[128];
     snprintf(err_strbuf, sizeof(err_strbuf), "Interpreter invocation failed.");
-    ThrowValueError(err_strbuf);
+    ThrowRuntimeError(err_strbuf);
   }
 }
 
