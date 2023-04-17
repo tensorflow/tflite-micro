@@ -253,7 +253,14 @@ InterpreterWrapper::InterpreterWrapper(
 
 void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
-int InterpreterWrapper::Invoke() { return interpreter_->Invoke(); }
+void InterpreterWrapper::Invoke() {
+  if (interpreter_->Invoke() != kTfLiteOk) {
+    char err_strbuf[128];
+    snprintf(err_strbuf, sizeof(err_strbuf),
+             "Interpreter invocation failed.");
+    ThrowValueError(err_strbuf);
+  }
+}
 
 int InterpreterWrapper::Reset() { return interpreter_->Reset(); }
 
