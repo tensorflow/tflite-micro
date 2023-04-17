@@ -48,7 +48,7 @@ echo "export PYTHONPATH=\${PYTHONPATH}:${PWD}" >> tflite_micro/venv/bin/activate
 cd tflite_micro
 source venv/bin/activate
 pip install --upgrade pip
-pip install -r third_party/requirements.txt
+pip install -r third_party/python_requirements.txt
 
 # (Optional)
 pip install ipython
