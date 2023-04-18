@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,12 +39,10 @@ TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
 }
 
 template <typename T>
-TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
-                                 const T* expected_output_data,
-                                 int output_length,
-                                 TfLiteConvParams* conv_params,
-                                 TFLMRegistration registration, T* output_data,
-                                 float tolerance) {
+TfLiteStatus ValidateConvGoldensForRegistration(
+    TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
+    int output_length, TfLiteConvParams* conv_params,
+    TfLiteRegistration_V1 registration, T* output_data, float tolerance) {
   TfLiteStatus status = InvokeConv(tensors, tensors_size, output_length,
                                    conv_params, registration, output_data);
   if (status != kTfLiteOk) {
@@ -55,6 +53,48 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                               tolerance);
   }
   return kTfLiteOk;
+}
+
+template <typename T>
+TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
+                                 const T* expected_output_data,
+                                 int output_length,
+                                 TfLiteConvParams* conv_params,
+                                 TfLiteRegistration_V1 registration,
+                                 T* output_data, float tolerance) {
+  TfLiteStatus status = ValidateConvGoldensForRegistration(
+      tensors, tensors_size, expected_output_data, output_length, conv_params,
+      registration, output_data, tolerance);
+
+  if (tensors[0].type == kTfLiteInt8) {
+    TfLiteStatus status_int8 = ValidateConvGoldensForRegistration(
+        tensors, tensors_size, expected_output_data, output_length, conv_params,
+        tflite::Register_CONV_2D_INT8(), output_data, tolerance);
+    TfLiteStatus status_int8_ref = ValidateConvGoldensForRegistration(
+        tensors, tensors_size, expected_output_data, output_length, conv_params,
+        tflite::Register_CONV_2D_INT8REF(), output_data, tolerance);
+    if (status == status_int8 && status == status_int8_ref) {
+      return status;
+    } else {
+      TF_LITE_MICRO_FAIL("mismatched test status");
+      return kTfLiteError;
+    }
+  } else if (tensors[0].type == kTfLiteInt16) {
+    TfLiteStatus status_int16 = ValidateConvGoldensForRegistration(
+        tensors, tensors_size, expected_output_data, output_length, conv_params,
+        tflite::Register_CONV_2D_INT16(), output_data, tolerance);
+    TfLiteStatus status_int16_ref = ValidateConvGoldensForRegistration(
+        tensors, tensors_size, expected_output_data, output_length, conv_params,
+        tflite::Register_CONV_2D_INT16REF(), output_data, tolerance);
+    if (status == status_int16 && status == status_int16_ref) {
+      return status;
+    } else {
+      TF_LITE_MICRO_FAIL("mismatched test status");
+      return kTfLiteError;
+    }
+  }
+
+  return status;
 }
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
@@ -145,8 +185,8 @@ TfLiteStatus TestConvQuantizedPerChannel(
       input_data, input_quantized, input_dims, input_scale, input_zero_point);
   TfLiteTensor filter_tensor = CreateSymmetricPerChannelQuantizedTensor(
       filter_data, filter_data_quantized, filter_dims, filter_scales,
-      filter_zero_points, &filter_quant, 0, false,
-      tensor_weight_type /* quantized dimension */);
+      filter_zero_points, &filter_quant, 0 /* quantized dimension */, false,
+      tensor_weight_type);
   TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
       bias_data, bias_data_quantized, bias_dims, input_scale, &filter_scales[1],
       bias_scales, bias_zero_points, &bias_quant, 0 /* quantized dimension */);
