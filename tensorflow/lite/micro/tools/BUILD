@@ -10,6 +10,7 @@ py_library(
     srcs = ["generate_cc_arrays.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 
@@ -27,6 +28,7 @@ py_binary(
     srcs = ["generate_cc_arrays.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 
