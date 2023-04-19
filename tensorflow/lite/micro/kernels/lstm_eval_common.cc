@@ -247,7 +247,7 @@ TfLiteStatus PrepareGateParametersFloat(TfLiteContext* context,
 TfLiteStatus PrepareGateParametersInteger(TfLiteContext* context,
                                           const LstmTensors& lstm_tensors,
                                           OpDataLSTM* op_data_lstm) {
-  float nonlinear_input_scale = 0.00024414062;  // 2^-12 Q3.12 -> Q0.15
+  float nonlinear_input_scale = 0.000244140625;  // 2^-12 Q3.12 -> Q0.15
   TF_LITE_ENSURE_OK(
       context,
       CreateGateParams(
@@ -290,7 +290,7 @@ TfLiteStatus PrepareGateParametersInteger(TfLiteContext* context,
           op_data_lstm->output_gate_parameters));
 
   // Inter gate multiplication parameters
-  float nonlinear_output_scale = 0.00003051757;  // 2^-15 Q3.12 -> Q0.15
+  float nonlinear_output_scale = 0.000030517578125;  // 2^-15 Q3.12 -> Q0.15
   float cell_state_scale = lstm_tensors.CellStateTensor()->params.scale;
   // forget gate output (nonlinear output) x cell state -> cell state
   op_data_lstm->inter_gate_parameters.forget_cell_mul_params =

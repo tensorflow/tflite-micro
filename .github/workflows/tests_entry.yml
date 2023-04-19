@@ -1,9 +1,9 @@
 # tests_entry.yml
 # Entry point to the test suites
 #
-# - If neither ci:run or ci:ready_to_merge labels are on PR, fail and exit.
+# - If neither ci:run, ci:run_full or ci:ready_to_merge labels are on PR, fail and exit.
 # - If the PR comment body doesn't contain 'BUG=' fail and exit.
-# - If ci:run label is on PR, remove ci:run, run the test scripts.
+# - If ci:run or ci:run_full label is on PR, remove label and run the test scripts.
 # - If ci:ready_to_merge is on the PR and the pull_request_target type is synchronize not triggered
 #   by the mergify[bot] user, remove label and fail job.
 # - If ci:ready_to_merge label is on PR and pull_request_target type is labeled, run the test scripts.
@@ -29,7 +29,8 @@ jobs:
     steps:
       - name: fail-without-labels
         if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-          contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge')) }}
+          contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') ||
+          contains(github.event.pull_request.labels.*.name, 'ci:run_full')) }}
         run: exit 1
 
   ci-ready-to-merge:
@@ -72,9 +73,27 @@ jobs:
             })
         continue-on-error: true
 
-  pr-has-bug:
+  ci-run-full:
     runs-on: ubuntu-latest
     needs: ci-run
+    steps:
+      - name: remove-cirun-full
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:run_full'
+            })
+        continue-on-error: true
+
+  pr-has-bug:
+    runs-on: ubuntu-latest
+    needs: ci-run-full
     name: PR has Bug
     steps:
       - name: Check for BUG=
