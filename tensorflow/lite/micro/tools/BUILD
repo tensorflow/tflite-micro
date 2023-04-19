@@ -8,6 +8,9 @@ package(
 py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
+    deps = [
+        requirement("numpy"),
+    ],
 )
 
 py_library(
@@ -22,6 +25,9 @@ py_library(
 py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],
+    deps = [
+        requirement("numpy"),
+    ],
 )
 
 py_binary(
