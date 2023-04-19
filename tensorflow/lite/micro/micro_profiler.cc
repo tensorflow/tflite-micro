@@ -56,8 +56,7 @@ void MicroProfiler::Log() const {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
   for (int i = 0; i < num_events_; ++i) {
     uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-    MicroPrintf("%s took %" PRIu32 " ticks (%d ms).", tags_[i], ticks,
-                TicksToMs(ticks));
+    MicroPrintf("%s took %u ticks (%d ms).", tags_[i], ticks, TicksToMs(ticks));
   }
 #endif
 }

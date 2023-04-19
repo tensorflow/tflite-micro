@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 
+#include "tensorflow/lite/kernels/internal/compatibility.h"
+
 namespace tflite {
 
 template <int N>
@@ -27,16 +29,19 @@ class RuntimeShape {
  public:
   RuntimeShape& operator=(RuntimeShape const&) = delete;
 
-  // RuntimeShape in TFLM supports up to 5 dimensions.
+  // RuntimeShape in TFLM supports up to 6 dimensions.
   // The name kMaxSmallSize comes from the same file of the upstream
   // tensorflow lite repo and need to be kept the same for max reuse.
-  static constexpr int kMaxSmallSize = 5;
+  static constexpr int kMaxSmallSize = 6;
 
   RuntimeShape() : size_(0) {}
 
-  explicit RuntimeShape(int dimensions_count) : size_(dimensions_count) {}
+  explicit RuntimeShape(int dimensions_count) : size_(dimensions_count) {
+    TFLITE_DCHECK_LE(dimensions_count, kMaxSmallSize);
+  }
 
   RuntimeShape(int shape_size, int32_t value) : size_(shape_size) {
+    TFLITE_DCHECK_LE(shape_size, kMaxSmallSize);
     for (int i = 0; i < shape_size; ++i) {
       SetDim(i, value);
     }
@@ -44,6 +49,7 @@ class RuntimeShape {
 
   RuntimeShape(int dimensions_count, const int32_t* dims_data)
       : size_(dimensions_count) {
+    // check of dimensions_count handled by ReplaceWith()
     ReplaceWith(dimensions_count, dims_data);
   }
 
@@ -69,6 +75,7 @@ class RuntimeShape {
 
   static RuntimeShape ExtendedShape(int new_shape_size,
                                     const RuntimeShape& shape) {
+    TFLITE_DCHECK_LE(new_shape_size, kMaxSmallSize);
     return RuntimeShape(new_shape_size, shape, 1);
   }
   int32_t* DimsData() { return dims_; }
@@ -76,6 +83,7 @@ class RuntimeShape {
   const int32_t* DimsDataUpTo5D() const { return dims_; }
 
   void ReplaceWith(int dimensions_count, const int32_t* dims_data) {
+    TFLITE_DCHECK_LE(dimensions_count, kMaxSmallSize);
     size_ = dimensions_count;
     int32_t* dst_dims = DimsData();
     std::memcpy(dst_dims, dims_data, dimensions_count * sizeof(int32_t));
