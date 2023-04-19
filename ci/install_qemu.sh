@@ -13,18 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-sudo apt-get install -y ninja-build
+# Parameters:
+# ${1} Optional. Path to install QEMU.
 LINUX_PORTABLE_URL="https://download.qemu.org/qemu-6.2.0.tar.xz"
 TEMP_ARCHIVE="/tmp/qemu.tar.xz"
+
+INSTALL_PREFIX=${1:-"/usr/local"}
 
 echo >&2 "Downloading from url: ${LINUX_PORTABLE_URL}"
 wget ${LINUX_PORTABLE_URL} -O ${TEMP_ARCHIVE} >&2
 
-QEMU_HOME="/usr/local/qemu"
-mkdir ${QEMU_HOME}
-tar xJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${QEMU_HOME} >&2
-cd ${QEMU_HOME}
-./configure
+TEMP_DIR="$(mktemp -d)"
+tar xJf ${TEMP_ARCHIVE} --strip-components=1 --directory ${TEMP_DIR} >&2
+cd ${TEMP_DIR}
+./configure --prefix=${INSTALL_PREFIX}
 make -j8
 make install

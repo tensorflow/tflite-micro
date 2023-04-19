@@ -20,7 +20,8 @@ FROM python:3.10-bullseye AS qemu_builder
 RUN apt-get update
 RUN apt-get install -y ninja-build wget xz-utils
 COPY ci/install_qemu.sh ./
-RUN ./install_qemu.sh
+# Installs all built files into /qemu_install rather than /usr/local default.
+RUN ./install_qemu.sh /tmp/qemu_install
 
 # This stage is the final CI container.
 FROM python:3.10-bullseye as tflm-ci
@@ -66,12 +67,11 @@ RUN pip install pyyaml requests psutil robotframework==4.0.1
 
 # Install QEMU from build container qemu_builder into tflm-ci container.
 # We're using a two stage build to keep the CI container smaller.
-ENV QEMU_HOME /usr/local/qemu
-COPY --from=qemu_builder ${QEMU_HOME}/build ${QEMU_HOME}
-ENV PATH ${QEMU_HOME}:${PATH}
-#Sets path for interactive users as well.
-RUN echo "export PATH=${QEMU_HOME}:${PATH}" >> /etc/profile
+WORKDIR /usr/local
+# Merge built files into /usr/local so that the path is already setup.
+COPY --from=qemu_builder /tmp/qemu_install/. .
 
+WORKDIR /
 COPY ci/*.sh /install/
 RUN /install/install_bazelisk.sh
 RUN /install/install_buildifier.sh
