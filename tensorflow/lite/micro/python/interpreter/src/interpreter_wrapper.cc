@@ -254,12 +254,13 @@ InterpreterWrapper::InterpreterWrapper(
 void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
 int InterpreterWrapper::Invoke() {
-  if (interpreter_->Invoke() == kTfLiteError) {
+  TfLiteStatus status = interpreter_->Invoke();
+  if (status == kTfLiteError) {
     char err_strbuf[128];
     snprintf(err_strbuf, sizeof(err_strbuf), "Interpreter invocation failed.");
     ThrowRuntimeError(err_strbuf);
   }
-  return kTfLiteOk;
+  return status;
 }
 
 int InterpreterWrapper::Reset() { return interpreter_->Reset(); }
