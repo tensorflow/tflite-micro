@@ -19,6 +19,7 @@ tensorflow/lite/core/api/tensor_utils.h
 tensorflow/lite/core/c/builtin_op_data.h
 tensorflow/lite/core/c/c_api_types.h
 tensorflow/lite/core/c/common.h
+tensorflow/lite/core/macros.h
 tensorflow/lite/kernels/internal/common.h
 tensorflow/lite/kernels/internal/compatibility.h
 tensorflow/lite/kernels/internal/portable_tensor_utils.h
