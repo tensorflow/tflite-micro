@@ -10,7 +10,7 @@ package(
 
 cc_library(
     name = "common",
-    srcs = [],
+    srcs = ["common.cc"],
     hdrs = [
         "common.h",
         "optimized/neon_check.h",
@@ -57,6 +57,7 @@ cc_library(
 
 cc_library(
     name = "reference",
+    srcs = ["tensor_ctypes.cc"],
     hdrs = [
         "portable_tensor.h",
         "tensor_ctypes.h",
@@ -70,7 +71,9 @@ cc_library(
 
 cc_library(
     name = "reference_base",
-    srcs = [],
+    srcs = glob([
+        "reference/*.cc",
+    ]),
     hdrs = glob([
         "reference/*.h",
         "reference/integer_ops/*.h",
