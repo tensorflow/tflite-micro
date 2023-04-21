@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -237,6 +237,80 @@ TF_LITE_MICRO_TEST(SimpleTestFloat) {
           tflite::testing::kBiasShape, tflite::testing::kBiasData,
           tflite::testing::kOutputShape, tflite::testing::kGoldenData,
           &tflite::testing::common_conv_params, output_data));
+}
+
+TF_LITE_MICRO_TEST(fusedRELUTest) {
+  float output_data[tflite::testing::kOutputElements];
+  float golden_data[] = {29,  24,  0, 0, 99,  72,  0,   0,
+                         207, 186, 0, 0, 263, 292, 141, 0};
+  int filter_shape[] = {4, 1, 3, 3, 1};
+  float filter_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int input_shape[] = {4, 1, 4, 4, 1};
+  float input_data[] = {1, 2,  -3,  -4,  5,  6,  -7, -8,
+                        9, 10, -11, -12, 13, 14, 15, 16};
+  TfLiteConvParams conv_params = {kTfLitePaddingSame,  // padding
+                                  1,                   // stride_width
+                                  1,                   // stride_height
+                                  kTfLiteActRelu,
+                                  1,
+                                  1};
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, tflite::testing::TestTransposeConvFloat(
+                     input_shape, input_data, filter_shape, filter_data,
+                     tflite::testing::kBiasShape, tflite::testing::kBiasData,
+                     tflite::testing::kOutputShape, golden_data, &conv_params,
+                     output_data));
+}
+
+TF_LITE_MICRO_TEST(AccuracyWithFusedActivationTest) {
+  int output_shape[] = {4, 1, 3, 4, 1};
+  float output_data[tflite::testing::kOutputElements];
+  float golden_data[] = {1615, 1938, 0, 0, 2584, 1615, 0, 0, 323, 1292, 0, 0};
+  int filter_shape[] = {4, 1, 3, 3, 1};
+  float filter_data[] = {9, 5, 6, 9, 8, 5, 3, 1, 4};
+  int input_shape[] = {4, 1, 1, 2, 1};
+  float input_data[] = {323, -521};
+  TfLiteConvParams conv_params = {kTfLitePaddingSame,  // padding
+                                  3,                   // stride_width
+                                  3,                   // stride_height
+                                  kTfLiteActRelu,
+                                  1,
+                                  1};
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, tflite::testing::TestTransposeConvFloat(
+                     input_shape, input_data, filter_shape, filter_data,
+                     tflite::testing::kBiasShape, tflite::testing::kBiasData,
+                     output_shape, golden_data, &conv_params, output_data));
+}
+
+TF_LITE_MICRO_TEST(MultiChannelBiasWithFusedActivationTest) {
+  int output_shape[] = {4, 1, 5, 5, 2};
+  float output_data[50];
+  float golden_data[] = {4,  6,  6,  8,  10, 14, 9,  12, 13, 16, 10, 12, 12,
+                         14, 28, 32, 21, 24, 25, 28, 13, 12, 9,  8,  35, 40,
+                         45, 52, 57, 64, 0,  0,  0,  0,  0,  0,  39, 44, 47,
+                         52, 0,  0,  0,  0,  4,  6,  63, 68, 71, 76};
+  int filter_shape[] = {4, 2, 3, 3, 1};
+  float filter_data[] = {1, 3, 5, 7, 9,  11, 13, 15, 17,
+                         2, 4, 6, 8, 10, 12, 14, 16, 18};
+  int input_shape[] = {4, 1, 2, 2, 1};
+  float input_data[] = {1, 2, -3, 4};
+  int bias_shape[] = {4, 2, 1, 1, 1};
+  float bias_data[] = {3, 4};
+  TfLiteConvParams conv_params = {kTfLitePaddingValid,  // padding
+                                  2,                    // stride_width
+                                  2,                    // stride_height
+                                  kTfLiteActRelu,
+                                  1,
+                                  1};
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvFloat(
+          input_shape, input_data, filter_shape, filter_data, bias_shape,
+          bias_data, output_shape, golden_data, &conv_params, output_data));
 }
 
 TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannel) {
