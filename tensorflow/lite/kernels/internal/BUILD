@@ -19,6 +19,7 @@ cc_library(
     deps = [
         ":cppmath",
         ":types",
+        "//tensorflow/lite/core:macros",
         "@gemmlowp//:fixedpoint",
     ],
 )
@@ -161,6 +162,7 @@ cc_library(
         ":compatibility",
         ":cppmath",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
         "//tensorflow/lite/kernels:op_macros",
         "@gemmlowp",
     ],
