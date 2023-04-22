@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -160,26 +160,6 @@ TfLiteStatus QuantizedMeanOrSum(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-template <typename T, typename U>
-TfLiteStatus Mean(TfLiteContext* context, TfLiteNode* node,
-                  OpDataReduce* op_data, int* temp_index, int* resolved_axis,
-                  U* temp_sum) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  const TfLiteEvalTensor* axis = tflite::micro::GetEvalInput(context, node, 1);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TfLiteReducerParams* params =
-      static_cast<TfLiteReducerParams*>(node->builtin_data);
-
-  reference_ops::Mean<T, U>(
-      tflite::micro::GetTensorData<T>(input), &input->dims->data[0],
-      input->dims->size, tflite::micro::GetTensorData<T>(output),
-      &output->dims->data[0], output->dims->size,
-      tflite::micro::GetTensorData<int>(axis), op_data->num_axis,
-      params->keep_dims, temp_index, resolved_axis, temp_sum);
-
-  return kTfLiteOk;
-}
-
 template <typename integer_type>
 TfLiteStatus EvalIntegerMean(TfLiteContext* context, TfLiteNode* node,
                              int num_axis, OpDataReduce* op_data,
@@ -187,14 +167,9 @@ TfLiteStatus EvalIntegerMean(TfLiteContext* context, TfLiteNode* node,
   int32_t* temp_sum = static_cast<int32_t*>(
       context->GetScratchBuffer(context, op_data->temp_buffer_idx));
 
-  if (op_data->input_zp == op_data->output_zp &&
-      op_data->input_scale == op_data->output_scale) {
-    Mean<integer_type, int32_t>(context, node, op_data, temp_index,
-                                resolved_axis, temp_sum);
-  } else {
-    QuantizedMeanOrSum<integer_type>(context, node, temp_index, resolved_axis,
-                                     temp_sum, op_data, /*compute_sum=*/false);
-  }
+  QuantizedMeanOrSum<integer_type>(context, node, temp_index, resolved_axis,
+                                   temp_sum, op_data, /*compute_sum=*/false);
+
   return kTfLiteOk;
 }
 
