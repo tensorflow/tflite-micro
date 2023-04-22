@@ -26,9 +26,9 @@ cc_library(
 )
 
 cc_test(
-    name = "evaluate_cc_test",
+    name = "hello_world_test",
     srcs = [
-        "evaluate_test.cc",
+        "hello_world_test.cc",
     ],
     deps = [
         ":model",
