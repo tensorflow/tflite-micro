@@ -58,7 +58,7 @@ jobs:
         git checkout main
         git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
     - name: update logs x86
-      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
       with:
         args: tensorflow/lite/micro/tools/metrics/create_size_log_x86.sh
     - name: commit logs
