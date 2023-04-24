@@ -34,6 +34,12 @@ set +e
 # --fix_formatting to let the script fix both code and build file format error.
 FIX_FORMAT_FLAG=${1}
 
+# Needed when using the Dockerfile locally.
+git config --global --add safe.directory /opt/tflm
+
+# Needed when the docker container is used with GitHub actions.
+git config --global --add safe.directory /github/workspace
+
 ############################################################
 # License Check
 ############################################################
