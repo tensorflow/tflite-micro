@@ -151,6 +151,7 @@ cc_library(
     hdrs = ["micro_tensor_utils.h"],
     deps = [
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
         "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -326,10 +327,9 @@ tflm_kernel_cc_library(
         "//visibility:public",
     ],
     deps = [
-        ":micro_tensor_utils",
-        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         ":activation_utils",
         ":kernel_util",
+        ":micro_tensor_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -340,6 +340,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/kernels/internal:quantization_util",
         "//tensorflow/lite/kernels/internal:reference_base",
         "//tensorflow/lite/kernels/internal:tensor",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
