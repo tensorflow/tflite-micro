@@ -181,7 +181,7 @@ jobs:
       - name: Check
         uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
         with:
-          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
+          args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
   project_generation:
     runs-on: ubuntu-latest
