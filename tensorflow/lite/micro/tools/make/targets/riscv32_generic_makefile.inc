@@ -35,7 +35,7 @@ BUILD_TYPE := micro
 LDFLAGS += --specs=nano.specs
 
 # This disables the "linker relaxation" optimization, which produced incorrect code.
-# TODO: Check whether this is fixed in newer versions of the toolchain.
+# TODO(b/279805615): Check whether this is fixed in newer versions of the toolchain.
 LDFLAGS += -mno-relax
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh riscv32 rv32
 SIZE_SCRIPT := ${TENSORFLOW_ROOT}tensorflow/lite/micro/testing/size_riscv32_binary.sh
