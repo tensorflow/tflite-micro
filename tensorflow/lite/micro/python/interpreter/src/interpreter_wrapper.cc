@@ -231,10 +231,9 @@ InterpreterWrapper::InterpreterWrapper(
 
   for (const auto& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(), &all_ops_resolver_)) {
-      char strbuf[128];
-      snprintf(strbuf, sizeof(strbuf),
-               "TFLM could not register custom op via %s", registerer.c_str());
-      ThrowRuntimeError(strbuf);
+      std::string strbuf;
+      strbuf = "TFLM could not register custom op via " + registerer;
+      ThrowRuntimeError(strbuf.c_str());
     }
   }
 
@@ -256,9 +255,7 @@ void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 int InterpreterWrapper::Invoke() {
   TfLiteStatus status = interpreter_->Invoke();
   if (status == kTfLiteError) {
-    char err_strbuf[128];
-    snprintf(err_strbuf, sizeof(err_strbuf), "Interpreter invocation failed.");
-    ThrowRuntimeError(err_strbuf);
+    ThrowRuntimeError("Interpreter invocation failed.");
   }
   return status;
 }
@@ -287,33 +284,31 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
     throw pybind11::error_already_set();
   }
 
-  char err_strbuf[128];  // buffer for error message since we can not use
-                         // absl
+  std::string err_str;
   if (TfLiteTypeFromPyArray(array) != tensor->type) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "Cannot set tensor: Got value of type %s but expected type %s "
-             "for input %zu ",
-             TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
-             TfLiteTypeGetName(tensor->type), index);
-
-    ThrowValueError(err_strbuf);
+    err_str = "Cannot set tensor: Got value of type " +
+              std::string(TfLiteTypeGetName(TfLiteTypeFromPyArray(array))) +
+              " but expected type " + TfLiteTypeGetName(tensor->type) +
+              " for input " + std::to_string(index);
+    ThrowValueError(err_str.c_str());
   }
 
   if (PyArray_NDIM(array) != tensor->dims->size) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "Cannot set tensor: Dimension mismatch. Got %d but expected "
-             "%d for input %zu.",
-             PyArray_NDIM(array), tensor->dims->size, index);
-    ThrowValueError(err_strbuf);
+    err_str = "Cannot set tensor: Dimension mismatch. Got " + 
+              std::to_string(PyArray_NDIM(array)) + " but expected " +
+              std::to_string(tensor->dims->size) + " for input " +
+              std::to_string(index);
+    ThrowValueError(err_str.c_str());
   }
 
   for (int j = 0; j < PyArray_NDIM(array); j++) {
     if (tensor->dims->data[j] != PyArray_SHAPE(array)[j]) {
-      snprintf(err_strbuf, sizeof(err_strbuf),
-               "Cannot set tensor: Dimension mismatch. Got %ld but "
-               "expected %d for dimension %d of input %zu.",
-               PyArray_SHAPE(array)[j], tensor->dims->data[j], j, index);
-      ThrowValueError(err_strbuf);
+      err_str = "Cannot set tensor: Dimension mismatch. Got " +
+                std::to_string(PyArray_SHAPE(array)[j]) +
+                " but expected " + std::to_string(tensor->dims->data[j]) +
+                " for dimension " + std::to_string(j) +
+                " of input " + std::to_string(index);
+      ThrowValueError(err_str.c_str());
     }
   }
 
@@ -323,10 +318,10 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
 
   size_t size = PyArray_NBYTES(array);
   if (size != tensor->bytes) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "numpy array had %zu bytes but expected %zu bytes.", size,
-             tensor->bytes);
-    ThrowValueError(err_strbuf);
+    err_str = "numpy array had " + std::to_string(size) +
+              " bytes but expected " +
+              std::to_string(tensor->bytes) + " bytes.";
+    ThrowValueError(err_str.c_str());
   }
 
   memcpy(tensor->data.data, PyArray_DATA(array), size);
