@@ -294,7 +294,7 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
   }
 
   if (PyArray_NDIM(array) != tensor->dims->size) {
-    err_str = "Cannot set tensor: Dimension mismatch. Got " + 
+    err_str = "Cannot set tensor: Dimension mismatch. Got " +
               std::to_string(PyArray_NDIM(array)) + " but expected " +
               std::to_string(tensor->dims->size) + " for input " +
               std::to_string(index);
@@ -304,10 +304,9 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
   for (int j = 0; j < PyArray_NDIM(array); j++) {
     if (tensor->dims->data[j] != PyArray_SHAPE(array)[j]) {
       err_str = "Cannot set tensor: Dimension mismatch. Got " +
-                std::to_string(PyArray_SHAPE(array)[j]) +
-                " but expected " + std::to_string(tensor->dims->data[j]) +
-                " for dimension " + std::to_string(j) +
-                " of input " + std::to_string(index);
+                std::to_string(PyArray_SHAPE(array)[j]) + " but expected " +
+                std::to_string(tensor->dims->data[j]) + " for dimension " +
+                std::to_string(j) + " of input " + std::to_string(index);
       ThrowValueError(err_str.c_str());
     }
   }
@@ -319,8 +318,8 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
   size_t size = PyArray_NBYTES(array);
   if (size != tensor->bytes) {
     err_str = "numpy array had " + std::to_string(size) +
-              " bytes but expected " +
-              std::to_string(tensor->bytes) + " bytes.";
+              " bytes but expected " + std::to_string(tensor->bytes) +
+              " bytes.";
     ThrowValueError(err_str.c_str());
   }
 
