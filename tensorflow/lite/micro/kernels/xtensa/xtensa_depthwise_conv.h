@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@ struct XtensaDepthwiseConvOpData {
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
 #endif  // VISION_P6
+
+#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
+  bool can_optimize;
+#endif  // defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
 };
 
 #if defined(HIFI4) || defined(HIFI5)
@@ -50,8 +54,6 @@ TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
                                    const TfLiteEvalTensor* bias,
                                    TfLiteEvalTensor* output);
 
-TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
-                                            TfLiteNode* node);
 #endif  // defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
@@ -68,6 +70,11 @@ TfLiteStatus DepthwiseConvEvalVision(TfLiteContext* context, TfLiteNode* node,
                                      TfLiteEvalTensor* output);
 
 #endif  // VISION_P6
+
+void* DepthwiseConvInitXtensa(TfLiteContext* context, const char* buffer,
+                              size_t length);
+TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context,
+                                        TfLiteNode* node);
 
 }  // namespace tflite
 

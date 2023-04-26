@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,26 +33,37 @@ namespace tflite {
 
 TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
                                         TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
-  XtensaDepthwiseConvOpData* data =
-      reinterpret_cast<XtensaDepthwiseConvOpData*>(node->user_data);
   const auto& params =
       *(reinterpret_cast<const TfLiteDepthwiseConvParams*>(node->builtin_data));
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
+
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kDepthwiseConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* filter =
-      micro_context->AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
-  TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kDepthwiseConvBiasTensor);
+
+  // Check if the Xtensa optimized code can be used
+  // VISION_P6 does not allow bias data pointer to be nullptr
+  // VISION_P6 does not support dilation
+  if (bias == nullptr || input->type != kTfLiteInt8 ||
+      params.dilation_width_factor != 1 || params.dilation_height_factor != 1) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    if (bias != nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(bias);
+    }
+    return kTfLiteOk;
+  }
+
+  XtensaDepthwiseConvOpData* data =
+      reinterpret_cast<XtensaDepthwiseConvOpData*>(node->user_data);
+
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
   // Dynamically allocate per-channel quantization parameters.
@@ -151,6 +162,8 @@ TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
   micro_context->DeallocateTempTfLiteTensor(bias);
+
+  data->can_optimize = true;
 
   return kTfLiteOk;
 }

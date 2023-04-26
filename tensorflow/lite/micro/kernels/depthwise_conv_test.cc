@@ -1,5 +1,4 @@
-
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,23 +31,22 @@ constexpr int kOutputTensorIndex = 3;
 constexpr int kMaxFilterChannels = 64;
 constexpr int kMaxBiasChannels = 64;
 
-// Creates a DepthwiseConv opeerator, calls it with the provided input tensors
+// Creates a DepthwiseConv operator, calls it with the provided input tensors
 // and some defaults parameters, and compares the output with
 // expected_output_data.
 //
 // The tensors parameter contains both the input tensors as well as a
 // preallocated output tensor into which the output is stored.
 template <typename T>
-TfLiteStatus ValidateDepthwiseConvGoldens(
+TfLiteStatus ValidateDepthwiseConvGoldensForRegistration(
     const T* expected_output_data, int output_length,
     TfLiteDepthwiseConvParams* conv_params, float tolerance, int tensors_size,
-    TfLiteTensor* tensors) {
+    TfLiteTensor* tensors, const TfLiteRegistration_V1 registration) {
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TFLMRegistration registration = Register_DEPTHWISE_CONV_2D();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(conv_params));
@@ -76,6 +74,27 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
                               tolerance);
   }
   return kTfLiteOk;
+}
+
+template <typename T>
+TfLiteStatus ValidateDepthwiseConvGoldens(
+    const T* expected_output_data, int output_length,
+    TfLiteDepthwiseConvParams* conv_params, float tolerance, int tensors_size,
+    TfLiteTensor* tensors) {
+  TfLiteStatus status = ValidateDepthwiseConvGoldensForRegistration<T>(
+      expected_output_data, output_length, conv_params, tolerance, tensors_size,
+      tensors, tflite::Register_DEPTHWISE_CONV_2D());
+  if (tensors[0].type == kTfLiteInt8) {
+    TfLiteStatus status_int8 = ValidateDepthwiseConvGoldensForRegistration<T>(
+        expected_output_data, output_length, conv_params, tolerance,
+        tensors_size, tensors, tflite::Register_DEPTHWISE_CONV_2D_INT8());
+    if (status != status_int8) {
+      TF_LITE_MICRO_FAIL("mismatched test status");
+      return kTfLiteError;
+    }
+  }
+
+  return status;
 }
 
 void TestDepthwiseConvQuantizedPerChannel(
@@ -147,11 +166,6 @@ void TestDepthwiseConvQuantizedPerChannel(
                                               1.0, tensors_size, tensors));
 }
 
-// Xtensa kernels do not support float activations., and the corresponding tests
-// are disabled. As a result, helper functions that are only needed for float
-// kernel tests also need to be ifdef'd out to avoid build errors due to unused
-// functions.
-#if !defined(XTENSA)
 void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
                             int* filter_dims_data, const float* filter_data,
                             int* bias_dims_data, const float* bias_data,
@@ -179,17 +193,12 @@ void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
                                conv_params, 1e-5, tensors_size, tensors);
 }
 
-#endif  // !defined(XTENSA)
-
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA)  // TODO(b/170322965): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SimpleTest) {
   int input_shape[] = {4, 1, 3, 2, 2};
   const float input_values[] = {1, 2, 7, 8, 3, 4, 9, 10, 5, 6, 11, 12};
@@ -521,8 +530,6 @@ TF_LITE_MICRO_TEST(PerChannelBroadcastQuantizationParams) {
                      golden_quantized, output_dims_count, &conv_params, 1e-5,
                      tensors_size, tensors));
 }
-
-#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TEST(FilterDimsNotMatchingAffineQuantization) {
   int input_shape[] = {4, 1, 2, 3, 2};

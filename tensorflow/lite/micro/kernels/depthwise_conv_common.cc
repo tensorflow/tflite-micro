@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -97,15 +97,15 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
   MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* filter =
-      micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* bias =
-      micro_context->AllocateTempInputTensor(node, kConvBiasTensor);
+      micro_context->AllocateTempInputTensor(node, kDepthwiseConvBiasTensor);
   TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+      micro_context->AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   // Note that quantized inference requires that all tensors have their
@@ -127,7 +127,9 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
-  micro_context->DeallocateTempTfLiteTensor(bias);
+  if (bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(bias);
+  }
   micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
