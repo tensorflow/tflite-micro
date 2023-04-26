@@ -15,11 +15,13 @@ limitations under the License.
 
 // Generated based on ${model}.
 
+#pragma once
+
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 
 constexpr int kNumberOperators = ${number_of_ops};
 
-tflite::MicroMutableOpResolver<kNumberOperators> get_resolver()
+inline tflite::MicroMutableOpResolver<kNumberOperators> get_resolver()
 {
   tflite::MicroMutableOpResolver<kNumberOperators> micro_op_resolver;
 
