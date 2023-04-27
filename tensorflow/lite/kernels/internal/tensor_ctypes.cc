@@ -13,21 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// Generated based on ${model}.
+#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 
-#pragma once
+namespace tflite {
 
-#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+RuntimeShape GetTensorShape(const TfLiteTensor* tensor) {
+  if (tensor == nullptr) {
+    return RuntimeShape();
+  }
 
-constexpr int kNumberOperators = ${number_of_ops};
-
-inline tflite::MicroMutableOpResolver<kNumberOperators> get_resolver()
-{
-  tflite::MicroMutableOpResolver<kNumberOperators> micro_op_resolver;
-
-% for operator in operators:
-  micro_op_resolver.${operator}();
-% endfor
-
-  return micro_op_resolver;
+  TfLiteIntArray* dims = tensor->dims;
+  const int dims_size = dims->size;
+  const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims->data);
+  return RuntimeShape(dims_size, dims_data);
 }
+
+}  // namespace tflite
