@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Neasures the size of a Qualcomm Hexagon binary by parsing the output of
-# hexgaon-size. If an optional list of symbols is provided, the symbols' sizes
-# are excluded from the total. This is useful when the binary contains symbols
-# that are only used during testing.
+# Neasures the size of an ARM Cortex-M binary by parsing the output of
+# arm-none-eabi-size. If an optional list of symbols is provided, the symbols'
+# sizes are excluded from the total. This is useful when the binary contains
+# symbols that are only used during testing.
 #
 # First argument is the binary location.
 # Second argument is a regular expression for symbols that need to be excluded
