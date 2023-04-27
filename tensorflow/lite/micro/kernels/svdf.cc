@@ -48,7 +48,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
   const TfLiteEvalTensor* weights_time =
       tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
-  // TODO(tflite-micro#1751) account for optional bias tensor
+  // TODO(#1751): account for optional bias tensor
   const TfLiteEvalTensor* bias =
       (NumInputs(node) == 5)
           ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)

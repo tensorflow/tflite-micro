@@ -303,7 +303,7 @@ void EvalFloatSvdfReference(
       tflite::micro::GetTensorData<float>(weights_feature);
   const float* weights_time_ptr =
       tflite::micro::GetTensorData<float>(weights_time);
-  // TODO(tflite-micro#1751) account for optional bias tensor
+  // TODO(#1751): account for optional bias tensor
   const float* bias_ptr = tflite::micro::GetTensorData<float>(bias);
   const float* input_ptr = tflite::micro::GetTensorData<float>(input);
 
@@ -460,7 +460,7 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
                             weights_time->params.scale / output->params.scale);
 
     // TODO(b/162018098): Use TF_LITE_ENSURE_NEAR when it is ready.
-    // TODO(tflite-micro#1751) account for optional bias tensor
+    // TODO(#1751): account for optional bias tensor
     TF_LITE_ENSURE(
         context,
         std::abs(static_cast<double>(bias->params.scale) -
@@ -509,7 +509,7 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(weights_time);
   micro_context->DeallocateTempTfLiteTensor(activation_state);
   micro_context->DeallocateTempTfLiteTensor(output);
-  // TODO(tflite-micro#1751) account for optional bias tensor
+  // TODO(#1751): account for optional bias tensor
   micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }
