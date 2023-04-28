@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -535,7 +535,6 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
   TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 }
 
-#if !defined(XTENSA)  // Needed to avoid build errors from unused functions.
 void TestSVDF(const int batch_size, const int num_units, const int input_size,
               const int memory_size, const int rank,
               TfLiteFusedActivation activation, float* input_data,
@@ -582,7 +581,6 @@ void TestSVDF(const int batch_size, const int num_units, const int input_size,
                       input_sequences_len, output_data, expected_output,
                       tolerance);
 }
-#endif
 
 // The pattern to this method's arguemnts is:
 // <kernel metadata>
@@ -832,9 +830,6 @@ void SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden() {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-#if !defined(XTENSA)  // TODO(b/170332589): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
   constexpr int batch_size = 2;
   constexpr int num_units = 4;
@@ -869,10 +864,9 @@ TF_LITE_MICRO_TEST(SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
       sizeof(tflite::testing::input_data_2x2x10) / sizeof(float),
       tflite::testing::golden_output_2x2x10);
 }
-#endif
 
 // Only reference kernels suport full int8 svdf currently.
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized2x2Input2x4OutputShouldMatchGolden<int8_t>();
 }
@@ -882,9 +876,6 @@ TF_LITE_MICRO_TEST(SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized2x2Input2x4OutputShouldMatchGolden<int16_t>();
 }
 
-#if !defined(XTENSA)  // TODO(b/170332589): xtensa kernels are less general than
-                      // reference kernels and we ifdef out test cases that are
-                      // currently known to fail.
 TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputShouldMatchGolden) {
   constexpr int batch_size = 1;
   constexpr int num_units = 64;
@@ -946,10 +937,9 @@ TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputReluShouldMatchGolden) {
       tflite::testing::input_data_16x1x1, input_size,
       tflite::testing::golden_output_relu_16x1x1);
 }
-#endif
 
 // Only reference kernels suport full int8 svdf currently.
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputShouldMatchGolden<int8_t>();
 }
@@ -960,7 +950,7 @@ TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt16) {
 }
 
 // Only reference kernels suport full int8 svdf currently.
-#if !(defined(XTENSA) || defined(HEXAGON))
+#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden<
       int8_t>();

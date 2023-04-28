@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -82,7 +82,8 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node);
 // implementation (reference or optimized) must define this function.
 TfLiteRegistration_V1 Register_SVDF();
 
-#if defined(HEXAGON) || defined(CMSIS_NN)
+#if defined(HEXAGON) || defined(CMSIS_NN) || defined(XTENSA)
+
 TfLiteRegistration_V1 Register_SVDF_INT8();
 
 #else
