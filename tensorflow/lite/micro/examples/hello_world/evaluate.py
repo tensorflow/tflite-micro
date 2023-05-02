@@ -53,6 +53,7 @@ def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
 def generate_random_int8_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
+  np.random.seed(42)
   x_values = np.random.uniform(low=0, high=2 * np.pi,
                                size=sample_count).astype(np.int8)
   # Shuffle the values to guarantee they're not in order
@@ -64,6 +65,7 @@ def generate_random_int8_input(sample_count=1000):
 def generate_random_float_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
+  np.random.seed(42)
   x_values = np.random.uniform(low=0, high=2 * np.pi,
                                size=sample_count).astype(np.float32)
   # Shuffle the values to guarantee they're not in order
