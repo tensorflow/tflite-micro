@@ -13,12 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/examples/network_tester/expected_output_data.h"
 #include "tensorflow/lite/micro/examples/network_tester/input_data.h"
 #include "tensorflow/lite/micro/examples/network_tester/network_model.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -93,7 +93,12 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     return kTfLiteError;
   }
 
-  tflite::AllOpsResolver resolver;
+  tflite::MicroMutableOpResolver<5> resolver;
+  resolver.AddAveragePool2D(tflite::Register_AVERAGE_POOL_2D_INT8());
+  resolver.AddConv2D(tflite::Register_CONV_2D_INT8());
+  resolver.AddDepthwiseConv2D(tflite::Register_DEPTHWISE_CONV_2D_INT8());
+  resolver.AddReshape();
+  resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());
 
   tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
                                        TENSOR_ARENA_SIZE);
