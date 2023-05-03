@@ -60,7 +60,7 @@ void setup() {
 
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
-  
+
   // NOLINTNEXTLINE(runtime-global-variables)
   static tflite::MicroMutableOpResolver<5> micro_op_resolver;
   micro_op_resolver.AddAveragePool2D(tflite::Register_AVERAGE_POOL_2D_INT8());

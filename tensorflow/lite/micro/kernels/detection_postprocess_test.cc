@@ -17,9 +17,9 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
-#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 
 // See: tensorflow/lite/micro/kernels/detection_postprocess_test/README.md
 #include "tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h"

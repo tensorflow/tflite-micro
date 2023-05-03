@@ -62,7 +62,7 @@ void setup() {
 
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
-  
+
   // NOLINTNEXTLINE(runtime-global-variables)
   static tflite::MicroMutableOpResolver<4> micro_op_resolver;
   if (micro_op_resolver.AddDepthwiseConv2D() != kTfLiteOk) {
