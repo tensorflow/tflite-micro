@@ -23,7 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -32,6 +32,7 @@ namespace tflite {
 namespace testing {
 
 constexpr int kOfflinePlannerHeaderSize = 3;
+using TestingOpResolver = tflite::MicroMutableOpResolver<10>;
 
 struct NodeConnection_ {
   std::initializer_list<int32_t> input;
@@ -102,7 +103,7 @@ class NoOp {
 };
 
 // Returns an Op Resolver that can be used in the testing code.
-AllOpsResolver GetOpResolver();
+TfLiteStatus GetTestingOpResolver(TestingOpResolver& op_resolver);
 
 // Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
 // 1 layer of weights, 1 output Tensor, and 1 operator.

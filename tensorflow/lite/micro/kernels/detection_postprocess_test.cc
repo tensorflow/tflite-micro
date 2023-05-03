@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 
 // See: tensorflow/lite/micro/kernels/detection_postprocess_test/README.md
 #include "tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h"
@@ -105,7 +106,8 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   tensors[5] = CreateTensor(output_data3, output_dims3);
   tensors[6] = CreateTensor(output_data4, output_dims4);
 
-  ::tflite::AllOpsResolver resolver;
+  MicroMutableOpResolver<1> resolver;
+  TF_LITE_MICRO_EXPECT_EQ(resolver.AddDetectionPostprocess(), kTfLiteOk);
   const TfLiteRegistration_V1* registration =
       resolver.FindOp("TFLite_Detection_PostProcess");
   TF_LITE_MICRO_EXPECT(registration != nullptr);

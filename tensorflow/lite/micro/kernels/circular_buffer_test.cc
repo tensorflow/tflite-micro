@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/circular_buffer_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
