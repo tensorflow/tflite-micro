@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -93,10 +93,11 @@ TF_LITE_MICRO_TEST(TestInvoke) {
     return kTfLiteError;
   }
 
-  tflite::MicroMutableOpResolver<5> resolver;
+  tflite::MicroMutableOpResolver<6> resolver;
   resolver.AddAveragePool2D(tflite::Register_AVERAGE_POOL_2D_INT8());
   resolver.AddConv2D(tflite::Register_CONV_2D_INT8());
   resolver.AddDepthwiseConv2D(tflite::Register_DEPTHWISE_CONV_2D_INT8());
+  resolver.AddEthosU();
   resolver.AddReshape();
   resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());
 
