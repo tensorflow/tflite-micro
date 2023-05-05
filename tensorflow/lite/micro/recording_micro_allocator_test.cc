@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -37,7 +36,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
-  tflite::AllOpsResolver all_ops_resolver;
+  tflite::testing::TestingOpResolver ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
   uint8_t arena[kTestConvArenaSize];
 
@@ -77,7 +76,7 @@ TF_LITE_MICRO_TEST(TestRecordsTfLiteEvalTensorArrayData) {
 
 TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
-  tflite::AllOpsResolver all_ops_resolver;
+  tflite::testing::TestingOpResolver ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
   uint8_t arena[kTestConvArenaSize];
 
@@ -110,7 +109,7 @@ TF_LITE_MICRO_TEST(TestRecordsNodeAndRegistrationArrayData) {
 
 TF_LITE_MICRO_TEST(TestRecordsMultiTenantAllocations) {
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
-  tflite::AllOpsResolver all_ops_resolver;
+  tflite::testing::TestingOpResolver ops_resolver;
   const tflite::Model* model = tflite::GetModel(kTestConvModelData);
 
   // Double the arena size to allocate two models inside of it:
@@ -267,7 +266,7 @@ TF_LITE_MICRO_TEST(TestRecordsPersistentBufferData) {
 
 TF_LITE_MICRO_TEST(TestMultiSubgraphModel) {
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
-  tflite::AllOpsResolver all_ops_resolver;
+  tflite::testing::TestingOpResolver ops_resolver;
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithNullInputsAndOutputs();
   const int arena_size = 2048;
