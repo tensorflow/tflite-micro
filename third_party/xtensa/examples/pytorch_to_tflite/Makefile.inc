@@ -10,7 +10,7 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
 
    PYTORCH_TO_TFLITE_HDRS := \
     $(TENSORFLOW_ROOT)third_party/xtensa/examples/$(EXAMPLE_NAME)/pytorch_images_dog_jpg.h \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/python/intrepreter/src/python_op_resolver.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/python/intrepreter/src/python_op_resolver.h \
 
 
    ## Tests loading and running a mobilenet v2 model.
