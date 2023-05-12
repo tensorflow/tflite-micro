@@ -38,7 +38,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
-#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
@@ -62,7 +61,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 
   // Pull in only the eperation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
-  tflite::PythonOpsResolver resolver;
+  tflite::MicroMutableOpResolver<10> resolver;
 
   // Create an area of memory to use for input, output, and intermediate arrays.
   constexpr int tensor_arena_size = 3 * 1024 * 1024;
