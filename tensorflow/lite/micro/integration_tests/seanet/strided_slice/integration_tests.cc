@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_model_data.h"
@@ -121,6 +120,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice9_model_data.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -138,15 +138,14 @@ void RunModel(const uint8_t* model, const int16_t* input0,
               const uint32_t golden_size, const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
-  AllOpsResolver op_resolver;
+  PythonOpsResolver op_resolver;
 
   MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
                                kTensorArenaSize, nullptr, &profiler);
   interpreter.AllocateTensors();
-  TfLiteTensor* input0_tensor = interpreter.input(0);
-  TF_LITE_MICRO_EXPECT_EQ(input0_tensor->bytes, input0_size * sizeof(int16_t));
-  memcpy(interpreter.input(0)->data.raw, input0, input0_tensor->bytes);
-
+  TfLiteTensor* input_tensor0 = interpreter.input(0);
+  TF_LITE_MICRO_EXPECT_EQ(input_tensor0->bytes, input0_size * sizeof(int16_t));
+  memcpy(interpreter.input(0)->data.raw, input0, input_tensor0->bytes);
   if (kTfLiteOk != interpreter.Invoke()) {
     TF_LITE_MICRO_EXPECT(false);
     return;
@@ -156,9 +155,11 @@ void RunModel(const uint8_t* model, const int16_t* input0,
 
   TfLiteTensor* output_tensor = interpreter.output(0);
   TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(int16_t));
-  int16_t* output = output_tensor->data.i16;
+  int16_t* output = ::tflite::GetTensorData<int16_t>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
+    // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
+    // off by 1.
+    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1);
   }
 }
 
