@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <Python.h>
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
@@ -42,7 +42,7 @@ class InterpreterWrapper {
   tflite::RecordingMicroAllocator* allocator_;
   const PyObject* model_;
   std::unique_ptr<uint8_t[]> memory_arena_;
-  tflite::AllOpsResolver all_ops_resolver_;
+  tflite::PythonOpsResolver python_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
 };
 

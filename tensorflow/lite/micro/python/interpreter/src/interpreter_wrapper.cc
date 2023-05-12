@@ -24,10 +24,10 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -36,13 +36,13 @@ namespace tflite {
 namespace {
 // This function looks up the registerer symbol based on the string name
 // `registerer_name`. A registerer in this case is a function that calls the
-// `AddCustom` API of `AllOpsResolver` for custom ops that need to be registered
-// with the interpreter.
+// `AddCustom` API of `PythonOpsResolver` for custom ops that need to be
+// registered with the interpreter.
 bool AddCustomOpRegistererByName(const char* registerer_name,
-                                 tflite::AllOpsResolver* resolver) {
-  // Registerer functions take a pointer to a AllOpsResolver as an input
+                                 tflite::PythonOpsResolver* resolver) {
+  // Registerer functions take a pointer to a PythonOpsResolver as an input
   // parameter and return TfLiteStatus.
-  typedef bool (*RegistererFunctionType)(tflite::AllOpsResolver*);
+  typedef bool (*RegistererFunctionType)(tflite::PythonOpsResolver*);
 
   // Look for the Registerer function by name.
   RegistererFunctionType registerer = reinterpret_cast<RegistererFunctionType>(
@@ -59,7 +59,7 @@ bool AddCustomOpRegistererByName(const char* registerer_name,
   if (!registerer(resolver)) {
     MicroPrintf(
         "%s failed to register op. Check that total number of "
-        "ops doesn't exceed the maximum allowed by AllOpsResolver.",
+        "ops doesn't exceed the maximum allowed by PythonOpsResolver.",
         registerer_name);
     return false;
   }
@@ -230,13 +230,14 @@ InterpreterWrapper::InterpreterWrapper(
         MicroResourceVariables::Create(allocator_, num_resource_variables);
 
   for (const std::string& registerer : registerers_by_name) {
-    if (!AddCustomOpRegistererByName(registerer.c_str(), &all_ops_resolver_)) {
+    if (!AddCustomOpRegistererByName(registerer.c_str(),
+                                     &python_ops_resolver_)) {
       ThrowRuntimeError(
           ("TFLM could not register custom op via " + registerer).c_str());
     }
   }
 
-  interpreter_ = new MicroInterpreter(model, all_ops_resolver_, allocator_,
+  interpreter_ = new MicroInterpreter(model, python_ops_resolver_, allocator_,
                                       resource_variables_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
