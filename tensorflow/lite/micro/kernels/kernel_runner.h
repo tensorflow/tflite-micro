@@ -43,9 +43,9 @@ class KernelRunner {
   TfLiteStatus InitAndPrepare(const char* init_data = nullptr,
                               size_t length = 0);
 
-  // Calls init, prepare, and invoke on a given TfLiteRegistration_V1 pointer.
-  // After successful invoke, results will be available in the output tensor as
-  // passed into the constructor of this class.
+  // Calls invoke on a given TfLiteRegistration_V1 pointer. After successful
+  // invoke, results will be available in the output tensor as passed into the
+  // constructor of this class.
   TfLiteStatus Invoke();
 
   // Calls Free on a given TfLiteRegistration_V1 pointer(if it's implemented).
