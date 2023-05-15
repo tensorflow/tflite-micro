@@ -16,9 +16,10 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -49,7 +50,7 @@ void RunModel(const uint8_t* model,
               const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
-  AllOpsResolver op_resolver;
+  PythonOpsResolver op_resolver;
 
   MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
                                kTensorArenaSize,
