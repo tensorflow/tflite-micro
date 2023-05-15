@@ -626,9 +626,12 @@ typedef struct TfLiteEvalTensor {
   TfLiteType type;
 } TfLiteEvalTensor;
 
+
+
+void TfLiteTensorDataFree(TfLiteTensor* t);
 #ifndef TF_LITE_STATIC_MEMORY
 // Free data memory of tensor `t`.
-void TfLiteTensorDataFree(TfLiteTensor* t);
+
 
 // Free quantization data.
 void TfLiteQuantizationFree(TfLiteQuantization* quantization);
