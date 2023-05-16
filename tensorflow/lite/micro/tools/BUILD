@@ -72,8 +72,8 @@ pybind_extension(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "@flatbuffers",
         "//tensorflow/lite/schema:schema_fbs",
+        "@flatbuffers",
     ],
 )
 
