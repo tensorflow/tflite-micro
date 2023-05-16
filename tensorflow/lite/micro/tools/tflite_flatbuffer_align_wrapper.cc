@@ -26,7 +26,6 @@ void align_tflite_model(const char* input_file_name,
   std::string model_file;
   // Read the file into a string using the included util API call:
   flatbuffers::LoadFile(input_file_name, false, &model_file);
-  fprintf(stderr, "Original model size: %lu\n", model_file.size());
   // Parse the string into a C++ class.  Model is the root object of a tflite
   // flatbuffer file.
   const tflite::Model* model = tflite::GetModel(model_file.c_str());
@@ -41,8 +40,6 @@ void align_tflite_model(const char* input_file_name,
   flatbuffers::SaveFile(output_file_name,
                         reinterpret_cast<char*>(fbb.GetBufferPointer()),
                         fbb.GetSize(), /*binary*/ true);
-  int size = fbb.GetSize();
-  fprintf(stderr, "Aligned model size: %d\n", size);
 }
 
 PYBIND11_MODULE(tflite_flatbuffer_align_wrapper, m) {

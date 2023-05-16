@@ -70,7 +70,6 @@ pybind_extension(
     srcs = [
         "tflite_flatbuffer_align_wrapper.cc",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers",
