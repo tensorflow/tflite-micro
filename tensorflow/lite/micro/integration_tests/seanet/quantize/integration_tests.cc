@@ -16,7 +16,6 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_input0_int32_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_model_data.h"
@@ -25,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize1_model_data.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -43,7 +43,7 @@ void RunModel(const uint8_t* model, const inputT* input0,
               const uint32_t golden_size, const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
-  AllOpsResolver op_resolver;
+  PythonOpsResolver op_resolver;
 
   MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
                                kTensorArenaSize, nullptr, &profiler);

@@ -96,7 +96,7 @@ add it to TFLM's ops resolver. For example,
 
 namespace tflite {
 
-extern "C" bool SomeCustomRegisterer(tflite::AllOpsResolver* resolver) {
+extern "C" bool SomeCustomRegisterer(tflite::PythonOpsResolver* resolver) {
     TfLiteStatus status = resolver->AddCustom("CustomOp", tflite::Register_YOUR_CUSTOM_OP());
     if (status != kTfLiteOk) {
         return false;

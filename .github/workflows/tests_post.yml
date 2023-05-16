@@ -22,7 +22,8 @@ jobs:
 
   issue_on_error:
     needs: [xtensa_postmerge]
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    if: ${{ always() && contains(needs.*.result, 'failure') &&
+            !contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:
       repo: ${{ github.repository}}
@@ -52,4 +53,4 @@ jobs:
               name: 'ci:run_full'
             })
         continue-on-error: true
-      
+

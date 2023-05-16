@@ -12,22 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_ALL_OPS_RESOLVER_H_
-#define TENSORFLOW_LITE_MICRO_ALL_OPS_RESOLVER_H_
+#ifndef TENSORFLOW_LITE_MICRO_PYTHON_OPS_RESOLVER_H_
+#define TENSORFLOW_LITE_MICRO_PYTHON_OPS_RESOLVER_H_
 
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 
 namespace tflite {
 
-// The magic number in the template parameter is the maximum number of ops that
-// can be added to AllOpsResolver. It can be increased if needed. And most
-// applications that care about the memory footprint will want to directly use
-// MicroMutableOpResolver and have an application specific template parameter.
-// The examples directory has sample code for this.
-class AllOpsResolver : public MicroMutableOpResolver<128> {
+// PythonOpsResolver is used to register all the Ops for the TFLM Python
+// interpreter. This is ok since code size is not a concern from Python and
+// the goal is to be able to run any model supported by TFLM in a flexible way
+class PythonOpsResolver : public MicroMutableOpResolver<200> {
  public:
-  AllOpsResolver();
+  PythonOpsResolver();
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE
@@ -35,4 +33,4 @@ class AllOpsResolver : public MicroMutableOpResolver<128> {
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_ALL_OPS_RESOLVER_H_
+#endif  // TENSORFLOW_LITE_MICRO_PYTHON_OPS_RESOLVER_H_
