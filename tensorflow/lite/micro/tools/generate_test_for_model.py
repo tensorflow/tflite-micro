@@ -235,4 +235,4 @@ class TestDataGenerator:
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
     makefile.write('$(' + src_prefix + '_SRCS)','$(' + src_prefix + '_HDR)')
-    makefile.write('$(' + src_prefix +'_GENERATOR_INPUTS)))')
+    makefile.write('$(' + src_prefix +'_GENERATOR_INPUTS)))','\n')
