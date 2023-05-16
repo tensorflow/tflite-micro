@@ -234,5 +234,6 @@ class TestDataGenerator:
     makefile.write("tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h")
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
-    makefile.write('$(' + src_prefix + '_SRCS)','$(' + src_prefix + '_HDR)')
-    makefile.write('$(' + src_prefix +'_GENERATOR_INPUTS)))','\n')
+    makefile.write('$(' + src_prefix + '_SRCS),$('+src_prefix+'_HDR),$(' + src_prefix +
+                   '_GENERATOR_INPUTS)))')
+
