@@ -30,7 +30,7 @@ cc_library(
     copts = micro_copts(),
     visibility = [
         ":op_resolver_friends",
-        "//tensorflow/lite/micro/integration_tests/seanet:__subpackages__",
+        "//tensorflow/lite/micro/integration_tests:__subpackages__",
     ],
     deps = [
         "//tensorflow/lite/micro:micro_compatibility",

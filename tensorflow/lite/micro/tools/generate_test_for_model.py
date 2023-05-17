@@ -228,8 +228,16 @@ class TestDataGenerator:
     makefile.write(src_prefix + '_SRCS := \\\n')
     makefile.write(
         self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
-        test_file)
+        test_file + '  \\\n')
+    makefile.write(
+        "$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.cc \\\n"
+    )
+    makefile.write('\n\n')
+    makefile.write(src_prefix + '_HDR := \\\n')
+    makefile.write(
+        "$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h \\\n"
+    )
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
-    makefile.write('$(' + src_prefix + '_SRCS),,$(' + src_prefix +
-                   '_GENERATOR_INPUTS)))')
+    makefile.write('$(' + src_prefix + '_SRCS),$(' + src_prefix + '_HDR),$(' +
+                   src_prefix + '_GENERATOR_INPUTS)))')
