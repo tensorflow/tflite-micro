@@ -225,11 +225,9 @@ cc_library(
 cc_library(
     name = "op_resolvers",
     srcs = [
-        "all_ops_resolver.cc",
         "micro_op_resolver.cc",
     ],
     hdrs = [
-        "all_ops_resolver.h",
         "micro_mutable_op_resolver.h",
         "micro_op_resolver.h",
     ],
