@@ -73,6 +73,17 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_common",
+    hdrs = [
+        "micro_common.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+    ],
+)
+
+cc_library(
     name = "fake_micro_context",
     srcs = [
         "fake_micro_context.cc",
