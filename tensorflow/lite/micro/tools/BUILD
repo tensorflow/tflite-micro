@@ -1,5 +1,5 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 package(
     default_visibility = ["//:__subpackages__"],
