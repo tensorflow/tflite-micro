@@ -17,8 +17,8 @@ limitations under the License.
 
 #ifndef TF_LITE_STATIC_MEMORY
 #include <cstdlib>
-#include <cstring>
 #endif  // TF_LITE_STATIC_MEMORY
+#include <cstring>
 #include <type_traits>
 #include <utility>
 
@@ -51,14 +51,7 @@ int TfLiteVarArrayEqualsArray(const T* const a, const int b_size,
   if (a->size != b_size) {
     return 0;
   }
-#ifndef TF_LITE_STATIC_MEMORY
   return !memcmp(a->data, b_data, a->size * sizeof(a->data[0]));
-#else
-  int i = 0;
-  for (; i < a->size; i++)
-    if (a->data[i] != b_data[i]) return 0;
-  return 1;
-#endif
 }
 
 template <class T>
