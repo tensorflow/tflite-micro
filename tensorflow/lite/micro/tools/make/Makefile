@@ -470,7 +470,7 @@ $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
 $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
-THIRD_PARTY_CC_SRCS :=
+THIRD_PARTY_CC_SRCS := $(DOWNLOADS_DIR)/flatbuffers/src/util.cpp
 THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
@@ -627,6 +627,9 @@ include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
 
+# Load xtensa filereader
+include $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/filereader/Makefile.inc
+
 # Load custom kernel tests.
 include $(MAKEFILE_DIR)/additional_tests.inc
 
@@ -639,7 +642,7 @@ MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
 
 MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
-$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS))))))
 
 MICROLITE_THIRD_PARTY_KERNEL_OBJS := $(addprefix $(THIRD_PARTY_KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_CC_SRCS)))))
@@ -658,6 +661,10 @@ $(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 $(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+
+$(THIRD_PARTY_OBJDIR)%.o: %.cpp $(THIRD_PARTY_TARGETS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
