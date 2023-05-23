@@ -470,7 +470,7 @@ $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
 $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
-THIRD_PARTY_CC_SRCS := $(DOWNLOADS_DIR)/flatbuffers/src/util.cpp
+THIRD_PARTY_CC_SRCS :=
 THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
