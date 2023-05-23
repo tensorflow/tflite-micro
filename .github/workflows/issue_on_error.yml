@@ -1,15 +1,15 @@
 name: Issue On Error
 
-# This workflow can be called from other workflows in order to generate 
+# This workflow can be called from other workflows in order to generate
 # an issue on failure.
 #
 # With only the required inputs issue will have the title of the failing workflow
 # and a link to it.
 #
-# If the optional pr_number and link are provided the title and link will be for 
+# If the optional pr_number and link are provided the title and link will be for
 # the PR.
-# 
-# Either type of issue will be tagged (by default with ci:bot_issue). 
+#
+# Either type of issue will be tagged (by default with ci:bot_issue).
 # If an issue already exists, a comment will be added with a timestamp of the
 # new failure and a link.
 
