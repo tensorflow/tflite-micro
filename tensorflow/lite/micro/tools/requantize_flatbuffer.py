@@ -87,6 +87,8 @@ _TESTED_SIMPLE_OPS = [
     schema_py_generated.BuiltinOperator.LEAKY_RELU,
     schema_py_generated.BuiltinOperator.LOGISTIC,
     schema_py_generated.BuiltinOperator.PAD
+    schema_py_generated.BuiltinOperator.STRIDED_SLICE,
+    schema_py_generated.BuiltinOperator.CONCATENATION,
 ]
 
 _SUPPORTED_OPS = set(
