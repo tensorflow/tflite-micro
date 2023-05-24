@@ -219,16 +219,18 @@ class TestDataGenerator:
           -2] + '_' + output_dir_list[-1]
     makefile.write(src_prefix + '_GENERATOR_INPUTS := \\\n')
     for model_path in self.model_paths:
-      makefile.write(
-          model_path.split('third_party/tflite_micro/')[-1] + ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' +
+                     model_path.split('third_party/tflite_micro/')[-1] +
+                     ' \\\n')
     for csv_input in self.csv_filenames:
-      makefile.write(
-          csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' +
+                     csv_input.split('third_party/tflite_micro/')[-1] +
+                     ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
-    makefile.write(
-        self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
-        test_file + '  \\\n')
+    makefile.write('$(TENSORFLOW_ROOT)' +
+                   self.output_dir.split('third_party/tflite_micro/')[-1] +
+                   '/' + test_file + '  \\\n')
     makefile.write(
         "$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.cc \\\n"
     )
