@@ -6,12 +6,8 @@ $(MICROLITE_BENCHMARK_ROOT_DIR)/metrics.cc
 
 GENERIC_BENCHMARK_HDRS := $(MICROLITE_BENCHMARK_ROOT_DIR)/op_resolver.h \
 $(MICROLITE_BENCHMARK_ROOT_DIR)/log_utils.h \
-$(MICROLITE_BENCHMARK_ROOT_DIR)/metrics.h \
-$(MICROLITE_BENCHMARK_ROOT_DIR)/micro_benchmark.h
+$(MICROLITE_BENCHMARK_ROOT_DIR)/metrics.h
 
-# ifdef INPUT_DATA_TYPE
-#   CXXFLAGS += -DINPUT_DATA_TYPE=$(INPUT_DATA_TYPE)
-# endif
 
 ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5 hifimini))
   $(eval $(call microlite_test,tflm_benchmark,\

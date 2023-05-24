@@ -1,10 +1,9 @@
+#include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
+
 #include <sys/types.h>
 
 #include <cstddef>
 
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
-#include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
-#include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflm {
 namespace benchmark {

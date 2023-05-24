@@ -6,9 +6,9 @@
 #include <cmath>
 #include <cstdint>
 
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 
 namespace tflm {
 namespace benchmark {

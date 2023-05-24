@@ -3,12 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-
-#include "tensorflow/lite/micro/micro_log.h"
-
 namespace tflm {
 namespace benchmark {
 

@@ -2,14 +2,14 @@
 #define TFLM_BENCHMARK_OP_RESOLVER_H_
 
 #include <memory>
+
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 
 namespace tflm {
 namespace benchmark {
 
-TfLiteStatus CreateOpResolver(
-    tflite::MicroMutableOpResolver<96>& op_resolver) {
+TfLiteStatus CreateOpResolver(tflite::MicroMutableOpResolver<96>& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddFullyConnected());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAdd());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAbs());
@@ -40,7 +40,7 @@ TfLiteStatus CreateOpResolver(
   TF_LITE_ENSURE_STATUS(op_resolver.AddFloorDiv());
   TF_LITE_ENSURE_STATUS(op_resolver.AddFloorMod());
   TF_LITE_ENSURE_STATUS(op_resolver.AddGather());
-  TF_LITE_ENSURE_STATUS(op_resolver.AddGatherNd() );
+  TF_LITE_ENSURE_STATUS(op_resolver.AddGatherNd());
   TF_LITE_ENSURE_STATUS(op_resolver.AddGreater());
   TF_LITE_ENSURE_STATUS(op_resolver.AddGreaterEqual());
   TF_LITE_ENSURE_STATUS(op_resolver.AddHardSwish());

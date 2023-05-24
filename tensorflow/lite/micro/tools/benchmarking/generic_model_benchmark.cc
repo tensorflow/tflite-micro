@@ -1,20 +1,21 @@
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <memory>
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
-#include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
-#include "tensorflow/lite/micro/tools/benchmarking/micro_benchmark.h"
-#include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/system_setup.h"
+#include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/micro/recording_micro_interpreter.h"
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
+#include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
+#include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 
 /*
@@ -31,9 +32,9 @@ using Profiler = ::tflite::MicroProfiler;
 
 using TflmOpResolver = tflite::MicroMutableOpResolver<96>;
 
-// Support all TFLM ops by default. This will use reference implementations for
-// all ops unless there is an architecture specific version available.
-using GenericBenchmarkRunner = MicroBenchmarkRunner<int8_t>;
+// TODO(b/256914173): Remove kTfLiteAbort once all models have migrated off of
+// using CircularBuffer op.
+constexpr TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
 
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
@@ -55,8 +56,7 @@ void SetRandomInput(const int random_seed,
 
     // Pre-populate input tensor with random values.
     int input_length = input->bytes / sizeof(int8_t);
-    int8_t* input_values =
-        tflite::GetTensorData<int8_t>(input);
+    int8_t* input_values = tflite::GetTensorData<int8_t>(input);
     for (int j = 0; j < input_length; j++) {
       // Pre-populate input tensor with a random value based on a constant
       // seed.
@@ -67,7 +67,7 @@ void SetRandomInput(const int random_seed,
   }
 }
 
-int ReadFile(const char* file_name, char *buffer) {
+int ReadFile(const char* file_name, char* buffer) {
   // Obtain the file size using fstat, or report an error if that fails.
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
   struct stat sb;
@@ -85,11 +85,12 @@ int ReadFile(const char* file_name, char *buffer) {
   }
 
   size_t bytes_read =
-      fread((void *)buffer, sizeof(char), buffer_size_bytes_, file.get());
+      fread((void*)buffer, sizeof(char), buffer_size_bytes_, file.get());
 
   if (bytes_read > kModelSize) {
-    MicroPrintf("Buffer size (%d) to hold the model is less than required %d.\n"
-                , kModelSize, bytes_read);
+    MicroPrintf(
+        "Buffer size (%d) to hold the model is less than required %d.\n",
+        kModelSize, bytes_read);
   }
 
   return 0;
@@ -117,8 +118,7 @@ int Benchmark(const char* model_file_name) {
       tflite::RecordingMicroAllocator::Create(tensor_arena, kTensorArenaSize));
   tflite::RecordingMicroInterpreter interpreter(
       model, op_resolver, allocator,
-      tflite::MicroResourceVariables::Create(
-          allocator, kNumResourceVariable),
+      tflite::MicroResourceVariables::Create(allocator, kNumResourceVariable),
       &profiler);
   TF_LITE_ENSURE_STATUS(interpreter.AllocateTensors());
 
