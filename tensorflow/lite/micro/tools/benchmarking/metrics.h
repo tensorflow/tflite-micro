@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "tensorflow/lite/micro/tools/benchmarking/internal/log_utils.h"
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 

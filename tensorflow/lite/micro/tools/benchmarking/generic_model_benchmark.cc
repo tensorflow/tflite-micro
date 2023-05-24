@@ -1,20 +1,21 @@
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <memory>
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/micro/tools/benchmarking/internal/log_utils.h"
-#include "tensorflow/lite/micro/tools/benchmarking/internal/metrics.h"
-#include "tensorflow/lite/micro/tools/benchmarking/internal/micro_benchmark.h"
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
+#include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
+#include "tensorflow/lite/micro/tools/benchmarking/micro_benchmark.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "flatbuffers/util.h"
+
 
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided model
@@ -28,11 +29,11 @@ namespace {
 
 using Profiler = ::tflite::MicroProfiler;
 
-using TflmOpResolver = tflite::MicroMutableOpResolver<90>;
+using TflmOpResolver = tflite::MicroMutableOpResolver<96>;
 
 // Support all TFLM ops by default. This will use reference implementations for
 // all ops unless there is an architecture specific version available.
-using GenericBenchmarkRunner = MicroBenchmarkRunner<INPUT_DATA_TYPE>;
+using GenericBenchmarkRunner = MicroBenchmarkRunner<int8_t>;
 
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
@@ -40,6 +41,10 @@ constexpr int kRandomSeed = 0xF742BE52;
 
 // Which format should be used to output debug information.
 constexpr PrettyPrintType kPrintType = PrettyPrintType::kCsv;
+
+constexpr int kTensorArenaSize = 1024 * 1024;
+constexpr int kNumResourceVariable = 100;
+constexpr int kModelSize = 511408;
 
 void SetRandomInput(const int random_seed,
                     tflite::RecordingMicroInterpreter& interpreter) {
@@ -49,17 +54,45 @@ void SetRandomInput(const int random_seed,
     TfLiteTensor* input = interpreter.input_tensor(i);
 
     // Pre-populate input tensor with random values.
-    int input_length = input->bytes / sizeof(INPUT_DATA_TYPE);
-    INPUT_DATA_TYPE* input_values =
-        tflite::GetTensorData<INPUT_DATA_TYPE>(input);
+    int input_length = input->bytes / sizeof(int8_t);
+    int8_t* input_values =
+        tflite::GetTensorData<int8_t>(input);
     for (int j = 0; j < input_length; j++) {
       // Pre-populate input tensor with a random value based on a constant
       // seed.
-      input_values[j] = static_cast<INPUT_DATA_TYPE>(
-          std::rand() % (std::numeric_limits<INPUT_DATA_TYPE>::max() -
-                         std::numeric_limits<INPUT_DATA_TYPE>::min() + 1));
+      input_values[j] = static_cast<int8_t>(
+          std::rand() % (std::numeric_limits<int8_t>::max() -
+                         std::numeric_limits<int8_t>::min() + 1));
     }
   }
+}
+
+int ReadFile(const char* file_name, char *buffer) {
+  // Obtain the file size using fstat, or report an error if that fails.
+  std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
+  struct stat sb;
+
+  if (fstat(fileno(file.get()), &sb) != 0) {
+    MicroPrintf("Failed to get file size of: %s\n", file_name);
+    return -1;
+  }
+
+  size_t buffer_size_bytes_ = sb.st_size;
+
+  if (!buffer) {
+    MicroPrintf("Malloc of buffer to hold copy of '%s' failed\n", file_name);
+    return -1;
+  }
+
+  size_t bytes_read =
+      fread((void *)buffer, sizeof(char), buffer_size_bytes_, file.get());
+
+  if (bytes_read > kModelSize) {
+    MicroPrintf("Buffer size (%d) to hold the model is less than required %d.\n"
+                , kModelSize, bytes_read);
+  }
+
+  return 0;
 }
 
 int Benchmark(const char* model_file_name) {
@@ -69,16 +102,12 @@ int Benchmark(const char* model_file_name) {
   // Tensor size is dependent on the core being used since some of them have
   // limited memory available. The TENSOR_ARENA_SIZE macro is defined in the
   // build rules.
-  constexpr int kTensorArenaSize = 1024 * 1024;
-  int kNumResourceVariable = 100;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
+  char model_file_content[kModelSize];
 
-  std::string model_file;
-  // Read the file into a string using the included util API call:
-  flatbuffers::LoadFile(model_file_name, false, &model_file);
-
+  ReadFile(model_file_name, model_file_content);
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
-  const tflite::Model* model = tflite::GetModel(model_file.c_str());
+  const tflite::Model* model = tflite::GetModel(model_file_content);
   profiler.EndEvent(event_handle);
 
   TflmOpResolver op_resolver;
@@ -127,7 +156,6 @@ int Benchmark(const char* model_file_name) {
 
   return 0;
 }
-
 }  // namespace
 }  // namespace benchmark
 }  // namespace tflm

@@ -9,7 +9,7 @@ namespace tflm {
 namespace benchmark {
 
 TfLiteStatus CreateOpResolver(
-    tflite::MicroMutableOpResolver<90>& op_resolver) {
+    tflite::MicroMutableOpResolver<96>& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddFullyConnected());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAdd());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAbs());
@@ -100,6 +100,12 @@ TfLiteStatus CreateOpResolver(
   TF_LITE_ENSURE_STATUS(op_resolver.AddVarHandle());
   TF_LITE_ENSURE_STATUS(op_resolver.AddWhile());
   TF_LITE_ENSURE_STATUS(op_resolver.AddZerosLike());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddDepthwiseConv2D());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddConv2D());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddAveragePool2D());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddPad());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddMaxPool2D());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddMul());
   return kTfLiteOk;
 }
 }  // namespace benchmark

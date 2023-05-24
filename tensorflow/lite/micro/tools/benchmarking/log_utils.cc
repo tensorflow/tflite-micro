@@ -1,4 +1,4 @@
-#include "tensorflow/lite/micro/tools/benchmarking/internal/log_utils.h"
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
