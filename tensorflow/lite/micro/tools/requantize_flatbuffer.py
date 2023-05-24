@@ -75,20 +75,20 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
 
 # List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
 _TESTED_SIMPLE_OPS = [
-    schema_py_generated.BuiltinOperator.RESHAPE,
-    schema_py_generated.BuiltinOperator.QUANTIZE,
-    schema_py_generated.BuiltinOperator.DEQUANTIZE,
-    schema_py_generated.BuiltinOperator.MEAN,
-    schema_py_generated.BuiltinOperator.SQUARED_DIFFERENCE,
     schema_py_generated.BuiltinOperator.ADD,
-    schema_py_generated.BuiltinOperator.RSQRT,
-    schema_py_generated.BuiltinOperator.MUL,
-    schema_py_generated.BuiltinOperator.SUB,
+    schema_py_generated.BuiltinOperator.CONCATENATION,
+    schema_py_generated.BuiltinOperator.DEQUANTIZE,
     schema_py_generated.BuiltinOperator.LEAKY_RELU,
     schema_py_generated.BuiltinOperator.LOGISTIC,
-    schema_py_generated.BuiltinOperator.PAD
+    schema_py_generated.BuiltinOperator.MEAN,
+    schema_py_generated.BuiltinOperator.MUL,
+    schema_py_generated.BuiltinOperator.PAD,
+    schema_py_generated.BuiltinOperator.QUANTIZE,
+    schema_py_generated.BuiltinOperator.RESHAPE,
+    schema_py_generated.BuiltinOperator.RSQRT,
+    schema_py_generated.BuiltinOperator.SQUARED_DIFFERENCE,
     schema_py_generated.BuiltinOperator.STRIDED_SLICE,
-    schema_py_generated.BuiltinOperator.CONCATENATION,
+    schema_py_generated.BuiltinOperator.SUB,
 ]
 
 _SUPPORTED_OPS = set(
