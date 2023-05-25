@@ -8,7 +8,7 @@ py_library(
     name = "resource_variables_lib",
     srcs = ["resource_variables_lib.py"],
     srcs_version = "PY3",
-    visibility = ["//:subpackages"],
+    visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
         requirement("tensorflow-cpu"),
