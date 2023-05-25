@@ -274,7 +274,7 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
 MICROLITE_BENCHMARK_SRCS := \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc)
+$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarking/*benchmark.cc)
 
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
@@ -639,7 +639,7 @@ MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
 
 MICROLITE_THIRD_PARTY_OBJS := $(addprefix $(THIRD_PARTY_OBJDIR), \
-$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS))))))
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_CC_SRCS)))))
 
 MICROLITE_THIRD_PARTY_KERNEL_OBJS := $(addprefix $(THIRD_PARTY_KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_CC_SRCS)))))
@@ -658,10 +658,6 @@ $(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
 $(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
-
-$(THIRD_PARTY_OBJDIR)%.o: %.cpp $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
