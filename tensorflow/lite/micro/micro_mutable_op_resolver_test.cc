@@ -83,8 +83,7 @@ TF_LITE_MICRO_TEST(TestOperations) {
   TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1),
                           micro_op_resolver.GetRegistrationLength());
 
-  const TFLMRegistration* registration =
-      resolver->FindOp(BuiltinOperator_RELU);
+  const TFLMRegistration* registration = resolver->FindOp(BuiltinOperator_RELU);
   TF_LITE_MICRO_EXPECT(nullptr == registration);
 
   registration = resolver->FindOp("mock_custom");

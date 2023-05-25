@@ -52,9 +52,9 @@ class MicroOpResolver {
 // Handles the logic for converting between an OperatorCode structure extracted
 // from a flatbuffer and information about a registered operator
 // implementation.
-TfLiteStatus GetRegistrationFromOpCode(
-    const OperatorCode* opcode, const MicroOpResolver& op_resolver,
-    const TFLMRegistration** registration);
+TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
+                                       const MicroOpResolver& op_resolver,
+                                       const TFLMRegistration** registration);
 
 }  // namespace tflite
 

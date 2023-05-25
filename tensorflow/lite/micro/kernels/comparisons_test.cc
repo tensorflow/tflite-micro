@@ -29,9 +29,8 @@ constexpr int inputs_size = 2;
 constexpr int outputs_size = 1;
 constexpr int tensors_size = inputs_size + outputs_size;
 
-void TestComparison(const TFLMRegistration& registration,
-                    TfLiteTensor* tensors, bool* expected_output_data,
-                    bool* output_data) {
+void TestComparison(const TFLMRegistration& registration, TfLiteTensor* tensors,
+                    bool* expected_output_data, bool* output_data) {
   const int output_dims_count = ElementCount(*tensors[inputs_size].dims);
 
   int inputs_array_data[] = {2, 0, 1};

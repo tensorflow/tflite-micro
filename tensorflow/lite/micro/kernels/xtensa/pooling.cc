@@ -160,8 +160,6 @@ TFLMRegistration Register_AVERAGE_POOL_2D_INT16() {
   return Register_AVERAGE_POOL_2D();
 }
 
-TFLMRegistration Register_MAX_POOL_2D_INT16() {
-  return Register_MAX_POOL_2D();
-}
+TFLMRegistration Register_MAX_POOL_2D_INT16() { return Register_MAX_POOL_2D(); }
 
 }  // namespace tflite

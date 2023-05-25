@@ -57,13 +57,9 @@ TFLMRegistration Register_SOFTMAX_INT8();
 TFLMRegistration Register_SOFTMAX_INT16();
 
 #else
-inline TFLMRegistration Register_SOFTMAX_INT8() {
-  return Register_SOFTMAX();
-}
+inline TFLMRegistration Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
 
-inline TFLMRegistration Register_SOFTMAX_INT16() {
-  return Register_SOFTMAX();
-}
+inline TFLMRegistration Register_SOFTMAX_INT16() { return Register_SOFTMAX(); }
 #endif
 
 }  // namespace tflite

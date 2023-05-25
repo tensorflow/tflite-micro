@@ -43,8 +43,8 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const T* expected_output_data,
                                  int output_length,
                                  TfLiteConvParams* conv_params,
-                                 TFLMRegistration registration,
-                                 T* output_data, float tolerance) {
+                                 TFLMRegistration registration, T* output_data,
+                                 float tolerance) {
   TfLiteStatus status = InvokeConv(tensors, tensors_size, output_length,
                                    conv_params, registration, output_data);
   if (status != kTfLiteOk) {
@@ -59,16 +59,14 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TFLMRegistration registration,
-                        float* output_data) {
+                        TFLMRegistration registration, float* output_data) {
   return InvokeConv<float>(tensors, tensors_size, output_length, conv_params,
                            registration, output_data);
 }
 
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
-                        TFLMRegistration registration,
-                        int8_t* output_data) {
+                        TFLMRegistration registration, int8_t* output_data) {
   return InvokeConv<int8_t>(tensors, tensors_size, output_length, conv_params,
                             registration, output_data);
 }
@@ -101,8 +99,7 @@ TfLiteStatus TestConvFloat(int* input_dims_data, const float* input_data,
                            int* output_dims_data,
                            const float* expected_output_data,
                            TfLiteConvParams* conv_params,
-                           TFLMRegistration registration,
-                           float* output_data) {
+                           TFLMRegistration registration, float* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);

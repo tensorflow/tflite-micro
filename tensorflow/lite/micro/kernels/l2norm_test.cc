@@ -74,8 +74,7 @@ void TestL2Normalization(int* input_dims_data, const T* input_data,
       .activation = kTfLiteActNone,
   };
 
-  const TFLMRegistration registration =
-      tflite::Register_L2_NORMALIZATION();
+  const TFLMRegistration registration = tflite::Register_L2_NORMALIZATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

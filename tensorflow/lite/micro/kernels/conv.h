@@ -104,13 +104,9 @@ TFLMRegistration Register_CONV_2D_INT8();
 TFLMRegistration Register_CONV_2D_INT16();
 
 #else
-inline TFLMRegistration Register_CONV_2D_INT8() {
-  return Register_CONV_2D();
-}
+inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
 
-inline TFLMRegistration Register_CONV_2D_INT16() {
-  return Register_CONV_2D();
-}
+inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
 #endif
 
 }  // namespace tflite

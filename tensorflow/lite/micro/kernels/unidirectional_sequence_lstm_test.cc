@@ -46,8 +46,7 @@ void TestUnidirectionalLSTMInteger(
     LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
                     time_steps, input_dimension, state_dimension>&
         node_contents) {
-  const TFLMRegistration registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
                              node_contents.KernelInputs(),
@@ -94,8 +93,7 @@ void TestUnidirectionalLSTMFloat(
     const float hidden_state_tolerance, const float cell_state_tolerance,
     LstmNodeContent<float, float, float, float, batch_size, time_steps,
                     input_dimension, state_dimension>& node_contents) {
-  const TFLMRegistration registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
                              node_contents.KernelInputs(),

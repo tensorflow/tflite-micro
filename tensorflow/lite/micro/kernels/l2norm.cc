@@ -135,8 +135,6 @@ TFLMRegistration Register_L2NORM_REF() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TFLMRegistration Register_L2_NORMALIZATION() {
-  return Register_L2NORM_REF();
-}
+TFLMRegistration Register_L2_NORMALIZATION() { return Register_L2NORM_REF(); }
 
 }  // namespace tflite

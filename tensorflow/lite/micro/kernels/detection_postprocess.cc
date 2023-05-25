@@ -800,8 +800,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration* Register_DETECTION_POSTPROCESS() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(Init, Prepare, Eval);
+  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
   return &r;
 }
 
