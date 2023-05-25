@@ -9,6 +9,11 @@ package(
     licenses = ["notice"],
 )
 
+filegroup(
+    name = "models",
+    data = glob(["*.tflite"]),
+)
+
 generate_cc_arrays(
     name = "generated_person_detect_model_cc",
     src = "person_detect.tflite",
