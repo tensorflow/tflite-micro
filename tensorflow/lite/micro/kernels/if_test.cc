@@ -55,7 +55,7 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
   params.then_subgraph_index = 1;
   params.else_subgraph_index = 2;
 
-  const TfLiteRegistration_V1 registration = tflite::Register_IF();
+  const TFLMRegistration registration = tflite::Register_IF();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, &params);
 

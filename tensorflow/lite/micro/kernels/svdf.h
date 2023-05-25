@@ -77,14 +77,14 @@ void EvalFloatSvdfReference(
 
 TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types
+// This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
 // implementation (reference or optimized) must define this function.
-TfLiteRegistration_V1 Register_SVDF();
+TFLMRegistration Register_SVDF();
 
 #if defined(HEXAGON) || defined(CMSIS_NN) || defined(XTENSA)
 
-TfLiteRegistration_V1 Register_SVDF_INT8();
+TFLMRegistration Register_SVDF_INT8();
 
 #else
 // Note that while this block gets used for both reference and optimized kernels
@@ -92,7 +92,7 @@ TfLiteRegistration_V1 Register_SVDF_INT8();
 // define fallback implementation that allow reference kernels to still be used
 // from applications that call a more specific kernel variant.
 
-inline TfLiteRegistration_V1 Register_SVDF_INT8() { return Register_SVDF(); }
+inline TFLMRegistration Register_SVDF_INT8() { return Register_SVDF(); }
 
 #endif
 }  // namespace tflite

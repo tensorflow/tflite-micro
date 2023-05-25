@@ -319,27 +319,27 @@ TfLiteStatus MaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8() {
+TFLMRegistration Register_AVERAGE_POOL_2D_INT8() {
   return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEvalInt8);
 }
 
-TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT16() {
+TFLMRegistration Register_AVERAGE_POOL_2D_INT16() {
   return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEvalInt16);
 }
 
-TfLiteRegistration_V1 Register_AVERAGE_POOL_2D() {
+TFLMRegistration Register_AVERAGE_POOL_2D() {
   return tflite::micro::RegisterOp(Init, AveragePrepare, AverageEval);
 }
 
-TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8() {
+TFLMRegistration Register_MAX_POOL_2D_INT8() {
   return tflite::micro::RegisterOp(Init, MaxPrepare, MaxEvalInt8);
 }
 
-TfLiteRegistration_V1 Register_MAX_POOL_2D_INT16() {
+TFLMRegistration Register_MAX_POOL_2D_INT16() {
   return tflite::micro::RegisterOp(Init, MaxPrepare, MaxEvalInt16);
 }
 
-TfLiteRegistration_V1 Register_MAX_POOL_2D() {
+TFLMRegistration Register_MAX_POOL_2D() {
   return tflite::micro::RegisterOp(Init, MaxPrepare, MaxEval);
 }
 

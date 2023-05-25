@@ -115,7 +115,7 @@ TfLiteStatus BroadcastToEval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration_V1 Register_BROADCAST_TO() {
+TFLMRegistration Register_BROADCAST_TO() {
   return tflite::micro::RegisterOp(nullptr, BroadcastToPrepare,
                                    BroadcastToEval);
 }

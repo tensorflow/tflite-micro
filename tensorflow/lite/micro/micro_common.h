@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 // TFLMRegistration defines the API that TFLM kernels need to implement.
-// This will be replacing the current TfLiteRegistration_V1 struct with
+// This will be replacing the current TFLMRegistration struct with
 // something more compatible Embedded enviroment TFLM is used in.
 struct TFLMRegistration {
   void* (*init)(TfLiteContext* context, const char* buffer, size_t length);

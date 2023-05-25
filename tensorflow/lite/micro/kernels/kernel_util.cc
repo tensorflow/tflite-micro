@@ -38,7 +38,7 @@ int ValidateTensorIndexing(const TfLiteContext* context, int index,
 
 }  // namespace
 
-TfLiteRegistration_V1 RegisterOp(
+TFLMRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
     TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),

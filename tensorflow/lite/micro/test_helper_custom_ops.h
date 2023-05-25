@@ -32,8 +32,8 @@ namespace testing {
 
 class PackerOp {
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);

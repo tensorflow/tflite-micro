@@ -27,7 +27,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-const char* OpNameFromRegistration(const TfLiteRegistration_V1* registration) {
+const char* OpNameFromRegistration(const TFLMRegistration* registration) {
   if (registration->builtin_code == BuiltinOperator_CUSTOM) {
     return registration->custom_name;
   } else {
@@ -62,7 +62,7 @@ TfLiteStatus MicroGraph::InitSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
+      const TFLMRegistration* registration =
           subgraph_allocations_[subgraph_idx]
               .node_and_registrations[i]
               .registration;
@@ -96,7 +96,7 @@ TfLiteStatus MicroGraph::PrepareSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
+      const TFLMRegistration* registration =
           subgraph_allocations_[subgraph_idx]
               .node_and_registrations[i]
               .registration;
@@ -126,7 +126,7 @@ TfLiteStatus MicroGraph::FreeSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
+      const TFLMRegistration* registration =
           subgraph_allocations_[subgraph_idx]
               .node_and_registrations[i]
               .registration;
@@ -155,7 +155,7 @@ TfLiteStatus MicroGraph::InvokeSubgraph(int subgraph_idx) {
   for (size_t i = 0; i < operators_size; ++i) {
     TfLiteNode* node =
         &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-    const TfLiteRegistration_V1* registration =
+    const TFLMRegistration* registration =
         subgraph_allocations_[subgraph_idx]
             .node_and_registrations[i]
             .registration;

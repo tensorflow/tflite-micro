@@ -61,13 +61,13 @@ void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
                            TfLiteEvalTensor* output);
 
 // Generic must define registration function.
-TfLiteRegistration_V1 Register_MUL();
+TFLMRegistration Register_MUL();
 
 #if defined(CMSIS_NN)
-TfLiteRegistration_V1 Register_MUL_INT8();
+TFLMRegistration Register_MUL_INT8();
 #else
 // Fallback registration
-inline TfLiteRegistration_V1 Register_MUL_INT8() { return Register_MUL(); }
+inline TFLMRegistration Register_MUL_INT8() { return Register_MUL(); }
 #endif
 }  // namespace tflite
 

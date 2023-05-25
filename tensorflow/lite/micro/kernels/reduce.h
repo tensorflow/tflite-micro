@@ -56,9 +56,9 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
 void ReduceResolveAxis(const int* axis_data, int axis_count,
                        MeanParams* op_params);
 
-TfLiteRegistration_V1 Register_MEAN();
-TfLiteRegistration_V1 Register_REDUCE_MAX();
-TfLiteRegistration_V1 Register_SUM();
+TFLMRegistration Register_MEAN();
+TFLMRegistration Register_REDUCE_MAX();
+TFLMRegistration Register_SUM();
 
 }  // namespace tflite
 

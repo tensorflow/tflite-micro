@@ -60,17 +60,17 @@ TfLiteStatus CalculateOpDataAdd(TfLiteContext* context, TfLiteAddParams* params,
 TfLiteStatus AddPrepare(TfLiteContext* context, TfLiteNode* node);
 
 // Generic must define registration function.
-TfLiteRegistration_V1 Register_ADD();
+TFLMRegistration Register_ADD();
 
 #if defined(CMSIS_NN)
-TfLiteRegistration_V1 Register_ADD_INT8();
+TFLMRegistration Register_ADD_INT8();
 
-TfLiteRegistration_V1 Register_ADD_INT16();
+TFLMRegistration Register_ADD_INT16();
 #else
 // Fallback registration
-inline TfLiteRegistration_V1 Register_ADD_INT8() { return Register_ADD(); }
+inline TFLMRegistration Register_ADD_INT8() { return Register_ADD(); }
 
-inline TfLiteRegistration_V1 Register_ADD_INT16() { return Register_ADD(); }
+inline TFLMRegistration Register_ADD_INT16() { return Register_ADD(); }
 #endif
 }  // namespace tflite
 
