@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "mli_api.h"  // NOLINT
 #include "mli_interface.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace ops {

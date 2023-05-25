@@ -16,7 +16,7 @@ limitations under the License.
 //
 // This is a stub file for non-Ethos platforms
 //
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 

@@ -23,7 +23,7 @@ limitations under the License.
 #include <numpy/arrayobject.h>
 #include <pybind11/pybind11.h>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"

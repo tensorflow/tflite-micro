@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_SIMPLE_FEATURES_SIMPLE_FEATURES_GENERATOR_H_
 #define TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_SIMPLE_FEATURES_SIMPLE_FEATURES_GENERATOR_H_
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 // Converts audio sample data into a more compact form that's appropriate for
 // feeding into a neural network. There are reference implementations that use

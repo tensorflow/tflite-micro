@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/micro_speech/feature_provider.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_model_settings.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 

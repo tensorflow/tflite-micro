@@ -15,7 +15,7 @@ limitations under the License.
 
 #include <string.h>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_input0_int32_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_model_data.h"

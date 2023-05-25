@@ -1014,7 +1014,7 @@ typedef struct TfLiteRegistration_V2 {
 // type.
 // WARNING: This structure is deprecated / not an official part of the
 // API. It should be only used for binary backward compatibility.
-typedef struct TFLMRegistration {
+typedef struct TfLiteRegistration_V1 {
   void* (*init)(TfLiteContext* context, const char* buffer, size_t length);
   void (*free)(TfLiteContext* context, void* buffer);
   TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node);
@@ -1024,7 +1024,7 @@ typedef struct TFLMRegistration {
   int32_t builtin_code;
   const char* custom_name;
   int version;
-} TFLMRegistration;
+} TfLiteRegistration_V1;
 
 // The flags used in `TfLiteDelegate`. Note that this is a bitmask, so the
 // values should be 1, 2, 4, 8, ...etc.

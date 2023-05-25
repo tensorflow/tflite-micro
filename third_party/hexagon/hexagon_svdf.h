@@ -16,7 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_HEXAGON_HEXAGON_SVDF_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 

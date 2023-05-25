@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/simple_features_generator.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/no_power_spectrum_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/simple_features/yes_power_spectrum_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/no_30ms_audio_data.h"
