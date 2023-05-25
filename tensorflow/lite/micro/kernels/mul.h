@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 
@@ -61,13 +61,13 @@ void EvalMulFloatReference(TfLiteContext* context, TfLiteNode* node,
                            TfLiteEvalTensor* output);
 
 // Generic must define registration function.
-TfLiteRegistration_V1 Register_MUL();
+TFLMRegistration Register_MUL();
 
 #if defined(CMSIS_NN)
-TfLiteRegistration_V1 Register_MUL_INT8();
+TFLMRegistration Register_MUL_INT8();
 #else
 // Fallback registration
-inline TfLiteRegistration_V1 Register_MUL_INT8() { return Register_MUL(); }
+inline TFLMRegistration Register_MUL_INT8() { return Register_MUL(); }
 #endif
 }  // namespace tflite
 

@@ -107,7 +107,7 @@ TfLiteStatus BroadcastToEval(TfLiteContext* context, TfLiteNode* node) {
       micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
-  // BroadcastTo op support upto 5 dims, different from 8 dims in TFLite.
+  // BroadcastTo op support up to 5 dims, different from 8 dims in TFLite.
   reference_ops::BroadcastTo<kMaxDims>(
       micro::GetTensorShape(input), input->data.raw,
       micro::GetTensorShape(output), output->data.raw, input->type);
@@ -115,7 +115,7 @@ TfLiteStatus BroadcastToEval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration_V1 Register_BROADCAST_TO() {
+TFLMRegistration Register_BROADCAST_TO() {
   return tflite::micro::RegisterOp(nullptr, BroadcastToPrepare,
                                    BroadcastToEval);
 }

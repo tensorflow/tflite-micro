@@ -75,7 +75,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength4) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1* registration = tflite::Register_CIRCULAR_BUFFER();
+  const TFLMRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);
@@ -146,7 +146,7 @@ TF_LITE_MICRO_TEST(OutputTensorOnEveryIterationLength4) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1* registration = tflite::Register_CIRCULAR_BUFFER();
+  const TFLMRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);
@@ -211,7 +211,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength5) {
   TfLiteIntArray* outputs_array =
       tflite::testing::IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1* registration = tflite::Register_CIRCULAR_BUFFER();
+  const TFLMRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
   tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
       *registration, tensors, tensors_size, inputs_array, outputs_array,
       /*builtin_data=*/nullptr);

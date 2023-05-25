@@ -131,12 +131,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_L2NORM_REF() {
+TFLMRegistration Register_L2NORM_REF() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration_V1 Register_L2_NORMALIZATION() {
-  return Register_L2NORM_REF();
-}
+TFLMRegistration Register_L2_NORMALIZATION() { return Register_L2NORM_REF(); }
 
 }  // namespace tflite

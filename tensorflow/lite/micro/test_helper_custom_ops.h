@@ -20,20 +20,20 @@ limitations under the License.
 #include <limits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace testing {
 
 class PackerOp {
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
