@@ -16,10 +16,10 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_GRAPH_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_GRAPH_H_
 
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 
