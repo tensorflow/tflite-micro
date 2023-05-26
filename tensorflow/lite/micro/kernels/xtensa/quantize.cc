@@ -310,7 +310,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_QUANTIZE() {
+TFLMRegistration Register_QUANTIZE() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

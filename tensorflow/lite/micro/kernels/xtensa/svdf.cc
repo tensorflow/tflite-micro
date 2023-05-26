@@ -381,11 +381,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_SVDF() {
+TFLMRegistration Register_SVDF() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration_V1 Register_SVDF_INT8() {
+TFLMRegistration Register_SVDF_INT8() {
   return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
 }
 

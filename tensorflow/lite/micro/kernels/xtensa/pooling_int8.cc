@@ -309,7 +309,7 @@ void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
 #endif
 }
 
-TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8() {
+TFLMRegistration Register_AVERAGE_POOL_2D_INT8() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(XtensaPoolingInit, AveragePrepareHifi,
                                    AverageEvalInt8);
@@ -322,7 +322,7 @@ TfLiteRegistration_V1 Register_AVERAGE_POOL_2D_INT8() {
 #endif
 }
 
-TfLiteRegistration_V1 Register_MAX_POOL_2D_INT8() {
+TFLMRegistration Register_MAX_POOL_2D_INT8() {
 #if defined(HIFI5)
   return tflite::micro::RegisterOp(XtensaPoolingInit, MaxPrepareHifi,
                                    MaxEvalInt8);

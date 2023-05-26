@@ -484,13 +484,13 @@ template <typename T>
 void ValidateSVDFGoldens(const int batch_size, const int num_units,
                          const int input_size, const int rank,
                          TfLiteTensor* tensors, const int tensor_count,
-                         TfLiteFusedActivation activaiton,
+                         TfLiteFusedActivation activation,
                          const T* input_sequences_data,
                          const int input_sequences_len, T* output_data,
                          const T* expected_output, float tolerance = 1e-5f) {
   TfLiteSVDFParams params;
   params.rank = rank;
-  params.activation = activaiton;
+  params.activation = activation;
 
   int inputs_array_data[] = {5, 0, 1, 2, 3, 4};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
@@ -498,7 +498,7 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
   int outputs_array_data[] = {1, 5};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = Register_SVDF();
+  const TFLMRegistration registration = Register_SVDF();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, &params);
 
@@ -582,7 +582,7 @@ void TestSVDF(const int batch_size, const int num_units, const int input_size,
                       tolerance);
 }
 
-// The pattern to this method's arguemnts is:
+// The pattern to this method's arguments is:
 // <kernel metadata>
 // for each tensor in
 //     {input, feature weights, time weights, bias, activation state, output}:
@@ -865,7 +865,7 @@ TF_LITE_MICRO_TEST(SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
       tflite::testing::golden_output_2x2x10);
 }
 
-// Only reference kernels suport full int8 svdf currently.
+// Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized2x2Input2x4OutputShouldMatchGolden<int8_t>();
@@ -938,7 +938,7 @@ TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputReluShouldMatchGolden) {
       tflite::testing::golden_output_relu_16x1x1);
 }
 
-// Only reference kernels suport full int8 svdf currently.
+// Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputShouldMatchGolden<int8_t>();
@@ -949,7 +949,7 @@ TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputShouldMatchGolden<int16_t>();
 }
 
-// Only reference kernels suport full int8 svdf currently.
+// Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden<

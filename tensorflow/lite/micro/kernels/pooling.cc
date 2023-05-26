@@ -98,11 +98,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_AVERAGE_POOL_2D() {
+TFLMRegistration Register_AVERAGE_POOL_2D() {
   return tflite::micro::RegisterOp(Init, PoolingPrepare, AverageEval);
 }
 
-TfLiteRegistration_V1 Register_MAX_POOL_2D() {
+TFLMRegistration Register_MAX_POOL_2D() {
   return tflite::micro::RegisterOp(Init, PoolingPrepare, MaxEval);
 }
 

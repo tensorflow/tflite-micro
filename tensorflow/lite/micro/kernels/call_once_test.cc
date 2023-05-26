@@ -35,7 +35,7 @@ void TestCallOnce(const int subgraph0_invoke_count_golden,
   TfLiteCallOnceParams params;
   params.init_subgraph_index = 1;
 
-  const TfLiteRegistration_V1 registration = tflite::Register_CALL_ONCE();
+  const TFLMRegistration registration = tflite::Register_CALL_ONCE();
   micro::KernelRunner runner(registration, nullptr, 0, inputs_array,
                              outputs_array, &params);
 
