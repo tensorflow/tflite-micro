@@ -19,7 +19,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteRegistration_V1* Register_ETHOSU();
+TFLMRegistration* Register_ETHOSU();
 
 const char* GetString_ETHOSU();
 

@@ -28,21 +28,22 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-TfLiteRegistration_V1 RegisterOp(
+TFLMRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
     TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
-    void (*free)(TfLiteContext* context, void* buffer) = nullptr);
+    void (*free)(TfLiteContext* context, void* buffer) = nullptr,
+    void (*reset)(TfLiteContext* context, void* buffer) = nullptr);
 
 // Prints out n bytes in a int8_t buffer as hex
 void PrintNBytes(const int8_t* tensor_data, int n_bytes,
                  const char* prefix = nullptr);
 
-// Prints out the the n bytes in a TfLiteEvalTensor as hex
+// Prints out the n bytes in a TfLiteEvalTensor as hex
 void PrintNBytes(const TfLiteEvalTensor* tensor, int n_bytes,
                  const char* prefix = nullptr);
 
-// Prints out the the n bytes in a TfLiteTensor as hex
+// Prints out n bytes in a TfLiteTensor as hex
 void PrintNBytes(const TfLiteTensor* tensor, int n_bytes,
                  const char* prefix = nullptr);
 

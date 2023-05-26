@@ -198,7 +198,7 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteRegistration_V1 Register_FULLY_CONNECTED_INT8() {
+TFLMRegistration Register_FULLY_CONNECTED_INT8() {
   return tflite::micro::RegisterOp(HexagonFullyConnectedInit,
                                    HexagonFullyConnectedPrepare,
                                    HexagonFullyConnectedEvalInt8);

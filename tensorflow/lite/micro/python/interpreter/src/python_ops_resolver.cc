@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 
 namespace tflite {
 
-AllOpsResolver::AllOpsResolver() {
+PythonOpsResolver::PythonOpsResolver() {
   // Please keep this list of Builtin Operators in alphabetical order.
   AddAbs();
   AddAdd();

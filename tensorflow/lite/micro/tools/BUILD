@@ -1,4 +1,5 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
 package(
     default_visibility = ["//:__subpackages__"],
@@ -64,13 +65,26 @@ py_test(
     ],
 )
 
-cc_binary(
-    name = "tflite_flatbuffer_align",
+pybind_extension(
+    name = "tflite_flatbuffer_align_wrapper",  # :tflite_flatbuffer_align_wrapper.so
     srcs = [
-        "tflite_flatbuffer_align.cc",
+        "tflite_flatbuffer_align_wrapper.cc",
     ],
     deps = [
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers",
+    ],
+)
+
+py_binary(
+    name = "tflite_flatbuffer_align",
+    srcs = [
+        "tflite_flatbuffer_align.py",
+    ],
+    data = [
+        ":tflite_flatbuffer_align_wrapper.so",
+    ],
+    deps = [
+        "@absl_py//absl:app",
     ],
 )

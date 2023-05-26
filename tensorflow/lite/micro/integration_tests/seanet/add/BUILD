@@ -974,7 +974,7 @@ cc_library(
     copts = micro_copts(),
 )
 
-cc_binary(
+cc_test(
     name = "integration_test",
     srcs = [
         "integration_tests.cc",
@@ -987,6 +987,7 @@ cc_binary(
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro/python/interpreter/src:python_ops_resolver",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
