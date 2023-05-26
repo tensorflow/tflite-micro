@@ -216,7 +216,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               ? 0
               : *tflite::micro::GetTensorData<int16_t>(constant_values);
 #if defined(HIFI4)
-      /* NNLib currently only supports upto 4D input tensors */
+      /* NNLib currently only supports up to 4D input tensors */
       if (tflite::micro::GetTensorShape(input).DimensionsCount() == 4) {
         const TfLiteEvalTensor* paddings =
             tflite::micro::GetEvalInput(context, node, /*index=*/1);
@@ -263,12 +263,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_PAD() {
+TFLMRegistration Register_PAD() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
 // Also register Pad as PadV2.
-TfLiteRegistration_V1 Register_PADV2() {
+TFLMRegistration Register_PADV2() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

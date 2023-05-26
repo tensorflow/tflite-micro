@@ -42,8 +42,7 @@ void ValidateSquaredDifferenceGoldens(TfLiteTensor* tensors, int tensors_size,
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration =
-      tflite::Register_SQUARED_DIFFERENCE();
+  const TFLMRegistration registration = tflite::Register_SQUARED_DIFFERENCE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
@@ -125,8 +124,7 @@ void TestSquaredDifferenceQuantized(
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration =
-      tflite::Register_SQUARED_DIFFERENCE();
+  const TFLMRegistration registration = tflite::Register_SQUARED_DIFFERENCE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 

@@ -116,7 +116,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_RESIZE_NEAREST_NEIGHBOR() {
+TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

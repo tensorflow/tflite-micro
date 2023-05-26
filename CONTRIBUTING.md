@@ -160,7 +160,7 @@ Below are some tips that might be useful and improve the development experience.
 * Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tflite-micro@main)
   on Sourcegraph. And optionally install the [plugin that enables GitHub integration](https://docs.sourcegraph.com/integration/github#github-integration-with-sourcegraph).
 
-* Install [bazel](ci/install_bazel.sh) and [buildifier](ci/install_buildifier.sh).
+* Install [bazel](ci/install_bazelisk.sh) and [buildifier](ci/install_buildifier.sh).
 
 * Install the latest clang and clang-format. For example, [here](ci/Dockerfile.micro)
   is the what we do for the TFLM continuous integration Docker container.

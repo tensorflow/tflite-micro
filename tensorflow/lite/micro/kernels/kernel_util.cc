@@ -38,19 +38,19 @@ int ValidateTensorIndexing(const TfLiteContext* context, int index,
 
 }  // namespace
 
-TfLiteRegistration_V1 RegisterOp(
+TFLMRegistration RegisterOp(
     void* (*init)(TfLiteContext* context, const char* buffer, size_t length),
     TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node),
     TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
-    void (*free)(TfLiteContext* context, void* buffer)) {
+    void (*free)(TfLiteContext* context, void* buffer),
+    void (*reset)(TfLiteContext* context, void* buffer)) {
   return {/*init=*/init,
           /*free=*/free,
           /*prepare=*/prepare,
           /*invoke=*/invoke,
-          /*profiling_string=*/nullptr,
+          /*reset*/ reset,
           /*builtin_code=*/0,
-          /*custom_name=*/nullptr,
-          /*version=*/0};
+          /*custom_name=*/nullptr};
 }
 
 // Returns a mutable tensor for a given input index. is_variable must be checked
@@ -172,7 +172,7 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node) {
 //    3. prefix - optional message you'd like to print before printing bytes
 //
 //  Purpose:
-//    Function takes in paramaters above and prints n_bytes bytes from the
+//    Function takes in parameters above and prints n_bytes bytes from the
 //  tensor_data buffer. This can be use to debug  the output of a model and it's
 //  op.
 

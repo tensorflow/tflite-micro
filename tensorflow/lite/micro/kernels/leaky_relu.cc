@@ -87,7 +87,7 @@ TfLiteStatus LeakyReluEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteError;
 }
 
-TfLiteRegistration_V1 Register_LEAKY_RELU() {
+TFLMRegistration Register_LEAKY_RELU() {
   return tflite::micro::RegisterOp(LeakyReluInit, LeakyReluPrepare,
                                    LeakyReluEval);
 }
