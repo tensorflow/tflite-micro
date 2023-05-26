@@ -17,7 +17,6 @@
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided model
  * with random inputs.

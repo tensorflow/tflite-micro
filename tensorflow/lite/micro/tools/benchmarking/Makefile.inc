@@ -8,7 +8,9 @@ GENERIC_BENCHMARK_HDRS := $(MICROLITE_BENCHMARK_ROOT_DIR)/op_resolver.h \
 $(MICROLITE_BENCHMARK_ROOT_DIR)/log_utils.h \
 $(MICROLITE_BENCHMARK_ROOT_DIR)/metrics.h
 
+ifneq ($(TARGET), bluepill)
 ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5 hifimini))
   $(eval $(call microlite_test,tflm_benchmark,\
   $(GENERIC_BENCHMARK_SRCS),$(GENERIC_BENCHMARK_HDRS),))
+endif
 endif
