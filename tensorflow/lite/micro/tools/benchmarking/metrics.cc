@@ -4,6 +4,8 @@
 
 #include <cstddef>
 
+#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
+
 namespace tflm {
 namespace benchmark {
 
@@ -24,7 +26,7 @@ void LogArenaAllocations(
   char data[kArenaCols][kArenaRows][kMaxStringLength];
   for (int i = 0; i < kArenaRows; ++i) {
     MicroStrcpy(data[0][i], titles[i]);
-    FormatNumber(data[1][i], allocations[i]);
+    FormatNumber<int32_t>(data[1][i], allocations[i]);
     FormatAsPercentage(data[2][i], static_cast<int64_t>(allocations[i]),
                        static_cast<int64_t>(total_bytes), 2);
   }
@@ -66,10 +68,10 @@ void LogAllocations(const tflite::RecordingMicroAllocator& allocator,
     tflite::RecordedAllocation allocation =
         allocator.GetRecordedAllocation(types[i]);
     MicroStrcpy(data[0][i], titles[i]);
-    FormatNumber(data[1][i], static_cast<int>(types[i]));
-    FormatNumber(data[2][i], allocation.used_bytes);
-    FormatNumber(data[3][i], allocation.requested_bytes);
-    FormatNumber(data[4][i], allocation.count);
+    FormatNumber<int32_t>(data[1][i], static_cast<int>(types[i]));
+    FormatNumber<int32_t>(data[2][i], allocation.used_bytes);
+    FormatNumber<int32_t>(data[3][i], allocation.requested_bytes);
+    FormatNumber<int32_t>(data[4][i], allocation.count);
     FormatAsPercentage(data[5][i], static_cast<int64_t>(allocation.used_bytes),
                        static_cast<int64_t>(total_bytes), 2);
   }

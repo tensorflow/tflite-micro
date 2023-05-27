@@ -132,7 +132,6 @@ void FormatNumber<int32_t>(char* output, int32_t value) {
 #else
   sprintf(output, "%d", value);  // NOLINT: sprintf required.
 #endif
-
 }
 
 template <>
