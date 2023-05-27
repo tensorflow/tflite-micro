@@ -47,7 +47,7 @@ And to run it using make
 make -f tensorflow/lite/micro/tools/make/Makefile test_hello_world_test
 ```
 
-The source for the test is [evaluate_test.cc](hello_world_test.cc).
+The source for the test is [hello_world_test.cc](hello_world_test.cc).
 It's a fairly small amount of code that creates an interpreter, gets a handle to
 a model that's been compiled into the program, and then invokes the interpreter
 with the model and sample inputs.

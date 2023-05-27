@@ -56,8 +56,6 @@ def generate_random_int8_input(sample_count=1000):
   np.random.seed(42)
   x_values = np.random.uniform(low=0, high=2 * np.pi,
                                size=sample_count).astype(np.int8)
-  # Shuffle the values to guarantee they're not in order
-  np.random.shuffle(x_values)
   return x_values
 
 
@@ -68,8 +66,6 @@ def generate_random_float_input(sample_count=1000):
   np.random.seed(42)
   x_values = np.random.uniform(low=0, high=2 * np.pi,
                                size=sample_count).astype(np.float32)
-  # Shuffle the values to guarantee they're not in order
-  np.random.shuffle(x_values)
   return x_values
 
 
