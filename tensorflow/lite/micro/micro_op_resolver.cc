@@ -21,9 +21,9 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus GetRegistrationFromOpCode(
-    const OperatorCode* opcode, const MicroOpResolver& op_resolver,
-    const TfLiteRegistration_V1** registration) {
+TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
+                                       const MicroOpResolver& op_resolver,
+                                       const TFLMRegistration** registration) {
   TfLiteStatus status = kTfLiteOk;
   *registration = nullptr;
   auto builtin_code = GetBuiltinCode(opcode);

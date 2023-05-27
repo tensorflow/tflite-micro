@@ -6,12 +6,12 @@ export PATH := $(MAKEFILE_DIR)/downloads/riscv_toolchain/bin/:$(PATH)
 
 $(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/sifive_sdk_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/sifive_sdk_download.sh ${MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the SiFive Freedom E SDK download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${MAKEFILE_DIR}/downloads)
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/renode_download.sh ${MAKEFILE_DIR}/downloads $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the renode download: $(DOWNLOAD_RESULT))
 endif
@@ -92,10 +92,10 @@ LDFLAGS += -mno-relax
 #
 # The other two excluded tests also fail on other platforms, so disable them for now.
 EXCLUDED_TESTS := \
-  tensorflow/lite/micro/flatbuffer_utils_test.cc \
-  tensorflow/lite/micro/micro_interpreter_test.cc \
-  tensorflow/lite/micro/memory_arena_threshold_test.cc \
-  tensorflow/lite/micro/micro_allocator_test.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
@@ -108,11 +108,11 @@ MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 #
 # TODO: Come up with a way of excluding individual tests within an example.
 EXCLUDED_EXAMPLE_TESTS := \
-  tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
 
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
-TEST_SCRIPT := tensorflow/lite/micro/testing/test_with_renode.sh
+TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_renode.sh
 
 # We are setting this variable to non-zero to allow us to have a custom
 # implementation of `make test` for our target

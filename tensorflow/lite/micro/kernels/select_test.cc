@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -49,7 +48,7 @@ void TestSelect(int* input1_dims_data, const bool* input1_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteSelectParams builtin_data;
-  const TfLiteRegistration_V1 registration = tflite::Register_SELECT_V2();
+  const TFLMRegistration registration = tflite::Register_SELECT_V2();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

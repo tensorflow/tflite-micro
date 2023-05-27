@@ -26,7 +26,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
@@ -1431,12 +1430,12 @@ const Model* BuildSimpleMockModelWithNullInputsOutputs() {
 
 }  // namespace
 
-const TfLiteRegistration_V1* SimpleStatefulOp::getRegistration() {
+const TFLMRegistration* SimpleStatefulOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration_V1* SimpleStatefulOp::GetMutableRegistration() {
-  static TfLiteRegistration_V1 r;
+TFLMRegistration* SimpleStatefulOp::GetMutableRegistration() {
+  static TFLMRegistration r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1517,12 +1516,12 @@ TfLiteStatus SimpleStatefulOp::Invoke(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-const TfLiteRegistration_V1* MockCustom::getRegistration() {
+const TFLMRegistration* MockCustom::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration_V1* MockCustom::GetMutableRegistration() {
-  static TfLiteRegistration_V1 r;
+TFLMRegistration* MockCustom::GetMutableRegistration() {
+  static TFLMRegistration r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1565,12 +1564,12 @@ TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool MockCustom::freed_ = false;
 
-const TfLiteRegistration_V1* MultipleInputs::getRegistration() {
+const TFLMRegistration* MultipleInputs::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration_V1* MultipleInputs::GetMutableRegistration() {
-  static TfLiteRegistration_V1 r;
+TFLMRegistration* MultipleInputs::GetMutableRegistration() {
+  static TFLMRegistration r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1620,12 +1619,12 @@ TfLiteStatus MultipleInputs::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool MultipleInputs::freed_ = false;
 
-const TfLiteRegistration_V1* NoOp::getRegistration() {
+const TFLMRegistration* NoOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration_V1* NoOp::GetMutableRegistration() {
-  static TfLiteRegistration_V1 r;
+TFLMRegistration* NoOp::GetMutableRegistration() {
+  static TFLMRegistration r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;
@@ -1654,16 +1653,20 @@ TfLiteStatus NoOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
 
 bool NoOp::freed_ = false;
 
-AllOpsResolver GetOpResolver() {
-  AllOpsResolver op_resolver;
-  op_resolver.AddCustom("mock_custom", MockCustom::GetMutableRegistration());
-  op_resolver.AddCustom("simple_stateful_op",
-                        SimpleStatefulOp::GetMutableRegistration());
-  op_resolver.AddCustom("multiple_inputs_op",
-                        MultipleInputs::GetMutableRegistration());
-  op_resolver.AddCustom("no_op", NoOp::GetMutableRegistration());
-  op_resolver.AddCustom("custom_packer_op", PackerOp::GetMutableRegistration());
-  return op_resolver;
+TfLiteStatus GetTestingOpResolver(
+    tflite::testing::TestingOpResolver& op_resolver) {
+  TF_LITE_ENSURE_STATUS(op_resolver.AddCustom(
+      "mock_custom", MockCustom::GetMutableRegistration()));
+  TF_LITE_ENSURE_STATUS(op_resolver.AddCustom(
+      "simple_stateful_op", SimpleStatefulOp::GetMutableRegistration()));
+  TF_LITE_ENSURE_STATUS(op_resolver.AddCustom(
+      "multiple_inputs_op", MultipleInputs::GetMutableRegistration()));
+  TF_LITE_ENSURE_STATUS(
+      op_resolver.AddCustom("no_op", NoOp::GetMutableRegistration()));
+  TF_LITE_ENSURE_STATUS(op_resolver.AddCustom(
+      "custom_packer_op", PackerOp::GetMutableRegistration()));
+  TF_LITE_ENSURE_STATUS(op_resolver.AddIf());
+  return kTfLiteOk;
 }
 
 const Model* GetModelWithUnusedInputs() {

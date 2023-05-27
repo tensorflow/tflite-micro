@@ -24,10 +24,10 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
+#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
 #include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -36,13 +36,13 @@ namespace tflite {
 namespace {
 // This function looks up the registerer symbol based on the string name
 // `registerer_name`. A registerer in this case is a function that calls the
-// `AddCustom` API of `AllOpsResolver` for custom ops that need to be registered
-// with the interpreter.
+// `AddCustom` API of `PythonOpsResolver` for custom ops that need to be
+// registered with the interpreter.
 bool AddCustomOpRegistererByName(const char* registerer_name,
-                                 tflite::AllOpsResolver* resolver) {
-  // Registerer functions take a pointer to a AllOpsResolver as an input
+                                 tflite::PythonOpsResolver* resolver) {
+  // Registerer functions take a pointer to a PythonOpsResolver as an input
   // parameter and return TfLiteStatus.
-  typedef bool (*RegistererFunctionType)(tflite::AllOpsResolver*);
+  typedef bool (*RegistererFunctionType)(tflite::PythonOpsResolver*);
 
   // Look for the Registerer function by name.
   RegistererFunctionType registerer = reinterpret_cast<RegistererFunctionType>(
@@ -59,7 +59,7 @@ bool AddCustomOpRegistererByName(const char* registerer_name,
   if (!registerer(resolver)) {
     MicroPrintf(
         "%s failed to register op. Check that total number of "
-        "ops doesn't exceed the maximum allowed by AllOpsResolver.",
+        "ops doesn't exceed the maximum allowed by PythonOpsResolver.",
         registerer_name);
     return false;
   }
@@ -229,16 +229,15 @@ InterpreterWrapper::InterpreterWrapper(
     resource_variables_ =
         MicroResourceVariables::Create(allocator_, num_resource_variables);
 
-  for (const auto& registerer : registerers_by_name) {
-    if (!AddCustomOpRegistererByName(registerer.c_str(), &all_ops_resolver_)) {
-      char strbuf[128];
-      snprintf(strbuf, sizeof(strbuf),
-               "TFLM could not register custom op via %s", registerer.c_str());
-      ThrowRuntimeError(strbuf);
+  for (const std::string& registerer : registerers_by_name) {
+    if (!AddCustomOpRegistererByName(registerer.c_str(),
+                                     &python_ops_resolver_)) {
+      ThrowRuntimeError(
+          ("TFLM could not register custom op via " + registerer).c_str());
     }
   }
 
-  interpreter_ = new MicroInterpreter(model, all_ops_resolver_, allocator_,
+  interpreter_ = new MicroInterpreter(model, python_ops_resolver_, allocator_,
                                       resource_variables_);
 
   TfLiteStatus status = interpreter_->AllocateTensors();
@@ -254,12 +253,11 @@ InterpreterWrapper::InterpreterWrapper(
 void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
 
 int InterpreterWrapper::Invoke() {
-  if (interpreter_->Invoke() == kTfLiteError) {
-    char err_strbuf[128];
-    snprintf(err_strbuf, sizeof(err_strbuf), "Interpreter invocation failed.");
-    ThrowRuntimeError(err_strbuf);
+  TfLiteStatus status = interpreter_->Invoke();
+  if (status == kTfLiteError) {
+    ThrowRuntimeError("Interpreter invocation failed.");
   }
-  return kTfLiteOk;
+  return status;
 }
 
 int InterpreterWrapper::Reset() { return interpreter_->Reset(); }
@@ -286,33 +284,32 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
     throw pybind11::error_already_set();
   }
 
-  char err_strbuf[128];  // buffer for error message since we can not use
-                         // absl
   if (TfLiteTypeFromPyArray(array) != tensor->type) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "Cannot set tensor: Got value of type %s but expected type %s "
-             "for input %zu ",
-             TfLiteTypeGetName(TfLiteTypeFromPyArray(array)),
-             TfLiteTypeGetName(tensor->type), index);
-
-    ThrowValueError(err_strbuf);
+    std::string err_str =
+        "Cannot set tensor: Got value of type " +
+        std::string(TfLiteTypeGetName(TfLiteTypeFromPyArray(array))) +
+        " but expected type " + TfLiteTypeGetName(tensor->type) +
+        " for input " + std::to_string(index);
+    ThrowValueError(err_str.c_str());
   }
 
   if (PyArray_NDIM(array) != tensor->dims->size) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "Cannot set tensor: Dimension mismatch. Got %d but expected "
-             "%d for input %zu.",
-             PyArray_NDIM(array), tensor->dims->size, index);
-    ThrowValueError(err_strbuf);
+    std::string err_str = "Cannot set tensor: Dimension mismatch. Got " +
+                          std::to_string(PyArray_NDIM(array)) +
+                          " but expected " +
+                          std::to_string(tensor->dims->size) + " for input " +
+                          std::to_string(index);
+    ThrowValueError(err_str.c_str());
   }
 
   for (int j = 0; j < PyArray_NDIM(array); j++) {
     if (tensor->dims->data[j] != PyArray_SHAPE(array)[j]) {
-      snprintf(err_strbuf, sizeof(err_strbuf),
-               "Cannot set tensor: Dimension mismatch. Got %ld but "
-               "expected %d for dimension %d of input %zu.",
-               PyArray_SHAPE(array)[j], tensor->dims->data[j], j, index);
-      ThrowValueError(err_strbuf);
+      std::string err_str =
+          "Cannot set tensor: Dimension mismatch. Got " +
+          std::to_string(PyArray_SHAPE(array)[j]) + " but expected " +
+          std::to_string(tensor->dims->data[j]) + " for dimension " +
+          std::to_string(j) + " of input " + std::to_string(index);
+      ThrowValueError(err_str.c_str());
     }
   }
 
@@ -322,10 +319,10 @@ void InterpreterWrapper::SetInputTensor(PyObject* data, size_t index) {
 
   size_t size = PyArray_NBYTES(array);
   if (size != tensor->bytes) {
-    snprintf(err_strbuf, sizeof(err_strbuf),
-             "numpy array had %zu bytes but expected %zu bytes.", size,
-             tensor->bytes);
-    ThrowValueError(err_strbuf);
+    std::string err_str = "numpy array had " + std::to_string(size) +
+                          " bytes but expected " +
+                          std::to_string(tensor->bytes) + " bytes.";
+    ThrowValueError(err_str.c_str());
   }
 
   memcpy(tensor->data.data, PyArray_DATA(array), size);

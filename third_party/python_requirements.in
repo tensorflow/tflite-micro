@@ -1,14 +1,30 @@
-# Specify Python package dependencies here, and always run
+# Specify the Python packages available as dependencies to targets in Bazel.
 #
-#   `bazel run //third_party:python_requirements.update`
+# When modifying this list, always run
+# the //third_party:python_requirements.update target:
 #
-# to compile (using pip-compile) this file into a pinned requirements file in
-# this same directory. The pinned requirements file is the input to
-# @rules_python's pip_parse() in the WORKSPACE file, which satisfies Python
-# package dependencies for targets run by Bazel.
+#     bazel run //third_party:python_requirements.update
 #
-# Both this file and the compiled, pinned requirements file should be committed
-# to git.
+# to compile (using pip-compile) this list of direct dependencies into a pinned
+# requirements file---a complete list of direct and transitive dependencies,
+# pinned by version and cryptographic hash. The pinned requirements file is
+# used in @rules_python's pip_parse() in the WORKSPACE file to create the
+# external repositories available as dependencies to py_binary() and
+# py_library() targets.
+#
+# To upgrade dependencies to their latest version, run the update target with
+# the option --upgrade:
+#
+#   bazel run //third_party:python_requirements.update -- --upgrade
+#
+# Without the --upgrade option, the underlying pip-compile only adds or removes
+# dependencies without upgrading them to the latest versions available in PyPI.
+#
+# Both this input file and the pinned requirements file should be committed to
+# git. Avoid committing changes that break other developers by using an
+# environment that meets the project's recommendations. Dependency resolution
+# is sensitive to the Python environment (interpreter version, etc.) in which
+# it is run.
 
 tensorflow-cpu
 numpy

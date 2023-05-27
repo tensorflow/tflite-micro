@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -81,7 +80,7 @@ void TestSplitVFloat(int* input_dims_data, const float* input_data,
   for (int i = 0; i < N; i++) outputs_array_data[i + 1] = i + 3;
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = Register_SPLIT_V();
+  const TFLMRegistration registration = Register_SPLIT_V();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 

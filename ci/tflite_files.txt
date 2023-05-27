@@ -6,7 +6,10 @@ tensorflow/lite/core/api/flatbuffer_conversions.cc
 tensorflow/lite/core/api/op_resolver.cc
 tensorflow/lite/core/api/tensor_utils.cc
 tensorflow/lite/core/c/common.cc
+tensorflow/lite/kernels/internal/common.cc
 tensorflow/lite/kernels/internal/quantization_util.cc
+tensorflow/lite/kernels/internal/tensor_ctypes.cc
+tensorflow/lite/kernels/internal/reference/comparisons.cc
 tensorflow/lite/kernels/kernel_util.cc
 tensorflow/lite/schema/schema_utils.cc
 tensorflow/lite/c/builtin_op_data.h
@@ -19,6 +22,7 @@ tensorflow/lite/core/api/tensor_utils.h
 tensorflow/lite/core/c/builtin_op_data.h
 tensorflow/lite/core/c/c_api_types.h
 tensorflow/lite/core/c/common.h
+tensorflow/lite/core/macros.h
 tensorflow/lite/kernels/internal/common.h
 tensorflow/lite/kernels/internal/compatibility.h
 tensorflow/lite/kernels/internal/portable_tensor_utils.h
