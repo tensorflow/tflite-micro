@@ -50,8 +50,7 @@ void ExecuteEmbeddingLookupTest(TfLiteTensor* tensors, int tensors_count) {
   int kOutputArrayData[] = {kNumOutputs, kOutputTensorIndex};
   TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
 
-  const TfLiteRegistration_V1 registration =
-      tflite::Register_EMBEDDING_LOOKUP();
+  const TFLMRegistration registration = tflite::Register_EMBEDDING_LOOKUP();
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
@@ -132,9 +131,6 @@ void TestEmbeddingLookup(int* input_dims_data[kNumInputs],
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
-
-// TODO(ahentz): write more tests that exercise the details of the op, such as
-// lookup errors and variable input shapes.
 
 TF_LITE_MICRO_TESTS_BEGIN
 

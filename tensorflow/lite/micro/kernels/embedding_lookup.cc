@@ -206,7 +206,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_EMBEDDING_LOOKUP() {
+TFLMRegistration Register_EMBEDDING_LOOKUP() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
