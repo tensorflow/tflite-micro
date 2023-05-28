@@ -25,8 +25,7 @@ declare -r MICRO_LOG_PATH=${TEST_TMPDIR}/$1
 declare -r MICRO_LOG_FILENAME=${MICRO_LOG_PATH}/logs.txt
 mkdir -p ${MICRO_LOG_PATH}
 
-hexagon-elfcopy $1 $1.elf
-hexagon-sim $1.elf 2>&1 | tee ${MICRO_LOG_FILENAME}
+hexagon-sim $1 2>&1 | tee ${MICRO_LOG_FILENAME}
 
 if [[ ${2} != "non_test_binary" ]]
 then
