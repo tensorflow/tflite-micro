@@ -26,15 +26,17 @@ cc_library(
 )
 
 cc_test(
-    name = "evaluate_cc_test",
+    name = "hello_world_test",
     srcs = [
-        "evaluate_test.cc",
+        "hello_world_test.cc",
     ],
     deps = [
         ":model",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
     ],
@@ -61,6 +63,7 @@ py_binary(
     srcs = ["evaluate_test.py"],
     data = [
         "//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite",
+        "//tensorflow/lite/micro/examples/hello_world/models:hello_world_int8.tflite",
     ],
     python_version = "PY3",
     srcs_version = "PY3",
