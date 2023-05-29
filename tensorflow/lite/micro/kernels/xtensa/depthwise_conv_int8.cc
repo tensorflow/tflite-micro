@@ -88,7 +88,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D_INT8() {
+TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8() {
   return tflite::micro::RegisterOp(DepthwiseConvInitXtensa,
                                    DepthwiseConvPrepareXtensa, Eval);
 }

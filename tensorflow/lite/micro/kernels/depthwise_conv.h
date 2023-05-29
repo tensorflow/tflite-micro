@@ -66,12 +66,12 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8();
 TFLMRegistration Register_DEPTHWISE_CONV_2D_INT16();
 
 #elif defined(XTENSA)
-// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
+// Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and uses the latency optimized
 // implementations.
-TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D_INT8();
+TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8();
 
-inline TfLiteRegistration_V1 Register_DEPTHWISE_CONV_2D_INT16() {
+inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT16() {
   return Register_DEPTHWISE_CONV_2D();
 }
 
