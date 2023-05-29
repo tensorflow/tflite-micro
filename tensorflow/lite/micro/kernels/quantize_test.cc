@@ -34,7 +34,7 @@ void ValidateQuantizeGoldens(TfLiteTensor* tensors, int tensors_size,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   // Version 1 of quantize supports int8_t and uint8_t quantization.
-  const TfLiteRegistration_V1 registration = Register_QUANTIZE();
+  const TFLMRegistration registration = Register_QUANTIZE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
@@ -268,7 +268,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
 }
 
 // TODO(b/155682734): Hifimini optimized quantize requires input scale to be
-// smaller then output scale.
+// smaller than output scale.
 TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};

@@ -57,15 +57,15 @@ TfLiteStatus EvalSum(TfLiteContext* context, TfLiteNode* node) {
                        static_cast<OpDataReduce*>(node->user_data));
 }
 
-TfLiteRegistration_V1 Register_MEAN() {
+TFLMRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalMean);
 }
 
-TfLiteRegistration_V1 Register_REDUCE_MAX() {
+TFLMRegistration Register_REDUCE_MAX() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMax, EvalMax);
 }
 
-TfLiteRegistration_V1 Register_SUM() {
+TFLMRegistration Register_SUM() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalSum);
 }
 

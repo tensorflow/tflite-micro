@@ -31,7 +31,7 @@ void ValidateShape(TfLiteTensor* tensors, const int tensor_count,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = tflite::Register_SHAPE();
+  const TFLMRegistration registration = tflite::Register_SHAPE();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, nullptr);
 

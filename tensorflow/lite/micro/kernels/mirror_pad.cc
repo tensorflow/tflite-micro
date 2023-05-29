@@ -208,7 +208,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_MIRROR_PAD() {
+TFLMRegistration Register_MIRROR_PAD() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

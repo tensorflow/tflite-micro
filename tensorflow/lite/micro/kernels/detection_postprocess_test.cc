@@ -108,7 +108,7 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
 
   MicroMutableOpResolver<1> resolver;
   TF_LITE_MICRO_EXPECT_EQ(resolver.AddDetectionPostprocess(), kTfLiteOk);
-  const TfLiteRegistration_V1* registration =
+  const TFLMRegistration* registration =
       resolver.FindOp("TFLite_Detection_PostProcess");
   TF_LITE_MICRO_EXPECT(registration != nullptr);
 

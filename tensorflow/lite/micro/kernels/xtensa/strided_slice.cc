@@ -256,7 +256,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration_V1 Register_STRIDED_SLICE() {
+TFLMRegistration Register_STRIDED_SLICE() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

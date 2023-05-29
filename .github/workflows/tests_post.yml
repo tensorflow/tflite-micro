@@ -11,6 +11,15 @@ on:
       - labeled
 
 jobs:
+  riscv_postmerge:
+    if: ${{ github.event.pull_request.merged == true ||
+      contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+    uses: ./.github/workflows/riscv_postmerge.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   xtensa_postmerge:
     if: ${{ github.event.pull_request.merged == true ||
             contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}

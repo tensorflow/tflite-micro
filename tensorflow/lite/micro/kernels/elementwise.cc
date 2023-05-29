@@ -371,44 +371,44 @@ TfLiteStatus LogicalNotEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_ABS() {
+TFLMRegistration Register_ABS() {
   return tflite::micro::RegisterOp(
       ElementWiseAbsRsqrtInit, PrepareAbsRsqrt<IsAbsSupportedType, kAbsNameId>,
       AbsEval);
 }
 
-TfLiteRegistration_V1 Register_SIN() {
+TFLMRegistration Register_SIN() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsNumericSupportedType>, SinEval);
 }
 
-TfLiteRegistration_V1 Register_COS() {
+TFLMRegistration Register_COS() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsNumericSupportedType>, CosEval);
 }
 
-TfLiteRegistration_V1 Register_LOG() {
+TFLMRegistration Register_LOG() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsNumericSupportedType>, LogEval);
 }
 
-TfLiteRegistration_V1 Register_SQRT() {
+TFLMRegistration Register_SQRT() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsNumericSupportedType>, SqrtEval);
 }
 
-TfLiteRegistration_V1 Register_RSQRT() {
+TFLMRegistration Register_RSQRT() {
   return tflite::micro::RegisterOp(
       ElementWiseAbsRsqrtInit,
       PrepareAbsRsqrt<IsRsqrtSupportedType, kRsrqtNameId>, RsqrtEval);
 }
 
-TfLiteRegistration_V1 Register_SQUARE() {
+TFLMRegistration Register_SQUARE() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsNumericSupportedType>, SquareEval);
 }
 
-TfLiteRegistration_V1 Register_LOGICAL_NOT() {
+TFLMRegistration Register_LOGICAL_NOT() {
   return tflite::micro::RegisterOp(
       nullptr, GenericPrepare<IsLogicalSupportedType>, LogicalNotEval);
 }

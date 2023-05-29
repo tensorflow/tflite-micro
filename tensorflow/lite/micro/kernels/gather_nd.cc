@@ -87,7 +87,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   output->type = params->type;
 
   // The tensor output dims must be relocated
-  // from the FlatBuffer to the persistant storage arena.
+  // from the FlatBuffer to the persistent storage arena.
   TfLiteEvalTensor* output_eval =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   TF_LITE_ENSURE_OK(context, tflite::micro::CreateWritableTensorDimsWithCopy(
@@ -205,7 +205,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration_V1 Register_GATHER_ND() {
+TFLMRegistration Register_GATHER_ND() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 

@@ -63,7 +63,7 @@ TfLiteStatus CheckBroadcastShape(TfLiteContext* context,
     const int d3 = i >= dims3 ? 1 : SizeOfDimension(input3, dims3 - i - 1);
     const int min_value = std::min(std::min(d1, d2), d3);
     int max_value = std::max(std::max(d1, d2), d3);
-    // If one dimention is 0, others must be 0 or 1.
+    // If one dimension is 0, others must be 0 or 1.
     if (min_value == 0) max_value = 0;
     if (!(d1 == 1 || d1 == max_value) || !(d2 == 1 || d2 == max_value) ||
         !(d3 == 1 || d3 == max_value)) {
@@ -189,7 +189,7 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
 //
 // 1. Either the same shape (in which case the select is elementwise), or
 // 2. Broadcastable shapes between 'condition', 'x' and 'y'.
-TfLiteRegistration_V1 Register_SELECT_V2() {
+TFLMRegistration Register_SELECT_V2() {
   return tflite::micro::RegisterOp(tflite::SelectInit, tflite::SelectPrepare,
                                    tflite::SelectEval);
 }

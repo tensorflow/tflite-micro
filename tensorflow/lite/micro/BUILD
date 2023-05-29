@@ -109,6 +109,7 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_common",
         ":micro_log",
         ":micro_profiler",
         ":micro_resource_variable",
@@ -147,6 +148,7 @@ cc_library(
         ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_arena_constants",
+        ":micro_common",
         ":micro_compatibility",
         ":micro_log",
         "//tensorflow/lite/kernels:kernel_util",

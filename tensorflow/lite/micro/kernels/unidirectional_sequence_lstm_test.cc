@@ -74,8 +74,7 @@ void TestUnidirectionalLSTMInteger(
         kTfLiteAffineQuantization, &input_quant};
   }
 
-  const TfLiteRegistration_V1 registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(
       registration, tensors, kLstmMaxNumInputOutputTensors + 1 + 5,
@@ -124,13 +123,12 @@ void TestUnidirectionalLSTMFloat(
     const float hidden_state_tolerance, const float cell_state_tolerance,
     LstmNodeContent<float, float, float, float, batch_size, time_steps,
                     input_dimension, state_dimension>& node_contents) {
-  const TfLiteRegistration_V1 registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
-  micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
-                             node_contents.KernelInputs(),
-                             node_contents.KernelOutputs(),
-                             reinterpret_cast<void*>(&buildin_data));
+  micro::KernelRunner runner(
+      registration, node_contents.GetTensors(), kLstmMaxNumInputOutputTensors,
+      node_contents.KernelInputs(), node_contents.KernelOutputs(),
+      reinterpret_cast<void*>(&buildin_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 

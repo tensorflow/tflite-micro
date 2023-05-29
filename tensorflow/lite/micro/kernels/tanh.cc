@@ -192,7 +192,7 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_TANH() {
+TFLMRegistration Register_TANH() {
   return tflite::micro::RegisterOp(TanhInit, TanhPrepare, TanhEval);
 }
 
