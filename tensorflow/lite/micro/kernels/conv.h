@@ -87,25 +87,25 @@ TFLMRegistration Register_CONV_2D();
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and always calls the reference
 // implementation.
-TfLiteRegistration_V1 Register_CONV_2D_INT8REF();
+TFLMRegistration Register_CONV_2D_INT8REF();
 
-// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
+// Returns a TFLMRegistration struct for kernel variant that only supports
 // int16 activations and int8 weights and always calls the reference
 // implementation.
-TfLiteRegistration_V1 Register_CONV_2D_INT16REF();
+TFLMRegistration Register_CONV_2D_INT16REF();
 
 #else
 inline TFLMRegistration Register_CONV_2D_INT8REF() {
   return Register_CONV_2D();
 }
 
-inline TfLiteRegistration_V1 Register_CONV_2D_INT16REF() {
+inline TFLMRegistration Register_CONV_2D_INT16REF() {
   return Register_CONV_2D();
 }
 #endif  // defined(XTENSA)
 
 #if defined(CMSIS_NN) || defined(XTENSA)
-// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
+// Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and uses the latency optimized
 // implementations.
 TFLMRegistration Register_CONV_2D_INT8();
@@ -118,9 +118,7 @@ TFLMRegistration Register_CONV_2D_INT16();
 #else
 inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
 
-inline TfLiteRegistration_V1 Register_CONV_2D_INT16() {
-  return Register_CONV_2D();
-}
+inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
 #endif  // defined(CMSIS_NN) || defined(XTENSA)
 
 }  // namespace tflite

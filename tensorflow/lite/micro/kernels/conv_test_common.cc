@@ -42,7 +42,7 @@ template <typename T>
 TfLiteStatus ValidateConvGoldensForRegistration(
     TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
     int output_length, TfLiteConvParams* conv_params,
-    TfLiteRegistration_V1 registration, T* output_data, float tolerance) {
+    TFLMRegistration registration, T* output_data, float tolerance) {
   TfLiteStatus status = InvokeConv(tensors, tensors_size, output_length,
                                    conv_params, registration, output_data);
   if (status != kTfLiteOk) {
@@ -60,8 +60,8 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const T* expected_output_data,
                                  int output_length,
                                  TfLiteConvParams* conv_params,
-                                 TfLiteRegistration_V1 registration,
-                                 T* output_data, float tolerance) {
+                                 TFLMRegistration registration, T* output_data,
+                                 float tolerance) {
   TfLiteStatus status = ValidateConvGoldensForRegistration(
       tensors, tensors_size, expected_output_data, output_length, conv_params,
       registration, output_data, tolerance);
