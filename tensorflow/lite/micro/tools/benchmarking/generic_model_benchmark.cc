@@ -86,7 +86,11 @@ int ReadFile(const char* file_name, char* buffer) {
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
   struct stat sb;
 
+#if defined(CMSIS_NN)
+  if (fstat(file.get()->_file, &sb) != 0) {
+#else
   if (fstat(fileno(file.get()), &sb) != 0) {
+#endif
     MicroPrintf("Failed to get file size of: %s\n", file_name);
     return -1;
   }

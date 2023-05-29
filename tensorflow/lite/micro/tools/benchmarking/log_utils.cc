@@ -142,7 +142,7 @@ bool CheckEncodedBase64Length(const size_t input_len, const size_t output_len) {
 
 template <>
 void FormatNumber<int32_t>(char* output, int32_t value) {
-#if defined(HEXAGON)
+#if defined(HEXAGON) || defined(CMSIS_NN)
   sprintf(output, "%ld", value);  // NOLINT: sprintf required.
 #else
   sprintf(output, "%d", value);  // NOLINT: sprintf required.
