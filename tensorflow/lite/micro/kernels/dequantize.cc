@@ -41,40 +41,36 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
-  if (output->type == kTfLiteFloat32) {
-    switch (input->type) {
-      case kTfLiteInt8:
-        reference_ops::Dequantize(data->quantization_params,
-                                  tflite::micro::GetTensorShape(input),
-                                  tflite::micro::GetTensorData<int8_t>(input),
-                                  tflite::micro::GetTensorShape(output),
-                                  tflite::micro::GetTensorData<float>(output));
-        break;
-      case kTfLiteInt16:
-        reference_ops::Dequantize(data->quantization_params,
-                                  tflite::micro::GetTensorShape(input),
-                                  tflite::micro::GetTensorData<int16_t>(input),
-                                  tflite::micro::GetTensorShape(output),
-                                  tflite::micro::GetTensorData<float>(output));
-        break;
-      case kTfLiteUInt8:
-        reference_ops::Dequantize(data->quantization_params,
-                                  tflite::micro::GetTensorShape(input),
-                                  tflite::micro::GetTensorData<uint8_t>(input),
-                                  tflite::micro::GetTensorShape(output),
-                                  tflite::micro::GetTensorData<float>(output));
-        break;
-      default:
-        MicroPrintf("Input %s, output %s not supported.",
-                    TfLiteTypeGetName(input->type),
-                    TfLiteTypeGetName(output->type));
-        return kTfLiteError;
-    }
-  } else {
-    MicroPrintf("Input %s, output %s not supported.",
-                TfLiteTypeGetName(input->type),
-                TfLiteTypeGetName(output->type));
-    return kTfLiteError;
+  // Output type ensured to be kTfLiteFloat32 at the Prepare stage
+  TFLITE_DCHECK(output->type == kTfLiteFloat32);
+
+  switch (input->type) {
+    case kTfLiteInt8:
+      reference_ops::Dequantize(data->quantization_params,
+                                tflite::micro::GetTensorShape(input),
+                                tflite::micro::GetTensorData<int8_t>(input),
+                                tflite::micro::GetTensorShape(output),
+                                tflite::micro::GetTensorData<float>(output));
+      break;
+    case kTfLiteInt16:
+      reference_ops::Dequantize(data->quantization_params,
+                                tflite::micro::GetTensorShape(input),
+                                tflite::micro::GetTensorData<int16_t>(input),
+                                tflite::micro::GetTensorShape(output),
+                                tflite::micro::GetTensorData<float>(output));
+      break;
+    case kTfLiteUInt8:
+      reference_ops::Dequantize(data->quantization_params,
+                                tflite::micro::GetTensorShape(input),
+                                tflite::micro::GetTensorData<uint8_t>(input),
+                                tflite::micro::GetTensorShape(output),
+                                tflite::micro::GetTensorData<float>(output));
+      break;
+    default:
+      MicroPrintf("Input %s, output %s not supported.",
+                  TfLiteTypeGetName(input->type),
+                  TfLiteTypeGetName(output->type));
+      return kTfLiteError;
   }
 
   return kTfLiteOk;
