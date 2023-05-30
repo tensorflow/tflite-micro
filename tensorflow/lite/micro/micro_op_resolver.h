@@ -16,6 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_OP_RESOLVER_H_
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -35,11 +36,11 @@ class MicroOpResolver {
   // Returns the Op registration struct corresponding to the enum code from the
   // flatbuffer schema. Returns nullptr if the op is not found or if op ==
   // BuiltinOperator_CUSTOM.
-  virtual const TfLiteRegistration_V1* FindOp(BuiltinOperator op) const = 0;
+  virtual const TFLMRegistration* FindOp(BuiltinOperator op) const = 0;
 
   // Returns the Op registration struct corresponding to the custom operator by
   // name.
-  virtual const TfLiteRegistration_V1* FindOp(const char* op) const = 0;
+  virtual const TFLMRegistration* FindOp(const char* op) const = 0;
 
   // Returns the operator specific parsing function for the OpData for a
   // BuiltinOperator (if registered), else nullptr.
@@ -52,9 +53,9 @@ class MicroOpResolver {
 // Handles the logic for converting between an OperatorCode structure extracted
 // from a flatbuffer and information about a registered operator
 // implementation.
-TfLiteStatus GetRegistrationFromOpCode(
-    const OperatorCode* opcode, const MicroOpResolver& op_resolver,
-    const TfLiteRegistration_V1** registration);
+TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
+                                       const MicroOpResolver& op_resolver,
+                                       const TFLMRegistration** registration);
 
 }  // namespace tflite
 

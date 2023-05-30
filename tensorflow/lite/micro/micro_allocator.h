@@ -18,11 +18,11 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -68,7 +68,7 @@ struct ScratchBufferRequest {
 
 struct NodeAndRegistration {
   TfLiteNode node;
-  const TfLiteRegistration_V1* registration;
+  const TFLMRegistration* registration;
 };
 
 // Holds a pointer to a buffer for a scratch buffer requested by a kernel during
@@ -185,7 +185,7 @@ class MicroAllocator {
   // Allocates a TfLiteTensor struct and populates the returned value with
   // properties from the model flatbuffer. This struct is allocated from
   // temporary arena memory is only guaranteed until a call is made to
-  // ResetTempAllocations(). Subgraph_allocaitons contains the array of
+  // ResetTempAllocations(). Subgraph_allocations contains the array of
   // TfLiteEvalTensors. If the newly allocated temp at the specified subgraph
   // and tensor index is already present int the TfLiteEvalTensor array, its
   // data buffer will be re-used.

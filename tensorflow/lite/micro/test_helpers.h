@@ -16,8 +16,10 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 #define TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
@@ -56,8 +58,8 @@ class SimpleStatefulOp {
   };
 
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
   static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
@@ -65,8 +67,8 @@ class SimpleStatefulOp {
 
 class MockCustom {
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -79,8 +81,8 @@ class MockCustom {
 // the sum of the inputs.
 class MultipleInputs {
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -92,8 +94,8 @@ class MultipleInputs {
 // A simple no-op operator.
 class NoOp {
  public:
-  static const TfLiteRegistration_V1* getRegistration();
-  static TfLiteRegistration_V1* GetMutableRegistration();
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static void Free(TfLiteContext* context, void* buffer);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
@@ -298,12 +300,25 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
 // Returns the number of tensors in the default subgraph for a tflite::Model.
 size_t GetModelTensorCount(const Model* model);
 
-// Derives the quantization scaling factor from a min and max range.
+// Derives the asymmetric quantization scaling factor from a min and max range.
 template <typename T>
 inline float ScaleFromMinMax(const float min, const float max) {
   return (max - min) /
          static_cast<float>((std::numeric_limits<T>::max() * 1.0) -
                             std::numeric_limits<T>::min());
+}
+
+// Derives the symmetric quantization scaling factor from a min and max range.
+template <typename T>
+inline float SymmetricScaleFromMinMax(const float min, const float max) {
+  const int32_t kScale =
+      std::numeric_limits<typename std::make_signed<T>::type>::max();
+  const float range = std::max(std::abs(min), std::abs(max));
+  if (range == 0) {
+    return 1.0f;
+  } else {
+    return range / kScale;
+  }
 }
 
 // Derives the quantization zero point from a min and max range.

@@ -62,7 +62,7 @@ void TestSplitTwoOutputsFloat(int* input_dims_data, const float* input_data,
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = Register_SPLIT();
+  const TFLMRegistration registration = Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -130,7 +130,7 @@ void TestSplitFourOutputsFloat(
   int outputs_array_data[] = {4, 2, 3, 4, 5};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = tflite::Register_SPLIT();
+  const TFLMRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -193,7 +193,7 @@ void TestSplitTwoOutputsQuantized(int* input_dims_data,
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = tflite::Register_SPLIT();
+  const TFLMRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
@@ -248,7 +248,7 @@ void TestSplitTwoOutputsQuantized32(
   int outputs_array_data[] = {2, 2, 3};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = tflite::Register_SPLIT();
+  const TFLMRegistration registration = tflite::Register_SPLIT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 

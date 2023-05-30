@@ -24,20 +24,20 @@ limitations under the License.
 
 namespace tflite {
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types
+// This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
 // implementation (reference or optimized) must define this function.
 // TODO(b/230666079): resolve conflict with xtensa implementation
-TfLiteRegistration_V1 Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 
 #if defined(CMSIS_NN)
-// Returns a TfLiteRegistration_V1 struct for kernel variant that only supports
+// Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and uses the latency optimized
 // implementations.
-TfLiteRegistration_V1 Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8();
+TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8();
 
 #else
-inline TfLiteRegistration_V1 Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8() {
+inline TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8() {
   return Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 }
 #endif

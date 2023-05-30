@@ -146,7 +146,7 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
   }
 }
 
-TfLiteRegistration_V1 Register_SOFTMAX_INT8_INT16() {
+TFLMRegistration Register_SOFTMAX_INT8_INT16() {
   return tflite::micro::RegisterOp(XtensaInitSoftmax, XtensaPrepareSoftmax,
                                    XtensaEvalSoftmaxInt8Int16);
 }

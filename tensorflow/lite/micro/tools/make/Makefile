@@ -331,6 +331,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ethosu.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/exp.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/expand_dims.cc \

@@ -19,8 +19,8 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 
@@ -56,9 +56,9 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
 void ReduceResolveAxis(const int* axis_data, int axis_count,
                        MeanParams* op_params);
 
-TfLiteRegistration_V1 Register_MEAN();
-TfLiteRegistration_V1 Register_REDUCE_MAX();
-TfLiteRegistration_V1 Register_SUM();
+TFLMRegistration Register_MEAN();
+TFLMRegistration Register_REDUCE_MAX();
+TFLMRegistration Register_SUM();
 
 }  // namespace tflite
 

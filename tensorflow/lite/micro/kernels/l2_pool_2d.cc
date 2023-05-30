@@ -76,7 +76,7 @@ TfLiteStatus L2Prepare(TfLiteContext* context, TfLiteNode* node) {
   // because TfLiteTensor in the MicroInterpreter is a temporary
   // allocation.  For the KernelRunner interpreter, TfLiteEvalTensor
   // is a temporary allocation.  We must therefore relocate the dims
-  // from the FlatBuffer to the persistant storage arena.
+  // from the FlatBuffer to the persistent storage arena.
   TfLiteEvalTensor* output_eval =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   TF_LITE_ENSURE_OK(context, tflite::micro::CreateWritableTensorDimsWithCopy(
@@ -135,7 +135,7 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_L2_POOL_2D() {
+TFLMRegistration Register_L2_POOL_2D() {
   return tflite::micro::RegisterOp(nullptr, L2Prepare, L2Eval);
 }
 
