@@ -52,7 +52,7 @@ TfLiteStatus TestWindow(int* input1_dims_data, const int16_t* input1_data,
 
   const int output_len = ElementCount(*output_dims);
 
-  TfLiteRegistration_V1* registration = tflite::tflm_signal::Register_WINDOW();
+  TFLMRegistration* registration = tflite::tflm_signal::Register_WINDOW();
   micro::KernelRunner runner(*registration, tensors, kTensorsSize, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);

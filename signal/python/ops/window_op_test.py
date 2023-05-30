@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,25 @@
 # ==============================================================================
 """Tests for window ops."""
 
+import os
+
 import numpy as np
 import tensorflow as tf
 
+from tensorflow.python.platform import resource_loader
 from tflite_micro.signal.python.ops import window_op
 from tflite_micro.signal.python.utils import util
 
 
 class WindowOpTest(tf.test.TestCase):
+
+  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+
+  def GetResource(self, filepath):
+    full_path = os.path.join(self._PREFIX_PATH, filepath)
+    with open(full_path, 'rt') as f:
+      file_text = f.read()
+    return file_text
 
   def testWeights(self):
     expected_weights_hann_length_400_shift_12 = [
@@ -91,7 +102,7 @@ class WindowOpTest(tf.test.TestCase):
         weights, expected_weights_squart_root_hann_cwola_length_256_shift_12)
 
   def SingleWindowTest(self, filename):
-    lines = GetResource(filename, mode='rt').splitlines()
+    lines = self.GetResource(filename).splitlines()
     args = lines[0].split()
     window_type = args[0]
     dtype = args[1]
@@ -146,7 +157,7 @@ class WindowOpTest(tf.test.TestCase):
     self.assertAllEqual(out_frames_exp, out_frame)
 
   def MultiDimWindowTest(self, filename):
-    lines = GetResource(filename, mode='rt').splitlines()
+    lines = self.GetResource(filename).splitlines()
     args = lines[0].split()
     window_type = args[0]
     dtype = args[1]
@@ -242,12 +253,12 @@ class WindowOpTest(tf.test.TestCase):
 
   def testWindow(self):
     self.SingleWindowTest(
-        'google3/third_party/tflite_micro/tensorflow/lite/micro/audio_frontend/'
+        'signal/'
         'python/ops/testdata/window_test1.txt')
 
   def testWindowLargeOuterDimension(self):
     self.MultiDimWindowTest(
-        'google3/third_party/tflite_micro/tensorflow/lite/micro/audio_frontend/'
+        'signal/'
         'python/ops/testdata/window_test1.txt')
 
 

@@ -20,7 +20,7 @@ cc_library(
     ],
     copts = micro_copts(),
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:flatbuffer_utils",

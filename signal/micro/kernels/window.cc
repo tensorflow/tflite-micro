@@ -116,8 +116,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 namespace tflm_signal {
 
-TfLiteRegistration_V1* Register_WINDOW() {
-  static TfLiteRegistration_V1 r = tflite::micro::RegisterOp(Init, Prepare, Eval);
+TFLMRegistration* Register_WINDOW() {
+  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
   return &r;
 }
 
