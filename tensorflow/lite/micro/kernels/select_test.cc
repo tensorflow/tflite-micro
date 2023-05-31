@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <type_traits>
+
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -203,6 +205,57 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithTwoValues) {
   int16_t output_data[8];
   tflite::testing::TestSelect(input1_shape, input1_data, input_shape,
                               input2_data, input_shape, input3_data,
+                              output_shape, output_data);
+  tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputConditionTensor) {
+  int input1_shape[] = {0};  // conditional data is a scalar
+  int input_shape[] = {1, 1};
+  int output_shape[] = {0};  // output data is a scalar
+
+  const bool input1_data[] = {false};
+  const int16_t input2_data[] = {1};
+  const int16_t input3_data[] = {5};
+  const int16_t expected_output[] = {5};
+
+  int16_t output_data[std::extent<decltype(expected_output)>::value];
+  tflite::testing::TestSelect(input1_shape, input1_data, input_shape,
+                              input2_data, input_shape, input3_data,
+                              output_shape, output_data);
+  tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputXTensor) {
+  int input2_shape[] = {0};  // x data is a scalar
+  int input_shape[] = {1, 1};
+  int output_shape[] = {0};  // output data is a scalar
+
+  const bool input1_data[] = {true};
+  const int16_t input2_data[] = {1};
+  const int16_t input3_data[] = {5};
+  const int16_t expected_output[] = {1};
+
+  int16_t output_data[std::extent<decltype(expected_output)>::value];
+  tflite::testing::TestSelect(input_shape, input1_data, input2_shape,
+                              input2_data, input_shape, input3_data,
+                              output_shape, output_data);
+  tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
+}
+
+TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputYTensor) {
+  int input3_shape[] = {0};  // y data is a scalar
+  int input_shape[] = {1, 1};
+  int output_shape[] = {0};  // output data is a scalar
+
+  const bool input1_data[] = {false};
+  const int16_t input2_data[] = {1};
+  const int16_t input3_data[] = {5};
+  const int16_t expected_output[] = {5};
+
+  int16_t output_data[std::extent<decltype(expected_output)>::value];
+  tflite::testing::TestSelect(input_shape, input1_data, input_shape,
+                              input2_data, input3_shape, input3_data,
                               output_shape, output_data);
   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
 }
