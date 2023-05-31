@@ -81,7 +81,7 @@ void SetRandomInput(const int random_seed,
   }
 }
 
-int ReadFile(const char* file_name, char* buffer) {
+int ReadFile(const char* file_name, unsigned char* buffer) {
   // Obtain the file size using fstat, or report an error if that fails.
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
   struct stat sb;
@@ -122,7 +122,7 @@ int Benchmark(const char* model_file_name) {
   // limited memory available. The TENSOR_ARENA_SIZE macro is defined in the
   // build rules.
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
-  char model_file_content[kModelSize];
+  alignas(16) unsigned char model_file_content[kModelSize];
 
   ReadFile(model_file_name, model_file_content);
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
