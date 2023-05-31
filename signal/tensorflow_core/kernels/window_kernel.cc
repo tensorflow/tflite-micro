@@ -40,7 +40,7 @@ class WindowOp : public tensorflow::OpKernel {
                                                      &output_tensor));
     int16_t* output = output_tensor->flat<int16_t>().data();
     for (int i = 0; i < outer_dims; i++) {
-      ApplyWindow(&input[i * weight_size], weights, weight_size, shift_,
+      tflm_signal::ApplyWindow(&input[i * weight_size], weights, weight_size, shift_,
                   &output[i * weight_size]);
     }
   }

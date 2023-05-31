@@ -1,5 +1,5 @@
 #load("@tflm_pip_deps//:requirements.bzl", "requirement")
-#load("@tensorflow_headers//:tensorflow.bzl", "tf_gen_op_wrapper_py")
+#load("@tensorflow_cc_deps//:tensorflow.bzl", "tf_gen_op_wrapper_py")
 
 def py_tflm_signal_library(
         name,
@@ -44,8 +44,7 @@ def py_tflm_signal_library(
             alwayslink = 1,
             deps =
                 cc_op_kernels +
-                ["@tensorflow_headers"] +
-                ["@tensorflow_headers//:tensorflow_headers_lib"] +
+                ["@tensorflow_cc_deps//:cc_library"] +
                 select({ "//conditions:default": []}),
         )
 
@@ -58,8 +57,7 @@ def py_tflm_signal_library(
             linkopts = [],
             deps = [
                 ":" + library_name,
-                "@tensorflow_headers", 
-                "@tensorflow_headers//:tensorflow_headers_lib",
+                "@tensorflow_cc_deps//:cc_library",
             ] + select({ "//conditions:default": []}),
         )
 

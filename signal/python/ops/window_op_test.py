@@ -253,13 +253,11 @@ class WindowOpTest(tf.test.TestCase):
 
   def testWindow(self):
     self.SingleWindowTest(
-        'signal/'
-        'python/ops/testdata/window_test1.txt')
+        'testdata/window_test1.txt')
 
   def testWindowLargeOuterDimension(self):
     self.MultiDimWindowTest(
-        'signal/'
-        'python/ops/testdata/window_test1.txt')
+        'testdata/window_test1.txt')
 
 
 if __name__ == '__main__':
