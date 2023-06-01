@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -101,16 +101,15 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Respect the original output shape when there are mixed shapes to represent
   // a scalar data.
-  if (GetTensorShape(input_condition).FlatSize() == 1 &&
+  bool possible_mixed_scaler =
+      GetTensorShape(input_condition).FlatSize() == 1 &&
       GetTensorShape(input_x).FlatSize() == 1 &&
       GetTensorShape(input_y).FlatSize() == 1 &&
-      GetTensorShape(output).FlatSize() == 1) {
-    return kTfLiteOk;
-  }
+      GetTensorShape(output).FlatSize() == 1;
 
   bool same_shape = HaveSameShapes(input_condition, input_x) &&
                     HaveSameShapes(input_x, input_y);
-  if (!same_shape) {
+  if (!same_shape && !possible_mixed_scaler) {
     TF_LITE_ENSURE_OK(
         context, CheckBroadcastShape(context, input_condition, input_x, input_y,
                                      output->dims));
