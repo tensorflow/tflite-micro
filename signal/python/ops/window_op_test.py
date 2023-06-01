@@ -116,9 +116,7 @@ class WindowOpTest(tf.test.TestCase):
         tf.TensorSpec(input_size, dtype=tf.int16),
         tf.TensorSpec(input_size, dtype=tf.int16),
         shift=shift)
-    interpreter = util.get_tflite_interpreter(concrete_function, func)
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
+    interpreter = util.get_tflm_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
     i = 1
@@ -126,10 +124,10 @@ class WindowOpTest(tf.test.TestCase):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype='int16')
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       # TFLite
-      interpreter.set_tensor(input_details[0]['index'], in_frame)
-      interpreter.set_tensor(input_details[1]['index'], weights)
+      interpreter.set_input(in_frame, 0)
+      interpreter.set_input(weights, 1)
       interpreter.invoke()
-      out_frame = interpreter.get_tensor(output_details[0]['index'])
+      out_frame = interpreter.get_output(0)
       self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(
@@ -144,13 +142,11 @@ class WindowOpTest(tf.test.TestCase):
         tf.TensorSpec(np.shape(in_frames), dtype=dtype),
         tf.TensorSpec(np.shape(weights), dtype=dtype),
         shift=shift)
-    interpreter = util.get_tflite_interpreter(concrete_function, func)
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    interpreter.set_tensor(input_details[0]['index'], in_frames)
-    interpreter.set_tensor(input_details[1]['index'], weights)
+    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter.set_input(in_frames, 0)
+    interpreter.set_input(weights, 1)
     interpreter.invoke()
-    out_frame = interpreter.get_tensor(output_details[0]['index'])
+    out_frame = interpreter.get_output(0)
     self.assertAllEqual(out_frames_exp, out_frame)
     # TF
     out_frame = self.evaluate(window_op.window(in_frames, weights, shift=shift))

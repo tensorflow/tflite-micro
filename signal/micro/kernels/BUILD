@@ -7,26 +7,6 @@ package(
     licenses = ["notice"],
 )
 
-
-cc_library(
-    name = "signal_ops_python",
-    srcs = [
-        "signal_ops_registerer_python.cc",
-    ],
-    hdrs = [
-        "signal_ops_registerer_python.h",
-    ],
-    copts = micro_copts(),
-    visibility = [
-        "//tensorflow/lite/micro",
-        "//signal:__subpackages__",
-    ],
-    deps = [
-        ":register_signal_ops",
-        "//tensorflow/lite/micro/python/interpreter/src:python_ops_resolver",
-    ],
-)
-
 cc_library(
     name = "register_signal_ops",
     srcs = [

@@ -19,19 +19,12 @@ import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
 
-def get_tflite_interpreter(concrete_function,
-                           trackable_obj,
-                           custom_op_registerers=[],):
+def get_tflm_interpreter(concrete_function,
+                           trackable_obj,):
   """Initialize a TFLite interpreter with a concerte function.
 
   Args:
     concrete_function: A concrete function
-    custom_op_registerers: List of string representing custom op regiterer
-      functions. See documentation of interpreter.InterpreterWithCustomOps()
-      for more details.
-    model_filename: The name of a .tflite file to save the converted file to.
-      The HTML visualization of the model will be saved to an .html file with
-      the same basename
 
   Returns:
     TFLite interpreter object
@@ -41,4 +34,4 @@ def get_tflite_interpreter(concrete_function,
   converter.allow_custom_ops = True
   tflite_model = converter.convert()
 
-  return tflm_runtime.Interpreter.from_bytes(tflite_model, custom_op_registerers=["SignalOpsRegistererMicro"])
+  return tflm_runtime.Interpreter.from_bytes(tflite_model)
