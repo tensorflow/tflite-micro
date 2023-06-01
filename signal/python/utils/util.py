@@ -20,7 +20,7 @@ from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runti
 
 
 def get_tflm_interpreter(concrete_function,
-                           trackable_obj,):
+                           trackable_obj):
   """Initialize a TFLite interpreter with a concerte function.
 
   Args:
@@ -34,4 +34,4 @@ def get_tflm_interpreter(concrete_function,
   converter.allow_custom_ops = True
   tflite_model = converter.convert()
 
-  return tflm_runtime.Interpreter.from_bytes(tflite_model)
+  return tflm_runtime.Interpreter.from_bytes(tflite_model, arena_size=500000)
