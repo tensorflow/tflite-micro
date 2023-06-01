@@ -19,11 +19,8 @@ limitations under the License.
 
 namespace tflm_signal {
 
-void ApplyWindow(const int16_t* input,
-                 const int16_t* window,
-                 int size,
-                 int shift,
-                 int16_t* output) {
+void ApplyWindow(const int16_t* input, const int16_t* window, int size,
+                 int shift, int16_t* output) {
   for (int i = 0; i < size; ++i) {
     int32_t raw = (static_cast<int32_t>(input[i]) * window[i]) >> shift;
     if (raw < INT16_MIN) {

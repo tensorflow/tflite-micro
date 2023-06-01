@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <stdint.h>
 
+#include "signal/micro/kernels/register_signal_ops.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -24,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "signal/micro/kernels/register_signal_ops.h"
 
 namespace tflite {
 namespace {
@@ -46,8 +46,8 @@ struct TFLMSignalWindowParams {
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
 
-  auto* params = static_cast<TFLMSignalWindowParams*>(
-      context->AllocatePersistentBuffer(
+  auto* params =
+      static_cast<TFLMSignalWindowParams*>(context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalWindowParams)));
 
   tflite::FlexbufferWrapper fbw(buffer_t, length);
@@ -79,8 +79,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, weights->type, kTfLiteInt16);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt16);
 
-  auto* params =
-      reinterpret_cast<TFLMSignalWindowParams*>(node->user_data);
+  auto* params = reinterpret_cast<TFLMSignalWindowParams*>(node->user_data);
   RuntimeShape input_shape = GetTensorShape(input);
   params->input_size = input_shape.FlatSize();
 
@@ -91,8 +90,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  auto* params =
-      reinterpret_cast<TFLMSignalWindowParams*>(node->user_data);
+  auto* params = reinterpret_cast<TFLMSignalWindowParams*>(node->user_data);
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
@@ -107,8 +105,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   int weight_size = weights->dims->data[0];
 
   for (int i = 0; i < params->input_size; i += weight_size) {
-    ::tflm_signal::ApplyWindow(&input_data[i], weight_data, weight_size, params->shift,
-                &output_data[i]);
+    ::tflm_signal::ApplyWindow(&input_data[i], weight_data, weight_size,
+                               params->shift, &output_data[i]);
   }
   return kTfLiteOk;
 }

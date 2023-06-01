@@ -18,6 +18,7 @@ limitations under the License.
 #include <cstdio>
 #include <cstring>
 
+#include "signal/micro/kernels/register_signal_ops.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -35,7 +36,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "signal/micro/kernels/register_signal_ops.h"
 
 namespace tflite {
 TFLMRegistration* Register_DETECTION_POSTPROCESS();

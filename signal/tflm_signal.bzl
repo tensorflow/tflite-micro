@@ -9,7 +9,7 @@ def py_tflm_signal_library(
         cc_op_defs = [],
         cc_op_kernels = []):
     """Creates build rules for signal ops as shared libraries.
-    
+
     Defines three targets:
     <name>
         Python library that exposes all ops defined in `cc_op_defs` and `py_srcs`.
@@ -45,7 +45,7 @@ def py_tflm_signal_library(
             deps =
                 cc_op_kernels +
                 ["@tensorflow_cc_deps//:cc_library"] +
-                select({ "//conditions:default": []}),
+                select({"//conditions:default": []}),
         )
 
         native.cc_binary(
@@ -58,7 +58,7 @@ def py_tflm_signal_library(
             deps = [
                 ":" + library_name,
                 "@tensorflow_cc_deps//:cc_library",
-            ] + select({ "//conditions:default": []}),
+            ] + select({"//conditions:default": []}),
         )
 
     native.py_library(
@@ -69,7 +69,6 @@ def py_tflm_signal_library(
         data = [":" + binary_name],
         deps = deps,
     )
-
 
 # A rule to build a TensorFlow OpKernel.
 def tflm_signal_kernel_library(

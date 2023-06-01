@@ -31,7 +31,6 @@ cc_library(
     visibility = [
         ":op_resolver_friends",
         "//tensorflow/lite/micro/integration_tests:__subpackages__",
-        "//signal/micro/kernels:__subpackages__",
     ],
     deps = [
         "//tensorflow/lite/micro:micro_compatibility",

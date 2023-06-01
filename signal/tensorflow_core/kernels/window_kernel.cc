@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/window.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {
@@ -40,8 +40,8 @@ class WindowOp : public tensorflow::OpKernel {
                                                      &output_tensor));
     int16_t* output = output_tensor->flat<int16_t>().data();
     for (int i = 0; i < outer_dims; i++) {
-      tflm_signal::ApplyWindow(&input[i * weight_size], weights, weight_size, shift_,
-                  &output[i * weight_size]);
+      tflm_signal::ApplyWindow(&input[i * weight_size], weights, weight_size,
+                               shift_, &output[i * weight_size]);
     }
   }
 

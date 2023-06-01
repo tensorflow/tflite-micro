@@ -52,6 +52,6 @@ py_test(
         ":window_op",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//signal/python/utils:util"
+        "//signal/python/utils:util",
     ],
 )

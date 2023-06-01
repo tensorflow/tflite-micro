@@ -15,19 +15,19 @@ cc_library(
     hdrs = [
         "register_signal_ops.h",
     ],
+    copts = micro_copts(),
     visibility = [
         "//tensorflow/lite/micro",
     ],
-    copts = micro_copts(),
     deps = [
-        "//tensorflow/lite/micro:micro_common",
+        "//signal/src:window",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_utils",
-        "//signal/src:window",
         "//tensorflow/lite/micro/kernels:kernel_util",
     ],
 )

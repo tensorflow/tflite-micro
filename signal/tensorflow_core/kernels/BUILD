@@ -10,6 +10,6 @@ tflm_signal_kernel_library(
     srcs = ["window_kernel.cc"],
     deps = [
         "//signal/src:window",
-        "@tensorflow_cc_deps//:cc_library"
+        "@tensorflow_cc_deps//:cc_library",
     ],
 )

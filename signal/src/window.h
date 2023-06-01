@@ -25,10 +25,7 @@ namespace tflm_signal {
 // * `input` and `window` must be both of size `size` elements and are
 //    multiplied element-by element.
 // * `shift` is a right shift to apply before writing the result to `output`.
-void ApplyWindow(const int16_t* input,
-                 const int16_t* window,
-                 int size,
-                 int shift,
-                 int16_t* output);
+void ApplyWindow(const int16_t* input, const int16_t* window, int size,
+                 int shift, int16_t* output);
 }  // namespace tflm_signal
 #endif  // SIGNAL_SRC_WINDOW_H_

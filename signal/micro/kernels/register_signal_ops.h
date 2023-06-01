@@ -6,7 +6,7 @@
 namespace tflite {
 namespace tflm_signal {
 // TODO(b/160234179): Return custom OP registration by value.
-TFLMRegistration *Register_WINDOW();
+TFLMRegistration* Register_WINDOW();
 
 }  // namespace tflm_signal
 }  // namespace tflite
