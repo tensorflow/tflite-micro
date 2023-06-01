@@ -6,6 +6,11 @@ package(
     licenses = ["notice"],
 )
 
+package_group(
+    name = "tflm_tools",
+    packages = ["//tensorflow/lite/micro/tools/..."],
+)
+
 py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
@@ -86,5 +91,79 @@ py_binary(
     ],
     deps = [
         "@absl_py//absl:app",
+    ],
+)
+
+py_library(
+    name = "model_transforms_utils",
+    srcs = ["model_transforms_utils.py"],
+    data = [
+        ":tflite_flatbuffer_align_wrapper.so",
+    ],
+    srcs_version = "PY3",
+    visibility = [
+        ":tflm_tools",
+        # "",
+    ],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/python:schema_util",
+    ],
+)
+
+
+py_library(
+    name = "tflm_model_transforms_lib",
+    srcs = ["tflm_model_transforms_lib.py"],
+    data = [
+        ":tflite_flatbuffer_align",
+    ],
+    srcs_version = "PY3",
+    visibility = [
+        ":tflm_tools",
+        # "",
+    ],
+    deps = [
+        ":model_transforms_utils",
+        "@absl_py//absl/logging",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+        "//tensorflow/lite/tools:flatbuffer_utils",
+        # "",
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+    ],
+)
+
+
+py_binary(
+    name = "tflm_model_transforms",
+    srcs = ["tflm_model_transforms.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":tflm_model_transforms_lib",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@absl_py//absl/logging",
+    ],
+)
+
+py_test(
+    name = "tflm_model_transforms_test",
+    srcs = ["tflm_model_transforms_test.py"],
+    data = [
+        "//tensorflow/lite/micro/models",
+    ],
+    main = "tflm_model_transforms_test.py",
+    python_version = "PY3",
+    tags = [
+        "noasan",
+        "noubsan",
+    ],
+    deps = [
+        ":tflm_model_transforms_lib",
+        "@absl_py//absl/testing:parameterized",
+        requirement("tensorflow-cpu"),
+        "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )
