@@ -121,6 +121,29 @@ TfLiteStatus SelectPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+template <typename T>
+void CallSelect(const TfLiteEvalTensor* input_condition,
+                const TfLiteEvalTensor* input_x,
+                const TfLiteEvalTensor* input_y, TfLiteEvalTensor* output,
+                bool need_broadcast) {
+  using Func = decltype(reference_ops::Select<bool, T>)*;
+  Func select_func;
+  if (need_broadcast) {
+    select_func = reference_ops::BroadcastSelect5DSlow<bool, T>;
+  } else {
+    select_func = reference_ops::Select<bool, T>;
+  }
+
+  select_func(tflite::micro::GetTensorShape(input_condition),
+              tflite::micro::GetTensorData<bool>(input_condition),
+              tflite::micro::GetTensorShape(input_x),
+              tflite::micro::GetTensorData<T>(input_x),
+              tflite::micro::GetTensorShape(input_y),
+              tflite::micro::GetTensorData<T>(input_y),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<T>(output));
+}
+
 TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
   OpData* data = static_cast<OpData*>(node->user_data);
 
@@ -136,41 +159,24 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
-#define TF_LITE_SELECT(type, op)                                         \
-  reference_ops::op(tflite::micro::GetTensorShape(input_condition),      \
-                    tflite::micro::GetTensorData<bool>(input_condition), \
-                    tflite::micro::GetTensorShape(input_x),              \
-                    tflite::micro::GetTensorData<type>(input_x),         \
-                    tflite::micro::GetTensorShape(input_y),              \
-                    tflite::micro::GetTensorData<type>(input_y),         \
-                    tflite::micro::GetTensorShape(output),               \
-                    tflite::micro::GetTensorData<type>(output));
-
-#define TF_LITE_SWITCH(type, op)                                     \
-  switch (type) {                                                    \
-    case kTfLiteFloat32:                                             \
-      TF_LITE_SELECT(float, op);                                     \
-      break;                                                         \
-    case kTfLiteInt8:                                                \
-      TF_LITE_SELECT(int8_t, op);                                    \
-      break;                                                         \
-    case kTfLiteInt16:                                               \
-      TF_LITE_SELECT(int16_t, op);                                   \
-      break;                                                         \
-    default:                                                         \
-      MicroPrintf("Does not support type other than %s, but got %s", \
-                  "int8|int16|float32", TfLiteTypeGetName(type));    \
-      return kTfLiteError;                                           \
+  switch (input_x->type) {
+    case kTfLiteFloat32:
+      CallSelect<float>(input_condition, input_x, input_y, output,
+                        data->requires_broadcast);
+      break;
+    case kTfLiteInt8:
+      CallSelect<int8_t>(input_condition, input_x, input_y, output,
+                         data->requires_broadcast);
+      break;
+    case kTfLiteInt16:
+      CallSelect<int16_t>(input_condition, input_x, input_y, output,
+                          data->requires_broadcast);
+      break;
+    default:
+      MicroPrintf("Does not support type other than %s, but got %s",
+                  "int8|int16|float32", TfLiteTypeGetName(input_x->type));
+      return kTfLiteError;
   }
-
-  if (data->requires_broadcast) {
-    TF_LITE_SWITCH(input_x->type, BroadcastSelect5DSlow);
-  } else {
-    TF_LITE_SWITCH(input_x->type, Select);
-  }
-
-#undef TF_LITE_SELECT
-#undef TF_LITE_SWITCH
 
   return kTfLiteOk;
 }
