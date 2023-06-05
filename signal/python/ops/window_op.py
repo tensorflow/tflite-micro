@@ -87,4 +87,4 @@ def _window_wrapper(window_fn, default_name):
 
 window = _window_wrapper(gen_window_op.window, "Window")
 
-tf.no_gradient("WINDOW")
+tf.no_gradient("Window")
