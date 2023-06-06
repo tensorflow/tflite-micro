@@ -564,7 +564,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddWindow() {
-    return AddCustom("Signal_Window", tflite::tflm_signal::Register_WINDOW());
+    return AddCustom("Window", tflite::tflm_signal::Register_WINDOW());
   }
 
   TfLiteStatus AddZerosLike() {
