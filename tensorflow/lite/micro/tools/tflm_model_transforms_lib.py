@@ -1,4 +1,3 @@
-# TODO(b/270181421): add tests for the model transforms lib
 """TFLM specific flatbuffer model transformations, to reduce model size.
 
 go/tflm-flatbuffer-reduction
@@ -44,6 +43,7 @@ def check_models_equivalent(
     secondary_model_path: str = None,
     test_vector_count: int = 1,
     seed: int = 42,
+    custom_op_registerers=[]
 ):
   """Checks that the two models are equivalent by testing that the same set of random inputs produce the same outputs using the TFLM interpreter.
 
@@ -57,13 +57,11 @@ def check_models_equivalent(
     test_vector_count: number of different (random) input vectors to use to test
       for equivalence.
     seed: optionally provide a custom seed value for random number generator
+    custom_op_registerers: if your model makes use of custom ops
 
   Raises:
     AssertionError if outputs of TFLM invocations are not equal
   """
-  # Add any addditional custom op registerers here
-  custom_op_registerers = []
-
   with gfile.Open(initial_model_path, "rb") as input_model_file:
     initial_model_interpreter = tflm_runtime.Interpreter.from_bytes(
         input_model_file.read(),
@@ -135,6 +133,7 @@ def run_all_transformations(
     save_intermediates=False,
     test_transformed_model=True,
     custom_save_dir=None,
+    custom_op_registerers=[],
 ):
   """Apply all current transform methods on an input .tflite file, and optionally save the models between methods.
 
@@ -145,6 +144,7 @@ def run_all_transformations(
     test_transformed_model: optional flag to enable/disable testing of
       input/transformed models on random data
     custom_save_dir: optionally pass the directory path for saving files
+    custom_op_registerers: if your model makes use of custom ops
 
   Raises:
     AssertionError if outputs of TFLM invocations on input and transformed
@@ -193,6 +193,7 @@ def run_all_transformations(
       check_models_equivalent(
           initial_model_path=pre_transform_model_path,
           secondary_model_path=output_path,
+          custom_op_registerers=custom_op_registerers,
       )
       pre_transform_model_path = output_path
 
@@ -204,6 +205,7 @@ def run_all_transformations(
     check_models_equivalent(
         initial_model_path=input_path,
         secondary_model_path=transformed_model_path,
+        custom_op_registerers=custom_op_registerers,
     )
 
   log_size_difference(input_path, transformed_model_path)
