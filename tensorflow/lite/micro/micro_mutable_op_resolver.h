@@ -18,7 +18,6 @@ limitations under the License.
 #include <cstdio>
 #include <cstring>
 
-#include "signal/micro/kernels/register_signal_ops.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"

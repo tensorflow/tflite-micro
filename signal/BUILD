@@ -13,7 +13,7 @@ package_group(
 
 cc_library(
     name = "ops_lib",
-    visibility = ["//visibility:public"],
+    visibility = [":signal_friends"],
     deps = [
         ":window_op_cc",
     ],

@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "signal/micro/kernels/register_signal_ops.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
@@ -111,6 +110,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
+// TODO(b/286250473): remove namespace once de-duped libraries
 namespace tflm_signal {
 
 TFLMRegistration* Register_WINDOW() {
