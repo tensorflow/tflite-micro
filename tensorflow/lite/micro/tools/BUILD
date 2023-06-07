@@ -1,5 +1,6 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("//tensorflow:extra_rules.bzl", "tflm_audio_frontend_friends")
 
 package(
     default_visibility = ["//:__subpackages__"],
@@ -9,6 +10,11 @@ package(
 package_group(
     name = "tflm_tools",
     packages = ["//tensorflow/lite/micro/tools/..."],
+)
+
+package_group(
+    name = "audio_frontend_friends",
+    packages = tflm_audio_frontend_friends(),
 )
 
 py_library(
@@ -103,7 +109,8 @@ py_library(
     srcs_version = "PY3",
     visibility = [
         ":tflm_tools",
-        # "",
+        # TODO(b/285021986): properly fix visibility
+        ":audio_frontend_friends",
     ],
     deps = [
         "//tensorflow/lite/python:schema_py",
@@ -121,16 +128,16 @@ py_library(
     srcs_version = "PY3",
     visibility = [
         ":tflm_tools",
-        # "",
+        # TODO(b/285021986): properly fix visibility, won't work as is
+        ":audio_frontend_friends",
     ],
     deps = [
         ":model_transforms_utils",
+        "//tensorflow/lite/tools:flatbuffer_utils",
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
         "@absl_py//absl/logging",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
-        # "",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
 
@@ -159,11 +166,12 @@ py_test(
     tags = [
         "noasan",
         "noubsan",
+        "nomsan",
     ],
     deps = [
         ":tflm_model_transforms_lib",
+        "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
         "@absl_py//absl/testing:parameterized",
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )
