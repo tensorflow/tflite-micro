@@ -21,7 +21,7 @@ from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
 
 gen_window_op = load_library.load_op_library(
-    resource_loader.get_path_to_datafile('../_window_op.so'))
+    resource_loader.get_path_to_datafile('_window_op.so'))
 
 
 def hann_window_weights(window_length, shift, dtype=np.int16):
