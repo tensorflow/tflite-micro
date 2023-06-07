@@ -42,9 +42,8 @@ def log_size_difference(input_path, transformed_model_path):
   final_binary_size = gfile.Stat(transformed_model_path).length
   logging.info("Initial file size: %d %s", initial_binary_size, "bytes.")
   logging.info("Final file size: %d %s", final_binary_size, "bytes.")
-  logging.info(
-      "Savings = %d %s", initial_binary_size - final_binary_size, "bytes."
-  )
+  logging.info("Savings = %d %s", initial_binary_size - final_binary_size,
+               "bytes.")
   logging.info(
       " (%.2f %s",
       round((1 - (final_binary_size / initial_binary_size)) * 100, 2),
@@ -52,13 +51,11 @@ def log_size_difference(input_path, transformed_model_path):
   )
 
 
-def check_models_equivalent(
-    initial_model_path: str = None,
-    secondary_model_path: str = None,
-    test_vector_count: int = 1,
-    seed: int = 42,
-    custom_op_registerers=[]
-):
+def check_models_equivalent(initial_model_path: str = None,
+                            secondary_model_path: str = None,
+                            test_vector_count: int = 1,
+                            seed: int = 42,
+                            custom_op_registerers=[]):
   """Checks that the two models are equivalent by testing that the same set of random inputs produce the same outputs using the TFLM interpreter.
 
   Note that this function does not test the correctness of the inference. It
@@ -93,12 +90,11 @@ def check_models_equivalent(
 
   for _ in range(test_vector_count):
     for idx, input_tensor_idx in enumerate(
-        initial_model_object.subgraphs[0].inputs
-    ):
-      input_tensor = initial_model_object.subgraphs[0].tensors[input_tensor_idx]
+        initial_model_object.subgraphs[0].inputs):
+      input_tensor = initial_model_object.subgraphs[0].tensors[
+          input_tensor_idx]
       rand_data = model_transforms_utils.generate_random_input_data(
-          initial_model_object, input_tensor, rng
-      )
+          initial_model_object, input_tensor, rng)
       initial_model_interpreter.set_input(rand_data, idx)
       secondary_model_interpreter.set_input(rand_data, idx)
 
@@ -116,7 +112,12 @@ def check_models_equivalent(
 
 
 def apply_transform_and_log(
-    transform_func, model, log_string, save_model, output_dir, filepath,
+    transform_func,
+    model,
+    log_string,
+    save_model,
+    output_dir,
+    filepath,
 ):
   """Calls transform_func(model) and logs transformed model to output_dir/filepath.
 
@@ -192,12 +193,10 @@ def run_all_transformations(
       "variable_shared_names_shortened.tflite",
   ]
 
-  for transform, name, file_name in zip(
-      transforms_list, transform_names, intermediate_file_names
-  ):
-    model = apply_transform_and_log(
-        transform, model, name, save_intermediates, output_dir, file_name
-    )
+  for transform, name, file_name in zip(transforms_list, transform_names,
+                                        intermediate_file_names):
+    model = apply_transform_and_log(transform, model, name, save_intermediates,
+                                    output_dir, file_name)
 
     # Testing will only work if the file has been saved to output path.
     # The "final" stage of a transformation is after it has been flatbuffer

@@ -75,8 +75,7 @@ def shorten_variable_shared_names(model):
         if shared_name not in unique_shared_names:
           unique_shared_names.append(shared_name)
         op.builtinOptions.sharedName = str(
-            unique_shared_names.index(shared_name)
-        )
+            unique_shared_names.index(shared_name))
 
 
 def _remove_initialization_subgraph(model):
@@ -84,7 +83,8 @@ def _remove_initialization_subgraph(model):
   # assumption is made that subgraph indexed=1 is the resource variable
   # initialization subgraph (subgraph containing only pairs of VAR_HANDLE
   # and ASSIGN_VARIABLE OPs)
-  non_initialization_subgraphs_list = [model.subgraphs[0]] + model.subgraphs[2:]
+  non_initialization_subgraphs_list = [model.subgraphs[0]
+                                       ] + model.subgraphs[2:]
 
   # TODO(b/279035671): add more documentation for why this is needed.
   # Make sure there is a proper VAR_HANDLE, ASSIGN_VARIABLE pair to allocate
@@ -145,8 +145,8 @@ def _remove_call_once_op(model):
   updated_op_list = []
   for op in model.subgraphs[0].operators:
     is_call_once = (schema_util.get_builtin_code_from_operator_code(
-        model.operatorCodes[op.opcodeIndex])
-                    == schema_fb.BuiltinOperator.CALL_ONCE)
+        model.operatorCodes[op.opcodeIndex]) ==
+                    schema_fb.BuiltinOperator.CALL_ONCE)
 
     if is_call_once and op.builtinOptions.initSubgraphIndex == 1:
       # We make the assumption that subgraph indexed 1 is the resource variable
@@ -232,8 +232,8 @@ def clear_resource_variable_buffers(model):
   for op in model.subgraphs[1].operators:
     builtin_code = schema_util.get_builtin_code_from_operator_code(
         model.operatorCodes[op.opcodeIndex])
-    if (builtin_code != schema_fb.BuiltinOperator.VAR_HANDLE and
-        builtin_code != schema_fb.BuiltinOperator.ASSIGN_VARIABLE):
+    if (builtin_code != schema_fb.BuiltinOperator.VAR_HANDLE
+        and builtin_code != schema_fb.BuiltinOperator.ASSIGN_VARIABLE):
       found_non_resource_var_op = True
       break
 
@@ -244,9 +244,9 @@ def clear_resource_variable_buffers(model):
 
   for tensor in model.subgraphs[1].tensors:
     buffer_idx = tensor.buffer
-    if (tensor.type != schema_fb.TensorType.RESOURCE and
-        buffer_idx not in multi_subgraph_resource_buffers and
-        model.buffers[buffer_idx].data != []):
+    if (tensor.type != schema_fb.TensorType.RESOURCE
+        and buffer_idx not in multi_subgraph_resource_buffers
+        and model.buffers[buffer_idx].data != []):
       # if the entire initialization subgraph has not been cleared, we cannot
       # make any additional changes to the flatbuffer
       return
@@ -276,7 +276,8 @@ def _numpy_from_tensor_type(tensor_type_idx):
       schema_fb.TensorType.VARIANT: "VARIANT",
       schema_fb.TensorType.UINT32: np.uint32,
       schema_fb.TensorType.UINT16: np.uint16,
-      schema_fb.TensorType.INT4: np.int8,  # INT4 is mapped to INT8, b/246806634
+      # INT4 is mapped to INT8, b/246806634
+      schema_fb.TensorType.INT4: np.int8,
   }
   return tensor_type_idx_to_numpy.get(tensor_type_idx)
 
@@ -304,23 +305,18 @@ def _get_minmax_range_float(model, input_tensor):
   """
   if _numpy_from_tensor_type(input_tensor.type) != np.float32:
     return
-  if not any(
-      input_tensor == model.subgraphs[0].tensors[input_idx]
-      for input_idx in model.subgraphs[0].inputs
-  ):
+  if not any(input_tensor == model.subgraphs[0].tensors[input_idx]
+             for input_idx in model.subgraphs[0].inputs):
     return
   # get associated quantize tensor
   # if there are multiple FLOAT32 inputs that get quantized, we assume
   # that each has their own quantize op, since quantize.cc ensures that
   # NumInputs and NumOutput == 1.
   for op in model.subgraphs[0].operators:
-    if (
-        schema_util.get_builtin_code_from_operator_code(
-            model.operatorCodes[op.opcodeIndex]
-        )
+    if (schema_util.get_builtin_code_from_operator_code(
+        model.operatorCodes[op.opcodeIndex])
         == schema_fb.BuiltinOperator.QUANTIZE
-        and input_tensor == model.subgraphs[0].tensors[op.inputs[0]]
-    ):
+        and input_tensor == model.subgraphs[0].tensors[op.inputs[0]]):
       # use quantized tensor information for a more accurate F32 range
       quant_tensor = model.subgraphs[0].tensors[op.outputs[0]]
       dtype = _numpy_from_tensor_type(quant_tensor.type)
@@ -365,12 +361,9 @@ def generate_random_input_data(model, input_tensor, random_number_generator):
         dtype=dtype,
     )
   elif dtype == np.float32:
-    range_min, range_max = _get_minmax_range_float(
-        model, input_tensor
-    )
+    range_min, range_max = _get_minmax_range_float(model, input_tensor)
     return (range_max - range_min) * random_number_generator.random(
-        input_tensor.shape, dtype=dtype
-    ) + range_min
+        input_tensor.shape, dtype=dtype) + range_min
   elif dtype == np.bool_:
     range_min, range_max = 0, 1
     return random_number_generator.integers(
@@ -381,10 +374,9 @@ def generate_random_input_data(model, input_tensor, random_number_generator):
     ).astype(bool)
   else:
     raise RuntimeError(
-        "Unsupported data type for generating data for input tensor."
-    )
+        "Unsupported data type for generating data for input tensor.")
 
 
 def tflite_flatbuffer_align(input_model_path, output_model_path):
-  tflite_flatbuffer_align_wrapper.align_tflite_model(
-      input_model_path, output_model_path)
+  tflite_flatbuffer_align_wrapper.align_tflite_model(input_model_path,
+                                                     output_model_path)

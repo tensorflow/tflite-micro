@@ -29,9 +29,8 @@ from tflite_micro.tensorflow.lite.micro.examples.recipes import resource_variabl
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
-class TflmModelTransformsTest(
-    test_util.TensorFlowTestCase, parameterized.TestCase
-):
+class TflmModelTransformsTest(test_util.TensorFlowTestCase,
+                              parameterized.TestCase):
 
   @parameterized.named_parameters(
       ("person_detect", "person_detect.tflite"),

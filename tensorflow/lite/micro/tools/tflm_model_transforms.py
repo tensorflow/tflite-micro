@@ -26,7 +26,6 @@ from tflite_micro.tensorflow.lite.micro.tools import tflm_model_transforms_lib
 #     --input_model_path=</path/to/my_model.tflite>`
 # output will be located at: /path/to/my_model_tflm_optimized.tflite
 
-
 _INPUT_MODEL_PATH = flags.DEFINE_string(
     "input_model_path",
     None,
@@ -57,10 +56,10 @@ _OUTPUT_MODEL_PATH = flags.DEFINE_string(
 
 def main(_) -> None:
   output_model_path = _OUTPUT_MODEL_PATH.value or (
-      _INPUT_MODEL_PATH.value.split(".tflite")[0] + "_tflm_optimized.tflite"
-  )
+      _INPUT_MODEL_PATH.value.split(".tflite")[0] + "_tflm_optimized.tflite")
 
-  logging.info("\n--Running TFLM optimizations on: %s", _INPUT_MODEL_PATH.value)
+  logging.info("\n--Running TFLM optimizations on: %s",
+               _INPUT_MODEL_PATH.value)
   tflm_model_transforms_lib.run_all_transformations(
       _INPUT_MODEL_PATH.value,
       output_model_path,
