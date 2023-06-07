@@ -118,7 +118,6 @@ py_library(
     ],
 )
 
-
 py_library(
     name = "tflm_model_transforms_lib",
     srcs = ["tflm_model_transforms_lib.py"],
@@ -128,19 +127,17 @@ py_library(
     srcs_version = "PY3",
     visibility = [
         ":tflm_tools",
-        # TODO(b/285021986): properly fix visibility, won't work as is
-        ":audio_frontend_friends",
+        "//:__subpackages__",
     ],
     deps = [
         ":model_transforms_utils",
-        "//tensorflow/lite/tools:flatbuffer_utils",
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl/logging",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],
 )
-
 
 py_binary(
     name = "tflm_model_transforms",
@@ -165,8 +162,8 @@ py_test(
     python_version = "PY3",
     tags = [
         "noasan",
-        "noubsan",
         "nomsan",
+        "noubsan",
     ],
     deps = [
         ":tflm_model_transforms_lib",
