@@ -16,7 +16,7 @@ def py_tflm_signal_library(
     <name>_cc
         C++ library that registers any c++ ops in `cc_op_defs`, and includes the
         kernels from `cc_op_kernels`.
-    python/ops/_<name>.so
+    ops/_<name>.so
         Shared library exposing the <name>_cc library.
     Args:
       name: The name for the python library target build by this rule.
@@ -27,13 +27,13 @@ def py_tflm_signal_library(
       cc_op_kernels: A list of c++ targets containing kernels that are used
           by the Python library.
     """
-    binary_path = "python/ops"
+    binary_path = "ops"
     if srcs:
         binary_path_end_pos = srcs[0].rfind("/")
         binary_path = srcs[0][0:binary_path_end_pos]
     binary_name = binary_path + "/_" + cc_op_kernels[0][1:] + ".so"
     if cc_op_defs:
-        binary_name = binary_path + "/_" + name + ".so"
+        binary_name = "_" + name + ".so"
         library_name = name + "_cc"
         native.cc_library(
             name = library_name,

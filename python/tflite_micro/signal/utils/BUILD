@@ -3,7 +3,7 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [
-        "//signal:__subpackages__",
+        "//python/tflite_micro/signal:__subpackages__",
     ],
     licenses = ["notice"],
 )

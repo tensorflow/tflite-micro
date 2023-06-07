@@ -15,7 +15,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "signal/micro/kernels/register_signal_ops.h"
 #include "signal/micro/kernels/window_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"

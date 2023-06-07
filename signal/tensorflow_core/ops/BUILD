@@ -6,10 +6,9 @@ package(
 )
 
 tflm_signal_kernel_library(
-    name = "window_kernel",
-    srcs = ["window_kernel.cc"],
+    name = "window_op",
+    srcs = ["window_op.cc"],
     deps = [
-        "//signal/src:window",
         "@tensorflow_cc_deps//:cc_library",
     ],
 )

@@ -50,7 +50,7 @@ $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
 
 $(eval $(call microlite_test,kernel_window_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/window_test.cc \
-  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.cc
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.h))
 
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),

@@ -20,8 +20,8 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.platform import resource_loader
-from tflite_micro.signal.python.ops import window_op
-from tflite_micro.signal.python.utils import util
+from tflite_micro.python.tflite_micro.signal.ops import window_op
+from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class WindowOpTest(tf.test.TestCase):
