@@ -63,6 +63,12 @@ pybind_extension(
     ],
 )
 
+# tflm_runtime is deprecated, please use runtime instead.
+alias (
+    name = "tflm_runtime",
+    actual = ":runtime"
+)
+
 py_library(
     name = "runtime",
     srcs = [
