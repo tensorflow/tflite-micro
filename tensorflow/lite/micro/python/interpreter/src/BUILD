@@ -64,7 +64,7 @@ pybind_extension(
 )
 
 # tflm_runtime is deprecated, please use runtime instead.
-alias (
+alias(
     name = "tflm_runtime",
     actual = ":runtime",
     visibility = ["//visibility:public"],
