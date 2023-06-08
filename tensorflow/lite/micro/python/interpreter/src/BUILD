@@ -39,19 +39,18 @@ cc_library(
     ],
 )
 
-# Append _lib at the end to avoid naming collision with the extension below
-# because internal tool appends a _pybind suffix.
-pybind_library(
-    name = "interpreter_wrapper_lib",
+pybind_extension(
+    name = "interpreter_wrapper_pybind",
+    # target = interpreter_wrapper_pybind.so because pybind_extension()
+    # appends suffix.
     srcs = [
         "interpreter_wrapper.cc",
-        "numpy_utils.cc",
-        "python_utils.cc",
-    ],
-    hdrs = [
         "interpreter_wrapper.h",
+        "interpreter_wrapper_pybind.cc",
+        "numpy_utils.cc",
         "numpy_utils.h",
         "pybind11_lib.h",
+        "python_utils.cc",
         "python_utils.h",
         "shared_library.h",
     ],
@@ -61,18 +60,6 @@ pybind_library(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "@numpy_cc_deps//:cc_headers",
-    ],
-)
-
-# pybind_extension() appends ".so" to "name" so the actual target name contains
-# the ".so" suffix
-pybind_extension(
-    name = "interpreter_wrapper_pybind",
-    srcs = [
-        "interpreter_wrapper_pybind.cc",
-    ],
-    deps = [
-        ":interpreter_wrapper_lib",
     ],
 )
 
