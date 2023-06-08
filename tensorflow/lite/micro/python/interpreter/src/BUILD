@@ -63,10 +63,23 @@ pybind_extension(
     ],
 )
 
-py_library(
+# tflm_runtime is deprecated, please use runtime instead.
+# TODO(b/286456378): remove the alias once all usage is change to the runtime
+# target.
+alias(
     name = "tflm_runtime",
-    srcs = ["tflm_runtime.py"],
-    data = [":interpreter_wrapper_pybind.so"],
+    actual = ":runtime",
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "runtime",
+    srcs = [
+        "runtime.py",
+    ],
+    data = [
+        ":interpreter_wrapper_pybind.so",
+    ],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [

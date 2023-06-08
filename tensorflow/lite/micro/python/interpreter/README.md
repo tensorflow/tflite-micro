@@ -13,7 +13,7 @@ in near future by installing a PyPi package.
 #### Build
 
 The only package that needs to be included in the `BUILD` file is
-`//tensorflow/lite/micro/python/interpreter/src:tflm_runtime`. It contains all
+`//tensorflow/lite/micro/python/interpreter/src:runtime`. It contains all
 the correct dependencies to build the Python interpreter.
 
 ### PyPi
@@ -34,13 +34,13 @@ bytearray format or file format.
 
 ```
 # For the Bazel workflow
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 
 # If model is a bytearray
-tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 # If model is a file
-tflm_interpreter = tflm_runtime.Interpreter.from_file(model_filepath)
+tflm_interpreter = runtime.Interpreter.from_file(model_filepath)
 
 # Run inference on TFLM using an ndarray `data_x`
 tflm_interpreter.set_input(data_x, 0)
@@ -62,7 +62,7 @@ expose an evolving set of C++ APIs. The Bazel build leverages the
 [pybind11_bazel extension](https://github.com/pybind/pybind11_bazel).
 
 The most updated Python APIs can be found in
-`tensorflow/lite/micro/python/interpreter/src/tflm_runtime.py`.
+`tensorflow/lite/micro/python/interpreter/src/runtime.py`.
 
 ## Custom Ops
 
@@ -116,7 +116,7 @@ in the target that calls the Python interpreter with custom ops.
 For example,
 
 ```
-interpreter = tflm_runtime.Interpreter.from_file(
+interpreter = runtime.Interpreter.from_file(
     model_path=model_path,
     custom_op_registerers=['SomeCustomRegisterer'])
 ```
@@ -152,7 +152,7 @@ will print
 
 10016 bytes is the actual memory arena size.
 
-During instantiation via the class methods `tflm_runtime.Interpreter.from_file`
-or `tflm_runtime.Interpreter.from_bytes`, if `arena_size` is not explicitly
+During instantiation via the class methods `runtime.Interpreter.from_file`
+or `runtime.Interpreter.from_bytes`, if `arena_size` is not explicitly
 specified, the interpreter will default to a heuristic which is 10x the model
 size. This can be adjusted manually if desired.

@@ -17,7 +17,7 @@ import numpy as np
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.examples.recipes import resource_variables_lib
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 
 class ResourceVariablesTest(test_util.TensorFlowTestCase):
@@ -27,7 +27,7 @@ class ResourceVariablesTest(test_util.TensorFlowTestCase):
   # (variable value), to be accumulated by 5.0 each invoke.
   def test_resource_variables_model(self):
     model_keras = resource_variables_lib.get_model_from_keras()
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_keras)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_keras)
 
     tflm_interpreter.set_input([[True]], 0)
     tflm_interpreter.set_input([np.full((100,), 15.0, dtype=np.float32)], 1)

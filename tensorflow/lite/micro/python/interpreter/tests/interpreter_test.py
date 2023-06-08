@@ -30,7 +30,7 @@ import tensorflow as tf
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 
 class ConvModelTests(test_util.TensorFlowTestCase):
@@ -41,11 +41,11 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   def testInitErrorHandling(self):
     with self.assertRaisesWithPredicateMatch(ValueError,
                                              "Invalid model file path"):
-      tflm_runtime.Interpreter.from_file("wrong.tflite")
+      runtime.Interpreter.from_file("wrong.tflite")
 
   def testInput(self):
     model_data = generate_test_models.generate_conv_model(False)
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
     tflm_interpreter.set_input(data_x, 0)
@@ -68,7 +68,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
   def testInputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
     # Try to access out of bound data
@@ -96,7 +96,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
   def testOutput(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     # Initial output values are all 0
     output = tflm_interpreter.get_output(0)
@@ -121,7 +121,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
   def testOutputErrorHandling(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
     # Try to access out of bound data
     with self.assertRaisesWithPredicateMatch(IndexError,
                                              "Tensor is out of bound"):
@@ -134,7 +134,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
     # TFLM interpreter
-    tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     # TFLite interpreter
     tflite_interpreter = tf.lite.Interpreter(
@@ -169,8 +169,8 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   def _helperModelFromFileAndBufferEqual(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
 
-    file_interpreter = tflm_runtime.Interpreter.from_file(self.filename)
-    bytes_interpreter = tflm_runtime.Interpreter.from_bytes(model_data)
+    file_interpreter = runtime.Interpreter.from_file(self.filename)
+    bytes_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     num_steps = 100
     for i in range(0, num_steps):
@@ -198,7 +198,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(False)
 
     interpreters = [
-        tflm_runtime.Interpreter.from_bytes(model_data) for i in range(10)
+        runtime.Interpreter.from_bytes(model_data) for i in range(10)
     ]
 
     num_steps = 100
@@ -221,7 +221,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     pass
 
   def _helperOutputTensorMemoryLeak(self):
-    interpreter = tflm_runtime.Interpreter.from_file(self.filename)
+    interpreter = runtime.Interpreter.from_file(self.filename)
     int_ref = weakref.finalize(interpreter, self._helperNoop)
     some_output = interpreter.get_output(0)
     output_ref = weakref.finalize(some_output, self._helperNoop)
@@ -250,22 +250,22 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     custom_op_registerers = [("wrong", "format")]
     with self.assertRaisesWithPredicateMatch(ValueError,
                                              "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = runtime.Interpreter.from_bytes(model_data,
+                                                   custom_op_registerers)
 
     custom_op_registerers = "WrongFormat"
     with self.assertRaisesWithPredicateMatch(ValueError,
                                              "must be a list of strings"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = runtime.Interpreter.from_bytes(model_data,
+                                                   custom_op_registerers)
 
   def testNonExistentCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = ["SomeRandomOp"]
     with self.assertRaisesWithPredicateMatch(
         RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
-      interpreter = tflm_runtime.Interpreter.from_bytes(
-          model_data, custom_op_registerers)
+      interpreter = runtime.Interpreter.from_bytes(model_data,
+                                                   custom_op_registerers)
 
 
 if __name__ == "__main__":

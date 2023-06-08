@@ -26,6 +26,8 @@ py_test(
     ],
     deps = [
         ":resource_variables_lib",
+        # TODO(b/286456378): update tflm_runtime to runtime when we are ready to
+        # remove the alias.
         "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
     ],
 )
