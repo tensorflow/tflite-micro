@@ -64,6 +64,8 @@ pybind_extension(
 )
 
 # tflm_runtime is deprecated, please use runtime instead.
+# TODO(b/286456378): remove the alias once all usage is change to the runtime
+# target.
 alias(
     name = "tflm_runtime",
     actual = ":runtime",
