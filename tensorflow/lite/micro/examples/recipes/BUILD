@@ -26,6 +26,6 @@ py_test(
     ],
     deps = [
         ":resource_variables_lib",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
     ],
 )

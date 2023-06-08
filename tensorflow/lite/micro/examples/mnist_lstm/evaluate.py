@@ -28,7 +28,7 @@ from absl import logging
 import numpy as np
 from PIL import Image
 
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 FLAGS = flags.FLAGS
 
@@ -113,7 +113,7 @@ def predict(interpreter, data):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
-      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      interpreter (runtime.Interpreter): the TFLM python interpreter
       data (np.array): data to be predicted
 
   Returns:
@@ -141,7 +141,7 @@ def predict_image(interpreter, image_path):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
-      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      interpreter (runtime.Interpreter): the TFLM python interpreter
       image_path (str): path for the image that need to be tested
 
   Returns:
@@ -158,7 +158,7 @@ def main(_):
   if not os.path.exists(FLAGS.img_path):
     raise ValueError("Image file does not exist. Please check the image path.")
 
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
+  tflm_interpreter = runtime.Interpreter.from_file(FLAGS.model_path)
   category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
   predicted_category = np.argmax(category_probabilities)
   logging.info("Model predicts the image as %i with probability %.2f",

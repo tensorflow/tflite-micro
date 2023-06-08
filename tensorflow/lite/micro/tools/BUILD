@@ -59,7 +59,7 @@ py_test(
     ],
     deps = [
         ":requantize_flatbuffer",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],

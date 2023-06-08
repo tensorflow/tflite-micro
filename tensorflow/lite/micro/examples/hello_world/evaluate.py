@@ -19,7 +19,7 @@ from absl import flags
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.python.platform import resource_loader
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'use_tflite',
@@ -73,7 +73,7 @@ def generate_random_float_input(sample_count=1000):
 # returns the prediction of the interpreter.
 def get_tflm_prediction(model_path, x_values):
   # Create the tflm interpreter
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
+  tflm_interpreter = runtime.Interpreter.from_file(model_path)
 
   input_shape = np.array(tflm_interpreter.get_input_details(0).get('shape'))
 

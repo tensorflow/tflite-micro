@@ -15,7 +15,7 @@ py_binary(
     srcs = ["evaluate.py"],
     srcs_version = "PY3",
     deps = [
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "@absl_py//absl:app",
     ],
 )

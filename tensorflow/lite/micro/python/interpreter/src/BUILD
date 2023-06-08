@@ -64,9 +64,13 @@ pybind_extension(
 )
 
 py_library(
-    name = "tflm_runtime",
-    srcs = ["tflm_runtime.py"],
-    data = [":interpreter_wrapper_pybind.so"],
+    name = "runtime",
+    srcs = [
+        "runtime.py",
+    ],
+    data = [
+        ":interpreter_wrapper_pybind.so",
+    ],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
