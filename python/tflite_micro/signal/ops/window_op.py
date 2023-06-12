@@ -16,12 +16,9 @@
 
 import numpy as np
 import tensorflow as tf
+from tflite_micro.python.tflite_micro.signal.utils import util
 
-from tensorflow.python.framework import load_library
-from tensorflow.python.platform import resource_loader
-
-gen_window_op = load_library.load_op_library(
-    resource_loader.get_path_to_datafile('_window_op.so'))
+gen_window_op = util.load_custom_op('window')
 
 
 def hann_window_weights(window_length, shift, dtype=np.int16):

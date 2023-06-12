@@ -13,9 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 """Python utility functions."""
-import os
-
 import tensorflow as tf
+from tensorflow.python.framework import load_library
+from tensorflow.python.platform import resource_loader
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
 
@@ -35,3 +35,7 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
   tflite_model = converter.convert()
 
   return tflm_runtime.Interpreter.from_bytes(tflite_model, arena_size=500000)
+
+def load_custom_op(name):
+  return load_library.load_op_library(
+    resource_loader.get_path_to_datafile('../ops/_' + name + '_op.so'))
