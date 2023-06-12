@@ -40,13 +40,12 @@ cc_library(
 )
 
 pybind_extension(
-    name = "interpreter_wrapper_pybind",
-    # target = interpreter_wrapper_pybind.so because pybind_extension()
-    # appends suffix.
+    name = "_runtime",
+    # target = _runtime.so because pybind_extension() appends suffix
     srcs = [
+        "_runtime.cc",
         "interpreter_wrapper.cc",
         "interpreter_wrapper.h",
-        "interpreter_wrapper_pybind.cc",
         "numpy_utils.cc",
         "numpy_utils.h",
         "pybind11_lib.h",
@@ -78,7 +77,7 @@ py_library(
         "runtime.py",
     ],
     data = [
-        ":interpreter_wrapper_pybind.so",
+        ":_runtime.so",
     ],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
