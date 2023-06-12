@@ -348,6 +348,7 @@ class WindowOpTest(tf.test.TestCase):
         tf.TensorSpec(input_size, dtype=tf.int16),
         tf.TensorSpec(input_size, dtype=tf.int16),
         shift=shift)
+    # TODO(b/286252893): make test more robust (vs scipy)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>

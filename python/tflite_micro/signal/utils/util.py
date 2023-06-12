@@ -18,7 +18,7 @@ import os
 import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
 
-
+# TODO(b/286889497): find better name and place for this function.
 def get_tflm_interpreter(concrete_function, trackable_obj):
   """Initialize a TFLite interpreter with a concerte function.
 

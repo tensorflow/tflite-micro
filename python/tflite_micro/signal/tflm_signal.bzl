@@ -1,6 +1,6 @@
-#load("@tflm_pip_deps//:requirements.bzl", "requirement")
-#load("@tensorflow_cc_deps//:tensorflow.bzl", "tf_gen_op_wrapper_py")
+"""Build rule for wrapping a custom TF OP from .cc to python."""
 
+# TODO(b/286890280): refactor to be more generic build target for any custom OP
 def py_tflm_signal_library(
         name,
         srcs = [],
