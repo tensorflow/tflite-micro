@@ -1,4 +1,4 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
@@ -39,19 +39,17 @@ cc_library(
     ],
 )
 
-# Append _lib at the end to avoid naming collision with the extension below
-# because internal tool appends a _pybind suffix.
-pybind_library(
-    name = "interpreter_wrapper_lib",
+pybind_extension(
+    name = "_runtime",
+    # target = _runtime.so because pybind_extension() appends suffix
     srcs = [
+        "_runtime.cc",
         "interpreter_wrapper.cc",
-        "numpy_utils.cc",
-        "python_utils.cc",
-    ],
-    hdrs = [
         "interpreter_wrapper.h",
+        "numpy_utils.cc",
         "numpy_utils.h",
         "pybind11_lib.h",
+        "python_utils.cc",
         "python_utils.h",
         "shared_library.h",
     ],
@@ -64,22 +62,23 @@ pybind_library(
     ],
 )
 
-# pybind_extension() appends ".so" to "name" so the actual target name contains
-# the ".so" suffix
-pybind_extension(
-    name = "interpreter_wrapper_pybind",
-    srcs = [
-        "interpreter_wrapper_pybind.cc",
-    ],
-    deps = [
-        ":interpreter_wrapper_lib",
-    ],
-)
-
+# tflm_runtime is deprecated, please use runtime instead.
+# TODO(b/286456378): remove once all usage is changed to the runtime target.
 py_library(
     name = "tflm_runtime",
     srcs = ["tflm_runtime.py"],
-    data = [":interpreter_wrapper_pybind.so"],
+    visibility = ["//visibility:public"],
+    deps = [":runtime"],
+)
+
+py_library(
+    name = "runtime",
+    srcs = [
+        "runtime.py",
+    ],
+    data = [
+        ":_runtime.so",
+    ],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [

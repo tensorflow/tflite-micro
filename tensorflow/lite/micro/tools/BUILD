@@ -65,12 +65,12 @@ py_test(
     python_version = "PY3",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
     deps = [
         ":requantize_flatbuffer",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],
