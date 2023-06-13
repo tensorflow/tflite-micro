@@ -16,8 +16,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/binary_function.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/op_macros.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logical.h"
+#include "tensorflow/lite/micro/kernels/micro_kernel_util.h"
 
 namespace tflite {
 

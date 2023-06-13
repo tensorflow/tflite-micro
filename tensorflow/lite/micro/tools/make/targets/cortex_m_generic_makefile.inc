@@ -33,21 +33,26 @@ else ifeq ($(TARGET_ARCH), cortex-m0plus)
 else ifeq ($(TARGET_ARCH), cortex-m3)
   CORE=M3
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M3
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_DSP -DTARGET_CPU=cortex-m3
 
 else ifeq ($(TARGET_ARCH), cortex-m33)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33
   CMSIS_ARM_FEATURES := _DSP_FP
+  TARGET_SPECIFIC_FLAGS += -D__DSP_PRESENT=1 -D__FPU_PRESENT=1 -D__VTOR_PRESENT=1 -D__FPU_USED=1
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_DSP -DTARGET_CPU=cortex-m33
   FLOAT=hard
 
 else ifeq ($(TARGET_ARCH), cortex-m33+nodsp)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33.no_dsp.no_fp
+  TARGET_SPECIFIC_FLAGS += -DTARGET_CPU=cortex-m33
 
 else ifeq ($(TARGET_ARCH), cortex-m4)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4.no_fp
   GCC_TARGET_ARCH := cortex-m4+nofp
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_DSP -DTARGET_CPU=cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CORE=M4
@@ -55,18 +60,22 @@ else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CMSIS_ARM_FEATURES := _FP
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m4
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_DSP -DTARGET_CPU=cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
   CMSIS_ARM_FEATURES := _FP
+  TARGET_SPECIFIC_FLAGS += -D__FPU_PRESENT=1 -mfpu=fpv4-sp-d16
   FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_DSP -DTARGET_CPU=cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
   FLOAT=hard
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_MVEI -DTARGET_CPU=cortex-m55
 
 else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
   CORE=M55
@@ -75,6 +84,8 @@ else ifeq ($(TARGET_ARCH), cortex-m55+nodsp+nofp)
 else ifeq ($(TARGET_ARCH), cortex-m55+nofp)
   CORE=M55
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.no_fp
+  TARGET_SPECIFIC_FLAGS += -D__DSP_PRESENT=1
+  TARGET_SPECIFIC_FLAGS += -DARM_MATH_MVEI -DTARGET_CPU=cortex-m55
 
 else ifeq ($(TARGET_ARCH), cortex-m7)
   CORE=M7
@@ -162,6 +173,7 @@ else ifeq ($(TOOLCHAIN), gcc)
   CXXFLAGS += $(FLAGS_GCC)
   CCFLAGS += $(FLAGS_GCC)
 
+
 else
   $(error "TOOLCHAIN=$(TOOLCHAIN) is not supported.")
 endif
@@ -190,6 +202,20 @@ endif
 # Common + C/C++ flags
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
+
+ifeq ($(OPTIMIZED_KERNEL_DIR), cmsis_nn)
+  CCFLAGS += \
+    -I./CMSIS/Core/Include/ \
+    -I./CMSIS/DSP/Include/ \
+    -I./CMSIS/NN/Include/ 
+
+  CXXFLAGS += \
+    -I./CMSIS/Core/Include/ \
+    -I./CMSIS/DSP/Include/ \
+    -I./CMSIS/NN/Include/ 
+
+endif
+
 
 # Needed for the project generation interface.
 MICROLITE_CC_HDRS += \

@@ -1,0 +1,8 @@
+{
+  "model_path": "../../hello_world/model.cc",
+  "test_data": [
+    [
+      0.5
+    ]
+  ]
+}

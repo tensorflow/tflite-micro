@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/micro_kernel_util.h"
 #include "tensorflow/lite/micro/kernels/quantize.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #ifdef MCPS_MEASUREMENT
