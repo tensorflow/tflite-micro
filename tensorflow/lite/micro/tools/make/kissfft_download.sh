@@ -59,7 +59,7 @@ else
 
   pushd ${DOWNLOADED_KISSFFT_PATH} > /dev/null
   create_git_repo ./
-  apply_patch_to_folder ./ ../../kissfft.patch "TFLM patch"
+  apply_patch_to_folder ./ ../../../../../../../third_party/kissfft/kissfft.patch "TFLM patch"
   popd > /dev/null
 fi
 

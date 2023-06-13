@@ -15,7 +15,7 @@ py_binary(
     srcs = ["evaluate.py"],
     srcs_version = "PY3",
     deps = [
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "@absl_py//absl:app",
     ],
 )
@@ -37,7 +37,7 @@ py_test(
     python_version = "PY3",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
     deps = [
