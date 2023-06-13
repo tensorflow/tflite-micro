@@ -40,8 +40,6 @@ EXCLUDED_TESTS := \
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
-
-
 # This disables the "linker relaxation" optimization, which produced incorrect code.
 # TODO(b/279805615): Check whether this is fixed in newer versions of the toolchain.
 LDFLAGS += -mno-relax
