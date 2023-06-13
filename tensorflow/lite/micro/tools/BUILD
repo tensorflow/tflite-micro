@@ -109,7 +109,8 @@ py_library(
     srcs_version = "PY3",
     visibility = [
         ":tflm_tools",
-        # TODO(b/285021986): properly fix visibility
+        # TODO(b/285021986): see http://b/285021986#comment2 for details on
+        # what is needed to fix the visibility.
         ":audio_frontend_friends",
     ],
     deps = [
