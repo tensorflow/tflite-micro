@@ -1,0 +1,116 @@
+diff --git a/_kiss_fft_guts.h b/_kiss_fft_guts.h
+index ba66144..1a0f4c2 100644
+--- a/_kiss_fft_guts.h
++++ b/_kiss_fft_guts.h
+@@ -1,3 +1,6 @@
++#ifndef _KISS_FFT_GUTS_H
++#define _KISS_FFT_GUTS_H
++
+ /*
+ Copyright (c) 2003-2010, Mark Borgerding
+ 
+@@ -135,7 +138,7 @@ struct kiss_fft_state{
+ #else
+ #  define KISS_FFT_COS(phase) (kiss_fft_scalar) cos(phase)
+ #  define KISS_FFT_SIN(phase) (kiss_fft_scalar) sin(phase)
+-#  define HALF_OF(x) ((x)*.5)
++#  define HALF_OF(x) ((x)*(kiss_fft_scalar).5)
+ #endif
+ 
+ #define  kf_cexp(x,phase) \
+@@ -162,3 +165,4 @@ struct kiss_fft_state{
+ #define  KISS_FFT_TMP_ALLOC(nbytes) KISS_FFT_MALLOC(nbytes)
+ #define  KISS_FFT_TMP_FREE(ptr) KISS_FFT_FREE(ptr)
+ #endif
++#endif // _KISS_FFT_GUTS_H
+diff --git a/kiss_fft.c b/kiss_fft.c
+index 465d6c9..9133a01 100644
+--- a/kiss_fft.c
++++ b/kiss_fft.c
+@@ -375,7 +375,7 @@ void kiss_fft_stride(kiss_fft_cfg st,const kiss_fft_cpx *fin,kiss_fft_cpx *fout,
+         //It just performs an out-of-place FFT into a temp buffer
+         kiss_fft_cpx * tmpbuf = (kiss_fft_cpx*)KISS_FFT_TMP_ALLOC( sizeof(kiss_fft_cpx)*st->nfft);
+         kf_work(tmpbuf,fin,1,in_stride, st->factors,st);
+-        memcpy(fout,tmpbuf,sizeof(kiss_fft_cpx)*st->nfft);
++        /* memcpy(fout,tmpbuf,sizeof(kiss_fft_cpx)*st->nfft); */
+         KISS_FFT_TMP_FREE(tmpbuf);
+     }else{
+         kf_work( fout, fin, 1,in_stride, st->factors,st );
+diff --git a/kiss_fft.h b/kiss_fft.h
+index 64c50f4..24e4d0c 100644
+--- a/kiss_fft.h
++++ b/kiss_fft.h
+@@ -7,7 +7,7 @@
+ #include <string.h>
+ 
+ #ifdef __cplusplus
+-extern "C" {
++extern "C++" {
+ #endif
+ 
+ /*
+@@ -29,13 +29,13 @@ extern "C" {
+ #define KISS_FFT_MALLOC(nbytes) _mm_malloc(nbytes,16)
+ #define KISS_FFT_FREE _mm_free
+ #else	
+-#define KISS_FFT_MALLOC malloc
+-#define KISS_FFT_FREE free
++#define KISS_FFT_MALLOC(X) (void*)(0x0) /* Patched. */
++#define KISS_FFT_FREE(X) /* Patched. */
+ #endif	
+ 
+ 
+ #ifdef FIXED_POINT
+-#include <sys/types.h>	
++#include <stdint.h> /* Patched. */
+ # if (FIXED_POINT == 32)
+ #  define kiss_fft_scalar int32_t
+ # else	
+diff --git a/tools/kiss_fftr.c b/tools/kiss_fftr.c
+index b8e238b..0d22a04 100644
+--- a/tools/kiss_fftr.c
++++ b/tools/kiss_fftr.c
+@@ -31,7 +31,7 @@ kiss_fftr_cfg kiss_fftr_alloc(int nfft,int inverse_fft,void * mem,size_t * lenme
+     size_t subsize, memneeded;
+ 
+     if (nfft & 1) {
+-        fprintf(stderr,"Real FFT optimization must be even.\n");
++        /* fprintf(stderr,"Real FFT optimization must be even.\n"); */
+         return NULL;
+     }
+     nfft >>= 1;
+@@ -71,8 +71,8 @@ void kiss_fftr(kiss_fftr_cfg st,const kiss_fft_scalar *timedata,kiss_fft_cpx *fr
+     kiss_fft_cpx fpnk,fpk,f1k,f2k,tw,tdc;
+ 
+     if ( st->substate->inverse) {
+-        fprintf(stderr,"kiss fft usage error: improper alloc\n");
+-        exit(1);
++        /* fprintf(stderr,"kiss fft usage error: improper alloc\n"); */
++        return; /* exit(1); */
+     }
+ 
+     ncfft = st->substate->nfft;
+@@ -126,8 +126,8 @@ void kiss_fftri(kiss_fftr_cfg st,const kiss_fft_cpx *freqdata,kiss_fft_scalar *t
+     int k, ncfft;
+ 
+     if (st->substate->inverse == 0) {
+-        fprintf (stderr, "kiss fft usage error: improper alloc\n");
+-        exit (1);
++        /* fprintf (stderr, "kiss fft usage error: improper alloc\n"); */
++        return; /* exit (1); */
+     }
+ 
+     ncfft = st->substate->nfft;
+diff --git a/tools/kiss_fftr.h b/tools/kiss_fftr.h
+index 72e5a57..b888a28 100644
+--- a/tools/kiss_fftr.h
++++ b/tools/kiss_fftr.h
+@@ -3,7 +3,7 @@
+ 
+ #include "kiss_fft.h"
+ #ifdef __cplusplus
+-extern "C" {
++extern "C++" {
+ #endif
+ 
+     
