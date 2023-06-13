@@ -16,9 +16,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/model_runner/output_handler.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_api.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/micro_log.h"
 // clang-format off
 //FILL_MICRO_MUTABLE_OPS_RESOLVER_HEADER
 // clang-format on
@@ -36,43 +37,38 @@ TfLiteTensor* model_output = nullptr;
 // The name of this function is important for Arduino compatibility.
 int micro_model_setup(const void* model_data, int kTensorArenaSize,
                       uint8_t* tensor_arena) {
-  // Set up logging. Google style is to avoid globals or statics because of
-  // lifetime uncertainty, but since this has a trivial destructor it's okay.
-  static tflite::MicroErrorReporter micro_error_reporter;  // NOLINT
-  error_reporter = &micro_error_reporter;
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    TF_LITE_REPORT_ERROR(error_reporter,
-                         "Model provided is schema version %d not equal "
+    MicroPrintf("Model provided is schema version %d not equal "
                          "to supported version %d.",
                          model->version(), TFLITE_SCHEMA_VERSION);
     return 1;
   }
-  TF_LITE_REPORT_ERROR(error_reporter, "Create Interpretor");
+  MicroPrintf("Create Interpretor");
 
   // clang-format off
   //FILL_MICRO_MUTABLE_OPS_RESOLVER
   // clang-format on
 
   static tflite::MicroInterpreter static_interpreter(
-      model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
+      model, micro_op_resolver, tensor_arena, kTensorArenaSize);
   interpreter = &static_interpreter;
 
-  TF_LITE_REPORT_ERROR(error_reporter, "Allocate Tensor Arena");
+  MicroPrintf("Allocate Tensor Arena");
 
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
 
   if (allocate_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Allocate failed for tensor size %d",
+    MicroPrintf("Allocate failed for tensor size %d",
                          kTensorArenaSize);
     return 2;
   }
 
-  TF_LITE_REPORT_ERROR(error_reporter, "FOUND TENSOR SIZE: %d",
+  MicroPrintf("FOUND TENSOR SIZE: %d",
                        interpreter->arena_used_bytes());
 
   // Obtain pointer to the model's input tensor.
@@ -123,7 +119,7 @@ int micro_model_invoke(unsigned char* input_data, int num_inputs, float* results
   TfLiteStatus invoke_status = interpreter->Invoke();
 
   if (invoke_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed on index");
+    MicroPrintf("Invoke failed on index");
     return 1;
   }
 
@@ -150,6 +146,3 @@ int micro_model_invoke(unsigned char* input_data, int num_inputs, float* results
 
   return 0;
 }
-
-
-void* get_micro_api_error_reporter() { return error_reporter; }

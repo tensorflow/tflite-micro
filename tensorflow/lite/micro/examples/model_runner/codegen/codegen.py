@@ -44,7 +44,7 @@ def parse_all_ops(path):
     start_parsing = False
     with open(path, "r") as fid:
         for line in fid.readlines():
-            if "AllOpsResolver::AllOpsResolver()" in line:
+            if "Please keep this list of Builtin Operators in alphabetical order." in line:
                 start_parsing = True
             if "Add" in line and start_parsing:
                 s = line.lstrip()[3:-4]
@@ -58,13 +58,13 @@ def gen_model_functions(function_list, all_ops_code):
 
     M = [
         "  // Only Pull in functions that are needed by the model",
-        "  static tflite::MicroMutableOpResolver<{}> resolver;".format(
+        "  static tflite::MicroMutableOpResolver<{}> micro_op_resolver;".format(
             len(function_list)
         ),
     ]
 
     # template = "  resolver.AddBuiltin(tflite::BuiltinOperator_{0}, tflite::ops::micro::Register_{0}());"
-    template = "    resolver.{0}"
+    template = "    micro_op_resolver.Add{0}"
 
     for function in sorted(list(function_list)):  # sort so always in same order
         print(function)
@@ -162,7 +162,7 @@ def parse_tensorflow_binary_model(model_binary):
             if activation:
                 used_functions.add(activation)
 
-    return used_functions
+    return list(set(used_functions))
 
 
 def fuzzy_match(function, micro_functions):
@@ -188,10 +188,13 @@ def gen_micro_mutable_ops_resolver_add(model, all_ops_path):
 
     micro_functions, micro_function_code = parse_all_ops(all_ops_path)
 
-    used_functions = parse_tensorflow_binary_model(model)
-
+    if model is None:
+        used_functions = micro_functions
+    else:
+        used_functions = parse_tensorflow_binary_model(model)
+    
     validate_micro_functions_available(used_functions, micro_functions)
-
+    
     return gen_model_functions(used_functions, micro_function_code)
 
 
@@ -199,16 +202,15 @@ def fill_micro_api_template_file(
     model=None,
     template_path="./micro_api.cc.tpl",
     output="../../../micro_api.cc",
-    all_ops_path="../../../all_ops_resolver.cc",
+    all_ops_path="../../../python/interpreter/src/python_ops_resolver.cc",
 ):
 
     default_template = {
-        "micro_mutable_ops_resolver": [
-            "// All functions are included in the library",
-            " static tflite::AllOpsResolver resolver;",
-        ],
+        "micro_mutable_ops_resolver": 
+             gen_micro_mutable_ops_resolver_add(None, all_ops_path)
+        ,
         "micro_mutable_ops_resolver_header": [
-            '#include "tensorflow/lite/micro/all_ops_resolver.h"'
+            '#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"'
         ],
     }
 
