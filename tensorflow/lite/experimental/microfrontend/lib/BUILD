@@ -19,7 +19,7 @@ cc_library(
         "kiss_fft_int16.h",
     ],
     deps = [
-        "@kissfft//:kiss_fftr_16",
+        "@kissfft//:kiss_fftr",
     ],
 )
 
