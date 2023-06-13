@@ -1,9 +1,20 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("//tensorflow:extra_rules.bzl", "tflm_audio_frontend_friends")
 
 package(
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],
+)
+
+package_group(
+    name = "tflm_tools",
+    packages = ["//tensorflow/lite/micro/tools/..."],
+)
+
+package_group(
+    name = "audio_frontend_friends",
+    packages = tflm_audio_frontend_friends(),
 )
 
 py_library(
@@ -86,5 +97,79 @@ py_binary(
     ],
     deps = [
         "@absl_py//absl:app",
+    ],
+)
+
+py_library(
+    name = "model_transforms_utils",
+    srcs = ["model_transforms_utils.py"],
+    data = [
+        ":tflite_flatbuffer_align_wrapper.so",
+    ],
+    srcs_version = "PY3",
+    visibility = [
+        ":tflm_tools",
+        # TODO(b/285021986): see http://b/285021986#comment2 for details on
+        # what is needed to fix the visibility.
+        ":audio_frontend_friends",
+    ],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/python:schema_util",
+    ],
+)
+
+py_library(
+    name = "tflm_model_transforms_lib",
+    srcs = ["tflm_model_transforms_lib.py"],
+    data = [
+        ":tflite_flatbuffer_align",
+    ],
+    srcs_version = "PY3",
+    visibility = [
+        ":tflm_tools",
+        "//:__subpackages__",
+    ],
+    deps = [
+        ":model_transforms_utils",
+        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/tools:flatbuffer_utils",
+        "@absl_py//absl/logging",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
+py_binary(
+    name = "tflm_model_transforms",
+    srcs = ["tflm_model_transforms.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":tflm_model_transforms_lib",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@absl_py//absl/logging",
+    ],
+)
+
+py_test(
+    name = "tflm_model_transforms_test",
+    srcs = ["tflm_model_transforms_test.py"],
+    data = [
+        "//tensorflow/lite/micro/models",
+    ],
+    main = "tflm_model_transforms_test.py",
+    python_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":tflm_model_transforms_lib",
+        "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
+        "@absl_py//absl/testing:parameterized",
+        requirement("tensorflow-cpu"),
     ],
 )
