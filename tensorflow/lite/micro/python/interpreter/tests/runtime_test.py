@@ -14,13 +14,10 @@
 # ==============================================================================
 """Basic Python test for the TFLM interpreter"""
 
-# Steps to run this test:
-#   bazel test tensorflow/lite/micro/python/interpreter/tests:interpreter_test
-#
 # Steps to debug with gdb:
-# 1. bazel build tensorflow/lite/micro/python/interpreter/tests:interpreter_test
+# 1. bazel build tensorflow/lite/micro/python/interpreter/tests:runtime_test
 # 2. gdb python
-# 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/python/interpreter/tests/interpreter_test
+# 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/python/interpreter/tests/runtime_test
 
 import gc
 import weakref
