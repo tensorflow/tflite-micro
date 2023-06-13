@@ -7,7 +7,7 @@ licenses(["notice"])  # Apache 2.0
 exports_files(["COPYING"])
 
 cc_library(
-    name = "kiss_fftr_16",
+    name = "kiss_fftr",
     srcs = [
     ],
     hdrs = [
@@ -16,8 +16,5 @@ cc_library(
         "_kiss_fft_guts.h",
         "kiss_fft.h",
         "tools/kiss_fftr.h",
-    ],
-    copts = [
-        "-DFIXED_POINT=16",
     ],
 )
