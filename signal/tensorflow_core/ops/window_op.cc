@@ -36,7 +36,7 @@ Status WindowShape(InferenceContext* c) {
   return OkStatus();
 }
 
-REGISTER_OP("Window")
+REGISTER_OP("SignalWindow")
     .Attr("shift: int")
     .Input("input: int16")
     .Input("weights: int16")

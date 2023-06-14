@@ -49,7 +49,7 @@ class WindowOp : public tensorflow::OpKernel {
   int shift_;
 };
 
-REGISTER_KERNEL_BUILDER(Name("Window").Device(tensorflow::DEVICE_CPU),
+REGISTER_KERNEL_BUILDER(Name("SignalWindow").Device(tensorflow::DEVICE_CPU),
                         WindowOp);
 
 }  // namespace signal
