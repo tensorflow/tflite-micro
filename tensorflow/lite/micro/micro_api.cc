@@ -25,7 +25,7 @@ limitations under the License.
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
-tflite::ErrorReporter* error_reporter = nullptr;
+
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* model_input = nullptr;
