@@ -20,7 +20,7 @@ import tensorflow as tf
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 from tflite_micro.tensorflow.lite.micro.examples.mnist_lstm import evaluate
 from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer
 
@@ -33,7 +33,7 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
     self.model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
     self.input_shape = (1, 28, 28)
     self.output_shape = (1, 10)
-    self.tflm_interpreter = tflm_runtime.Interpreter.from_file(self.model_path)
+    self.tflm_interpreter = runtime.Interpreter.from_file(self.model_path)
     np.random.seed(42)  #Seed the random number generator
 
   def testInputErrHandling(self):
@@ -95,7 +95,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
                                         "trained_lstm_int8.tflite")
     self.input_shape = (1, 28, 28)
     self.output_shape = (1, 10)
-    self.tflm_interpreter_quant = tflm_runtime.Interpreter.from_file(
+    self.tflm_interpreter_quant = runtime.Interpreter.from_file(
         self.int8_model_path)
     np.random.seed(42)  #Seed the random number generator
 
@@ -106,8 +106,7 @@ class LSTMInt8ModelTest(test_util.TensorFlowTestCase):
 
     # Create a float model for results comparison
     float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
-    tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
-        float_model_path)
+    tflm_interpreter_float = runtime.Interpreter.from_file(float_model_path)
 
     num_test = 10
     for _ in range(num_test):
@@ -163,7 +162,7 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
     self.int16_model = self.requantizer.model_bytearray()
     self.input_shape = (1, 28, 28)
     self.output_shape = (1, 10)
-    self.tflm_interpreter_quant = tflm_runtime.Interpreter.from_bytes(
+    self.tflm_interpreter_quant = runtime.Interpreter.from_bytes(
         self.int16_model)
     np.random.seed(42)  #Seed the random number generator
 
@@ -174,8 +173,7 @@ class LSTMInt16ModelTest(test_util.TensorFlowTestCase):
 
     # Create a float model for results comparison
     float_model_path = os.path.join(PREFIX_PATH, "trained_lstm.tflite")
-    tflm_interpreter_float = tflm_runtime.Interpreter.from_file(
-        float_model_path)
+    tflm_interpreter_float = runtime.Interpreter.from_file(float_model_path)
 
     num_test = 10
     for _ in range(num_test):
