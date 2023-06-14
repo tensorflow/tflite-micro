@@ -222,6 +222,8 @@ else ifeq ($(BUILD_TYPE), release_with_logs)
 	CXXFLAGS += -DNDEBUG
 	CCFLAGS  += -DNDEBUG
 else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
+	# TODO(b/287320282): remove the no_tf_lite_static_memory build.
+	#
 	# This build should not be used to run any binaries/tests since
 	# TF_LITE_STATIC_MEMORY should be defined for all micro builds. However,
 	# having a build without TF_LITE_STATIC_MEMORY is useful to catch errors in
