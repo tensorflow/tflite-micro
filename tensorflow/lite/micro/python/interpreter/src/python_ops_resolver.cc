@@ -117,6 +117,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddUnpack();
   AddVarHandle();
   AddWhile();
+  AddWindow();
   AddZerosLike();
 }
 

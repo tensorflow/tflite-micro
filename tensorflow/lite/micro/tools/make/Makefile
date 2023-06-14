@@ -403,6 +403,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc 
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
+$(TENSORFLOW_ROOT)signal/src/window.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc
 
 MICROLITE_TEST_HDRS := \
@@ -430,6 +432,8 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
 $(TENSORFLOW_ROOT)LICENSE \
 $(TFL_CC_HDRS)
 
