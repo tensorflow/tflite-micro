@@ -72,12 +72,10 @@ class RfftOpTest(tf.test.TestCase):
     len_lines_multiple_of_eight = int(len(lines) - len(lines) % 8) - 7
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
-    in_frames = np.array([[int(j)
-                           for j in lines[i].split()]
+    in_frames = np.array([[int(j) for j in lines[i].split()]
                           for i in range(1, len_lines_multiple_of_eight, 2)],
                          dtype=np.int16)
-    out_frames_exp = [[int(j)
-                       for j in lines[i + 1].split()]
+    out_frames_exp = [[int(j) for j in lines[i + 1].split()]
                       for i in range(1, len_lines_multiple_of_eight, 2)]
     # TFLite
     concrete_function = func.get_concrete_function(
@@ -177,30 +175,31 @@ class RfftOpTest(tf.test.TestCase):
       expected_imag_sine_bin_int32 = np.int32(round(-sine_wave_amplitude / 2))
       expected_imag_other_bins = 0
       for i in range(0, int(fft_length / 2 + 1)):
-        self.assertAlmostEqual(
-            fft_output_float[2 * i], expected_real, delta=0.1)
+        self.assertAlmostEqual(fft_output_float[2 * i],
+                               expected_real,
+                               delta=0.1)
         self.assertAlmostEqual(fft_output_int16[2 * i], expected_real, delta=2)
         self.assertAlmostEqual(fft_output_int32[2 * i], expected_real, delta=0)
         if i == sine_bin:
-          self.assertAlmostEqual(
-              fft_output_float[2 * i + 1],
-              expected_imag_sine_bin_float,
-              delta=1.3e-12)
-          self.assertAlmostEqual(
-              fft_output_int16[2 * i + 1],
-              expected_imag_sine_bin_int16,
-              delta=2)
-          self.assertAlmostEqual(
-              fft_output_int32[2 * i + 1],
-              expected_imag_sine_bin_int32,
-              delta=2)
+          self.assertAlmostEqual(fft_output_float[2 * i + 1],
+                                 expected_imag_sine_bin_float,
+                                 delta=1.3e-12)
+          self.assertAlmostEqual(fft_output_int16[2 * i + 1],
+                                 expected_imag_sine_bin_int16,
+                                 delta=2)
+          self.assertAlmostEqual(fft_output_int32[2 * i + 1],
+                                 expected_imag_sine_bin_int32,
+                                 delta=2)
         else:
-          self.assertAlmostEqual(
-              fft_output_float[2 * i + 1], expected_imag_other_bins, delta=0.35)
-          self.assertAlmostEqual(
-              fft_output_int16[2 * i + 1], expected_imag_other_bins, delta=2)
-          self.assertAlmostEqual(
-              fft_output_int32[2 * i + 1], expected_imag_other_bins, delta=1)
+          self.assertAlmostEqual(fft_output_float[2 * i + 1],
+                                 expected_imag_other_bins,
+                                 delta=0.35)
+          self.assertAlmostEqual(fft_output_int16[2 * i + 1],
+                                 expected_imag_other_bins,
+                                 delta=2)
+          self.assertAlmostEqual(fft_output_int32[2 * i + 1],
+                                 expected_imag_other_bins,
+                                 delta=1)
       fft_length = 2 * fft_length
 
   def testFftTooLarge(self):
@@ -222,7 +221,6 @@ class RfftOpTest(tf.test.TestCase):
       fft_input = np.zeros(127, dtype=dtype)
       with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
         self.evaluate(fft_ops.rfft(fft_input, 127))
-
 
   def testPow2FftLengthTest(self):
     fft_length, fft_bits = fft_ops.get_pow2_fft_length(131)

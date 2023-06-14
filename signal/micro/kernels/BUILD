@@ -48,10 +48,10 @@ cc_test(
         "fft_test.cc",
     ],
     deps = [
-        ":register_signal_ops",
         ":fft_flexbuffers_generated_data",
-        "//tensorflow/lite/c:common",
+        ":register_signal_ops",
         "//signal/testdata:fft_test_data",
+        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:kernel_runner",

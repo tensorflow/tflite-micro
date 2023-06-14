@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/rfft.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {
@@ -82,18 +82,21 @@ class RfftOp : public tensorflow::OpKernel {
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<float>("T"),
-    RfftOp<float, DT_FLOAT, RfftFloatGetNeededMemory, RfftFloatInit,
-           RfftFloatApply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<int16>("T"),
-    RfftOp<int16_t, DT_INT16, RfftInt16GetNeededMemory, RfftInt16Init,
-           RfftInt16Apply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<int32>("T"),
-    RfftOp<int32_t, DT_INT32, RfftInt32GetNeededMemory, RfftInt32Init,
-           RfftInt32Apply>);
+REGISTER_KERNEL_BUILDER(Name("SignalRfft")
+                            .Device(tensorflow::DEVICE_CPU)
+                            .TypeConstraint<float>("T"),
+                        RfftOp<float, DT_FLOAT, RfftFloatGetNeededMemory,
+                               RfftFloatInit, RfftFloatApply>);
+REGISTER_KERNEL_BUILDER(Name("SignalRfft")
+                            .Device(tensorflow::DEVICE_CPU)
+                            .TypeConstraint<int16>("T"),
+                        RfftOp<int16_t, DT_INT16, RfftInt16GetNeededMemory,
+                               RfftInt16Init, RfftInt16Apply>);
+REGISTER_KERNEL_BUILDER(Name("SignalRfft")
+                            .Device(tensorflow::DEVICE_CPU)
+                            .TypeConstraint<int32>("T"),
+                        RfftOp<int32_t, DT_INT32, RfftInt32GetNeededMemory,
+                               RfftInt32Init, RfftInt32Apply>);
 
 }  // namespace signal
 }  // namespace tensorflow

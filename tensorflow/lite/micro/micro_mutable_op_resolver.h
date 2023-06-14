@@ -450,17 +450,20 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddRfftFloat() {
     // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftFloat", tflite::tflm_signal::Register_RFFT_FLOAT());
+    return AddCustom("SignalRfftFloat",
+                     tflite::tflm_signal::Register_RFFT_FLOAT());
   }
 
   TfLiteStatus AddRfftInt16() {
     // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftInt16", tflite::tflm_signal::Register_RFFT_INT16());
+    return AddCustom("SignalRfftInt16",
+                     tflite::tflm_signal::Register_RFFT_INT16());
   }
 
   TfLiteStatus AddRfftInt32() {
     // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftInt32", tflite::tflm_signal::Register_RFFT_INT32());
+    return AddCustom("SignalRfftInt32",
+                     tflite::tflm_signal::Register_RFFT_INT32());
   }
 
   TfLiteStatus AddRound() {

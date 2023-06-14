@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <cstdio>
 
-#include "signal/testdata/fft_test_data.h"
 #include "signal/micro/kernels/fft_flexbuffers_generated_data.h"
+#include "signal/testdata/fft_test_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -108,7 +108,8 @@ TF_LITE_MICRO_TEST(RfftTestSize64Float) {
                           16384., 0, 16384., 0, 16384., 0, 16384., 0, 16384., 0,
                           16384., 0, 16384., 0, 16384., 0};
   float output[kOutputLen];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_FLOAT();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_FLOAT();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<float>(
                      input_shape, input, output_shape, golden, *registration,
@@ -132,7 +133,8 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int16) {
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0,
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0};
   int16_t output[kOutputLen];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_INT16();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_INT16();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<int16_t>(
                      input_shape, input, output_shape, golden, *registration,
@@ -155,7 +157,8 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int32) {
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0,
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0};
   int32_t output[kOutputLen];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_INT32();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_INT32();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<int32_t>(
                      input_shape, input, output_shape, golden, *registration,
@@ -200,7 +203,8 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int32OuterDims4) {
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0,
       256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0};
   int32_t output[kOuterDim * kOuterDim * kOutputLen];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_INT32();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_INT32();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<int32_t>(
                      input_shape, input, output_shape, golden, *registration,
@@ -214,7 +218,8 @@ TF_LITE_MICRO_TEST(RfftTestSize512Float) {
   int output_shape[] = {1, kOutputLen};
   // Outputs are ComplexInt16 which takes twice the space as regular int16.
   float output[kOutputLen * 2];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_FLOAT();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_FLOAT();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<float>(
                      input_shape, tflite::kRfftFloatLength512Input,
@@ -229,7 +234,8 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
   int output_shape[] = {1, kOutputLen};
   // Outputs are ComplexInt16 which takes twice the space as regular int16.
   int16_t output[kOutputLen * 2];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_INT16();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_INT16();
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::TestFFT<int16_t>(
                               input_shape, tflite::kRfftInt16Length512Input,
@@ -244,7 +250,8 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int32) {
   int output_shape[] = {1, kOutputLen};
   // Outputs are ComplexInt32 which takes twice the space as regular int32.
   int32_t output[kOutputLen * 2];
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT_INT32();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_INT32();
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::TestFFT<int32_t>(
                               input_shape, tflite::kRfftInt32Length512Input,

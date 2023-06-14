@@ -21,9 +21,9 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 namespace {

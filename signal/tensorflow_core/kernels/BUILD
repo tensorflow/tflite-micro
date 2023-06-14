@@ -10,7 +10,7 @@ tflm_signal_kernel_library(
     srcs = ["fft_kernels.cc"],
     deps = [
         "//signal/src:rfft",
-        "@tensorflow_cc_deps//:cc_library"
+        "@tensorflow_cc_deps//:cc_library",
     ],
 )
 

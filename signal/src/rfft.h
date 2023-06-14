@@ -34,13 +34,13 @@ size_t RfftInt16GetNeededMemory(int32_t fft_length);
 //  must be greater or equal to the value returned by
 //  RfftGetNeededMemory(fft_length).
 // Return the value of `state` on success or nullptr on failure
-void *RfftInt16Init(int32_t fft_length, void *state, size_t state_size);
+void* RfftInt16Init(int32_t fft_length, void* state, size_t state_size);
 
 // Applies RFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see RfftInit)
 // * `output` must be of size (`fft_length` * 2) + 1 elements
-void RfftInt16Apply(void *state, const int16_t *input,
-                    Complex<int16_t> *output);
+void RfftInt16Apply(void* state, const int16_t* input,
+                    Complex<int16_t>* output);
 
 // 32-bit Integer input/output
 
@@ -52,13 +52,13 @@ size_t RfftInt32GetNeededMemory(int32_t fft_length);
 //  must be greater or equal to the value returned by
 //  RfftGetNeededMemory(fft_length).
 // Return the value of `state` on success or nullptr on failure
-void *RfftInt32Init(int32_t fft_length, void *state, size_t state_size);
+void* RfftInt32Init(int32_t fft_length, void* state, size_t state_size);
 
 // Applies RFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see RfftInit)
 // * `output` must be of size (`fft_length` * 2) + 1 elements
-void RfftInt32Apply(void *state, const int32_t *input,
-                    Complex<int32_t> *output);
+void RfftInt32Apply(void* state, const int32_t* input,
+                    Complex<int32_t>* output);
 
 // Floating point input/output
 
@@ -70,11 +70,11 @@ size_t RfftFloatGetNeededMemory(int32_t fft_length);
 //  must be greater or equal to the value returned by
 //  RfftGetNeededMemory(fft_length).
 // Return the value of `state` on success or nullptr on failure
-void *RfftFloatInit(int32_t fft_length, void *state, size_t state_size);
+void* RfftFloatInit(int32_t fft_length, void* state, size_t state_size);
 
 // Applies RFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see RfftInit)
 // * `output` must be of size (`fft_length` * 2) + 1 elements
-void RfftFloatApply(void *state, const float *input, Complex<float> *output);
+void RfftFloatApply(void* state, const float* input, Complex<float>* output);
 
 #endif  // SIGNAL_SRC_RFFT_H_

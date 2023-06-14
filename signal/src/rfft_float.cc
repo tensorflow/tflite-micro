@@ -26,13 +26,13 @@ size_t RfftFloatGetNeededMemory(int32_t fft_length) {
   return state_size;
 }
 
-void *RfftFloatInit(int32_t fft_length, void *state, size_t state_size) {
+void* RfftFloatInit(int32_t fft_length, void* state, size_t state_size) {
   return kiss_fft_float::kiss_fftr_alloc(fft_length, 0, state, &state_size);
 }
 
-void RfftFloatApply(void *state, const float *input, Complex<float> *output) {
+void RfftFloatApply(void* state, const float* input, Complex<float>* output) {
   kiss_fft_float::kiss_fftr(
       static_cast<kiss_fft_float::kiss_fftr_cfg>(state),
-      reinterpret_cast<const kiss_fft_scalar *>(input),
-      reinterpret_cast<kiss_fft_float::kiss_fft_cpx *>(output));
+      reinterpret_cast<const kiss_fft_scalar*>(input),
+      reinterpret_cast<kiss_fft_float::kiss_fft_cpx*>(output));
 }
