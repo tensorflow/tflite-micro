@@ -188,7 +188,8 @@ PLATFORM_FLAGS = \
   -Wno-unused-private-field \
   -fomit-frame-pointer \
   -MD \
-  -DCPU_$(CORE)=1
+  -DCPU_$(CORE)=1 \
+  $(TARGET_SPECIFIC_FLAGS)
 
 # For DWT/PMU counters. Header file name is depending on target architecture.
 PLATFORM_FLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU)$(CMSIS_ARM_FEATURES).h\"

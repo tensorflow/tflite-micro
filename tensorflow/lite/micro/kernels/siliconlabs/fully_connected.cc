@@ -9,7 +9,7 @@
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/micro_kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "sl_mvp_ml_fully_connected.h"
 
 namespace tflite {

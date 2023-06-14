@@ -3,7 +3,7 @@
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
-#include "tensorflow/lite/micro/kernels/micro_kernel_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "cmsis/CMSIS/NN/Include/arm_nnfunctions.h"
 
 #include "sl_mvp_ml_conv2d.h"
