@@ -81,7 +81,7 @@ class RfftOp : public tensorflow::OpKernel {
   Tensor state_tensor_;
 };
 
-
+// TODO(b/286250473): change back name after name clash resolved
 REGISTER_KERNEL_BUILDER(
     Name("SignalRfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<float>("T"),
     RfftOp<float, DT_FLOAT, RfftFloatGetNeededMemory, RfftFloatInit,

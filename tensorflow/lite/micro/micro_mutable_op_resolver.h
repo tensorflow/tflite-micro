@@ -444,22 +444,22 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddRfft() {
-    // TODO(b/286250473): change back name to "Window" and remove namespace
+    // TODO(b/286250473): change back name and remove namespace
     return AddCustom("SignalRfft", tflite::tflm_signal::Register_RFFT());
   }
 
   TfLiteStatus AddRfftFloat() {
-    // TODO(b/286250473): change back name to "Window" and remove namespace
+    // TODO(b/286250473): change back name and remove namespace
     return AddCustom("SignalRfftFloat", tflite::tflm_signal::Register_RFFT_FLOAT());
   }
 
   TfLiteStatus AddRfftInt16() {
-    // TODO(b/286250473): change back name to "Window" and remove namespace
+    // TODO(b/286250473): change back name and remove namespace
     return AddCustom("SignalRfftInt16", tflite::tflm_signal::Register_RFFT_INT16());
   }
 
   TfLiteStatus AddRfftInt32() {
-    // TODO(b/286250473): change back name to "Window" and remove namespace
+    // TODO(b/286250473): change back name and remove namespace
     return AddCustom("SignalRfftInt32", tflite::tflm_signal::Register_RFFT_INT32());
   }
 

@@ -59,7 +59,6 @@ cc_test(
     ],
 )
 
-
 cc_library(
     name = "window_flexbuffers_generated_data",
     srcs = [

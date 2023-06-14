@@ -33,6 +33,7 @@ Status RfftShape(InferenceContext* c) {
   return OkStatus();
 }
 
+// TODO(b/286250473): change back name after name clash resolved
 REGISTER_OP("SignalRfft")
     .Attr("T: {float, int16, int32}")
     .Attr("fft_length: int >= 2")
