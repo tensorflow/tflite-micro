@@ -418,6 +418,16 @@ $(shell find $(TENSORFLOW_ROOT)tensorflow/lite -type d \( -path $(TENSORFLOW_ROO
 TFL_CC_HDRS := \
 $(shell find $(TENSORFLOW_ROOT)tensorflow/lite -type d \( -path $(TENSORFLOW_ROOT)tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)tensorflow/lite/micro \) -prune -false -o -name "*.h")
 
+ifneq ($(BUILD_TYPE), no_tf_lite_static_memory)
+  EXCLUDED_TFL_CC_SRCS := \
+  	$(TENSORFLOW_ROOT)tensorflow/lite/array.cc
+  TFL_CC_SRCS := $(filter-out $(EXCLUDED_TFL_CC_SRCS), $(TFL_CC_SRCS))
+
+  EXCLUDED_TFL_CC_HDRS := \
+  	$(TENSORFLOW_ROOT)tensorflow/lite/array.h
+  TFL_CC_HDRS := $(filter-out $(EXCLUDED_TFL_CC_HDRS), $(TFL_CC_HDRS))
+endif
+
 MICROLITE_CC_BASE_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \

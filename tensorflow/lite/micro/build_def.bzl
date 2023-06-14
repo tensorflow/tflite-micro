@@ -4,6 +4,7 @@ def micro_copts():
         "-Werror",
         "-Wnon-virtual-dtor",
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
+        "-std=c++17",
     ]
 
 def generate_cc_arrays(name, src, out, visibility = None):
