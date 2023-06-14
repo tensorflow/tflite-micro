@@ -3,7 +3,7 @@ import re
 import tensorflow as tf
 import binascii
 import json
-
+import shutil
 
 def parse_model_file(path, variable_name):
     """this will parse the hex string form a model file model_data[] = {0x18, 0x00, ....} given
@@ -323,6 +323,10 @@ def fill_class_map(
 if __name__ == "__main__":
 
     import sys
+    
+    import shutil
+    
+    shutil.copy('micro_api.h.tpl', '../../../micro_api.h')
 
     if len(sys.argv) <= 1:
         fill_micro_api_template_file()
@@ -347,3 +351,4 @@ if __name__ == "__main__":
         if params.get("test_data", None):
             fill_test_data(params["test_data"])
             print("generated test_data.h")
+            
