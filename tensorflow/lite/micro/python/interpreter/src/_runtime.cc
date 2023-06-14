@@ -22,8 +22,8 @@ limitations under the License.
 namespace py = pybind11;
 using tflite::InterpreterWrapper;
 
-PYBIND11_MODULE(interpreter_wrapper_pybind, m) {
-  m.doc() = "TFLM interpreter";
+PYBIND11_MODULE(_runtime, m) {
+  m.doc() = "TFLite Micro Runtime Extension";
 
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
       .def(py::init([](const py::bytes& data,
