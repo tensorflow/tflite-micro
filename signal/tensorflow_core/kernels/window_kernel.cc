@@ -49,7 +49,8 @@ class WindowOp : public tensorflow::OpKernel {
   int shift_;
 };
 
-REGISTER_KERNEL_BUILDER(Name("Window").Device(tensorflow::DEVICE_CPU),
+// TODO(b/286250473): change back name to "Window" after name clash resolved
+REGISTER_KERNEL_BUILDER(Name("SignalWindow").Device(tensorflow::DEVICE_CPU),
                         WindowOp);
 
 }  // namespace signal
