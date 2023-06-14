@@ -563,6 +563,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddWindow() {
+    // TODO(b/286250473): change back name to "Window" and remove namespace
     return AddCustom("SignalWindow", tflite::tflm_signal::Register_WINDOW());
   }
 
