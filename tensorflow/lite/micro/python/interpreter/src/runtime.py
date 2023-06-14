@@ -16,7 +16,7 @@
 
 import os
 
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import interpreter_wrapper_pybind
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import _runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
@@ -40,8 +40,10 @@ class Interpreter(object):
     print("Number of resource variables the model uses = ",
           num_resource_variables)
 
-    self._interpreter = interpreter_wrapper_pybind.InterpreterWrapper(
-        model_data, custom_op_registerers, arena_size, num_resource_variables)
+    self._interpreter = _runtime.InterpreterWrapper(model_data,
+                                                    custom_op_registerers,
+                                                    arena_size,
+                                                    num_resource_variables)
 
   @classmethod
   def from_file(self, model_path, custom_op_registerers=[], arena_size=None):

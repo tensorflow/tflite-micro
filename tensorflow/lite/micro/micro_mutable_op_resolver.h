@@ -562,6 +562,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_WHILE, Register_WHILE(), ParseWhile);
   }
 
+  TfLiteStatus AddWindow() {
+    // TODO(b/286250473): change back name to "Window" and remove namespace
+    return AddCustom("SignalWindow", tflite::tflm_signal::Register_WINDOW());
+  }
+
   TfLiteStatus AddZerosLike() {
     return AddBuiltin(BuiltinOperator_ZEROS_LIKE, Register_ZEROS_LIKE(),
                       ParseZerosLike);

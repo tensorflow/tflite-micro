@@ -21,7 +21,7 @@ py_test(
     srcs_version = "PY3",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
     deps = [

@@ -25,7 +25,7 @@ Work in progress.
 Depending on the workflow, the package import path may be slightly different.
 
 A simple end-to-end example is the test
-`tensorflow/lite/micro/python/interpreter/tests/interpreter_test.py:testCompareWithTFLite()`.
+`tensorflow/lite/micro/python/interpreter/tests/runtime_test.py:testCompareWithTFLite()`.
 It shows how to compare inference results between TFLite and TFLM.
 
 A basic usage of the TFLM Python interpreter looks like the following. The input
