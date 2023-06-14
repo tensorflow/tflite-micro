@@ -64,7 +64,7 @@ def gen_model_functions(function_list, all_ops_code):
     ]
 
     # template = "  resolver.AddBuiltin(tflite::BuiltinOperator_{0}, tflite::ops::micro::Register_{0}());"
-    template = "    micro_op_resolver.Add{0}"
+    template = "    micro_op_resolver.{0}"
 
     for function in sorted(list(function_list)):  # sort so always in same order
         print(function)

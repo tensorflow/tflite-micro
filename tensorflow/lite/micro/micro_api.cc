@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/examples/model_runner/output_handler.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_api.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -51,104 +50,15 @@ int micro_model_setup(const void* model_data, int kTensorArenaSize,
 
   // clang-format off
     // Only Pull in functions that are needed by the model
-  static tflite::MicroMutableOpResolver<97> micro_op_resolver;
-    micro_op_resolver.AddAddAbs();
-    micro_op_resolver.AddAddAdd();
-    micro_op_resolver.AddAddAddN();
-    micro_op_resolver.AddAddArgMax();
-    micro_op_resolver.AddAddArgMin();
-    micro_op_resolver.AddAddAssignVariable();
-    micro_op_resolver.AddAddAveragePool2D();
-    micro_op_resolver.AddAddBatchToSpaceNd();
-    micro_op_resolver.AddAddBroadcastArgs();
-    micro_op_resolver.AddAddBroadcastTo();
-    micro_op_resolver.AddAddCallOnce();
-    micro_op_resolver.AddAddCast();
-    micro_op_resolver.AddAddCeil();
-    micro_op_resolver.AddAddCircularBuffer();
-    micro_op_resolver.AddAddConcatenation();
-    micro_op_resolver.AddAddConv2D();
-    micro_op_resolver.AddAddCos();
-    micro_op_resolver.AddAddCumSum();
-    micro_op_resolver.AddAddDepthToSpace();
-    micro_op_resolver.AddAddDepthwiseConv2D();
-    micro_op_resolver.AddAddDequantize();
-    micro_op_resolver.AddAddDetectionPostprocess();
-    micro_op_resolver.AddAddDiv();
-    micro_op_resolver.AddAddElu();
-    micro_op_resolver.AddAddEqual();
-    micro_op_resolver.AddAddEthosU();
-    micro_op_resolver.AddAddExp();
-    micro_op_resolver.AddAddExpandDims();
-    micro_op_resolver.AddAddFill();
-    micro_op_resolver.AddAddFloor();
-    micro_op_resolver.AddAddFloorDiv();
-    micro_op_resolver.AddAddFloorMod();
-    micro_op_resolver.AddAddFullyConnected();
-    micro_op_resolver.AddAddGather();
-    micro_op_resolver.AddAddGatherNd();
-    micro_op_resolver.AddAddGreater();
-    micro_op_resolver.AddAddGreaterEqual();
-    micro_op_resolver.AddAddHardSwish();
-    micro_op_resolver.AddAddIf();
-    micro_op_resolver.AddAddL2Normalization();
-    micro_op_resolver.AddAddL2Pool2D();
-    micro_op_resolver.AddAddLeakyRelu();
-    micro_op_resolver.AddAddLess();
-    micro_op_resolver.AddAddLessEqual();
-    micro_op_resolver.AddAddLog();
-    micro_op_resolver.AddAddLogSoftmax();
-    micro_op_resolver.AddAddLogicalAnd();
-    micro_op_resolver.AddAddLogicalNot();
-    micro_op_resolver.AddAddLogicalOr();
-    micro_op_resolver.AddAddLogistic();
-    micro_op_resolver.AddAddMaxPool2D();
-    micro_op_resolver.AddAddMaximum();
-    micro_op_resolver.AddAddMean();
-    micro_op_resolver.AddAddMinimum();
-    micro_op_resolver.AddAddMirrorPad();
-    micro_op_resolver.AddAddMul();
-    micro_op_resolver.AddAddNeg();
-    micro_op_resolver.AddAddNotEqual();
-    micro_op_resolver.AddAddPack();
-    micro_op_resolver.AddAddPad();
-    micro_op_resolver.AddAddPadV2();
-    micro_op_resolver.AddAddPrelu();
-    micro_op_resolver.AddAddQuantize();
-    micro_op_resolver.AddAddReadVariable();
-    micro_op_resolver.AddAddReduceMax();
-    micro_op_resolver.AddAddRelu();
-    micro_op_resolver.AddAddRelu6();
-    micro_op_resolver.AddAddReshape();
-    micro_op_resolver.AddAddResizeBilinear();
-    micro_op_resolver.AddAddResizeNearestNeighbor();
-    micro_op_resolver.AddAddRound();
-    micro_op_resolver.AddAddRsqrt();
-    micro_op_resolver.AddAddSelectV2();
-    micro_op_resolver.AddAddShape();
-    micro_op_resolver.AddAddSin();
-    micro_op_resolver.AddAddSlice();
-    micro_op_resolver.AddAddSoftmax();
-    micro_op_resolver.AddAddSpaceToBatchNd();
-    micro_op_resolver.AddAddSpaceToDepth();
-    micro_op_resolver.AddAddSplit();
-    micro_op_resolver.AddAddSplitV();
-    micro_op_resolver.AddAddSqrt();
-    micro_op_resolver.AddAddSquare();
-    micro_op_resolver.AddAddSquaredDifference();
-    micro_op_resolver.AddAddSqueeze();
-    micro_op_resolver.AddAddStridedSlice();
-    micro_op_resolver.AddAddSub();
-    micro_op_resolver.AddAddSum();
-    micro_op_resolver.AddAddSvdf();
-    micro_op_resolver.AddAddTanh();
-    micro_op_resolver.AddAddTranspose();
-    micro_op_resolver.AddAddTransposeConv();
-    micro_op_resolver.AddAddUnidirectionalSequenceLSTM();
-    micro_op_resolver.AddAddUnpack();
-    micro_op_resolver.AddAddVarHandle();
-    micro_op_resolver.AddAddWhile();
-    micro_op_resolver.AddAddZerosLike();
+  static tflite::MicroMutableOpResolver<8> micro_op_resolver;
+    micro_op_resolver.AddConv2D();
+    micro_op_resolver.AddDequantize();
+    micro_op_resolver.AddFullyConnected();
+    micro_op_resolver.AddMaxPool2D();
+    micro_op_resolver.AddQuantize();
+    micro_op_resolver.AddRelu();
+    micro_op_resolver.AddReshape();
+    micro_op_resolver.AddSoftmax();
   // clang-format on
 
   static tflite::MicroInterpreter static_interpreter(

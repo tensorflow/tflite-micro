@@ -12,13 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+#include <math.h>
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/examples/model_runner/model.h"
-#include "tensorflow/lite/micro/examples/model_runner/output_handler.h"
 #include "tensorflow/lite/micro/examples/model_runner/test_data.h"
 #include "tensorflow/lite/micro/micro_api.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_log.h"
+#include <stdint.h>
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
@@ -50,9 +50,6 @@ void loop() {
   float max_value = 0.0f;
   int ret;
 
-  tflite::ErrorReporter* error_reporter =
-      (tflite::ErrorReporter*)get_micro_api_error_reporter();
-
   for (int index = 0; index < TEST_DATA_LENGTH; index++) {
     for (int i = 0; i < MODEL_OUTPUTS; i++) {
       tf_results[i] = 0.0;
@@ -61,7 +58,7 @@ void loop() {
                              MODEL_OUTPUTS);
 
     if (ret == 1) {
-      DebugLog("MODEL INVOKE FAILED\n");
+      MicroPrintf("MODEL INVOKE FAILED\n");
       return;
     }
 
@@ -74,7 +71,7 @@ void loop() {
       }
     }
     // Produce an output
-    HandleOutput(error_reporter, result_index);
+    MicroPrintf("%d", result_index);
   }
-  DebugLog("ALL_TESTS_PASSED\n");
+  MicroPrintf("ALL_TESTS_PASSED\n");
 }

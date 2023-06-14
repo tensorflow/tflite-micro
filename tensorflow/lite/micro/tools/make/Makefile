@@ -94,6 +94,8 @@ endif
 
 TEST_SCRIPT :=
 
+ALL_PROJECT_TARGETS :=
+
 MICROLITE_LIBS := -lm
 
 # For the optimized_kernel_dir, and co-processor as specified on the
@@ -602,6 +604,10 @@ ALL_SRCS := \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
 
+MICROLITE_CC_PROJ_SRCS := \
+	$(MICROLITE_CC_SRCS) \
+	$(MICROLITE_CC_KERNEL_SRCS)
+
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
 CXX := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${CXX_TOOL}
@@ -792,6 +798,8 @@ endif
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
+
+generate_projects: $(ALL_PROJECT_TARGETS)
 
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
