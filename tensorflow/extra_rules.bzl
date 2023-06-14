@@ -4,6 +4,9 @@ def tflm_kernel_friends():
 def tflm_audio_frontend_friends():
     return []
 
+def tflm_application_friends():
+    return []
+
 def tflm_signal_friends():
     return []
 

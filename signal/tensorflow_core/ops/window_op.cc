@@ -36,7 +36,8 @@ Status WindowShape(InferenceContext* c) {
   return OkStatus();
 }
 
-REGISTER_OP("Window")
+// TODO(b/286250473): change back name to "Window" after name clash resolved
+REGISTER_OP("SignalWindow")
     .Attr("shift: int")
     .Input("input: int16")
     .Input("weights: int16")
