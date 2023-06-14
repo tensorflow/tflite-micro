@@ -28,7 +28,7 @@ from absl import logging
 import numpy as np
 from PIL import Image
 
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 
 FLAGS = flags.FLAGS
 
@@ -65,7 +65,7 @@ def quantize_input_data(data, input_details):
   """quantize the input data using scale and zero point
 
   Args:
-      data (np.array in float): input data for the interpreter 
+      data (np.array in float): input data for the interpreter
       input_details : output of get_input_details from the tflm interpreter.
   """
   # Get input quantization parameters
@@ -79,10 +79,10 @@ def quantize_input_data(data, input_details):
 
 
 def dequantize_output_data(data, output_details):
-  """Dequantize the data 
+  """Dequantize the data
 
   Args:
-      data (int8 or int16): integer data that need to be dequantized 
+      data (int8 or int16): integer data that need to be dequantized
       output_details : output of get_output_details from the tflm interpreter.
   """
   output_quantization_parameters = output_details["quantization_parameters"]
@@ -95,14 +95,14 @@ def dequantize_output_data(data, output_details):
 
 
 def tflm_predict(tflm_interpreter, data):
-  """Predict using the tflm interpreter 
+  """Predict using the tflm interpreter
 
   Args:
       tflm_interpreter (Interpreter): TFLM interpreter
-      data (np.array): data that need to be predicted 
+      data (np.array): data that need to be predicted
 
   Returns:
-      prediction (np.array): predicted results from the model using TFLM interpreter 
+      prediction (np.array): predicted results from the model using TFLM interpreter
   """
   tflm_interpreter.set_input(data, 0)
   tflm_interpreter.invoke()

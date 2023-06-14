@@ -16,7 +16,7 @@
 
 import os
 
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import _runtime
+from tflite_micro.python.tflite_micro import _runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 

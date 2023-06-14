@@ -18,7 +18,7 @@ import numpy as np
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.examples.hello_world import evaluate
 
 PREFIX_PATH = resource_loader.get_path_to_datafile('')

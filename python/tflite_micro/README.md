@@ -13,7 +13,7 @@ in near future by installing a PyPi package.
 #### Build
 
 The only package that needs to be included in the `BUILD` file is
-`//tensorflow/lite/micro/python/interpreter/src:runtime`. It contains all
+`//python/tflite_micro:runtime`. It contains all
 the correct dependencies to build the Python interpreter.
 
 ### PyPi
@@ -25,7 +25,7 @@ Work in progress.
 Depending on the workflow, the package import path may be slightly different.
 
 A simple end-to-end example is the test
-`tensorflow/lite/micro/python/interpreter/tests/runtime_test.py:testCompareWithTFLite()`.
+`python/tflite_micro/runtime_test.py:testCompareWithTFLite()`.
 It shows how to compare inference results between TFLite and TFLM.
 
 A basic usage of the TFLM Python interpreter looks like the following. The input
@@ -34,7 +34,7 @@ bytearray format or file format.
 
 ```
 # For the Bazel workflow
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 
 
 # If model is a bytearray
@@ -62,7 +62,7 @@ expose an evolving set of C++ APIs. The Bazel build leverages the
 [pybind11_bazel extension](https://github.com/pybind/pybind11_bazel).
 
 The most updated Python APIs can be found in
-`tensorflow/lite/micro/python/interpreter/src/runtime.py`.
+`python/tflite_micro/runtime.py`.
 
 ## Custom Ops
 

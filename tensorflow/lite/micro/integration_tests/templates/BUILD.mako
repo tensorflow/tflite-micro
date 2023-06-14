@@ -65,7 +65,7 @@ cc_library(
 % endfor
         "generated_${target}_golden_${output_dtype}_test_data_hdr",
 % endfor
-    ],    
+    ],
     copts = micro_copts(),
 )
 
@@ -82,7 +82,7 @@ cc_test(
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
-        "//tensorflow/lite/micro/python/interpreter/src:python_ops_resolver",
+        "//python/tflite_micro:python_ops_resolver",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
