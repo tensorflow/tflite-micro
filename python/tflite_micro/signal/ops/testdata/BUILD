@@ -7,5 +7,6 @@ package(
 )
 
 exports_files([
+    "rfft_test1.txt",
     "window_test1.txt",
 ])

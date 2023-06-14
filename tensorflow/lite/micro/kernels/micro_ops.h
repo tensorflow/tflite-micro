@@ -127,11 +127,16 @@ TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TFLMRegistration Register_UNPACK();
 TFLMRegistration Register_VAR_HANDLE();
 TFLMRegistration Register_WHILE();
+TFLMRegistration Register_ZEROS_LIKE();
+
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
+TFLMRegistration* Register_RFFT();
+TFLMRegistration* Register_RFFT_FLOAT();
+TFLMRegistration* Register_RFFT_INT16();
+TFLMRegistration* Register_RFFT_INT32();
 TFLMRegistration* Register_WINDOW();
-}
-TFLMRegistration Register_ZEROS_LIKE();
+}  // namespace tflm_signal
 
 namespace ops {
 namespace micro {

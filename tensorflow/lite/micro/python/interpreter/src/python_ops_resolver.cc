@@ -91,6 +91,12 @@ PythonOpsResolver::PythonOpsResolver() {
   AddReshape();
   AddResizeBilinear();
   AddResizeNearestNeighbor();
+  // TODO() Maybe for the python version we only need Rfft since that will
+  // register all and at runtime we change based on type?
+  AddRfft();
+  AddRfftFloat();
+  AddRfftInt16();
+  AddRfftInt32();
   AddRound();
   AddRsqrt();
   AddSelectV2();
