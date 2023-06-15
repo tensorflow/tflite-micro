@@ -132,7 +132,7 @@ py_library(
     ],
     deps = [
         ":model_transforms_utils",
-        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl/logging",
         requirement("numpy"),
