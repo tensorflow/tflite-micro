@@ -16,8 +16,8 @@ limitations under the License.
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
-#include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
+#include "python/tflite_micro/interpreter_wrapper.h"
+#include "python/tflite_micro/pybind11_lib.h"
 
 namespace py = pybind11;
 using tflite::InterpreterWrapper;

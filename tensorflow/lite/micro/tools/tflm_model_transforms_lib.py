@@ -29,7 +29,7 @@ from tensorflow.python.platform import gfile
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 
 def _save_and_align_flatbuffer(model, model_path):
@@ -74,13 +74,13 @@ def check_models_equivalent(initial_model_path: str = None,
     AssertionError if outputs of TFLM invocations are not equal
   """
   with gfile.Open(initial_model_path, "rb") as input_model_file:
-    initial_model_interpreter = tflm_runtime.Interpreter.from_bytes(
+    initial_model_interpreter = runtime.Interpreter.from_bytes(
         input_model_file.read(),
         custom_op_registerers=custom_op_registerers,
     )
 
   with gfile.Open(secondary_model_path, "rb") as secondary_model_file:
-    secondary_model_interpreter = tflm_runtime.Interpreter.from_bytes(
+    secondary_model_interpreter = runtime.Interpreter.from_bytes(
         secondary_model_file.read(),
         custom_op_registerers=custom_op_registerers,
     )

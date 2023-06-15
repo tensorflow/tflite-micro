@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
+#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -89,7 +89,7 @@ void RunModel(const uint8_t* model,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-% for target in targets: 
+% for target in targets:
 
 TF_LITE_MICRO_TEST(${target}_test) {tflite::micro::RunModel(
 g_${target}_model_data,

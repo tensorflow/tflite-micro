@@ -987,6 +987,8 @@ cc_test(
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        # TODO(b/286456378): change to //python/tflite_micro:python_ops_resolver
+        # once all internal usage has been updated.
         "//tensorflow/lite/micro/python/interpreter/src:python_ops_resolver",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
