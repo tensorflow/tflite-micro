@@ -16,7 +16,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -30,13 +29,14 @@ void ValidateStridedSliceGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const T* golden, T* output, int output_len,
                                  TfLiteStridedSliceParams* params,
                                  const bool expect_prepare_err, int num_invoke,
-                                 float tolerance = 1e-5) {
+                                 float tolerance = 1e-5,
+                                 bool no_golden_data = false) {
   int inputs_array_data[] = {4, 0, 1, 2, 3};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 4};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = Register_STRIDED_SLICE();
+  const TFLMRegistration registration = Register_STRIDED_SLICE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(params));
   if (expect_prepare_err) {
@@ -50,10 +50,11 @@ void ValidateStridedSliceGoldens(TfLiteTensor* tensors, int tensors_size,
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
   }
 
-  for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1e-5f);
+  if (no_golden_data == false) {
+    for (int i = 0; i < output_len; ++i) {
+      TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1e-5f);
+    }
   }
-
   TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
 }
 
@@ -64,7 +65,8 @@ void TestStridedSliceFloat(int* input_shape, int* begin_shape, int* end_shape,
                            const int32_t* end_data, const int32_t* strides_data,
                            int* output_shape, float* output_data,
                            const float* expected_output,
-                           bool expect_prepare_err, int num_invoke = 1) {
+                           bool expect_prepare_err, int num_invoke = 1,
+                           bool no_golden_data = false) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_shape);
   TfLiteIntArray* begin_dims = IntArrayFromInts(begin_shape);
   TfLiteIntArray* end_dims = IntArrayFromInts(end_shape);
@@ -83,8 +85,8 @@ void TestStridedSliceFloat(int* input_shape, int* begin_shape, int* end_shape,
 
   ValidateStridedSliceGoldens(tensors, tensors_size, expected_output,
                               output_data, ElementCount(*output_dims),
-                              builtin_data, expect_prepare_err, num_invoke,
-                              1.0);
+                              builtin_data, expect_prepare_err, num_invoke, 1.0,
+                              no_golden_data);
 }
 
 template <typename T>
@@ -95,7 +97,8 @@ void TestStridedSliceQuantized(int* input_shape, int* begin_shape,
                                const int32_t* end_data,
                                const int32_t* strides_data, int* output_shape,
                                T* output_data, const T* expected_output,
-                               bool expect_prepare_err, int num_invoke = 1) {
+                               bool expect_prepare_err, int num_invoke = 1,
+                               bool no_golden_data = false) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_shape);
   TfLiteIntArray* begin_dims = IntArrayFromInts(begin_shape);
   TfLiteIntArray* end_dims = IntArrayFromInts(end_shape);
@@ -116,8 +119,8 @@ void TestStridedSliceQuantized(int* input_shape, int* begin_shape,
 
   ValidateStridedSliceGoldens(tensors, tensors_size, expected_output,
                               output_data, ElementCount(*output_dims),
-                              builtin_data, expect_prepare_err, num_invoke,
-                              1.0);
+                              builtin_data, expect_prepare_err, num_invoke, 1.0,
+                              no_golden_data);
 }
 
 }  // namespace
@@ -286,7 +289,7 @@ TF_LITE_MICRO_TEST(In1D_BeginMask) {
   float golden[] = {1, 2, 3};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -391,7 +394,7 @@ TF_LITE_MICRO_TEST(In1D_EndMask) {
   float golden[] = {2, 3, 4};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {0, 1, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {0, 1, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -559,7 +562,7 @@ TF_LITE_MICRO_TEST(In2D_BeginMask) {
   float golden[] = {1, 2, 4, 5};
   float output_data[8];
 
-  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -580,7 +583,7 @@ TF_LITE_MICRO_TEST(In2D_EndMask) {
   float golden[] = {4, 5, 6};
   float output_data[8];
 
-  TfLiteStridedSliceParams builtin_data = {0, 2, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {0, 2, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -601,7 +604,7 @@ TF_LITE_MICRO_TEST(In2D_NegStrideBeginMask) {
   float golden[] = {6, 5, 4};
   float output_data[8];
 
-  TfLiteStridedSliceParams builtin_data = {2, 0, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {2, 0, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -622,7 +625,7 @@ TF_LITE_MICRO_TEST(In2D_NegStrideEndMask) {
   float golden[] = {5, 4};
   float output_data[8];
 
-  TfLiteStridedSliceParams builtin_data = {0, 2, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {0, 2, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -727,7 +730,7 @@ TF_LITE_MICRO_TEST(In1D_ShrinkAxisMask1_NegativeSlice) {
   float golden[] = {3};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -748,7 +751,7 @@ TF_LITE_MICRO_TEST(In2D_ShrinkAxis3_NegativeSlice) {
   float golden[] = {2};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -769,7 +772,7 @@ TF_LITE_MICRO_TEST(In2D_ShrinkAxis2_BeginEndAxis1_NegativeSlice) {
   float golden[] = {0, 1, 2, 3};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {1, 1, 0, 0, 2};
+  TfLiteStridedSliceParams builtin_data = {1, 1, 0, 0, 2, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -790,7 +793,7 @@ TF_LITE_MICRO_TEST(In1D_BeginMaskShrinkAxisMask1) {
   float golden[] = {1};
   float output_data[4];
 
-  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -811,7 +814,7 @@ TF_LITE_MICRO_TEST(In2D_ShrinkAxisMask1) {
   float golden[] = {1, 2, 3};
   float output_data[6];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -832,7 +835,7 @@ TF_LITE_MICRO_TEST(In2D_ShrinkAxisMask2) {
   float golden[] = {1, 4};
   float output_data[6];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 2};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 2, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -853,7 +856,7 @@ TF_LITE_MICRO_TEST(In2D_ShrinkAxisMask3) {
   float golden[] = {1};
   float output_data[6];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -874,7 +877,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1) {
   float golden[] = {1, 2, 3, 4, 5, 6};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -895,7 +898,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis2) {
   float golden[] = {1, 2, 7, 8};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 2};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 2, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -916,7 +919,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis3) {
   float golden[] = {1, 2};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 3, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -937,7 +940,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis4) {
   float golden[] = {1, 3, 5, 7, 9, 11};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 4};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 4, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -958,7 +961,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis5) {
   float golden[] = {1, 3, 5};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 5};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 5, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -979,7 +982,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis6) {
   float golden[] = {1, 7};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 6};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 6, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1000,7 +1003,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis7) {
   float golden[] = {1};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 7};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 7, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1022,7 +1025,7 @@ TF_LITE_MICRO_TEST(RunTwice) {
   float golden[] = {1, 2, 4, 5};
   float output_data[16];
 
-  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0};
+  TfLiteStridedSliceParams builtin_data = {1, 0, 0, 0, 0, false};
 
   tflite::testing::TestStridedSliceFloat(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1043,7 +1046,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1int8) {
   int8_t golden[] = {1, 2, 3, 4, 5, 6};
   int8_t output_data[12];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceQuantized(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1064,7 +1067,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1int16) {
   int16_t golden[] = {1, 2, 3, 4, 5, 6};
   int16_t output_data[12];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceQuantized(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1085,7 +1088,7 @@ TF_LITE_MICRO_TEST(In3D_IdentityShrinkAxis1int32) {
   int32_t golden[] = {1, 2, 3, 4, 5, 6};
   int32_t output_data[12];
 
-  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1};
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
 
   tflite::testing::TestStridedSliceQuantized(
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
@@ -1134,6 +1137,132 @@ TF_LITE_MICRO_TEST(In3D_Strided2bool) {
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
       input_data, begin_data, end_data, strides_data, output_shape, output_data,
       golden, false);
+}
+
+TF_LITE_MICRO_TEST(MinusThreeMinusFourMinusOne) {
+  int input_shape[] = {1, 4};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {1, 1};
+  float input_data[] = {1, 2, 3, 4};
+  int32_t begin_data[] = {-3};
+  int32_t end_data[] = {-4};
+  int32_t strides_data[] = {-1};
+  float golden[] = {2};
+  float output_data[1];
+
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 0, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TF_LITE_MICRO_TEST(MinusFourMinusThreeOne) {
+  int input_shape[] = {1, 4};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {1, 1};
+  float input_data[] = {1, 2, 3, 4};
+  int32_t begin_data[] = {-4};
+  int32_t end_data[] = {-3};
+  int32_t strides_data[] = {1};
+  float golden[] = {1};
+  float output_data[1];
+
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 0, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TF_LITE_MICRO_TEST(In3D_BackwardSmallBeginEndMask) {
+  int input_shape[] = {1, 1, 1, 2};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {1, 0};
+  float input_data[] = {1, 2};
+  int32_t begin_data[] = {1};
+  int32_t end_data[] = {0};
+  int32_t strides_data[] = {1};
+  float* golden = nullptr;
+  float* output_data = nullptr;
+
+  TfLiteStridedSliceParams builtin_data = {0, 1, 0, 0, 0, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TF_LITE_MICRO_TEST(OneOneOne) {
+  int input_shape[] = {1, 1};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {1, 0};
+  float input_data[] = {1, 2};
+  int32_t begin_data[] = {1};
+  int32_t end_data[] = {1};
+  int32_t strides_data[] = {1};
+  float* golden = nullptr;
+  float* output_data = nullptr;
+
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 0, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TF_LITE_MICRO_TEST(StrideOutOfBounds) {
+  int input_shape[] = {1, 1};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {0};
+  float input_data[] = {};
+  int32_t begin_data[] = {1};
+  int32_t end_data[] = {4};
+  int32_t strides_data[] = {7};
+  float golden[] = {1};
+  float output_data[16];
+
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false, 1, true);
+}
+
+TF_LITE_MICRO_TEST(OutOfBounds) {
+  int input_shape[] = {1, 1};
+  int begin_shape[] = {1, 1};
+  int end_shape[] = {1, 1};
+  int strides_shape[] = {1, 1};
+  int output_shape[] = {0};
+  float input_data[] = {};
+  int32_t begin_data[] = {1};
+  int32_t end_data[] = {2};
+  int32_t strides_data[] = {1};
+  float golden[0];
+  float output_data[16];
+
+  TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false, 1, true);
 }
 
 TF_LITE_MICRO_TESTS_END

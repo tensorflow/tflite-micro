@@ -144,7 +144,7 @@ TfLiteStatus EluEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_ELU() {
+TFLMRegistration Register_ELU() {
   return tflite::micro::RegisterOp(EluInit, EluPrepare, EluEval);
 }
 

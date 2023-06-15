@@ -141,7 +141,7 @@ TfLiteStatus LogSoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_LOG_SOFTMAX() {
+TFLMRegistration Register_LOG_SOFTMAX() {
   return tflite::micro::RegisterOp(nullptr, LogSoftmaxPrepare, LogSoftmaxEval);
 }
 

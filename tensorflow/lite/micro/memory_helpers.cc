@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
   // If flatbuffer_tensor.shape == nullptr, then flatbuffer_tensor is a scalar
   // so has 1 element.
   if (flatbuffer_tensor.shape() != nullptr) {
-    for (size_t n = 0; n < flatbuffer_tensor.shape()->Length(); ++n) {
+    for (size_t n = 0; n < flatbuffer_tensor.shape()->size(); ++n) {
       element_count *= flatbuffer_tensor.shape()->Get(n);
     }
   }

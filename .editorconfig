@@ -1,0 +1,29 @@
+# Define the project's code formatting styles
+#
+# https://editorconfig.org
+#
+# EditorConfig is a file format for defining coding styles. EditorConfig is
+# natively supported by VisualStudio, GitHub, Neovim, etc.
+
+[*]
+# Unix-style newlines and a newline ending in every file
+end_of_line = lf
+insert_final_newline = true
+
+[*.{cc,h}]
+# https://google.github.io/styleguide/cppguide.html
+indent_style = space
+indent_size = 2
+
+[*.py]
+# https://google.github.io/styleguide/pyguide.html but 2-space indent
+indent_style = space
+indent_size = 2
+
+[WORKSPACE,BUILD,*.bzl]
+# https://bazel.build/build/style-guide
+indent_style = space
+indent_size = 4
+
+[Makefile]
+indent_style = tab

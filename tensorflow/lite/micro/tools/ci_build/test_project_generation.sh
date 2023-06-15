@@ -128,3 +128,14 @@ if test -z "${CPP_FILES}"; then
   echo "${CPP_FILES}}}"
   exit 1;
 fi
+
+# Test the tflm tree creation works even inside from TENSORFLOW_ROOT directory.
+pushd "${TENSORFLOW_ROOT}" > /dev/null
+TEST_OUTPUT_DIR="$(mktemp -d)"
+readable_run \
+python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
+--makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=cortex-m4" \
+"${TEST_OUTPUT_DIR}"
+rm -rf "${TEST_OUTPUT_DIR}"
+popd > /dev/null
+

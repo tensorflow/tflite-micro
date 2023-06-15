@@ -67,7 +67,7 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_HARD_SWISH() {
+TFLMRegistration Register_HARD_SWISH() {
   return tflite::micro::RegisterOp(HardSwishInit, tflite::HardSwishPrepare,
                                    HardSwishEval);
 }

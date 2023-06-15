@@ -38,9 +38,9 @@ tflite::micro::KernelRunner CreateFillTestRunner(
     ValueType* value_data, int* output_shape, OutputType* output_data) {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transitent memories in static variables. This is
-  // safe because tests are guarateed to run serially.
+  // safe because tests are guaranteed to run serially.
   // Both below structures are trivially destructible.
-  static TfLiteRegistration_V1 registration;
+  static TFLMRegistration registration;
   static TfLiteTensor tensors[3];
 
   tensors[0] = CreateTensor(dims_data, IntArrayFromInts(dims_shape));

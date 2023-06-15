@@ -73,6 +73,17 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_common",
+    hdrs = [
+        "micro_common.h",
+    ],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/c:common",
+    ],
+)
+
+cc_library(
     name = "fake_micro_context",
     srcs = [
         "fake_micro_context.cc",
@@ -98,6 +109,7 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
+        ":micro_common",
         ":micro_log",
         ":micro_profiler",
         ":micro_resource_variable",
@@ -136,6 +148,7 @@ cc_library(
         ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_arena_constants",
+        ":micro_common",
         ":micro_compatibility",
         ":micro_log",
         "//tensorflow/lite/kernels:kernel_util",
@@ -214,11 +227,9 @@ cc_library(
 cc_library(
     name = "op_resolvers",
     srcs = [
-        "all_ops_resolver.cc",
         "micro_op_resolver.cc",
     ],
     hdrs = [
-        "all_ops_resolver.h",
         "micro_mutable_op_resolver.h",
         "micro_op_resolver.h",
     ],

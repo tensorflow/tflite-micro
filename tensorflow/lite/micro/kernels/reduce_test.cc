@@ -17,7 +17,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -74,7 +73,7 @@ template <typename T>
 TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
                                    const T* expected_output_data,
                                    T* output_data, int output_length,
-                                   const TfLiteRegistration_V1& registration,
+                                   const TFLMRegistration& registration,
                                    TfLiteReducerParams* params,
                                    float tolerance = 1e-5) {
   int inputs_array_data[] = {2, 0, 1};
@@ -99,7 +98,7 @@ void TestReduceOpFloat(int* input_dims_data, const float* input_data,
                        int* axis_dims_data, const int32_t* axis_data,
                        int* output_dims_data, float* output_data,
                        const float* expected_output_data,
-                       const TfLiteRegistration_V1& registration,
+                       const TFLMRegistration& registration,
                        TfLiteReducerParams* params, float tolerance = 1e-5) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
@@ -130,7 +129,7 @@ void TestReduceOpQuantized(int* input_dims_data, const float* input_data,
                            const float* expected_output_data,
                            T* output_data_quant, T* expected_output_data_quant,
                            float output_scale, int output_zero_point,
-                           const TfLiteRegistration_V1& registration,
+                           const TFLMRegistration& registration,
                            TfLiteReducerParams* params,
                            float tolerance = 0.01) {
   // Convert dimesion arguments to TfLiteArrays

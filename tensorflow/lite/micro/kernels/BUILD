@@ -151,6 +151,7 @@ cc_library(
     hdrs = ["micro_tensor_utils.h"],
     deps = [
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
         "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/kernels/internal:common",
         "//tensorflow/lite/kernels/internal:compatibility",
@@ -206,6 +207,7 @@ tflm_kernel_cc_library(
         "div.cc",
         "elementwise.cc",
         "elu.cc",
+        "embedding_lookup.cc",
         "ethosu.cc",
         "exp.cc",
         "expand_dims.cc",
@@ -326,10 +328,9 @@ tflm_kernel_cc_library(
         "//visibility:public",
     ],
     deps = [
-        ":micro_tensor_utils",
-        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         ":activation_utils",
         ":kernel_util",
+        ":micro_tensor_utils",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -340,6 +341,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/kernels/internal:quantization_util",
         "//tensorflow/lite/kernels/internal:reference_base",
         "//tensorflow/lite/kernels/internal:tensor",
+        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
@@ -347,6 +349,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
+        "//signal/micro/kernels:register_signal_ops",
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
@@ -660,6 +663,21 @@ cc_test(
     name = "elu_test",
     srcs = [
         "elu_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "embedding_lookup_test",
+    srcs = [
+        "embedding_lookup_test.cc",
     ],
     deps = [
         ":kernel_runner",

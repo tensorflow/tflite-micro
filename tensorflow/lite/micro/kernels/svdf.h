@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_SVDF_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 
@@ -77,13 +77,14 @@ void EvalFloatSvdfReference(
 
 TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node);
 
-// This is the most generic TfLiteRegistration_V1. The actual supported types
+// This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
 // implementation (reference or optimized) must define this function.
-TfLiteRegistration_V1 Register_SVDF();
+TFLMRegistration Register_SVDF();
 
-#if defined(HEXAGON) || defined(CMSIS_NN)
-TfLiteRegistration_V1 Register_SVDF_INT8();
+#if defined(HEXAGON) || defined(CMSIS_NN) || defined(XTENSA)
+
+TFLMRegistration Register_SVDF_INT8();
 
 #else
 // Note that while this block gets used for both reference and optimized kernels
@@ -91,7 +92,7 @@ TfLiteRegistration_V1 Register_SVDF_INT8();
 // define fallback implementation that allow reference kernels to still be used
 // from applications that call a more specific kernel variant.
 
-inline TfLiteRegistration_V1 Register_SVDF_INT8() { return Register_SVDF(); }
+inline TFLMRegistration Register_SVDF_INT8() { return Register_SVDF(); }
 
 #endif
 }  // namespace tflite

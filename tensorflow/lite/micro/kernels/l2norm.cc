@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/l2normalization.h"
 #include "tensorflow/lite/kernels/internal/reference/l2normalization.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -132,12 +131,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_L2NORM_REF() {
+TFLMRegistration Register_L2NORM_REF() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
-TfLiteRegistration_V1 Register_L2_NORMALIZATION() {
-  return Register_L2NORM_REF();
-}
+TFLMRegistration Register_L2_NORMALIZATION() { return Register_L2NORM_REF(); }
 
 }  // namespace tflite

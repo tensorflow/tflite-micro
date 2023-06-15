@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -32,7 +31,7 @@ void ValidateShape(TfLiteTensor* tensors, const int tensor_count,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = tflite::Register_SHAPE();
+  const TFLMRegistration registration = tflite::Register_SHAPE();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, nullptr);
 

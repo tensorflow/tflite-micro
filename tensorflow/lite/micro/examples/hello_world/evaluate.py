@@ -19,7 +19,7 @@ from absl import flags
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.python.platform import resource_loader
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'use_tflite',
@@ -50,13 +50,22 @@ def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
 
 
 # Generate a list of 1000 random floats in the range of 0 to 2*pi.
-def generate_random_input(sample_count=1000):
+def generate_random_int8_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
+  np.random.seed(42)
+  x_values = np.random.uniform(low=0, high=2 * np.pi,
+                               size=sample_count).astype(np.int8)
+  return x_values
+
+
+# Generate a list of 1000 random floats in the range of 0 to 2*pi.
+def generate_random_float_input(sample_count=1000):
+  # Generate a uniformly distributed set of random numbers in the range from
+  # 0 to 2π, which covers a complete sine wave oscillation
+  np.random.seed(42)
   x_values = np.random.uniform(low=0, high=2 * np.pi,
                                size=sample_count).astype(np.float32)
-  # Shuffle the values to guarantee they're not in order
-  np.random.shuffle(x_values)
   return x_values
 
 
@@ -64,7 +73,7 @@ def generate_random_input(sample_count=1000):
 # returns the prediction of the interpreter.
 def get_tflm_prediction(model_path, x_values):
   # Create the tflm interpreter
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(model_path)
+  tflm_interpreter = runtime.Interpreter.from_file(model_path)
 
   input_shape = np.array(tflm_interpreter.get_input_details(0).get('shape'))
 
@@ -110,7 +119,7 @@ def get_tflite_prediction(model_path, x_values):
 def main(_):
   model_path = os.path.join(_PREFIX_PATH, 'models/hello_world_float.tflite')
 
-  x_values = generate_random_input()
+  x_values = generate_random_float_input()
 
   # Calculate the corresponding sine values
   y_true_values = np.sin(x_values).astype(np.float32)

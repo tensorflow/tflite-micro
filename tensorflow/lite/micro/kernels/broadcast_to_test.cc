@@ -39,7 +39,7 @@ tflite::micro::KernelRunner CreateBroadcastToTestRunner(
   // the test need to place non-transient memories in static variables. This is
   // safe because tests are guaranteed to run serially.
   // Both below structures are trivially destructible.
-  static TfLiteRegistration_V1 registration;
+  static TFLMRegistration registration;
   static TfLiteTensor tensors[3];
 
   tensors[0] = CreateTensor(input_data, IntArrayFromInts(input_shape));
@@ -196,7 +196,7 @@ TF_LITE_MICRO_TEST(NoBroadcastingConstTest) {
                   output_data, expected_output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastInt64ShpaeTest) {
+TF_LITE_MICRO_TEST(BroadcastInt64ShapeTest) {
   int dims_shape[] = {1, 4};
   int64_t dims_data[] = {1, 1, 2, 2};
 

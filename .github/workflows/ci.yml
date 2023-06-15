@@ -36,6 +36,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
@@ -56,6 +57,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_tflite_tools.sh
@@ -76,6 +78,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_msan.sh
@@ -96,6 +99,7 @@ jobs:
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_asan.sh
@@ -115,6 +119,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -135,6 +140,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -155,10 +161,27 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill_renode.sh tflite-micro/
+
+  cortex_m_qemu:
+    runs-on: ubuntu-latest
+
+    name: Cortex-M QEMU Unit Tests (presubmit)
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Test
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+        with:
+          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh tflite-micro/
 
   check_code_style:
     runs-on: ubuntu-latest
@@ -174,7 +197,7 @@ jobs:
       - name: Check
         uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
         with:
-          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
+          args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
   project_generation:
     runs-on: ubuntu-latest
@@ -191,6 +214,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           cd ../
@@ -211,6 +235,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -232,6 +257,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -253,6 +279,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
@@ -274,6 +301,7 @@ jobs:
         run: |
           pip3 install Pillow
           pip3 install Wave
+          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
