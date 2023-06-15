@@ -19,7 +19,7 @@ from absl import flags
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.python.platform import resource_loader
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'use_tflite',

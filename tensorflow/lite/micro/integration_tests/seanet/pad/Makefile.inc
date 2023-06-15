@@ -59,10 +59,10 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/pad/pad18_golde
 
 integration_tests_seanet_pad_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/pad/integration_tests.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.cc \
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \
 
 integration_tests_seanet_pad_HDR := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h \
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \
 
 $(eval $(call microlite_test,integration_tests_seanet_pad_test,\
 $(integration_tests_seanet_pad_SRCS),$(integration_tests_seanet_pad_HDR),$(integration_tests_seanet_pad_GENERATOR_INPUTS)))

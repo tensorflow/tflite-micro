@@ -12,10 +12,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_PYTHON_INTERPRETER_SRC_PYTHON_OPS_RESOLVER_H_
-#define TENSORFLOW_LITE_MICRO_PYTHON_INTERPRETER_SRC_PYTHON_OPS_RESOLVER_H_
 
-// TODO(b/286456378): remove once this shim is no longer needed.
-#include "python/tflite_micro/python_ops_resolver.h"
+#include "tensorflow/lite/array.h"
 
-#endif  // TENSORFLOW_LITE_MICRO_PYTHON_INTERPRETER_SRC_PYTHON_OPS_RESOLVER_H_
+namespace tflite {
+namespace array_internal {
+
+void TfLiteArrayDeleter::operator()(TfLiteIntArray* a) {
+  if (a) {
+    TfLiteIntArrayFree(a);
+  }
+}
+void TfLiteArrayDeleter::operator()(TfLiteFloatArray* a) {
+  if (a) {
+    TfLiteFloatArrayFree(a);
+  }
+}
+
+}  // namespace array_internal
+}  // namespace tflite

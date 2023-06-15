@@ -27,6 +27,7 @@ cc_library(
     ],
     copts = tflite_copts() + micro_copts(),
     deps = [
+        "//tensorflow/lite:array",
         "//tensorflow/lite:kernel_api",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",

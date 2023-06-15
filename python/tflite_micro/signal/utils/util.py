@@ -16,7 +16,7 @@
 import tensorflow as tf
 from tensorflow.python.framework import load_library
 from tensorflow.python.platform import resource_loader
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.python.tflite_micro import runtime
 
 
 # TODO(b/286889497): find better name and place for this function.
@@ -34,7 +34,7 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
   converter.allow_custom_ops = True
   tflite_model = converter.convert()
 
-  return tflm_runtime.Interpreter.from_bytes(tflite_model, arena_size=500000)
+  return runtime.Interpreter.from_bytes(tflite_model, arena_size=500000)
 
 
 def load_custom_op(name):

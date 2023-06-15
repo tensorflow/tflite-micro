@@ -79,6 +79,7 @@ def _window_wrapper(window_fn, default_name):
   return _window
 
 
-window = _window_wrapper(gen_window_op.window, "window")
+# TODO(b/286250473): change back name to "window" after name clash resolved
+window = _window_wrapper(gen_window_op.signal_window, "signal_window")
 
-tf.no_gradient("window")
+tf.no_gradient("signal_window")
