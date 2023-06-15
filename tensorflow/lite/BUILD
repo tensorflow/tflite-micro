@@ -7,7 +7,6 @@ cc_library(
     name = "array",
     srcs = ["array.cc"],
     hdrs = ["array.h"],
-    copts = ["-std=c++17"],
     deps = [
         "//tensorflow/lite/core/c:common",
     ],

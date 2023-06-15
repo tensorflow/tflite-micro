@@ -38,7 +38,7 @@ def py_tflm_signal_library(
         native.cc_library(
             name = library_name,
             srcs = cc_op_defs,
-            copts = ["--std=c++17"] + select({
+            copts = select({
                 "//conditions:default": ["-pthread"],
             }),
             alwayslink = 1,
@@ -50,7 +50,7 @@ def py_tflm_signal_library(
 
         native.cc_binary(
             name = binary_name,
-            copts = ["--std=c++17"] + select({
+            copts = select({
                 "//conditions:default": ["-pthread"],
             }),
             linkshared = 1,
@@ -83,6 +83,6 @@ def tflm_signal_kernel_library(
         srcs = srcs,
         hdrs = hdrs,
         deps = deps,
-        copts = copts + ["--std=c++17"],
+        copts = copts,
         alwayslink = alwayslink,
     )
