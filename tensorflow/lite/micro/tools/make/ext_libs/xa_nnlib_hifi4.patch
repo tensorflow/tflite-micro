@@ -72,10 +72,10 @@ Signed-off-by: William Huang <yushh@google.com>
  .../hifi4/xa_nn_transpose_conv_sym8sxsym16s.c |  36 +---
  4 files changed, 273 insertions(+), 61 deletions(-)
 
-diff --git a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
 index 9e1fa0b..2f24be0 100644
---- a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
-+++ b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
 @@ -649,7 +649,8 @@ VOID conv2d_std_init_cir_buf(
  }
  
@@ -174,10 +174,10 @@ index 9e1fa0b..2f24be0 100644
  VOID xa_nn_dilated_conv2d_std_load_cir_buf_asym8(
      WORD32 input_channels,
      WORD32 input_channels_pad,
-diff --git a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
 index 9d0eb48..51bcaec 100644
---- a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
-+++ b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
 @@ -210,6 +210,21 @@ VOID conv2d_std_init_cir_buf(
      VOID **pp_inp,
      xa_nn_conv_state_t *p_state);
@@ -200,10 +200,10 @@ index 9d0eb48..51bcaec 100644
  VOID conv2d_std_update_cir_buf(
      WORD32 input_channels,
      WORD32 input_channels_pad,
-diff --git a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 index b9905e9..8468881 100644
---- a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
-+++ b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 @@ -49,6 +49,24 @@ static inline ae_int32x2 MultiplyByQuantizedMultiplier_ref(ae_int64 d_x,
    return result;
  }
@@ -422,10 +422,10 @@ index b9905e9..8468881 100644
    }
  
    return 0;
-diff --git a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
 index 095e18a..33af9aa 100644
---- a/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
-+++ b/xa_nnlib/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+--- a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
 @@ -105,7 +105,7 @@ static inline void tconv2d_sym8sxsym16s(WORD16* output_data,
  	 */
  	if(input_data && filter_data && output_data && scratch_buffer &&
