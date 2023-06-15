@@ -240,7 +240,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertFalse(int_ref.alive)
     self.assertFalse(output_ref.alive)
 
-  # TODO (b/240162715): Add a test case to register a custom OP
+  # TODO(b/240162715): Add a test case to register a custom OP
 
   def testMalformedCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
