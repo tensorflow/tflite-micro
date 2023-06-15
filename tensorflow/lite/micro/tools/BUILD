@@ -70,7 +70,7 @@ py_test(
     ],
     deps = [
         ":requantize_flatbuffer",
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        "//python/tflite_micro:runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],
@@ -131,7 +131,7 @@ py_library(
     ],
     deps = [
         ":model_transforms_utils",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl/logging",
         requirement("numpy"),
