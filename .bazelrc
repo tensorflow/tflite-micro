@@ -14,15 +14,12 @@
 # ==============================================================================
 #
 # TFLM Bazel configuration file.
-#
-# Other build options:
-#     asan:             Build with the clang address sanitizer
-#     msan:             Build with the clang memory sanitizer
-#     ubsan:            Build with the clang undefined behavior sanitizer
-#
 
-# Address sanitizer
-# bazel build --config asan
+# Use the following C++ standard
+build --cxxopt -std=c++17
+
+# When building with the address sanitizer
+# E.g., bazel build --config asan
 build:asan --repo_env CC=clang
 build:asan --strip=never
 build:asan --copt -fsanitize=address
@@ -32,8 +29,8 @@ build:asan --copt -O3
 build:asan --copt -fno-omit-frame-pointer
 build:asan --linkopt -fsanitize=address
 
-# Memory sanitizer
-# bazel build --config msan
+# When building with the memory sanitizer
+# E.g., bazel build --config msan
 build:msan --repo_env CC=clang
 build:msan --strip=never
 build:msan --copt -fsanitize=memory
@@ -43,8 +40,8 @@ build:msan --copt -O3
 build:msan --copt -fno-omit-frame-pointer
 build:msan --linkopt -fsanitize=memory
 
-# Undefined Behavior Sanitizer
-# bazel build --config ubsan
+# When building with the undefined behavior sanitizer
+# E.g., bazel build --config ubsan
 build:ubsan --repo_env CC=clang
 build:ubsan --strip=never
 build:ubsan --copt -fsanitize=undefined
