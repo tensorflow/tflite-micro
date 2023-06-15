@@ -1,4 +1,4 @@
-From c6dbbcacad62888520c0e0a82c9be33161f5a7f7 Mon Sep 17 00:00:00 2001
+From 0a68f2ffa640d1b52314278cec838384722eb1d0 Mon Sep 17 00:00:00 2001
 From: William Huang <yushh@google.com>
 Date: Tue, 16 May 2023 09:18:55 +0000
 Subject: [PATCH] Optimize Xtensa transpose convolution for more kernel sizes
@@ -68,15 +68,15 @@ Signed-off-by: William Huang <yushh@google.com>
 ---
  .../cnn/hifi4/xa_nn_conv2d_std_circ_buf.c     |  84 +++++++-
  .../cnn/hifi4/xa_nn_conv2d_std_state.h        |  15 ++
- .../cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c | 199 +++++++++++++++---
+ .../cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c | 203 +++++++++++++++---
  .../hifi4/xa_nn_transpose_conv_sym8sxsym16s.c |  36 +---
- 4 files changed, 273 insertions(+), 61 deletions(-)
+ 4 files changed, 275 insertions(+), 63 deletions(-)
 
 diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
-index 9e1fa0b..2f24be0 100644
+index f8adba2..1a5f186 100644
 --- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
 +++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
-@@ -649,7 +649,8 @@ VOID conv2d_std_init_cir_buf(
+@@ -642,7 +642,8 @@ VOID conv2d_std_init_cir_buf(
  }
  
  // Add x_stride (but not more than kernel_width) x (input_height x input_channels) new planes to circular buffer
@@ -86,7 +86,7 @@ index 9e1fa0b..2f24be0 100644
      WORD32 input_channels,
      WORD32 input_channels_pad,
      WORD32 input_bytewidth,
-@@ -749,6 +750,87 @@ VOID conv2d_std_update_cir_buf(
+@@ -742,6 +743,87 @@ VOID conv2d_std_update_cir_buf(
    *pp_inp = (VOID *)p_inp;
  }
  
@@ -175,10 +175,10 @@ index 9e1fa0b..2f24be0 100644
      WORD32 input_channels,
      WORD32 input_channels_pad,
 diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
-index 9d0eb48..51bcaec 100644
+index a2ba355..8d33bad 100644
 --- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
 +++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
-@@ -210,6 +210,21 @@ VOID conv2d_std_init_cir_buf(
+@@ -214,6 +214,21 @@ VOID conv2d_std_init_cir_buf(
      VOID **pp_inp,
      xa_nn_conv_state_t *p_state);
  
@@ -201,7 +201,7 @@ index 9d0eb48..51bcaec 100644
      WORD32 input_channels,
      WORD32 input_channels_pad,
 diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
-index b9905e9..8468881 100644
+index 92721bc..6f868be 100644
 --- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 +++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 @@ -49,6 +49,24 @@ static inline ae_int32x2 MultiplyByQuantizedMultiplier_ref(ae_int64 d_x,
@@ -229,7 +229,7 @@ index b9905e9..8468881 100644
  static WORD32 conv_x_left_pad(
      WORD32 x_padding,
      WORD32 kernel_width,
-@@ -236,39 +254,164 @@ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
+@@ -238,41 +256,166 @@ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
    WORD32 y_b_pad = kernel_height + (out_height - 1) * y_stride - (y_padding + input_height);
    y_b_pad = y_b_pad < 0 ? 0 : y_b_pad;
  
@@ -274,26 +274,30 @@ index b9905e9..8468881 100644
 -       ,input_channels_pad * kernel_width * kernel_height /* vec_stride */
 -       ,out_channels_offset /* out_col_offset */
 -       ,out_height_offset /* out_row_offset */
+-       ,input_zero_bias
 -       ,p_out_multiplier
 -       ,p_out_shift
+-       ,out_zero_bias
 -      );
 -    p_out += out_width_offset;
 +      // Convolution using matXvec with matrix as circular buffer
 +      xa_nn_matXvec_sym8sxsym16s_sym16s_circ
-+	(p_out /* output */
-+	,p_state->cir_buf.p_curr/* matrix: rows x cols */
-+	,p_state->p_kernel_padded /* vec: cols */
-+	,p_bias /* bias */
-+	,out_height /* rows */
-+	,input_channels_pad * kernel_width * kernel_height /* cols */
-+	,input_channels_pad * kernel_width * y_stride/* row_offset */
-+	,out_channels /* vec_count */
-+	,input_channels_pad * kernel_width * kernel_height /* vec_stride */
-+	,out_channels_offset /* out_col_offset */
-+	,out_height_offset /* out_row_offset */
-+	,p_out_multiplier
-+	,p_out_shift
-+	);
++        (p_out /* output */
++        ,p_state->cir_buf.p_curr/* matrix: rows x cols */
++        ,p_state->p_kernel_padded /* vec: cols */
++        ,p_bias /* bias */
++        ,out_height /* rows */
++        ,input_channels_pad * kernel_width * kernel_height /* cols */
++        ,input_channels_pad * kernel_width * y_stride/* row_offset */
++        ,out_channels /* vec_count */
++        ,input_channels_pad * kernel_width * kernel_height /* vec_stride */
++        ,out_channels_offset /* out_col_offset */
++        ,out_height_offset /* out_row_offset */
++        ,input_zero_bias
++        ,p_out_multiplier
++        ,p_out_shift
++        ,out_zero_bias
++        );
 +      p_out += out_width_offset;
 +    }
 +  } else {
@@ -423,10 +427,10 @@ index b9905e9..8468881 100644
  
    return 0;
 diff --git a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
-index 095e18a..33af9aa 100644
+index 7f31b75..a010d45 100644
 --- a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
 +++ b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
-@@ -105,7 +105,7 @@ static inline void tconv2d_sym8sxsym16s(WORD16* output_data,
+@@ -157,7 +157,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
  	 */
  	if(input_data && filter_data && output_data && scratch_buffer &&
  			(((unsigned int)input_data&0x7)==0) && (((unsigned int)filter_data&0x3)==0) && (((unsigned int)output_data&0x7) == 0) &&
@@ -435,7 +439,7 @@ index 095e18a..33af9aa 100644
  	{
  		{
  			//tbd : batch = 1, need to handle other values and in_x_min/max= 0 .. need toc heck for other values
-@@ -128,7 +128,8 @@ static inline void tconv2d_sym8sxsym16s(WORD16* output_data,
+@@ -180,7 +180,8 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
  					filt_y_max = (filt_y_max < filter_height) ? filt_y_max : filter_height;
  					filt_y_max = (filt_y_max < 0) ? 0 : filt_y_max;
  					pinp =  (WORD16*)&input_data[in_y*input_width*input_depth+in_x*input_depth];
@@ -445,7 +449,7 @@ index 095e18a..33af9aa 100644
  					{
  						ae_int16x4 d_inp, d_inp1, d_inp2, d_inp3;
  						AE_L16X4_IP(d_inp, (ae_int16x4*)pinp, sizeof(WORD64));
-@@ -183,36 +184,7 @@ static inline void tconv2d_sym8sxsym16s(WORD16* output_data,
+@@ -235,36 +236,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
  							}
  						}
  					}
