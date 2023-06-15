@@ -4,6 +4,9 @@ def micro_copts():
         "-Werror",
         "-Wnon-virtual-dtor",
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
+        # bazel is not an embedded build so ok to use c++17.
+        # http://b/287269351#comment2 has additional context.
+        "-std=c++17",
     ]
 
 def generate_cc_arrays(name, src, out, visibility = None):

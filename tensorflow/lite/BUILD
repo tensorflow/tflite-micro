@@ -4,6 +4,16 @@ package(
 )
 
 cc_library(
+    name = "array",
+    srcs = ["array.cc"],
+    hdrs = ["array.h"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//tensorflow/lite/core/c:common",
+    ],
+)
+
+cc_library(
     name = "type_to_tflitetype",
     hdrs = [
         "portable_type_to_tflitetype.h",
