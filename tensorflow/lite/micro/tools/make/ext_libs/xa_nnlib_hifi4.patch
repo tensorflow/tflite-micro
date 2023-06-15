@@ -1,0 +1,492 @@
+From 0a68f2ffa640d1b52314278cec838384722eb1d0 Mon Sep 17 00:00:00 2001
+From: William Huang <yushh@google.com>
+Date: Tue, 16 May 2023 09:18:55 +0000
+Subject: [PATCH] Optimize Xtensa transpose convolution for more kernel sizes
+ and input channels.
+
+Previously, there were three code paths, in decreasing performance:
+
+1. Kernel size (H*W) multiple of 4, input channels multiple of 16
+2. Kernel size (H*W) multiple of 4, input channels multiple of 4
+3. Others (unoptimized case)
+
+This patch reduces them to the follow two cases:
+
+1. Input channels multiple of 4
+2. Others (unoptimized case)
+
+Original CL=cl/516144094
+
+BUG=227374718
+
+Signed-off-by: William Huang <yushh@google.com>
+
+Optimize Xtensa CONV2D circular buffer copy.
+
+In Xtensa's CONV2D kernel, data is shuffled around and padded so the 2D
+convolution turns into sequential vector products. Unfortunately, this
+process is somewhat slow, and the overhead is especially high for small
+vector lengths.
+
+This patch introduces the following:
+
+- Faster code path for no padding (since our models use VALID padding,
+  i.e., no padding at all)
+- Manual loop if array is small and memcpy if array is large
+- Skip memset on padded channels as the corresponding kernels are
+  already zero
+
+BUG=249796929
+
+Signed-off-by: William Huang <yushh@google.com>
+
+Add implementation for zero-copy CONV2D kernels.
+
+The previous `xa_nn_conv2d_std_sym8sxsym16s` implementation shuffles the
+input tensor into a circular buffer, flattening the dimensions, so that
+the 2D convolution turns into sequential vector products. However, this
+created significant overhead for layers where the resulting vector
+lengths are small.
+
+This patch implements an alternative zero-copy method that takes
+advantage of two facts:
+
+1. If `x_padding == 0`, the width dimension is automatically flattened
+   with the channel dimension, and we need only `kernel_height`
+   sequential vector products, even without the data shuffling
+2. Similar to the loop tiling done in
+   `xa_nn_matXvec_sym8sxsym16s_sym16s_circ`, we can tile the `out_width`
+   and `out_channels` dimensions, achieving the throughput of
+   `_xa_nn_dot_product_2row_4vec_mat_vecs_4bytes_aligned` (i.e., 1.6
+   MULAAAAQs/cycle), even when `out_height < 2`
+
+As a result, the patch significantly benefits layers where the kernel
+and output heights are small, leading to 25%+ cycle reductions in some
+use cases.
+
+Signed-off-by: William Huang <yushh@google.com>
+---
+ .../cnn/hifi4/xa_nn_conv2d_std_circ_buf.c     |  84 +++++++-
+ .../cnn/hifi4/xa_nn_conv2d_std_state.h        |  15 ++
+ .../cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c | 203 +++++++++++++++---
+ .../hifi4/xa_nn_transpose_conv_sym8sxsym16s.c |  36 +---
+ 4 files changed, 275 insertions(+), 63 deletions(-)
+
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+index f8adba2..1a5f186 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+@@ -642,7 +642,8 @@ VOID conv2d_std_init_cir_buf(
+ }
+ 
+ // Add x_stride (but not more than kernel_width) x (input_height x input_channels) new planes to circular buffer
+-VOID conv2d_std_update_cir_buf(
++// Slow version of conv2d_std_update_cir_buf with fewer requirements
++VOID conv2d_std_update_cir_buf_slow(
+     WORD32 input_channels,
+     WORD32 input_channels_pad,
+     WORD32 input_bytewidth,
+@@ -742,6 +743,87 @@ VOID conv2d_std_update_cir_buf(
+   *pp_inp = (VOID *)p_inp;
+ }
+ 
++// Add x_stride (but not more than kernel_width) x (input_height x input_channels) new planes to circular buffer
++VOID conv2d_std_update_cir_buf(
++    WORD32 input_channels,
++    WORD32 input_channels_pad,
++    WORD32 input_bytewidth,
++    WORD32 input_width,
++    WORD32 input_height,
++    WORD32 y_padding,
++    WORD32 y_b_pad,
++    WORD32 x_padding,
++    WORD32 kernel_width,
++    WORD32 x_stride,
++    VOID **pp_inp,
++    WORD32 idx_beg_inp_width_pad,
++    xa_nn_conv_state_t *p_state)
++{
++  if (y_padding != 0 || y_b_pad != 0 || x_padding != 0) {
++    conv2d_std_update_cir_buf_slow(
++      input_channels,
++      input_channels_pad,
++      input_bytewidth,
++      input_width,
++      input_height,
++      y_padding,
++      y_b_pad,
++      x_padding,
++      kernel_width,
++      x_stride,
++      pp_inp,
++      idx_beg_inp_width_pad,
++      p_state
++    );
++    return;
++  }
++
++  WORD32 i,k;
++  WORD8 *p_inp = (WORD8 *)*pp_inp;
++  WORD32 planes_to_add = x_stride > kernel_width ? kernel_width : x_stride;
++  WORD32 planes_to_keep = kernel_width - planes_to_add;
++
++  // Copy 'planes_to_add' planes of data to circular buffer
++  AE_ADDCIRC16X4_XC((ae_int16x4 *)p_state->cir_buf.p_curr, planes_to_add * input_channels_pad * input_bytewidth);
++  WORD8 *p_dst = (WORD8 *)p_state->cir_buf.p_curr;
++  AE_ADDCIRC16X4_XC((ae_int16x4 *)p_dst, planes_to_keep * input_channels_pad * input_bytewidth);
++
++  WORD32 copy_inp_width = planes_to_add;
++  WORD32 to_skip_inp_width = x_stride - planes_to_add;     // Non-zero for x_stride > kernel_width
++
++  int size = input_channels * input_bytewidth;
++  if (size <= 32) {
++    for(i=0;i<input_height;i++)
++    {
++      for(k=0;k<copy_inp_width;k++)
++      {
++        for (int j = 0; j < size; ++j) {
++          p_dst[j] = p_inp[j];
++        }
++        AE_ADDCIRC16X4_XC((ae_int16x4 *)p_dst, input_channels_pad * input_bytewidth);
++        p_inp += input_channels * input_bytewidth;
++      }
++      AE_ADDCIRC16X4_XC((ae_int16x4 *)p_dst, planes_to_keep * input_channels_pad * input_bytewidth);
++      p_inp += (input_width - copy_inp_width) * input_channels * input_bytewidth;
++    }
++  } else {
++    for(i=0;i<input_height;i++)
++    {
++      for(k=0;k<copy_inp_width;k++)
++      {
++        memcpy(p_dst, p_inp, input_channels * input_bytewidth);
++        AE_ADDCIRC16X4_XC((ae_int16x4 *)p_dst, input_channels_pad * input_bytewidth);
++        p_inp += input_channels * input_bytewidth;
++      }
++      AE_ADDCIRC16X4_XC((ae_int16x4 *)p_dst, planes_to_keep * input_channels_pad * input_bytewidth);
++      p_inp += (input_width - copy_inp_width) * input_channels * input_bytewidth;
++    }
++  }
++  p_inp += (-input_height * input_width + copy_inp_width + to_skip_inp_width) * input_channels * input_bytewidth;
++
++  *pp_inp = (VOID *)p_inp;
++}
++
+ VOID xa_nn_dilated_conv2d_std_load_cir_buf_asym8(
+     WORD32 input_channels,
+     WORD32 input_channels_pad,
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
+index a2ba355..8d33bad 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_state.h
+@@ -214,6 +214,21 @@ VOID conv2d_std_init_cir_buf(
+     VOID **pp_inp,
+     xa_nn_conv_state_t *p_state);
+ 
++VOID conv2d_std_update_cir_buf_slow(
++    WORD32 input_channels,
++    WORD32 input_channels_pad,
++    WORD32 input_bytewidth,
++    WORD32 input_width,
++    WORD32 input_height,
++    WORD32 y_padding,
++    WORD32 y_b_pad,
++    WORD32 x_padding,
++    WORD32 kernel_width,
++    WORD32 x_stride,
++    VOID **pp_inp,
++    WORD32 idx_beg_inp_width_pad,
++    xa_nn_conv_state_t *p_state);
++
+ VOID conv2d_std_update_cir_buf(
+     WORD32 input_channels,
+     WORD32 input_channels_pad,
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+index 92721bc..6f868be 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+@@ -49,6 +49,24 @@ static inline ae_int32x2 MultiplyByQuantizedMultiplier_ref(ae_int64 d_x,
+   return result;
+ }
+ 
++static inline ae_int32x2 MultiplyByQuantizedMultiplier_x2_opt(ae_int64 d_x1, ae_int64 d_x2,
++                                             int32_t quantized_multiplier,
++                                             int shift) {
++  ae_int32x2 d_q_mul = AE_MOVDA32(quantized_multiplier);
++  ae_int16x4 d_red_mul16 = AE_ROUND16X4F32SASYM(d_q_mul, d_q_mul);
++  ae_int32x2 d_red_mul32 = AE_SEXT32X2D16_32(d_red_mul16);
++  ae_int64 qL1 = AE_MUL32U_LL(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x1));
++  ae_int64 qL2 = AE_MUL32U_LL(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x2));
++  ae_int64 qH1 = AE_SLAI64(AE_MUL32_LH(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x1)), 32);
++  ae_int64 qH2 = AE_SLAI64(AE_MUL32_LH(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x2)), 32);
++  ae_int64 q1 = AE_ADD64(qL1, qH1);
++  ae_int64 q2 = AE_ADD64(qL2, qH2);
++  q1 = AE_SRAA64(q1, (-shift-17));
++  q2 = AE_SRAA64(q2, (-shift-17));
++  ae_int32x2 result = AE_ROUND32X2F64SASYM(q1, q2);
++  return result;
++}
++
+ static WORD32 conv_x_left_pad(
+     WORD32 x_padding,
+     WORD32 kernel_width,
+@@ -238,41 +256,166 @@ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
+   WORD32 y_b_pad = kernel_height + (out_height - 1) * y_stride - (y_padding + input_height);
+   y_b_pad = y_b_pad < 0 ? 0 : y_b_pad;
+ 
+-  conv2d_std_init_cir_buf(input_channels, input_channels_pad, input_bytewidth, input_width, input_height, y_padding, y_b_pad, x_padding_var, kernel_width, x_stride, (VOID**)&pp_inp, p_state);
++  if (x_padding || (input_channels & 0x3) || (out_channels & 0x3) || (out_width & 0x1)) {
++    conv2d_std_init_cir_buf(input_channels, input_channels_pad, input_bytewidth, input_width, input_height, y_padding, y_b_pad, x_padding_var, kernel_width, x_stride, (VOID**)&pp_inp, p_state);
+ 
+-  // Index to padded input width
+-  WORD32 idx_beg_inp_width_pad = kernel_width - x_stride;
+-  idx_beg_inp_width_pad = idx_beg_inp_width_pad < 0 ? 0 : idx_beg_inp_width_pad;
++    // Index to padded input width
++    WORD32 idx_beg_inp_width_pad = kernel_width - x_stride;
++    idx_beg_inp_width_pad = idx_beg_inp_width_pad < 0 ? 0 : idx_beg_inp_width_pad;
+ 
+ 
+-  // Process Loop to compute one output plane [out_height x out_channels] per iteration
+-  for(j=0;j<out_width-out_width_over_x_pad-out_width_over_x_r_pad;j++)
+-  {
+-    // Add x_stride x (input_height x input_channels) new planes to circular buffer
+-    conv2d_std_update_cir_buf(input_channels, input_channels_pad, input_bytewidth, input_width, input_height, y_padding, y_b_pad, x_padding_var, kernel_width, x_stride, (VOID**)&pp_inp, idx_beg_inp_width_pad, p_state);
++    // Process Loop to compute one output plane [out_height x out_channels] per iteration
++    for(j=0;j<out_width-out_width_over_x_pad-out_width_over_x_r_pad;j++)
++    {
++      // Add x_stride x (input_height x input_channels) new planes to circular buffer
++      conv2d_std_update_cir_buf(input_channels, input_channels_pad, input_bytewidth, input_width, input_height, y_padding, y_b_pad, x_padding_var, kernel_width, x_stride, (VOID**)&pp_inp, idx_beg_inp_width_pad, p_state);
+ 
+-    // Update index to input width padded
+-    idx_beg_inp_width_pad += x_stride;
++      // Update index to input width padded
++      idx_beg_inp_width_pad += x_stride;
+ 
+-    // Convolution using matXvec with matrix as circular buffer
+-    xa_nn_matXvec_sym8sxsym16s_sym16s_circ
+-      (p_out /* output */
+-       ,p_state->cir_buf.p_curr/* matrix: rows x cols */
+-       ,p_state->p_kernel_padded /* vec: cols */
+-       ,p_bias /* bias */
+-       ,out_height /* rows */
+-       ,input_channels_pad * kernel_width * kernel_height /* cols */
+-       ,input_channels_pad * kernel_width * y_stride/* row_offset */
+-       ,out_channels /* vec_count */
+-       ,input_channels_pad * kernel_width * kernel_height /* vec_stride */
+-       ,out_channels_offset /* out_col_offset */
+-       ,out_height_offset /* out_row_offset */
+-       ,input_zero_bias
+-       ,p_out_multiplier
+-       ,p_out_shift
+-       ,out_zero_bias
+-      );
+-    p_out += out_width_offset;
++      // Convolution using matXvec with matrix as circular buffer
++      xa_nn_matXvec_sym8sxsym16s_sym16s_circ
++        (p_out /* output */
++        ,p_state->cir_buf.p_curr/* matrix: rows x cols */
++        ,p_state->p_kernel_padded /* vec: cols */
++        ,p_bias /* bias */
++        ,out_height /* rows */
++        ,input_channels_pad * kernel_width * kernel_height /* cols */
++        ,input_channels_pad * kernel_width * y_stride/* row_offset */
++        ,out_channels /* vec_count */
++        ,input_channels_pad * kernel_width * kernel_height /* vec_stride */
++        ,out_channels_offset /* out_col_offset */
++        ,out_height_offset /* out_row_offset */
++        ,input_zero_bias
++        ,p_out_multiplier
++        ,p_out_shift
++        ,out_zero_bias
++        );
++      p_out += out_width_offset;
++    }
++  } else {
++    const WORD16 *p_dst0_0 = p_out + 0;
++    const WORD16 *p_dst0_1 = p_out + 1;
++    const WORD16 *p_dst0_2 = p_out + 2;
++    const WORD16 *p_dst0_3 = p_out + 3;
++    const WORD16 *p_dst1_0 = p_out + out_channels + 0;
++    const WORD16 *p_dst1_1 = p_out + out_channels + 1;
++    const WORD16 *p_dst1_2 = p_out + out_channels + 2;
++    const WORD16 *p_dst1_3 = p_out + out_channels + 3;
++    int kernel_out_ch_offset = kernel_height * kernel_width * input_channels;
++    int input_x_offset = input_channels * x_stride / 4;
++    int p_inp_vec_stride = input_width * input_channels / 4;
++    int p_kern_vec_stride = kernel_width * input_channels;
++    int vec_len = kernel_width * input_channels;
++    for (int out_y = 0; out_y < out_height; ++out_y) {
++      for (int out_x = 0; out_x < out_width; out_x += 2) {
++        for (int out_ch = 0; out_ch < out_channels; out_ch += 4) {
++          ae_int64 out0_0 = p_bias[out_ch + 0];
++          ae_int64 out0_1 = p_bias[out_ch + 1];
++          ae_int64 out0_2 = p_bias[out_ch + 2];
++          ae_int64 out0_3 = p_bias[out_ch + 3];
++          ae_int64 out1_0 = p_bias[out_ch + 0];
++          ae_int64 out1_1 = p_bias[out_ch + 1];
++          ae_int64 out1_2 = p_bias[out_ch + 2];
++          ae_int64 out1_3 = p_bias[out_ch + 3];
++          out0_0 = AE_SLAI64(out0_0, 8);
++          out0_1 = AE_SLAI64(out0_1, 8);
++          out0_2 = AE_SLAI64(out0_2, 8);
++          out0_3 = AE_SLAI64(out0_3, 8);
++          out1_0 = AE_SLAI64(out1_0, 8);
++          out1_1 = AE_SLAI64(out1_1, 8);
++          out1_2 = AE_SLAI64(out1_2, 8);
++          out1_3 = AE_SLAI64(out1_3, 8);
++          int in_x_o = out_x * x_stride;
++          int in_y_o = out_y * y_stride - y_padding;
++          int k_y_min = -in_y_o;
++          int k_y_max = input_width - in_y_o;
++          k_y_min = (k_y_min < 0) ? 0 : k_y_min;
++          k_y_min = (k_y_min < kernel_height) ? k_y_min : kernel_height;
++          k_y_max = (k_y_max < 0) ? 0 : k_y_max;
++          k_y_max = (k_y_max < kernel_height) ? k_y_max : kernel_height;
++          const ae_int16x4 *p_inp_vec =
++              (ae_int16x4 *)&p_inp[((in_y_o + k_y_min) * input_width + in_x_o) *
++                                      input_channels +
++                                  0];
++          const WORD8 *p_kern_vec =
++              &p_kernel[(((out_ch + 0) * kernel_height + k_y_min) * kernel_width +
++                        0) *
++                            input_channels +
++                        0];
++          for (int k_y = k_y_min; k_y < k_y_max; ++k_y) {
++            const ae_int16x4 *p_inp_vec0 = p_inp_vec;
++            const ae_int16x4 *p_inp_vec1 = p_inp_vec + input_x_offset;
++            const WORD8 *p_kern_vec0 = p_kern_vec;
++            const WORD8 *p_kern_vec1 = p_kern_vec0 + kernel_out_ch_offset;
++            const WORD8 *p_kern_vec2 = p_kern_vec1 + kernel_out_ch_offset;
++            const WORD8 *p_kern_vec3 = p_kern_vec2 + kernel_out_ch_offset;
++            p_inp_vec += p_inp_vec_stride;
++            p_kern_vec += p_kern_vec_stride;
++            ae_int16x4 d_inp0;
++            ae_int16x4 d_inp1;
++            ae_int16x4 d_kern0;
++            ae_int16x4 d_kern1;
++            ae_int16x4 d_kern2;
++            ae_int16x4 d_kern3;
++            for (int i = 0; i < vec_len; i += 4) {
++              AE_L16X4_IP(d_inp0, p_inp_vec0, 8);
++              AE_L16X4_IP(d_inp1, p_inp_vec1, 8);
++              AE_L8X4F_IP(d_kern0, p_kern_vec0, 4);
++              AE_L8X4F_IP(d_kern1, p_kern_vec1, 4);
++              AE_L8X4F_IP(d_kern2, p_kern_vec2, 4);
++              AE_L8X4F_IP(d_kern3, p_kern_vec3, 4);
++              AE_MULAAAAQ16(out0_0, d_inp0, d_kern0);
++              AE_MULAAAAQ16(out0_1, d_inp0, d_kern1);
++              AE_MULAAAAQ16(out0_2, d_inp0, d_kern2);
++              AE_MULAAAAQ16(out0_3, d_inp0, d_kern3);
++              AE_MULAAAAQ16(out1_0, d_inp1, d_kern0);
++              AE_MULAAAAQ16(out1_1, d_inp1, d_kern1);
++              AE_MULAAAAQ16(out1_2, d_inp1, d_kern2);
++              AE_MULAAAAQ16(out1_3, d_inp1, d_kern3);
++            }
++          }
++          out0_0 = AE_SRAI64(out0_0, 8);
++          out0_1 = AE_SRAI64(out0_1, 8);
++          out0_2 = AE_SRAI64(out0_2, 8);
++          out0_3 = AE_SRAI64(out0_3, 8);
++          out1_0 = AE_SRAI64(out1_0, 8);
++          out1_1 = AE_SRAI64(out1_1, 8);
++          out1_2 = AE_SRAI64(out1_2, 8);
++          out1_3 = AE_SRAI64(out1_3, 8);
++          ae_int32x2 acc_vec0 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_0, out1_0, p_out_multiplier[out_ch + 0],
++              p_out_shift[out_ch + 0]);
++          ae_int32x2 acc_vec1 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_1, out1_1, p_out_multiplier[out_ch + 1],
++              p_out_shift[out_ch + 1]);
++          ae_int32x2 acc_vec2 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_2, out1_2, p_out_multiplier[out_ch + 2],
++              p_out_shift[out_ch + 2]);
++          ae_int32x2 acc_vec3 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_3, out1_3, p_out_multiplier[out_ch + 3],
++              p_out_shift[out_ch + 3]);
++          ae_int16x4 d1 = AE_SAT16X4(acc_vec0, acc_vec1);
++          ae_int16x4 d2 = AE_SAT16X4(acc_vec2, acc_vec3);
++          AE_S16_0_XP(AE_SEL16_6543(d1, d1), (ae_int16 *)p_dst0_0, 8);
++          AE_S16_0_XP(AE_SEL16_5432(d1, d1), (ae_int16 *)p_dst1_0, 8);
++          AE_S16_0_XP(AE_SEL16_4321(d1, d1), (ae_int16 *)p_dst0_1, 8);
++          AE_S16_0_XP(d1, (ae_int16 *)p_dst1_1, 8);
++          AE_S16_0_XP(AE_SEL16_6543(d2, d2), (ae_int16 *)p_dst0_2, 8);
++          AE_S16_0_XP(AE_SEL16_5432(d2, d2), (ae_int16 *)p_dst1_2, 8);
++          AE_S16_0_XP(AE_SEL16_4321(d2, d2), (ae_int16 *)p_dst0_3, 8);
++          AE_S16_0_XP(d2, (ae_int16 *)p_dst1_3, 8);
++        }
++        p_dst0_0 += out_channels;
++        p_dst0_1 += out_channels;
++        p_dst0_2 += out_channels;
++        p_dst0_3 += out_channels;
++        p_dst1_0 += out_channels;
++        p_dst1_1 += out_channels;
++        p_dst1_2 += out_channels;
++        p_dst1_3 += out_channels;
++      }
++    }
+   }
+ 
+   return 0;
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+index 7f31b75..a010d45 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_transpose_conv_sym8sxsym16s.c
+@@ -157,7 +157,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 	 */
+ 	if(input_data && filter_data && output_data && scratch_buffer &&
+ 			(((unsigned int)input_data&0x7)==0) && (((unsigned int)filter_data&0x3)==0) && (((unsigned int)output_data&0x7) == 0) &&
+-			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0xF)==0) && ((filter_height*filter_width&0x3)==0))
++			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0x3)==0))
+ 	{
+ 		{
+ 			//tbd : batch = 1, need to handle other values and in_x_min/max= 0 .. need toc heck for other values
+@@ -180,7 +180,8 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 					filt_y_max = (filt_y_max < filter_height) ? filt_y_max : filter_height;
+ 					filt_y_max = (filt_y_max < 0) ? 0 : filt_y_max;
+ 					pinp =  (WORD16*)&input_data[in_y*input_width*input_depth+in_x*input_depth];
+-					for (int in_channel = 0; in_channel < input_depth; in_channel+=16)
++					int in_channel = 0;
++					for (; in_channel + 15 < input_depth; in_channel+=16)
+ 					{
+ 						ae_int16x4 d_inp, d_inp1, d_inp2, d_inp3;
+ 						AE_L16X4_IP(d_inp, (ae_int16x4*)pinp, sizeof(WORD64));
+@@ -235,36 +236,7 @@ int xa_nn_transpose_conv_sym8sxsym16s(WORD16* output_data,
+ 							}
+ 						}
+ 					}
+-				}
+-			}
+-		}
+-	}
+-	else if(input_data && filter_data && output_data && scratch_buffer &&
+-			(((unsigned int)input_data&0x7)==0) && (((unsigned int)filter_data&0x3)==0) && (((unsigned int)output_data&0x7) == 0) &&
+-			(((unsigned int)scratch_buffer&0x7) == 0) && ((input_depth&0x3)==0) && ((filter_height*filter_width&0x3)==0))
+-	{
+-		{
+-			//tbd : batch = 1, need to handle other values and in_x_min/max= 0 .. need toc heck for other values
+-			for (int in_y = 0; in_y < input_height; ++in_y)
+-			{
+-				for (int in_x = 0; in_x < input_width; ++in_x)
+-				{
+-					const int out_x_orig = in_x*stride_width - pad_width;
+-					const int out_y_orig = in_y*stride_height - pad_height;
+-					int filt_x_min = -out_x_orig; 
+-					int filt_x_max = output_width - out_x_orig; 
+-					int filt_y_min = -out_y_orig; 
+-					int filt_y_max = output_height - out_y_orig; 
+-					filt_x_min = (filt_x_min < filter_width) ? filt_x_min : filter_width;
+-					filt_x_min = (filt_x_min < 0) ? 0 : filt_x_min;
+-					filt_x_max = (filt_x_max < filter_width) ? filt_x_max : filter_width;
+-					filt_x_max = (filt_x_max < 0) ? 0 : filt_x_max;
+-					filt_y_min = (filt_y_min < filter_height) ? filt_y_min : filter_height;
+-					filt_y_min = (filt_y_min < 0) ? 0 : filt_y_min;
+-					filt_y_max = (filt_y_max < filter_height) ? filt_y_max : filter_height;
+-					filt_y_max = (filt_y_max < 0) ? 0 : filt_y_max;
+-					pinp =  (WORD16*)&input_data[in_y*input_width*input_depth+in_x*input_depth];
+-					for (int in_channel = 0; in_channel < input_depth; in_channel+=4)
++					for (; in_channel + 3 < input_depth; in_channel+=4)
+ 					{
+ 						ae_int16x4 d_inp;
+ 						AE_L16X4_IP(d_inp, (ae_int16x4*)pinp, sizeof(WORD64));
+-- 
+2.41.0.162.gfafddb0af9-goog
+
