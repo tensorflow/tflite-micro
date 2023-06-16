@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <string.h>
 
-#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/c/common.h"
+#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/sub/sub0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/sub/sub0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/sub/sub0_input1_int16_test_data.h"
@@ -46,6 +46,7 @@ limitations under the License.
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
 uint8_t tensor_arena[kTensorArenaSize];
+bool print_log = false;
 
 namespace tflite {
 namespace micro {
@@ -72,7 +73,9 @@ void RunModel(const uint8_t* model, const int16_t* input0,
     TF_LITE_MICRO_EXPECT(false);
     return;
   }
-  profiler.Log();
+  if (print_log) {
+    profiler.Log();
+  }
   MicroPrintf("");
 
   TfLiteTensor* output_tensor = interpreter.output(0);

@@ -982,14 +982,12 @@ cc_test(
     copts = micro_copts(),
     deps = [
         ":models_and_testdata",
+        "//python/tflite_micro:python_ops_resolver",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
-        # TODO(b/286456378): change to //python/tflite_micro:python_ops_resolver
-        # once all internal usage has been updated.
-        "//tensorflow/lite/micro/python/interpreter/src:python_ops_resolver",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

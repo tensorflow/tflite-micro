@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <string.h>
 
-#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/c/common.h"
+#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_input0_int32_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/quantize/quantize0_model_data.h"
@@ -32,6 +32,7 @@ limitations under the License.
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
 uint8_t tensor_arena[kTensorArenaSize];
+bool print_log = false;
 
 namespace tflite {
 namespace micro {
@@ -55,7 +56,9 @@ void RunModel(const uint8_t* model, const inputT* input0,
     TF_LITE_MICRO_EXPECT(false);
     return;
   }
-  profiler.Log();
+  if (print_log == true) {
+    profiler.Log();
+  }
   MicroPrintf("");
 
   TfLiteTensor* output_tensor = interpreter.output(0);
@@ -73,6 +76,15 @@ void RunModel(const uint8_t* model, const inputT* input0,
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
+
+if (argc > 2) {
+  MicroPrintf("wrong number of command line args!\n");
+  MicroPrintf("Correct way to run the test is :\n");
+  MicroPrintf("if you want to print logs -> ./{PATH TO BINARY} print_logs\n");
+  MicroPrintf("if don't want to print logs -> ./{PATH TO BINARY}\n");
+} else if ((argc == 2) && (strcmp(argv[1], "print_logs") == 0)) {
+  print_log = true;
+}
 
 TF_LITE_MICRO_TEST(quantize0_test) {
   tflite::micro::RunModel(
