@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <string.h>
 
-#include "tensorflow/lite/c/common.h"
 #include "python/tflite_micro/python_ops_resolver.h"
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/strided_slice/strided_slice0_model_data.h"
