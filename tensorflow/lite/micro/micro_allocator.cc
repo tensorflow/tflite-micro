@@ -613,6 +613,11 @@ TfLiteTensor* MicroAllocator::AllocatePersistentTfLiteTensor(
   // around for the lifetime of the application.
   TfLiteTensor* tensor = AllocatePersistentTfLiteTensorInternal();
 
+  if (tensor == nullptr) {
+    MicroPrintf("Failed to allocate memory for persistent TfLiteTensor");
+    return nullptr;
+  }
+
   // Populate any fields from the flatbuffer, since this TfLiteTensor struct is
   // allocated in the persistent section of the arena, ensure that additional
   // allocations also take place in that section of the arena.
