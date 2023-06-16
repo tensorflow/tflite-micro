@@ -37,9 +37,9 @@ void generate(const char* name) {
   // for the raw data, and so we reinterpret_cast.
   const uint8_t* init_data =
       reinterpret_cast<const uint8_t*>(fbb.GetBuffer().data());
-  int fbb_size = fbb.GetBuffer().size();
+  size_t fbb_size = fbb.GetBuffer().size();
 
-  printf("const int g_gen_data_size_%s = %d;\n", name, fbb_size);
+  printf("const int g_gen_data_size_%s = %zu;\n", name, fbb_size);
   printf("const unsigned char g_gen_data_%s[] = { ", name);
   for (size_t i = 0; i < fbb_size; i++) {
     printf("0x%02x, ", init_data[i]);

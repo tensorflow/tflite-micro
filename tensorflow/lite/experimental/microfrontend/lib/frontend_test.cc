@@ -69,8 +69,7 @@ TF_LITE_MICRO_TEST(FrontendTest_CheckOutputValues) {
 
   const uint16_t expected[] = {479, 425};
   TF_LITE_MICRO_EXPECT_EQ(output.size, sizeof(expected) / sizeof(expected[0]));
-  int i;
-  for (i = 0; i < output.size; ++i) {
+  for (size_t i = 0; i < output.size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(output.values[i], expected[i]);
   }
 
@@ -94,8 +93,7 @@ TF_LITE_MICRO_TEST(FrontendTest_CheckConsecutiveWindow) {
 
   const int16_t expected[] = {436, 378};
   TF_LITE_MICRO_EXPECT_EQ(output.size, sizeof(expected) / sizeof(expected[0]));
-  int i;
-  for (i = 0; i < output.size; ++i) {
+  for (size_t i = 0; i < output.size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(output.values[i], expected[i]);
   }
 
@@ -122,7 +120,7 @@ TF_LITE_MICRO_TEST(FrontendTest_CheckNotEnoughSamples) {
           kStepSamples,
       &num_samples_read);
 
-  TF_LITE_MICRO_EXPECT_EQ(output.size, 0);
+  TF_LITE_MICRO_EXPECT_EQ(output.size, 0u);
   TF_LITE_MICRO_EXPECT(output.values == nullptr);
 
   FrontendFreeStateContents(&state);
