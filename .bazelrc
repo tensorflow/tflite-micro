@@ -18,6 +18,9 @@
 # Use the following C++ standard
 build --cxxopt -std=c++17
 
+# Treat warnings as errors
+build --copt -Werror
+
 # When building with the address sanitizer
 # E.g., bazel build --config asan
 build:asan --repo_env CC=clang
