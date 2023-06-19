@@ -18,7 +18,6 @@ import numpy as np
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
-from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.examples.hello_world import evaluate
 
 PREFIX_PATH = resource_loader.get_path_to_datafile('')
@@ -28,7 +27,6 @@ class HelloWorldFloatModelTest(test_util.TensorFlowTestCase):
   model_path = os.path.join(PREFIX_PATH, 'models/hello_world_float.tflite')
   input_shape = (1, 1)
   output_shape = (1, 1)
-  tflm_interpreter = runtime.Interpreter.from_file(model_path)
 
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_float_input()
@@ -46,7 +44,6 @@ class HelloWorldQuantModelTest(test_util.TensorFlowTestCase):
   model_path = os.path.join(PREFIX_PATH, 'models/hello_world_int8.tflite')
   input_shape = (1, 1)
   output_shape = (1, 1)
-  tflm_interpreter = runtime.Interpreter.from_file(model_path)
 
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_int8_input()

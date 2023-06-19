@@ -58,7 +58,7 @@ py_binary(
     ],
 )
 
-py_binary(
+py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
     data = [
