@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "python/tflite_micro/interpreter_wrapper.h"
 
+#include <unordered_set>
+
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 // See https://numpy.org/doc/1.16/reference/c-api.array.html#importing-the-api
@@ -31,6 +33,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 namespace {
@@ -187,6 +190,21 @@ PyObject* GetTensorDetails(const TfLiteTensor* tensor) {
   return result;
 }
 
+int count_resource_variables(const tflite::Model* model) {
+  std::unordered_set<std::string> unique_names;
+
+  for (const auto& subgraph : *model->subgraphs()) {
+    for (const auto& op : *subgraph->operators()) {
+      const auto* var_handle = op->builtin_options_as_VarHandleOptions();
+      if (var_handle) {
+        unique_names.emplace(var_handle->shared_name()->str());
+      }
+    }
+  }
+
+  return unique_names.size();
+}
+
 }  // namespace
 
 InterpreterWrapper::~InterpreterWrapper() {
@@ -204,7 +222,7 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size, int num_resource_variables) {
+    size_t arena_size) {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
@@ -224,10 +242,12 @@ InterpreterWrapper::InterpreterWrapper(
   model_ = model_data;
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
   allocator_ = RecordingMicroAllocator::Create(memory_arena_.get(), arena_size);
-  MicroResourceVariables* resource_variables_ = nullptr;
-  if (num_resource_variables > 0)
-    resource_variables_ =
-        MicroResourceVariables::Create(allocator_, num_resource_variables);
+
+  const int num_resource_variables = count_resource_variables(model);
+  MicroResourceVariables* resource_variables_ =
+      num_resource_variables > 0
+          ? MicroResourceVariables::Create(allocator_, num_resource_variables)
+          : nullptr;
 
   for (const std::string& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(),

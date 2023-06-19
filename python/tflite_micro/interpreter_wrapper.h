@@ -27,7 +27,7 @@ class InterpreterWrapper {
  public:
   InterpreterWrapper(PyObject* model_data,
                      const std::vector<std::string>& registerers_by_name,
-                     size_t arena_size, int num_resource_variables);
+                     size_t arena_size);
   ~InterpreterWrapper();
 
   void PrintAllocations();

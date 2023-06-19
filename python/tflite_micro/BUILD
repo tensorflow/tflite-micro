@@ -75,7 +75,6 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
 
