@@ -51,7 +51,8 @@ class RfftOpTest(tf.test.TestCase):
     while i < len(lines):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
-      # TFLite
+      # Compare TFLM inference against the expected golden values
+      # TODO(b/286252893): validate usage of testing vs interpreter here
       interpreter.set_tensor(input_details[0]['index'], in_frame)
       interpreter.invoke()
       out_frame = interpreter.get_tensor(output_details[0]['index'])
@@ -77,7 +78,8 @@ class RfftOpTest(tf.test.TestCase):
                          dtype=np.int16)
     out_frames_exp = [[int(j) for j in lines[i + 1].split()]
                       for i in range(1, len_lines_multiple_of_eight, 2)]
-    # TFLite
+    # Compare TFLM inference against the expected golden values
+    # TODO(b/286252893): validate usage of testing vs interpreter here
     concrete_function = func.get_concrete_function(
         tf.TensorSpec(np.shape(in_frames), dtype=tf.int16), fft_length)
     interpreter = util.get_tflm_interpreter(concrete_function, func)

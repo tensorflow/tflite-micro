@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/rfft.h"
+#include "signal/micro/kernels/rfft.h"
 
 #include <math.h>
 #include <stddef.h>

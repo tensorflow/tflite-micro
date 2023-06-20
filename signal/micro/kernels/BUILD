@@ -13,6 +13,9 @@ cc_library(
         "rfft.cc",
         "window.cc",
     ],
+    hdrs = [
+        "rfft.h",
+    ],
     copts = micro_copts(),
     visibility = [
         "//tensorflow/lite/micro",

@@ -84,7 +84,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // function is called again for a previously added Custom Operator, the
   // MicroOpResolver will be unchanged and this function will return
   // kTfLiteError.
-  TfLiteStatus AddCustom(const char* name, TFLMRegistration* registration) {
+  TfLiteStatus AddCustom(const char* name, const TFLMRegistration* registration) {
     if (registrations_len_ >= tOpCount) {
       MicroPrintf(
           "Couldn't register custom op '%s', resolver size is too"
@@ -443,27 +443,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseResizeNearestNeighbor);
   }
 
-  TfLiteStatus AddRfft() {
+  TfLiteStatus AddRfft(const TFLMRegistration* registration = tflite::tflm_signal::Register_RFFT()) {
     // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfft", tflite::tflm_signal::Register_RFFT());
-  }
-
-  TfLiteStatus AddRfftFloat() {
-    // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftFloat",
-                     tflite::tflm_signal::Register_RFFT_FLOAT());
-  }
-
-  TfLiteStatus AddRfftInt16() {
-    // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftInt16",
-                     tflite::tflm_signal::Register_RFFT_INT16());
-  }
-
-  TfLiteStatus AddRfftInt32() {
-    // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfftInt32",
-                     tflite::tflm_signal::Register_RFFT_INT32());
+    return AddCustom("SignalRfft", registration);
   }
 
   TfLiteStatus AddRound() {

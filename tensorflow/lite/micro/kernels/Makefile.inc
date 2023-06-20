@@ -15,9 +15,6 @@
 
 # This file includes kernel test targets only.
 
-INCLUDES += \
- -I$(MAKEFILE_DIR)/downloads/kissfft
-
 # These tests needs additional dependencies beyond libtensorflow-microlite.a.
 $(eval $(call microlite_test,kernel_detection_postprocess_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess_test.cc \

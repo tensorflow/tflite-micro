@@ -16,6 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_MICRO_OPS_H_
 
 #include "tensorflow/lite/c/common.h"
+#include "signal/micro/kernels/rfft.h"
 
 // Forward declaration of all micro op kernel registration methods. These
 // registrations are included with the standard `BuiltinOpResolver`.
@@ -131,10 +132,6 @@ TFLMRegistration Register_ZEROS_LIKE();
 
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
-TFLMRegistration* Register_RFFT();
-TFLMRegistration* Register_RFFT_FLOAT();
-TFLMRegistration* Register_RFFT_INT16();
-TFLMRegistration* Register_RFFT_INT32();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal
 

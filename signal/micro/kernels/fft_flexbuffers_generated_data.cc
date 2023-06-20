@@ -12,6 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// TODO(b/187459424): Find a better way to generate this data.
 // This file is generated. See:
 // tensorflow/lite/micro/kernels/test_data_generation/README.md
 
