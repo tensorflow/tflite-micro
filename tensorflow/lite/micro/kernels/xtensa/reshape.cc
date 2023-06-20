@@ -82,11 +82,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           static_cast<XtensaReshapeData*>(node->user_data);
       ReshapeEvalVision(*op_data_xtensa, input, output);
     } else {
-#endif  // VISION_P6
       memcpy(output->data.raw, input->data.raw, input_bytes);
-#if defined(VISION_P6)
     }
-#endif  // VISION_P6
+#else  // !defined(VISION_P6)
+    memcpy(output->data.raw, input->data.raw, input_bytes);
+#endif
   }
   return kTfLiteOk;
 }
