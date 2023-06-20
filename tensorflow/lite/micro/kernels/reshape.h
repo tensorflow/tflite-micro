@@ -12,36 +12,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_RESHAPE_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_RESHAPE_H_
 
-#include <cstdint>
-
+#include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
+namespace ops {
+namespace micro {
+namespace reshape {
 
 constexpr int kReshapeInputTensor = 0;
 constexpr int kReshapeOutputTensor = 0;
 
-#if defined(VISION_P6)
+TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node);
 
-struct XtensaReshapeData {
-  uint8_t* p_context;  // persistent lib context for this instance saved here
-  uint32_t context_size;
-};
-#endif  // VISION_P6
-
-#if defined(VISION_P6)
-
-TfLiteStatus ReshapePrepareVision(TfLiteContext* context, TfLiteNode* node);
-
-TfLiteStatus ReshapeEvalVision(const XtensaReshapeData& data,
-                               const TfLiteEvalTensor* input,
-                               TfLiteEvalTensor* output);
-#endif  // VISION_P6
-
+}  // namespace reshape
+}  // namespace micro
+}  // namespace ops
 }  // namespace tflite
-
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_RESHAPE_H_
