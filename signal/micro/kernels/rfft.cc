@@ -14,12 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/rfft.h"
-#include "signal/micro/kernels/rfft.h"
 
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include "signal/micro/kernels/rfft.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
