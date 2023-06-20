@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/reference/dequantize.h"
 #include "tensorflow/lite/kernels/internal/reference/quantize.h"
 #include "tensorflow/lite/kernels/internal/reference/requantize.h"
@@ -45,14 +44,6 @@ TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node) {
                               input->type == kTfLiteInt16 ||
                               input->type == kTfLiteUInt8);
   TF_LITE_ENSURE(context, output->type == kTfLiteFloat32);
-
-  if (output->type == kTfLiteInt32) {
-    const double effective_output_scale =
-        static_cast<double>(input->params.scale) /
-        static_cast<double>(output->params.scale);
-    QuantizeMultiplier(effective_output_scale, &data->output_multiplier,
-                       &data->output_shift);
-  }
 
   data->quantization_params.zero_point = input->params.zero_point;
   data->quantization_params.scale = static_cast<double>(input->params.scale);

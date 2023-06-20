@@ -1,8 +1,8 @@
 HELLO_WORLD_TEST_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/evaluate_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world_test.cc
 
 HELLO_WORLD_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/evaluate_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/hello_world_test.cc
 
 HELLO_WORLD_HDRS :=
 
@@ -19,7 +19,7 @@ $(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_worl
 $(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/hello_world/models/hello_world_int8_model_data.h
 
 # Tests loading and running the sine model.
-$(eval $(call microlite_test,evaluate_cc_test,\
+$(eval $(call microlite_test,hello_world_test,\
 $(HELLO_WORLD_TEST_SRCS),,$(HELLO_WORLD_GENERATOR_INPUTS)))
 
 # Builds a standalone binary.

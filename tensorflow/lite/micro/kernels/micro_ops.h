@@ -55,6 +55,7 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D();
 TFLMRegistration Register_DEQUANTIZE();
 TFLMRegistration Register_DIV();
 TFLMRegistration Register_ELU();
+TFLMRegistration Register_EMBEDDING_LOOKUP();
 TFLMRegistration Register_EQUAL();
 TFLMRegistration* Register_ETHOSU();
 TFLMRegistration Register_EXP();
@@ -126,6 +127,10 @@ TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TFLMRegistration Register_UNPACK();
 TFLMRegistration Register_VAR_HANDLE();
 TFLMRegistration Register_WHILE();
+// TODO(b/160234179): Change custom OPs to also return by value.
+namespace tflm_signal {
+TFLMRegistration* Register_WINDOW();
+}
 TFLMRegistration Register_ZEROS_LIKE();
 
 namespace ops {

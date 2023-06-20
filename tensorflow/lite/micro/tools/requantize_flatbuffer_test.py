@@ -20,7 +20,7 @@ import tensorflow as tf
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
@@ -92,9 +92,9 @@ class SimpleFCModelTest(test_util.TensorFlowTestCase):
     int8_converted_int16_model = convert_8to16_requantizer(
         keras_model, representative_dataset_gen)
 
-    interpreter_tfl_converted = tflm_runtime.Interpreter.from_bytes(
+    interpreter_tfl_converted = runtime.Interpreter.from_bytes(
         tfl_converted_int16_model)
-    interpreter_tool_converted = tflm_runtime.Interpreter.from_bytes(
+    interpreter_tool_converted = runtime.Interpreter.from_bytes(
         int8_converted_int16_model)
 
     num_steps = 10

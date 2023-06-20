@@ -48,6 +48,11 @@ $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
 
+$(eval $(call microlite_test,kernel_window_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.h))
+
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),
 # use simple for loop to generate their make targets in a common way.
 MICROLITE_KERNEL_SIMPLE_TEST_SRCS := \
@@ -69,6 +74,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/exp_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/expand_dims_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fill_test.cc \

@@ -207,6 +207,7 @@ tflm_kernel_cc_library(
         "div.cc",
         "elementwise.cc",
         "elu.cc",
+        "embedding_lookup.cc",
         "ethosu.cc",
         "exp.cc",
         "expand_dims.cc",
@@ -350,6 +351,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
+        "//signal/micro/kernels:register_signal_ops",
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
@@ -663,6 +665,21 @@ cc_test(
     name = "elu_test",
     srcs = [
         "elu_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "embedding_lookup_test",
+    srcs = [
+        "embedding_lookup_test.cc",
     ],
     deps = [
         ":kernel_runner",
