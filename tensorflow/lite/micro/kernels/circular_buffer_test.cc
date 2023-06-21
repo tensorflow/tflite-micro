@@ -99,7 +99,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength4) {
     if (i % tflite::testing::kRunPeriod == tflite::testing::kRunPeriod - 1) {
       TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, status);
     } else {
-      TF_LITE_MICRO_EXPECT_EQ(tflite::testing::kTfLiteAbort, status);
+      TF_LITE_MICRO_EXPECT_EQ(tflite::kTfLiteAbort, status);
     }
   }
 }
