@@ -21,6 +21,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
+// TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
+const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
+
 // MicroContext is eventually going to become the API between TFLM and the
 // kernels, replacing all the functions in TfLiteContext. The end state is code
 // kernels to have code like:

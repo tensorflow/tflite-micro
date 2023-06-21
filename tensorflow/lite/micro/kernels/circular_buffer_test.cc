@@ -27,9 +27,6 @@ namespace {
 
 constexpr int kRunPeriod = 2;
 
-// TODO(b/149795762): Add this to TfLiteStatus enum.
-const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
-
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
