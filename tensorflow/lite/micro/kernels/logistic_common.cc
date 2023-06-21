@@ -96,7 +96,7 @@ TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
 
       data->input_multiplier = static_cast<int32_t>(multiplier);
     }
-
+    TFLITE_DCHECK_LE(data->input_multiplier, 32767);
     int output_scale_log2_rounded;
     TF_LITE_ENSURE(
         context, CheckedLog2(output->params.scale, &output_scale_log2_rounded));
