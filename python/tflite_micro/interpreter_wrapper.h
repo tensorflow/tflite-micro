@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <Python.h>
 
+#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {

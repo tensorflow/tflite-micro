@@ -14,4 +14,4 @@
 # ==============================================================================
 
 # TODO(b/286456378): remove once all usage is switched to runtime
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src.runtime import *
+from tflite_micro.python.tflite_micro.runtime import *

@@ -12,7 +12,7 @@ py_library(
     name = "util",
     srcs = ["util.py"],
     deps = [
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//python/tflite_micro:runtime",
         requirement("tensorflow-cpu"),
     ],
 )

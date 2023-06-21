@@ -15,9 +15,9 @@
 """Basic Python test for the TFLM interpreter"""
 
 # Steps to debug with gdb:
-# 1. bazel build tensorflow/lite/micro/python/interpreter/tests:runtime_test
+# 1. bazel build python/tflite_micro:runtime_test
 # 2. gdb python
-# 3. (gdb) run bazel-out/k8-fastbuild/bin/tensorflow/lite/micro/python/interpreter/tests/runtime_test
+# 3. (gdb) run bazel-out/k8-fastbuild/bin/python/tflite_micro/runtime_test
 
 import gc
 import weakref
@@ -27,7 +27,7 @@ import tensorflow as tf
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 
 
 class ConvModelTests(test_util.TensorFlowTestCase):
@@ -240,7 +240,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     self.assertFalse(int_ref.alive)
     self.assertFalse(output_ref.alive)
 
-  # TODO (b/240162715): Add a test case to register a custom OP
+  # TODO(b/240162715): Add a test case to register a custom OP
 
   def testMalformedCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)

@@ -1,6 +1,6 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("//tensorflow:extra_rules.bzl", "tflm_audio_frontend_friends")
+load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
 
 package(
     default_visibility = ["//:__subpackages__"],
@@ -13,8 +13,8 @@ package_group(
 )
 
 package_group(
-    name = "audio_frontend_friends",
-    packages = tflm_audio_frontend_friends(),
+    name = "application_friends",
+    packages = tflm_application_friends(),
 )
 
 py_library(
@@ -70,7 +70,7 @@ py_test(
     ],
     deps = [
         ":requantize_flatbuffer",
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        "//python/tflite_micro:runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],
@@ -108,10 +108,8 @@ py_library(
     ],
     srcs_version = "PY3",
     visibility = [
+        ":application_friends",
         ":tflm_tools",
-        # TODO(b/285021986): see http://b/285021986#comment2 for details on
-        # what is needed to fix the visibility.
-        ":audio_frontend_friends",
     ],
     deps = [
         "//tensorflow/lite/python:schema_py",
@@ -127,12 +125,13 @@ py_library(
     ],
     srcs_version = "PY3",
     visibility = [
+        ":application_friends",
         ":tflm_tools",
         "//:__subpackages__",
     ],
     deps = [
         ":model_transforms_utils",
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl/logging",
         requirement("numpy"),

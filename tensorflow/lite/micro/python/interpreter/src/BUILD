@@ -1,5 +1,3 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "micro_copts",
@@ -19,11 +17,28 @@ package_group(
     packages = tflm_python_op_resolver_friends(),
 )
 
+# tflm_runtime is deprecated, please use //python/tflite_micro:runtime instead.
+# TODO(b/286456378): remove once all usage is changed to the runtime target.
+py_library(
+    name = "tflm_runtime",
+    srcs = ["tflm_runtime.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//python/tflite_micro:runtime"],
+)
+
+# runtime is deprecated, please use //python/tflite_micro:runtime instead.
+# TODO(b/286456378): remove once all usage is changed to the runtime target.
+py_library(
+    name = "runtime",
+    srcs = ["runtime.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//python/tflite_micro:runtime"],
+)
+
+# TODO(b/286456378): remove once all internal usage is fixed.
 cc_library(
     name = "python_ops_resolver",
-    srcs = [
-        "python_ops_resolver.cc",
-    ],
+    srcs = [],
     hdrs = [
         "python_ops_resolver.h",
     ],
@@ -33,56 +48,6 @@ cc_library(
         "//tensorflow/lite/micro/integration_tests:__subpackages__",
     ],
     deps = [
-        "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro/kernels:micro_ops",
-    ],
-)
-
-pybind_extension(
-    name = "_runtime",
-    # target = _runtime.so because pybind_extension() appends suffix
-    srcs = [
-        "_runtime.cc",
-        "interpreter_wrapper.cc",
-        "interpreter_wrapper.h",
-        "numpy_utils.cc",
-        "numpy_utils.h",
-        "pybind11_lib.h",
-        "python_utils.cc",
-        "python_utils.h",
-        "shared_library.h",
-    ],
-    deps = [
-        ":python_ops_resolver",
-        "//tensorflow/lite/micro:micro_framework",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:recording_allocators",
-        "@numpy_cc_deps//:cc_headers",
-    ],
-)
-
-# tflm_runtime is deprecated, please use runtime instead.
-# TODO(b/286456378): remove once all usage is changed to the runtime target.
-py_library(
-    name = "tflm_runtime",
-    srcs = ["tflm_runtime.py"],
-    visibility = ["//visibility:public"],
-    deps = [":runtime"],
-)
-
-py_library(
-    name = "runtime",
-    srcs = [
-        "runtime.py",
-    ],
-    data = [
-        ":_runtime.so",
-    ],
-    srcs_version = "PY3",
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("numpy"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
+        "//python/tflite_micro:python_ops_resolver",
     ],
 )

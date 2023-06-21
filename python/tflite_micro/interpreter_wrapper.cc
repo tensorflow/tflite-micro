@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/python/interpreter/src/interpreter_wrapper.h"
+#include "python/tflite_micro/interpreter_wrapper.h"
 
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -23,13 +23,13 @@ limitations under the License.
 #include <numpy/arrayobject.h>
 #include <pybind11/pybind11.h>
 
+#include "python/tflite_micro/numpy_utils.h"
+#include "python/tflite_micro/pybind11_lib.h"
+#include "python/tflite_micro/python_ops_resolver.h"
+#include "python/tflite_micro/python_utils.h"
+#include "python/tflite_micro/shared_library.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/python/interpreter/src/numpy_utils.h"
-#include "tensorflow/lite/micro/python/interpreter/src/pybind11_lib.h"
-#include "tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h"
-#include "tensorflow/lite/micro/python/interpreter/src/python_utils.h"
-#include "tensorflow/lite/micro/python/interpreter/src/shared_library.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
