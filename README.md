@@ -103,7 +103,7 @@ The following resources may also be useful:
  * [Software Emulation with QEMU](tensorflow/lite/micro/docs/qemu.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
- * [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
+ * [Python Interpreter Guide](python/tflite_micro/README.md)
 
 # RFCs
 

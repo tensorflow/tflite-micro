@@ -12,6 +12,6 @@ py_binary(
         "@absl_py//absl/logging",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//python/tflite_micro:runtime",
     ],
 )

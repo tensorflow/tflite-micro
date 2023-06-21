@@ -53,7 +53,7 @@ TF_LITE_MICRO_TEST(PcanGainControlTest_TestPcanGainControl) {
 
   const uint32_t expected[] = {3578, 1533};
   TF_LITE_MICRO_EXPECT_EQ(state.num_channels,
-                          sizeof(expected) / sizeof(expected[0]));
+                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(signal[i], expected[i]);

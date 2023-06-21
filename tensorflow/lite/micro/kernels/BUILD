@@ -250,6 +250,7 @@ tflm_kernel_cc_library(
         "reduce.cc",
         "reduce_common.cc",
         "reshape.cc",
+        "reshape_common.cc",
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
         "round.cc",
@@ -300,6 +301,7 @@ tflm_kernel_cc_library(
         "prelu.h",
         "quantize.h",
         "reduce.h",
+        "reshape.h",
         "softmax.h",
         "sub.h",
         "svdf.h",
@@ -349,6 +351,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
+        "//signal/micro/kernels:register_signal_ops",
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
