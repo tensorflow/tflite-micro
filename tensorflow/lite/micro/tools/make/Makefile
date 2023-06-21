@@ -82,6 +82,7 @@ INCLUDES := \
 -I. \
 -I$(DOWNLOADS_DIR)/gemmlowp \
 -I$(DOWNLOADS_DIR)/flatbuffers/include \
+-I$(DOWNLOADS_DIR)/kissfft \
 -I$(DOWNLOADS_DIR)/ruy
 
 ifneq ($(TENSORFLOW_ROOT),)
@@ -311,6 +312,15 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/linear_memory_planner_tes
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
+$(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
+$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_float.cc \
+$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
+$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_int32.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
+$(TENSORFLOW_ROOT)signal/src/window.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add.cc \
@@ -413,8 +423,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc 
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
-$(TENSORFLOW_ROOT)signal/src/window.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc
 
 MICROLITE_TEST_HDRS := \
@@ -446,14 +454,15 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
 $(TFL_CC_SRCS)
 
 MICROLITE_CC_HDRS := \
+$(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
+$(wildcard $(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
 $(TENSORFLOW_ROOT)LICENSE \
 $(TFL_CC_HDRS)
 
