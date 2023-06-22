@@ -30,6 +30,14 @@ ifeq ($(CMSIS_NN_PATH), $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH))
     $(error Something went wrong with the CMSIS-NN download: $(DOWNLOAD_RESULT))
   endif
 endif
+CMSIS_DSP_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis_dsp
+CMSIS_DSP_PATH := $(CMSIS_DSP_DEFAULT_DOWNLOAD_PATH)
+ifeq ($(CMSIS_DSP_PATH), $(CMSIS_DSP_DEFAULT_DOWNLOAD_PATH))
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_dsp_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT})
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the CMSIS-DSP download: $(DOWNLOAD_RESULT))
+  endif
+endif
 
 ifeq (,$(CMSIS_NN_LIBS))
   THIRD_PARTY_KERNEL_CC_SRCS += $(shell find $(CMSIS_NN_PATH)/Source -name "*.c")
@@ -38,12 +46,20 @@ else
 endif
 THIRD_PARTY_CC_HDRS += $(shell find $(CMSIS_NN_PATH)/Include -name "*.h")
 
+ifeq (,$(CMSIS_DSP_LIBS))
+  THIRD_PARTY_KERNEL_CC_SRCS += $(shell find $(CMSIS_DSP_PATH)/Source -name "arm_*.c")
+else
+  MICROLITE_LIBS += $(CMSIS_DSP_LIBS)
+endif
+THIRD_PARTY_CC_HDRS += $(shell find $(CMSIS_DSP_PATH)/Include -name "*.h")
+
 # Note all the headers from CMSIS/Core/Include are needed to ensure that the
 # project generation scripts copy over the compiler specific implementations of
 # the various intrinisics.
 THIRD_PARTY_CC_HDRS += \
   $(CMSIS_PATH)/LICENSE.txt \
   $(CMSIS_NN_PATH)/LICENSE.txt \
+  $(CMSIS_DSP_PATH)/LICENSE.txt \
   $(wildcard $(CMSIS_PATH)/CMSIS/Core/Include/*.h)
 
 # We add -I$(CMSIS_PATH) to enable the code in the TFLM repo (mostly in the
@@ -56,5 +72,28 @@ THIRD_PARTY_CC_HDRS += \
 INCLUDES += \
   -I$(CMSIS_PATH) \
   -I$(CMSIS_NN_PATH) \
+  -I$(CMSIS_DSP_PATH) \
   -I$(CMSIS_PATH)/CMSIS/Core/Include \
-  -I$(CMSIS_NN_PATH)/Include
+  -I$(CMSIS_NN_PATH)/Include \
+  -I$(CMSIS_DSP_PATH)/Include \
+  -I$(CMSIS_DSP_PATH)/PrivateInclude
+
+MIN_RFFT_Q15_LEN := 32
+MAX_RFFT_Q15_LEN := 8192
+
+MIN_RFFT_Q31_LEN := 32
+MAX_RFFT_Q31_LEN := 8192
+
+MIN_RFFT_FLOAT_LEN := 32
+MAX_RFFT_FLOAT_LEN := 4096
+
+CMSIS_NN_FLAGS := \
+  -DMIN_RFFT_Q15_LEN=$(MIN_RFFT_Q15_LEN) \
+  -DMAX_RFFT_Q15_LEN=$(MAX_RFFT_Q15_LEN) \
+  -DMIN_RFFT_Q31_LEN=$(MIN_RFFT_Q31_LEN) \
+  -DMAX_RFFT_Q31_LEN=$(MAX_RFFT_Q31_LEN) \
+  -DMIN_RFFT_FLOAT_LEN=$(MIN_RFFT_FLOAT_LEN) \
+  -DMAX_RFFT_FLOAT_LEN=$(MAX_RFFT_FLOAT_LEN)
+
+CCFLAGS += $(CMSIS_NN_FLAGS)
+CXXFLAGS += $(CMSIS_NN_FLAGS)
