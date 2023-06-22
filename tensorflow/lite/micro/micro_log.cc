@@ -23,12 +23,20 @@ limitations under the License.
 #endif
 
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+namespace {
+
+void _DebugOutput(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  DebugLog(format, args);
+  va_end(args);
+}
+
+}  // namespace
+
 void VMicroPrintf(const char* format, va_list args) {
   DebugLog(format, args);
-  va_list dummy;
-  va_copy(dummy, args);
-  DebugLog("\r\n", dummy);
-  va_end(dummy);
+  _DebugOutput("\r\n");
 }
 
 void MicroPrintf(const char* format, ...) {
@@ -37,4 +45,4 @@ void MicroPrintf(const char* format, ...) {
   VMicroPrintf(format, args);
   va_end(args);
 }
-#endif
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
