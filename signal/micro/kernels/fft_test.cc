@@ -220,18 +220,12 @@ TF_LITE_MICRO_TEST(RfftTestSize512Float) {
   float output[kOutputLen * 2];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_FLOAT();
-// See (b/287518815) for why this is needed.
-#if defined(ARMCM55)
-  float tolerance = 1e-5;
-#else   // defined(ARMCM55)
-  float tolerance = 1e-7;
-#endif  // defined(ARMCM55)
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<float>(
                      input_shape, tflite::kRfftFloatLength512Input,
                      output_shape, tflite::kRfftFloatLength512Golden,
                      *registration, g_gen_data_fft_length_512_float,
-                     g_gen_data_size_fft_length_512_float, output, tolerance));
+                     g_gen_data_size_fft_length_512_float, output, 1e-5));
 }
 
 TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
