@@ -333,6 +333,7 @@ tflm_kernel_cc_library(
         ":activation_utils",
         ":kernel_util",
         ":micro_tensor_utils",
+        "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -351,7 +352,6 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",
-        "//signal/micro/kernels:register_signal_ops",
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
