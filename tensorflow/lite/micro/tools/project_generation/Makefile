@@ -22,65 +22,65 @@
 BUILD_TYPE :=
 
 COMMON_FLAGS := \
-  -DTF_LITE_STATIC_MEMORY \
-  -fno-unwind-tables \
-  -ffunction-sections \
-  -fdata-sections \
-  -fmessage-length=0
+	-DTF_LITE_STATIC_MEMORY \
+	-fno-unwind-tables \
+	-ffunction-sections \
+	-fdata-sections \
+	-fmessage-length=0
 
 CXX := clang++
 CC := clang
 AR := ar
 
 INCLUDES := \
-  -I. \
-  -I./third_party/gemmlowp \
-  -I./third_party/flatbuffers/include \
-  -I./third_party/kissfft \
-  -I./third_party/kissfft/tools \
-  -I./third_party/ruy
+	-I. \
+	-I./third_party/gemmlowp \
+	-I./third_party/flatbuffers/include \
+	-I./third_party/kissfft \
+	-I./third_party/kissfft/tools \
+	-I./third_party/ruy
 
 ifneq ($(TENSORFLOW_ROOT),)
-  INCLUDES += -I$(TENSORFLOW_ROOT)
+	INCLUDES += -I$(TENSORFLOW_ROOT)
 endif
 
 ifneq ($(EXTERNAL_DIR),)
-  INCLUDES += -I$(EXTERNAL_DIR)
+	INCLUDES += -I$(EXTERNAL_DIR)
 endif
 
 ifeq ($(BUILD_TYPE), cmsis_nn)
-  CXX := arm-none-eabi-g++
-  CC := arm-none-eabi-gcc
-  AR := arm-none-eabi-ar
+	CXX := arm-none-eabi-g++
+	CC := arm-none-eabi-gcc
+	AR := arm-none-eabi-ar
 
-  INCLUDES += \
-    -I./third_party/cmsis \
-    -I./third_party/cmsis_nn \
-    -I./third_party/cmsis_nn/Include \
-    -I./third_party/cmsis/CMSIS/Core/Include
+	INCLUDES += \
+		-I./third_party/cmsis \
+		-I./third_party/cmsis_nn \
+		-I./third_party/cmsis_nn/Include \
+		-I./third_party/cmsis/CMSIS/Core/Include
 
-  COMMON_FLAGS += \
-    -DTF_LITE_MCU_DEBUG_LOG \
-    -DPROJECT_GENERATION \
-    -mthumb \
-    -mlittle-endian \
-    -funsigned-char \
-    -fomit-frame-pointer \
-    -MD \
-    -DCMSIS_NN
+	COMMON_FLAGS += \
+		-DTF_LITE_MCU_DEBUG_LOG \
+		-DPROJECT_GENERATION \
+		-mthumb \
+		-mlittle-endian \
+		-funsigned-char \
+		-fomit-frame-pointer \
+		-MD \
+		-DCMSIS_NN
 
 endif
 
 CXXFLAGS := \
-  -std=c++11 \
-  -fno-rtti \
-  -fno-exceptions \
-  -fno-threadsafe-statics \
-  $(COMMON_FLAGS)
+	-std=c++11 \
+	-fno-rtti \
+	-fno-exceptions \
+	-fno-threadsafe-statics \
+	$(COMMON_FLAGS)
 
 CCFLAGS := \
-  -std=c11 \
-  $(COMMON_FLAGS)
+	-std=c11 \
+	$(COMMON_FLAGS)
 
 ARFLAGS := -r
 
@@ -91,6 +91,13 @@ LIB := $(GENDIR)/libtflm.a
 
 TFLM_CC_SRCS := $(shell find $(TENSORFLOW_ROOT)tensorflow -name "*.cc" -o -name "*.c")
 OBJS := $(addprefix $(OBJDIR)/, $(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(TFLM_CC_SRCS))))
+
+# if the third party printf library is present, add the include paths
+TFLM_PRINTF_PATH := $(shell find third_party -name eyalroz_printf)
+ifneq ($(TFLM_PRINTF_PATH),)
+	INCLUDES += \
+		-I./third_party
+endif
 
 $(OBJDIR)/%.o: %.cc
 	@mkdir -p $(dir $@)
