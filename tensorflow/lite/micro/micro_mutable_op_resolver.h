@@ -71,8 +71,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteBridgeBuiltinParseFunction GetOpDataParser(
       BuiltinOperator op) const override {
-    TFLITE_DCHECK(num_buitin_ops_ <= tOpCount);
-    for (unsigned int i = 0; i < num_buitin_ops_; ++i) {
+    TFLITE_DCHECK(num_builtin_ops_ <= tOpCount);
+    for (unsigned int i = 0; i < num_builtin_ops_; ++i) {
       if (builtin_codes_[i] == op) return builtin_parsers_[i];
     }
     return nullptr;
@@ -609,9 +609,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
     registrations_[registrations_len_].builtin_code = op;
     registrations_len_++;
 
-    builtin_codes_[num_buitin_ops_] = op;
-    builtin_parsers_[num_buitin_ops_] = parser;
-    num_buitin_ops_++;
+    builtin_codes_[num_builtin_ops_] = op;
+    builtin_parsers_[num_builtin_ops_] = parser;
+    num_builtin_ops_++;
 
     return kTfLiteOk;
   }
@@ -623,7 +623,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // parse functions as these are registered with the Op Resolver.
   BuiltinOperator builtin_codes_[tOpCount];
   TfLiteBridgeBuiltinParseFunction builtin_parsers_[tOpCount];
-  unsigned int num_buitin_ops_ = 0;
+  unsigned int num_builtin_ops_ = 0;
 };
 
 };  // namespace tflite
