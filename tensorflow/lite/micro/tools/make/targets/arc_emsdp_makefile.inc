@@ -27,3 +27,5 @@ $(eval $(call add_third_party_download,$(EMBARC_MLI_PRE_COMPILED_URL),$(EMBARC_M
 TCF_FILE = $(PWD)/$(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/hw/emsdp_em11d_em9d_dfss.tcf
 
 include $(MAKEFILE_DIR)/targets/arc/arc_common.inc
+
+include $(MAKEFILE_DIR)/ext_libs/printf.inc

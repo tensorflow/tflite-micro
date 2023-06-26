@@ -24,17 +24,31 @@ extern "C" {
 
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include "eyalroz_printf/src/printf/printf.h"
+#endif
+
 static DebugLogCallback debug_log_callback = nullptr;
 
 void RegisterDebugLogCallback(void (*cb)(const char* s)) {
   debug_log_callback = cb;
 }
 
-void DebugLog(const char* s) {
+void _DebugLog(const char* s) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
   if (debug_log_callback != nullptr) {
     debug_log_callback(s);
   }
+#endif
+}
+
+void DebugLog(const char* format, va_list args) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+  static constexpr int kMaxLogLen = 256;
+  char log_buffer[kMaxLogLen];
+
+  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  _DebugLog(log_buffer);
 #endif
 }
 

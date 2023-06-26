@@ -17,6 +17,16 @@ limitations under the License.
 
 #include <chre.h>
 
-extern "C" void DebugLog(const char* s) {
+extern "C" void _DebugLog(const char* s) {
   chreLog(CHRE_LOG_DEBUG, "[TFL_MICRO] %s", s);
+}
+
+extern "C" void DebugLog(const char* format, va_list args) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+  static constexpr int kMaxLogLen = 256;
+  char log_buffer[kMaxLogLen];
+
+  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  _DebugLog(log_buffer);
+#endif
 }
