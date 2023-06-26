@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 
 #include <chre.h>
+
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include "eyalroz_printf/src/printf/printf.h"
+#endif
 
 extern "C" void _DebugLog(const char* s) {
   chreLog(CHRE_LOG_DEBUG, "[TFL_MICRO] %s", s);
