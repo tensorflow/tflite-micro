@@ -20,6 +20,9 @@ limitations under the License.
 #include "signal/src/kiss_fft_wrappers/kiss_fft_int16.h"
 #include "signal/src/rfft.h"
 
+// TODO(b/286250473): remove namespace once de-duped libraries
+namespace tflm_signal {
+
 size_t RfftInt16GetNeededMemory(int32_t fft_length) {
   size_t state_size = 0;
   kiss_fft_fixed16::kiss_fftr_alloc(fft_length, 0, nullptr, &state_size);
@@ -37,3 +40,5 @@ void RfftInt16Apply(void* state, const int16_t* input,
       reinterpret_cast<const kiss_fft_scalar*>(input),
       reinterpret_cast<kiss_fft_fixed16::kiss_fft_cpx*>(output));
 }
+
+}  // namespace tflm_signal

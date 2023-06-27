@@ -82,21 +82,24 @@ class RfftOp : public tensorflow::OpKernel {
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalRfft")
-                            .Device(tensorflow::DEVICE_CPU)
-                            .TypeConstraint<float>("T"),
-                        RfftOp<float, DT_FLOAT, RfftFloatGetNeededMemory,
-                               RfftFloatInit, RfftFloatApply>);
-REGISTER_KERNEL_BUILDER(Name("SignalRfft")
-                            .Device(tensorflow::DEVICE_CPU)
-                            .TypeConstraint<int16>("T"),
-                        RfftOp<int16_t, DT_INT16, RfftInt16GetNeededMemory,
-                               RfftInt16Init, RfftInt16Apply>);
-REGISTER_KERNEL_BUILDER(Name("SignalRfft")
-                            .Device(tensorflow::DEVICE_CPU)
-                            .TypeConstraint<int32>("T"),
-                        RfftOp<int32_t, DT_INT32, RfftInt32GetNeededMemory,
-                               RfftInt32Init, RfftInt32Apply>);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalRfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<float>("T"),
+    RfftOp<float, DT_FLOAT, ::tflm_signal::RfftFloatGetNeededMemory,
+           ::tflm_signal::RfftFloatInit, ::tflm_signal::RfftFloatApply>);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalRfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int16>("T"),
+    RfftOp<int16_t, DT_INT16, ::tflm_signal::RfftInt16GetNeededMemory,
+           ::tflm_signal::RfftInt16Init, ::tflm_signal::RfftInt16Apply>);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalRfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int32>("T"),
+    RfftOp<int32_t, DT_INT32, ::tflm_signal::RfftInt32GetNeededMemory,
+           ::tflm_signal::RfftInt32Init, ::tflm_signal::RfftInt32Apply>);
 
 }  // namespace signal
 }  // namespace tensorflow
