@@ -27,6 +27,7 @@ py_library(
         "ops/__init__.py",
     ],
     srcs_version = "PY3",
+    visibility = ["//python/tflite_micro/signal/utils:__subpackages__"],
     deps = [
         ":fft_ops",
         ":window_op",
