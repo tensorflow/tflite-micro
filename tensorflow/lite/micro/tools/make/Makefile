@@ -314,9 +314,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_pla
 MICROLITE_CC_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
-$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_float.cc \
-$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
-$(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_int32.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
@@ -456,7 +453,6 @@ $(TFL_CC_SRCS)
 MICROLITE_CC_HDRS := \
 $(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \

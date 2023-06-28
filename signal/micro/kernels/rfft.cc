@@ -142,16 +142,16 @@ void* InitAll(TfLiteContext* context, const char* buffer, size_t length) {
 
   switch (tensor_type) {
     case TensorType_INT16: {
-      return Init<int16_t, RfftInt16GetNeededMemory, RfftInt16Init>(
-          context, buffer, length);
+      return Init<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
+                  ::tflm_signal::RfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
-      return Init<int32_t, RfftInt32GetNeededMemory, RfftInt32Init>(
-          context, buffer, length);
+      return Init<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
+                  ::tflm_signal::RfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
-      return Init<float, RfftFloatGetNeededMemory, RfftFloatInit>(
-          context, buffer, length);
+      return Init<float, ::tflm_signal::RfftFloatGetNeededMemory,
+                  ::tflm_signal::RfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;
@@ -183,13 +183,13 @@ TfLiteStatus EvalAll(TfLiteContext* context, TfLiteNode* node) {
 
   switch (params->fft_type) {
     case kTfLiteInt16: {
-      return Eval<int16_t, RfftInt16Apply>(context, node);
+      return Eval<int16_t, ::tflm_signal::RfftInt16Apply>(context, node);
     }
     case kTfLiteInt32: {
-      return Eval<int32_t, RfftInt32Apply>(context, node);
+      return Eval<int32_t, ::tflm_signal::RfftInt32Apply>(context, node);
     }
     case kTfLiteFloat32: {
-      return Eval<float, RfftFloatApply>(context, node);
+      return Eval<float, ::tflm_signal::RfftFloatApply>(context, node);
     }
     default:
       return kTfLiteError;
@@ -208,22 +208,28 @@ TFLMRegistration* Register_RFFT() {
 
 TFLMRegistration* Register_RFFT_FLOAT() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<float, RfftFloatGetNeededMemory, RfftFloatInit>,
-      Prepare<float, kTfLiteFloat32>, Eval<float, RfftFloatApply>);
+      Init<float, ::tflm_signal::RfftFloatGetNeededMemory,
+           ::tflm_signal::RfftFloatInit>,
+      Prepare<float, kTfLiteFloat32>,
+      Eval<float, ::tflm_signal::RfftFloatApply>);
   return &r;
 }
 
 TFLMRegistration* Register_RFFT_INT16() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<int16_t, RfftInt16GetNeededMemory, RfftInt16Init>,
-      Prepare<int16_t, kTfLiteInt16>, Eval<int16_t, RfftInt16Apply>);
+      Init<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
+           ::tflm_signal::RfftInt16Init>,
+      Prepare<int16_t, kTfLiteInt16>,
+      Eval<int16_t, ::tflm_signal::RfftInt16Apply>);
   return &r;
 }
 
 TFLMRegistration* Register_RFFT_INT32() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<int32_t, RfftInt32GetNeededMemory, RfftInt32Init>,
-      Prepare<int32_t, kTfLiteInt32>, Eval<int32_t, RfftInt32Apply>);
+      Init<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
+           ::tflm_signal::RfftInt32Init>,
+      Prepare<int32_t, kTfLiteInt32>,
+      Eval<int32_t, ::tflm_signal::RfftInt32Apply>);
   return &r;
 }
 
