@@ -828,6 +828,7 @@ cc_test(
     copts = micro_copts(),
     deps = [
         ":models_and_testdata",
+        "//python/tflite_micro:python_ops_resolver",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_resource_variable",

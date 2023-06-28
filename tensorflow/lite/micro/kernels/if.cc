@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ namespace tflite {
 
 namespace {
 
+constexpr int kCondTensor = 0;
+
 struct OpData {
   int then_subgraph_index;
   int else_subgraph_index;
@@ -52,7 +54,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // The first input is the condition.
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  TfLiteTensor* cond = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* cond =
+      micro_context->AllocateTempInputTensor(node, kCondTensor);
 
   TF_LITE_ENSURE(context, cond != nullptr);
   TF_LITE_ENSURE_EQ(context, cond->type, kTfLiteBool);
@@ -86,11 +89,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  TfLiteTensor* cond = micro_context->AllocateTempInputTensor(node, 0);
-
+  const TfLiteEvalTensor* cond =
+      tflite::micro::GetEvalInput(context, node, kCondTensor);
   TF_LITE_ENSURE(context, cond != nullptr);
-  bool cond_value = cond->data.b[0];
-  micro_context->DeallocateTempTfLiteTensor(cond);
+  const bool cond_value = cond->data.b[0];
 
   MicroGraph* graph_info = &micro_context->graph();
   // Currently we copy the input / output between the subgraphs.
@@ -114,7 +116,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace.
 
-TfLiteRegistration_V1 Register_IF() {
+TFLMRegistration Register_IF() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 

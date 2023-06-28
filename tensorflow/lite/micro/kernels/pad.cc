@@ -18,7 +18,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/op_macros.h"
@@ -218,12 +217,12 @@ TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration_V1 Register_PAD() {
+TFLMRegistration Register_PAD() {
   return tflite::micro::RegisterOp(Init, PadPrepare, Eval);
 }
 
 // Also register Pad as PadV2.
-TfLiteRegistration_V1 Register_PADV2() {
+TFLMRegistration Register_PADV2() {
   return tflite::micro::RegisterOp(Init, PadPrepare, Eval);
 }
 

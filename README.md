@@ -61,6 +61,7 @@ Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/action
 Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml) |
 RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
 Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) |
+Generate Integration Test          | [![Generate Integration Test](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml) |
 
 
 # Contributing
@@ -99,9 +100,10 @@ The following resources may also be useful:
  * Platform/IP support
    * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
+ * [Software Emulation with QEMU](tensorflow/lite/micro/docs/qemu.md)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
- * [Python Interpreter Guide](tensorflow/lite/micro/python/interpreter/README.md)
+ * [Python Interpreter Guide](python/tflite_micro/README.md)
 
 # RFCs
 

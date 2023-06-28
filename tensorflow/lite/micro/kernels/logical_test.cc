@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -24,11 +23,10 @@ namespace tflite {
 namespace testing {
 namespace {
 
-void TestLogicalOp(const TfLiteRegistration_V1& registration,
-                   int* input1_dims_data, const bool* input1_data,
-                   int* input2_dims_data, const bool* input2_data,
-                   int* output_dims_data, const bool* expected_output_data,
-                   bool* output_data) {
+void TestLogicalOp(const TFLMRegistration& registration, int* input1_dims_data,
+                   const bool* input1_data, int* input2_dims_data,
+                   const bool* input2_data, int* output_dims_data,
+                   const bool* expected_output_data, bool* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);

@@ -83,7 +83,7 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
-TfLiteRegistration_V1 Register_SOFTMAX() {
+TFLMRegistration Register_SOFTMAX() {
   return tflite::micro::RegisterOp(SoftmaxInit, SoftmaxPrepare, SoftmaxEval);
 }
 

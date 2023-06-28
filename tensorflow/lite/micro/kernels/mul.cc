@@ -61,7 +61,7 @@ TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration_V1 Register_MUL() {
+TFLMRegistration Register_MUL() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, MulEval);
 }
 

@@ -18,7 +18,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -272,7 +271,7 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TfLiteRegistration_V1 registration = Register_FULLY_CONNECTED();
+  const TFLMRegistration registration = Register_FULLY_CONNECTED();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));

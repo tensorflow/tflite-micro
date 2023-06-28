@@ -16,9 +16,10 @@ limitations under the License.
 #include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
+#include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
@@ -34,6 +35,7 @@ limitations under the License.
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
 uint8_t tensor_arena[kTensorArenaSize];
+bool print_log = false;
 
 namespace tflite {
 namespace micro {
@@ -49,7 +51,7 @@ void RunModel(const uint8_t* model,
               const char* name) {
   InitializeTarget();
   MicroProfiler profiler;
-  AllOpsResolver op_resolver;
+  PythonOpsResolver op_resolver;
 
   MicroInterpreter interpreter(GetModel(model), op_resolver, tensor_arena,
                                kTensorArenaSize,
@@ -68,7 +70,9 @@ void RunModel(const uint8_t* model,
     TF_LITE_MICRO_EXPECT(false);
     return;
   }
-  profiler.Log();
+  if (print_log) {
+    profiler.Log();
+  }
   MicroPrintf("");
 
   TfLiteTensor* output_tensor = interpreter.output(0);
@@ -88,7 +92,7 @@ void RunModel(const uint8_t* model,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-% for target in targets: 
+% for target in targets:
 
 TF_LITE_MICRO_TEST(${target}_test) {tflite::micro::RunModel(
 g_${target}_model_data,

@@ -108,8 +108,8 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration_V1* Register_CIRCULAR_BUFFER() {
-  static TfLiteRegistration_V1 r = tflite::micro::RegisterOp(
+TFLMRegistration* Register_CIRCULAR_BUFFER() {
+  static TFLMRegistration r = tflite::micro::RegisterOp(
       CircularBufferInit, CircularBufferPrepare, CircularBufferEval);
   return &r;
 }

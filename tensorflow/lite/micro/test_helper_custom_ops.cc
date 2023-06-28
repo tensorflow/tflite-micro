@@ -26,7 +26,6 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -36,12 +35,12 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-const TfLiteRegistration_V1* PackerOp::getRegistration() {
+const TFLMRegistration* PackerOp::getRegistration() {
   return GetMutableRegistration();
 }
 
-TfLiteRegistration_V1* PackerOp::GetMutableRegistration() {
-  static TfLiteRegistration_V1 r;
+TFLMRegistration* PackerOp::GetMutableRegistration() {
+  static TFLMRegistration r;
   r.init = Init;
   r.prepare = Prepare;
   r.invoke = Invoke;

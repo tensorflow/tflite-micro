@@ -26,6 +26,10 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
+
+constexpr int kLstmMaxNumInputOutputTensors = 24 + 1;
+constexpr int kLstmIntermediateTensorBase = kLstmMaxNumInputOutputTensors + 1;
+
 // Validate the output result array with golden values
 template <typename T>
 void ValidateResultGoldens(const T* golden, const T* output_data,
@@ -46,17 +50,42 @@ void TestUnidirectionalLSTMInteger(
     LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
                     time_steps, input_dimension, state_dimension>&
         node_contents) {
-  const TfLiteRegistration_V1 registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  TfLiteTensor tensors[kLstmMaxNumInputOutputTensors + 1 + 5];
+  memcpy(tensors, node_contents.GetTensors(),
+         kLstmMaxNumInputOutputTensors * sizeof(TfLiteTensor));
+
+  // Provide also intermediate tensors needed by older LSTM implementations
+  int intermediate_array_data[6] = {5,
+                                    kLstmIntermediateTensorBase,
+                                    kLstmIntermediateTensorBase + 1,
+                                    kLstmIntermediateTensorBase + 2,
+                                    kLstmIntermediateTensorBase + 3,
+                                    kLstmIntermediateTensorBase + 4};
+  int input_zero_points[2] = {1, -21};
+  float input_scales[2] = {1, 0.004705882165580988};
+  TfLiteAffineQuantization input_quant = {
+      tflite::testing::FloatArrayFromFloats(input_scales),
+      tflite::testing::IntArrayFromInts(input_zero_points), 0};
+  int intermediate_dim[2] = {1, 0};
+  for (int i = 0; i < 5; ++i) {
+    tensors[kLstmIntermediateTensorBase + i] =
+        CreateTensor<int16_t>(nullptr, IntArrayFromInts(intermediate_dim));
+    tensors[kLstmIntermediateTensorBase + i].quantization = {
+        kTfLiteAffineQuantization, &input_quant};
+  }
+
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
-  micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
-                             node_contents.KernelInputs(),
-                             node_contents.KernelOutputs(),
-                             reinterpret_cast<void*>(&buildin_data));
+  micro::KernelRunner runner(
+      registration, tensors, kLstmMaxNumInputOutputTensors + 1 + 5,
+      node_contents.KernelInputs(), node_contents.KernelOutputs(),
+      reinterpret_cast<void*>(&buildin_data),
+      IntArrayFromInts(intermediate_array_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const auto& quantization_settings = node_contents.QuantizationSettings();
+
   float dequantized_hidden_state[batch_size * state_dimension] = {};
   Dequantize(node_contents.GetHiddenStateData(), batch_size * state_dimension,
              quantization_settings.hidden_state.scale,
@@ -94,13 +123,12 @@ void TestUnidirectionalLSTMFloat(
     const float hidden_state_tolerance, const float cell_state_tolerance,
     LstmNodeContent<float, float, float, float, batch_size, time_steps,
                     input_dimension, state_dimension>& node_contents) {
-  const TfLiteRegistration_V1 registration =
-      Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+  const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
-  micro::KernelRunner runner(registration, node_contents.GetTensors(), 24 + 1,
-                             node_contents.KernelInputs(),
-                             node_contents.KernelOutputs(),
-                             reinterpret_cast<void*>(&buildin_data));
+  micro::KernelRunner runner(
+      registration, node_contents.GetTensors(), kLstmMaxNumInputOutputTensors,
+      node_contents.KernelInputs(), node_contents.KernelOutputs(),
+      reinterpret_cast<void*>(&buildin_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
@@ -135,7 +163,6 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMFloat) {
                                                tolerance, float_node_contents);
 }
 
-#if !defined(CMSIS_NN)
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
       tflite::testing::Get2X2LstmEvalCheckData();
@@ -150,7 +177,6 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int8_node_contents);
 }
-#endif
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =

@@ -33,11 +33,11 @@ TfLiteStatus LogicalAndEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_LOGICAL_OR() {
+TFLMRegistration Register_LOGICAL_OR() {
   return tflite::micro::RegisterOp(nullptr, nullptr, LogicalOrEval);
 }
 
-TfLiteRegistration_V1 Register_LOGICAL_AND() {
+TFLMRegistration Register_LOGICAL_AND() {
   return tflite::micro::RegisterOp(nullptr, nullptr, LogicalAndEval);
 }
 

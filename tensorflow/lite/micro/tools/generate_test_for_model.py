@@ -219,17 +219,25 @@ class TestDataGenerator:
           -2] + '_' + output_dir_list[-1]
     makefile.write(src_prefix + '_GENERATOR_INPUTS := \\\n')
     for model_path in self.model_paths:
-      makefile.write(
-          model_path.split('third_party/tflite_micro/')[-1] + ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' +
+                     model_path.split('third_party/tflite_micro/')[-1] +
+                     ' \\\n')
     for csv_input in self.csv_filenames:
-      makefile.write(
-          csv_input.split('third_party/tflite_micro/')[-1] + ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' +
+                     csv_input.split('third_party/tflite_micro/')[-1] +
+                     ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
+    makefile.write('$(TENSORFLOW_ROOT)' +
+                   self.output_dir.split('third_party/tflite_micro/')[-1] +
+                   '/' + test_file + '  \\\n')
     makefile.write(
-        self.output_dir.split('third_party/tflite_micro/')[-1] + '/' +
-        test_file)
+        "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \\\n")
+    makefile.write('\n\n')
+    makefile.write(src_prefix + '_HDR := \\\n')
+    makefile.write(
+        "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \\\n")
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
-    makefile.write('$(' + src_prefix + '_SRCS),,$(' + src_prefix +
-                   '_GENERATOR_INPUTS)))')
+    makefile.write('$(' + src_prefix + '_SRCS),$(' + src_prefix + '_HDR),$(' +
+                   src_prefix + '_GENERATOR_INPUTS)))')

@@ -1,57 +1,53 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "micro_copts",
+)
+load(
+    "//tensorflow:extra_rules.bzl",
+    "tflm_python_op_resolver_friends",
+)
 
 package(
-    default_visibility = ["//visibility:public"],
     features = ["-layering_check"],
     licenses = ["notice"],
 )
 
-# Append _lib at the end to avoid naming collision with the extension below
-# because internal tool appends a _pybind suffix.
-pybind_library(
-    name = "interpreter_wrapper_lib",
-    srcs = [
-        "interpreter_wrapper.cc",
-        "numpy_utils.cc",
-        "python_utils.cc",
-    ],
-    hdrs = [
-        "interpreter_wrapper.h",
-        "numpy_utils.h",
-        "pybind11_lib.h",
-        "python_utils.h",
-        "shared_library.h",
-    ],
-    deps = [
-        "//tensorflow/lite/micro:micro_framework",
-        "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:recording_allocators",
-        "@numpy_cc_deps//:cc_headers",
-    ],
+package_group(
+    name = "op_resolver_friends",
+    packages = tflm_python_op_resolver_friends(),
 )
 
-# pybind_extension() appends ".so" to "name" so the actual target name contains
-# the ".so" suffix
-pybind_extension(
-    name = "interpreter_wrapper_pybind",
-    srcs = [
-        "interpreter_wrapper_pybind.cc",
-    ],
-    deps = [
-        ":interpreter_wrapper_lib",
-    ],
-)
-
+# tflm_runtime is deprecated, please use //python/tflite_micro:runtime instead.
+# TODO(b/286456378): remove once all usage is changed to the runtime target.
 py_library(
     name = "tflm_runtime",
     srcs = ["tflm_runtime.py"],
-    data = [
-        ":interpreter_wrapper_pybind.so",
+    visibility = ["//visibility:public"],
+    deps = ["//python/tflite_micro:runtime"],
+)
+
+# runtime is deprecated, please use //python/tflite_micro:runtime instead.
+# TODO(b/286456378): remove once all usage is changed to the runtime target.
+py_library(
+    name = "runtime",
+    srcs = ["runtime.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//python/tflite_micro:runtime"],
+)
+
+# TODO(b/286456378): remove once all internal usage is fixed.
+cc_library(
+    name = "python_ops_resolver",
+    srcs = [],
+    hdrs = [
+        "python_ops_resolver.h",
     ],
-    srcs_version = "PY3",
+    copts = micro_copts(),
+    visibility = [
+        ":op_resolver_friends",
+        "//tensorflow/lite/micro/integration_tests:__subpackages__",
+    ],
     deps = [
-        requirement("numpy"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
+        "//python/tflite_micro:python_ops_resolver",
     ],
 )

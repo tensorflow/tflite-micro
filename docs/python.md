@@ -42,13 +42,13 @@ issues on their own. It is described here for illustrative purposes only.
 # The cloned tflite-micro folder needs to be renamed to tflite_micro
 mv tflite-micro tflite_micro
 # To set up a specific Python version, make sure `python` is pointed to the
-# desired version. For example, call `python3.9 -m venv tflite_micro/venv`.
+# desired version. For example, call `python3.11 -m venv tflite_micro/venv`.
 python -m venv tflite_micro/venv
 echo "export PYTHONPATH=\${PYTHONPATH}:${PWD}" >> tflite_micro/venv/bin/activate
 cd tflite_micro
 source venv/bin/activate
 pip install --upgrade pip
-pip install -r third_party/requirements.txt
+pip install -r third_party/python_requirements.txt
 
 # (Optional)
 pip install ipython

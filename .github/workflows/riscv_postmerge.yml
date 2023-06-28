@@ -1,0 +1,37 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+# This file can not be run stand-alone. It is called from tests_post.yml as part of
+# the ci automation.
+
+name: RISC-V Postmerge
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  riscv_postmerge:
+    runs-on: ubuntu-latest
+
+    name: RISC-V Tests (postmerge)
+    steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.trigger-sha }}
+    - name: Test
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+      with:
+        args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh

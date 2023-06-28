@@ -21,7 +21,13 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/sub/sub4_input1
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/sub/sub4_golden_int16.csv \
 
 integration_tests_seanet_sub_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/sub/integration_tests.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/sub/integration_tests.cc  \
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \
+
+
+integration_tests_seanet_sub_HDR := \
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \
+
 
 $(eval $(call microlite_test,integration_tests_seanet_sub_test,\
-$(integration_tests_seanet_sub_SRCS),,$(integration_tests_seanet_sub_GENERATOR_INPUTS)))
+$(integration_tests_seanet_sub_SRCS),$(integration_tests_seanet_sub_HDR),$(integration_tests_seanet_sub_GENERATOR_INPUTS)))

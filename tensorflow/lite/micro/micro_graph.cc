@@ -27,7 +27,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-const char* OpNameFromRegistration(const TfLiteRegistration_V1* registration) {
+const char* OpNameFromRegistration(const TFLMRegistration* registration) {
   if (registration->builtin_code == BuiltinOperator_CUSTOM) {
     return registration->custom_name;
   } else {
@@ -62,10 +62,9 @@ TfLiteStatus MicroGraph::InitSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
-          subgraph_allocations_[subgraph_idx]
-              .node_and_registrations[i]
-              .registration;
+      const TFLMRegistration* registration = subgraph_allocations_[subgraph_idx]
+                                                 .node_and_registrations[i]
+                                                 .registration;
       size_t init_data_size;
       const char* init_data;
       if (registration->builtin_code == BuiltinOperator_CUSTOM) {
@@ -96,10 +95,9 @@ TfLiteStatus MicroGraph::PrepareSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
-          subgraph_allocations_[subgraph_idx]
-              .node_and_registrations[i]
-              .registration;
+      const TFLMRegistration* registration = subgraph_allocations_[subgraph_idx]
+                                                 .node_and_registrations[i]
+                                                 .registration;
       if (registration->prepare != nullptr) {
         TfLiteStatus prepare_status = registration->prepare(context_, node);
         if (prepare_status != kTfLiteOk) {
@@ -109,6 +107,31 @@ TfLiteStatus MicroGraph::PrepareSubgraphs() {
         }
       }
       allocator_->FinishPrepareNodeAllocations(/*node_id=*/i);
+    }
+  }
+  current_subgraph_index_ = previous_subgraph_idx;
+
+  return kTfLiteOk;
+}
+
+TfLiteStatus MicroGraph::ResetSubgraphs() {
+  int previous_subgraph_idx = current_subgraph_index_;
+
+  for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
+       subgraph_idx++) {
+    current_subgraph_index_ = subgraph_idx;
+    uint32_t operators_size = NumSubgraphOperators(model_, subgraph_idx);
+    for (size_t i = 0; i < operators_size; ++i) {
+      TfLiteNode* node =
+          &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
+      const TFLMRegistration* registration = subgraph_allocations_[subgraph_idx]
+                                                 .node_and_registrations[i]
+                                                 .registration;
+      // registration is allocated outside the interpreter, so double check to
+      // make sure it's not nullptr;
+      if (registration != nullptr && registration->reset != nullptr) {
+        registration->reset(context_, node->user_data);
+      }
     }
   }
   current_subgraph_index_ = previous_subgraph_idx;
@@ -126,10 +149,9 @@ TfLiteStatus MicroGraph::FreeSubgraphs() {
     for (size_t i = 0; i < operators_size; ++i) {
       TfLiteNode* node =
           &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-      const TfLiteRegistration_V1* registration =
-          subgraph_allocations_[subgraph_idx]
-              .node_and_registrations[i]
-              .registration;
+      const TFLMRegistration* registration = subgraph_allocations_[subgraph_idx]
+                                                 .node_and_registrations[i]
+                                                 .registration;
       // registration is allocated outside the interpreter, so double check to
       // make sure it's not nullptr;
       if (registration != nullptr && registration->free != nullptr) {
@@ -155,10 +177,9 @@ TfLiteStatus MicroGraph::InvokeSubgraph(int subgraph_idx) {
   for (size_t i = 0; i < operators_size; ++i) {
     TfLiteNode* node =
         &(subgraph_allocations_[subgraph_idx].node_and_registrations[i].node);
-    const TfLiteRegistration_V1* registration =
-        subgraph_allocations_[subgraph_idx]
-            .node_and_registrations[i]
-            .registration;
+    const TFLMRegistration* registration = subgraph_allocations_[subgraph_idx]
+                                               .node_and_registrations[i]
+                                               .registration;
 
 // This ifdef is needed (even though ScopedMicroProfiler itself is a no-op with
 // -DTF_LITE_STRIP_ERROR_STRINGS) because the function OpNameFromRegistration is

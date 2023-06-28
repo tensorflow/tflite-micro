@@ -204,7 +204,7 @@ TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK((weights_time->type == kTfLiteInt8) ||
                 (weights_time->type == kTfLiteInt16));
   // Because of the TODO mentioned below, the int16 weight data type is not
-  // split into a seperate registration.
+  // split into a separate registration.
   // TODO(#523): remove 16-bit code when no longer needed.
   return EvalIntegerSVDF(context, node, input, weights_feature, weights_time,
                          bias, params, activation_state, output, data);
@@ -212,11 +212,11 @@ TfLiteStatus EvalSvdfInt8(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration_V1 Register_SVDF() {
+TFLMRegistration Register_SVDF() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdf);
 }
 
-TfLiteRegistration_V1 Register_SVDF_INT8() {
+TFLMRegistration Register_SVDF_INT8() {
   return tflite::micro::RegisterOp(Init, PrepareSvdf, EvalSvdfInt8);
 }
 

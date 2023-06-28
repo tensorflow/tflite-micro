@@ -17,7 +17,6 @@ limitations under the License.
 #include <stdio.h>
 
 #include <cstddef>
-#include <vector>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -157,20 +156,21 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
   const bool use_projection = (projection_weights != nullptr);
 
   // Get intermediate scales and zero points.
-  std::vector<float> intermediate_scale;
-  std::vector<int32_t> intermediate_zp;
+  constexpr size_t kIntermediateCount = 5;
+  float intermediate_scale[kIntermediateCount];
+  int32_t intermediate_zp[kIntermediateCount];
   for (int i = 0; i < 4; ++i) {
     if (use_layer_norm) {
       TfLiteTensor* intermediate =
           context->GetTensor(context, node->intermediates->data[i]);
       auto* tmp_params = static_cast<TfLiteAffineQuantization*>(
           intermediate->quantization.params);
-      intermediate_scale.push_back(tmp_params->scale->data[0]);
-      intermediate_zp.push_back(tmp_params->zero_point->data[0]);
+      intermediate_scale[i] = tmp_params->scale->data[0];
+      intermediate_zp[i] = tmp_params->zero_point->data[0];
     } else {
       // Q3.12 for activation functions.
-      intermediate_scale.push_back(std::pow(2, -12));
-      intermediate_zp.push_back(0);
+      intermediate_scale[i] = std::pow(2, -12);
+      intermediate_zp[i] = 0;
     }
   }
   // In the absence of projection, hidden becomes otuput and this intermediate
@@ -179,8 +179,8 @@ TfLiteStatus PopulateQuantizedLstmParams8x8_16(
       context->GetTensor(context, node->intermediates->data[4]);
   auto* hidden_params =
       static_cast<TfLiteAffineQuantization*>(hidden->quantization.params);
-  intermediate_scale.push_back(hidden_params->scale->data[0]);
-  intermediate_zp.push_back(hidden_params->zero_point->data[0]);
+  intermediate_scale[4] = hidden_params->scale->data[0];
+  intermediate_zp[4] = hidden_params->zero_point->data[0];
 
   // Scales.
   const float default_scale = 1.0;
@@ -1114,7 +1114,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace micro
 }  // namespace ops
 
-TfLiteRegistration_V1 Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
+TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
   return tflite::micro::RegisterOp(ops::micro::Init, ops::micro::Prepare,
                                    ops::micro::Eval);
 }

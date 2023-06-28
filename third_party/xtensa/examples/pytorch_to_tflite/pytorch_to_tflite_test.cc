@@ -34,15 +34,15 @@ limitations under the License.
  * * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
-#include <tensorflow/lite/micro/all_ops_resolver.h>
 
-#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
+#include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_op_resolver.h"
 
 TF_LITE_MICRO_TESTS_BEGIN
 
@@ -60,12 +60,9 @@ TF_LITE_MICRO_TEST(TestInvoke) {
         model->version(), TFLITE_SCHEMA_VERSION);
   }
 
-  // Pull in only the operation implementations we need.
+  // Pull in only the eperation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
-  // An easier approach is to just use the AllOpsResolver, but this will
-  // incur some penalty in code space for op implementations that are not
-  // needed by this graph.
-  tflite::AllOpsResolver resolver;
+  tflite::PytorchOpsResolver resolver;
 
   // Create an area of memory to use for input, output, and intermediate arrays.
   constexpr int tensor_arena_size = 3 * 1024 * 1024;
@@ -73,8 +70,8 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   uint8_t tensor_arena[tensor_arena_size];
 
   // Build an interpreter to run the model with.
-  tflite::MicroInterpreter interpreter(
-      model, resolver, tensor_arena, tensor_arena_size);
+  tflite::MicroInterpreter interpreter(model, resolver, tensor_arena,
+                                       tensor_arena_size);
   interpreter.AllocateTensors();
 
   // Get information about the memory area to use for the model's input.

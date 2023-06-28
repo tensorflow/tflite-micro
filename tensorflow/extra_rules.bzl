@@ -4,6 +4,15 @@ def tflm_kernel_friends():
 def tflm_audio_frontend_friends():
     return []
 
+def tflm_application_friends():
+    return []
+
+def tflm_signal_friends():
+    return []
+
+def tflm_python_op_resolver_friends():
+    return []
+
 def xtensa_fusion_f1_config():
     """Config setting for all Fusion F1 based cores."""
     return "//tensorflow/lite/micro/kernels:xtensa_fusion_f1_default"
