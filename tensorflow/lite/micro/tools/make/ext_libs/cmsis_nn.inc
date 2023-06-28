@@ -30,6 +30,7 @@ ifeq ($(CMSIS_NN_PATH), $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH))
     $(error Something went wrong with the CMSIS-NN download: $(DOWNLOAD_RESULT))
   endif
 endif
+
 CMSIS_DSP_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis_dsp
 CMSIS_DSP_PATH := $(CMSIS_DSP_DEFAULT_DOWNLOAD_PATH)
 ifeq ($(CMSIS_DSP_PATH), $(CMSIS_DSP_DEFAULT_DOWNLOAD_PATH))
@@ -47,7 +48,23 @@ endif
 THIRD_PARTY_CC_HDRS += $(shell find $(CMSIS_NN_PATH)/Include -name "*.h")
 
 ifeq (,$(CMSIS_DSP_LIBS))
-  THIRD_PARTY_KERNEL_CC_SRCS += $(shell find $(CMSIS_DSP_PATH)/Source -name "arm_*.c")
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(CMSIS_DSP_PATH)/Source/BasicMathFunctions/BasicMathFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/CommonTables/CommonTables.c \
+    $(CMSIS_DSP_PATH)/Source/InterpolationFunctions/InterpolationFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/BayesFunctions/BayesFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/MatrixFunctions/MatrixFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/ComplexMathFunctions/ComplexMathFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/QuaternionMathFunctions/QuaternionMathFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/ControllerFunctions/ControllerFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/SVMFunctions/SVMFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/DistanceFunctions/DistanceFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/StatisticsFunctions/StatisticsFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/FastMathFunctions/FastMathFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/SupportFunctions/SupportFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/FilteringFunctions/FilteringFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/TransformFunctions/TransformFunctions.c \
+    $(CMSIS_DSP_PATH)/Source/WindowFunctions/WindowFunctions.c
 else
   MICROLITE_LIBS += $(CMSIS_DSP_LIBS)
 endif
