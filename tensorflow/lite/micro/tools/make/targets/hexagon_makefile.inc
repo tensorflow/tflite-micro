@@ -53,9 +53,7 @@ PLATFORM_ARGS = \
   -DPTHREAD_STUBS \
   -DUSE_PREALLOCATED_BUFFER \
   -D_HAS_C9X \
-  -DTF_LITE_USE_CTIME \
   -MMD \
-  -DHEXAGON \
   -Wall \
   -Wextra \
   -Wno-missing-field-initializers \
