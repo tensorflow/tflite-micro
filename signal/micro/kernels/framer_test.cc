@@ -66,11 +66,12 @@ alignas(alignof(FramerKernelRunner)) uint8_t
     framer_kernel_runner_buffer[sizeof(FramerKernelRunner)];
 
 void TestFramerInvoke(int* input_dims_data, int16_t* input_data,
-                int* output_dims_data, const int16_t* golden, int golden_len,
-                int* output_ready_dims_data,
-                const unsigned char* flexbuffers_data,
-                const unsigned int flexbuffers_data_size, int16_t* output_data,
-                bool* output_ready, tflite::micro::KernelRunner* runner) {
+                      int* output_dims_data, const int16_t* golden,
+                      int golden_len, int* output_ready_dims_data,
+                      const unsigned char* flexbuffers_data,
+                      const unsigned int flexbuffers_data_size,
+                      int16_t* output_data, bool* output_ready,
+                      tflite::micro::KernelRunner* runner) {
   tflite::FlexbufferWrapper fbw(flexbuffers_data, flexbuffers_data_size);
   int frame_size = fbw.ElementAsInt32(kFrameSizeIndex);
   int frame_step = fbw.ElementAsInt32(kFrameStepIndex);
@@ -123,9 +124,10 @@ void TestFramer(int* input_dims_data, int16_t* input_data,
                               reinterpret_cast<const char*>(flexbuffers_data),
                               flexbuffers_data_size),
                           kTfLiteOk);
-  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden, golden_len,
-             output_ready_dims_data, flexbuffers_data, flexbuffers_data_size,
-             output_data, &output_ready, &framer_runner->kernel_runner());
+  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden,
+                   golden_len, output_ready_dims_data, flexbuffers_data,
+                   flexbuffers_data_size, output_data, &output_ready,
+                   &framer_runner->kernel_runner());
 }
 
 void TestFramerReset(int* input_dims_data, int16_t* input_data,
@@ -146,13 +148,15 @@ void TestFramerReset(int* input_dims_data, int16_t* input_data,
                               reinterpret_cast<const char*>(flexbuffers_data),
                               flexbuffers_data_size),
                           kTfLiteOk);
-  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden, golden_len,
-             output_ready_dims_data, flexbuffers_data, flexbuffers_data_size,
-             output_data, &output_ready, &framer_runner->kernel_runner());
+  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden,
+                   golden_len, output_ready_dims_data, flexbuffers_data,
+                   flexbuffers_data_size, output_data, &output_ready,
+                   &framer_runner->kernel_runner());
   framer_runner->kernel_runner().Reset();
-  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden, golden_len,
-             output_ready_dims_data, flexbuffers_data, flexbuffers_data_size,
-             output_data, &output_ready, &framer_runner->kernel_runner());
+  TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden,
+                   golden_len, output_ready_dims_data, flexbuffers_data,
+                   flexbuffers_data_size, output_data, &output_ready,
+                   &framer_runner->kernel_runner());
 }
 
 }  // namespace

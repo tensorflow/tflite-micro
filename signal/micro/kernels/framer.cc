@@ -15,9 +15,9 @@ limitations under the License.
 
 #include <stdint.h>
 
+#include "signal/src/circular_buffer.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "signal/src/circular_buffer.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
@@ -181,7 +181,7 @@ void Reset(TfLiteContext* context, void* buffer) {
 }  // namespace
 
 namespace tflm_signal {
-//TODO(b/286250473): remove namespace once de-duped libraries above
+// TODO(b/286250473): remove namespace once de-duped libraries above
 TFLMRegistration* Register_FRAMER() {
   static TFLMRegistration r =
       tflite::micro::RegisterOp(Init, Prepare, Eval, nullptr, Reset);
