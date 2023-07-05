@@ -54,6 +54,16 @@ $(eval $(call microlite_test,kernel_signal_fft_test,\
   $(TENSORFLOW_ROOT)signal/testdata/fft_test_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,kernel_signal_framer_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_overlap_add_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_window_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/window_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.cc, \

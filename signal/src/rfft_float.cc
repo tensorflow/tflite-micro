@@ -17,7 +17,7 @@ limitations under the License.
 #include <stdint.h>
 
 #include "signal/src/complex.h"
-#include "signal/src/kiss_fft_wrappers/kiss_fft_float.h"
+#include "tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers/kiss_fft_float.h"
 #include "signal/src/rfft.h"
 
 // TODO(b/286250473): remove namespace once de-duped libraries

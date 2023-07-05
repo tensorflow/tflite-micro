@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/kiss_fft_wrappers/kiss_fft_common.h"
+#ifndef SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_OVERLAP_ADD_FLEXBUFFERS_DATA_H_
+#define SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_OVERLAP_ADD_FLEXBUFFERS_DATA_H_
 
-#define FIXED_POINT 16
-namespace kiss_fft_fixed16 {
-#include "kiss_fft.c"
-#include "tools/kiss_fftr.c"
-}  // namespace kiss_fft_fixed16
-#undef FIXED_POINT
+extern const int g_gen_data_size_overlap_add_float;
+extern const unsigned char g_gen_data_overlap_add_float[];
+
+extern const int g_gen_data_size_overlap_add_int16;
+extern const unsigned char g_gen_data_overlap_add_int16[];
+
+#endif  // SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_OVERLAP_ADD_FLEXBUFFERS_DATA_H_

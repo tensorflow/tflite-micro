@@ -1,0 +1,39 @@
+load("//third_party/tflite_micro/python/tflite_micro/signal:tflm_signal.bzl", "tflm_signal_kernel_library")
+
+package(
+    default_applicable_licenses = ["//third_party/tflite_micro:license"],
+    default_visibility = ["//third_party/tflite_micro/python/tflite_micro/signal:__subpackages__"],
+    licenses = ["notice"],
+)
+
+tflm_signal_kernel_library(
+    name = "fft_ops",
+    srcs = ["fft_ops.cc"],
+    deps = [
+        "//third_party/tensorflow/core:framework",
+    ],
+)
+
+tflm_signal_kernel_library(
+    name = "framer_op",
+    srcs = ["framer_op.cc"],
+    deps = [
+        "//third_party/tensorflow/core:framework",
+    ],
+)
+
+tflm_signal_kernel_library(
+    name = "overlap_add_op",
+    srcs = ["overlap_add_op.cc"],
+    deps = [
+        "//third_party/tensorflow/core:framework",
+    ],
+)
+
+tflm_signal_kernel_library(
+    name = "window_op",
+    srcs = ["window_op.cc"],
+    deps = [
+        "//third_party/tensorflow/core:framework",
+    ],
+)

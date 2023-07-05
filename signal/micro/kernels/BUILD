@@ -3,13 +3,13 @@ load(
     "micro_copts",
 )
 
-package(
-    licenses = ["notice"],
-)
+package(licenses = ["notice"])
 
 cc_library(
     name = "register_signal_ops",
     srcs = [
+        "framer.cc",
+        "overlap_add.cc",
         "rfft.cc",
         "window.cc",
     ],
@@ -21,6 +21,8 @@ cc_library(
         "//tensorflow/lite/micro",
     ],
     deps = [
+        "//signal/src:circular_buffer",
+        "//signal/src:overlap_add",
         "//signal/src:rfft",
         "//signal/src:window",
         "//tensorflow/lite:type_to_tflitetype",
@@ -80,6 +82,58 @@ cc_test(
     deps = [
         ":register_signal_ops",
         ":window_flexbuffers_generated_data",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "framer_flexbuffers_generated_data",
+    srcs = [
+        "framer_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "framer_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "framer_test",
+    srcs = [
+        "framer_test.cc",
+    ],
+    deps = [
+        ":framer_flexbuffers_generated_data",
+        ":register_signal_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "overlap_add_flexbuffers_generated_data",
+    srcs = [
+        "overlap_add_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "overlap_add_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "overlap_add_test",
+    srcs = [
+        "overlap_add_test.cc",
+    ],
+    deps = [
+        ":overlap_add_flexbuffers_generated_data",
+        ":register_signal_ops",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",

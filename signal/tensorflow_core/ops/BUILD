@@ -14,6 +14,22 @@ tflm_signal_kernel_library(
 )
 
 tflm_signal_kernel_library(
+    name = "framer_op",
+    srcs = ["framer_op.cc"],
+    deps = [
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
+    name = "overlap_add_op",
+    srcs = ["overlap_add_op.cc"],
+    deps = [
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
     name = "window_op",
     srcs = ["window_op.cc"],
     deps = [

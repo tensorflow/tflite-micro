@@ -1,5 +1,6 @@
 package(
-    default_visibility = ["//signal:__subpackages__"],
+    default_applicable_licenses = ["//third_party/tflite_micro:license"],
+    default_visibility = ["//third_party/tflite_micro/signal:__subpackages__"],
     licenses = ["notice"],
 )
 
@@ -15,12 +16,6 @@ cc_library(
 )
 
 cc_library(
-    name = "overlap_add",
-    srcs = ["overlap_add.cc"],
-    hdrs = ["overlap_add.h"],
-)
-
-cc_library(
     name = "rfft",
     srcs = [
         "rfft_float.cc",
@@ -30,7 +25,7 @@ cc_library(
     hdrs = ["rfft.h"],
     deps = [
         ":complex",
-        "//tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers",
+        "//third_party/tflite_micro/tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers",
     ],
 )
 

@@ -53,6 +53,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddFloor();
   AddFloorDiv();
   AddFloorMod();
+  AddFramer();
   AddFullyConnected();
   AddGather();
   AddGatherNd();
@@ -79,6 +80,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddMul();
   AddNeg();
   AddNotEqual();
+  AddOverlapAdd();
   AddPack();
   AddPad();
   AddPadV2();

@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/kiss_fft_wrappers/kiss_fft_common.h"
+#ifndef SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_FRAMER_FLEXBUFFERS_DATA_H_
+#define SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_FRAMER_FLEXBUFFERS_DATA_H_
 
-#undef FIXED_POINT
-namespace kiss_fft_float {
-#include "kiss_fft.c"
-#include "tools/kiss_fftr.c"
-}  // namespace kiss_fft_float
+extern const int g_gen_data_size_3_1_0_framer;
+extern const unsigned char g_gen_data_3_1_0_framer[];
+
+extern const int g_gen_data_size_5_2_1_framer;
+extern const unsigned char g_gen_data_5_2_1_framer[];
+
+#endif  // SIGNAL_MICRO_KERNELS_TEST_DATA_GENERATION_GENERATE_FRAMER_FLEXBUFFERS_DATA_H_

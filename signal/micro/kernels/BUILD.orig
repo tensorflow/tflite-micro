@@ -1,0 +1,90 @@
+load(
+    "//third_party/tflite_micro/tensorflow/lite/micro:build_def.bzl",
+    "micro_copts",
+)
+
+package(
+    default_applicable_licenses = ["//third_party/tflite_micro:license"],
+    licenses = ["notice"],
+)
+
+cc_library(
+    name = "register_signal_ops",
+    srcs = [
+        "rfft.cc",
+        "window.cc",
+    ],
+    hdrs = [
+        "rfft.h",
+    ],
+    copts = micro_copts(),
+    visibility = [
+        "//third_party/tflite_micro/tensorflow/lite/micro",
+    ],
+    deps = [
+        "//third_party/tensorflow/lite:type_to_tflitetype",
+        "//third_party/tensorflow/lite/kernels:kernel_util",
+        "//third_party/tensorflow/lite/kernels/internal:tensor",
+        "//third_party/tflite_micro/signal/src:rfft",
+        "//third_party/tflite_micro/signal/src:window",
+        "//third_party/tflite_micro/tensorflow/lite/micro:flatbuffer_utils",
+        "//third_party/tflite_micro/tensorflow/lite/micro:memory_helpers",
+        "//third_party/tflite_micro/tensorflow/lite/micro:micro_common",
+        "//third_party/tflite_micro/tensorflow/lite/micro:micro_context",
+        "//third_party/tflite_micro/tensorflow/lite/micro:micro_utils",
+        "//third_party/tflite_micro/tensorflow/lite/micro/kernels:kernel_util",
+    ],
+)
+
+cc_library(
+    name = "fft_flexbuffers_generated_data",
+    srcs = [
+        "fft_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "fft_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "fft_test",
+    srcs = [
+        "fft_test.cc",
+    ],
+    deps = [
+        ":fft_flexbuffers_generated_data",
+        ":register_signal_ops",
+        "//third_party/tensorflow/lite/c:common",
+        "//third_party/tflite_micro/signal/testdata:fft_test_data",
+        "//third_party/tflite_micro/tensorflow/lite/micro:op_resolvers",
+        "//third_party/tflite_micro/tensorflow/lite/micro:test_helpers",
+        "//third_party/tflite_micro/tensorflow/lite/micro/kernels:kernel_runner",
+        "//third_party/tflite_micro/tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "window_flexbuffers_generated_data",
+    srcs = [
+        "window_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "window_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "window_test",
+    srcs = [
+        "window_test.cc",
+    ],
+    deps = [
+        ":register_signal_ops",
+        ":window_flexbuffers_generated_data",
+        "//third_party/tensorflow/lite/c:common",
+        "//third_party/tflite_micro/tensorflow/lite/micro:op_resolvers",
+        "//third_party/tflite_micro/tensorflow/lite/micro:test_helpers",
+        "//third_party/tflite_micro/tensorflow/lite/micro/kernels:kernel_runner",
+        "//third_party/tflite_micro/tensorflow/lite/micro/testing:micro_test",
+    ],
+)
