@@ -205,4 +205,4 @@ ifneq ($(TARGET_ARCH), project_generation)
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif
 
-include $(MAKEFILE_DIR)/ext_libs/printf.inc
+include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc

@@ -103,4 +103,4 @@ TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
 test: build
 	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
 
-include $(MAKEFILE_DIR)/ext_libs/printf.inc
+include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc

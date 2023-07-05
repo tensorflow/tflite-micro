@@ -33,4 +33,4 @@ MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS),$(MICROLITE_TEST_SRCS))
 THIRD_PARTY_CC_HDRS := $(filter-out $(EXCLUDED_HDRS),$(THIRD_PARTY_CC_HDRS))
 MICROLITE_CC_HDRS := $(filter-out $(EXCLUDED_KERNEL_HDRS),$(MICROLITE_CC_HDRS))
 
-include $(MAKEFILE_DIR)/ext_libs/printf.inc
+include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc

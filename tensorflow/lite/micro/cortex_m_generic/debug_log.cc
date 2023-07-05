@@ -30,25 +30,27 @@ extern "C" {
 
 static DebugLogCallback debug_log_callback = nullptr;
 
+namespace {
+
+void InvokeDebugLogCallback(const char* s) {
+  if (debug_log_callback != nullptr) {
+    debug_log_callback(s);
+  }
+}
+
+}  // namespace
+
 void RegisterDebugLogCallback(void (*cb)(const char* s)) {
   debug_log_callback = cb;
 }
 
-void _DebugLog(const char* s) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  if (debug_log_callback != nullptr) {
-    debug_log_callback(s);
-  }
-#endif
-}
-
 void DebugLog(const char* format, va_list args) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-  static constexpr int kMaxLogLen = 256;
+  constexpr int kMaxLogLen = 256;
   char log_buffer[kMaxLogLen];
 
   vsnprintf_(log_buffer, kMaxLogLen, format, args);
-  _DebugLog(log_buffer);
+  InvokeDebugLogCallback(log_buffer);
 #endif
 }
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/printf_download.sh  $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/eyalroz_printf_download.sh  $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the printf download: $(DOWNLOAD_RESULT))
 endif

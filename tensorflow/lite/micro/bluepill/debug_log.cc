@@ -19,12 +19,12 @@ limitations under the License.
 #include "eyalroz_printf/src/printf/printf.h"
 #endif
 
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
 namespace {
 
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
 // For Arm Cortex-M devices, calling SYS_WRITE0 will output the zero-terminated
 // string pointed to by R1 to any debug console that's attached to the system.
-void _DebugLog(const char* s) {
+void SysWriteDebugConsole(const char* s) {
   asm("mov r0, #0x04\n"  // SYS_WRITE0
       "mov r1, %[str]\n"
       "bkpt #0xAB\n"
@@ -32,16 +32,16 @@ void _DebugLog(const char* s) {
       : [str] "r"(s)
       : "r0", "r1");
 }
+#endif  // TF_LITE_STRIP_ERROR_STRINGS
 
 }  // namespace
-#endif
 
 extern "C" void DebugLog(const char* format, va_list args) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-  static constexpr int kMaxLogLen = 256;
+  constexpr int kMaxLogLen = 256;
   char log_buffer[kMaxLogLen];
 
   vsnprintf_(log_buffer, kMaxLogLen, format, args);
-  _DebugLog(log_buffer);
-#endif
+  SysWriteDebugConsole(log_buffer);
+#endif  // TF_LITE_STRIP_ERROR_STRINGS
 }

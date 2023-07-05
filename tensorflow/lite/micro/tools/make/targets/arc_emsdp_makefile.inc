@@ -28,4 +28,4 @@ TCF_FILE = $(PWD)/$(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/hw/emsdp_em11d_em9d_d
 
 include $(MAKEFILE_DIR)/targets/arc/arc_common.inc
 
-include $(MAKEFILE_DIR)/ext_libs/printf.inc
+include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc
