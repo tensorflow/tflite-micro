@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
@@ -34,7 +35,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 TFLMRegistration* Register_DETECTION_POSTPROCESS();
@@ -260,6 +260,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddFloorMod() {
     return AddBuiltin(BuiltinOperator_FLOOR_MOD, tflite::Register_FLOOR_MOD(),
                       ParseFloorMod);
+  }
+
+  TfLiteStatus AddFramer() {
+    // TODO(b/286250473): change back name to "Framer" and remove namespace
+    return AddCustom("SignalFramer", tflite::tflm_signal::Register_FRAMER());
   }
 
   TfLiteStatus AddFullyConnected(

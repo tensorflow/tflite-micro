@@ -4,6 +4,12 @@ package(
 )
 
 cc_library(
+    name = "circular_buffer",
+    srcs = ["circular_buffer.cc"],
+    hdrs = ["circular_buffer.h"],
+)
+
+cc_library(
     name = "complex",
     hdrs = ["complex.h"],
 )
@@ -18,7 +24,7 @@ cc_library(
     hdrs = ["rfft.h"],
     deps = [
         ":complex",
-        "//signal/src/kiss_fft_wrappers",
+        "//tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers",
     ],
 )
 
