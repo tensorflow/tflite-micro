@@ -25,7 +25,7 @@ limitations under the License.
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
 namespace {
 
-void _DebugOutput(const char* format, ...) {
+void VDebugLog(const char* format, ...) {
   va_list args;
   va_start(args, format);
   DebugLog(format, args);
@@ -36,7 +36,8 @@ void _DebugOutput(const char* format, ...) {
 
 void VMicroPrintf(const char* format, va_list args) {
   DebugLog(format, args);
-  _DebugOutput("\r\n");
+  // TODO(b/290051015): remove "\r\n"
+  VDebugLog("\r\n");
 }
 
 void MicroPrintf(const char* format, ...) {
