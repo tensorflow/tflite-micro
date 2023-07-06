@@ -100,6 +100,7 @@ TFLMRegistration Register_READ_VARIABLE();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_RELU();
 TFLMRegistration Register_RELU6();
+TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TFLMRegistration Register_RSQRT();
@@ -137,7 +138,6 @@ TFLMRegistration* Register_WINDOW();
 
 namespace ops {
 namespace micro {
-TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_ROUND();
 }  // namespace micro
 }  // namespace ops
