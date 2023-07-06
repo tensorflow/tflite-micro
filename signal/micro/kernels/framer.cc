@@ -65,7 +65,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       static_cast<TFLMSignalFramerParams*>(context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalFramerParams)));
 
-  TF_LITE_ENSURE(params != nullptr);
+  TFLITE_DCHECK(params != nullptr);
 
   tflite::FlexbufferWrapper fbw(buffer_t, length);
   params->frame_size = fbw.ElementAsInt32(kFrameSizeIndex);
