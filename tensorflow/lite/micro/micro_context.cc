@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ void MicroContextReportOpError(struct TfLiteContext* context,
                                const char* format, ...) {
   va_list args;
   va_start(args, format);
-  Log(format, args);
+  VMicroPrintf(format, args);
   va_end(args);
 }
 
