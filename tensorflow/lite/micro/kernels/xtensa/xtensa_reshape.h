@@ -22,9 +22,6 @@ limitations under the License.
 
 namespace tflite {
 
-constexpr int kReshapeInputTensor = 0;
-constexpr int kReshapeOutputTensor = 0;
-
 #if defined(VISION_P6)
 
 struct XtensaReshapeData {
