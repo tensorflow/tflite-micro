@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
+#include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -911,6 +912,30 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
   // The address of tensor1 should be higher than the address of tensor2 since
   // persistent allocations take place in the tail which grows downward.
   TF_LITE_MICRO_EXPECT_GT(tensor1, tensor2);
+}
+
+TF_LITE_MICRO_TEST(TestFailAllocatePersistentTfLiteTensor) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
+  // MicroAllocator::Create always allocates GreedyMemoryPlanner,
+  // SingleArenaBufferAllocator and MicroAllocator objects.
+  // Memory available should be <= the sum of the alignments which
+  // is < sizeof(TfLiteTensor).
+  constexpr size_t kArenaSize = sizeof(tflite::GreedyMemoryPlanner) +
+                                alignof(tflite::GreedyMemoryPlanner) +
+                                sizeof(tflite::MicroAllocator) +
+                                alignof(tflite::MicroAllocator) +
+                                sizeof(tflite::SingleArenaBufferAllocator) +
+                                alignof(tflite::SingleArenaBufferAllocator) +
+                                tflite::MicroArenaBufferAlignment();
+  uint8_t arena[kArenaSize];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, sizeof(arena));
+  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+
+  TfLiteTensor* tensor1 = allocator->AllocatePersistentTfLiteTensor(
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
+      /*subgraph_index=*/0);
+  TF_LITE_MICRO_EXPECT(tensor1 == nullptr);
 }
 
 TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensor) {

@@ -29,9 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace reshape {
+namespace {
 
 #if defined(VISION_P6)
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
@@ -91,17 +89,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace reshape
+}  // namespace
 
 TFLMRegistration Register_RESHAPE() {
 #if defined(VISION_P6)
-  return tflite::micro::RegisterOp(reshape::Init, reshape::Prepare,
-                                   reshape::Eval);
+  return tflite::micro::RegisterOp(Init, Prepare, Eval);
 #else
-  return tflite::micro::RegisterOp(nullptr, reshape::Prepare, reshape::Eval);
+  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 #endif
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
