@@ -38,7 +38,7 @@ void ValidateReshapeGoldens(TfLiteTensor* tensors, int tensors_size,
                             const size_t expected_output_len,
                             int* expected_dims, const size_t expected_dims_len,
                             bool expect_failure) {
-  const TFLMRegistration registration = tflite::ops::micro::Register_RESHAPE();
+  const TFLMRegistration registration = tflite::Register_RESHAPE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
