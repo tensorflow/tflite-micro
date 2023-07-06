@@ -45,8 +45,7 @@ size_t CircularBufferGetNeededMemory(size_t capacity);
 //  should be greater or equal to the value returned by
 //  CircularBufferGetNeededMemory(capacity). Fails if it isn't.
 //  On success, returns a pointer to the circular buffer's object.
-CircularBuffer *CircularBufferInit(size_t capacity,
-                                   void  *state,
+CircularBuffer* CircularBufferInit(size_t capacity, void* state,
                                    size_t state_size);
 
 // Reset a circular buffer to its initial empty state
@@ -68,9 +67,7 @@ size_t CircularBufferCanWrite(const CircularBuffer* cb);
 void CircularBufferAdd(CircularBuffer* cb, int16_t value);
 
 // Writes `n` `values` into the buffer and advances the write pointer.
-void CircularBufferWrite(CircularBuffer* cb,
-                         const int16_t* values,
-                         size_t n);
+void CircularBufferWrite(CircularBuffer* cb, const int16_t* values, size_t n);
 
 // Writes `n` zeros into the buffer and advances the write pointer.
 void CircularBufferWriteZeros(CircularBuffer* cb, size_t n);

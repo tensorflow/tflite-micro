@@ -65,6 +65,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       static_cast<TFLMSignalFramerParams*>(context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalFramerParams)));
 
+  TF_LITE_ENSURE(params != nullptr);
+
   tflite::FlexbufferWrapper fbw(buffer_t, length);
   params->frame_size = fbw.ElementAsInt32(kFrameSizeIndex);
   params->frame_step = fbw.ElementAsInt32(kFrameStepIndex);
@@ -111,7 +113,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context->AllocatePersistentBuffer(
           context, params->outer_dims * sizeof(tflm_signal::CircularBuffer*)));
   for (int i = 0; i < params->outer_dims; i++) {
-    // Calculate the capcity of the circular buffer. Round up the frame size to
+    // Calculate the capacity of the circular buffer. Round up the frame size to
     // a multiple of frame step. Saves memory relative to the simpler frame_size
     // + frame_step. For example: step_size = 160, frame_size = 400 capacity =
     // 480 vs. step_size + frame_size = 560
