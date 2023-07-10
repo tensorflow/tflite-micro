@@ -45,14 +45,14 @@ struct TFLMSignalFramerParams {
   bool prefill;
 
   int8_t** state_buffers;
-  tflm_signal::CircularBuffer** circular_buffers;
+  tflite::tflm_signal::CircularBuffer** circular_buffers;
 };
 
 void ResetState(TFLMSignalFramerParams* params) {
   for (int i = 0; i < params->outer_dims; ++i) {
-    tflm_signal::CircularBufferReset(params->circular_buffers[i]);
+    tflite::tflm_signal::CircularBufferReset(params->circular_buffers[i]);
     if (params->prefill) {
-      tflm_signal::CircularBufferWriteZeros(
+      tflite::tflm_signal::CircularBufferWriteZeros(
           params->circular_buffers[i], params->frame_size - params->frame_step);
     }
   }
@@ -65,7 +65,9 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       static_cast<TFLMSignalFramerParams*>(context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalFramerParams)));
 
-  TFLITE_DCHECK(params != nullptr);
+  if (params == nullptr) {
+    return nullptr;
+  }
 
   tflite::FlexbufferWrapper fbw(buffer_t, length);
   params->frame_size = fbw.ElementAsInt32(kFrameSizeIndex);
@@ -109,9 +111,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   params->state_buffers =
       static_cast<int8_t**>(context->AllocatePersistentBuffer(
           context, params->outer_dims * sizeof(int8_t*)));
-  params->circular_buffers = static_cast<tflm_signal::CircularBuffer**>(
+  params->circular_buffers = static_cast<tflite::tflm_signal::CircularBuffer**>(
       context->AllocatePersistentBuffer(
-          context, params->outer_dims * sizeof(tflm_signal::CircularBuffer*)));
+          context,
+          params->outer_dims * sizeof(tflite::tflm_signal::CircularBuffer*)));
   for (int i = 0; i < params->outer_dims; i++) {
     // Calculate the capacity of the circular buffer. Round up the frame size to
     // a multiple of frame step. Saves memory relative to the simpler frame_size
@@ -120,11 +123,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     size_t capacity = (params->frame_size + params->frame_step - 1) /
                       params->frame_step * params->frame_step;
 
-    size_t state_size = tflm_signal::CircularBufferGetNeededMemory(capacity);
+    size_t state_size =
+        tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
     params->state_buffers[i] =
         static_cast<int8_t*>(context->AllocatePersistentBuffer(
             context, state_size * sizeof(int8_t)));
-    params->circular_buffers[i] = tflm_signal::CircularBufferInit(
+    params->circular_buffers[i] = tflite::tflm_signal::CircularBufferInit(
         capacity, params->state_buffers[i], state_size);
   }
 
@@ -156,17 +160,18 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     for (int frame = 0; frame < params->n_frames; frame++) {
       int input_idx = (i * params->n_frames + frame) * params->frame_step;
       int output_idx = (i * params->n_frames + frame) * params->frame_size;
-      tflm_signal::CircularBufferWrite(params->circular_buffers[i],
-                                       &input_data[input_idx],
-                                       params->frame_step);
+      tflite::tflm_signal::CircularBufferWrite(params->circular_buffers[i],
+                                               &input_data[input_idx],
+                                               params->frame_step);
 
-      if (tflm_signal::CircularBufferAvailable(params->circular_buffers[i]) >=
+      if (tflite::tflm_signal::CircularBufferAvailable(
+              params->circular_buffers[i]) >=
           static_cast<size_t>(params->frame_size)) {
-        tflm_signal::CircularBufferGet(params->circular_buffers[i],
-                                       params->frame_size,
-                                       &output_data[output_idx]);
-        tflm_signal::CircularBufferDiscard(params->circular_buffers[i],
-                                           params->frame_step);
+        tflite::tflm_signal::CircularBufferGet(params->circular_buffers[i],
+                                               params->frame_size,
+                                               &output_data[output_idx]);
+        tflite::tflm_signal::CircularBufferDiscard(params->circular_buffers[i],
+                                                   params->frame_step);
       } else {
         *output_valid_data = false;
       }

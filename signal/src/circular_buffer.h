@@ -19,7 +19,7 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
-namespace tflm_signal {
+namespace tflite::tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 struct CircularBuffer {
   // Max number of elements, value passed-in to CircularBufferAlloc.
@@ -111,6 +111,6 @@ void CircularBufferDiscard(CircularBuffer* cb, size_t n);
 // the read index.
 void CircularBufferShift(CircularBuffer* cb, int n);
 
-}  // namespace tflm_signal
+}  // namespace tflite::tflm_signal
 
 #endif  // SIGNAL_SRC_CIRCULAR_BUFFER_H_

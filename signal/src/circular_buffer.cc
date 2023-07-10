@@ -21,25 +21,24 @@ limitations under the License.
 
 #define ASSERT assert
 
-namespace tflm_signal {
+namespace tflite::tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 void CircularBufferReset(tflm_signal::CircularBuffer* cb) {
   cb->read = 0;
   cb->write = 0;
   cb->empty = 1;
-  cb->buffer = (int16_t *)(cb + 1);
+  cb->buffer = (int16_t*)(cb + 1);
   memset(cb->buffer, 0, sizeof(cb->buffer[0]) * cb->buffer_size);
 }
 
 size_t CircularBufferGetNeededMemory(size_t capacity) {
-  return sizeof(CircularBuffer) +  sizeof(int16_t) * 2 * capacity;
+  return sizeof(CircularBuffer) + sizeof(int16_t) * 2 * capacity;
 }
 
-CircularBuffer *CircularBufferInit(size_t capacity,
-                                   void  *state,
+CircularBuffer* CircularBufferInit(size_t capacity, void* state,
                                    size_t state_size) {
   ASSERT(CircularBufferGetNeededMemory(capacity) >= state_size);
-  CircularBuffer *cb = (CircularBuffer *)state;
+  CircularBuffer* cb = (CircularBuffer*)state;
   cb->buffer_size = 2 * capacity;
   cb->capacity = capacity;
   CircularBufferReset(cb);
@@ -161,9 +160,8 @@ void CircularBufferExtend(tflm_signal::CircularBuffer* cb, size_t count,
     ASSERT(CircularBufferAvailable(cb) >= count);
     const size_t capacity = cb->capacity;
     // start pos of region to copy
-    const size_t start = (count > cb->write)
-        ? cb->write + capacity - count
-        : cb->write - count;
+    const size_t start =
+        (count > cb->write) ? cb->write + capacity - count : cb->write - count;
     const size_t end = start + count;
     int i;
     if (end <= capacity) {
@@ -230,8 +228,8 @@ const int16_t* CircularBufferPeekDirect(const tflm_signal::CircularBuffer* cb,
 const int16_t* CircularBufferPeekMax(const tflm_signal::CircularBuffer* cb,
                                      size_t* n) {
   if (CircularBufferAvailable(cb) > 0) {
-    *n = (cb->write <= cb->read) ?
-        cb->capacity - cb->read : cb->write - cb->read;
+    *n = (cb->write <= cb->read) ? cb->capacity - cb->read
+                                 : cb->write - cb->read;
     return cb->buffer + cb->read;
   } else {
     *n = 0;
@@ -287,4 +285,4 @@ void CircularBufferShift(tflm_signal::CircularBuffer* cb, int n) {
   }
 }
 
-}  // namespace tflm_signal
+}  // namespace tflite::tflm_signal
