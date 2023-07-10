@@ -103,6 +103,7 @@ TFLMRegistration Register_RELU6();
 TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
+TFLMRegistration Register_ROUND();
 TFLMRegistration Register_RSQRT();
 TFLMRegistration Register_SELECT_V2();
 TFLMRegistration Register_SHAPE();
@@ -136,11 +137,6 @@ namespace tflm_signal {
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal
 
-namespace ops {
-namespace micro {
-TFLMRegistration Register_ROUND();
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_MICRO_OPS_H_
