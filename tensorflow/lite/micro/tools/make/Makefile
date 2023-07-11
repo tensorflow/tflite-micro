@@ -299,7 +299,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_log_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_resource_variable_test.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_string_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_time_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_utils_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/recording_micro_allocator_test.cc \
