@@ -135,6 +135,7 @@ TFLMRegistration Register_ZEROS_LIKE();
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
 TFLMRegistration* Register_FRAMER();
+TFLMRegistration* Register_OVERLAP_ADD();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal
 

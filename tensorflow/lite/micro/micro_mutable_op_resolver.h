@@ -392,6 +392,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseNotEqual);
   }
 
+  TfLiteStatus AddOverlapAdd() {
+    // TODO(b/286250473): change back name to "OverlapAdd" and remove namespace
+    return AddCustom("SignalOverlapAdd",
+                     tflite::tflm_signal::Register_OVERLAP_ADD());
+  }
+
   TfLiteStatus AddPack() {
     return AddBuiltin(BuiltinOperator_PACK, Register_PACK(), ParsePack);
   }
