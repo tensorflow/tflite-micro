@@ -9,6 +9,7 @@ cc_library(
     name = "register_signal_ops",
     srcs = [
         "framer.cc",
+        "overlap_add.cc",
         "rfft.cc",
         "window.cc",
     ],
@@ -21,6 +22,7 @@ cc_library(
     ],
     deps = [
         "//signal/src:circular_buffer",
+        "//signal/src:overlap_add",
         "//signal/src:rfft",
         "//signal/src:window",
         "//tensorflow/lite:type_to_tflitetype",
@@ -105,6 +107,32 @@ cc_test(
     ],
     deps = [
         ":framer_flexbuffers_generated_data",
+        ":register_signal_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "overlap_add_flexbuffers_generated_data",
+    srcs = [
+        "overlap_add_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "overlap_add_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "overlap_add_test",
+    srcs = [
+        "overlap_add_test.cc",
+    ],
+    deps = [
+        ":overlap_add_flexbuffers_generated_data",
         ":register_signal_ops",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",

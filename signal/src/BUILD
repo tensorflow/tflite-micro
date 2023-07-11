@@ -4,12 +4,6 @@ package(
 )
 
 cc_library(
-    name = "circular_buffer",
-    srcs = ["circular_buffer.cc"],
-    hdrs = ["circular_buffer.h"],
-)
-
-cc_library(
     name = "complex",
     hdrs = ["complex.h"],
 )
@@ -24,7 +18,7 @@ cc_library(
     hdrs = ["rfft.h"],
     deps = [
         ":complex",
-        "//signal/src/kiss_fft_wrappers",
+        "//tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers",
     ],
 )
 
@@ -32,4 +26,16 @@ cc_library(
     name = "window",
     srcs = ["window.cc"],
     hdrs = ["window.h"],
+)
+
+cc_library(
+    name = "circular_buffer",
+    srcs = ["circular_buffer.cc"],
+    hdrs = ["circular_buffer.h"],
+)
+
+cc_library(
+    name = "overlap_add",
+    srcs = ["overlap_add.cc"],
+    hdrs = ["overlap_add.h"],
 )
