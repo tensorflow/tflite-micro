@@ -18,7 +18,7 @@ cc_library(
     hdrs = ["rfft.h"],
     deps = [
         ":complex",
-        "//tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers",
+        "//signal/src/kiss_fft_wrappers",
     ],
 )
 
