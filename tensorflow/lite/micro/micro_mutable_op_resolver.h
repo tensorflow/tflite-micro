@@ -262,6 +262,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseFloorMod);
   }
 
+  TfLiteStatus AddFramer() {
+    // TODO(b/286250473): change back name to "Framer" and remove namespace
+    return AddCustom("SignalFramer", tflite::tflm_signal::Register_FRAMER());
+  }
+
   TfLiteStatus AddFullyConnected(
       const TFLMRegistration& registration = Register_FULLY_CONNECTED()) {
     return AddBuiltin(BuiltinOperator_FULLY_CONNECTED, registration,
