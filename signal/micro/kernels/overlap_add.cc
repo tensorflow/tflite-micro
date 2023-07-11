@@ -62,6 +62,10 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       context->AllocatePersistentBuffer(context,
                                         sizeof(TFLMSignalOverlapAddParams<T>)));
 
+  if (params == nullptr) {
+    return nullptr;
+  }
+
   tflite::FlexbufferWrapper fbw(buffer_t, length);
   params->type = typeToTfLiteType<T>();
   params->frame_step = fbw.ElementAsInt32(kFrameStepIndex);
@@ -101,6 +105,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       input_shape.FlatSize() / (params->frame_size * params->n_frames);
   params->state_buffers = static_cast<T**>(context->AllocatePersistentBuffer(
       context, params->outer_dims * sizeof(T*)));
+  TF_LITE_ENSURE(context, params != nullptr);
+
   for (int i = 0; i < params->outer_dims; i++) {
     params->state_buffers[i] =
         static_cast<T*>(context->AllocatePersistentBuffer(
