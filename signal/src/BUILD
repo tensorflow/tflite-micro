@@ -4,6 +4,12 @@ package(
 )
 
 cc_library(
+    name = "circular_buffer",
+    srcs = ["circular_buffer.cc"],
+    hdrs = ["circular_buffer.h"],
+)
+
+cc_library(
     name = "complex",
     hdrs = ["complex.h"],
 )
