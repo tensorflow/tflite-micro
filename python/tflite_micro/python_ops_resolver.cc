@@ -80,6 +80,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddMul();
   AddNeg();
   AddNotEqual();
+  AddOverlapAdd();
   AddPack();
   AddPad();
   AddPadV2();
