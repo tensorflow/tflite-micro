@@ -21,7 +21,8 @@ limitations under the License.
 
 #define ASSERT assert
 
-namespace tflite::tflm_signal {
+namespace tflite {
+namespace tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 void CircularBufferReset(tflm_signal::CircularBuffer* cb) {
   cb->read = 0;
@@ -285,4 +286,5 @@ void CircularBufferShift(tflm_signal::CircularBuffer* cb, int n) {
   }
 }
 
-}  // namespace tflite::tflm_signal
+}  // namespace tflm_signal
+}  // namespace tflite
