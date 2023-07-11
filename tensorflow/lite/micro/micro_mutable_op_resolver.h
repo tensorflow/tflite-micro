@@ -440,8 +440,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddReshape() {
-    return AddBuiltin(BuiltinOperator_RESHAPE,
-                      tflite::ops::micro::Register_RESHAPE(), ParseReshape);
+    return AddBuiltin(BuiltinOperator_RESHAPE, Register_RESHAPE(),
+                      ParseReshape);
   }
 
   TfLiteStatus AddResizeBilinear() {
@@ -462,8 +462,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddRound() {
-    return AddBuiltin(BuiltinOperator_ROUND,
-                      tflite::ops::micro::Register_ROUND(), ParseRound);
+    return AddBuiltin(BuiltinOperator_ROUND, Register_ROUND(), ParseRound);
   }
 
   TfLiteStatus AddRsqrt() {
