@@ -66,12 +66,12 @@ alignas(alignof(OverlapAddKernelRunner<int16_t>)) uint8_t
     overlap_add_kernel_runner_buffer[sizeof(OverlapAddKernelRunner<int16_t>)];
 
 template <typename T>
-void TestOverlapAddInvoke(int* input_dims_data, T* input_data, int* output_dims_data,
-                    const T* golden_input, const T* golden_output, int iters,
-                    const unsigned char* flexbuffers_data,
-                    const unsigned int flexbuffers_data_size, T* output_data,
-                    tflite::micro::KernelRunner* runner) {
-
+void TestOverlapAddInvoke(int* input_dims_data, T* input_data,
+                          int* output_dims_data, const T* golden_input,
+                          const T* golden_output, int iters,
+                          const unsigned char* flexbuffers_data,
+                          const unsigned int flexbuffers_data_size,
+                          T* output_data, tflite::micro::KernelRunner* runner) {
   tflite::FlexbufferWrapper fbw(flexbuffers_data, flexbuffers_data_size);
   int frame_step = fbw.ElementAsInt32(kFrameStepIndex);
   int frame_size = input_dims_data[input_dims_data[0]];
@@ -114,10 +114,10 @@ void TestOverlapAdd(int* input_dims_data, T* input_data, int* output_dims_data,
                               reinterpret_cast<const char*>(flexbuffers_data),
                               flexbuffers_data_size),
                           kTfLiteOk);
-  TestOverlapAddInvoke<T>(input_dims_data, input_data, output_dims_data, golden_input,
-                    golden_output, iters, flexbuffers_data,
-                    flexbuffers_data_size, output_data,
-                    &overlap_add_runner->GetKernelRunner());
+  TestOverlapAddInvoke<T>(input_dims_data, input_data, output_dims_data,
+                          golden_input, golden_output, iters, flexbuffers_data,
+                          flexbuffers_data_size, output_data,
+                          &overlap_add_runner->GetKernelRunner());
 }
 
 template <typename T>
@@ -138,13 +138,15 @@ void TestOverlapAddReset(int* input_dims_data, T* input_data,
                               reinterpret_cast<const char*>(flexbuffers_data),
                               flexbuffers_data_size),
                           kTfLiteOk);
-  TestOverlapAddInvoke(input_dims_data, input_data, output_dims_data, golden_input,
-                 golden_output, iters, flexbuffers_data, flexbuffers_data_size,
-                 output_data, &overlap_add_runner->GetKernelRunner());
+  TestOverlapAddInvoke(input_dims_data, input_data, output_dims_data,
+                       golden_input, golden_output, iters, flexbuffers_data,
+                       flexbuffers_data_size, output_data,
+                       &overlap_add_runner->GetKernelRunner());
   overlap_add_runner->GetKernelRunner().Reset();
-  TestOverlapAddInvoke(input_dims_data, input_data, output_dims_data, golden_input,
-                 golden_output, iters, flexbuffers_data, flexbuffers_data_size,
-                 output_data, &overlap_add_runner->GetKernelRunner());
+  TestOverlapAddInvoke(input_dims_data, input_data, output_dims_data,
+                       golden_input, golden_output, iters, flexbuffers_data,
+                       flexbuffers_data_size, output_data,
+                       &overlap_add_runner->GetKernelRunner());
 }
 
 }  // namespace

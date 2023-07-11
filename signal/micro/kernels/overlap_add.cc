@@ -19,9 +19,9 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 namespace {
@@ -59,8 +59,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
 
   auto* params = static_cast<TFLMSignalOverlapAddParams<T>*>(
-      context->AllocatePersistentBuffer(
-          context, sizeof(TFLMSignalOverlapAddParams<T>)));
+      context->AllocatePersistentBuffer(context,
+                                        sizeof(TFLMSignalOverlapAddParams<T>)));
 
   tflite::FlexbufferWrapper fbw(buffer_t, length);
   params->type = typeToTfLiteType<T>();
@@ -87,8 +87,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, TfLiteTypeEnum);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, TfLiteTypeEnum);
 
-  auto* params = reinterpret_cast<TFLMSignalOverlapAddParams<T>*>(
-      node->user_data);
+  auto* params =
+      reinterpret_cast<TFLMSignalOverlapAddParams<T>*>(node->user_data);
   RuntimeShape input_shape = GetTensorShape(input);
   RuntimeShape output_shape = GetTensorShape(output);
   TF_LITE_ENSURE(context, input_shape.DimensionsCount() >= 2);
@@ -115,8 +115,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
 template <typename T>
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  auto* params = reinterpret_cast<TFLMSignalOverlapAddParams<T>*>(
-      node->user_data);
+  auto* params =
+      reinterpret_cast<TFLMSignalOverlapAddParams<T>*>(node->user_data);
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output =
@@ -129,8 +129,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     for (int frame = 0; frame < params->n_frames; frame++) {
       int input_index = (i * params->n_frames + frame) * params->frame_size;
       int output_index = (i * params->n_frames + frame) * params->frame_step;
-      tflm_signal::OverlapAdd(&input_data[input_index], buffer, params->frame_size,
-                 &output_data[output_index], params->frame_step);
+      tflm_signal::OverlapAdd(&input_data[input_index], buffer,
+                              params->frame_size, &output_data[output_index],
+                              params->frame_step);
     }
   }
   return kTfLiteOk;
@@ -159,8 +160,8 @@ void* InitAll(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus PrepareAll(TfLiteContext* context, TfLiteNode* node) {
-  auto* params = reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(
-      node->user_data);
+  auto* params =
+      reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(node->user_data);
 
   switch (params->type) {
     case kTfLiteInt16: {
@@ -175,8 +176,8 @@ TfLiteStatus PrepareAll(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus EvalAll(TfLiteContext* context, TfLiteNode* node) {
-  auto* params = reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(
-      node->user_data);
+  auto* params =
+      reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(node->user_data);
 
   switch (params->type) {
     case kTfLiteInt16: {
@@ -191,8 +192,7 @@ TfLiteStatus EvalAll(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void ResetAll(TfLiteContext* context, void* buffer) {
-  auto* params =
-      reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(buffer);
+  auto* params = reinterpret_cast<TFLMSignalOverlapAddParams<void>*>(buffer);
 
   switch (params->type) {
     case kTfLiteInt16: {
@@ -210,13 +210,12 @@ void ResetAll(TfLiteContext* context, void* buffer) {
 
 }  // namespace
 
-namespace tflm_signal{
+namespace tflm_signal {
 TFLMRegistration* Register_OVERLAP_ADD() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
       InitAll, PrepareAll, EvalAll, nullptr, ResetAll);
   return &r;
 }
-
 
 TFLMRegistration* Register_OVERLAP_ADD_FLOAT() {
   static TFLMRegistration r =
@@ -225,13 +224,12 @@ TFLMRegistration* Register_OVERLAP_ADD_FLOAT() {
   return &r;
 }
 
-
 TFLMRegistration* Register_OVERLAP_ADD_INT16() {
   static TFLMRegistration r =
       tflite::micro::RegisterOp(Init<int16_t>, Prepare<int16_t, kTfLiteInt16>,
                                 Eval<int16_t>, nullptr, Reset<int16_t>);
   return &r;
 }
-} // namespace tflm_signal
+}  // namespace tflm_signal
 
 }  // namespace tflite

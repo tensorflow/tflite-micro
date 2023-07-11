@@ -19,7 +19,6 @@ limitations under the License.
 
 namespace tflm_signal {
 
-
 void OverlapAdd(const int16_t* input, int16_t* buffer, int input_size,
                 int16_t* output, int output_size) {
   for (int i = 0; i < input_size; ++i) {
@@ -49,4 +48,4 @@ void OverlapAdd(const float* input, float* buffer, int input_size,
   memset(&buffer[input_size - output_size], 0, output_size * sizeof(buffer[0]));
 }
 
-} // namespace tflm_signal
+}  // namespace tflm_signal
