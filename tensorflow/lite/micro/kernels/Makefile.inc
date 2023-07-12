@@ -48,6 +48,11 @@ $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
 
+$(eval $(call microlite_test,kernel_signal_delay_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_fft_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.cc \

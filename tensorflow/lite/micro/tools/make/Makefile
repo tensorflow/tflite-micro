@@ -312,6 +312,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/linear_memory_planner_tes
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
+$(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \

@@ -8,6 +8,7 @@ package(licenses = ["notice"])
 cc_library(
     name = "register_signal_ops",
     srcs = [
+        "delay.cc",
         "framer.cc",
         "overlap_add.cc",
         "rfft.cc",
@@ -134,6 +135,31 @@ cc_test(
     deps = [
         ":overlap_add_flexbuffers_generated_data",
         ":register_signal_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "delay_flexbuffers_generated_data",
+    srcs = [
+        "delay_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "delay_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "delay_test",
+    srcs = [
+        "delay_test.cc",
+    ],
+    deps = [
+        ":delay_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
