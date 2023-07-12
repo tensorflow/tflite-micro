@@ -53,8 +53,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     return nullptr;
   }
 
-  FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
-                                length);
+  FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer), length);
   params->delay_length = fbw.ElementAsInt32(kDelayLengthIndex);
   return params;
 }
@@ -89,21 +88,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           context, params->outer_dims * sizeof(int8_t*)));
   params->circular_buffers = static_cast<tflm_signal::CircularBuffer**>(
       context->AllocatePersistentBuffer(
-          context,
-          params->outer_dims * sizeof(tflm_signal::CircularBuffer*)));
+          context, params->outer_dims * sizeof(tflm_signal::CircularBuffer*)));
 
   for (int i = 0; i < params->outer_dims; i++) {
     size_t capacity = params->frame_size + params->delay_length;
 
-    size_t state_size =
-        tflm_signal::CircularBufferGetNeededMemory(capacity);
+    size_t state_size = tflm_signal::CircularBufferGetNeededMemory(capacity);
     params->state_buffers[i] =
         static_cast<int8_t*>(context->AllocatePersistentBuffer(
             context, state_size * sizeof(int8_t)));
     params->circular_buffers[i] = tflm_signal::CircularBufferInit(
         capacity, params->state_buffers[i], state_size);
     tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
-                                                  params->delay_length);
+                                          params->delay_length);
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
@@ -116,22 +113,21 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<TFLMSignalFrontendDelayParams*>(node->user_data);
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kInputTensor);
-  TfLiteEvalTensor* output =
-      micro::GetEvalOutput(context, node, kOutputTensor);
+  TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
   const int16_t* input_data = micro::GetTensorData<int16_t>(input);
   int16_t* output_data = micro::GetTensorData<int16_t>(output);
 
   for (int dim_index = 0, sample_index = 0; dim_index < params->outer_dims;
        dim_index++, sample_index += params->frame_size) {
-    tflm_signal::CircularBufferWrite(
-        params->circular_buffers[dim_index], &input_data[sample_index],
-        params->frame_size);
+    tflm_signal::CircularBufferWrite(params->circular_buffers[dim_index],
+                                     &input_data[sample_index],
+                                     params->frame_size);
     tflm_signal::CircularBufferGet(params->circular_buffers[dim_index],
-                                           params->frame_size,
-                                           &output_data[sample_index]);
-    tflm_signal::CircularBufferDiscard(
-        params->circular_buffers[dim_index], params->frame_size);
+                                   params->frame_size,
+                                   &output_data[sample_index]);
+    tflm_signal::CircularBufferDiscard(params->circular_buffers[dim_index],
+                                       params->frame_size);
   }
   return kTfLiteOk;
 }
@@ -141,7 +137,7 @@ void Reset(TfLiteContext* context, void* buffer) {
   for (int i = 0; i < params->outer_dims; ++i) {
     tflm_signal::CircularBufferReset(params->circular_buffers[i]);
     tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
-                                                  params->delay_length);
+                                          params->delay_length);
   }
 }
 
