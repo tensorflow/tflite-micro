@@ -53,7 +53,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     return nullptr;
   }
 
-  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+  FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
                                 length);
   params->delay_length = fbw.ElementAsInt32(kDelayLengthIndex);
   return params;
@@ -87,22 +87,22 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   params->state_buffers =
       static_cast<int8_t**>(context->AllocatePersistentBuffer(
           context, params->outer_dims * sizeof(int8_t*)));
-  params->circular_buffers = static_cast<tflite::tflm_signal::CircularBuffer**>(
+  params->circular_buffers = static_cast<tflm_signal::CircularBuffer**>(
       context->AllocatePersistentBuffer(
           context,
-          params->outer_dims * sizeof(tflite::tflm_signal::CircularBuffer*)));
+          params->outer_dims * sizeof(tflm_signal::CircularBuffer*)));
 
   for (int i = 0; i < params->outer_dims; i++) {
     size_t capacity = params->frame_size + params->delay_length;
 
     size_t state_size =
-        tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
+        tflm_signal::CircularBufferGetNeededMemory(capacity);
     params->state_buffers[i] =
         static_cast<int8_t*>(context->AllocatePersistentBuffer(
             context, state_size * sizeof(int8_t)));
-    params->circular_buffers[i] = tflite::tflm_signal::CircularBufferInit(
+    params->circular_buffers[i] = tflm_signal::CircularBufferInit(
         capacity, params->state_buffers[i], state_size);
-    tflite::tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
+    tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
                                                   params->delay_length);
   }
 
@@ -115,22 +115,22 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TFLMSignalFrontendDelayParams*>(node->user_data);
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      micro::GetEvalOutput(context, node, kOutputTensor);
 
-  const int16_t* input_data = tflite::micro::GetTensorData<int16_t>(input);
-  int16_t* output_data = tflite::micro::GetTensorData<int16_t>(output);
+  const int16_t* input_data = micro::GetTensorData<int16_t>(input);
+  int16_t* output_data = micro::GetTensorData<int16_t>(output);
 
   for (int dim_index = 0, sample_index = 0; dim_index < params->outer_dims;
        dim_index++, sample_index += params->frame_size) {
-    tflite::tflm_signal::CircularBufferWrite(
+    tflm_signal::CircularBufferWrite(
         params->circular_buffers[dim_index], &input_data[sample_index],
         params->frame_size);
-    tflite::tflm_signal::CircularBufferGet(params->circular_buffers[dim_index],
+    tflm_signal::CircularBufferGet(params->circular_buffers[dim_index],
                                            params->frame_size,
                                            &output_data[sample_index]);
-    tflite::tflm_signal::CircularBufferDiscard(
+    tflm_signal::CircularBufferDiscard(
         params->circular_buffers[dim_index], params->frame_size);
   }
   return kTfLiteOk;
@@ -139,8 +139,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 void Reset(TfLiteContext* context, void* buffer) {
   auto* params = static_cast<TFLMSignalFrontendDelayParams*>(buffer);
   for (int i = 0; i < params->outer_dims; ++i) {
-    tflite::tflm_signal::CircularBufferReset(params->circular_buffers[i]);
-    tflite::tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
+    tflm_signal::CircularBufferReset(params->circular_buffers[i]);
+    tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
                                                   params->delay_length);
   }
 }
@@ -150,7 +150,7 @@ void Reset(TfLiteContext* context, void* buffer) {
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY() {
   static TFLMRegistration r =
-      tflite::micro::RegisterOp(Init, Prepare, Eval, nullptr, Reset);
+      micro::RegisterOp(Init, Prepare, Eval, nullptr, Reset);
   return &r;
 }
 }  // namespace tflm_signal
