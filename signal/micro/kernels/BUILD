@@ -12,6 +12,7 @@ cc_library(
         "framer.cc",
         "overlap_add.cc",
         "rfft.cc",
+        "stacker.cc",
         "window.cc",
     ],
     hdrs = [
@@ -160,6 +161,32 @@ cc_test(
     ],
     deps = [
         ":delay_flexbuffers_generated_data",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "stacker_flexbuffers_generated_data",
+    srcs = [
+        "stacker_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "stacker_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "stacker_test",
+    srcs = [
+        "stacker_test.cc",
+    ],
+    deps = [
+        ":register_signal_ops",
+        ":stacker_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
