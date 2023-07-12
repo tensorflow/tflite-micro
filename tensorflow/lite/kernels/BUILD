@@ -14,7 +14,7 @@ cc_library(
         "op_macros.h",
     ],
     copts = tflite_copts(),
-    deps = ["//tensorflow/lite/micro:debug_log"],
+    deps = ["//tensorflow/lite/micro:micro_log"],
 )
 
 cc_library(
