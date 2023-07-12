@@ -194,6 +194,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseCumsum);
   }
 
+  TfLiteStatus AddDelay() {
+    // TODO(b/286250473): change back name to "Delay" and remove namespace
+    return AddCustom("SignalDelay", tflite::tflm_signal::Register_DELAY());
+  }
+
   TfLiteStatus AddDepthToSpace() {
     return AddBuiltin(BuiltinOperator_DEPTH_TO_SPACE,
                       tflite::Register_DEPTH_TO_SPACE(), ParseDepthToSpace);
