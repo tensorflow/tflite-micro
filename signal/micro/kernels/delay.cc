@@ -41,7 +41,7 @@ struct TFLMSignalFrontendDelayParams {
   int32_t outer_dims;
 
   int8_t** state_buffers;
-  tflite::tflm_signal::CircularBuffer** circular_buffers;
+  tflm_signal::CircularBuffer** circular_buffers;
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
