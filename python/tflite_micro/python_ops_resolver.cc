@@ -111,6 +111,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddSquaredDifference();
   AddSqueeze();
   AddStridedSlice();
+  AddStacker();
   AddSub();
   AddSum();
   AddSvdf();

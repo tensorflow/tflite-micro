@@ -538,6 +538,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseStridedSlice);
   }
 
+  TfLiteStatus AddStacker() {
+    // TODO(b/286250473): change back name to "Stacker" and remove namespace
+    return AddCustom("SignalStacker", tflite::tflm_signal::Register_STACKER());
+  }
+
   TfLiteStatus AddSub() {
     return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
   }

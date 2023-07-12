@@ -137,6 +137,7 @@ namespace tflm_signal {
 TFLMRegistration* Register_DELAY();
 TFLMRegistration* Register_FRAMER();
 TFLMRegistration* Register_OVERLAP_ADD();
+TFLMRegistration* Register_STACKER();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal
 
