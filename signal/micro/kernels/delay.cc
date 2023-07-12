@@ -45,8 +45,6 @@ struct TFLMSignalFrontendDelayParams {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-
   auto* params = static_cast<TFLMSignalFrontendDelayParams*>(
       context->AllocatePersistentBuffer(context,
                                         sizeof(TFLMSignalFrontendDelayParams)));
@@ -55,7 +53,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     return nullptr;
   }
 
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
   params->delay_length = fbw.ElementAsInt32(kDelayLengthIndex);
   return params;
 }

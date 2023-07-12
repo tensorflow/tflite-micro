@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
+namespace {
 
 constexpr int kInputsSize = 1;
 constexpr int kOutputsSize = 1;
@@ -114,6 +115,7 @@ void TestDelayReset(int* input_dims_data, const int16_t* input_data,
                   &delay_runner.kernel_runner(), input_buffer);
 }
 
+}  // namespace
 }  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
