@@ -59,7 +59,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       static_cast<TFLMSignalStackerParams*>(context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalStackerParams)));
   if (params == nullptr) {
-    return params;
+    return nullptr;
   }
 
   tflite::FlexbufferWrapper fbw(buffer_t, length);
@@ -78,6 +78,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       tflm_signal::CircularBufferGetNeededMemory(params->buffer_size);
   params->state = static_cast<int8_t*>(
       context->AllocatePersistentBuffer(context, sizeof(int8_t) * state_size));
+
+  if (params->state == nullptr) {
+    return nullptr;
+  }
+
   params->circular_buffer = tflm_signal::CircularBufferInit(
       params->buffer_size, params->state, state_size);
   return params;
