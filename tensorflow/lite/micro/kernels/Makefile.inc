@@ -53,6 +53,11 @@ $(eval $(call microlite_test,kernel_signal_delay_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,kernel_signal_energy_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_fft_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.cc \

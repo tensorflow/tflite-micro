@@ -39,3 +39,10 @@ cc_library(
     srcs = ["overlap_add.cc"],
     hdrs = ["overlap_add.h"],
 )
+
+cc_library(
+    name = "energy",
+    srcs = ["energy.cc"],
+    hdrs = ["energy.h"],
+    deps = [":complex"],
+)

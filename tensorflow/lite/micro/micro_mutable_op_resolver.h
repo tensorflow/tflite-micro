@@ -224,6 +224,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_DIV, tflite::Register_DIV(), ParseDiv);
   }
 
+  TfLiteStatus AddEnergy() {
+    // TODO(b/286250473): change back name to "Energy" and remove namespace
+    return AddCustom("SignalEnergy", tflite::tflm_signal::Register_ENERGY());
+  }
+
   TfLiteStatus AddElu() {
     return AddBuiltin(BuiltinOperator_ELU, tflite::Register_ELU(), ParseElu);
   }

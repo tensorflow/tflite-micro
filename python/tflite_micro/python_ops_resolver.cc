@@ -45,6 +45,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddDequantize();
   AddDetectionPostprocess();
   AddDiv();
+  AddEnergy();
   AddElu();
   AddEqual();
   AddEthosU();
