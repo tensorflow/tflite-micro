@@ -319,4 +319,3 @@ cc_test(
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
-
