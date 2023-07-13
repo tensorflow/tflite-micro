@@ -10,6 +10,10 @@ cc_library(
     srcs = [
         "delay.cc",
         "energy.cc",
+        "filter_bank.cc",
+        "filter_bank_log.cc",
+        "filter_bank_spectral_subtraction.cc",
+        "filter_bank_square_root.cc",
         "framer.cc",
         "overlap_add.cc",
         "rfft.cc",
@@ -26,6 +30,10 @@ cc_library(
     deps = [
         "//signal/src:circular_buffer",
         "//signal/src:energy",
+        "//signal/src:filter_bank",
+        "//signal/src:filter_bank_log",
+        "//signal/src:filter_bank_spectral_subtraction",
+        "//signal/src:filter_bank_square_root",
         "//signal/src:overlap_add",
         "//signal/src:rfft",
         "//signal/src:window",
@@ -222,3 +230,93 @@ cc_test(
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
+
+cc_library(
+    name = "filter_bank_flexbuffers_generated_data",
+    srcs = [
+        "filter_bank_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "filter_bank_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_library(
+    name = "filter_bank_log_flexbuffers_generated_data",
+    srcs = [
+        "filter_bank_log_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "filter_bank_log_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_library(
+    name = "filter_bank_spectral_subtraction_flexbuffers_generated_data",
+    srcs = [
+        "filter_bank_spectral_subtraction_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "filter_bank_spectral_subtraction_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "filter_bank_test",
+    srcs = [
+        "filter_bank_test.cc",
+    ],
+    deps = [
+        ":filter_bank_flexbuffers_generated_data",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "filter_bank_log_test",
+    srcs = [
+        "filter_bank_log_test.cc",
+    ],
+    deps = [
+        ":filter_bank_log_flexbuffers_generated_data",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "filter_bank_spectral_subtraction_test",
+    srcs = [
+        "filter_bank_spectral_subtraction_test.cc",
+    ],
+    deps = [
+        ":filter_bank_spectral_subtraction_flexbuffers_generated_data",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "filter_bank_square_root_test",
+    srcs = [
+        "filter_bank_square_root_test.cc",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+

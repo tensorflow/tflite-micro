@@ -15,8 +15,8 @@ limitations under the License.
 
 #include "signal/src/filter_bank.h"
 
-namespace tflm_signal {
 namespace tflite {
+namespace tflm_signal {
 
 void FilterbankAccumulateChannels(const FilterbankConfig* config,
                                   const uint32_t* input, uint64_t* output) {
@@ -49,5 +49,5 @@ void FilterbankAccumulateChannels(const FilterbankConfig* config,
   }
 }
 
-}  // namespace tflite
 }  // namespace tflm_signal
+}  // namespace tflite

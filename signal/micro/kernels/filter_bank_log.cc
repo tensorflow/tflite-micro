@@ -51,7 +51,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       context->AllocatePersistentBuffer(context, sizeof(TFLMSignalLogParams)));
 
   if (params == nullptr) {
-    reutrn nullptr;
+    return nullptr;
   }
   tflite::FlexbufferWrapper fbw(buffer_t, length);
 
