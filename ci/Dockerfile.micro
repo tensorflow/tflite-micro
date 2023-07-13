@@ -18,7 +18,11 @@
 # CI container unnecessarily large.
 FROM python:3.10-bullseye AS qemu_builder
 RUN apt-get update
+
 RUN apt-get install -y ninja-build wget xz-utils
+RUN apt-get install -y libglib2.0-dev
+RUN apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
 COPY ci/install_qemu.sh ./
 # Installs all built files into /qemu_install rather than /usr/local default.
 RUN ./install_qemu.sh /tmp/qemu_install
