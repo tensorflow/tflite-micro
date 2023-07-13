@@ -69,6 +69,24 @@ $(eval $(call microlite_test,kernel_signal_framer_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,kernel_signal_filter_bank_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_log_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_square_root_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root_test.cc))  
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_spectral_subtraction_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_overlap_add_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.cc, \
