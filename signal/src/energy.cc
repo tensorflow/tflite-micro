@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "signal/src/complex.h"
 
+namespace tflite {
 namespace tflm_signal {
 void SpectrumToEnergy(const Complex<int16_t>* input, int start_index,
                       int end_index, uint32_t* output) {
@@ -29,3 +30,4 @@ void SpectrumToEnergy(const Complex<int16_t>* input, int start_index,
 }
 
 }  // namespace tflm_signal
+}  // namespace tflite

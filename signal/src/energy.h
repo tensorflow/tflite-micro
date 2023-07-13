@@ -20,7 +20,10 @@ limitations under the License.
 
 #include "signal/src/complex.h"
 
+namespace tflite {
 namespace tflm_signal {
+// TODO(b/286250473): remove namespace once de-duped libraries above
+
 // Calculates the power spectrum from a DFT output between start and end indices
 //
 // * `start_index` and `end_index` must valid indices into `input`
@@ -30,5 +33,6 @@ void SpectrumToEnergy(const Complex<int16_t>* input, int start_index,
                       int end_index, uint32_t* output);
 
 }  // namespace tflm_signal
+}  // namespace tflite
 
 #endif  // SIGNAL_ENERGY_H_
