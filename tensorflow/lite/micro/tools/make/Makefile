@@ -313,12 +313,14 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_pla
 
 MICROLITE_CC_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
 $(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
+$(TENSORFLOW_ROOT)signal/src/energy.cc \
 $(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
