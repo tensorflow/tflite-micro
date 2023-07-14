@@ -53,7 +53,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
       context->AllocatePersistentBuffer(context,
                                         sizeof(TFLMSignalFilterBankParams)));
   if (params == nullptr) {
-    reutrn nullptr;
+    return nullptr;
   }
 
   tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
