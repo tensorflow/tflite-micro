@@ -99,8 +99,7 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
   if (--data->cycles_until_run != 0) {
     // Signal the interpreter to end current run if the delay before op invoke
     // has not been reached.
-    // TODO(b/149795762): Add kTfLiteAbort to TfLiteStatus enum.
-    return static_cast<TfLiteStatus>(kTfLiteAbort);
+    return kTfLiteAbort;
   }
 
   data->cycles_until_run = data->cycles_max;
