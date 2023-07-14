@@ -30,9 +30,6 @@ extern const int kCircularBufferOutputTensor;
 // Elements in the vectors are ordered alphabetically by parameter name.
 extern const int kCircularBufferCyclesMaxIndex;  // 'cycles_max'
 
-// TODO(b/149795762): Add this to TfLiteStatus enum.
-extern const TfLiteStatus kTfLiteAbort;
-
 // These fields control the stride period of a strided streaming model. This op
 // returns kTfLiteAbort until cycles_until_run-- is zero.  At this time,
 // cycles_until_run is reset to cycles_max.
