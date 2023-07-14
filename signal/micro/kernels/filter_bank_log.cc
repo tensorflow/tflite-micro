@@ -45,15 +45,14 @@ struct TFLMSignalLogParams {
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-
   auto* params = static_cast<TFLMSignalLogParams*>(
       context->AllocatePersistentBuffer(context, sizeof(TFLMSignalLogParams)));
 
   if (params == nullptr) {
     return nullptr;
   }
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
 
   params->input_correction_bits = fbw.ElementAsInt32(kInputCorrectionBitsIndex);
   params->output_scale = fbw.ElementAsInt32(kOutputScaleIndex);

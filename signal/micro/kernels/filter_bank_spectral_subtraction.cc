@@ -59,13 +59,16 @@ void ResetState(TFLMSignalSpectralSubtractionParams* params) {
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-
   auto* params = static_cast<TFLMSignalSpectralSubtractionParams*>(
       context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalSpectralSubtractionParams)));
 
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  if (params == nullptr) {
+    return nullptr;
+  }
+
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
   params->config.alternate_one_minus_smoothing =
       fbw.ElementAsInt32(kAlternateOneMinusSmoothingIndex);
   params->config.alternate_smoothing =

@@ -49,17 +49,23 @@ struct TFLMSignalFilterBankParams {
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-
   auto* params = static_cast<TFLMSignalFilterBankParams*>(
       context->AllocatePersistentBuffer(context,
                                         sizeof(TFLMSignalFilterBankParams)));
+  if (params == nullptr) {
+    reutrn nullptr;
+  }
 
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
   params->config.num_channels = fbw.ElementAsInt32(kNumChannelsIndex);
 
   params->work_area = static_cast<uint64_t*>(context->AllocatePersistentBuffer(
       context, (params->config.num_channels + 1) * sizeof(uint64_t)));
+
+  if (params->work_area == nullptr) {
+    return nullptr;
+  }
 
   return params;
 }
