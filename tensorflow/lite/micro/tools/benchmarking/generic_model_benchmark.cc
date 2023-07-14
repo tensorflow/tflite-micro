@@ -18,7 +18,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -29,6 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 #include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided model
