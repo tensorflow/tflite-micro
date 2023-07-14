@@ -9,6 +9,42 @@ cc_library(
 )
 
 cc_library(
+    name = "square_root_32",
+    srcs = ["square_root_32.cc"],
+    hdrs = ["square_root.h"],
+    deps = [":msb_32"],
+)
+
+cc_library(
+    name = "square_root_64",
+    srcs = ["square_root_64.cc"],
+    hdrs = ["square_root.h"],
+    deps = [
+        ":msb_64",
+        ":square_root_32",
+    ],
+)
+
+cc_library(
+    name = "log",
+    srcs = ["log.cc"],
+    hdrs = ["log.h"],
+    deps = [":msb_32"],
+)
+
+cc_library(
+    name = "msb_32",
+    srcs = ["msb_32.cc"],
+    hdrs = ["msb.h"],
+)
+
+cc_library(
+    name = "msb_64",
+    srcs = ["msb_64.cc"],
+    hdrs = ["msb.h"],
+)
+
+cc_library(
     name = "rfft",
     srcs = [
         "rfft_float.cc",
@@ -45,4 +81,34 @@ cc_library(
     srcs = ["energy.cc"],
     hdrs = ["energy.h"],
     deps = [":complex"],
+)
+
+cc_library(
+    name = "filter_bank",
+    srcs = ["filter_bank.cc"],
+    hdrs = ["filter_bank.h"],
+)
+
+cc_library(
+    name = "filter_bank_log",
+    srcs = ["filter_bank_log.cc"],
+    hdrs = ["filter_bank_log.h"],
+    deps = [
+        ":log",
+    ],
+)
+
+cc_library(
+    name = "filter_bank_spectral_subtraction",
+    srcs = ["filter_bank_spectral_subtraction.cc"],
+    hdrs = ["filter_bank_spectral_subtraction.h"],
+)
+
+cc_library(
+    name = "filter_bank_square_root",
+    srcs = ["filter_bank_square_root.cc"],
+    hdrs = ["filter_bank_square_root.h"],
+    deps = [
+        ":square_root_64",
+    ],
 )

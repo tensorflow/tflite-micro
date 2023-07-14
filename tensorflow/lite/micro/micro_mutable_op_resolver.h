@@ -258,6 +258,31 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_FILL, tflite::Register_FILL(), ParseFill);
   }
 
+  TfLiteStatus AddFilterBank() {
+    // TODO(b/286250473): change back name to "FilterBank" and remove namespace
+    return AddCustom("SignalFilterBank",
+                     tflite::tflm_signal::Register_FILTER_BANK());
+  }
+  TfLiteStatus AddFilterBankLog() {
+    // TODO(b/286250473): change back name to "FilterBankLog" and remove
+    // namespace
+    return AddCustom("SignalFilterBankLog",
+                     tflite::tflm_signal::Register_FILTER_BANK_LOG());
+  }
+  TfLiteStatus AddFilterBankSquareRoot() {
+    // TODO(b/286250473): change back name to "FilterBankSquareRoot" and remove
+    // namespace
+    return AddCustom("SignalFilterBankSquareRoot",
+                     tflite::tflm_signal::Register_FILTER_BANK_SQUARE_ROOT());
+  }
+  TfLiteStatus AddFilterBankSpectralSubtraction() {
+    // TODO(b/286250473): change back name to "FilterBankSpectralSubtraction"
+    // and remove namespace
+    return AddCustom(
+        "SignalAddFilterBankSpectralSubtraction",
+        tflite::tflm_signal::Register_FILTER_BANK_SPECTRAL_SUBTRACTION());
+  }
+
   TfLiteStatus AddFloor() {
     return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
   }
