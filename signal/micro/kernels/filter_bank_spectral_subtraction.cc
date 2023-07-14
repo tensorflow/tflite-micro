@@ -88,6 +88,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   params->noise_estimate =
       static_cast<uint32_t*>(context->AllocatePersistentBuffer(
           context, params->config.num_channels * sizeof(uint32_t)));
+
+  if (params->noise_estimate == nullptr) {
+    return nullptr;
+  }
+
   return params;
 }
 
