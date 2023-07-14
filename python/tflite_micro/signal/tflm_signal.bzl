@@ -1,5 +1,7 @@
 """Build rule for wrapping a custom TF OP from .cc to python."""
 
+load("@rules_python//python:defs.bzl", "py_library")
+
 # TODO(b/286890280): refactor to be more generic build target for any custom OP
 def py_tflm_signal_library(
         name,
@@ -61,7 +63,7 @@ def py_tflm_signal_library(
             ] + select({"//conditions:default": []}),
         )
 
-    native.py_library(
+    py_library(
         name = name,
         srcs = srcs,
         srcs_version = "PY2AND3",
