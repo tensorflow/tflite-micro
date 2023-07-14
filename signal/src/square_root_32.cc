@@ -20,11 +20,13 @@ namespace tflite {
 namespace tflm_signal {
 
 uint16_t Sqrt32(uint32_t num) {
-  if (num == 0) return 0;
+  if (num == 0) {
+    return 0;
+  };
   uint32_t res = 0;
   int max_bit_number = 32 - MostSignificantBit32(num);
   max_bit_number |= 1;
-  uint32_t bit = ((uint32_t)1) << (31 - max_bit_number);
+  uint32_t bit = 1u << (31 - max_bit_number);
   int iterations = (31 - max_bit_number) / 2 + 1;
   while (iterations--) {
     if (num >= res + bit) {
