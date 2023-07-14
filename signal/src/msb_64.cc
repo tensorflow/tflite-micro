@@ -17,6 +17,7 @@ limitations under the License.
 
 namespace tflite {
 namespace tflm_signal {
+// TODO(b/286250473): remove namespace once de-duped libraries above
 
 uint32_t MostSignificantBit64(uint64_t x) {
 #if defined(__GNUC__)

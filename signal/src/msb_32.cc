@@ -17,7 +17,9 @@ limitations under the License.
 
 namespace tflite {
 namespace tflm_signal {
+// TODO(b/286250473): remove namespace once de-duped libraries above
 
+// TODO(b/291167350):  can allow __builtin_clz to be used in more cases here
 uint32_t MostSignificantBit32(uint32_t x) {
 #if defined(__GNUC__)
   if (x) {
