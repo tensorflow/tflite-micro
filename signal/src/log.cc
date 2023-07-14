@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "signal/src/msb.h"
 
+namespace tflite {
+namespace tflm_signal {
 namespace {
 
 const uint16_t kLogLut[] = {
@@ -64,8 +66,6 @@ uint32_t Log2FractionPart32(uint32_t x, uint32_t log2x) {
 
 }  // namespace
 
-namespace tflite {
-namespace tflm_signal {
 // Calculate integer logarithm, 32 Bit version
 uint32_t Log32(uint32_t x, uint32_t out_scale) {
   // ASSERT(x != 0);
