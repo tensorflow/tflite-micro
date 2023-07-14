@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,16 @@ limitations under the License.
 
 #include <chre.h>
 
-extern "C" void DebugLog(const char* s) {
-  chreLog(CHRE_LOG_DEBUG, "[TFL_MICRO] %s", s);
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include "eyalroz_printf/src/printf/printf.h"
+#endif
+
+extern "C" void DebugLog(const char* format, va_list args) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+  constexpr int kMaxLogLen = 256;
+  char log_buffer[kMaxLogLen];
+
+  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  chreLog(CHRE_LOG_DEBUG, "[TFL_MICRO] %s", log_buffer);
+#endif
 }

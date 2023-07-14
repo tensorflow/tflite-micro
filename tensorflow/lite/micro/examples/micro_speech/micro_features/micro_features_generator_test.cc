@@ -45,8 +45,8 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorYes) {
   };
   SetMicroFeaturesNoiseEstimates(yes_estimate_presets);
 
-  int8_t yes_calculated_data[g_yes_feature_data_slice_size];
-  size_t num_samples_read;
+  int8_t yes_calculated_data[g_yes_feature_data_slice_size] = {};
+  size_t num_samples_read = 0;
   TfLiteStatus yes_status = GenerateMicroFeatures(
       g_yes_30ms_audio_data, g_yes_30ms_audio_data_size,
       g_yes_feature_data_slice_size, yes_calculated_data, &num_samples_read);
@@ -75,8 +75,8 @@ TF_LITE_MICRO_TEST(TestMicroFeaturesGeneratorNo) {
   };
   SetMicroFeaturesNoiseEstimates(no_estimate_presets);
 
-  int8_t no_calculated_data[g_no_feature_data_slice_size];
-  size_t num_samples_read;
+  int8_t no_calculated_data[g_no_feature_data_slice_size] = {};
+  size_t num_samples_read = 0;
   TfLiteStatus no_status = GenerateMicroFeatures(
       g_no_30ms_audio_data, g_no_30ms_audio_data_size,
       g_no_feature_data_slice_size, no_calculated_data, &num_samples_read);

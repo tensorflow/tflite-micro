@@ -39,11 +39,13 @@ PythonOpsResolver::PythonOpsResolver() {
   AddConv2D();
   AddCos();
   AddCumSum();
+  AddDelay();
   AddDepthToSpace();
   AddDepthwiseConv2D();
   AddDequantize();
   AddDetectionPostprocess();
   AddDiv();
+  AddEnergy();
   AddElu();
   AddEqual();
   AddEthosU();
@@ -53,6 +55,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddFloor();
   AddFloorDiv();
   AddFloorMod();
+  AddFramer();
   AddFullyConnected();
   AddGather();
   AddGatherNd();
@@ -79,6 +82,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddMul();
   AddNeg();
   AddNotEqual();
+  AddOverlapAdd();
   AddPack();
   AddPad();
   AddPadV2();
@@ -91,6 +95,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddReshape();
   AddResizeBilinear();
   AddResizeNearestNeighbor();
+  AddRfft();
   AddRound();
   AddRsqrt();
   AddSelectV2();
@@ -107,6 +112,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddSquaredDifference();
   AddSqueeze();
   AddStridedSlice();
+  AddStacker();
   AddSub();
   AddSum();
   AddSvdf();

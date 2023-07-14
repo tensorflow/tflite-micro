@@ -26,9 +26,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace reshape {
 
 namespace {
 
@@ -94,7 +91,4 @@ TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace reshape
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

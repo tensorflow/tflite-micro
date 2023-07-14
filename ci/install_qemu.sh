@@ -13,6 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+#
+# We are installing qemu from source because (copied from
+# https://github.com/tensorflow/tflite-micro/pull/1892#discussion_r1164316226):
+# QEMU 7.1 and above has a blocking bug
+# (https://gitlab.com/qemu-project/qemu/-/issues/1528) and that's the only
+# version available on our apt repo.
+#
+# TODO: b/285348856 - Update the version to allow for command line arguments.
+#
 # Parameters:
 # ${1} Optional. Path to install QEMU.
 LINUX_PORTABLE_URL="https://download.qemu.org/qemu-6.2.0.tar.xz"

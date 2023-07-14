@@ -15,6 +15,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_MICRO_OPS_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_MICRO_OPS_H_
 
+#include "signal/micro/kernels/rfft.h"
 #include "tensorflow/lite/c/common.h"
 
 // Forward declaration of all micro op kernel registration methods. These
@@ -99,8 +100,10 @@ TFLMRegistration Register_READ_VARIABLE();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_RELU();
 TFLMRegistration Register_RELU6();
+TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
+TFLMRegistration Register_ROUND();
 TFLMRegistration Register_RSQRT();
 TFLMRegistration Register_SELECT_V2();
 TFLMRegistration Register_SHAPE();
@@ -127,18 +130,18 @@ TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 TFLMRegistration Register_UNPACK();
 TFLMRegistration Register_VAR_HANDLE();
 TFLMRegistration Register_WHILE();
-// TODO(b/160234179): Change custom OPs to also return by value.
-namespace tflm_signal {
-TFLMRegistration* Register_WINDOW();
-}
 TFLMRegistration Register_ZEROS_LIKE();
 
-namespace ops {
-namespace micro {
-TFLMRegistration Register_RESHAPE();
-TFLMRegistration Register_ROUND();
-}  // namespace micro
-}  // namespace ops
+// TODO(b/160234179): Change custom OPs to also return by value.
+namespace tflm_signal {
+TFLMRegistration* Register_DELAY();
+TFLMRegistration* Register_ENERGY();
+TFLMRegistration* Register_FRAMER();
+TFLMRegistration* Register_OVERLAP_ADD();
+TFLMRegistration* Register_STACKER();
+TFLMRegistration* Register_WINDOW();
+}  // namespace tflm_signal
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_MICRO_OPS_H_

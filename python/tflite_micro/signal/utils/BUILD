@@ -13,6 +13,7 @@ py_library(
     srcs = ["util.py"],
     deps = [
         "//python/tflite_micro:runtime",
+        "//python/tflite_micro/signal:ops",
         requirement("tensorflow-cpu"),
     ],
 )

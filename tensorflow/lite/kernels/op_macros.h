@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
 #define TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
 
-#include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 #if !defined(TF_LITE_MCU_DEBUG_LOG)
 #include <cstdlib>
 #define TFLITE_ABORT abort()
 #else
 inline void AbortImpl() {
-  DebugLog("HALTED\n");
+  MicroPrintf("HALTED");
   while (1) {
   }
 }
@@ -34,5 +34,16 @@ inline void AbortImpl() {
 #else
 #define TFLITE_ASSERT_FALSE TFLITE_ABORT
 #endif
+
+#define TF_LITE_FATAL(msg)    \
+  do {                        \
+    MicroPrintf("%s", (msg)); \
+    TFLITE_ABORT;             \
+  } while (0)
+
+#define TF_LITE_ASSERT(x)        \
+  do {                           \
+    if (!(x)) TF_LITE_FATAL(#x); \
+  } while (0)
 
 #endif  // TENSORFLOW_LITE_KERNELS_OP_MACROS_H_

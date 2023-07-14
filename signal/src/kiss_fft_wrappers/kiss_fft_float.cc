@@ -1,4 +1,4 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,10 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-// TODO(b/121324430): Add test for DebugLog functions
-// TODO(b/121275099): Remove dependency on debug_log once the platform supports
-// printf
 
-#include <stdio.h>
+#include "signal/src/kiss_fft_wrappers/kiss_fft_common.h"
 
-extern "C" void DebugLog(const char* s) { puts(s); }
+#undef FIXED_POINT
+namespace kiss_fft_float {
+#include "kiss_fft.c"
+#include "tools/kiss_fftr.c"
+}  // namespace kiss_fft_float
