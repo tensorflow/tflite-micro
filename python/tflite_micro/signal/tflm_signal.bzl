@@ -63,7 +63,7 @@ def py_tflm_signal_library(
             ] + select({"//conditions:default": []}),
         )
 
-    native.py_library(
+    py_library(
         name = name,
         srcs = srcs,
         srcs_version = "PY2AND3",
