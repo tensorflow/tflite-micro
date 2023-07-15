@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -76,37 +77,20 @@ void SetRandomInput(const uint32_t random_seed,
 }
 
 bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
-  // Obtain the file size using fstat, or report an error if that fails.
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
-  struct stat sb;
 
-// For CMSIS_NN, the compilation is failing with the following error
-// 'fileno' was not declared in this scope
-// TODO(b/290988791): Investigate why fileno is not defined in arm toolchain.
-#if defined(CMSIS_NN)
-  if (fstat(file.get()->_file, &sb) != 0) {
-#else
-  if (fstat(fileno(file.get()), &sb) != 0) {
-#endif
-    MicroPrintf("Failed to get file size of: %s\n", file_name);
+  const size_t bytes_read =
+      fread(buffer, sizeof(char), buffer_size, file.get());
+  if (ferror(file.get())) {
+    MicroPrintf("Unable to read model file: %d\n", ferror(file.get()));
     return false;
   }
-
-  if (!buffer) {
-    MicroPrintf("Malloc of buffer to hold copy of '%s' failed\n", file_name);
+  if (!feof(file.get())) {
+    MicroPrintf("Model buffer is too small for the model.\n");
     return false;
   }
-
-  if (S_ISREG(sb.st_mode) != 0 &&
-      (sb.st_size < 0 || (static_cast<size_t>(sb.st_size) > buffer_size))) {
-    MicroPrintf(
-        "Buffer size (%ld) to hold the model is less than required %ld.\n",
-        buffer_size, sb.st_size);
-    return false;
-  }
-
-  if (!fread(buffer, sizeof(char), sb.st_size, file.get())) {
-    MicroPrintf("Unable to read the model file or the model file is empty.\n");
+  if (bytes_read == 0) {
+    MicroPrintf("No bytes read from model file.\n");
     return false;
   }
 
