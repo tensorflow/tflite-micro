@@ -79,13 +79,18 @@ void SetRandomInput(const uint32_t random_seed,
 bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
 
-  fread(buffer, sizeof(char), buffer_size, file.get());
+  const size_t bytes_read =
+      fread(buffer, sizeof(char), buffer_size, file.get());
   if (ferror(file.get())) {
     MicroPrintf("Unable to read model file: %d\n", ferror(file.get()));
     return false;
   }
   if (!feof(file.get())) {
     MicroPrintf("Model buffer is too small for the model.\n");
+    return false;
+  }
+  if (bytes_read == 0) {
+    MicroPrintf("No bytes read from model file.\n");
     return false;
   }
 
