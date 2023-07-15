@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -90,11 +91,7 @@ void PrettyPrintTableHeader(PrettyPrintType type, const char* table_name) {
 
 template <>
 void FormatNumber<int32_t>(char* output, int32_t value) {
-#if defined(HEXAGON) || defined(CMSIS_NN)
-  sprintf(output, "%ld", value);  // NOLINT: sprintf required.
-#else
-  sprintf(output, "%d", value);  // NOLINT: sprintf required.
-#endif
+  sprintf(output, "%" PRId32, value);  // NOLINT: sprintf required.
 }
 
 template <>
