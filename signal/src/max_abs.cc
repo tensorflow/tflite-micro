@@ -16,6 +16,7 @@ limitations under the License.
 #include "signal/src/max_abs.h"
 
 // TODO(b/286250473): remove namespace once de-duped libraries
+namespace tflite {
 namespace tflm_signal {
 
 int16_t MaxAbs16(const int16_t* input, int size) {
@@ -31,3 +32,4 @@ int16_t MaxAbs16(const int16_t* input, int size) {
   return max;
 }
 }  // namespace tflm_signal
+}  // namespace tflite

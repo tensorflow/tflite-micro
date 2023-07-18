@@ -98,7 +98,7 @@ class FftAutoScaleOp : public tensorflow::OpKernel {
 
     tensorflow::Tensor* scale_bit_tensor = nullptr;
     OP_REQUIRES_OK(context, context->allocate_output(1, {}, &scale_bit_tensor));
-    scale_bit_tensor->scalar<int32_t>()() = ::tflm_signal::FftAutoScale(
+    scale_bit_tensor->scalar<int32_t>()() = tflite::tflm_signal::FftAutoScale(
         input, output_tensor->NumElements(), output);
   }
 };

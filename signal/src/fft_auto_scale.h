@@ -20,6 +20,7 @@ limitations under the License.
 #include <stdint.h>
 
 // TODO(b/286250473): remove namespace once de-duped libraries
+namespace tflite {
 namespace tflm_signal {
 
 // Auto scales `input` and write the result to `output`
@@ -29,5 +30,6 @@ namespace tflm_signal {
 int FftAutoScale(const int16_t* input, int size, int16_t* output);
 
 }  // namespace tflm_signal
+}  // namespace tflite
 
 #endif  // SIGNAL_SRC_FFT_AUTO_SCALE_H_

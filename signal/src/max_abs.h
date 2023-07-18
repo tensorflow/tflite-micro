@@ -19,11 +19,13 @@ limitations under the License.
 #include <stdint.h>
 
 // TODO(b/286250473): remove namespace once de-duped libraries
+namespace tflite {
 namespace tflm_signal {
 
 // Returns the maximum absolute value of the `size` elements in `input`
 int16_t MaxAbs16(const int16_t* input, int size);
 
 }  // namespace tflm_signal
+}  // namespace tflite
 
 #endif  // SIGNAL_SRC_MAX_ABS_H_

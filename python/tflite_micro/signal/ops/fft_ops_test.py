@@ -45,7 +45,7 @@ class RfftOpTest(tf.test.TestCase):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       scale_exp = [int(j) for j in lines[i + 2].split()]
-      # TFLite
+      # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
