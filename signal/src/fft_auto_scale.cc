@@ -27,8 +27,7 @@ namespace tflm_signal {
 
 int FftAutoScale(const int16_t* input, int size, int16_t* output) {
   const int16_t max = MaxAbs16(input, size);
-  int scale_bits = (sizeof(int16_t) * 8) -
-                   MostSignificantBit32(max) - 1;
+  int scale_bits = (sizeof(int16_t) * 8) - MostSignificantBit32(max) - 1;
   if (scale_bits <= 0) {
     scale_bits = 0;
   }

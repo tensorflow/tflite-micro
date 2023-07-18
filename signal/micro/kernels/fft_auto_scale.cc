@@ -72,8 +72,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   int16_t* output_data = tflite::micro::GetTensorData<int16_t>(output);
   int32_t* scale_bit_data = tflite::micro::GetTensorData<int32_t>(scale_bit);
 
-  *scale_bit_data = tflm_signal::FftAutoScale(
-      input_data, output->dims->data[0], output_data);
+  *scale_bit_data =
+      tflm_signal::FftAutoScale(input_data, output->dims->data[0], output_data);
   return kTfLiteOk;
 }
 
