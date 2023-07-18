@@ -65,5 +65,22 @@ def _fft_wrapper(fft_fn, default_name):
   return _fft
 
 
+def _fft_auto_scale_wrapper(fft_auto_scale_fn, default_name):
+  """Wrapper around gen_fft_ops.fft_auto_scale*."""
+
+  def _fft_auto_scale(input_tensor, name=default_name):
+    with tf.name_scope(name) as name:
+      input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.int16)
+      dim_list = input_tensor.shape.as_list()
+      if len(dim_list) != 1:
+        raise ValueError("Input tensor must have a rank of 1")
+      return fft_auto_scale_fn(input_tensor, name=name)
+
+  return _fft_auto_scale
+
+
 rfft = _fft_wrapper(gen_fft_ops.signal_rfft, "signal_rfft")
+fft_auto_scale = _fft_auto_scale_wrapper(gen_fft_ops.signal_fft_auto_scale,
+                                         "signal_fft_auto_scale")
 tf.no_gradient("signal_rfft")
+tf.no_gradient("signal_fft_auto_scale")

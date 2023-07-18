@@ -135,6 +135,7 @@ TFLMRegistration Register_ZEROS_LIKE();
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY();
+TFLMRegistration* Register_FFT_AUTO_SCALE();
 TFLMRegistration* Register_FILTER_BANK();
 TFLMRegistration* Register_FILTER_BANK_LOG();
 TFLMRegistration* Register_FILTER_BANK_SPECTRAL_SUBTRACTION();

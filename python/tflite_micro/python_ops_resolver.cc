@@ -51,6 +51,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddEthosU();
   AddExp();
   AddExpandDims();
+  AddFftAutoScale();
   AddFill();
   AddFloor();
   AddFloorDiv();

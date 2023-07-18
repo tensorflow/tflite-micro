@@ -62,5 +62,27 @@ fft_length: The length of the FFT operation. An input signal that's shorter
             will be zero padded to fft_length.
 )doc");
 
+// TODO(b/286250473): change back name after name clash resolved
+REGISTER_OP("SignalFftAutoScale")
+    .Input("input: int16")
+    .Output("output: int16")
+    .Output("scale_bits: int32")
+    .SetShapeFn([](shape_inference::InferenceContext* c) {
+      ShapeHandle out;
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
+      c->set_output(0, out);
+      c->set_output(1, c->Scalar());
+      return OkStatus();
+    })
+    .Doc(R"doc(
+Shifts the input left until the amplitude is maximized without clipping. Returns
+the amount of left shift for compensation later. This op can be used to maximize
+precision of integer FFT implementations, especially 16-bit.
+
+input: A 1-D time domain signal.
+output: A 1-D time domain signal after auto scaling.
+scale_bits: Scalar. The number of left shifts applied to the input signal.
+)doc");
+
 }  // namespace signal
 }  // namespace tensorflow

@@ -9,6 +9,7 @@ tflm_signal_kernel_library(
     name = "fft_kernel",
     srcs = ["fft_kernels.cc"],
     deps = [
+        "//signal/src:fft_auto_scale",
         "//signal/src:rfft",
         "@tensorflow_cc_deps//:cc_library",
     ],

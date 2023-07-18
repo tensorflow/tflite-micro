@@ -7,6 +7,7 @@ package(
 )
 
 exports_files([
+    "fft_auto_scale_test1.txt",
     "rfft_test1.txt",
     "window_test1.txt",
 ])

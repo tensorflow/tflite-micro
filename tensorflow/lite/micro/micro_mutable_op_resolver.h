@@ -254,6 +254,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseExpandDims);
   }
 
+  TfLiteStatus AddFftAutoScale() {
+    // TODO(b/286250473): change back name and remove namespace
+    return AddCustom("SignalFftAutoScale", tflite::tflm_signal::Register_FFT_AUTO_SCALE());
+  }
+
   TfLiteStatus AddFill() {
     return AddBuiltin(BuiltinOperator_FILL, tflite::Register_FILL(), ParseFill);
   }

@@ -85,6 +85,43 @@ TfLiteStatus TestFFT(int* input_dims_data, const T* input_data,
   return kTfLiteOk;
 }
 
+TfLiteStatus TestFFTAutoScale(int* input_dims_data, const int16_t* input_data,
+                              int* output_dims_data, const int16_t* golden,
+                              int* scale_bit_dims_data,
+                              const int32_t scale_bit_golden,
+                              const TFLMRegistration registration,
+                              const uint8_t* flexbuffers_data,
+                              const int flexbuffers_data_len,
+                              int16_t* output_data, int32_t* scale_bit) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  TfLiteIntArray* scale_bit_dims = IntArrayFromInts(scale_bit_dims_data);
+
+  constexpr int kInputsSize = 1;
+  constexpr int kOutputsSize = 2;
+  constexpr int kTensorsSize = kInputsSize + kOutputsSize;
+  TfLiteTensor tensors[kTensorsSize] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(output_data, output_dims),
+      CreateTensor(scale_bit, scale_bit_dims),
+  };
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {2, 1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const int output_len = ElementCount(*output_dims);
+
+  TF_LITE_ENSURE_STATUS(ValidateFFTGoldens<int16_t>(
+      tensors, kTensorsSize, inputs_array, outputs_array, output_len, golden,
+      registration, flexbuffers_data, flexbuffers_data_len, output_data, 0));
+
+  TF_LITE_MICRO_EXPECT_EQ(scale_bit_golden, *scale_bit);
+
+  return kTfLiteOk;
+}
+
 }  // namespace
 
 }  // namespace testing
@@ -264,6 +301,60 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int32) {
                               output_shape, tflite::kRfftInt32Length512Golden,
                               *registration, g_gen_data_fft_length_512_int32,
                               g_gen_data_size_fft_length_512_int32, output, 0));
+}
+
+TF_LITE_MICRO_TEST(FftAutoScaleTestSmall) {
+  constexpr int kTensorsSize = 8;
+  int shape[] = {1, 8};
+  const int16_t input[] = {0x0000, 0x1111, 0x2222, 0x3333,
+                           0x3333, 0x2222, 0x1111, 0x0000};
+  int16_t output[kTensorsSize];
+  int scale_bit_shape[] = {0};
+  int32_t scale_bit;
+  const int16_t golden[] = {0x0000, 0x2222, 0x4444, 0x6666,
+                            0x6666, 0x4444, 0x2222, 0x0000};
+  const int32_t scale_bit_golden = 1;
+  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestFFTAutoScale(
+          shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
+          *registration, nullptr, 0, output, &scale_bit));
+}
+
+TF_LITE_MICRO_TEST(FftAutoScaleTestScaleBit) {
+  constexpr int kTensorsSize = 8;
+  int shape[] = {1, 8};
+  const int16_t input[] = {238, 113, -88, -243, -5, -130, 159, -70};
+  int16_t output[kTensorsSize];
+  int scale_bit_shape[] = {0};
+  int32_t scale_bit;
+  const int16_t golden[] = {30464, 14464,  -11264, -31104,
+                            -640,  -16640, 20352,  -8960};
+  const int32_t scale_bit_golden = 7;
+  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestFFTAutoScale(
+          shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
+          *registration, nullptr, 0, output, &scale_bit));
+}
+
+TF_LITE_MICRO_TEST(FftAutoScaleTestLarge) {
+  constexpr int kTensorsSize = 400;
+  int shape[] = {1, kTensorsSize};
+  int16_t output[kTensorsSize];
+  int scale_bit_shape[] = {0};
+  int32_t scale_bit;
+
+  const int32_t scale_bit_golden = 0;
+  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestFFTAutoScale(
+          shape, tflite::kFftAutoScaleLength512Input, shape,
+          tflite::kFftAutoScaleLength512Golden, scale_bit_shape,
+          scale_bit_golden, *registration, nullptr, 0, output, &scale_bit));
 }
 
 TF_LITE_MICRO_TESTS_END

@@ -31,6 +31,9 @@ extern const int32_t kRfftInt32Length512Golden[];
 extern const float kRfftFloatLength512Input[];
 extern const float kRfftFloatLength512Golden[];
 
+extern const int16_t kFftAutoScaleLength512Input[];
+extern const int16_t kFftAutoScaleLength512Golden[];
+
 }  // namespace tflite
 
 #endif  // SIGNAL_TESTDATA_FFT_TEST_DATA_H_

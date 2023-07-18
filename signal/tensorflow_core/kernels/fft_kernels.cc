@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/rfft.h"
+#include "signal/src/fft_auto_scale.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
@@ -81,7 +82,31 @@ class RfftOp : public tensorflow::OpKernel {
   Tensor state_tensor_;
 };
 
+class FftAutoScaleOp : public tensorflow::OpKernel {
+ public:
+  explicit FftAutoScaleOp(tensorflow::OpKernelConstruction* context)
+      : tensorflow::OpKernel(context) {}
+  void Compute(tensorflow::OpKernelContext* context) override {
+    const tensorflow::Tensor& input_tensor = context->input(0);
+    const int16_t* input = input_tensor.flat<int16_t>().data();
+
+    // Create an output tensor
+    tensorflow::Tensor* output_tensor = nullptr;
+    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
+                                                     &output_tensor));
+    int16_t* output = output_tensor->flat<int16_t>().data();
+
+    tensorflow::Tensor* scale_bit_tensor = nullptr;
+    OP_REQUIRES_OK(context, context->allocate_output(1, {}, &scale_bit_tensor));
+    scale_bit_tensor->scalar<int32_t>()() =
+        ::tflm_signal::FftAutoScale(input, output_tensor->NumElements(), output);
+  }
+};
+
+
 // TODO(b/286250473): change back name after name clash resolved
+REGISTER_KERNEL_BUILDER(Name("SignalFftAutoScale").Device(tensorflow::DEVICE_CPU),
+                        FftAutoScaleOp);
 REGISTER_KERNEL_BUILDER(
     Name("SignalRfft")
         .Device(tensorflow::DEVICE_CPU)
