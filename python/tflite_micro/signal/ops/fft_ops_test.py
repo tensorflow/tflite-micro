@@ -226,12 +226,10 @@ class RfftOpTest(tf.test.TestCase):
       fft_length = 2 * fft_length
 
   def testRfft(self):
-    self.SingleRfftTest(
-        'testdata/rfft_test1.txt')
+    self.SingleRfftTest('testdata/rfft_test1.txt')
 
   def testRfftLargeOuterDimension(self):
-    self.MultiDimRfftTest(
-        'testdata/rfft_test1.txt')
+    self.MultiDimRfftTest('testdata/rfft_test1.txt')
 
   def testFftTooLarge(self):
     for dtype in [np.int16, np.int32, np.float32]:
@@ -254,8 +252,7 @@ class RfftOpTest(tf.test.TestCase):
         self.evaluate(fft_ops.rfft(fft_input, 127))
 
   def testAutoScale(self):
-    self.SingleFftAutoScaleTest(
-        'testdata/fft_auto_scale_test1.txt')
+    self.SingleFftAutoScaleTest('testdata/fft_auto_scale_test1.txt')
 
   def testPow2FftLengthTest(self):
     fft_length, fft_bits = fft_ops.get_pow2_fft_length(131)

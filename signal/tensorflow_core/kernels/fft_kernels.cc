@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/rfft.h"
 #include "signal/src/fft_auto_scale.h"
+#include "signal/src/rfft.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
@@ -98,15 +98,14 @@ class FftAutoScaleOp : public tensorflow::OpKernel {
 
     tensorflow::Tensor* scale_bit_tensor = nullptr;
     OP_REQUIRES_OK(context, context->allocate_output(1, {}, &scale_bit_tensor));
-    scale_bit_tensor->scalar<int32_t>()() =
-        ::tflm_signal::FftAutoScale(input, output_tensor->NumElements(), output);
+    scale_bit_tensor->scalar<int32_t>()() = ::tflm_signal::FftAutoScale(
+        input, output_tensor->NumElements(), output);
   }
 };
 
-
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalFftAutoScale").Device(tensorflow::DEVICE_CPU),
-                        FftAutoScaleOp);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalFftAutoScale").Device(tensorflow::DEVICE_CPU), FftAutoScaleOp);
 REGISTER_KERNEL_BUILDER(
     Name("SignalRfft")
         .Device(tensorflow::DEVICE_CPU)

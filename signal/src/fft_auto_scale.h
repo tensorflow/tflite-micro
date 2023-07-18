@@ -26,7 +26,7 @@ namespace tflm_signal {
 // Elements in `input` are left shifted to maximize the amplitude without
 // clipping,
 // * both `input` and `output` must be of size `size`
-int FftAutoScale(const int16_t *input, int size, int16_t *output);
+int FftAutoScale(const int16_t* input, int size, int16_t* output);
 
 }  // namespace tflm_signal
 

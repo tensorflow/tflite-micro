@@ -47,8 +47,8 @@ py_test(
     name = "fft_ops_test",
     srcs = ["ops/fft_ops_test.py"],
     data = [
-        "//python/tflite_micro/signal/ops/testdata:rfft_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:fft_auto_scale_test1.txt",
+        "//python/tflite_micro/signal/ops/testdata:rfft_test1.txt",
     ],
     python_version = "PY3",
     srcs_version = "PY3",

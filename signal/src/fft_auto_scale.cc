@@ -24,9 +24,10 @@ limitations under the License.
 // TODO(b/286250473): remove namespace once de-duped libraries
 namespace tflm_signal {
 
-int FftAutoScale(const int16_t *input, int size, int16_t *output) {
+int FftAutoScale(const int16_t* input, int size, int16_t* output) {
   const int16_t max = tflm_signal::MaxAbs16(input, size);
-  int scale_bits = (sizeof(int16_t) * 8) - tflite::tflm_signal::MostSignificantBit32(max) - 1;
+  int scale_bits = (sizeof(int16_t) * 8) -
+                   tflite::tflm_signal::MostSignificantBit32(max) - 1;
   if (scale_bits <= 0) {
     scale_bits = 0;
   }

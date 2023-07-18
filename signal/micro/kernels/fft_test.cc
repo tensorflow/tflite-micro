@@ -314,7 +314,8 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestSmall) {
   const int16_t golden[] = {0x0000, 0x2222, 0x4444, 0x6666,
                             0x6666, 0x4444, 0x2222, 0x0000};
   const int32_t scale_bit_golden = 1;
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_FFT_AUTO_SCALE();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestFFTAutoScale(
@@ -332,7 +333,8 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestScaleBit) {
   const int16_t golden[] = {30464, 14464,  -11264, -31104,
                             -640,  -16640, 20352,  -8960};
   const int32_t scale_bit_golden = 7;
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_FFT_AUTO_SCALE();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestFFTAutoScale(
@@ -348,7 +350,8 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestLarge) {
   int32_t scale_bit;
 
   const int32_t scale_bit_golden = 0;
-  const TFLMRegistration* registration = tflite::tflm_signal::Register_FFT_AUTO_SCALE();
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_FFT_AUTO_SCALE();
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestFFTAutoScale(
