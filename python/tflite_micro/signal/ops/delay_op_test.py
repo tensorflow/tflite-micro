@@ -40,11 +40,11 @@ class DelayOpTest(tf.test.TestCase):
     delay_exp = np.pad(input_signal, delay_exp_signal)
     delay_out = np.zeros(input_signal_padded.shape)
 
-    in_frame_shape = input_signal.shape[:-1] + (frame_size,)
+    in_frame_shape = input_signal.shape[:-1] + (frame_size, )
     func = tf.function(delay_op.delay)
-    concrete_function = func.get_concrete_function(
-        tf.TensorSpec(in_frame_shape, dtype=tf.int16),
-        delay_length=delay_length)
+    concrete_function = func.get_concrete_function(tf.TensorSpec(
+        in_frame_shape, dtype=tf.int16),
+                                                   delay_length=delay_length)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
 
     for i in range(frame_num):
@@ -76,7 +76,8 @@ class DelayOpTest(tf.test.TestCase):
   def testMultiDimensionalDelay(self):
     input_signal = np.reshape(np.arange(0, 120, dtype=np.int16), [2, 3, 20])
     self.TestHelper(input_signal, 4, 6)
-    input_signal = np.reshape(np.arange(0, 72, dtype=np.int16), [2, 2, 3, 3, 2])
+    input_signal = np.reshape(np.arange(0, 72, dtype=np.int16),
+                              [2, 2, 3, 3, 2])
     self.TestHelper(input_signal, 7, 3)
 
 

@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/circular_buffer.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {
@@ -42,7 +42,8 @@ class DelayOp : public tensorflow::OpKernel {
 
       // Calculate the capacity of the circular buffer.
       size_t capacity = frame_size_ + delay_length_;
-      size_t state_size = tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
+      size_t state_size =
+          tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
       for (int i = 0; i < outer_dims_; i++) {
         OP_REQUIRES_OK(
             context,
@@ -50,8 +51,10 @@ class DelayOp : public tensorflow::OpKernel {
                 DT_INT8, TensorShape({static_cast<int32_t>(state_size)}),
                 &state_tensors_[i]));
         int8_t* state_ = state_tensors_[i].flat<int8_t>().data();
-        circular_buffers_[i] = tflite::tflm_signal::CircularBufferInit(capacity, state_, state_size);
-        tflite::tflm_signal::CircularBufferWriteZeros(circular_buffers_[i], delay_length_);
+        circular_buffers_[i] = tflite::tflm_signal::CircularBufferInit(
+            capacity, state_, state_size);
+        tflite::tflm_signal::CircularBufferWriteZeros(circular_buffers_[i],
+                                                      delay_length_);
       }
       initialized_ = true;
     }
@@ -63,13 +66,14 @@ class DelayOp : public tensorflow::OpKernel {
 
     for (int dim_index = 0, sample_index = 0; dim_index < outer_dims_;
          dim_index++, sample_index += frame_size_) {
-      tflite::tflm_signal::CircularBufferWrite(circular_buffers_[dim_index],
-                          &input_tensor.flat<int16_t>().data()[sample_index],
-                          frame_size_);
+      tflite::tflm_signal::CircularBufferWrite(
+          circular_buffers_[dim_index],
+          &input_tensor.flat<int16_t>().data()[sample_index], frame_size_);
       tflite::tflm_signal::CircularBufferGet(
           circular_buffers_[dim_index], frame_size_,
           &(reinterpret_cast<int16_t*>(output_tensor->data()))[sample_index]);
-      tflite::tflm_signal::CircularBufferDiscard(circular_buffers_[dim_index], frame_size_);
+      tflite::tflm_signal::CircularBufferDiscard(circular_buffers_[dim_index],
+                                                 frame_size_);
     }
   }
 
@@ -83,7 +87,8 @@ class DelayOp : public tensorflow::OpKernel {
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalDelay").Device(tensorflow::DEVICE_CPU), DelayOp);
+REGISTER_KERNEL_BUILDER(Name("SignalDelay").Device(tensorflow::DEVICE_CPU),
+                        DelayOp);
 
 }  // namespace signal
 }  // namespace tensorflow
