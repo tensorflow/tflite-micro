@@ -12,28 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef SIGNAL_TESTDATA_FFT_TEST_DATA_H_
-#define SIGNAL_TESTDATA_FFT_TEST_DATA_H_
 
-#include <cstdint>
+#ifndef SIGNAL_SRC_MAX_ABS_H_
+#define SIGNAL_SRC_MAX_ABS_H_
 
+#include <stdint.h>
+
+// TODO(b/286250473): remove namespace once de-duped libraries
 namespace tflite {
+namespace tflm_signal {
 
-/* These arrays are generated using random data. They serve to detect changes
- * in the kernels. They do not test correctness.
- */
-extern const int16_t kRfftInt16Length512Input[];
-extern const int16_t kRfftInt16Length512Golden[];
+// Returns the maximum absolute value of the `size` elements in `input`
+int16_t MaxAbs16(const int16_t* input, int size);
 
-extern const int32_t kRfftInt32Length512Input[];
-extern const int32_t kRfftInt32Length512Golden[];
-
-extern const float kRfftFloatLength512Input[];
-extern const float kRfftFloatLength512Golden[];
-
-extern const int16_t kFftAutoScaleLength512Input[];
-extern const int16_t kFftAutoScaleLength512Golden[];
-
+}  // namespace tflm_signal
 }  // namespace tflite
 
-#endif  // SIGNAL_TESTDATA_FFT_TEST_DATA_H_
+#endif  // SIGNAL_SRC_MAX_ABS_H_

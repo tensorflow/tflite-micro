@@ -9,6 +9,22 @@ cc_library(
 )
 
 cc_library(
+    name = "fft_auto_scale",
+    srcs = ["fft_auto_scale.cc"],
+    hdrs = ["fft_auto_scale.h"],
+    deps = [
+        ":max_abs",
+        ":msb_32",
+    ],
+)
+
+cc_library(
+    name = "max_abs",
+    srcs = ["max_abs.cc"],
+    hdrs = ["max_abs.h"],
+)
+
+cc_library(
     name = "square_root_32",
     srcs = ["square_root_32.cc"],
     hdrs = ["square_root.h"],

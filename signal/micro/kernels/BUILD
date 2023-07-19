@@ -10,6 +10,7 @@ cc_library(
     srcs = [
         "delay.cc",
         "energy.cc",
+        "fft_auto_scale.cc",
         "filter_bank.cc",
         "filter_bank_log.cc",
         "filter_bank_spectral_subtraction.cc",
@@ -30,6 +31,7 @@ cc_library(
     deps = [
         "//signal/src:circular_buffer",
         "//signal/src:energy",
+        "//signal/src:fft_auto_scale",
         "//signal/src:filter_bank",
         "//signal/src:filter_bank_log",
         "//signal/src:filter_bank_spectral_subtraction",

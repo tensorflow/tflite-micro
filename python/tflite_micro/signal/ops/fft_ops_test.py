@@ -33,6 +33,31 @@ class RfftOpTest(tf.test.TestCase):
       file_text = f.read()
     return file_text
 
+  def SingleFftAutoScaleTest(self, filename):
+    lines = self.GetResource(filename).splitlines()
+    func = tf.function(fft_ops.fft_auto_scale)
+    input_size = len(lines[0].split())
+    concrete_function = func.get_concrete_function(
+        tf.TensorSpec(input_size, dtype=tf.int16))
+    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    i = 0
+    while i < len(lines):
+      in_frame = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
+      out_frame_exp = [int(j) for j in lines[i + 1].split()]
+      scale_exp = [int(j) for j in lines[i + 2].split()]
+      # TFLM
+      interpreter.set_input(in_frame, 0)
+      interpreter.invoke()
+      out_frame = interpreter.get_output(0)
+      scale = interpreter.get_output(1)
+      self.assertAllEqual(out_frame_exp, out_frame)
+      self.assertEqual(scale_exp, scale)
+      # TF
+      out_frame, scale = self.evaluate(fft_ops.fft_auto_scale(in_frame))
+      self.assertAllEqual(out_frame_exp, out_frame)
+      self.assertEqual(scale_exp, scale)
+      i += 3
+
   def SingleRfftTest(self, filename):
     lines = self.GetResource(filename).splitlines()
     args = lines[0].split()
@@ -43,8 +68,6 @@ class RfftOpTest(tf.test.TestCase):
         tf.TensorSpec(input_size, dtype=tf.int16), fft_length)
     # TODO(b/286252893): make test more robust (vs scipy)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
     i = 1
@@ -53,9 +76,9 @@ class RfftOpTest(tf.test.TestCase):
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       # Compare TFLM inference against the expected golden values
       # TODO(b/286252893): validate usage of testing vs interpreter here
-      interpreter.set_tensor(input_details[0]['index'], in_frame)
+      interpreter.set_input(in_frame, 0)
       interpreter.invoke()
-      out_frame = interpreter.get_tensor(output_details[0]['index'])
+      out_frame = interpreter.get_output(0)
       self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(fft_ops.rfft(in_frame, fft_length))
@@ -83,11 +106,9 @@ class RfftOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
         tf.TensorSpec(np.shape(in_frames), dtype=tf.int16), fft_length)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    interpreter.set_tensor(input_details[0]['index'], in_frames)
+    interpreter.set_input(in_frames, 0)
     interpreter.invoke()
-    out_frame = interpreter.get_tensor(output_details[0]['index'])
+    out_frame = interpreter.get_output(0)
     self.assertAllEqual(out_frames_exp, out_frame)
     # TF
     out_frames = self.evaluate(fft_ops.rfft(in_frames, fft_length))
@@ -204,6 +225,12 @@ class RfftOpTest(tf.test.TestCase):
                                  delta=1)
       fft_length = 2 * fft_length
 
+  def testRfft(self):
+    self.SingleRfftTest('testdata/rfft_test1.txt')
+
+  def testRfftLargeOuterDimension(self):
+    self.MultiDimRfftTest('testdata/rfft_test1.txt')
+
   def testFftTooLarge(self):
     for dtype in [np.int16, np.int32, np.float32]:
       fft_input = np.zeros(round(fft_ops._MAX_FFT_LENGTH * 2), dtype=dtype)
@@ -223,6 +250,9 @@ class RfftOpTest(tf.test.TestCase):
       fft_input = np.zeros(127, dtype=dtype)
       with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
         self.evaluate(fft_ops.rfft(fft_input, 127))
+
+  def testAutoScale(self):
+    self.SingleFftAutoScaleTest('testdata/fft_auto_scale_test1.txt')
 
   def testPow2FftLengthTest(self):
     fft_length, fft_bits = fft_ops.get_pow2_fft_length(131)
