@@ -6,6 +6,15 @@ package(
 )
 
 tflm_signal_kernel_library(
+    name = "delay_kernel",
+    srcs = ["delay_kernel.cc"],
+    deps = [
+        "//signal/src:circular_buffer",
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
     name = "fft_kernel",
     srcs = ["fft_kernels.cc"],
     deps = [
