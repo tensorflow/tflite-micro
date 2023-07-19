@@ -283,7 +283,8 @@ class RfftOpTest(tf.test.TestCase):
       while fft_length <= fft_ops._MAX_FFT_LENGTH:
         if dtype == np.float32:
           # Random input in the range [-1, 1)
-          fft_input = np.random.random([2, 5, fft_length]).astype(dtype) * 2 - 1
+          fft_input = np.random.random([2, 5, fft_length
+                                        ]).astype(dtype) * 2 - 1
         else:
           fft_input = np.random.randint(
               np.iinfo(np.int16).min,
@@ -294,11 +295,13 @@ class RfftOpTest(tf.test.TestCase):
         self.assertEqual(ifft_output.shape[-1], fft_length)
         # Output of integer RFFT and IRFFT is scaled by 1/fft_length
         if dtype == np.int16:
-          self.assertAllClose(
-              fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875)
+          self.assertAllClose(fft_input,
+                              ifft_output.astype(np.int32) * fft_length,
+                              atol=7875)
         elif dtype == np.int32:
-          self.assertAllClose(
-              fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875)
+          self.assertAllClose(fft_input,
+                              ifft_output.astype(np.int32) * fft_length,
+                              atol=7875)
         else:
           self.assertAllClose(fft_input, ifft_output, rtol=5e-7, atol=5e-7)
         fft_length = 2 * fft_length

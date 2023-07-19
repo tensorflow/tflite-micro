@@ -344,7 +344,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddIrfft(const TFLMRegistration* registration =
-                           tflite::tflm_signal::Register_IRFFT()) {
+                            tflite::tflm_signal::Register_IRFFT()) {
     // TODO(b/286250473): change back name and remove namespace
     return AddCustom("SignalIrfft", registration);
   }

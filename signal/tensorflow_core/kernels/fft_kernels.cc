@@ -179,15 +179,25 @@ REGISTER_KERNEL_BUILDER(
            ::tflm_signal::RfftInt32Init, ::tflm_signal::RfftInt32Apply>);
 
 REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<float>("T"),
-    IrfftOp<float, tflite::tflm_signal::IrfftFloatGetNeededMemory, tflite::tflm_signal::IrfftFloatInit, tflite::tflm_signal::IrfftFloatApply>);
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<float>("T"),
+    IrfftOp<float, tflite::tflm_signal::IrfftFloatGetNeededMemory,
+            tflite::tflm_signal::IrfftFloatInit,
+            tflite::tflm_signal::IrfftFloatApply>);
 REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<int16>("T"),
-    IrfftOp<int16_t, tflite::tflm_signal::IrfftInt16GetNeededMemory, tflite::tflm_signal::IrfftInt16Init,
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int16>("T"),
+    IrfftOp<int16_t, tflite::tflm_signal::IrfftInt16GetNeededMemory,
+            tflite::tflm_signal::IrfftInt16Init,
             tflite::tflm_signal::IrfftInt16Apply>);
 REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft").Device(tensorflow::DEVICE_CPU).TypeConstraint<int32>("T"),
-    IrfftOp<int32_t, tflite::tflm_signal::IrfftInt32GetNeededMemory, tflite::tflm_signal::IrfftInt32Init,
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int32>("T"),
+    IrfftOp<int32_t, tflite::tflm_signal::IrfftInt32GetNeededMemory,
+            tflite::tflm_signal::IrfftInt32Init,
             tflite::tflm_signal::IrfftInt32Apply>);
 
 }  // namespace signal

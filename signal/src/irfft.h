@@ -37,13 +37,13 @@ size_t IrfftInt16GetNeededMemory(int32_t fft_length);
 // `state` points to an opaque state of size `state_size`, which
 //  must be greater or equal to the value returned by
 //  IrfftGetNeededMemory(fft_length). Fails if it isn't.
-void *IrfftInt16Init(int32_t fft_length, void *state, size_t state_size);
+void* IrfftInt16Init(int32_t fft_length, void* state, size_t state_size);
 
 // Applies IRFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see IRfftInit)
 // * `output` must be of size output
-void IrfftInt16Apply(void *state, const Complex<int16_t> *input,
-                     int16_t *output);
+void IrfftInt16Apply(void* state, const Complex<int16_t>* input,
+                     int16_t* output);
 
 // 32-bit Integer input/output
 
@@ -54,13 +54,13 @@ size_t IrfftInt32GetNeededMemory(int32_t fft_length);
 // `state` points to an opaque state of size `state_size`, which
 //  must be greater or equal to the value returned by
 //  IrfftGetNeededMemory(fft_length). Fails if it isn't.
-void *IrfftInt32Init(int32_t fft_length, void *state, size_t state_size);
+void* IrfftInt32Init(int32_t fft_length, void* state, size_t state_size);
 
 // Applies IRFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see IRfftInit)
 // * `output` must be of size output
-void IrfftInt32Apply(void *state, const Complex<int32_t> *input,
-                     int32_t *output);
+void IrfftInt32Apply(void* state, const Complex<int32_t>* input,
+                     int32_t* output);
 
 // Floating point input/output
 
@@ -71,12 +71,12 @@ size_t IrfftFloatGetNeededMemory(int32_t fft_length);
 // `state` points to an opaque state of size `state_size`, which
 //  must be greater or equal to the value returned by
 //  IrfftGetNeededMemory(fft_length). Fails if it isn't.
-void *IrfftFloatInit(int32_t fft_length, void *state, size_t state_size);
+void* IrfftFloatInit(int32_t fft_length, void* state, size_t state_size);
 
 // Applies IRFFT to `input` and writes the result to `output`
 // * `input` must be of size `fft_length` elements (see IRfftInit)
 // * `output` must be of size output
-void IrfftFloatApply(void *state, const Complex<float> *input, float *output);
+void IrfftFloatApply(void* state, const Complex<float>* input, float* output);
 
 }  // namespace tflm_signal
 }  // namespace tflite

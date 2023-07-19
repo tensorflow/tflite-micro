@@ -21,9 +21,9 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 namespace {
@@ -132,16 +132,16 @@ void* InitAll(TfLiteContext* context, const char* buffer, size_t length) {
 
   switch (tensor_type) {
     case TensorType_INT16: {
-      return Init<int16_t, tflm_signal::IrfftInt16GetNeededMemory, tflm_signal::IrfftInt16Init>(
-          context, buffer, length);
+      return Init<int16_t, tflm_signal::IrfftInt16GetNeededMemory,
+                  tflm_signal::IrfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
-      return Init<int32_t, tflm_signal::IrfftInt32GetNeededMemory, tflm_signal::IrfftInt32Init>(
-          context, buffer, length);
+      return Init<int32_t, tflm_signal::IrfftInt32GetNeededMemory,
+                  tflm_signal::IrfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
-      return Init<float, tflm_signal::IrfftFloatGetNeededMemory, tflm_signal::IrfftFloatInit>(
-          context, buffer, length);
+      return Init<float, tflm_signal::IrfftFloatGetNeededMemory,
+                  tflm_signal::IrfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;

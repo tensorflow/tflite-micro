@@ -35,8 +35,8 @@ size_t IrfftFloatGetNeededMemory(int32_t fft_length) {
   return sizeof(IrfftFloatState) + cfg_size;
 }
 
-void *IrfftFloatInit(int32_t fft_length, void *state, size_t state_size) {
-  IrfftFloatState *irfft_float_state = (IrfftFloatState *)state;
+void* IrfftFloatInit(int32_t fft_length, void* state, size_t state_size) {
+  IrfftFloatState* irfft_float_state = (IrfftFloatState*)state;
   irfft_float_state->cfg =
       (kiss_fft_float::kiss_fftr_cfg)(irfft_float_state + 1);
   irfft_float_state->fft_length = fft_length;
@@ -45,12 +45,12 @@ void *IrfftFloatInit(int32_t fft_length, void *state, size_t state_size) {
                                          &cfg_size);
 }
 
-void IrfftFloatApply(void *state, const Complex<float> *input, float *output) {
-  IrfftFloatState *irfft_float_state = (IrfftFloatState *)state;
+void IrfftFloatApply(void* state, const Complex<float>* input, float* output) {
+  IrfftFloatState* irfft_float_state = (IrfftFloatState*)state;
   kiss_fft_float::kiss_fftri(
       static_cast<kiss_fft_float::kiss_fftr_cfg>(irfft_float_state->cfg),
-      reinterpret_cast<const kiss_fft_float::kiss_fft_cpx *>(input),
-      reinterpret_cast<kiss_fft_scalar *>(output));
+      reinterpret_cast<const kiss_fft_float::kiss_fft_cpx*>(input),
+      reinterpret_cast<kiss_fft_scalar*>(output));
   // KissFFT scales the IRFFT output by the FFT length.
   // KissFFT's nfft is the complex FFT length, which is half the real FFT's
   // length. Compensate.
