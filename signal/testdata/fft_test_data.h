@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,6 +30,15 @@ extern const int32_t kRfftInt32Length512Golden[];
 
 extern const float kRfftFloatLength512Input[];
 extern const float kRfftFloatLength512Golden[];
+
+extern const int16_t kIrfftInt16Length512Input[];
+extern const int16_t kIrfftInt16Length512Golden[];
+
+extern const int32_t kIrfftInt32Length512Input[];
+extern const int32_t kIrfftInt32Length512Golden[];
+
+extern const float kIrfftFloatLength512Input[];
+extern const float kIrfftFloatLength512Golden[];
 
 extern const int16_t kFftAutoScaleLength512Input[];
 extern const int16_t kFftAutoScaleLength512Golden[];

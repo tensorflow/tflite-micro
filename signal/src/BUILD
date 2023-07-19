@@ -19,6 +19,20 @@ cc_library(
 )
 
 cc_library(
+    name = "irfft",
+    srcs = [
+        "irfft_float.cc",
+        "irfft_int16.cc",
+        "irfft_int32.cc",
+    ],
+    hdrs = ["irfft.h"],
+    deps = [
+        ":complex",
+        "//signal/src/kiss_fft_wrappers",
+    ],
+)
+
+cc_library(
     name = "max_abs",
     srcs = ["max_abs.cc"],
     hdrs = ["max_abs.h"],

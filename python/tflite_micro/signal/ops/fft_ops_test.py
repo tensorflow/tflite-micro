@@ -251,6 +251,58 @@ class RfftOpTest(tf.test.TestCase):
       with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
         self.evaluate(fft_ops.rfft(fft_input, 127))
 
+  def testIrfftTest(self):
+    for dtype in [np.int16, np.int32, np.float32]:
+      fft_length = fft_ops._MIN_FFT_LENGTH
+      while fft_length <= fft_ops._MAX_FFT_LENGTH:
+        if dtype == np.float32:
+          # Random input in the range [-1, 1)
+          fft_input = np.random.random(fft_length).astype(dtype) * 2 - 1
+        else:
+          fft_input = np.random.randint(
+              np.iinfo(np.int16).min,
+              np.iinfo(np.int16).max + 1, fft_length).astype(dtype)
+        fft_output = self.evaluate(fft_ops.rfft(fft_input, fft_length))
+        self.assertEqual(fft_output.shape[0], (fft_length / 2 + 1) * 2)
+        ifft_output = self.evaluate(fft_ops.irfft(fft_output, fft_length))
+        self.assertEqual(ifft_output.shape[0], fft_length)
+        # Output of integer RFFT and IRFFT is scaled by 1/fft_length
+        if dtype == np.int16:
+          self.assertArrayNear(fft_input,
+                               ifft_output.astype(np.int32) * fft_length, 6500)
+        elif dtype == np.int32:
+          self.assertArrayNear(fft_input,
+                               ifft_output.astype(np.int32) * fft_length, 7875)
+        else:
+          self.assertArrayNear(fft_input, ifft_output, 5e-7)
+        fft_length = 2 * fft_length
+
+  def testIrfftLargeOuterDimension(self):
+    for dtype in [np.int16, np.int32, np.float32]:
+      fft_length = fft_ops._MIN_FFT_LENGTH
+      while fft_length <= fft_ops._MAX_FFT_LENGTH:
+        if dtype == np.float32:
+          # Random input in the range [-1, 1)
+          fft_input = np.random.random([2, 5, fft_length]).astype(dtype) * 2 - 1
+        else:
+          fft_input = np.random.randint(
+              np.iinfo(np.int16).min,
+              np.iinfo(np.int16).max + 1, [2, 5, fft_length]).astype(dtype)
+        fft_output = self.evaluate(fft_ops.rfft(fft_input, fft_length))
+        self.assertEqual(fft_output.shape[-1], (fft_length / 2 + 1) * 2)
+        ifft_output = self.evaluate(fft_ops.irfft(fft_output, fft_length))
+        self.assertEqual(ifft_output.shape[-1], fft_length)
+        # Output of integer RFFT and IRFFT is scaled by 1/fft_length
+        if dtype == np.int16:
+          self.assertAllClose(
+              fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875)
+        elif dtype == np.int32:
+          self.assertAllClose(
+              fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875)
+        else:
+          self.assertAllClose(fft_input, ifft_output, rtol=5e-7, atol=5e-7)
+        fft_length = 2 * fft_length
+
   def testAutoScale(self):
     self.SingleFftAutoScaleTest('testdata/fft_auto_scale_test1.txt')
 

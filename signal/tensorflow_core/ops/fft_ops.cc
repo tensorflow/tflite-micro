@@ -33,6 +33,16 @@ Status RfftShape(InferenceContext* c) {
   return OkStatus();
 }
 
+Status IrfftShape(InferenceContext* c) {
+  ShapeHandle out;
+  int fft_length;
+  TF_RETURN_IF_ERROR(c->GetAttr<int>("fft_length", &fft_length));
+  TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
+  TF_RETURN_IF_ERROR(c->ReplaceDim(out, -1, c->MakeDim(fft_length), &out));
+  c->set_output(0, out);
+  return OkStatus();
+}
+
 // TODO(b/286250473): change back name after name clash resolved
 REGISTER_OP("SignalRfft")
     .Attr("T: {float, int16, int32}")
@@ -60,6 +70,31 @@ output: A tensor containing ((fft_length / 2) + 1) complex spectral
 
 fft_length: The length of the FFT operation. An input signal that's shorter
             will be zero padded to fft_length.
+)doc");
+
+// TODO(b/286250473): change back name after name clash resolved
+REGISTER_OP("SignalIrfft")
+    .Attr("T: {float, int16, int32}")
+    .Attr("fft_length: int >= 2")
+    .Input("input: T")
+    .Output("output: T")
+    .SetShapeFn(IrfftShape)
+    .Doc(R"doc(
+Computes the inverse 1-dimensional discrete Fourier transform of a real-valued
+signal over the inner-most dimension of input.
+
+The inner-most dimension of input is assumed to be the result of RFFT:
+the fft_length / 2 + 1 unique components of the DFT of a real-valued signal.
+fft_length must be provided.
+
+input: A tensor containing ((fft_length / 2) + 1) complex spectral
+       components along its innermost dimension.
+       Since there's no TF integer complex type, the array is represented using
+       ((fft_length / 2) + 1) * 2 real elements.
+output: A tensor containing fft_length time domain elements along its innermost
+        dimension.
+
+fft_length: The length of the IFFT operation.
 )doc");
 
 // TODO(b/286250473): change back name after name clash resolved

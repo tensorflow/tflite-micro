@@ -64,6 +64,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddGreaterEqual();
   AddHardSwish();
   AddIf();
+  AddIrfft();
   AddL2Normalization();
   AddL2Pool2D();
   AddLeakyRelu();
