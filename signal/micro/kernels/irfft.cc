@@ -61,7 +61,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
     return nullptr;
   }
 
-  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer), length);
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
   params->fft_length = fbw.ElementAsInt32(kFftLengthIndex);
   params->fft_type = typeToTfLiteType<T>();
 
