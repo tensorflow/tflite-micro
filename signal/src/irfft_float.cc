@@ -36,9 +36,9 @@ size_t IrfftFloatGetNeededMemory(int32_t fft_length) {
 }
 
 void* IrfftFloatInit(int32_t fft_length, void* state, size_t state_size) {
-  IrfftFloatState* irfft_float_state = (IrfftFloatState*)state;
+  IrfftFloatState* irfft_float_state = static_cast<IrfftFloatState*>(state);
   irfft_float_state->cfg =
-      (kiss_fft_float::kiss_fftr_cfg)(irfft_float_state + 1);
+      reinterpret_cast<kiss_fft_float::kiss_fftr_cfg>(irfft_float_state + 1);
   irfft_float_state->fft_length = fft_length;
   size_t cfg_size = state_size - sizeof(IrfftFloatState);
   return kiss_fft_float::kiss_fftr_alloc(fft_length, 1, irfft_float_state->cfg,
@@ -46,7 +46,7 @@ void* IrfftFloatInit(int32_t fft_length, void* state, size_t state_size) {
 }
 
 void IrfftFloatApply(void* state, const Complex<float>* input, float* output) {
-  IrfftFloatState* irfft_float_state = (IrfftFloatState*)state;
+  IrfftFloatState* irfft_float_state = static_cast<IrfftFloatState*>(state);
   kiss_fft_float::kiss_fftri(
       static_cast<kiss_fft_float::kiss_fftr_cfg>(irfft_float_state->cfg),
       reinterpret_cast<const kiss_fft_float::kiss_fft_cpx*>(input),

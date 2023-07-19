@@ -53,19 +53,26 @@ template <typename T, size_t (*get_needed_memory_func)(int32_t),
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
-
   auto* params = static_cast<TfLiteAudioFrontendIrfftParams*>(
       context->AllocatePersistentBuffer(
           context, sizeof(TfLiteAudioFrontendIrfftParams)));
 
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  if (params == nullptr) {
+    return nullptr;
+  }
+
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer), length);
   params->fft_length = fbw.ElementAsInt32(kFftLengthIndex);
   params->fft_type = typeToTfLiteType<T>();
 
   size_t state_size = (*get_needed_memory_func)(params->fft_length);
   params->state = reinterpret_cast<int8_t*>(
       context->AllocatePersistentBuffer(context, state_size * sizeof(int8_t)));
+
+  if (params->state == nullptr) {
+    return nullptr;
+  }
+
   (*init_func)(params->fft_length, params->state, state_size);
   return params;
 }
