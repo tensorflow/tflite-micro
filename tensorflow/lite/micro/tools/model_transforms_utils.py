@@ -168,7 +168,7 @@ def _zero_bias_buffer(model, buffer_idx, zero_point):
   if buffer.data is None:
     buffer.data = []
     return
-  if buffer.data == []:
+  if len(buffer.data) == 0:
     return
 
   # For now this assumes that zero_point is int8 and hence all the buffer

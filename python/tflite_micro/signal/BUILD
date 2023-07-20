@@ -15,6 +15,7 @@ cc_library(
     name = "ops_lib",
     visibility = [":signal_friends"],
     deps = [
+        ":delay_op_cc",
         ":fft_ops_cc",
         ":window_op_cc",
     ],
@@ -29,8 +30,32 @@ py_library(
     srcs_version = "PY3",
     visibility = ["//python/tflite_micro/signal/utils:__subpackages__"],
     deps = [
+        ":delay_op",
         ":fft_ops",
         ":window_op",
+    ],
+)
+
+py_tflm_signal_library(
+    name = "delay_op",
+    srcs = ["ops/delay_op.py"],
+    cc_op_defs = ["//signal/tensorflow_core/ops:delay_op"],
+    cc_op_kernels = [
+        "//signal/tensorflow_core/kernels:delay_kernel",
+    ],
+)
+
+py_test(
+    name = "delay_op_test",
+    size = "small",
+    srcs = ["ops/delay_op_test.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":delay_op",
+        "//python/tflite_micro/signal/utils:util",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
