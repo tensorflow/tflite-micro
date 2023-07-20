@@ -114,6 +114,31 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       }
       break;
     }
+    case kTfLiteInt16: {
+      switch (filter->type) {
+        case kTfLiteInt8: {
+          reference_integer_ops::DepthwiseConvPerChannel(
+              DepthwiseConvParamsQuantized(params, op_data.reference_op_data),
+              op_data.reference_op_data.per_channel_output_multiplier,
+              op_data.reference_op_data.per_channel_output_shift,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int16_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(&filter_int8),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int64_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+        default:
+          MicroPrintf("Filter type %s (%d) for input type %s not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type,
+                      TfLiteTypeGetName(input->type));
+          return kTfLiteError;
+      }
+      break;
+    }
     default:
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                   input->type);
