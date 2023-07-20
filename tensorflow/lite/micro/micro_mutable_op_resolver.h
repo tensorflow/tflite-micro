@@ -343,6 +343,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_IF, tflite::Register_IF(), ParseIf);
   }
 
+  TfLiteStatus AddIrfft(const TFLMRegistration* registration =
+                            tflite::tflm_signal::Register_IRFFT()) {
+    // TODO(b/286250473): change back name and remove namespace
+    return AddCustom("SignalIrfft", registration);
+  }
+
   TfLiteStatus AddL2Normalization() {
     return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
                       Register_L2_NORMALIZATION(), ParseL2Normalization);

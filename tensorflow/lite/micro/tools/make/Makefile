@@ -320,6 +320,7 @@ $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
@@ -331,6 +332,9 @@ $(TENSORFLOW_ROOT)signal/src/filter_bank.cc \
 $(TENSORFLOW_ROOT)signal/src/filter_bank_log.cc \
 $(TENSORFLOW_ROOT)signal/src/filter_bank_square_root.cc \
 $(TENSORFLOW_ROOT)signal/src/filter_bank_spectral_subtraction.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_float.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_int16.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_int32.cc \
 $(TENSORFLOW_ROOT)signal/src/log.cc \
 $(TENSORFLOW_ROOT)signal/src/max_abs.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_32.cc \

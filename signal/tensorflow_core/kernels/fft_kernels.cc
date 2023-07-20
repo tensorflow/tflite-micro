@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/fft_auto_scale.h"
+#include "signal/src/irfft.h"
 #include "signal/src/rfft.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
@@ -82,6 +83,58 @@ class RfftOp : public tensorflow::OpKernel {
   Tensor state_tensor_;
 };
 
+// get_needed_memory_func(), init_func(), apply_func()
+// are type specific implementations of the IRFFT functions.
+// See irfft.h included above for documentation
+template <typename T, size_t (*get_needed_memory_func)(int32_t),
+          void* (*init_func)(int32_t, void*, size_t),
+          void (*apply_func)(void*, const Complex<T>* input, T*)>
+class IrfftOp : public tensorflow::OpKernel {
+ public:
+  explicit IrfftOp(tensorflow::OpKernelConstruction* context)
+      : tensorflow::OpKernel(context) {
+    OP_REQUIRES_OK(context, context->GetAttr("fft_length", &fft_length_));
+    // Subband array size is the number of subbands * 2 because each coefficient
+    // is complex.
+    subband_array_size_ = ((fft_length_ / 2) + 1) * 2;
+
+    size_t state_size = (*get_needed_memory_func)(fft_length_);
+    OP_REQUIRES_OK(context, context->allocate_temp(
+                                DT_INT8, TensorShape({(int32_t)state_size}),
+                                &state_handle_));
+    state_ = state_handle_.flat<int8_t>().data();
+    (*init_func)(fft_length_, state_, state_size);
+  }
+
+  void Compute(tensorflow::OpKernelContext* context) override {
+    const tensorflow::Tensor& input_tensor = context->input(0);
+    const T* input = input_tensor.flat<T>().data();
+
+    TensorShape output_shape = input_tensor.shape();
+    output_shape.set_dim(output_shape.dims() - 1, fft_length_);
+
+    // Create an output tensor
+    tensorflow::Tensor* output_tensor = nullptr;
+    OP_REQUIRES_OK(context,
+                   context->allocate_output(0, output_shape, &output_tensor));
+    T* output = output_tensor->flat<T>().data();
+
+    int outer_dims = input_tensor.flat_inner_dims<T, 2>().dimensions().at(0);
+    for (int i = 0; i < outer_dims; i++) {
+      (*apply_func)(
+          state_,
+          reinterpret_cast<const Complex<T>*>(&input[i * subband_array_size_]),
+          &output[i * fft_length_]);
+    }
+  }
+
+ private:
+  int fft_length_;
+  int subband_array_size_;
+  int8_t* state_;
+  Tensor state_handle_;
+};
+
 class FftAutoScaleOp : public tensorflow::OpKernel {
  public:
   explicit FftAutoScaleOp(tensorflow::OpKernelConstruction* context)
@@ -124,6 +177,28 @@ REGISTER_KERNEL_BUILDER(
         .TypeConstraint<int32>("T"),
     RfftOp<int32_t, DT_INT32, ::tflm_signal::RfftInt32GetNeededMemory,
            ::tflm_signal::RfftInt32Init, ::tflm_signal::RfftInt32Apply>);
+
+REGISTER_KERNEL_BUILDER(
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<float>("T"),
+    IrfftOp<float, tflite::tflm_signal::IrfftFloatGetNeededMemory,
+            tflite::tflm_signal::IrfftFloatInit,
+            tflite::tflm_signal::IrfftFloatApply>);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int16>("T"),
+    IrfftOp<int16_t, tflite::tflm_signal::IrfftInt16GetNeededMemory,
+            tflite::tflm_signal::IrfftInt16Init,
+            tflite::tflm_signal::IrfftInt16Apply>);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalIrfft")
+        .Device(tensorflow::DEVICE_CPU)
+        .TypeConstraint<int32>("T"),
+    IrfftOp<int32_t, tflite::tflm_signal::IrfftInt32GetNeededMemory,
+            tflite::tflm_signal::IrfftInt32Init,
+            tflite::tflm_signal::IrfftInt32Apply>);
 
 }  // namespace signal
 }  // namespace tensorflow
