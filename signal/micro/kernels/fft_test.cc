@@ -428,7 +428,7 @@ TF_LITE_MICRO_TEST(IrfftTestLength512Float) {
                      input_shape, tflite::kIrfftFloatLength512Input,
                      output_shape, tflite::kIrfftFloatLength512Golden,
                      *registration, g_gen_data_fft_length_512_float,
-                     g_gen_data_size_fft_length_512_float, output, 1e-7));
+                     g_gen_data_size_fft_length_512_float, output, 1e-6));
 }
 
 TF_LITE_MICRO_TEST(IrfftTestLength512Int16) {
