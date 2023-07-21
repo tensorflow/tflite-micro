@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/energy.h"
 #include "signal/src/complex.h"
+#include "signal/src/energy.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
@@ -38,8 +38,9 @@ class EnergyOp : public tensorflow::OpKernel {
                    context->allocate_output(0, {output_size}, &output_tensor));
     uint32* output = output_tensor->flat<uint32>().data();
 
-    tflite::tflm_signal::SpectrumToEnergy(reinterpret_cast<const Complex<int16_t>*>(input),
-                     start_index_, end_index_, output);
+    tflite::tflm_signal::SpectrumToEnergy(
+        reinterpret_cast<const Complex<int16_t>*>(input), start_index_,
+        end_index_, output);
   }
 
  private:

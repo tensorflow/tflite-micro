@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/overlap_add.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {
@@ -63,7 +63,7 @@ class OverlapAddOp : public tensorflow::OpKernel {
         int input_index = (i * n_frames_ + frame) * frame_size_;
         int output_index = (i * n_frames_ + frame) * frame_step_;
         tflm_signal::OverlapAdd(&input[input_index], buffer, frame_size_,
-                   &output[output_index], frame_step_);
+                                &output[output_index], frame_step_);
       }
     }
   }

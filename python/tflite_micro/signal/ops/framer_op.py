@@ -19,6 +19,7 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 gen_framer_op = util.load_custom_op('framer_op.so')
 
+
 def _framer_wrapper(framer_fn, default_name):
   """Wrapper around gen_framer_op.framer*."""
 
@@ -36,12 +37,11 @@ def _framer_wrapper(framer_fn, default_name):
         raise ValueError(
             "Innermost input dimenion size must be a multiple of %d elements" %
             frame_step)
-      return framer_fn(
-          input_tensor,
-          frame_size=frame_size,
-          frame_step=frame_step,
-          prefill=prefill,
-          name=name)
+      return framer_fn(input_tensor,
+                       frame_size=frame_size,
+                       frame_step=frame_step,
+                       prefill=prefill,
+                       name=name)
 
   return _framer
 

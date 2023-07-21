@@ -19,6 +19,7 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 gen_energy_op = util.load_custom_op('energy_op.so')
 
+
 def _energy_wrapper(energy_fn, default_name):
   """Wrapper around gen_energy_op.energy*."""
 
@@ -30,8 +31,10 @@ def _energy_wrapper(energy_fn, default_name):
         raise ValueError("Input tensor must have a rank of 1")
       if end_index == -1:
         end_index = dim_list[0] - 1
-      return energy_fn(
-          input_tensor, start_index=start_index, end_index=end_index, name=name)
+      return energy_fn(input_tensor,
+                       start_index=start_index,
+                       end_index=end_index,
+                       name=name)
 
   return _energy
 

@@ -76,13 +76,12 @@ class FramerOpTest(tf.test.TestCase):
     block_num = 10
     block_size = frame_step * n_frames
 
-    test_input = np.random.randint(
-        np.iinfo('int16').min,
-        np.iinfo('int16').max,
-        block_size * block_num,
-        dtype=np.int16)
-    expected_output = np.concatenate(
-        (np.zeros(frame_size - frame_step, dtype=np.int16), test_input))
+    test_input = np.random.randint(np.iinfo('int16').min,
+                                   np.iinfo('int16').max,
+                                   block_size * block_num,
+                                   dtype=np.int16)
+    expected_output = np.concatenate((np.zeros(frame_size - frame_step,
+                                               dtype=np.int16), test_input))
     func = tf.function(framer_op.framer)
     concrete_function = func.get_concrete_function(
         tf.TensorSpec(block_size, dtype=tf.int16), frame_size, frame_step,
@@ -136,6 +135,7 @@ class FramerOpTest(tf.test.TestCase):
     framer_input = np.zeros(122, dtype=np.int16)
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
       self.evaluate(framer_op.framer(framer_input, 321, 123))
+
 
 if __name__ == '__main__':
   np.random.seed(0)

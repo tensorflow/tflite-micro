@@ -15,8 +15,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/circular_buffer.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {
@@ -51,7 +51,8 @@ class FramerOp : public tensorflow::OpKernel {
       // capacity = 480 vs. step_size + frame_size = 560
       size_t capacity =
           (frame_size_ + frame_step_ - 1) / frame_step_ * frame_step_;
-      size_t state_size = tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
+      size_t state_size =
+          tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
       for (int i = 0; i < outer_dims_; i++) {
         OP_REQUIRES_OK(
             context,
@@ -59,10 +60,11 @@ class FramerOp : public tensorflow::OpKernel {
                 DT_INT8, TensorShape({static_cast<int32_t>(state_size)}),
                 &state_tensors_[i]));
         int8_t* state_ = state_tensors_[i].flat<int8_t>().data();
-        circular_buffers_[i] = tflite::tflm_signal::CircularBufferInit(capacity, state_, state_size);
+        circular_buffers_[i] = tflite::tflm_signal::CircularBufferInit(
+            capacity, state_, state_size);
         if (prefill_) {
-          tflite::tflm_signal::CircularBufferWriteZeros(circular_buffers_[i],
-                                   frame_size_ - frame_step_);
+          tflite::tflm_signal::CircularBufferWriteZeros(
+              circular_buffers_[i], frame_size_ - frame_step_);
         }
       }
 
@@ -86,14 +88,17 @@ class FramerOp : public tensorflow::OpKernel {
       for (int frame = 0; frame < n_frames_; frame++) {
         int input_index = (i * n_frames_ + frame) * frame_step_;
         int output_index = (i * n_frames_ + frame) * frame_size_;
-        tflite::tflm_signal::CircularBufferWrite(circular_buffers_[i],
-                            &(input_tensor.flat<int16_t>().data())[input_index],
-                            frame_step_);
-        if (tflite::tflm_signal::CircularBufferAvailable(circular_buffers_[i]) >= (unsigned)frame_size_) {
-          tflite::tflm_signal::CircularBufferGet(circular_buffers_[i], frame_size_,
-                            &(reinterpret_cast<int16_t*>(
-                                output_tensor->data()))[output_index]);
-          tflite::tflm_signal::CircularBufferDiscard(circular_buffers_[i], frame_step_);
+        tflite::tflm_signal::CircularBufferWrite(
+            circular_buffers_[i],
+            &(input_tensor.flat<int16_t>().data())[input_index], frame_step_);
+        if (tflite::tflm_signal::CircularBufferAvailable(
+                circular_buffers_[i]) >= (unsigned)frame_size_) {
+          tflite::tflm_signal::CircularBufferGet(
+              circular_buffers_[i], frame_size_,
+              &(reinterpret_cast<int16_t*>(
+                  output_tensor->data()))[output_index]);
+          tflite::tflm_signal::CircularBufferDiscard(circular_buffers_[i],
+                                                     frame_step_);
         } else {
           output_valid = false;
         }

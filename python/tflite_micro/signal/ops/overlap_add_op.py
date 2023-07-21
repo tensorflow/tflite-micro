@@ -19,6 +19,7 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 gen_overlap_add_op = util.load_custom_op('overlap_add_op.so')
 
+
 def _overlap_add_wrapper(overlap_add_fn, default_name):
   """Wrapper around gen_overlap_add_op.overlap_add*."""
 
@@ -27,7 +28,8 @@ def _overlap_add_wrapper(overlap_add_fn, default_name):
       input_tensor = tf.convert_to_tensor(input_tensor)
       dim_list = input_tensor.shape.as_list()
       if frame_step > dim_list[-1]:
-        raise ValueError("Frame_step must not exceed innermost input dimension")
+        raise ValueError(
+            "Frame_step must not exceed innermost input dimension")
       return overlap_add_fn(input_tensor, frame_step=frame_step, name=name)
 
   return _overlap_add
