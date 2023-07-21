@@ -48,6 +48,16 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
+  // Use only the default depthwise convolution for int16 input.
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  if (input->type == kTfLiteInt16) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    return kTfLiteOk;
+  }
+  micro_context->DeallocateTempTfLiteTensor(input);
 
 #if defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
