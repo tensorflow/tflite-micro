@@ -53,6 +53,10 @@ PythonOpsResolver::PythonOpsResolver() {
   AddExpandDims();
   AddFftAutoScale();
   AddFill();
+  AddFilterBank();
+  AddFilterBankLog();
+  AddFilterBankSquareRoot();
+  AddFilterBankSpectralSubtraction();
   AddFloor();
   AddFloorDiv();
   AddFloorMod();

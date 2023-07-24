@@ -22,6 +22,22 @@ tflm_signal_kernel_library(
 )
 
 tflm_signal_kernel_library(
+    name = "filter_bank_ops",
+    srcs = ["filter_bank_ops.cc"],
+    deps = [
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
+    name = "stacker_op",
+    srcs = ["stacker_op.cc"],
+    deps = [
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
     name = "window_op",
     srcs = ["window_op.cc"],
     deps = [
