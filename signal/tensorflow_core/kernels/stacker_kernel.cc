@@ -34,40 +34,44 @@ class StackerOp : public tensorflow::OpKernel {
     step_size_ = num_channels_ * stacker_step_;
     stacker_has_first_frame_ = false;
 
-    size_t state_size = tflite::tflm_signal::CircularBufferGetNeededMemory(buffer_size_);
+    size_t state_size =
+        tflite::tflm_signal::CircularBufferGetNeededMemory(buffer_size_);
     OP_REQUIRES_OK(context,
                    context->allocate_temp(
                        DT_INT8, TensorShape({static_cast<int32_t>(state_size)}),
                        &state_tensor_));
     state_ = state_tensor_.flat<int8_t>().data();
-    circular_buffer = tflite::tflm_signal::CircularBufferInit(buffer_size_, state_, state_size);
+    circular_buffer = tflite::tflm_signal::CircularBufferInit(
+        buffer_size_, state_, state_size);
   }
 
   void Compute(tensorflow::OpKernelContext* context) override {
     const tensorflow::Tensor& input_tensor = context->input(0);
     const int16_t* input = input_tensor.flat<int16_t>().data();
 
-    tflite::tflm_signal::CircularBufferWrite(circular_buffer, input, num_channels_);
+    tflite::tflm_signal::CircularBufferWrite(circular_buffer, input,
+                                             num_channels_);
 
     // The first frame is replicated an extra left_context times to pad.
     if (stacker_has_first_frame_ == false) {
-      tflite::tflm_signal::CircularBufferExtend(circular_buffer,
-                           num_channels_, stacker_left_context_);
+      tflite::tflm_signal::CircularBufferExtend(circular_buffer, num_channels_,
+                                                stacker_left_context_);
       stacker_has_first_frame_ = true;
     }
 
     tensorflow::Tensor* output_tensor = nullptr;
     tensorflow::Tensor* output_valid_tensor = nullptr;
 
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0,
-                        {static_cast<int32_t>(buffer_size_)}, &output_tensor));
+    OP_REQUIRES_OK(
+        context, context->allocate_output(
+                     0, {static_cast<int32_t>(buffer_size_)}, &output_tensor));
     OP_REQUIRES_OK(context,
                    context->allocate_output(1, {}, &output_valid_tensor));
 
-    if (tflite::tflm_signal::CircularBufferAvailable(circular_buffer) >= buffer_size_) {
-      tflite::tflm_signal::CircularBufferGet(circular_buffer, buffer_size_,
-                        output_tensor->flat<int16_t>().data());
+    if (tflite::tflm_signal::CircularBufferAvailable(circular_buffer) >=
+        buffer_size_) {
+      tflite::tflm_signal::CircularBufferGet(
+          circular_buffer, buffer_size_, output_tensor->flat<int16_t>().data());
       tflite::tflm_signal::CircularBufferDiscard(circular_buffer, step_size_);
       *output_valid_tensor->flat<bool>().data() = true;
     } else {

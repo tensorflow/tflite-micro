@@ -199,14 +199,11 @@ def calc_start_end_indices(fft_length, sample_rate, num_channels,
   if fft_length % 2 != 0:
     raise ValueError("FFT length must be an even number")
   spectrum_size = fft_length / 2 + 1
-  (start_index, end_index, _, _, _, _, _) = _init_filter_bank_weights(
-      spectrum_size,
-      sample_rate,
-      FILTER_BANK_ALIGNMENT,
-      FILTER_BANK_CHANNEL_BLOCK_SIZE,
-      num_channels,
-      lower_band_limit,
-      upper_band_limit)
+  (start_index, end_index, _, _, _, _,
+   _) = _init_filter_bank_weights(spectrum_size, sample_rate,
+                                  FILTER_BANK_ALIGNMENT,
+                                  FILTER_BANK_CHANNEL_BLOCK_SIZE, num_channels,
+                                  lower_band_limit, upper_band_limit)
   return start_index, end_index
 
 
@@ -228,12 +225,8 @@ def _filter_bank_wrapper(filter_bank_fn, default_name):
 
       (_, _, weights, unweights, channel_frequency_starts,
        channel_weight_starts, channel_widths) = _init_filter_bank_weights(
-           spectrum_size,
-           sample_rate,
-           FILTER_BANK_ALIGNMENT,
-           FILTER_BANK_CHANNEL_BLOCK_SIZE,
-           num_channels,
-           lower_band_limit,
+           spectrum_size, sample_rate, FILTER_BANK_ALIGNMENT,
+           FILTER_BANK_CHANNEL_BLOCK_SIZE, num_channels, lower_band_limit,
            upper_band_limit)
       weights_tensor = tf.convert_to_tensor(weights, dtype=tf.int16)
       unweights_tensor = tf.convert_to_tensor(unweights, dtype=tf.int16)
@@ -241,18 +234,17 @@ def _filter_bank_wrapper(filter_bank_fn, default_name):
           channel_frequency_starts, dtype=tf.int16)
       channel_weight_starts_tensor = tf.convert_to_tensor(
           channel_weight_starts, dtype=tf.int16)
-      channel_widths_tensor = tf.convert_to_tensor(
-          channel_widths, dtype=tf.int16)
+      channel_widths_tensor = tf.convert_to_tensor(channel_widths,
+                                                   dtype=tf.int16)
 
-      return filter_bank_fn(
-          input_tensor,
-          weights_tensor,
-          unweights_tensor,
-          channel_frequency_starts_tensor,
-          channel_weight_starts_tensor,
-          channel_widths_tensor,
-          num_channels=num_channels,
-          name=name)
+      return filter_bank_fn(input_tensor,
+                            weights_tensor,
+                            unweights_tensor,
+                            channel_frequency_starts_tensor,
+                            channel_weight_starts_tensor,
+                            channel_widths_tensor,
+                            num_channels=num_channels,
+                            name=name)
 
   return _filter_bank
 
@@ -267,8 +259,9 @@ def _filter_bank_square_root_wrapper(filter_bank_square_root_fn, default_name):
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
       scale_bits_tensor = tf.convert_to_tensor(scale_bits, dtype=tf.int32)
-      return filter_bank_square_root_fn(
-          input_tensor, scale_bits_tensor, name=name)
+      return filter_bank_square_root_fn(input_tensor,
+                                        scale_bits_tensor,
+                                        name=name)
 
   return _filter_bank_square_root
 
@@ -333,11 +326,10 @@ def _filter_bank_log_wrapper(filter_bank_log_fn, default_name):
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
 
-      return filter_bank_log_fn(
-          input_tensor,
-          output_scale=output_scale,
-          input_correction_bits=input_correction_bits,
-          name=name)
+      return filter_bank_log_fn(input_tensor,
+                                output_scale=output_scale,
+                                input_correction_bits=input_correction_bits,
+                                name=name)
 
   return _filter_bank_log
 
@@ -345,12 +337,13 @@ def _filter_bank_log_wrapper(filter_bank_log_fn, default_name):
 filter_bank = _filter_bank_wrapper(gen_filter_bank_ops.signal_filter_bank,
                                    "signal_filter_bank")
 filter_bank_square_root = _filter_bank_square_root_wrapper(
-    gen_filter_bank_ops.signal_filter_bank_square_root, "signal_filter_bank_square_root")
+    gen_filter_bank_ops.signal_filter_bank_square_root,
+    "signal_filter_bank_square_root")
 filter_bank_spectral_subtraction = _filter_bank_spectral_subtraction_wrapper(
     gen_filter_bank_ops.signal_filter_bank_spectral_subtraction,
     "signal_filter_bank_spectral_subtraction")
-filter_bank_log = _filter_bank_log_wrapper(gen_filter_bank_ops.signal_filter_bank_log,
-                                           "signal_filter_bank_log")
+filter_bank_log = _filter_bank_log_wrapper(
+    gen_filter_bank_ops.signal_filter_bank_log, "signal_filter_bank_log")
 
 tf.no_gradient("signal_filter_bank")
 tf.no_gradient("signal_filter_bank_square_root")

@@ -50,7 +50,8 @@ class StackerOpTest(tf.test.TestCase):
     # Read lines in triplets <input, expected output, expected valid>
     i = 1
     while i < len(lines):
-      input_array = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
+      input_array = np.array([int(j) for j in lines[i].split()],
+                             dtype=np.int16)
       output_array_exp = [int(j) for j in lines[i + 1].split()]
       output_valid_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
@@ -71,8 +72,7 @@ class StackerOpTest(tf.test.TestCase):
       i += 3
 
   def testStacker(self):
-    self.SingleStackerTest(
-        'testdata/stacker_test1.txt')
+    self.SingleStackerTest('testdata/stacker_test1.txt')
 
 
 if __name__ == '__main__':

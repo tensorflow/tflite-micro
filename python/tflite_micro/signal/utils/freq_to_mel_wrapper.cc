@@ -30,9 +30,7 @@ namespace tflite {
 // in small differences in the output of the Python and C log() functions.
 // A Py wrapper is used in order to establish bit exactness with "Speech Micro",
 // while recognizing the slight loss in precision.
-float FreqToMel(float freq) {
-  return 1127.0f * log1pf(freq/700.0f);
-}
+float FreqToMel(float freq) { return 1127.0f * log1pf(freq / 700.0f); }
 
 }  // namespace tflite
 

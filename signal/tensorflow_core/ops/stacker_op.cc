@@ -35,10 +35,10 @@ Status StackerShape(InferenceContext* c) {
   ShapeHandle out;
   shape_inference::DimensionHandle dim_in;
   TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithValue(c->Dim(c->input(0), 0), num_channels,
-                                  &dim_in));
-  TF_RETURN_IF_ERROR(c->ReplaceDim(out, 0,
-                              c->MakeDim(num_channels * output_frames), &out));
+  TF_RETURN_IF_ERROR(
+      c->WithValue(c->Dim(c->input(0), 0), num_channels, &dim_in));
+  TF_RETURN_IF_ERROR(
+      c->ReplaceDim(out, 0, c->MakeDim(num_channels * output_frames), &out));
   c->set_output(0, out);
   c->set_output(1, c->Scalar());
   return OkStatus();

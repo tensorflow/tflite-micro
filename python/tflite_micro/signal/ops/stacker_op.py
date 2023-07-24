@@ -19,6 +19,7 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 gen_stacker_op = util.load_custom_op('stacker_op.so')
 
+
 def _stacker_wrapper(stacker_fn, default_name):
   """Wrapper around gen_stacker_op.stacker*."""
 
@@ -34,13 +35,12 @@ def _stacker_wrapper(stacker_fn, default_name):
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
 
-      return stacker_fn(
-          input_tensor,
-          num_channels=num_channels,
-          stacker_left_context=stacker_left_context,
-          stacker_right_context=stacker_right_context,
-          stacker_step=stacker_step,
-          name=name)
+      return stacker_fn(input_tensor,
+                        num_channels=num_channels,
+                        stacker_left_context=stacker_left_context,
+                        stacker_right_context=stacker_right_context,
+                        stacker_step=stacker_step,
+                        name=name)
 
   return _stacker
 

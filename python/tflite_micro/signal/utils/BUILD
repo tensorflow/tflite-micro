@@ -23,7 +23,7 @@ py_library(
     name = "freq_to_mel",
     data = [
         ":freq_to_mel_wrapper.so",
-    ]
+    ],
 )
 
 pybind_extension(

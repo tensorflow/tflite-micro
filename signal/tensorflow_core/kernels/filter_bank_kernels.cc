@@ -24,7 +24,7 @@ namespace signal {
 
 class FilterBankOp : public tensorflow::OpKernel {
  public:
-  explicit FilterBankOp(tensorflow::OpKernelConstruction *context)
+  explicit FilterBankOp(tensorflow::OpKernelConstruction* context)
       : tensorflow::OpKernel(context) {
     int32_t num_channels;
     OP_REQUIRES_OK(context, context->GetAttr("num_channels", &num_channels));
@@ -35,9 +35,9 @@ class FilterBankOp : public tensorflow::OpKernel {
     config_.num_channels = num_channels;
   }
 
-  void Compute(tensorflow::OpKernelContext *context) override {
-    const tensorflow::Tensor &input_tensor = context->input(0);
-    const uint32_t *input = input_tensor.flat<uint32_t>().data();
+  void Compute(tensorflow::OpKernelContext* context) override {
+    const tensorflow::Tensor& input_tensor = context->input(0);
+    const uint32_t* input = input_tensor.flat<uint32_t>().data();
 
     config_.weights = context->input(1).flat<int16_t>().data();
     config_.unweights = context->input(2).flat<int16_t>().data();
@@ -45,37 +45,39 @@ class FilterBankOp : public tensorflow::OpKernel {
     config_.channel_weight_starts = context->input(4).flat<int16_t>().data();
     config_.channel_widths = context->input(5).flat<int16_t>().data();
 
-    tensorflow::Tensor *output_tensor = nullptr;
+    tensorflow::Tensor* output_tensor = nullptr;
     OP_REQUIRES_OK(context, context->allocate_output(0, {config_.num_channels},
                                                      &output_tensor));
-    tflite::tflm_signal::FilterbankAccumulateChannels(&config_, input, work_area_);
+    tflite::tflm_signal::FilterbankAccumulateChannels(&config_, input,
+                                                      work_area_);
 
-    uint64_t *output = output_tensor->flat<uint64_t>().data();
+    uint64_t* output = output_tensor->flat<uint64_t>().data();
     // Discard channel 0, which is just scratch
     memcpy(output, work_area_ + 1, sizeof(*output) * config_.num_channels);
   }
 
  private:
   tflite::tflm_signal::FilterbankConfig config_;
-  uint64_t *work_area_;
+  uint64_t* work_area_;
   Tensor work_area_tensor_;
 };
 
 class FilterBankSquareRootOp : public tensorflow::OpKernel {
  public:
-  explicit FilterBankSquareRootOp(tensorflow::OpKernelConstruction *context)
+  explicit FilterBankSquareRootOp(tensorflow::OpKernelConstruction* context)
       : tensorflow::OpKernel(context) {}
 
-  void Compute(tensorflow::OpKernelContext *context) override {
-    const uint64_t *input = context->input(0).flat<uint64_t>().data();
+  void Compute(tensorflow::OpKernelContext* context) override {
+    const uint64_t* input = context->input(0).flat<uint64_t>().data();
     int32_t scale_bits = context->input(1).scalar<int32_t>()();
     int32_t num_channels = context->input(0).NumElements();
 
-    tensorflow::Tensor *output_tensor = nullptr;
+    tensorflow::Tensor* output_tensor = nullptr;
     OP_REQUIRES_OK(context,
                    context->allocate_output(0, {num_channels}, &output_tensor));
-    uint32_t *output = output_tensor->flat<uint32_t>().data();
-    tflite::tflm_signal::FilterbankSqrt(input, num_channels, scale_bits, output);
+    uint32_t* output = output_tensor->flat<uint32_t>().data();
+    tflite::tflm_signal::FilterbankSqrt(input, num_channels, scale_bits,
+                                        output);
   }
 
  private:
@@ -84,7 +86,7 @@ class FilterBankSquareRootOp : public tensorflow::OpKernel {
 class FilterBankSpectralSubtractionOp : public tensorflow::OpKernel {
  public:
   explicit FilterBankSpectralSubtractionOp(
-      tensorflow::OpKernelConstruction *context)
+      tensorflow::OpKernelConstruction* context)
       : tensorflow::OpKernel(context) {
     int attr_int;
     bool attr_bool;
@@ -112,22 +114,22 @@ class FilterBankSpectralSubtractionOp : public tensorflow::OpKernel {
     OP_REQUIRES_OK(context, context->allocate_temp(
                                 DT_UINT32, TensorShape({config_.num_channels}),
                                 &noise_estimate_tensor_));
-    noise_estimate_ =
-        (uint32_t *)noise_estimate_tensor_.flat<uint32_t>().data();
+    noise_estimate_ = (uint32_t*)noise_estimate_tensor_.flat<uint32_t>().data();
     memset(noise_estimate_, 0, sizeof(uint32_t) * config_.num_channels);
   }
 
-  void Compute(tensorflow::OpKernelContext *context) override {
-    tensorflow::Tensor *output_tensor = nullptr;
-    const uint32_t *input = context->input(0).flat<uint32_t>().data();
+  void Compute(tensorflow::OpKernelContext* context) override {
+    tensorflow::Tensor* output_tensor = nullptr;
+    const uint32_t* input = context->input(0).flat<uint32_t>().data();
     OP_REQUIRES_OK(context, context->allocate_output(0, {config_.num_channels},
                                                      &output_tensor));
-    uint32_t *output = output_tensor->flat<uint32_t>().data();
+    uint32_t* output = output_tensor->flat<uint32_t>().data();
     OP_REQUIRES_OK(context, context->allocate_output(1, {config_.num_channels},
                                                      &output_tensor));
-    uint32_t *noise_estimate = output_tensor->flat<uint32_t>().data();
+    uint32_t* noise_estimate = output_tensor->flat<uint32_t>().data();
 
-    tflite::tflm_signal::FilterbankSpectralSubtraction(&config_, input, output, noise_estimate_);
+    tflite::tflm_signal::FilterbankSpectralSubtraction(&config_, input, output,
+                                                       noise_estimate_);
     memcpy(noise_estimate, noise_estimate_,
            sizeof(*noise_estimate) * config_.num_channels);
   }
@@ -135,27 +137,27 @@ class FilterBankSpectralSubtractionOp : public tensorflow::OpKernel {
  private:
   Tensor noise_estimate_tensor_;
   tflite::tflm_signal::SpectralSubtractionConfig config_;
-  uint32_t *noise_estimate_;
+  uint32_t* noise_estimate_;
 };
 
 class FilterBankLogOp : public tensorflow::OpKernel {
  public:
-  explicit FilterBankLogOp(tensorflow::OpKernelConstruction *context)
+  explicit FilterBankLogOp(tensorflow::OpKernelConstruction* context)
       : tensorflow::OpKernel(context) {
     OP_REQUIRES_OK(context, context->GetAttr("output_scale", &output_scale_));
     OP_REQUIRES_OK(context, context->GetAttr("input_correction_bits",
                                              &input_correction_bits_));
   }
 
-  void Compute(tensorflow::OpKernelContext *context) override {
-    const uint32_t *input = context->input(0).flat<uint32_t>().data();
+  void Compute(tensorflow::OpKernelContext* context) override {
+    const uint32_t* input = context->input(0).flat<uint32_t>().data();
     int num_channels = context->input(0).NumElements();
-    tensorflow::Tensor *output_tensor = nullptr;
+    tensorflow::Tensor* output_tensor = nullptr;
     OP_REQUIRES_OK(context,
                    context->allocate_output(0, {num_channels}, &output_tensor));
-    int16_t *output = output_tensor->flat<int16_t>().data();
-    tflite::tflm_signal::FilterbankLog(input, num_channels, output_scale_, input_correction_bits_,
-                  output);
+    int16_t* output = output_tensor->flat<int16_t>().data();
+    tflite::tflm_signal::FilterbankLog(input, num_channels, output_scale_,
+                                       input_correction_bits_, output);
   }
 
  private:
@@ -172,8 +174,9 @@ REGISTER_KERNEL_BUILDER(
 REGISTER_KERNEL_BUILDER(
     Name("SignalFilterBankSpectralSubtraction").Device(tensorflow::DEVICE_CPU),
     FilterBankSpectralSubtractionOp);
-REGISTER_KERNEL_BUILDER(Name("SignalFilterBankLog").Device(tensorflow::DEVICE_CPU),
-                        FilterBankLogOp);
+REGISTER_KERNEL_BUILDER(
+    Name("SignalFilterBankLog").Device(tensorflow::DEVICE_CPU),
+    FilterBankLogOp);
 
 }  // namespace signal
 }  // namespace tensorflow
