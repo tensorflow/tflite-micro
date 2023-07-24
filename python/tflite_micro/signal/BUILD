@@ -16,8 +16,11 @@ cc_library(
     visibility = [":signal_friends"],
     deps = [
         ":delay_op_cc",
+        ":energy_op_cc",
         ":fft_ops_cc",
         ":filter_bank_ops_cc",
+        ":framer_op_cc",
+        ":overlap_add_op_cc",
         ":stacker_op_cc",
         ":window_op_cc",
     ],
@@ -33,8 +36,11 @@ py_library(
     visibility = ["//python/tflite_micro/signal/utils:__subpackages__"],
     deps = [
         ":delay_op",
+        ":energy_op",
         ":fft_ops",
         ":filter_bank_ops",
+        ":framer_op",
+        ":overlap_add_op",
         ":stacker_op",
         ":window_op",
     ],
@@ -57,6 +63,32 @@ py_test(
     srcs_version = "PY3",
     deps = [
         ":delay_op",
+        "//python/tflite_micro/signal/utils:util",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
+py_tflm_signal_library(
+    name = "energy_op",
+    srcs = ["ops/energy_op.py"],
+    cc_op_defs = ["//signal/tensorflow_core/ops:energy_op"],
+    cc_op_kernels = [
+        "//signal/tensorflow_core/kernels:energy_kernel",
+    ],
+)
+
+py_test(
+    name = "energy_op_test",
+    size = "small",
+    srcs = ["ops/energy_op_test.py"],
+    data = [
+        "//python/tflite_micro/signal/ops/testdata:energy_test1.txt",
+    ],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":energy_op",
         "//python/tflite_micro/signal/utils:util",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
@@ -118,6 +150,56 @@ py_test(
     deps = [
         ":filter_bank_ops",
         "//python/tflite_micro/signal/utils:util",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
+py_tflm_signal_library(
+    name = "framer_op",
+    srcs = ["ops/framer_op.py"],
+    cc_op_defs = ["//signal/tensorflow_core/ops:framer_op"],
+    cc_op_kernels = [
+        "//signal/tensorflow_core/kernels:framer_kernel",
+    ],
+)
+
+py_test(
+    name = "framer_op_test",
+    size = "small",
+    srcs = ["ops/framer_op_test.py"],
+    data = [
+        "//python/tflite_micro/signal/ops/testdata:framer_test1.txt",
+    ],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":framer_op",
+        "//python/tflite_micro/signal/utils:util",
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
+py_tflm_signal_library(
+    name = "overlap_add_op",
+    srcs = ["ops/overlap_add_op.py"],
+    cc_op_defs = ["//signal/tensorflow_core/ops:overlap_add_op"],
+    cc_op_kernels = [
+        "//signal/tensorflow_core/kernels:overlap_add_kernel",
+    ],
+)
+
+py_test(
+    name = "overlap_add_op_test",
+    size = "small",
+    srcs = ["ops/overlap_add_op_test.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":overlap_add_op",
+        "//python/tflite_micro/signal/utils:util",
+        "@absl_py//absl/testing:parameterized",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
     ],

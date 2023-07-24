@@ -7,6 +7,7 @@ package(
 )
 
 exports_files([
+    "energy_test1.txt",
     "fft_auto_scale_test1.txt",
     "filter_bank_accumulation_8k.txt",
     "filter_bank_accumulation_16k.txt",
@@ -14,6 +15,7 @@ exports_files([
     "filter_bank_test1.txt",
     "filter_bank_square_root_test1.txt",
     "filter_bank_spectral_subtraction_test1.txt",
+    "framer_test1.txt",
     "rfft_test1.txt",
     "stacker_test1.txt",
     "window_test1.txt",
