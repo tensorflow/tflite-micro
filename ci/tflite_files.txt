@@ -5,7 +5,6 @@ tensorflow/lite/builtin_ops.h
 tensorflow/lite/context_util.h
 tensorflow/lite/core/api/error_reporter.cc
 tensorflow/lite/core/api/flatbuffer_conversions.cc
-tensorflow/lite/core/api/op_resolver.cc
 tensorflow/lite/core/api/tensor_utils.cc
 tensorflow/lite/core/c/common.cc
 tensorflow/lite/kernels/internal/common.cc
@@ -19,7 +18,6 @@ tensorflow/lite/c/c_api_types.h
 tensorflow/lite/c/common.h
 tensorflow/lite/core/api/error_reporter.h
 tensorflow/lite/core/api/flatbuffer_conversions.h
-tensorflow/lite/core/api/op_resolver.h
 tensorflow/lite/core/api/tensor_utils.h
 tensorflow/lite/core/c/builtin_op_data.h
 tensorflow/lite/core/c/c_api_types.h
