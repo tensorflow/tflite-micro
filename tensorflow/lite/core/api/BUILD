@@ -15,14 +15,12 @@ cc_library(
     hdrs = [
         "error_reporter.h",
         "flatbuffer_conversions.h",
-        "op_resolver.h",
         "tensor_utils.h",
     ],
     copts = tflite_copts() + micro_copts(),
     visibility = ["//visibility:public"],
     deps = [
         ":error_reporter",
-        ":op_resolver",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
