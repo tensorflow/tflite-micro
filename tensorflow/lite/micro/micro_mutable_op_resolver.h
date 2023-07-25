@@ -285,7 +285,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
     // TODO(b/286250473): change back name to "FilterBankSpectralSubtraction"
     // and remove namespace
     return AddCustom(
-        "SignalAddFilterBankSpectralSubtraction",
+        "SignalFilterBankSpectralSubtraction",
         tflite::tflm_signal::Register_FILTER_BANK_SPECTRAL_SUBTRACTION());
   }
 
