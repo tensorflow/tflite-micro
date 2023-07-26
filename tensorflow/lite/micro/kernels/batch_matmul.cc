@@ -34,8 +34,6 @@ constexpr int kInputLHSTensor = 0;
 constexpr int kInputRHSTensor = 1;
 constexpr int kOutputTensor = 0;
 
-constexpr int kInvalidScratchBufferIndex = -1;
-
 struct QuantizationOpData {
   // The scaling factor from input to output (aka the 'real multiplier') can
   // be represented as a fixed point multiplier plus a left shift.
