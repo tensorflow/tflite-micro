@@ -9,7 +9,7 @@ name as the desired Python namespace package. ( py_wheel.strip_path_prefixes
 can remove path components, but cannot add them.) This is not always feasible
 or desirable.
 
-Secondly, this path naming is maddingly incompatible with the PYTHONPATH set by
+Secondly, this path naming is incompatible with the PYTHONPATH set by
 @rules_python when executing Python programs in the source tree via
 py_binary(). PYTHONPATH is set such that imports should begin with the
 WORKSPACE name, followed by the path from the workspace root. py_wheel(),
