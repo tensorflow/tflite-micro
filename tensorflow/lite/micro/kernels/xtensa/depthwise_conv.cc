@@ -48,11 +48,13 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
-  // Use only the default depthwise convolution for int16 input.
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
+
+  // For int16 input, only fallback to the reference kernel is used
+  // so there is no need to prepare the Hifi/Vision kernel.
   if (input->type == kTfLiteInt16) {
     micro_context->DeallocateTempTfLiteTensor(input);
     return kTfLiteOk;
