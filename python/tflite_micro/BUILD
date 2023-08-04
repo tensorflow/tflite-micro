@@ -176,4 +176,7 @@ sh_test(
     data = [
         ":whl",
     ],
+    tags = [
+        "notap",  # See http://b/294278650#comment4 for more details.
+    ],
 )
