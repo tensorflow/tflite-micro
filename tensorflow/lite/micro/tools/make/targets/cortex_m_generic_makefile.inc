@@ -124,6 +124,7 @@ ifeq ($(TOOLCHAIN), armclang)
   LD        := armlink
 
   FLAGS_ARMC = \
+    -Wno-unknown-warning-option \
     --target=arm-arm-none-eabi \
     -mcpu=$(TARGET_ARCH)
 

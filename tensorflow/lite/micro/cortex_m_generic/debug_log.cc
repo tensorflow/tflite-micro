@@ -16,6 +16,10 @@ limitations under the License.
 // Implementation for the DebugLog() function that prints to the debug logger on
 // an generic Cortex-M device.
 
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include "eyalroz_printf/src/printf/printf.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
@@ -23,10 +27,6 @@ extern "C" {
 #include "tensorflow/lite/micro/debug_log.h"
 
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
-
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-#include "eyalroz_printf/src/printf/printf.h"
-#endif
 
 static DebugLogCallback debug_log_callback = nullptr;
 
