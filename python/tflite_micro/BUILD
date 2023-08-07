@@ -1,6 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//python:py_namespace.bzl", "py_namespace")
+load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
@@ -109,6 +110,14 @@ py_library(
     ],
 )
 
+# Generate a version attribute, imported as tflite_micro.__version__, using
+# stamp (a.k.a. workspace status) variables.
+expand_stamp_vars(
+    name = "version",
+    out = "_version.py",
+    template = "_version.py.in",
+)
+
 # Collect the `deps` and their transitive dependences together into a set of
 # files to package. The files retain their full path relative to the workspace
 # root, which determines the subpackage path at which they're located within
@@ -129,6 +138,7 @@ py_package(
     deps = [
         ":postinstall_check",
         ":runtime",
+        ":version",
     ],
 )
 
@@ -151,16 +161,25 @@ py_namespace(
     ],
 )
 
+expand_stamp_vars(
+    name = "description_file",
+    out = "README.pypi.md",
+    template = "README.pypi.md.in",
+)
+
 py_wheel(
     name = "whl",
+    description_file = ":description_file",
     distribution = "tflite_micro",
     requires = [
         "flatbuffers",
         "numpy",
         "tensorflow",
     ],
+    stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
-    version = "0.1.0",
+    summary = "TensorFlow Lite for Microcontrollers",
+    version = "{BUILD_EMBED_LABEL}.dev{STABLE_GIT_COMMIT_TIME}",
     deps = [
         ":namespace",
     ],

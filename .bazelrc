@@ -15,6 +15,15 @@
 #
 # TFLM Bazel configuration file.
 
+# The semver-format version label embedded in build outputs when and where
+# stamping is used. Note TFLM does not currently publish semver-versioned
+# releases; however, this value is used where a version label is required, such
+# as in the Python distribution package.
+build --embed_label=0
+
+# Get stamp values from a script's output
+build --workspace_status_command=./tools/workspace_status.sh
+
 # Use the following C++ standard
 build --cxxopt -std=c++17
 
