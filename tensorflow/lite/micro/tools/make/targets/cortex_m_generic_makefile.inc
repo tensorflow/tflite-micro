@@ -124,7 +124,6 @@ ifeq ($(TOOLCHAIN), armclang)
   LD        := armlink
 
   FLAGS_ARMC = \
-    -Wno-unknown-warning-option \
     --target=arm-arm-none-eabi \
     -mcpu=$(TARGET_ARCH)
 
@@ -205,5 +204,3 @@ ifneq ($(TARGET_ARCH), project_generation)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif
-
-include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc
