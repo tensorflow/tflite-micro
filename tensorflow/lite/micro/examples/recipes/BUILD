@@ -4,6 +4,17 @@ package(
     licenses = ["notice"],
 )
 
+py_binary(
+    name = "add_four_numbers",
+    srcs = ["add_four_numbers.py"],
+    srcs_version = "PY3",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        requirement("numpy"),
+        requirement("tensorflow-cpu"),
+    ],
+)
+
 py_library(
     name = "resource_variables_lib",
     srcs = ["resource_variables_lib.py"],
