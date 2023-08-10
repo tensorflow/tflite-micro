@@ -1,5 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_library")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
