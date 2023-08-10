@@ -1,5 +1,6 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers "hello world" example.
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",

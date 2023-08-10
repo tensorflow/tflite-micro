@@ -1,5 +1,9 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_test")
+load("@rules_python//python:defs.bzl", "py_binary")
+
 load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
 
 package(

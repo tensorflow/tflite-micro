@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//python:py_namespace.bzl", "py_namespace")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")

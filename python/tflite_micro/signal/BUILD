@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_test")
 load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
 load("//tensorflow:extra_rules.bzl", "tflm_signal_friends")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
