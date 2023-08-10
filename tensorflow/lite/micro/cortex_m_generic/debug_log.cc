@@ -25,7 +25,7 @@ extern "C" {
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-#include "eyalroz_printf/src/printf/printf.h"
+#include <stdio.h>
 #endif
 
 static DebugLogCallback debug_log_callback = nullptr;
@@ -49,7 +49,7 @@ void DebugLog(const char* format, va_list args) {
   constexpr int kMaxLogLen = 256;
   char log_buffer[kMaxLogLen];
 
-  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  vsnprintf(log_buffer, kMaxLogLen, format, args);
   InvokeDebugLogCallback(log_buffer);
 #endif
 }
