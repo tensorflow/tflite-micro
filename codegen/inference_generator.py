@@ -25,6 +25,7 @@ _SOURCE_TEMPLATE = _TEMPLATE_DIR / 'inference.cc.mako'
 
 
 class ModelData(TypedDict):
+  header_file: str
   model_name: str
 
 

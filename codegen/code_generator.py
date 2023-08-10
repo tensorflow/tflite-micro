@@ -20,12 +20,11 @@ from absl import app
 from absl import flags
 from collections.abc import Sequence
 
-from tflite_micro.tensorflow.lite.micro.tools.codegen import inference_generator
+from tflite_micro.codegen import inference_generator
 
 # Usage information:
 # Default:
-#   `bazel run tensorflow/lite/micro/tools/codegen:code_generator -- \
-#     --model=</path/to/my_model.tflite>`
+#   `bazel run codegen:code_generator -- --model=</path/to/my_model.tflite>`
 # Output will be located at: /path/to/my_model.h|cc
 
 _MODEL_PATH = flags.DEFINE_string(name="model",
