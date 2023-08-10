@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
