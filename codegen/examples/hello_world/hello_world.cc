@@ -13,12 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-/* AUTOMATICALLY GENERATED DO NOT MODIFY */
+#include "hello_world_model.h"
 
-#pragma once
+int main(int argc, char** argv) {
+  hello_world_model::Invoke();
 
-namespace ${model_name} {
-
-void Invoke();
-
-}  // namespace ${model_name}
+  return 0;
+}

@@ -15,10 +15,10 @@ limitations under the License.
 
 /* AUTOMATICALLY GENERATED DO NOT MODIFY */
 
-#pragma once
+#include "hello_world_model.h"
 
-namespace ${model_name} {
+namespace hello_world_model {
 
-void Invoke();
+void Invoke() {}
 
-}  // namespace ${model_name}
+}  // namespace hello_world_model

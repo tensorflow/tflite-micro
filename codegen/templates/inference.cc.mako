@@ -21,4 +21,4 @@ namespace ${model_name} {
 
 void Invoke() {}
 
-} // ${model_name}
+}  // namespace ${model_name}
