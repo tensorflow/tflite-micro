@@ -287,6 +287,8 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
+MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
+
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
@@ -675,6 +677,9 @@ INCLUDES += -I$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)
 
 # Load the examples.
 include $(MICRO_LITE_EXAMPLE_TESTS)
+
+# Load codegen examples.
+include $(MICRO_LITE_CODEGEN_EXAMPLES)
 
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)

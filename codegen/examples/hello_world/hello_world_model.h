@@ -17,8 +17,8 @@ limitations under the License.
 
 #pragma once
 
-namespace ${model_name} {
+namespace hello_world_model {
 
 void Invoke();
 
-}  // namespace ${model_name}
+}  // namespace hello_world_model
