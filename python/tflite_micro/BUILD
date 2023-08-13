@@ -169,6 +169,13 @@ expand_stamp_vars(
 
 py_wheel(
     name = "whl",
+    # This macro yields additional targets:
+    #
+    # - whl.publish: publish the package to PyPI via a command like:
+    #
+    #     TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-***  \
+    #     bazel run //python/tflite_micro:whl.publish -- --repository testpypi
+    #
     description_file = ":description_file",
     distribution = "tflite_micro",
     requires = [
@@ -179,6 +186,7 @@ py_wheel(
     stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
     summary = "TensorFlow Lite for Microcontrollers",
+    twine = "@tflm_pip_deps_twine//:pkg",
     version = "{BUILD_EMBED_LABEL}.dev{STABLE_GIT_COMMIT_TIME}",
     deps = [
         ":namespace",
