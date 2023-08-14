@@ -29,7 +29,7 @@ BUILD_STAMP_TWO value_two
 """
 
   input = "This is {BUILD_STAMP_TWO}. This is {BUILD_STAMP_ONE}."
-  golden = "This is value_two. This is value_one.."
+  golden = "This is value_two. This is value_one."
 
   istream = io.StringIO(input)
   ostream = io.StringIO()
