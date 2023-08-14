@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "micro_copts",
