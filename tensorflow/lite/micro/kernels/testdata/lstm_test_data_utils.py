@@ -346,7 +346,7 @@ class QuantizedLSTMDebugger(object):
         np.array(init_hidden_state_vals).reshape((-1, 1)),
         hiddens_state_range[0],
         hiddens_state_range[1],
-        False,
+        True,
         self.quantization_settings['activation_bits'],
     )
     self.cell_state_tensor = assemble_quantized_tensor(
