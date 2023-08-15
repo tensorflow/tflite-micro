@@ -254,9 +254,11 @@ NodeQuantizationParameters Get2X2Int16LstmQuantizationSettings() {
                                  /*symmetry=*/true};
   quantization_settings.output = {/*scale=*/2.1362956633198035e-05, /*zp=*/0,
                                   /*symmetry=*/true};
-  quantization_settings.hidden_state = {/*scale=*/2.1362956633198035e-05, /*zp=*/0,
+  quantization_settings.hidden_state = {/*scale=*/2.1362956633198035e-05,
+                                        /*zp=*/0,
                                         /*symmetry=*/true};
-  quantization_settings.cell_state = {/*scale=*/0.00024414807580797754, /*zp=*/0,
+  quantization_settings.cell_state = {/*scale=*/0.00024414807580797754,
+                                      /*zp=*/0,
                                       /*symmetry=*/true};
 
   // gate quantization parameters
