@@ -1,4 +1,5 @@
 # Signal python utilities.
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 
