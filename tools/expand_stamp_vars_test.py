@@ -22,6 +22,7 @@ from tools import expand_stamp_vars
 import io
 import unittest
 
+
 class FilterTest(unittest.TestCase):
   """A simple test of the expansion feature."""
 
@@ -39,6 +40,7 @@ BUILD_STAMP_TWO value_two
     expand_stamp_vars.expand(istream, ostream, stamps)
 
     self.assertEqual(ostream.getvalue(), golden)
+
 
 if __name__ == "__main__":
   unittest.main()
