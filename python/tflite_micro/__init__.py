@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# ----
 
 # Define a public API for the package by providing aliases for modules which
 # are otherwise deeply nested in subpackages determined by their location in
@@ -19,6 +20,9 @@
 # unsupported.
 
 from tflite_micro.python.tflite_micro import runtime
+
+# Unambiguously identify the source used to build the package.
+from tflite_micro.python.tflite_micro._version import __version__
 
 # Ordered after `runtime` to avoid a circular dependency
 from tflite_micro.python.tflite_micro import postinstall_check
