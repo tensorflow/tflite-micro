@@ -15,6 +15,7 @@
 """Python package for TFLM Python Interpreter"""
 
 import os
+import sys
 
 from tflite_micro.python.tflite_micro import _runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
@@ -35,13 +36,13 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
 
     # Some models make use of resource variables ops, get the count here
-    num_resource_variables = flatbuffer_utils.count_resource_variables(
+    self._num_resource_variables = flatbuffer_utils.count_resource_variables(
         model_data)
 
     self._interpreter = _runtime.InterpreterWrapper(model_data,
                                                     custom_op_registerers,
                                                     arena_size,
-                                                    num_resource_variables)
+                                                    self._num_resource_variables)
 
   @classmethod
   def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
@@ -83,15 +84,16 @@ class Interpreter(object):
     return Interpreter(model_data, custom_op_registerers, arena_size)
 
   def print_allocations(self):
-    """Invoke the RecordingMicroAllocator to print the arena usage.
+    """Print the arena usage and number of resource variables used.
 
     This should be called after `invoke()`.
 
     Returns:
-      This method does not return anything, but It dumps the arena
-      usage to stderr.
+      This method does not return anything, but it prints to stderr.
     """
     self._interpreter.PrintAllocations()
+    print("Number of resource variables the model uses =",
+          self._num_resource_variables, file=sys.stderr)
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference.

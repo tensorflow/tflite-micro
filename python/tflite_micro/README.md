@@ -128,8 +128,9 @@ TFLite's custom op support.
 
 ## Print Allocations
 
-The Python interpreter can also be used to print memory arena allocations. This
-is very helpful to figure out actual memory arena usage.
+The Python interpreter can also be used to print memory arena allocations and
+the number of resource variables used by the model. This is very helpful to
+figure out the actual usage.
 
 For example,
 
@@ -148,6 +149,7 @@ will print
 [RecordingMicroAllocator] 'Persistent TfLiteTensor quantization data' used 64 bytes with alignment overhead (requested 64 bytes for 4 allocations)
 [RecordingMicroAllocator] 'Persistent buffer data' used 640 bytes with alignment overhead (requested 608 bytes for 10 allocations)
 [RecordingMicroAllocator] 'NodeAndRegistration struct' used 440 bytes with alignment overhead (requested 440 bytes for 5 NodeAndRegistration structs)
+Number of resource variables the model uses = 0
 ```
 
 10016 bytes is the actual memory arena size.
