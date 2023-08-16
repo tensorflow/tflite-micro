@@ -20,30 +20,25 @@
 from tools import expand_stamp_vars
 
 import io
-import sys
+import unittest
 
-if __name__ == "__main__":
-  stamps = """
+class FilterTest(unittest.TestCase):
+  """A simple test of the expansion feature."""
+
+  def test_basic(self):
+    stamps = """
 BUILD_STAMP_ONE value_one
 BUILD_STAMP_TWO value_two
 """
+    input = "This is {BUILD_STAMP_TWO}. This is {BUILD_STAMP_ONE}."
+    golden = "This is value_two. This is value_one."
 
-  input = "This is {BUILD_STAMP_TWO}. This is {BUILD_STAMP_ONE}."
-  golden = "This is value_two. This is value_one."
+    istream = io.StringIO(input)
+    ostream = io.StringIO()
+    stamps = expand_stamp_vars.read_stamps(io.StringIO(stamps))
+    expand_stamp_vars.expand(istream, ostream, stamps)
 
-  istream = io.StringIO(input)
-  ostream = io.StringIO()
-  stamps = expand_stamp_vars.read_stamps(io.StringIO(stamps))
-  expand_stamp_vars.expand(istream, ostream, stamps)
+    self.assertEqual(ostream.getvalue(), golden)
 
-  if ostream.getvalue() == golden:
-    sys.exit()
-  else:
-    sys.exit(f"""\
-For input:
-  {input}
-Output:
-  {ostream.getvalue()}
-Doesn't match golden:
-  {golden}\
- """)
+if __name__ == "__main__":
+  unittest.main()
