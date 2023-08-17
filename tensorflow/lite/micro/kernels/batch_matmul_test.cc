@@ -76,16 +76,19 @@ micro::KernelRunner* GetKernelRunnerInstance(
 }
 
 void TestBatchMatMulFloat(const TfLiteBatchMatMulParams& params,
-                          int* input_dims_data[kNumInputs],
+                          const int* input_dims_data[kNumInputs],
                           const float* input_data_lhs,
-                          const float* input_data_rhs, int* expected_dims,
+                          const float* input_data_rhs, const int* expected_dims,
                           const float* expected_data, float* output_data,
                           bool need_constant_rhs = false,
                           bool need_init_prepare = true) {
-  TfLiteIntArray* input_dims_lhs = IntArrayFromInts(input_dims_data[0]);
-  TfLiteIntArray* input_dims_rhs = IntArrayFromInts(input_dims_data[1]);
-  TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
-  const int output_count = ElementCount(*output_dims);
+  TfLiteIntArray* input_dims_lhs =
+      IntArrayFromInts(const_cast<int*>(input_dims_data[0]));
+  TfLiteIntArray* input_dims_rhs =
+      IntArrayFromInts(const_cast<int*>(input_dims_data[1]));
+  TfLiteIntArray* output_dims =
+      IntArrayFromInts(const_cast<int*>(expected_dims));
+  const int kOutputCount = ElementCount(*output_dims);
 
   static TfLiteTensor tensors[kNumInputs + kNumOutputs];
 
@@ -100,13 +103,13 @@ void TestBatchMatMulFloat(const TfLiteBatchMatMulParams& params,
     tensors[kOutputTensorIndex] = CreateTensor(output_data, output_dims);
   }
 
-  constexpr int tensors_count = std::extent<decltype(tensors)>::value;
-  micro::KernelRunner* runner = GetKernelRunnerInstance(
-      tensors, tensors_count, params, need_init_prepare);
+  constexpr int kTensorCount = std::extent<decltype(tensors)>::value;
+  micro::KernelRunner* runner =
+      GetKernelRunnerInstance(tensors, kTensorCount, params, need_init_prepare);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->Invoke());
 
   // check output data against expected
-  for (int i = 0; i < output_count; i++) {
+  for (int i = 0; i < kOutputCount; i++) {
     TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],
                               kFloatTolerance);
   }
@@ -134,47 +137,50 @@ void SetScaleAndZeroPoint(TestQuantizationParams<T, kNumElements>* q_params) {
 template <typename T, size_t kNumLhs, size_t kNumRhs, size_t kNumOutput>
 void TestBatchMatMulQuantized(
     const TfLiteBatchMatMulParams& params,
-    TestQuantizationParams<T, kNumLhs>* quantizatiokNumLhs,
-    TestQuantizationParams<T, kNumRhs>* quantizatiokNumRhs,
-    TestQuantizationParams<T, kNumOutput>* quantizatiokNumOutput,
-    int* input_dims_data[kNumInputs], const float* input_data_lhs,
-    const float* input_data_rhs, int* expected_dims, const T* expected_data,
-    const float* output_data) {
-  TfLiteIntArray* input_dims_lhs = IntArrayFromInts(input_dims_data[0]);
-  TfLiteIntArray* input_dims_rhs = IntArrayFromInts(input_dims_data[1]);
-  TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
-  const int output_count = ElementCount(*output_dims);
+    TestQuantizationParams<T, kNumLhs>* quantization_lhs,
+    TestQuantizationParams<T, kNumRhs>* quantization_rhs,
+    TestQuantizationParams<T, kNumOutput>* quantization_output,
+    const int* input_dims_data[kNumInputs], const float* input_data_lhs,
+    const float* input_data_rhs, const int* expected_dims,
+    const T* expected_data, const float* output_data) {
+  TfLiteIntArray* input_dims_lhs =
+      IntArrayFromInts(const_cast<int*>(input_dims_data[0]));
+  TfLiteIntArray* input_dims_rhs =
+      IntArrayFromInts(const_cast<int*>(input_dims_data[1]));
+  TfLiteIntArray* output_dims =
+      IntArrayFromInts(const_cast<int*>(expected_dims));
+  const int kOutputCount = ElementCount(*output_dims);
 
   static TfLiteTensor tensors[kNumInputs + kNumOutputs];
 
-  SetScaleAndZeroPoint<T, kNumLhs>(quantizatiokNumLhs);
+  SetScaleAndZeroPoint<T, kNumLhs>(quantization_lhs);
   tensors[kLhsInputTensorIndex] = CreateQuantizedTensor(
-      input_data_lhs, quantizatiokNumLhs->quantized_data, input_dims_lhs,
-      quantizatiokNumLhs->scale, quantizatiokNumLhs->zero_point);
-  SetScaleAndZeroPoint<T, kNumRhs>(quantizatiokNumRhs);
+      input_data_lhs, quantization_lhs->quantized_data, input_dims_lhs,
+      quantization_lhs->scale, quantization_lhs->zero_point);
+  SetScaleAndZeroPoint<T, kNumRhs>(quantization_rhs);
   tensors[kRhsInputTensorIndex] = CreateQuantizedTensor(
-      input_data_rhs, quantizatiokNumRhs->quantized_data, input_dims_rhs,
-      quantizatiokNumRhs->scale, quantizatiokNumRhs->zero_point);
-  SetScaleAndZeroPoint<T, kNumOutput>(quantizatiokNumOutput);
+      input_data_rhs, quantization_rhs->quantized_data, input_dims_rhs,
+      quantization_rhs->scale, quantization_rhs->zero_point);
+  SetScaleAndZeroPoint<T, kNumOutput>(quantization_output);
   tensors[kOutputTensorIndex] = CreateQuantizedTensor(
-      quantizatiokNumOutput->quantized_data, output_dims,
-      quantizatiokNumOutput->scale, quantizatiokNumOutput->zero_point);
+      quantization_output->quantized_data, output_dims,
+      quantization_output->scale, quantization_output->zero_point);
 
-  constexpr int tensors_count = std::extent<decltype(tensors)>::value;
+  constexpr int kTensorCount = std::extent<decltype(tensors)>::value;
   micro::KernelRunner* runner =
-      GetKernelRunnerInstance(tensors, tensors_count, params, true);
+      GetKernelRunnerInstance(tensors, kTensorCount, params, true);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->Invoke());
 
   // check output data against expected
-  for (int i = 0; i < output_count; i++) {
+  for (int i = 0; i < kOutputCount; i++) {
     TF_LITE_MICRO_EXPECT_EQ(expected_data[i],
-                            quantizatiokNumOutput->quantized_data[i]);
+                            quantization_output->quantized_data[i]);
   }
   // check dequantized output data against expected
-  for (int i = 0; i < output_count; i++) {
-    float dequantized_value = (quantizatiokNumOutput->quantized_data[i] -
-                               quantizatiokNumOutput->zero_point) *
-                              quantizatiokNumOutput->scale;
+  for (int i = 0; i < kOutputCount; i++) {
+    float dequantized_value = (quantization_output->quantized_data[i] -
+                               quantization_output->zero_point) *
+                              quantization_output->scale;
     TF_LITE_MICRO_EXPECT_NEAR(output_data[i], dequantized_value,
                               kFloatTolerance);
   }
@@ -195,20 +201,21 @@ void TestBatchMatMulQuantized(
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Ones) {
-  int kLhsInputDims[] = {4, 3, 2, 1, 4};
-  int kRhsInputDims[] = {4, 3, 1, 4, 1};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 3, 2, 1, 4};
+  constexpr int kRhsInputDims[] = {4, 3, 1, 4, 1};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 24;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 1);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 1);
 
   constexpr float kExpect[] = {30, 70, 278, 382, 782, 950};
-  int kOutputDims[] = {4, 3, 2, 1, 1};
+  constexpr int kOutputDims[] = {4, 3, 2, 1, 1};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -218,27 +225,28 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Ones) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Flatten) {
-  int kLhsInputDims[] = {4, 3, 2, 2, 4};
-  int kRhsInputDims[] = {4, 3, 1, 4, 1};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 3, 2, 2, 4};
+  constexpr int kRhsInputDims[] = {4, 3, 1, 4, 1};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 48;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 1);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 1);
 
   constexpr float kExpect[] = {30,  70,  110,  150,  486,  590,
                                694, 798, 1454, 1622, 1790, 1958};
-  int kOutputDims[] = {4, 3, 2, 2, 1};
+  constexpr int kOutputDims[] = {4, 3, 2, 2, 1};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -248,26 +256,27 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Flatten) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Simple) {
-  int kLhsInputDims[] = {3, 1, 2, 3};
-  int kRhsInputDims[] = {3, 1, 3, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 1, 2, 3};
+  constexpr int kRhsInputDims[] = {3, 1, 3, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 6;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {74., 80., 86., 92., 173., 188., 203., 218.};
-  int kOutputDims[] = {3, 1, 2, 4};
+  constexpr int kOutputDims[] = {3, 1, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -277,24 +286,25 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Simple) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleRHSAdjoint) {
-  int kLhsInputDims[] = {3, 1, 2, 3};
-  int kRhsInputDims[] = {3, 1, 4, 3};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 1, 2, 3};
+  constexpr int kRhsInputDims[] = {3, 1, 4, 3};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 6;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr float kRhsInput[] = {7, 11, 15, 8, 12, 16, 9, 13, 17, 10, 14, 18};
 
   constexpr float kExpect[] = {74., 80., 86., 92., 173., 188., 203., 218.};
-  int kOutputDims[] = {3, 1, 2, 4};
+  constexpr int kOutputDims[] = {3, 1, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -304,23 +314,24 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleRHSAdjoint) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
                                         kRhsInput, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleLHSAdjoint) {
-  int kLhsInputDims[] = {3, 1, 3, 2};
-  int kRhsInputDims[] = {3, 1, 3, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 1, 3, 2};
+  constexpr int kRhsInputDims[] = {3, 1, 3, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
   constexpr float kLhsInput[] = {1, 4, 2, 5, 3, 6};
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {74., 80., 86., 92., 173., 188., 203., 218.};
-  int kOutputDims[] = {3, 1, 2, 4};
+  constexpr int kOutputDims[] = {3, 1, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -331,25 +342,26 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleLHSAdjoint) {
   };
 
   tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BatchSizeTwo) {
-  int kLhsInputDims[] = {3, 2, 2, 3};
-  int kRhsInputDims[] = {3, 2, 3, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 2, 2, 3};
+  constexpr int kRhsInputDims[] = {3, 2, 3, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
   constexpr size_t kLhsInputSize = 12;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 24;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {74.,  80.,  86.,  92.,  173., 188., 203., 218.,
                                560., 584., 608., 632., 767., 800., 833., 866.};
-  int kOutputDims[] = {3, 2, 2, 4};
+  constexpr int kOutputDims[] = {3, 2, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -359,26 +371,27 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BatchSizeTwo) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast) {
-  int kLhsInputDims[] = {3, 2, 2, 3};
-  int kRhsInputDims[] = {2, 3, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 2, 2, 3};
+  constexpr int kRhsInputDims[] = {2, 3, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
   constexpr size_t kLhsInputSize = 12;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {74.,  80.,  86.,  92.,  173., 188., 203., 218.,
                                272., 296., 320., 344., 371., 404., 437., 470.};
-  int kOutputDims[] = {3, 2, 2, 4};
+  constexpr int kOutputDims[] = {3, 2, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -388,25 +401,26 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastLHSAdjoint) {
-  int kLhsInputDims[] = {3, 2, 3, 2};
-  int kRhsInputDims[] = {2, 3, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 2, 3, 2};
+  constexpr int kRhsInputDims[] = {2, 3, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {1, 4, 2, 5, 3, 6, 7, 10, 8, 11, 9, 12};
 
   constexpr size_t kRhsInputSize = 12;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {74.,  80.,  86.,  92.,  173., 188., 203., 218.,
                                272., 296., 320., 344., 371., 404., 437., 470.};
-  int kOutputDims[] = {3, 2, 2, 4};
+  constexpr int kOutputDims[] = {3, 2, 2, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -417,22 +431,23 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastLHSAdjoint) {
   };
 
   tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2) {
-  int kLhsInputDims[] = {4, 2, 1, 3, 2};
-  int kRhsInputDims[] = {3, 3, 2, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 2, 1, 3, 2};
+  constexpr int kRhsInputDims[] = {3, 3, 2, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 12;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 24;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {
       29.,  32.,  35.,  38.,  65.,  72.,  79.,  86.,  101., 112., 123., 134.,
@@ -441,7 +456,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2) {
       137., 152., 167., 182., 173., 192., 211., 230., 209., 232., 255., 278.,
       257., 272., 287., 302., 325., 344., 363., 382., 393., 416., 439., 462.,
       377., 392., 407., 422., 477., 496., 515., 534., 577., 600., 623., 646.};
-  int kOutputDims[] = {4, 2, 3, 3, 4};
+  constexpr int kOutputDims[] = {4, 2, 3, 3, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -451,21 +466,22 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
-  int kLhsInputDims[] = {4, 2, 1, 2, 3};
-  int kRhsInputDims[] = {3, 3, 2, 4};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 2, 1, 2, 3};
+  constexpr int kRhsInputDims[] = {3, 3, 2, 4};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {1, 3, 5, 2, 4, 6, 7, 9, 11, 8, 10, 12};
 
   constexpr size_t kRhsInputSize = 24;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {
       29.,  32.,  35.,  38.,  65.,  72.,  79.,  86.,  101., 112., 123., 134.,
@@ -474,7 +490,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
       137., 152., 167., 182., 173., 192., 211., 230., 209., 232., 255., 278.,
       257., 272., 287., 302., 325., 344., 363., 382., 393., 416., 439., 462.,
       377., 392., 407., 422., 477., 496., 515., 534., 577., 600., 623., 646.};
-  int kOutputDims[] = {4, 2, 3, 3, 4};
+  constexpr int kOutputDims[] = {4, 2, 3, 3, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -485,18 +501,19 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
   };
 
   tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
-  int kLhsInputDims[] = {4, 2, 1, 3, 2};
-  int kRhsInputDims[] = {3, 3, 4, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 2, 1, 3, 2};
+  constexpr int kRhsInputDims[] = {3, 3, 4, 2};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 12;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr float kRhsInput[] = {7,  11, 8,  12, 9,  13, 10, 14,
                                  15, 19, 16, 20, 17, 21, 18, 22,
@@ -509,7 +526,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
       137., 152., 167., 182., 173., 192., 211., 230., 209., 232., 255., 278.,
       257., 272., 287., 302., 325., 344., 363., 382., 393., 416., 439., 462.,
       377., 392., 407., 422., 477., 496., 515., 534., 577., 600., 623., 646.};
-  int kOutputDims[] = {4, 2, 3, 3, 4};
+  constexpr int kOutputDims[] = {4, 2, 3, 3, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -519,15 +536,16 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
                                         kRhsInput, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
-  int kLhsInputDims[] = {4, 2, 1, 2, 3};
-  int kRhsInputDims[] = {3, 3, 4, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {4, 2, 1, 2, 3};
+  constexpr int kRhsInputDims[] = {3, 3, 4, 2};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {1, 3, 5, 2, 4, 6, 7, 9, 11, 8, 10, 12};
 
@@ -542,7 +560,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
       137., 152., 167., 182., 173., 192., 211., 230., 209., 232., 255., 278.,
       257., 272., 287., 302., 325., 344., 363., 382., 393., 416., 439., 462.,
       377., 392., 407., 422., 477., 496., 515., 534., 577., 600., 623., 646.};
-  int kOutputDims[] = {4, 2, 3, 3, 4};
+  constexpr int kOutputDims[] = {4, 2, 3, 3, 4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -558,23 +576,24 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
 }
 
 TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastFromRHS) {
-  int kLhsInputDims[] = {2, 4, 5};
-  int kRhsInputDims[] = {4, 3, 1, 5, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {2, 4, 5};
+  constexpr int kRhsInputDims[] = {4, 3, 1, 5, 2};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr size_t kLhsInputSize = 20;
-  float kLhsInput[kLhsInputSize];
-  std::iota(std::begin(kLhsInput), std::end(kLhsInput), 1);
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
 
   constexpr size_t kRhsInputSize = 30;
-  float kRhsInput[kRhsInputSize];
-  std::iota(std::begin(kRhsInput), std::end(kRhsInput), 7);
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 7);
 
   constexpr float kExpect[] = {185.,  200.,  460.,  500.,  735.,  800.,
                                1010., 1100., 335.,  350.,  860.,  900.,
                                1385., 1450., 1910., 2000., 485.,  500.,
                                1260., 1300., 2035., 2100., 2810., 2900.};
-  int kOutputDims[] = {4, 3, 1, 4, 2};
+  constexpr int kOutputDims[] = {4, 3, 1, 4, 2};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -584,15 +603,16 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastFromRHS) {
       false   // asymmetric_quantize_inputs
   };
 
-  tflite::testing::TestBatchMatMulFloat(params, kInputDims, kLhsInput,
-                                        kRhsInput, kOutputDims, kExpect,
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
                                         output_data);
 }
 
 TF_LITE_MICRO_TEST(ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
-  int kLhsInputDims[] = {3, 1, 6, 2};
-  int kRhsInputDims[] = {2, 2, 3};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {3, 1, 6, 2};
+  constexpr int kRhsInputDims[] = {2, 2, 3};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {6, 3, 7, 4, 6, 9, 2, 6, 7, 4, 3, 7};
 
@@ -600,7 +620,7 @@ TF_LITE_MICRO_TEST(ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
 
   constexpr float kExpect[] = {48, 36, 69, 58, 45, 85, 72, 72, 123,
                                36, 42, 68, 58, 45, 85, 46, 51, 84};
-  int kOutputDims[] = {3, 1, 6, 3};
+  constexpr int kOutputDims[] = {3, 1, 6, 3};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
@@ -620,9 +640,10 @@ TF_LITE_MICRO_TEST(ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
 }
 
 TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
-  int kLhsInputDims[] = {2, 2, 10};
-  int kRhsInputDims[] = {2, 10, 3};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {2, 2, 10};
+  constexpr int kRhsInputDims[] = {2, 10, 3};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {
       1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
@@ -637,7 +658,7 @@ TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
   constexpr int kRhsInputCount = std::extent<decltype(kRhsInput)>::value;
 
   constexpr int8_t kExpect[] = {22, 22, 22, 56, 56, 56};
-  int kOutputDims[] = {2, 2, 3};
+  constexpr int kOutputDims[] = {2, 2, 3};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   constexpr float output_data[kOutputCount] = {23, 23, 23, 57, 57, 57};
 
@@ -673,9 +694,10 @@ TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
 }
 
 TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt16) {
-  int kLhsInputDims[] = {2, 2, 10};
-  int kRhsInputDims[] = {2, 10, 3};
-  int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims, kRhsInputDims};
+  constexpr int kLhsInputDims[] = {2, 2, 10};
+  constexpr int kRhsInputDims[] = {2, 10, 3};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
 
   constexpr float kLhsInput[] = {
       1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
@@ -690,7 +712,7 @@ TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt16) {
   constexpr int kRhsInputCount = std::extent<decltype(kRhsInput)>::value;
 
   constexpr int16_t kExpect[] = {23, 23, 23, 57, 57, 57};
-  int kOutputDims[] = {2, 2, 3};
+  constexpr int kOutputDims[] = {2, 2, 3};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   constexpr float output_data[kOutputCount] = {23, 23, 23, 57, 57, 57};
 
