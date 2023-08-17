@@ -38,18 +38,29 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
     ${op_code.register_function()}(),
 % endfor
 };
+
 }  // namespace
 
+Model::Model() {
+  context_.impl_ = nullptr;
+  context_.ReportError = nullptr;
+  context_.GetTensor = nullptr;
+  context_.GetEvalTensor = nullptr;
+  context_.profiler = nullptr;
+  context_.GetExternalContext = nullptr;
+  context_.GetScratchBuffer = nullptr;
+}
+
+TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
+
 % for subgraph_idx, subgraph in enumerate(graph.subgraphs):
-TfLiteStatus InvokeSubgraph${subgraph_idx}() {
-% for operator in subgraph.operators:
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::${operator.op_code.enum_name()}].invoke(nullptr, nullptr));
+TfLiteStatus Model::InvokeSubgraph${subgraph_idx}() {
+% for operator_idx, operator in enumerate(subgraph.operators):
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::${operator.op_code.enum_name()}].invoke(
+                                  &context_, &subgraph${subgraph_idx}_nodes_[${operator_idx}]));
 % endfor
   return kTfLiteOk;
 }
 % endfor
-
-TfLiteStatus Invoke() { return InvokeSubgraph0(); }
 
 }  // namespace ${model_name}

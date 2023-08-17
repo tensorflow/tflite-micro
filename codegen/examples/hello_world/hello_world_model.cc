@@ -31,18 +31,29 @@ enum OpCode { kFullyConnected, kCount };
 TFLMInferenceRegistration op_table[OpCode::kCount] = {
     tflite::RegisterInference_FULLY_CONNECTED(),
 };
+
 }  // namespace
 
-TfLiteStatus InvokeSubgraph0() {
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  return kTfLiteOk;
+Model::Model() {
+  context_.impl_ = nullptr;
+  context_.ReportError = nullptr;
+  context_.GetTensor = nullptr;
+  context_.GetEvalTensor = nullptr;
+  context_.profiler = nullptr;
+  context_.GetExternalContext = nullptr;
+  context_.GetScratchBuffer = nullptr;
 }
 
-TfLiteStatus Invoke() { return InvokeSubgraph0(); }
+TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
+
+TfLiteStatus Model::InvokeSubgraph0() {
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[0]));
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[1]));
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[2]));
+  return kTfLiteOk;
+}
 
 }  // namespace hello_world_model
