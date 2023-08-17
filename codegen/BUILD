@@ -7,6 +7,17 @@ package(
 )
 
 py_library(
+    name = "graph",
+    srcs = [
+        "graph.py",
+    ],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/tools:visualize",
+    ],
+)
+
+py_library(
     name = "inference_generator",
     srcs = [
         "inference_generator.py",
@@ -16,6 +27,7 @@ py_library(
         "templates/inference.h.mako",
     ],
     deps = [
+        ":graph",
         requirement("mako"),
     ],
 )
@@ -28,7 +40,9 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
+        ":graph",
         ":inference_generator",
+        "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
     ],

@@ -14,9 +14,13 @@ limitations under the License.
 ==============================================================================*/
 
 #include "hello_world_model.h"
+#include "tensorflow/lite/c/c_api_types.h"
 
 int main(int argc, char** argv) {
-  hello_world_model::Invoke();
+  TfLiteStatus status = hello_world_model::Invoke();
+  if (status != kTfLiteOk) {
+    return -1;
+  }
 
   return 0;
 }

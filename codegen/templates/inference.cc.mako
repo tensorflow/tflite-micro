@@ -17,8 +17,39 @@ limitations under the License.
 
 #include "${header_file}"
 
-namespace ${model_name} {
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
-void Invoke() {}
+namespace ${model_name} {
+namespace {
+// TODO(rjascani): We should probably split out the OpTable to a separate file
+// once we start generating for multiple models.
+enum OpCode {
+% for op_code in op_code_table.op_codes:
+  ${op_code.enum_name()},
+% endfor
+  kCount
+};
+
+TFLMInferenceRegistration op_table[OpCode::kCount] = {
+% for op_code in op_code_table.op_codes:
+    ${op_code.register_function()}(),
+% endfor
+};
+}  // namespace
+
+% for subgraph_idx, subgraph in enumerate(graph.subgraphs):
+TfLiteStatus InvokeSubgraph${subgraph_idx}() {
+% for operator in subgraph.operators:
+  TF_LITE_ENSURE_OK(nullptr,
+                    op_table[OpCode::${operator.op_code.enum_name()}].invoke(nullptr, nullptr));
+% endfor
+  return kTfLiteOk;
+}
+% endfor
+
+TfLiteStatus Invoke() { return InvokeSubgraph0(); }
 
 }  // namespace ${model_name}

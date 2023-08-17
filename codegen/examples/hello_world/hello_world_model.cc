@@ -17,8 +17,35 @@ limitations under the License.
 
 #include "hello_world_model.h"
 
-namespace hello_world_model {
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
-void Invoke() {}
+namespace hello_world_model {
+namespace {
+// TODO(rjascani): We should probably split out the OpTable to a separate file
+// once we start generating for multiple models.
+enum OpCode {
+  kFullyConnected,
+  kCount
+};
+
+TFLMInferenceRegistration op_table[OpCode::kCount] = {
+    tflite::RegisterInference_FULLY_CONNECTED(),
+};
+}  // namespace
+
+TfLiteStatus InvokeSubgraph0() {
+  TF_LITE_ENSURE_OK(nullptr,
+                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
+  TF_LITE_ENSURE_OK(nullptr,
+                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
+  TF_LITE_ENSURE_OK(nullptr,
+                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
+  return kTfLiteOk;
+}
+
+TfLiteStatus Invoke() { return InvokeSubgraph0(); }
 
 }  // namespace hello_world_model

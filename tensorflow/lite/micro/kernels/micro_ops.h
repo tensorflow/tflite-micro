@@ -133,6 +133,9 @@ TFLMRegistration Register_VAR_HANDLE();
 TFLMRegistration Register_WHILE();
 TFLMRegistration Register_ZEROS_LIKE();
 
+// TODO(b/295174388): Add the rest of inference only registration functions.
+TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED();
+
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY();
