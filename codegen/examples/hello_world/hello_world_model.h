@@ -17,8 +17,10 @@ limitations under the License.
 
 #pragma once
 
+#include "tensorflow/lite/c/c_api_types.h"
+
 namespace hello_world_model {
 
-void Invoke();
+TfLiteStatus Invoke();
 
 }  // namespace hello_world_model
