@@ -18,12 +18,15 @@
 from typing import List, Sequence
 
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
-from tflite_micro.tensorflow.lite.tools import visualize 
+from tflite_micro.tensorflow.lite.tools import visualize
+
 
 def _to_pascal_case(s: str) -> str:
   return s.title().replace('_', '')
 
+
 class OpCode(object):
+
   def __init__(self, op_code: schema_fb.OperatorCodeT):
     self._op_code: schema_fb.OperatorCodeT = op_code
 
@@ -38,35 +41,46 @@ class OpCode(object):
   def enum_name(self) -> str:
     return "k{}".format(_to_pascal_case(self.name()))
 
+
 class Operator(object):
+
   def __init__(self, model: schema_fb.ModelT, operator: schema_fb.OperatorT):
     self._operator: schema_fb.OperatorT = operator
-    self._op_code: OpCode = OpCode(model.operatorCodes[self._operator.opcodeIndex])
+    self._op_code: OpCode = OpCode(
+        model.operatorCodes[self._operator.opcodeIndex])
 
   @property
   def op_code(self) -> OpCode:
     return self._op_code
 
+
 class Subgraph(object):
+
   def __init__(self, model: schema_fb.ModelT, subgraph: schema_fb.SubGraphT):
     self._subgraph: schema_fb.SubGraphT = subgraph
     self._operators: List[Operator] = [
-        Operator(model, operator) for operator in subgraph.operators]
+        Operator(model, operator) for operator in subgraph.operators
+    ]
 
   @property
   def operators(self) -> Sequence[Operator]:
     return self._operators
 
+
 class Graph(object):
+
   def __init__(self, model: schema_fb.ModelT):
     self._subgraphs: List[SubGraph] = [
-        Subgraph(model, subgraph) for subgraph in model.subgraphs]
+        Subgraph(model, subgraph) for subgraph in model.subgraphs
+    ]
 
   @property
   def subgraphs(self) -> Sequence[Subgraph]:
     return self._subgraphs
 
+
 class OpCodeTable(object):
+
   def __init__(self, models: Sequence[schema_fb.ModelT]):
     op_codes = []
     for model in models:

@@ -26,10 +26,7 @@ namespace hello_world_model {
 namespace {
 // TODO(rjascani): We should probably split out the OpTable to a separate file
 // once we start generating for multiple models.
-enum OpCode {
-  kFullyConnected,
-  kCount
-};
+enum OpCode { kFullyConnected, kCount };
 
 TFLMInferenceRegistration op_table[OpCode::kCount] = {
     tflite::RegisterInference_FULLY_CONNECTED(),
