@@ -14,21 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ----
+"""
+ A filter that expands Bazel workspace stamp variables.
 
-# A filter that expands Bazel workspace stamp variables.
-#
-# For example, the input steam:
-#
-#     This build was compiled at {BUILD_DATE}.
-#
-# is expanded into the output stream:
-#
-#     This build was compiled at 2023-02-10T14:15.
-#
-# Stamp variable key-value pairs are read from all files passed as positional
-# arguments. These files are typically bazel-out/stable-status.txt and
-# bazel-out/volatile-status.txt. See the Bazel documentation for the option
-# --workspace_status_command.
+ For example, the input steam:
+
+     This build was compiled at {BUILD_DATE}.
+
+ is expanded into the output stream:
+
+     This build was compiled at 2023-02-10T14:15.
+
+ Stamp variable key-value pairs are read from all files passed as positional
+ arguments. These files are typically bazel-out/stable-status.txt and
+ bazel-out/volatile-status.txt. See the Bazel documentation for the option
+ --workspace_status_command.
+"""
 
 import sys
 
