@@ -42,7 +42,7 @@ struct Node0_0 {
     int data[1] = {7};
   } outputs;
   // No intermediates
-} const node_0_0;
+} node_0_0;
 
 struct Node0_1 {
   struct Inputs {
@@ -54,7 +54,7 @@ struct Node0_1 {
     int data[1] = {8};
   } outputs;
   // No intermediates
-} const node_0_1;
+} node_0_1;
 
 struct Node0_2 {
   struct Inputs {
@@ -66,13 +66,7 @@ struct Node0_2 {
     int data[1] = {9};
   } outputs;
   // No intermediates
-} const node_0_2;
-
-// TODO(rjascani): Move this to a common utility header.
-template <typename T>
-inline TfLiteIntArray* ToIntArray(const T* array) {
-  return reinterpret_cast<TfLiteIntArray*>(const_cast<T*>(array));
-}
+} node_0_2;
 
 }  // namespace
 
@@ -85,27 +79,30 @@ Model::Model() {
   context_.GetExternalContext = nullptr;
   context_.GetScratchBuffer = nullptr;
 
-  subgraph0_nodes_[0] = {.inputs = ToIntArray(&node_0_0.inputs),
-                         .outputs = ToIntArray(&node_0_0.outputs),
-                         .intermediates = nullptr,
-                         .user_data = nullptr,            // from preprocessor
-                         .builtin_data = nullptr,         // from flatbuffer
-                         .custom_initial_data = nullptr,  // from flatbuffer
-                         .custom_initial_data_size = 0};
-  subgraph0_nodes_[1] = {.inputs = ToIntArray(&node_0_1.inputs),
-                         .outputs = ToIntArray(&node_0_1.outputs),
-                         .intermediates = nullptr,
-                         .user_data = nullptr,            // from preprocessor
-                         .builtin_data = nullptr,         // from flatbuffer
-                         .custom_initial_data = nullptr,  // from flatbuffer
-                         .custom_initial_data_size = 0};
-  subgraph0_nodes_[2] = {.inputs = ToIntArray(&node_0_2.inputs),
-                         .outputs = ToIntArray(&node_0_2.outputs),
-                         .intermediates = nullptr,
-                         .user_data = nullptr,            // from preprocessor
-                         .builtin_data = nullptr,         // from flatbuffer
-                         .custom_initial_data = nullptr,  // from flatbuffer
-                         .custom_initial_data_size = 0};
+  subgraph0_nodes_[0] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,            // from preprocessor
+      .builtin_data = nullptr,         // from flatbuffer
+      .custom_initial_data = nullptr,  // from flatbuffer
+      .custom_initial_data_size = 0};
+  subgraph0_nodes_[1] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,            // from preprocessor
+      .builtin_data = nullptr,         // from flatbuffer
+      .custom_initial_data = nullptr,  // from flatbuffer
+      .custom_initial_data_size = 0};
+  subgraph0_nodes_[2] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,            // from preprocessor
+      .builtin_data = nullptr,         // from flatbuffer
+      .custom_initial_data = nullptr,  // from flatbuffer
+      .custom_initial_data_size = 0};
 }
 
 TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }

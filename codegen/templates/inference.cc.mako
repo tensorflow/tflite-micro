@@ -45,12 +45,6 @@ ${operator.node_data_c_struct}
 
 % endfor
 % endfor
-// TODO(rjascani): Move this to a common utility header.
-template <typename T>
-inline TfLiteIntArray* ToIntArray(const T* array) {
-  return reinterpret_cast<TfLiteIntArray*>(const_cast<T*>(array));
-}
-
 }  // namespace
 
 Model::Model() {
@@ -65,10 +59,10 @@ Model::Model() {
 % for subgraph in graph.subgraphs:
   % for operator in subgraph.operators:
   ${operator.node_element} = {
-    .inputs = ToIntArray(&${operator.node_data_inputs}),
-    .outputs = ToIntArray(&${operator.node_data_outputs}),
+    .inputs = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_inputs}),
+    .outputs = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_outputs}),
 % if operator.node_data_intermediates:
-    .intermediates = ToIntArray(&${operator.node_data_intermediates});
+    .intermediates = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_intermediates}),
 % else:
     .intermediates = nullptr,
 % endif

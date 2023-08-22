@@ -82,7 +82,7 @@ class Operator(object):
   def node_data_c_struct(self) -> str:
     struct_template = string.Template("struct ${type_name} {\n"
                                       "${body}"
-                                      "} const ${node_name};")
+                                      "} ${node_name};")
     body_template = string.Template("${inputs}\n"
                                     "${outputs}\n"
                                     "${intermediates}\n")
