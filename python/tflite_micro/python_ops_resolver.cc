@@ -92,6 +92,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddPack();
   AddPad();
   AddPadV2();
+  AddPCAN();
   AddPrelu();
   AddQuantize();
   AddReadVariable();

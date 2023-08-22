@@ -461,6 +461,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddPadV2() {
     return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
   }
+  
+    TfLiteStatus AddPCAN() {
+    return AddBuiltin("SignalPCAN",
+                     tflite::tflm_signal::Register_PCAN());
+  }
+
 
   TfLiteStatus AddPrelu() {
     return AddBuiltin(BuiltinOperator_PRELU, tflite::Register_PRELU(),

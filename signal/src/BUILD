@@ -142,3 +142,14 @@ cc_library(
         ":square_root_64",
     ],
 )
+
+
+cc_library(
+    name = "pcan_argc_fixed",
+    srcs = ["pcan_argc_fixed.cc"],
+    hdrs = ["pcan_argc_fixed.h"],
+    deps = [
+        ":msb_32",
+        "//tensorflow/lite/kernels/internal:compatibility",
+    ],
+)
