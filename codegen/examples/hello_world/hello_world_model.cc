@@ -32,14 +32,47 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
     tflite::RegisterInference_FULLY_CONNECTED(),
 };
 
-TfLiteIntArray node_0_0_inputs = {.size = 3, .data = {0, 6, 5}};
-TfLiteIntArray node_0_0_outputs = {.size = 1, .data = {7}};
+struct Node0_0 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {0, 6, 5};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {7};
+  } outputs;
+  // No intermediates
+} const node_0_0;
 
-TfLiteIntArray node_0_1_inputs = {.size = 3, .data = {7, 4, 3}};
-TfLiteIntArray node_0_1_outputs = {.size = 1, .data = {8}};
+struct Node0_1 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {7, 4, 3};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {8};
+  } outputs;
+  // No intermediates
+} const node_0_1;
 
-TfLiteIntArray node_0_2_inputs = {.size = 3, .data = {8, 2, 1}};
-TfLiteIntArray node_0_2_outputs = {.size = 1, .data = {9}};
+struct Node0_2 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {8, 2, 1};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {9};
+  } outputs;
+  // No intermediates
+} const node_0_2;
+
+// TODO(rjascani): Move this to a common utility header.
+template <typename T>
+inline TfLiteIntArray* ToIntArray(const T* array) {
+  return reinterpret_cast<TfLiteIntArray*>(const_cast<T*>(array));
+}
 
 }  // namespace
 
@@ -52,22 +85,22 @@ Model::Model() {
   context_.GetExternalContext = nullptr;
   context_.GetScratchBuffer = nullptr;
 
-  subgraph0_nodes_[0] = {.inputs = &node_0_0_inputs,
-                         .outputs = &node_0_0_outputs,
+  subgraph0_nodes_[0] = {.inputs = ToIntArray(&node_0_0.inputs),
+                         .outputs = ToIntArray(&node_0_0.outputs),
                          .intermediates = nullptr,
                          .user_data = nullptr,            // from preprocessor
                          .builtin_data = nullptr,         // from flatbuffer
                          .custom_initial_data = nullptr,  // from flatbuffer
                          .custom_initial_data_size = 0};
-  subgraph0_nodes_[1] = {.inputs = &node_0_1_inputs,
-                         .outputs = &node_0_1_outputs,
+  subgraph0_nodes_[1] = {.inputs = ToIntArray(&node_0_1.inputs),
+                         .outputs = ToIntArray(&node_0_1.outputs),
                          .intermediates = nullptr,
                          .user_data = nullptr,            // from preprocessor
                          .builtin_data = nullptr,         // from flatbuffer
                          .custom_initial_data = nullptr,  // from flatbuffer
                          .custom_initial_data_size = 0};
-  subgraph0_nodes_[2] = {.inputs = &node_0_2_inputs,
-                         .outputs = &node_0_2_outputs,
+  subgraph0_nodes_[2] = {.inputs = ToIntArray(&node_0_2.inputs),
+                         .outputs = ToIntArray(&node_0_2.outputs),
                          .intermediates = nullptr,
                          .user_data = nullptr,            // from preprocessor
                          .builtin_data = nullptr,         // from flatbuffer

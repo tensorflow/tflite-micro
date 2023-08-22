@@ -41,20 +41,16 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
 
 % for subgraph in graph.subgraphs:
 % for operator in subgraph.operators:
-TfLiteIntArray ${operator.node_data_prefix()}_inputs = {
-  .size = ${operator.inputs.size()},
-  .data = {${operator.inputs.data()}}};
-TfLiteIntArray ${operator.node_data_prefix()}_outputs = {
-  .size = ${operator.outputs.size()},
-  .data = {${operator.outputs.data()}}};
-% if operator.intermediates:
-TfLiteIntArray ${operator.node_data_prefix()}_intermediates = {
-  .size = ${operator.intermediates.size()},
-  .data = {${operator.intermediates.data()}}};
-% endif
+${operator.node_data_c_struct}
 
 % endfor
 % endfor
+// TODO(rjascani): Move this to a common utility header.
+template <typename T>
+inline TfLiteIntArray* ToIntArray(const T* array) {
+  return reinterpret_cast<TfLiteIntArray*>(const_cast<T*>(array));
+}
+
 }  // namespace
 
 Model::Model() {
@@ -68,11 +64,11 @@ Model::Model() {
 
 % for subgraph in graph.subgraphs:
   % for operator in subgraph.operators:
-  ${operator.node_element()} = {
-    .inputs = &${operator.node_data_prefix()}_inputs,
-    .outputs = &${operator.node_data_prefix()}_outputs,
-% if operator.intermediates:
-    .intermediates = &${operator.node_data_prefix()}_intermediates,
+  ${operator.node_element} = {
+    .inputs = ToIntArray(&${operator.node_data_inputs}),
+    .outputs = ToIntArray(&${operator.node_data_outputs}),
+% if operator.node_data_intermediates:
+    .intermediates = ToIntArray(&${operator.node_data_intermediates});
 % else:
     .intermediates = nullptr,
 % endif
@@ -90,7 +86,7 @@ TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
 TfLiteStatus Model::InvokeSubgraph${subgraph.index}() {
   % for operator in subgraph.operators:
   TF_LITE_ENSURE_OK(context_, op_table[OpCode::${operator.op_code.enum_name()}].invoke(
-                                  &context_, &${operator.node_element()}));
+                                  &context_, &${operator.node_element}));
   % endfor
   return kTfLiteOk;
 }

@@ -15,7 +15,9 @@
 """ Provides object representation for the model that is conducive to code 
     generation using templates. """
 
-from typing import List, Sequence
+from typing import List, Optional, Sequence
+import string
+import textwrap
 
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 from tflite_micro.tensorflow.lite.tools import visualize
@@ -30,16 +32,19 @@ class IntArray(object):
   def __init__(self, data: List[int]):
     self._data = data
 
-  def __bool__(self) -> bool:
-    return self._data is not None
-
-  def size(self) -> int:
-    return len(self._data)
-
-  def data(self) -> str:
-    int_strs = ['{}'.format(i) for i in self._data]
+  def c_struct(self, type_name: str, variable_name: Optional[str]) -> str:
+    struct_template = string.Template("struct ${type_name} {\n"
+                                      "  int size = ${size};\n"
+                                      "  int data[${size}] = {${data}};\n"
+                                      "}")
     # TODO(rjascani): Make this pretty print in multi-line chunks
-    return ', '.join(int_strs)
+    int_strs = ['{}'.format(i) for i in self._data]
+    c_struct_str = struct_template.substitute(type_name=type_name,
+                                              size=len(int_strs),
+                                              data=', '.join(int_strs))
+    if variable_name:
+      return c_struct_str + " {};".format(variable_name)
+    return c_struct_str + ";"
 
 
 class OpCode(object):
@@ -68,29 +73,64 @@ class Operator(object):
     self._operator_idx: int = operator_idx
     self._op_code: OpCode = OpCode(
         model.operatorCodes[self._operator.opcodeIndex])
+    self._inputs: IntArray = IntArray(self._operator.inputs)
+    self._outputs: IntArray = IntArray(self._operator.outputs)
+    self._intermediates: Optional[IntArray] = IntArray(
+        self._operator.intermediates) if self._operator.intermediates else None
 
-  def node_data_prefix(self) -> str:
+  @property
+  def node_data_c_struct(self) -> str:
+    struct_template = string.Template("struct ${type_name} {\n"
+                                      "${body}"
+                                      "} const ${node_name};")
+    body_template = string.Template("${inputs}\n"
+                                    "${outputs}\n"
+                                    "${intermediates}\n")
+    if self._intermediates:
+      intermediates = self._intermediates.c_struct("Intermediates",
+                                                   "intermediates")
+    else:
+      intermediates = "// No intermediates"
+
+    body = body_template.substitute(
+        inputs=self._inputs.c_struct("Inputs", "inputs"),
+        outputs=self._outputs.c_struct("Outputs", "outputs"),
+        intermediates=intermediates)
+
+    c_struct_str = struct_template.substitute(
+        type_name=self.node_data_type_name,
+        node_name=self.node_data_variable_name,
+        body=textwrap.indent(body, "  "))
+    return c_struct_str
+
+  @property
+  def node_data_type_name(self) -> str:
+    return "Node{}_{}".format(self._subgraph_idx, self._operator_idx)
+
+  @property
+  def node_data_variable_name(self) -> str:
     return "node_{}_{}".format(self._subgraph_idx, self._operator_idx)
 
+  @property
   def node_element(self) -> str:
     return "subgraph{}_nodes_[{}]".format(self._subgraph_idx,
                                           self._operator_idx)
 
   @property
+  def node_data_inputs(self) -> str:
+    return self.node_data_variable_name + ".inputs"
+
+  @property
+  def node_data_outputs(self) -> str:
+    return self.node_data_variable_name + ".outputs"
+
+  @property
+  def node_data_intermediates(self) -> Optional[str]:
+    return self.node_data_variable_name + ".intermediates" if self._intermediates else None
+
+  @property
   def op_code(self) -> OpCode:
     return self._op_code
-
-  @property
-  def inputs(self) -> IntArray:
-    return IntArray(self._operator.inputs)
-
-  @property
-  def outputs(self) -> IntArray:
-    return IntArray(self._operator.outputs)
-
-  @property
-  def intermediates(self) -> IntArray:
-    return IntArray(self._operator.intermediates)
 
 
 class Subgraph(object):
