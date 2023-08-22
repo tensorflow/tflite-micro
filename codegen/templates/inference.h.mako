@@ -34,8 +34,8 @@ class Model {
 % endfor
 
   TfLiteContext context_ = {};
-% for subgraph_idx, subgraph in enumerate(graph.subgraphs):
-  TfLiteNode subgraph${subgraph_idx}_nodes_[${len(subgraph.operators)}] = {};
+% for subgraph in graph.subgraphs:
+  TfLiteNode subgraph${subgraph.index}_nodes_[${len(subgraph.operators)}] = {};
 % endfor
 };
 

@@ -25,6 +25,23 @@ def _to_pascal_case(s: str) -> str:
   return s.title().replace('_', '')
 
 
+class IntArray(object):
+
+  def __init__(self, data: List[int]):
+    self._data = data
+
+  def __bool__(self) -> bool:
+    return self._data is not None
+
+  def size(self) -> int:
+    return len(self._data)
+
+  def data(self) -> str:
+    int_strs = ['{}'.format(i) for i in self._data]
+    # TODO(rjascani): Make this pretty print in multi-line chunks
+    return ', '.join(int_strs)
+
+
 class OpCode(object):
 
   def __init__(self, op_code: schema_fb.OperatorCodeT):
@@ -44,23 +61,52 @@ class OpCode(object):
 
 class Operator(object):
 
-  def __init__(self, model: schema_fb.ModelT, operator: schema_fb.OperatorT):
+  def __init__(self, model: schema_fb.ModelT, subgraph_idx: int,
+               operator_idx: int, operator: schema_fb.OperatorT):
     self._operator: schema_fb.OperatorT = operator
+    self._subgraph_idx: int = subgraph_idx
+    self._operator_idx: int = operator_idx
     self._op_code: OpCode = OpCode(
         model.operatorCodes[self._operator.opcodeIndex])
+
+  def node_data_prefix(self) -> str:
+    return "node_{}_{}".format(self._subgraph_idx, self._operator_idx)
+
+  def node_element(self) -> str:
+    return "subgraph{}_nodes_[{}]".format(self._subgraph_idx,
+                                          self._operator_idx)
 
   @property
   def op_code(self) -> OpCode:
     return self._op_code
 
+  @property
+  def inputs(self) -> IntArray:
+    return IntArray(self._operator.inputs)
+
+  @property
+  def outputs(self) -> IntArray:
+    return IntArray(self._operator.outputs)
+
+  @property
+  def intermediates(self) -> IntArray:
+    return IntArray(self._operator.intermediates)
+
 
 class Subgraph(object):
 
-  def __init__(self, model: schema_fb.ModelT, subgraph: schema_fb.SubGraphT):
+  def __init__(self, model: schema_fb.ModelT, subgraph_idx: int,
+               subgraph: schema_fb.SubGraphT):
+    self._subgraph_idx: int = subgraph_idx
     self._subgraph: schema_fb.SubGraphT = subgraph
     self._operators: List[Operator] = [
-        Operator(model, operator) for operator in subgraph.operators
+        Operator(model, self._subgraph_idx, idx, operator)
+        for idx, operator in enumerate(subgraph.operators)
     ]
+
+  @property
+  def index(self) -> int:
+    return self._subgraph_idx
 
   @property
   def operators(self) -> Sequence[Operator]:
@@ -71,7 +117,8 @@ class Graph(object):
 
   def __init__(self, model: schema_fb.ModelT):
     self._subgraphs: List[SubGraph] = [
-        Subgraph(model, subgraph) for subgraph in model.subgraphs
+        Subgraph(model, idx, subgraph)
+        for idx, subgraph in enumerate(model.subgraphs)
     ]
 
   @property

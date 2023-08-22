@@ -39,6 +39,22 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
 % endfor
 };
 
+% for subgraph in graph.subgraphs:
+% for operator in subgraph.operators:
+TfLiteIntArray ${operator.node_data_prefix()}_inputs = {
+  .size = ${operator.inputs.size()},
+  .data = {${operator.inputs.data()}}};
+TfLiteIntArray ${operator.node_data_prefix()}_outputs = {
+  .size = ${operator.outputs.size()},
+  .data = {${operator.outputs.data()}}};
+% if operator.intermediates:
+TfLiteIntArray ${operator.node_data_prefix()}_intermediates = {
+  .size = ${operator.intermediates.size()},
+  .data = {${operator.intermediates.data()}}};
+% endif
+
+% endfor
+% endfor
 }  // namespace
 
 Model::Model() {
@@ -49,16 +65,33 @@ Model::Model() {
   context_.profiler = nullptr;
   context_.GetExternalContext = nullptr;
   context_.GetScratchBuffer = nullptr;
+
+% for subgraph in graph.subgraphs:
+  % for operator in subgraph.operators:
+  ${operator.node_element()} = {
+    .inputs = &${operator.node_data_prefix()}_inputs,
+    .outputs = &${operator.node_data_prefix()}_outputs,
+% if operator.intermediates:
+    .intermediates = &${operator.node_data_prefix()}_intermediates,
+% else:
+    .intermediates = nullptr,
+% endif
+    .user_data = nullptr,     // from preprocessor
+    .builtin_data = nullptr,  // from flatbuffer
+    .custom_initial_data = nullptr, // from flatbuffer
+    .custom_initial_data_size = 0};
+  % endfor
+% endfor
 }
 
 TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
 
-% for subgraph_idx, subgraph in enumerate(graph.subgraphs):
-TfLiteStatus Model::InvokeSubgraph${subgraph_idx}() {
-% for operator_idx, operator in enumerate(subgraph.operators):
+% for subgraph in graph.subgraphs:
+TfLiteStatus Model::InvokeSubgraph${subgraph.index}() {
+  % for operator in subgraph.operators:
   TF_LITE_ENSURE_OK(context_, op_table[OpCode::${operator.op_code.enum_name()}].invoke(
-                                  &context_, &subgraph${subgraph_idx}_nodes_[${operator_idx}]));
-% endfor
+                                  &context_, &${operator.node_element()}));
+  % endfor
   return kTfLiteOk;
 }
 % endfor
