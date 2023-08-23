@@ -16,7 +16,6 @@
 
 import enum
 import os
-from immutabledict import immutabledict
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.python.tflite_micro import _runtime
 
@@ -53,14 +52,14 @@ class InterpreterConfig(enum.Enum):
   kAllocationRecording = 0
   kPreserveAllTensors = 1
 
-
-_ENUM_TRANSLATOR = immutabledict({
+#TODO(b/297118768): Once Korko Docker contrainer for ubuntu x86 has imutabledict 
+# added to it, this should be turned into an immutabledict.
+_ENUM_TRANSLATOR = {
     InterpreterConfig.kAllocationRecording:
     (_runtime.PythonInterpreterConfig.kAllocationRecording),
     InterpreterConfig.kPreserveAllTensors:
     (_runtime.PythonInterpreterConfig.kPreserveAllTensors),
-})
-
+}
 
 class Interpreter(object):
 
