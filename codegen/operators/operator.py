@@ -80,26 +80,5 @@ class Operator(object):
                                     intermediates=intermediates)
 
   @property
-  def node_data_type_name(self) -> str:
-    return "Node{}_{}".format(self._subgraph_idx, self._operator_idx)
-
-  @property
-  def node_data_variable_name(self) -> str:
-    return "node_{}_{}".format(self._subgraph_idx, self._operator_idx)
-
-  @property
-  def node_data_inputs(self) -> str:
-    return self.node_data_variable_name + ".inputs"
-
-  @property
-  def node_data_outputs(self) -> str:
-    return self.node_data_variable_name + ".outputs"
-
-  @property
-  def node_data_intermediates(self) -> Optional[str]:
-    return (self.node_data_variable_name +
-            ".intermediates" if self._intermediates else None)
-
-  @property
   def op_code_index(self) -> int:
     return self._operator.opcodeIndex
