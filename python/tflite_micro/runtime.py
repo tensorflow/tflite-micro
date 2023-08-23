@@ -52,7 +52,8 @@ class InterpreterConfig(enum.Enum):
   kAllocationRecording = 0
   kPreserveAllTensors = 1
 
-#TODO(b/297118768): Once Korko Docker contrainer for ubuntu x86 has imutabledict 
+
+#TODO(b/297118768): Once Korko Docker contrainer for ubuntu x86 has imutabledict
 # added to it, this should be turned into an immutabledict.
 _ENUM_TRANSLATOR = {
     InterpreterConfig.kAllocationRecording:
@@ -60,6 +61,7 @@ _ENUM_TRANSLATOR = {
     InterpreterConfig.kPreserveAllTensors:
     (_runtime.PythonInterpreterConfig.kPreserveAllTensors),
 }
+
 
 class Interpreter(object):
 
