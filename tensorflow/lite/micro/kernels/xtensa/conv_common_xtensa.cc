@@ -42,12 +42,6 @@ void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
-  auto op_data = reinterpret_cast<XtensaConvOpData*>(node->user_data);
-  // optimized kernels can change this during Prepare
-  op_data->can_optimize = false;
-#endif  // defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
-
 #if defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
 #endif  // defined(HIFI4) || defined(HIFI5)
