@@ -17,15 +17,15 @@
 2. Print the intermediate step outputs inside the LSTM for a single step LSTM invocation (Get2X2GateOutputCheckData in .cc)
 3. Print the outputs for multi-step LSTM invocation (Get2X2LstmEvalCheckData in .cc)
 
-Every invocation gives three types information: 
-1. Quantized output: kernel output in integer 
+Every invocation gives three types information:
+1. Quantized output: kernel output in integer
 2. Dequantized output: Quantized output in floating point representation
 3. Float output: output from the floating point computation (i.e., float kernel)
 
-Note: 
+Note:
 1. Change quantization settings in _KERNEL_CONFIG to see the outcomes from various quantization schema (e.g., 8x8 Vs. 16x8)
 2. Only single batch inference is supporte here. Change _GATE_TEST_DATA or _MULTISTEP_TEST_DATA to see kernel outputs on different input data
-3. The quantization computation here is not the exact as the c++ implementation. The integer calculation is mimiced here using floating point. 
+3. The quantization computation here is not the exact as the c++ implementation. The integer calculation is emulated here using floating point.
 No fixed point math is implemented here. The purpose is to illustrate the computation procedure and possible quantization error accumulation, not for bit exactness.
 """
 from absl import app
@@ -88,7 +88,7 @@ _GATE_TEST_DATA = {
 _MULTISTEP_TEST_DATA = {
     'init_hidden_state_vals': [0, 0],
     'init_cell_state_vals': [0, 0],
-    'input_data': [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],  # three time steps 
+    'input_data': [0.2, 0.3, 0.2, 0.3, 0.2, 0.3],  # three time steps
     'hidden_state_range': (-0.5, 0.7),
     'cell_state_range': [-8, 8],
     'input_data_range': [-1, 1]

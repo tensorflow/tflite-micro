@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 py_binary(
@@ -12,6 +13,6 @@ py_binary(
         "@absl_py//absl/logging",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//python/tflite_micro:runtime",
     ],
 )

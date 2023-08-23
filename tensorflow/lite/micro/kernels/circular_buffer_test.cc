@@ -27,9 +27,6 @@ namespace {
 
 constexpr int kRunPeriod = 2;
 
-// TODO(b/149795762): Add this to TfLiteStatus enum.
-const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
-
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -102,7 +99,7 @@ TF_LITE_MICRO_TEST(OutputTensorLength4) {
     if (i % tflite::testing::kRunPeriod == tflite::testing::kRunPeriod - 1) {
       TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, status);
     } else {
-      TF_LITE_MICRO_EXPECT_EQ(tflite::testing::kTfLiteAbort, status);
+      TF_LITE_MICRO_EXPECT_EQ(tflite::kTfLiteAbort, status);
     }
   }
 }

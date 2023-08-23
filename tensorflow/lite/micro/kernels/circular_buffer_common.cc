@@ -35,9 +35,6 @@ const int kCircularBufferOutputTensor = 0;
 // Elements in the vectors are ordered alphabetically by parameter name.
 const int kCircularBufferCyclesMaxIndex = 0;  // 'cycles_max'
 
-// TODO(b/149795762): Add this to TfLiteStatus enum.
-const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(-9);
-
 TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 

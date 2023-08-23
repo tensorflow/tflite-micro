@@ -433,4 +433,8 @@ TFLMRegistration Register_FULLY_CONNECTED_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt16);
 }
 
+TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
+  return tflite::micro::RegisterOp(Eval);
+}
+
 }  // namespace tflite

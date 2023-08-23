@@ -22,7 +22,7 @@ TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-TARGET=riscv32_mcu
+TARGET=riscv32_generic
 
 readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
@@ -34,4 +34,3 @@ readable_run make -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Make
 # debugging info on failures.
 readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} BUILD_TYPE=debug test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-

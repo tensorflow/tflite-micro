@@ -48,6 +48,60 @@ $(eval $(call microlite_test,unidirectional_sequence_lstm_test,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.cc,\
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/testdata/lstm_test_data.h))
 
+$(eval $(call microlite_test,kernel_signal_delay_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/delay_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_energy_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/energy_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_fft_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/fft_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.cc \
+  $(TENSORFLOW_ROOT)signal/testdata/fft_test_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_framer_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_log_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_square_root_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root_test.cc))  
+
+$(eval $(call microlite_test,kernel_signal_filter_bank_spectral_subtraction_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_overlap_add_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_stacker_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_flexbuffers_generated_data.h))
+
+$(eval $(call microlite_test,kernel_signal_window_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/window_flexbuffers_generated_data.h))
+
 # For kernel tests without extra dependencies (beyond libtensorflow-microlite.a),
 # use simple for loop to generate their make targets in a common way.
 MICROLITE_KERNEL_SIMPLE_TEST_SRCS := \

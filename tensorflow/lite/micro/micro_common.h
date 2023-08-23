@@ -30,4 +30,9 @@ struct TFLMRegistration {
   const char* custom_name;
 };
 
+struct TFLMInferenceRegistration {
+  TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node);
+  void (*reset)(TfLiteContext* context, void* buffer);
+};
+
 #endif  // THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_COMMON_H_

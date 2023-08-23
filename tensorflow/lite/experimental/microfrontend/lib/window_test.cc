@@ -53,8 +53,7 @@ TF_LITE_MICRO_TEST(WindowState_CheckCoefficients) {
                               3843, 3541, 3145, 2681, 2177, 1664, 1176,
                               743,  391,  144,  16};
   TF_LITE_MICRO_EXPECT_EQ(state.size, sizeof(expected) / sizeof(expected[0]));
-  int i;
-  for (i = 0; i < state.size; ++i) {
+  for (size_t i = 0; i < state.size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.coefficients[i], expected[i]);
   }
 
@@ -95,8 +94,7 @@ TF_LITE_MICRO_TEST(WindowState_CheckOutputValues) {
       0, 1151,   0, -5944, 0, 13311,  0, -21448, 0, 28327, 0, -32256, 0, 32255,
       0, -28328, 0, 21447, 0, -13312, 0, 5943,   0, -1152, 0};
   TF_LITE_MICRO_EXPECT_EQ(state.size, sizeof(expected) / sizeof(expected[0]));
-  int i;
-  for (i = 0; i < state.size; ++i) {
+  for (size_t i = 0; i < state.size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.output[i], expected[i]);
   }
 
@@ -138,8 +136,7 @@ TF_LITE_MICRO_TEST(WindowState_CheckConsecutiveWindow) {
       0, -1152, 0, 5943,   0, -13312, 0, 21447, 0, -28328, 0, 32255, 0, -32256,
       0, 28327, 0, -21448, 0, 13311,  0, -5944, 0, 1151,   0};
   TF_LITE_MICRO_EXPECT_EQ(state.size, sizeof(expected) / sizeof(expected[0]));
-  int i;
-  for (i = 0; i < state.size; ++i) {
+  for (size_t i = 0; i < state.size; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.output[i], expected[i]);
   }
 

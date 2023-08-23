@@ -7,7 +7,7 @@
 # This file can not be run stand-alone. It is called from tests_post.yml as part of
 # the ci automation.
 
-name: Risc-v Postmerge
+name: RISC-V Postmerge
 
 on:
   workflow_call:
@@ -31,12 +31,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ inputs.trigger-sha }}
-    - name: Install dependencies
-      run: |
-        pip3 install Pillow
-        pip3 install Wave
-        pip3 install numpy
     - name: Test
-      run: |
-        cd ../
-        tflite-micro/tensorflow/lite/micro/tools/ci_build/test_riscv.sh tflite-micro/
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+      with:
+        args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh

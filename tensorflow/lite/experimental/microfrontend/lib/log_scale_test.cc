@@ -37,8 +37,7 @@ TF_LITE_MICRO_TEST(LogScaleTest_CheckOutputValues) {
                                    kCorrectionBits);
 
   const uint16_t expected[] = {479, 425};
-  int i;
-  for (i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
+  for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
     TF_LITE_MICRO_EXPECT_EQ(output[i], expected[i]);
   }
 }
@@ -54,8 +53,7 @@ TF_LITE_MICRO_TEST(LogScaleTest_CheckOutputValuesNoLog) {
                                    kCorrectionBits);
 
   const uint16_t expected[] = {65535, 45998};
-  int i;
-  for (i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
+  for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
     TF_LITE_MICRO_EXPECT_EQ(output[i], expected[i]);
   }
 }

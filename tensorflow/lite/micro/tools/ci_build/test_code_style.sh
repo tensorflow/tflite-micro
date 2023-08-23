@@ -142,7 +142,6 @@ ASSERT_PATHSPEC=\
 " :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\
-" :(exclude)*zephyr_riscv/Makefile.inc"
 
 check_contents "\<assert\>" "${ASSERT_PATHSPEC}" \
   "assert should not be used in TFLM code.."

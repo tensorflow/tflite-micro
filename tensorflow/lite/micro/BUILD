@@ -269,7 +269,6 @@ cc_library(
     copts = micro_copts(),
     deps = [
         ":debug_log",
-        ":micro_string",
     ],
 )
 
@@ -289,17 +288,6 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:compatibility",
     ],
-)
-
-cc_library(
-    name = "micro_string",
-    srcs = [
-        "micro_string.cc",
-    ],
-    hdrs = [
-        "micro_string.h",
-    ],
-    copts = micro_copts(),
 )
 
 cc_library(
@@ -545,17 +533,6 @@ cc_test(
     ],
     deps = [
         ":micro_utils",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-cc_test(
-    name = "micro_string_test",
-    srcs = [
-        "micro_string_test.cc",
-    ],
-    deps = [
-        ":micro_string",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
