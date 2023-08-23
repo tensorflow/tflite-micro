@@ -37,10 +37,6 @@ struct XtensaConvOpData {
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
 #endif  // VISION_P6
-
-#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
-  bool can_optimize;
-#endif  // defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
 };
 
 #if defined(HIFI4) || defined(HIFI5)
@@ -53,7 +49,6 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* filter,
                               const TfLiteEvalTensor* bias,
                               TfLiteEvalTensor* output);
-#endif  // defined(HIFI4) || defined(HIFI5)
 
 #if defined(HIFI4)
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
@@ -64,6 +59,9 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output);
 #endif  // defined(HIFI4)
+
+#endif  // defined(HIFI4) || defined(HIFI5)
+
 
 #if defined(VISION_P6)
 

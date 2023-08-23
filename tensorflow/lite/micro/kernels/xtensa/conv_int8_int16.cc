@@ -26,7 +26,10 @@ namespace tflite {
 namespace {
 
 TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
+#if defined(HIFIMINI)
+  return ConvReferenceEvalInt8(context, node);
+#endif
+
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
@@ -40,19 +43,14 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* bias =
       tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
 
-  if (op_data.can_optimize) {
-    // optimized Xtensa code will unpack filter data if necessary
 #if defined(HIFI4) || defined(HIFI5)
     return ConvEvalHifiInt8(context, node, params, op_data, input, filter, bias,
                             output);
 #elif defined(VISION_P6)
     return ConvEvalVision(context, node, params, op_data, input, filter, bias,
                           output);
-#endif  // defined(HIFI4) || defined(HIFI5)
-  }
-#endif  // defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
+#endif
 
-  return ConvReferenceEvalInt8(context, node);
 }
 
 TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
@@ -70,13 +68,11 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* bias =
       tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
 
-  if (op_data.can_optimize) {
     return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
                              bias, output);
-  }
-#endif  // defined(HIFI4)
-
+#else
   return ConvReferenceEvalInt16(context, node);
+#endif
 }
 
 }  // namespace

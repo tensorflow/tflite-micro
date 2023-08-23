@@ -158,9 +158,6 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   if (bias != nullptr) {
     micro_context->DeallocateTempTfLiteTensor(bias);
   }
-
-  data->can_optimize = true;
-
   return kTfLiteOk;
 }
 
