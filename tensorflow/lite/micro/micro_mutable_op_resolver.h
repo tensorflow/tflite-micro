@@ -461,13 +461,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddPadV2() {
     return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
   }
-  
-    TfLiteStatus AddPCAN() {
-      // TODO(b/286250473): change back name to "PCAN" and remove namespace
-    return AddCustom("SignalPCAN",
-                     tflite::tflm_signal::Register_PCAN());
-  }
 
+  TfLiteStatus AddPCAN() {
+    // TODO(b/286250473): change back name to "PCAN" and remove namespace
+    return AddCustom("SignalPCAN", tflite::tflm_signal::Register_PCAN());
+  }
 
   TfLiteStatus AddPrelu() {
     return AddBuiltin(BuiltinOperator_PRELU, tflite::Register_PRELU(),

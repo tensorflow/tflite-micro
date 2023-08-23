@@ -39,16 +39,13 @@ uint32_t PcanShrink(const uint32_t x) {
   }
 }
 
-
-void ApplyPcanAutoGainControlFixed(const int16_t* gain_lut,
-                              int32_t snr_shift,
-                              const uint32_t* noise_estimate,
-                              uint32_t* filterbank_output,
-                              int num_channels){
-  
+void ApplyPcanAutoGainControlFixed(const int16_t* gain_lut, int32_t snr_shift,
+                                   const uint32_t* noise_estimate,
+                                   uint32_t* filterbank_output,
+                                   int num_channels) {
   int i;
   for (i = 0; i < num_channels; ++i) {
-       // The gain has gain_bits fractional bits, and filterbank_output[i] has
+    // The gain has gain_bits fractional bits, and filterbank_output[i] has
     // -input_correction_bits fractional bits. The product is shifted so that
     // the resulting snr has kPcanSnrBits fractional bits.
     const uint32_t gain = WideDynamicFunction(noise_estimate[i], gain_lut);
@@ -59,5 +56,5 @@ void ApplyPcanAutoGainControlFixed(const int16_t* gain_lut,
   }
 }
 
-} // namespace tflite
-} // namespace tflm_signal
+}  // namespace tflm_signal
+}  // namespace tflite
