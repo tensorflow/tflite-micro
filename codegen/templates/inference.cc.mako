@@ -28,23 +28,21 @@ namespace {
 // once we start generating for multiple models.
 enum OpCode {
 % for op_code in op_code_table.op_codes:
-  ${op_code.enum_name()},
+  ${op_code.enum_name},
 % endfor
   kCount
 };
 
 TFLMInferenceRegistration op_table[OpCode::kCount] = {
 % for op_code in op_code_table.op_codes:
-    ${op_code.register_function()}(),
+    ${op_code.register_function}(),
 % endfor
 };
 
 % for subgraph in graph.subgraphs:
-% for operator in subgraph.operators:
-${operator.node_data_c_struct}
+${subgraph.generate_c_node_data("")}
+% endfor
 
-% endfor
-% endfor
 }  // namespace
 
 Model::Model() {
@@ -57,20 +55,7 @@ Model::Model() {
   context_.GetScratchBuffer = nullptr;
 
 % for subgraph in graph.subgraphs:
-  % for operator in subgraph.operators:
-  ${operator.node_element} = {
-    .inputs = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_inputs}),
-    .outputs = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_outputs}),
-% if operator.node_data_intermediates:
-    .intermediates = reinterpret_cast<TfLiteIntArray*>(&${operator.node_data_intermediates}),
-% else:
-    .intermediates = nullptr,
-% endif
-    .user_data = nullptr,     // from preprocessor
-    .builtin_data = nullptr,  // from flatbuffer
-    .custom_initial_data = nullptr, // from flatbuffer
-    .custom_initial_data_size = 0};
-  % endfor
+${subgraph.generate_c_node_init("  ")}
 % endfor
 }
 
@@ -78,10 +63,7 @@ TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
 
 % for subgraph in graph.subgraphs:
 TfLiteStatus Model::InvokeSubgraph${subgraph.index}() {
-  % for operator in subgraph.operators:
-  TF_LITE_ENSURE_OK(context_, op_table[OpCode::${operator.op_code.enum_name()}].invoke(
-                                  &context_, &${operator.node_element}));
-  % endfor
+${subgraph.generate_c_invoke("  ")}
   return kTfLiteOk;
 }
 % endfor

@@ -83,25 +83,25 @@ Model::Model() {
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.outputs),
       .intermediates = nullptr,
-      .user_data = nullptr,            // from preprocessor
-      .builtin_data = nullptr,         // from flatbuffer
-      .custom_initial_data = nullptr,  // from flatbuffer
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
   subgraph0_nodes_[1] = {
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.outputs),
       .intermediates = nullptr,
-      .user_data = nullptr,            // from preprocessor
-      .builtin_data = nullptr,         // from flatbuffer
-      .custom_initial_data = nullptr,  // from flatbuffer
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
   subgraph0_nodes_[2] = {
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.outputs),
       .intermediates = nullptr,
-      .user_data = nullptr,            // from preprocessor
-      .builtin_data = nullptr,         // from flatbuffer
-      .custom_initial_data = nullptr,  // from flatbuffer
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
 }
 
@@ -114,6 +114,7 @@ TfLiteStatus Model::InvokeSubgraph0() {
                                   &context_, &subgraph0_nodes_[1]));
   TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
                                   &context_, &subgraph0_nodes_[2]));
+
   return kTfLiteOk;
 }
 

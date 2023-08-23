@@ -35,7 +35,7 @@ class Model {
 
   TfLiteContext context_ = {};
 % for subgraph in graph.subgraphs:
-  TfLiteNode subgraph${subgraph.index}_nodes_[${len(subgraph.operators)}] = {};
+  TfLiteNode ${subgraph.nodes_array}[${len(subgraph.operators)}] = {};
 % endfor
 };
 
