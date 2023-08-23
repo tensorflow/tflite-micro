@@ -1,3 +1,17 @@
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
 
 #include <stddef.h>
 #include <stdint.h>
@@ -12,7 +26,7 @@
 
 namespace tflite {
 namespace tflm_signal {
-namespace pcan {
+// TODO(b/286250473): remove namespace once de-duped libraries above
 
 constexpr int kInputTensor = 0;
 constexpr int kNoiseEstimateTensor = 1;
@@ -29,11 +43,11 @@ struct TfLitePcanParams {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
   auto* params = static_cast<TfLitePcanParams*>(
       context->AllocatePersistentBuffer(context, sizeof(TfLitePcanParams)));
 
-  tflite::FlexbufferWrapper fbw(buffer_t, length);
+  tflite::FlexbufferWrapper fbw(reinterpret_cast<const uint8_t*>(buffer),
+                                length);
   params->snr_shift = fbw.ElementAsInt32(kSnrShiftIndex);
   return params;
 }
@@ -110,18 +124,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       num_channels);
   return kTfLiteOk;
 }
-}  // namespace pcan
 
 TFLMRegistration* Register_PCAN() {
-  static TFLMRegistration r = {
-      /*init=*/pcan::Init,
-      /*free=*/nullptr,
-      /*prepare=*/pcan::Prepare,
-      /*invoke=*/pcan::Eval,
-      /*profiling_string=*/nullptr,
-      /*builtin_code=*/0,
-      /*custom_name=*/nullptr,
-  };
+  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
   return &r;
 }
 
