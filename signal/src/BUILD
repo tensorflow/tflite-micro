@@ -143,7 +143,6 @@ cc_library(
     ],
 )
 
-
 cc_library(
     name = "pcan_argc_fixed",
     srcs = ["pcan_argc_fixed.cc"],
