@@ -22,8 +22,7 @@ constexpr int kOutputTensor = 0;
 // Indices into the init flexbuffer's vector.
 // The parameter's name is in the comment that follows.
 // Elements in the vectors are ordered alphabetically by parameter name.
-constexpr int kSnrShiftIndex = 0;        // 'snr_shift'
-
+constexpr int kSnrShiftIndex = 0;  // 'snr_shift'
 
 struct TfLitePcanParams {
   int snr_shift;
@@ -38,7 +37,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   params->snr_shift = fbw.ElementAsInt32(kSnrShiftIndex);
   return params;
 }
-
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
@@ -107,9 +105,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   memcpy(output_data, input_data, output_byte_size);
 
-  tflite::tflm_signal::ApplyPcanAutoGainControlFixed(gain_lut_data, params->snr_shift,
-                                noise_estimate_data, output_data,
-                                num_channels);
+  tflite::tflm_signal::ApplyPcanAutoGainControlFixed(
+      gain_lut_data, params->snr_shift, noise_estimate_data, output_data,
+      num_channels);
   return kTfLiteOk;
 }
 }  // namespace pcan
