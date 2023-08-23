@@ -55,13 +55,12 @@ class InterpreterConfig(enum.Enum):
 
 
 _ENUM_TRANSLATOR = immutabledict({
-    InterpreterConfig.kAllocationRecording: (
-        _runtime.PythonInterpreterConfig.kAllocationRecording
-    ),
-    InterpreterConfig.kPreserveAllTensors: (
-        _runtime.PythonInterpreterConfig.kPreserveAllTensors
-    ),
+    InterpreterConfig.kAllocationRecording:
+    (_runtime.PythonInterpreterConfig.kAllocationRecording),
+    InterpreterConfig.kPreserveAllTensors:
+    (_runtime.PythonInterpreterConfig.kPreserveAllTensors),
 })
+
 
 class Interpreter(object):
 

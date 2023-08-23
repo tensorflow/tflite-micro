@@ -57,8 +57,7 @@ class PeserveAllTensorsTest(test_util.TensorFlowTestCase):
     model based on inputs of 1 2 3 4 into the AddFourNumbers TfLite model
     """
     tflm_interpreter = self.AddFourNumbersTestInterpreterMaker(
-        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]]
-    )
+        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]])
 
     tflm_interpreter.invoke()
 
@@ -79,8 +78,7 @@ class PeserveAllTensorsTest(test_util.TensorFlowTestCase):
     this test confirms that this is the case.
     """
     tflm_interpreter = self.AddFourNumbersTestInterpreterMaker(
-        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]]
-    )
+        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]])
 
     tflm_interpreter.invoke()
     tensors = [
