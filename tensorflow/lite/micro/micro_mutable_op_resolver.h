@@ -463,7 +463,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
   
     TfLiteStatus AddPCAN() {
-    return AddBuiltin("SignalPCAN",
+      // TODO(b/286250473): change back name to "PCAN" and remove namespace
+    return AddCustom("SignalPCAN",
                      tflite::tflm_signal::Register_PCAN());
   }
 
