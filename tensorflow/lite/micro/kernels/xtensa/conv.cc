@@ -67,15 +67,16 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8: {
 #if defined(HIFI4) || defined(HIFI5)
-        if (params.dilation_width_factor == 1 && params.dilation_height_factor == 1) {
+      if (params.dilation_width_factor == 1 &&
+          params.dilation_height_factor == 1) {
         return ConvEvalHifiInt8(context, node, params, op_data, input, filter,
                                 bias, output);
-        } else {
-      return ConvReferenceEvalInt8(context, node);
-        }
+      } else {
+        return ConvReferenceEvalInt8(context, node);
+      }
 #elif defined(VISION_P6)
-        return ConvEvalVision(context, node, params, op_data, input, filter,
-                              bias, output);
+      return ConvEvalVision(context, node, params, op_data, input, filter, bias,
+                            output);
 #else
       return ConvReferenceEvalInt8(context, node);
 #endif

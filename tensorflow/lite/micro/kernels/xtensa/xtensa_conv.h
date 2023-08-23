@@ -62,7 +62,6 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
 
 #endif  // defined(HIFI4) || defined(HIFI5)
 
-
 #if defined(VISION_P6)
 
 TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node);
