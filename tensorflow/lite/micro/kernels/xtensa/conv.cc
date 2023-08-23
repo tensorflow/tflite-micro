@@ -67,8 +67,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt8: {
 #if defined(HIFI4) || defined(HIFI5)
+        if (params.dilation_width_factor == 1 && params.dilation_height_factor == 1) {
         return ConvEvalHifiInt8(context, node, params, op_data, input, filter,
                                 bias, output);
+        } else {
+      return ConvReferenceEvalInt8(context, node);
+        }
 #elif defined(VISION_P6)
         return ConvEvalVision(context, node, params, op_data, input, filter,
                               bias, output);
@@ -78,8 +82,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt16: {
 #if defined(HIFI4)
+      // Note that int32 bias is not widely supported and might be risky (e.g.
+      // http://b/262003750). As such, while we have a fallback to the reference
+      // implementation, production use-cases should only have int64 bias.
+      if (bias->type == kTfLiteInt32) {
+        return ConvReferenceEvalInt16(context, node);
+      } else {
         return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
                                  bias, output);
+      }
 #else
       return ConvReferenceEvalInt16(context, node);
 #endif

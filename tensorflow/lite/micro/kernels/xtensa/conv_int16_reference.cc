@@ -78,12 +78,4 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-// TODO(b/189981943): This variant can be used for a smaller binary
-// since the optimized conv implementation currently adds a lot to
-// the binary size (~30KB to text section).
-TFLMRegistration Register_CONV_2D_INT16REF() {
-  return tflite::micro::RegisterOp(ConvInit, ConvPrepare,
-                                   ConvReferenceEvalInt16);
-}
-
 }  // namespace tflite

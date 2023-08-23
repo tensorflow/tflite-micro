@@ -89,17 +89,8 @@ TFLMRegistration Register_CONV_2D();
 // implementation.
 TFLMRegistration Register_CONV_2D_INT8REF();
 
-// Returns a TFLMRegistration struct for kernel variant that only supports
-// int16 activations and int8 weights and always calls the reference
-// implementation.
-TFLMRegistration Register_CONV_2D_INT16REF();
-
 #else
 inline TFLMRegistration Register_CONV_2D_INT8REF() {
-  return Register_CONV_2D();
-}
-
-inline TFLMRegistration Register_CONV_2D_INT16REF() {
   return Register_CONV_2D();
 }
 #endif  // defined(XTENSA)
