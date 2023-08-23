@@ -23,13 +23,13 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 /// Copied from tensorflow/lite/version.h to avoid a dependency chain into
 // tensorflow/core.

@@ -28,12 +28,12 @@ limitations under the License.
 #include <numpy/arrayobject.h>
 #include <pybind11/pybind11.h>
 
-#include "tensorflow/lite/c/common.h"
 #include "python/tflite_micro/numpy_utils.h"
 #include "python/tflite_micro/pybind11_lib.h"
 #include "python/tflite_micro/python_ops_resolver.h"
 #include "python/tflite_micro/python_utils.h"
 #include "python/tflite_micro/shared_library.h"
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 

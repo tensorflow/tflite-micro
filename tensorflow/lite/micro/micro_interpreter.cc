@@ -21,8 +21,6 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
@@ -31,6 +29,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
+#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 namespace {

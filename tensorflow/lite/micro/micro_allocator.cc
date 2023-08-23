@@ -21,7 +21,6 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
@@ -35,6 +34,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 
