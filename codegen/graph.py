@@ -19,6 +19,7 @@ from typing import List, Optional, Sequence
 import string
 import textwrap
 
+from tflite_micro.codegen.operators import factory
 from tflite_micro.codegen.operators import operator
 from tflite_micro.codegen import utils
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
@@ -55,12 +56,13 @@ class Subgraph(object):
                subgraph: schema_fb.SubGraphT):
     self._subgraph_idx: int = subgraph_idx
     self._subgraph: schema_fb.SubGraphT = subgraph
-    self._operators: List[operator.Operator] = [
-        operator.Operator(op) for op in subgraph.operators
-    ]
     self._op_codes: List[OpCode] = [
         OpCode(op_code) for op_code in model.operatorCodes
     ]
+    self._operators: List[operator.Operator] = []
+    for op in subgraph.operators:
+      op_code = model.operatorCodes[op.opcodeIndex]
+      self._operators.append(factory.create_operator(op_code, op))
 
   @property
   def index(self) -> int:

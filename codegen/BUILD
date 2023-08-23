@@ -13,6 +13,7 @@ py_library(
     ],
     deps = [
         ":utils",
+        "//codegen/operators:factory",
         "//codegen/operators:operator",
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:visualize",
