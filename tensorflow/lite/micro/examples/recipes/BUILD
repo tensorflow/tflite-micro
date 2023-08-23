@@ -5,7 +5,7 @@ package(
     licenses = ["notice"],
 )
 
-py_binary(
+py_library(
     name = "add_four_numbers",
     srcs = ["add_four_numbers.py"],
     srcs_version = "PY3",
