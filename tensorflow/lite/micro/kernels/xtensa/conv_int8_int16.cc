@@ -28,8 +28,7 @@ namespace {
 TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFIMINI)
   return ConvReferenceEvalInt8(context, node);
-#endif
-
+#else
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
@@ -50,6 +49,8 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   return ConvEvalVision(context, node, params, op_data, input, filter, bias,
                         output);
 #endif
+
+#endif  // defined(HIFIMINI)
 }
 
 TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
