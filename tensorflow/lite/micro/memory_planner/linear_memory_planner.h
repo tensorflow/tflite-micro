@@ -35,6 +35,10 @@ class LinearMemoryPlanner : public MicroMemoryPlanner {
   int GetBufferCount() override;
   TfLiteStatus GetOffsetForBuffer(int buffer_index, int* offset) override;
 
+  // Returns True because the LinearMemoryPlanner preserves all tensors after
+  // invocation.
+  bool preserves_all_tensors() const override { return true; }
+
  private:
   static constexpr int kMaxBufferCount = 1024;
   size_t buffer_offsets_[kMaxBufferCount];
