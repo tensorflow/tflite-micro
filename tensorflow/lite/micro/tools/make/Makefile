@@ -326,6 +326,7 @@ $(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
 $(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
 $(TENSORFLOW_ROOT)signal/src/energy.cc \
@@ -342,6 +343,7 @@ $(TENSORFLOW_ROOT)signal/src/max_abs.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_32.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_64.cc \
 $(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
