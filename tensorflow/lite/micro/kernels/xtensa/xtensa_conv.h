@@ -36,6 +36,7 @@ struct XtensaConvOpData {
   int8_t* per_channel_output_shift_int8;
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
+  bool is_per_channel_quantized;
 #endif  // VISION_P6
 };
 

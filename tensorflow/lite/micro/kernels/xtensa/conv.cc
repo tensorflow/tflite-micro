@@ -75,8 +75,17 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         return ConvReferenceEvalInt8(context, node);
       }
 #elif defined(VISION_P6)
-      return ConvEvalVision(context, node, params, op_data, input, filter, bias,
-                            output);
+      // At this time the optimized implementation is failing the unit tests in
+      // ways that are not entirely clear why. For now, we have identified some
+      // of the problem cases and are manually inserting a reference fallback.
+      // See http://b/270720625 for more details.
+      if (op_data.is_per_channel_quantized ||
+          input->dims->data[1] != input->dims->data[2]) {
+        return ConvReferenceEvalInt8(context, node);
+      } else {
+        return ConvEvalVision(context, node, params, op_data, input, filter,
+                              bias, output);
+      }
 #else
       return ConvReferenceEvalInt8(context, node);
 #endif

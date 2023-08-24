@@ -41,18 +41,6 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   const uint32_t input_height = SizeOfDimension(input, 1);
   const uint32_t input_width = SizeOfDimension(input, 2);
 
-  // Check if the Xtensa optimized code can be used
-  // VISION_P6 does not allow bias data pointer to be nullptr
-  // input height must match input width for VISION_P6 optimization
-  if (bias == nullptr || input->type != kTfLiteInt8 ||
-      input_height != input_width) {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    if (bias != nullptr) {
-      micro_context->DeallocateTempTfLiteTensor(bias);
-    }
-    return kTfLiteOk;
-  }
-
   XtensaConvOpData* data = reinterpret_cast<XtensaConvOpData*>(node->user_data);
   const auto& params =
       *(reinterpret_cast<const TfLiteConvParams*>(node->builtin_data));
@@ -67,6 +55,15 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
 
   const uint32_t filter_height = SizeOfDimension(filter, 1);
   const uint32_t filter_width = SizeOfDimension(filter, 2);
+
+  // At this time it is unclear if per channel quantization is correctly
+  // supported by the optimized vision P6 implementation or not. For now, we are
+  // manually adding a flag to switch to the reference implementation for
+  // per-channel conv.
+  // See http://b/270720625 for more details.
+  data->is_per_channel_quantized =
+      reinterpret_cast<TfLiteAffineQuantization*>(filter->quantization.params)
+          ->scale->size > 1;
 
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels = SizeOfDimension(filter, kConvQuantizedDimension);
