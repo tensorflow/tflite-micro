@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_interpreter_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
@@ -88,7 +88,8 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInit);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInit);
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
@@ -209,15 +210,17 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInit);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInit);
   TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kPrepare);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kPrepare);
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
   micro_context_.SetInterpreterState(
-      MicroContext::InterpreterState::kMemoryPlanning);
+      MicroInterpreterContext::InterpreterState::kMemoryPlanning);
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),
@@ -272,7 +275,8 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   TF_LITE_ENSURE_STATUS(Reset());
 
   tensors_allocated_ = true;
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInvoke);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInvoke);
   return kTfLiteOk;
 }
 

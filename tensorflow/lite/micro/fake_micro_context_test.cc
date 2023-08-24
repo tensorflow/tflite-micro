@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -58,7 +59,7 @@ TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
                                                              kArenaSize);
-  tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
+  tflite::MockMicroGraph dummy_micro_graph{&simple_memory_allocator};
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
       &simple_memory_allocator, &dummy_micro_graph);
@@ -71,7 +72,7 @@ TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
                                                              kArenaSize);
-  tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
+  tflite::MockMicroGraph dummy_micro_graph{&simple_memory_allocator};
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
       &simple_memory_allocator, &dummy_micro_graph);

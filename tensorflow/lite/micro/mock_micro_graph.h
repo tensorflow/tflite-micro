@@ -30,13 +30,13 @@ class MockMicroGraph : public MicroGraph {
  public:
   explicit MockMicroGraph(SingleArenaBufferAllocator* allocator);
   TfLiteStatus InvokeSubgraph(int subgraph_idx) override;
-  TfLiteStatus ResetVariableTensors() override;
   size_t NumSubgraphInputs(int subgraph_idx) override;
   TfLiteEvalTensor* GetSubgraphInput(int subgraph_idx, int tensor_idx) override;
   size_t NumSubgraphOutputs(int subgraph_idx) override;
   TfLiteEvalTensor* GetSubgraphOutput(int subgraph_idx,
                                       int tensor_idx) override;
   int NumSubgraphs() override;
+  MicroResourceVariables* GetResourceVariables() override;
   int get_init_count() const { return init_count_; }
   int get_prepare_count() const { return prepare_count_; }
   int get_free_count() const { return free_count_; }
