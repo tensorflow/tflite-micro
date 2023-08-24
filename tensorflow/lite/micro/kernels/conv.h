@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -74,6 +74,8 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
                                  int out_height, const TfLiteType data_type,
                                  OpDataConv* data);
 
+void* ConvInit(TfLiteContext* context, const char* buffer, size_t length);
+
 TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
 // This is the most generic TFLMRegistration. The actual supported types
@@ -86,13 +88,14 @@ TFLMRegistration Register_CONV_2D();
 // int8 activations and int8 weights and always calls the reference
 // implementation.
 TFLMRegistration Register_CONV_2D_INT8REF();
+
 #else
 inline TFLMRegistration Register_CONV_2D_INT8REF() {
   return Register_CONV_2D();
 }
-#endif
+#endif  // defined(XTENSA)
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 activations and int8 weights and uses the latency optimized
 // implementations.
@@ -107,7 +110,7 @@ TFLMRegistration Register_CONV_2D_INT16();
 inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
 
 inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
-#endif
+#endif  // defined(CMSIS_NN) || defined(XTENSA)
 
 }  // namespace tflite
 
