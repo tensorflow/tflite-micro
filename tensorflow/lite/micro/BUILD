@@ -66,6 +66,7 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_graph",
+        ":micro_graph_info",
         ":micro_log",
         ":micro_profiler_interface",
         "//tensorflow/lite/c:common",
@@ -103,6 +104,16 @@ cc_library(
 )
 
 cc_library(
+    name = "micro_graph_info",
+    hdrs = ["micro_graph_info.h"],
+    deps = [
+        ":micro_common",
+        ":micro_compatibility",
+        ":micro_resource_variable",
+    ],
+)
+
+cc_library(
     name = "micro_graph",
     srcs = ["micro_graph.cc"],
     hdrs = ["micro_graph.h"],
@@ -110,6 +121,7 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_common",
+        ":micro_graph_info",
         ":micro_log",
         ":micro_profiler",
         ":micro_resource_variable",

@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_graph_info.h"
 
 namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
@@ -123,7 +124,7 @@ class MicroContext {
 
   void* external_context() { return external_context_payload_; }
 
-  MicroGraph& graph() { return graph_; }
+  virtual MicroGraphInfo& graph_info() { return graph_; }
 
   // Sets the pointer to a list of ScratchBufferHandle instances.
   // Not API between TFLM and kernels. Primarily used by the framework for

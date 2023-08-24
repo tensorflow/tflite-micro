@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_graph_info.h"
 
 namespace tflite {
 namespace micro {
@@ -117,7 +118,7 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node);
 // types.
 TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
                                           TfLiteNode* node,
-                                          MicroGraph* graph_info,
+                                          MicroGraphInfo* graph_info,
                                           int subgraph_idx,
                                           int first_tensor_idx);
 
@@ -126,14 +127,14 @@ TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
 // types.
 TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
                                            TfLiteNode* node,
-                                           MicroGraph* graph_info,
+                                           MicroGraphInfo* graph_info,
                                            int subgraph_idx);
 
 // Copy all subgraph output tensors to op outputs. Requires all subgraph output
 // tensor shapes and types to be identical to op output tensor shapes and types.
 TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
                                             TfLiteNode* node,
-                                            MicroGraph* graph_info,
+                                            MicroGraphInfo* graph_info,
                                             int subgraph_idx);
 
 // If tensor is INT4, make a new TfLiteEvalTensor with data unpacked into

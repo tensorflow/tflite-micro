@@ -213,7 +213,7 @@ void PrintNBytes(const TfLiteTensor* tensor, int n_bytes, const char* prefix) {
 
 TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
                                           TfLiteNode* node,
-                                          MicroGraph* graph_info,
+                                          MicroGraphInfo* graph_info,
                                           int subgraph_idx,
                                           int first_tensor_idx) {
   TF_LITE_ENSURE(context,
@@ -233,7 +233,7 @@ TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
 
 TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
                                            TfLiteNode* node,
-                                           MicroGraph* graph_info,
+                                           MicroGraphInfo* graph_info,
                                            int subgraph_idx) {
   TF_LITE_ENSURE(context, static_cast<size_t>(node->outputs->size) ==
                               graph_info->NumSubgraphInputs(subgraph_idx));
@@ -250,7 +250,7 @@ TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
 
 TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
                                             TfLiteNode* node,
-                                            MicroGraph* graph_info,
+                                            MicroGraphInfo* graph_info,
                                             int subgraph_idx) {
   TF_LITE_ENSURE(context, static_cast<size_t>(node->outputs->size) ==
                               graph_info->NumSubgraphOutputs(subgraph_idx));

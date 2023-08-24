@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_graph_info.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -27,7 +28,7 @@ namespace tflite {
 //
 // Provides methods to access, initialize, prepare, invoke and free any
 // subgraph in the tflite::Graph.
-class MicroGraph {
+class MicroGraph : public MicroGraphInfo {
  public:
   // The lifetime of the context, model, allocator and resource_variables must
   // be at least as long as that of the graph object, since the this class may
@@ -56,25 +57,32 @@ class MicroGraph {
 
   // Calls TFLMRegistration->Invoke for every operator in a single subgraph
   // in the model.
-  virtual TfLiteStatus InvokeSubgraph(int subgraph_idx);
+  virtual TfLiteStatus InvokeSubgraph(int subgraph_idx) override;
 
   // Zeros out all variable tensors in all subgraphs in the model.
   virtual TfLiteStatus ResetVariableTensors();
 
   // Number of tensor inputs to a specified subgraph in the model.
-  virtual size_t NumSubgraphInputs(int subgraph_idx);
+  virtual size_t NumSubgraphInputs(int subgraph_idx) override;
 
   // Get the specified input tensor of a specified subgraph in the model.
-  virtual TfLiteEvalTensor* GetSubgraphInput(int subgraph_idx, int input_idx);
+  virtual TfLiteEvalTensor* GetSubgraphInput(int subgraph_idx,
+                                             int input_idx) override;
 
   // Number of tensor outputs from a specified subgraph in the model.
-  virtual size_t NumSubgraphOutputs(int subgraph_idx);
+  virtual size_t NumSubgraphOutputs(int subgraph_idx) override;
 
   // Get the specified output tensor of a specified subgraph in the model.
-  virtual TfLiteEvalTensor* GetSubgraphOutput(int subgraph_idx, int output_idx);
+  virtual TfLiteEvalTensor* GetSubgraphOutput(int subgraph_idx,
+                                              int output_idx) override;
 
   // Number of subgraphs in the model.
-  virtual int NumSubgraphs();
+  virtual int NumSubgraphs() override;
+
+  // Get the resource variables for this TFLM graph.
+  virtual MicroResourceVariables* GetResourceVariables() override {
+    return resource_variables_;
+  }
 
   // Hook to pass in subgraph allocations tracked within the interpreter,
   // allowing MicroGraph to init / prepare / invoke subgraphs in the model.
@@ -87,9 +95,6 @@ class MicroGraph {
   // Gets the list of alloctions for each subgraph. This is the source of truth
   // for all per-subgraph allocation data.
   SubgraphAllocations* GetAllocations() { return subgraph_allocations_; }
-
-  // Get the resource variables for this TFLM graph.
-  MicroResourceVariables* GetResourceVariables() { return resource_variables_; }
 
  private:
   TfLiteContext* context_;
