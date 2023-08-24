@@ -31,18 +31,91 @@ enum OpCode { kFullyConnected, kCount };
 TFLMInferenceRegistration op_table[OpCode::kCount] = {
     tflite::RegisterInference_FULLY_CONNECTED(),
 };
+
+struct Node0_0 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {0, 6, 5};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {7};
+  } outputs;
+  // No intermediates
+} node_0_0;
+
+struct Node0_1 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {7, 4, 3};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {8};
+  } outputs;
+  // No intermediates
+} node_0_1;
+
+struct Node0_2 {
+  struct Inputs {
+    int size = 3;
+    int data[3] = {8, 2, 1};
+  } inputs;
+  struct Outputs {
+    int size = 1;
+    int data[1] = {9};
+  } outputs;
+  // No intermediates
+} node_0_2;
+
 }  // namespace
 
-TfLiteStatus InvokeSubgraph0() {
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  TF_LITE_ENSURE_OK(nullptr,
-                    op_table[OpCode::kFullyConnected].invoke(nullptr, nullptr));
-  return kTfLiteOk;
+Model::Model() {
+  context_.impl_ = nullptr;
+  context_.ReportError = nullptr;
+  context_.GetTensor = nullptr;
+  context_.GetEvalTensor = nullptr;
+  context_.profiler = nullptr;
+  context_.GetExternalContext = nullptr;
+  context_.GetScratchBuffer = nullptr;
+
+  subgraph0_nodes_[0] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
+      .custom_initial_data_size = 0};
+  subgraph0_nodes_[1] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
+      .custom_initial_data_size = 0};
+  subgraph0_nodes_[2] = {
+      .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.inputs),
+      .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.outputs),
+      .intermediates = nullptr,
+      .user_data = nullptr,
+      .builtin_data = nullptr,
+      .custom_initial_data = nullptr,
+      .custom_initial_data_size = 0};
 }
 
-TfLiteStatus Invoke() { return InvokeSubgraph0(); }
+TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
+
+TfLiteStatus Model::InvokeSubgraph0() {
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[0]));
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[1]));
+  TF_LITE_ENSURE_OK(context_, op_table[OpCode::kFullyConnected].invoke(
+                                  &context_, &subgraph0_nodes_[2]));
+
+  return kTfLiteOk;
+}
 
 }  // namespace hello_world_model
