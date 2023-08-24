@@ -25,6 +25,11 @@ def to_pascal_case(s: str) -> str:
   return s.title().replace('_', '')
 
 
+def bool_to_c_str(b: bool) -> str:
+  """ Convert a python bool value to a C bool string. Ie, False -> 'false' """
+  return str(b).lower()
+
+
 class IntArray(object):
   """ A helper class for generating int arrays that can be used to provide the
       backing storage for a TfLiteIntArray. """

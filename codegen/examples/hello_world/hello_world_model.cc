@@ -17,6 +17,7 @@ limitations under the License.
 
 #include "hello_world_model.h"
 
+#include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
@@ -42,6 +43,11 @@ struct Node0_0 {
     int data[1] = {7};
   } outputs;
   // No intermediates
+  TfLiteFullyConnectedParams builtin_data = {
+      .activation = kTfLiteActRelu,
+      .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
+      .keep_num_dims = false,
+      .asymmetric_quantize_inputs = false};
 } node_0_0;
 
 struct Node0_1 {
@@ -54,6 +60,11 @@ struct Node0_1 {
     int data[1] = {8};
   } outputs;
   // No intermediates
+  TfLiteFullyConnectedParams builtin_data = {
+      .activation = kTfLiteActRelu,
+      .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
+      .keep_num_dims = false,
+      .asymmetric_quantize_inputs = false};
 } node_0_1;
 
 struct Node0_2 {
@@ -66,6 +77,11 @@ struct Node0_2 {
     int data[1] = {9};
   } outputs;
   // No intermediates
+  TfLiteFullyConnectedParams builtin_data = {
+      .activation = kTfLiteActNone,
+      .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
+      .keep_num_dims = false,
+      .asymmetric_quantize_inputs = false};
 } node_0_2;
 
 }  // namespace
@@ -84,7 +100,7 @@ Model::Model() {
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.outputs),
       .intermediates = nullptr,
       .user_data = nullptr,
-      .builtin_data = nullptr,
+      .builtin_data = static_cast<void*>(&node_0_0.builtin_data),
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
   subgraph0_nodes_[1] = {
@@ -92,7 +108,7 @@ Model::Model() {
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.outputs),
       .intermediates = nullptr,
       .user_data = nullptr,
-      .builtin_data = nullptr,
+      .builtin_data = static_cast<void*>(&node_0_1.builtin_data),
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
   subgraph0_nodes_[2] = {
@@ -100,7 +116,7 @@ Model::Model() {
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.outputs),
       .intermediates = nullptr,
       .user_data = nullptr,
-      .builtin_data = nullptr,
+      .builtin_data = static_cast<void*>(&node_0_2.builtin_data),
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
 }
