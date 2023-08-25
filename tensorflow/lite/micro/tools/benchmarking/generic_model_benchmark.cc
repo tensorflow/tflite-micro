@@ -56,9 +56,9 @@ constexpr uint32_t kRandomSeed = 0xFB;
 // Which format should be used to output debug information.
 constexpr PrettyPrintType kPrintType = PrettyPrintType::kTable;
 
-constexpr size_t kTensorArenaSize = 1024 * 1024;
+constexpr size_t kTensorArenaSize = 3e6;
 constexpr int kNumResourceVariable = 100;
-constexpr size_t kModelSize = 511408;
+constexpr size_t kModelSize = 2e6;
 
 void SetRandomInput(const uint32_t random_seed,
                     tflite::MicroInterpreter& interpreter) {
@@ -86,7 +86,11 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
     return false;
   }
   if (!feof(file.get())) {
-    MicroPrintf("Model buffer is too small for the model.\n");
+    // Note that http://b/297592546 can mean that this error message is
+    // confusing.
+    MicroPrintf(
+        "Model buffer (%d bytes) is too small for the model (%d bytes).\n",
+        buffer_size, bytes_read);
     return false;
   }
   if (bytes_read == 0) {
