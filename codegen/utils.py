@@ -36,10 +36,11 @@ def split_into_chunks(
     chunk_size: int) -> Generator[Tuple[Any, ...], None, None]:
   """Splits an iterable into chunks of a given size."""
   data_iterator = iter(data)
-  chunk = tuple(itertools.islice(data_iterator, chunk_size))
-  while chunk:
-    yield chunk
+  while True:
     chunk = tuple(itertools.islice(data_iterator, chunk_size))
+    if not chunk:
+      break
+    yield chunk
 
 
 class IntArray(object):
