@@ -158,6 +158,7 @@ cc_library(
         "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
+        "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
         "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",

@@ -33,17 +33,28 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
+namespace {
+MemoryPlannerType FlagToMemoryPlannerType(bool preserve_all_tensors) {
+  if (preserve_all_tensors) {
+    return MemoryPlannerType::kLinear;
+  } else {
+    return MemoryPlannerType::kGreedy;
+  }
+}
+}  // namespace
 
 MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfilerInterface* profiler)
+                                   MicroProfilerInterface* profiler,
+                                   bool preserve_all_tensors)
     : model_(model),
       op_resolver_(op_resolver),
-      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size)),
-
+      allocator_(*MicroAllocator::Create(
+          tensor_arena, tensor_arena_size,
+          FlagToMemoryPlannerType(preserve_all_tensors))),
       graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
@@ -303,6 +314,15 @@ TfLiteStatus MicroInterpreter::Reset() {
     return status;
   }
   return graph_.ResetVariableTensors();
+}
+
+TfLiteEvalTensor* MicroInterpreter::GetTensor(int tensor_index,
+                                              int subgraph_index) {
+  if (!allocator_.preserves_all_tensor()) {
+    MicroPrintf("GetTensor requires all tensors to be preserved");
+    return nullptr;
+  }
+  return &graph_.GetAllocations()[subgraph_index].tensors[tensor_index];
 }
 
 TfLiteStatus MicroInterpreter::SetMicroExternalContext(

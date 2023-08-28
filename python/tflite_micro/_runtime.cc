@@ -24,14 +24,19 @@ using tflite::InterpreterWrapper;
 
 PYBIND11_MODULE(_runtime, m) {
   m.doc() = "TFLite Micro Runtime Extension";
-
+  py::enum_<tflite::InterpreterConfig>(m, "PythonInterpreterConfig")
+      .value("kAllocationRecording",
+             tflite::InterpreterConfig::kAllocationRecording)
+      .value("kPreserveAllTensors",
+             tflite::InterpreterConfig::kPreserveAllTensors);
   py::class_<InterpreterWrapper>(m, "InterpreterWrapper")
       .def(py::init([](const py::bytes& data,
                        const std::vector<std::string>& registerers_by_name,
-                       size_t arena_size, int num_resource_variables) {
+                       size_t arena_size, int num_resource_variables,
+                       tflite::InterpreterConfig config) {
         return std::unique_ptr<InterpreterWrapper>(
             new InterpreterWrapper(data.ptr(), registerers_by_name, arena_size,
-                                   num_resource_variables));
+                                   num_resource_variables, config));
       }))
       .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
       .def("Invoke", &InterpreterWrapper::Invoke)
@@ -54,6 +59,14 @@ PYBIND11_MODULE(_runtime, m) {
             return tflite::PyoOrThrow(self.GetInputTensorDetails(index));
           },
           py::arg("index"))
+      .def(
+          "GetTensor",
+          [](InterpreterWrapper& self, size_t tensor_index,
+             size_t subgraph_index = 0) {
+            return tflite::PyoOrThrow(
+                self.GetTensor(tensor_index, subgraph_index));
+          },
+          py::arg("tensor_index"), py::arg("subgraph_index"))
       .def(
           "GetOutputTensorDetails",
           [](InterpreterWrapper& self, size_t index) {
