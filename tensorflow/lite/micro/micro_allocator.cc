@@ -75,19 +75,18 @@ MicroMemoryPlanner* CreateMemoryPlanner(
     MemoryPlannerType memory_planner_type,
     IPersistentBufferAllocator* memory_allocator) {
   MicroMemoryPlanner* memory_planner = nullptr;
+  uint8_t* memory_planner_buffer = nullptr;
 
   switch (memory_planner_type) {
     case MemoryPlannerType::kLinear: {
-      uint8_t* memory_planner_buffer =
-          memory_allocator->AllocatePersistentBuffer(
-              sizeof(LinearMemoryPlanner), alignof(LinearMemoryPlanner));
+      memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
+          sizeof(LinearMemoryPlanner), alignof(LinearMemoryPlanner));
       memory_planner = new (memory_planner_buffer) LinearMemoryPlanner();
       break;
     }
     case MemoryPlannerType::kGreedy: {
-      uint8_t* memory_planner_buffer =
-          memory_allocator->AllocatePersistentBuffer(
-              sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+      memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
+          sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
       memory_planner = new (memory_planner_buffer) GreedyMemoryPlanner();
       break;
     }
@@ -444,8 +443,22 @@ MicroAllocator* MicroAllocator::Create(uint8_t* persistent_tensor_arena,
                                         non_persistent_arena_size,
                                         persistent_buffer_allocator);
 
-  MicroMemoryPlanner* memory_planner =
-      CreateMemoryPlanner(memory_planner_type, persistent_buffer_allocator);
+  // TODO(b/297821738): this should be changed to CreateMemoryPlanner if
+  // possible once  it's figured out why it breaks the HifiMini Build
+  uint8_t* memory_planner_buffer = nullptr;
+  MicroMemoryPlanner* memory_planner = nullptr;
+
+  if (memory_planner_type == MemoryPlannerType::kGreedy) {
+    memory_planner_buffer =
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+    memory_planner = new (memory_planner_buffer) GreedyMemoryPlanner();
+  } else if (memory_planner_type == MemoryPlannerType::kLinear) {
+    memory_planner_buffer =
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            sizeof(LinearMemoryPlanner), alignof(LinearMemoryPlanner));
+    memory_planner = new (memory_planner_buffer) LinearMemoryPlanner();
+  }
 
   uint8_t* micro_allocator_buffer =
       persistent_buffer_allocator->AllocatePersistentBuffer(
