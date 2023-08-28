@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -145,8 +145,8 @@ TfLiteStatus TestConvQuantizedPerChannel(
       input_data, input_quantized, input_dims, input_scale, input_zero_point);
   TfLiteTensor filter_tensor = CreateSymmetricPerChannelQuantizedTensor(
       filter_data, filter_data_quantized, filter_dims, filter_scales,
-      filter_zero_points, &filter_quant, 0, false,
-      tensor_weight_type /* quantized dimension */);
+      filter_zero_points, &filter_quant, 0 /* quantized dimension */, false,
+      tensor_weight_type);
   TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
       bias_data, bias_data_quantized, bias_dims, input_scale, &filter_scales[1],
       bias_scales, bias_zero_points, &bias_quant, 0 /* quantized dimension */);

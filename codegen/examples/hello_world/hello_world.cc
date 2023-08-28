@@ -17,7 +17,9 @@ limitations under the License.
 #include "tensorflow/lite/c/c_api_types.h"
 
 int main(int argc, char** argv) {
-  TfLiteStatus status = hello_world_model::Invoke();
+  hello_world_model::Model hello_world{};
+
+  TfLiteStatus status = hello_world.Invoke();
   if (status != kTfLiteOk) {
     return -1;
   }

@@ -18,6 +18,7 @@ cc_library(
         "framer.cc",
         "irfft.cc",
         "overlap_add.cc",
+        "pcan.cc",
         "rfft.cc",
         "stacker.cc",
         "window.cc",
@@ -40,6 +41,7 @@ cc_library(
         "//signal/src:filter_bank_square_root",
         "//signal/src:irfft",
         "//signal/src:overlap_add",
+        "//signal/src:pcan_argc_fixed",
         "//signal/src:rfft",
         "//signal/src:window",
         "//tensorflow/lite:type_to_tflitetype",
@@ -317,6 +319,31 @@ cc_test(
         "filter_bank_square_root_test.cc",
     ],
     deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels:kernel_runner",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_library(
+    name = "pcan_flexbuffers_generated_data",
+    srcs = [
+        "pcan_flexbuffers_generated_data.cc",
+    ],
+    hdrs = [
+        "pcan_flexbuffers_generated_data.h",
+    ],
+)
+
+cc_test(
+    name = "pcan_test",
+    srcs = [
+        "pcan_test.cc",
+    ],
+    deps = [
+        ":pcan_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",

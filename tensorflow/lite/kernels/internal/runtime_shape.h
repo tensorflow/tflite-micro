@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
 
+#include <cstring>
+
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 
 namespace tflite {

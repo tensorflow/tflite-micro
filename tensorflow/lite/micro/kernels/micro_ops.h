@@ -147,6 +147,7 @@ TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT();
 TFLMRegistration* Register_ENERGY();
 TFLMRegistration* Register_FRAMER();
 TFLMRegistration* Register_OVERLAP_ADD();
+TFLMRegistration* Register_PCAN();
 TFLMRegistration* Register_STACKER();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal

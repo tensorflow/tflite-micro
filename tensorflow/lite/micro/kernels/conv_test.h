@@ -34,10 +34,6 @@ TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
                         TFLMRegistration registration, int8_t* output_data);
 
-TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
-                        int output_length, TfLiteConvParams* conv_params,
-                        TFLMRegistration registration, uint8_t* output_data);
-
 TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const float* expected_output_data,
                                  int output_length,
@@ -52,13 +48,6 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  TFLMRegistration registration,
                                  int8_t* output_data, float tolerance = 1e-5);
 
-TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
-                                 const uint8_t* expected_output_data,
-                                 int output_length,
-                                 TfLiteConvParams* conv_params,
-                                 TFLMRegistration registration,
-                                 uint8_t* output_data, float tolerance = 1e-5);
-
 TfLiteStatus TestConvFloat(int* input_dims_data, const float* input_data,
                            int* filter_dims_data, const float* filter_data,
                            int* bias_dims_data, const float* bias_data,
@@ -66,15 +55,6 @@ TfLiteStatus TestConvFloat(int* input_dims_data, const float* input_data,
                            const float* expected_output_data,
                            TfLiteConvParams* conv_params,
                            TFLMRegistration registration, float* output_data);
-
-TfLiteStatus TestConvQuantizedPerLayer(
-    int* input_dims_data, const float* input_data, uint8_t* input_quantized,
-    float input_scale, int* filter_dims_data, const float* filter_data,
-    uint8_t* filter_quantized, float filter_scale, int* bias_dims_data,
-    const float* bias_data, int32_t* bias_quantized, int* output_dims_data,
-    const float* expected_output_data, uint8_t* expected_output_quantized,
-    float output_scale, TfLiteConvParams* conv_params,
-    TFLMRegistration registration, uint8_t* output_data);
 
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,

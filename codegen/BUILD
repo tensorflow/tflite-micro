@@ -12,6 +12,9 @@ py_library(
         "graph.py",
     ],
     deps = [
+        ":utils",
+        "//codegen/operators:factory",
+        "//codegen/operators:operator",
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:visualize",
     ],
@@ -29,6 +32,13 @@ py_library(
     deps = [
         ":graph",
         requirement("mako"),
+    ],
+)
+
+py_library(
+    name = "utils",
+    srcs = [
+        "utils.py",
     ],
 )
 
