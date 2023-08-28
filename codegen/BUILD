@@ -12,6 +12,7 @@ py_library(
         "graph.py",
     ],
     deps = [
+        ":tensor",
         ":utils",
         "//codegen/operators:factory",
         "//codegen/operators:operator",
@@ -32,6 +33,17 @@ py_library(
     deps = [
         ":graph",
         requirement("mako"),
+    ],
+)
+
+py_library(
+    name = "tensor",
+    srcs = [
+        "tensor.py",
+    ],
+    deps = [
+        ":utils",
+        "//tensorflow/lite/python:schema_py",
     ],
 )
 

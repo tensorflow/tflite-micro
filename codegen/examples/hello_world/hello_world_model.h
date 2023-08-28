@@ -33,6 +33,7 @@ class Model {
 
   TfLiteContext context_ = {};
   TfLiteNode subgraph0_nodes_[3] = {};
+  TfLiteEvalTensor subgraph0_tensors_[10] = {};
 };
 
 }  // namespace hello_world_model
