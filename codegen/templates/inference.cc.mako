@@ -40,10 +40,18 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
 % endfor
 };
 
+% for buffer in graph.buffers:
+${buffer.generate_c_buffer_array("")}
+% endfor
 % for subgraph in graph.subgraphs:
 ${subgraph.generate_c_node_data("")}
+
+${subgraph.generate_c_tensor_data("")}
 % endfor
 
+% if graph.needs_zero_length_int_array:
+TfLiteIntArray zero_length_int_array = {};
+% endif
 }  // namespace
 
 Model::Model() {
@@ -57,6 +65,8 @@ Model::Model() {
 
 % for subgraph in graph.subgraphs:
 ${subgraph.generate_c_node_init("  ")}
+
+${subgraph.generate_c_tensor_init("  ")}
 % endfor
 }
 

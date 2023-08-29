@@ -37,6 +37,9 @@ class Model {
 % for subgraph in graph.subgraphs:
   TfLiteNode ${subgraph.nodes_array}[${len(subgraph.operators)}] = {};
 % endfor
+% for subgraph in graph.subgraphs:
+  TfLiteEvalTensor ${subgraph.tensors_array}[${len(subgraph.tensors)}] = {};
+% endfor
 };
 
 }  // namespace ${model_name}

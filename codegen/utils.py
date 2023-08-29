@@ -14,8 +14,9 @@
 # ==============================================================================
 """ Utility functions and classes for code generation. """
 
-from typing import List, Optional
+from typing import Any, Generator, Iterable, List, Optional, Tuple
 import string
+import itertools
 
 
 def to_pascal_case(s: str) -> str:
@@ -28,6 +29,18 @@ def to_pascal_case(s: str) -> str:
 def bool_to_c_str(b: bool) -> str:
   """ Convert a python bool value to a C bool string. Ie, False -> 'false' """
   return str(b).lower()
+
+
+def split_into_chunks(
+    data: Iterable[Any],
+    chunk_size: int) -> Generator[Tuple[Any, ...], None, None]:
+  """Splits an iterable into chunks of a given size."""
+  data_iterator = iter(data)
+  while True:
+    chunk = tuple(itertools.islice(data_iterator, chunk_size))
+    if not chunk:
+      break
+    yield chunk
 
 
 class IntArray(object):
