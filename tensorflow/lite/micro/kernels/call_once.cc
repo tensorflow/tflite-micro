@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/micro_graph_info.h"
+#include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -52,7 +52,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumOutputs(node) == 0);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  MicroGraphInfo& graph_info = micro_context->graph_info();
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE(context,
                  op_data->init_subgraph_index < graph_info.NumSubgraphs());
@@ -69,7 +69,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
-  MicroGraphInfo& graph_info = micro_context->graph_info();
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE_OK(context,
                     graph_info.InvokeSubgraph(op_data->init_subgraph_index));

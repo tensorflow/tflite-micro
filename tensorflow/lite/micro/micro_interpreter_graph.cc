@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
@@ -37,9 +37,9 @@ const char* OpNameFromRegistration(const TFLMRegistration* registration) {
 
 }  // namespace
 
-MicroGraph::MicroGraph(TfLiteContext* context, const Model* model,
-                       MicroAllocator* allocator,
-                       MicroResourceVariables* resource_variables)
+MicroInterpreterGraph::MicroInterpreterGraph(
+    TfLiteContext* context, const Model* model, MicroAllocator* allocator,
+    MicroResourceVariables* resource_variables)
     : context_(context),
       model_(model),
       allocator_(allocator),
@@ -50,9 +50,9 @@ MicroGraph::MicroGraph(TfLiteContext* context, const Model* model,
   }
 }
 
-MicroGraph::~MicroGraph() {}
+MicroInterpreterGraph::~MicroInterpreterGraph() {}
 
-TfLiteStatus MicroGraph::InitSubgraphs() {
+TfLiteStatus MicroInterpreterGraph::InitSubgraphs() {
   int previous_subgraph_idx = current_subgraph_index_;
 
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
@@ -85,7 +85,7 @@ TfLiteStatus MicroGraph::InitSubgraphs() {
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroGraph::PrepareSubgraphs() {
+TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
   int previous_subgraph_idx = current_subgraph_index_;
 
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
@@ -114,7 +114,7 @@ TfLiteStatus MicroGraph::PrepareSubgraphs() {
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroGraph::ResetSubgraphs() {
+TfLiteStatus MicroInterpreterGraph::ResetSubgraphs() {
   int previous_subgraph_idx = current_subgraph_index_;
 
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
@@ -139,7 +139,7 @@ TfLiteStatus MicroGraph::ResetSubgraphs() {
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroGraph::FreeSubgraphs() {
+TfLiteStatus MicroInterpreterGraph::FreeSubgraphs() {
   int previous_subgraph_idx = current_subgraph_index_;
 
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
@@ -164,7 +164,7 @@ TfLiteStatus MicroGraph::FreeSubgraphs() {
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroGraph::InvokeSubgraph(int subgraph_idx) {
+TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
   int previous_subgraph_idx = current_subgraph_index_;
   current_subgraph_index_ = subgraph_idx;
 
@@ -211,7 +211,7 @@ TfLiteStatus MicroGraph::InvokeSubgraph(int subgraph_idx) {
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroGraph::ResetVariableTensors() {
+TfLiteStatus MicroInterpreterGraph::ResetVariableTensors() {
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
        subgraph_idx++) {
     const SubGraph* subgraph = (*subgraphs_)[subgraph_idx];
@@ -238,30 +238,32 @@ TfLiteStatus MicroGraph::ResetVariableTensors() {
   return kTfLiteOk;
 }
 
-int MicroGraph::NumSubgraphs() { return model_->subgraphs()->size(); }
+int MicroInterpreterGraph::NumSubgraphs() {
+  return model_->subgraphs()->size();
+}
 
-void MicroGraph::SetSubgraphAllocations(
+void MicroInterpreterGraph::SetSubgraphAllocations(
     SubgraphAllocations* subgraph_allocations) {
   subgraph_allocations_ = subgraph_allocations;
 }
 
-size_t MicroGraph::NumSubgraphInputs(int subgraph_idx) {
+size_t MicroInterpreterGraph::NumSubgraphInputs(int subgraph_idx) {
   return model_->subgraphs()->Get(subgraph_idx)->inputs()->size();
 }
 
-TfLiteEvalTensor* MicroGraph::GetSubgraphInput(int subgraph_idx,
-                                               int input_idx) {
+TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphInput(int subgraph_idx,
+                                                          int input_idx) {
   int tensor_idx =
       model_->subgraphs()->Get(subgraph_idx)->inputs()->Get(input_idx);
   return &subgraph_allocations_[subgraph_idx].tensors[tensor_idx];
 }
 
-size_t MicroGraph::NumSubgraphOutputs(int subgraph_idx) {
+size_t MicroInterpreterGraph::NumSubgraphOutputs(int subgraph_idx) {
   return model_->subgraphs()->Get(subgraph_idx)->outputs()->size();
 }
 
-TfLiteEvalTensor* MicroGraph::GetSubgraphOutput(int subgraph_idx,
-                                                int output_idx) {
+TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphOutput(int subgraph_idx,
+                                                           int output_idx) {
   int tensor_idx =
       model_->subgraphs()->Get(subgraph_idx)->outputs()->Get(output_idx);
   return &subgraph_allocations_[subgraph_idx].tensors[tensor_idx];

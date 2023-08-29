@@ -40,7 +40,7 @@ cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_context",
-        ":micro_graph",
+        ":micro_interpreter_graph",
         ":micro_profiler_interface",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
@@ -65,8 +65,7 @@ cc_library(
     deps = [
         ":memory_helpers",
         ":micro_allocator",
-        ":micro_graph",
-        ":micro_graph_info",
+        ":micro_interpreter_graph",
         ":micro_log",
         ":micro_profiler_interface",
         "//tensorflow/lite/c:common",
@@ -104,24 +103,24 @@ cc_library(
 )
 
 cc_library(
-    name = "micro_graph_info",
-    hdrs = ["micro_graph_info.h"],
+    name = "micro_graph",
+    hdrs = ["micro_graph.h"],
     deps = [
         ":micro_common",
-        ":micro_compatibility",
         ":micro_resource_variable",
+        "//tensorflow/lite/kernels/internal:compatibility",
     ],
 )
 
 cc_library(
-    name = "micro_graph",
-    srcs = ["micro_graph.cc"],
-    hdrs = ["micro_graph.h"],
+    name = "micro_interpreter_graph",
+    srcs = ["micro_interpreter_graph.cc"],
+    hdrs = ["micro_interpreter_graph.h"],
     deps = [
         ":memory_helpers",
         ":micro_allocator",
         ":micro_common",
-        ":micro_graph_info",
+        ":micro_graph",
         ":micro_log",
         ":micro_profiler",
         ":micro_resource_variable",
@@ -419,6 +418,7 @@ cc_test(
     deps = [
         ":micro_allocator",
         ":micro_context",
+        ":micro_interpreter_graph",
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],

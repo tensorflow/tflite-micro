@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_
 
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 
 namespace tflite {
 // A fake of MicroContext for kernel util tests.
@@ -28,7 +28,7 @@ namespace tflite {
 class FakeMicroContext : public MicroContext {
  public:
   FakeMicroContext(TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
-                   MicroGraph* micro_graph);
+                   MicroInterpreterGraph* micro_graph);
 
   void* AllocatePersistentBuffer(size_t bytes) override;
   TfLiteStatus RequestScratchBufferInArena(size_t bytes,

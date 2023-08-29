@@ -24,7 +24,7 @@ limitations under the License.
 
 namespace tflite {
 MicroContext::MicroContext(MicroAllocator* allocator, const Model* model,
-                           MicroGraph* graph)
+                           MicroInterpreterGraph* graph)
     : allocator_(*allocator),
       graph_(*graph),
       model_(model),

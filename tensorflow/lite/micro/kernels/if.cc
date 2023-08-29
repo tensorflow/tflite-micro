@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/micro_graph_info.h"
+#include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -69,7 +69,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   size_t num_inputs = node->inputs->size - 1;
   size_t num_outputs = node->outputs->size;
 
-  MicroGraphInfo& graph_info = micro_context->graph_info();
+  MicroGraph& graph_info = micro_context->graph();
 
   TF_LITE_ENSURE(context,
                  op_data->then_subgraph_index < graph_info.NumSubgraphs());
@@ -94,7 +94,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, cond != nullptr);
   const bool cond_value = cond->data.b[0];
 
-  MicroGraphInfo* graph_info = &micro_context->graph_info();
+  MicroGraph* graph_info = &micro_context->graph();
   // Currently we copy the input / output between the subgraphs.
   int active_branch_subgraph_index =
       cond_value ? op_data->then_subgraph_index : op_data->else_subgraph_index;

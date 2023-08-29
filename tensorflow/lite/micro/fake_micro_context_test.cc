@@ -28,7 +28,7 @@ using ::tflite::testing::IntArrayFromInts;
 
 tflite::FakeMicroContext CreateFakeMicroContext(
     SingleArenaBufferAllocator* simple_memory_allocator,
-    MicroGraph* micro_graph) {
+    MicroInterpreterGraph* micro_graph) {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transitent memories in static variables. This is
   // safe because tests are guarateed to run serially.
@@ -58,7 +58,8 @@ TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
                                                              kArenaSize);
-  tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
+  tflite::MicroInterpreterGraph dummy_micro_graph(nullptr, nullptr, nullptr,
+                                                  nullptr);
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
       &simple_memory_allocator, &dummy_micro_graph);
@@ -71,7 +72,8 @@ TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
                                                              kArenaSize);
-  tflite::MicroGraph dummy_micro_graph(nullptr, nullptr, nullptr, nullptr);
+  tflite::MicroInterpreterGraph dummy_micro_graph(nullptr, nullptr, nullptr,
+                                                  nullptr);
 
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
       &simple_memory_allocator, &dummy_micro_graph);

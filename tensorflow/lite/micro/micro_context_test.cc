@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -27,22 +28,15 @@ namespace tflite {
 namespace {
 
 tflite::MicroContext CreateMicroContext() {
-  // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
-  // the test need to place non-transient memories in static variables. This is
-  // safe because tests are guaranteed to run serially.
-  constexpr size_t kMicroGraphPlacementBufferSize = 1024;
-  alignas(4) static uint8_t
-      micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
   constexpr size_t kArenaSize = 1024;
   static uint8_t tensor_arena[kArenaSize];
 
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   MicroAllocator* micro_allocator =
       MicroAllocator::Create(tensor_arena, kArenaSize);
-  MicroGraph* micro_graph = new (micro_graph_placement_buffer)
-      MicroGraph(nullptr, nullptr, nullptr, nullptr);
+  static MicroInterpreterGraph micro_graph(nullptr, nullptr, nullptr, nullptr);
 
-  tflite::MicroContext micro_context(micro_allocator, model, micro_graph);
+  tflite::MicroContext micro_context(micro_allocator, model, &micro_graph);
   return micro_context;
 }
 

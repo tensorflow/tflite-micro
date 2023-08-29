@@ -31,7 +31,7 @@ static uint8_t dummy_tensor_arena[KDummyTensorArenaSize];
 
 FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SingleArenaBufferAllocator* allocator,
-                                   MicroGraph* micro_graph)
+                                   MicroInterpreterGraph* micro_graph)
     : MicroContext(
           MicroAllocator::Create(dummy_tensor_arena, KDummyTensorArenaSize),
           nullptr, micro_graph),

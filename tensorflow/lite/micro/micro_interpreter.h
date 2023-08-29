@@ -25,7 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/portable_type_to_tflitetype.h"
@@ -151,7 +151,7 @@ class MicroInterpreter {
   const MicroOpResolver& op_resolver_;
   TfLiteContext context_ = {};
   MicroAllocator& allocator_;
-  MicroGraph graph_;
+  MicroInterpreterGraph graph_;
   bool tensors_allocated_;
 
   TfLiteStatus initialization_status_;

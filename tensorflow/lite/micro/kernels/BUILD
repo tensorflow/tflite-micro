@@ -348,7 +348,7 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
-        "//tensorflow/lite/micro:micro_graph_info",
+        "//tensorflow/lite/micro:micro_graph",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/schema:schema_fbs",

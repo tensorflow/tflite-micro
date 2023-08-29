@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_graph.h"
-#include "tensorflow/lite/micro/micro_graph_info.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 
 namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
@@ -45,7 +45,7 @@ class MicroContext {
   // Does not take any ownership, and all pointers must refer to valid objects
   // that outlive the one constructed.
   explicit MicroContext(MicroAllocator* allocator, const Model* model,
-                        MicroGraph* graph);
+                        MicroInterpreterGraph* graph);
   virtual ~MicroContext();
 
   // Allocate persistent buffer which has the same life time as the interpreter.
@@ -124,7 +124,7 @@ class MicroContext {
 
   void* external_context() { return external_context_payload_; }
 
-  virtual MicroGraphInfo& graph_info() { return graph_; }
+  MicroGraph& graph() { return graph_; }
 
   // Sets the pointer to a list of ScratchBufferHandle instances.
   // Not API between TFLM and kernels. Primarily used by the framework for
@@ -137,7 +137,7 @@ class MicroContext {
   int GetTensorIndex(int index, int max_size, const int* tensor_indices);
 
   MicroAllocator& allocator_;
-  MicroGraph& graph_;
+  MicroInterpreterGraph& graph_;
   const Model* model_;
   InterpreterState state_;
 
