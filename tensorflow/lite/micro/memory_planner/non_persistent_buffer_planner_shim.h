@@ -115,6 +115,10 @@ class NonPersistentMemoryPlannerShim : public MicroMemoryPlanner {
   size_t GetMaximumMemorySize() override;
   int GetBufferCount() override;
 
+  // Returns False because the NonPersistentMemoryPlannerShim doesn't preserves
+  // all tensors after invocation.
+  bool preserves_all_tensors() const override { return false; }
+
  private:
   const BufferPlan* buffer_plan_;  // not owned, can't be null
 

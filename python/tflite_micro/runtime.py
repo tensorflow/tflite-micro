@@ -14,15 +14,64 @@
 # ==============================================================================
 """Python package for TFLM Python Interpreter"""
 
+import enum
 import os
-
-from tflite_micro.python.tflite_micro import _runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.python.tflite_micro import _runtime
+
+
+class InterpreterConfig(enum.Enum):
+  """There are two mutually exclusive types of way you could use the TFLM python
+
+  interpreter, this enum is made so that users can clearly choose between the
+  two
+  different usage method for the interpreter.
+
+  The first default way is kRecordingAllocation where all memory usage by the
+  interpreter is recorded on inference. When using this config the GetTensor()
+  api is disabled by the interpreter since this interpreter configuration
+  doesn’t
+  guarantee that the valid data for all tensors is available post inference.
+
+  The second way is kPreserveAllTensors where the GetTensor() api is disabled by
+  the interpreter since this interpreter configuration doesn’t guarantee that
+  the
+  valid data for all tensors is available post inference. But the memory usage
+  by
+  the interpreter won’t be recorded on inference.
+
+  Usage:
+
+  default_interpreter = Interpreter(…
+        intrepreter_config=InterpreterConfig.kAllocationRecording)
+
+  preserve_interpreter = Interpreter(…
+        intrepreter_config=InterpreterConfig.kPreserveAllTensors)
+  """
+
+  kAllocationRecording = 0
+  kPreserveAllTensors = 1
+
+
+#TODO(b/297118768): Once Korko Docker contrainer for ubuntu x86 has imutabledict
+# added to it, this should be turned into an immutabledict.
+_ENUM_TRANSLATOR = {
+    InterpreterConfig.kAllocationRecording:
+    (_runtime.PythonInterpreterConfig.kAllocationRecording),
+    InterpreterConfig.kPreserveAllTensors:
+    (_runtime.PythonInterpreterConfig.kPreserveAllTensors),
+}
 
 
 class Interpreter(object):
 
-  def __init__(self, model_data, custom_op_registerers, arena_size):
+  def __init__(
+      self,
+      model_data,
+      custom_op_registerers,
+      arena_size,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+  ):
     if model_data is None:
       raise ValueError("Model must not be None")
 
@@ -33,20 +82,28 @@ class Interpreter(object):
     # This is a heuristic to ensure that the arena is sufficiently sized.
     if arena_size is None:
       arena_size = len(model_data) * 10
-
     # Some models make use of resource variables ops, get the count here
     num_resource_variables = flatbuffer_utils.count_resource_variables(
         model_data)
     print("Number of resource variables the model uses = ",
           num_resource_variables)
 
-    self._interpreter = _runtime.InterpreterWrapper(model_data,
-                                                    custom_op_registerers,
-                                                    arena_size,
-                                                    num_resource_variables)
+    self._interpreter = _runtime.InterpreterWrapper(
+        model_data,
+        custom_op_registerers,
+        arena_size,
+        num_resource_variables,
+        _ENUM_TRANSLATOR[intrepreter_config],
+    )
 
   @classmethod
-  def from_file(self, model_path, custom_op_registerers=[], arena_size=None):
+  def from_file(
+      self,
+      model_path,
+      custom_op_registerers=[],
+      arena_size=None,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+  ):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
     Args:
@@ -65,10 +122,21 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(
+        model_data,
+        custom_op_registerers,
+        arena_size,
+        intrepreter_config,
+    )
 
   @classmethod
-  def from_bytes(self, model_data, custom_op_registerers=[], arena_size=None):
+  def from_bytes(
+      self,
+      model_data,
+      custom_op_registerers=[],
+      arena_size=None,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+  ):
     """Instantiates a TFLM interpreter from a model in byte array.
 
     Args:
@@ -82,7 +150,12 @@ class Interpreter(object):
       An Interpreter instance
     """
 
-    return Interpreter(model_data, custom_op_registerers, arena_size)
+    return Interpreter(
+        model_data,
+        custom_op_registerers,
+        arena_size,
+        intrepreter_config,
+    )
 
   def print_allocations(self):
     """Invoke the RecordingMicroAllocator to print the arena usage.
@@ -156,6 +229,9 @@ class Interpreter(object):
       raise ValueError("Index must be a non-negative integer")
 
     return self._interpreter.GetOutputTensor(index)
+
+  def GetTensor(self, tensor_index, subgraph_index):
+    return self._interpreter.GetTensor(tensor_index, subgraph_index)
 
   def get_input_details(self, index):
     """Get input tensor information

@@ -28,13 +28,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
+#include "tensorflow/lite/micro/memory_planner/linear_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 #include "tensorflow/lite/micro/micro_allocation_info.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 
@@ -70,6 +70,29 @@ class MicroBuiltinDataAllocator : public TfLiteBridgeBuiltinDataAllocator {
  private:
   IPersistentBufferAllocator* persistent_allocator_;
 };
+
+MicroMemoryPlanner* CreateMemoryPlanner(
+    MemoryPlannerType memory_planner_type,
+    IPersistentBufferAllocator* memory_allocator) {
+  MicroMemoryPlanner* memory_planner = nullptr;
+  uint8_t* memory_planner_buffer = nullptr;
+
+  switch (memory_planner_type) {
+    case MemoryPlannerType::kLinear: {
+      memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
+          sizeof(LinearMemoryPlanner), alignof(LinearMemoryPlanner));
+      memory_planner = new (memory_planner_buffer) LinearMemoryPlanner();
+      break;
+    }
+    case MemoryPlannerType::kGreedy: {
+      memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
+          sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+      memory_planner = new (memory_planner_buffer) GreedyMemoryPlanner();
+      break;
+    }
+  }
+  return memory_planner;
+}
 
 TfLiteStatus CreatePlan(MicroMemoryPlanner* planner,
                         const AllocationInfo* allocation_info,
@@ -374,8 +397,8 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
   return Create(memory_allocator, memory_planner);
 }
 
-MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena,
-                                       size_t arena_size) {
+MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena, size_t arena_size,
+                                       MemoryPlannerType memory_planner_type) {
   uint8_t* aligned_arena =
       AlignPointerUp(tensor_arena, MicroArenaBufferAlignment());
   size_t aligned_arena_size = tensor_arena + arena_size - aligned_arena;
@@ -384,10 +407,8 @@ MicroAllocator* MicroAllocator::Create(uint8_t* tensor_arena,
 
   // By default create GreedyMemoryPlanner.
   // If a different MemoryPlanner is needed, use the other api.
-  uint8_t* memory_planner_buffer = memory_allocator->AllocatePersistentBuffer(
-      sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
-  GreedyMemoryPlanner* memory_planner =
-      new (memory_planner_buffer) GreedyMemoryPlanner();
+  MicroMemoryPlanner* memory_planner =
+      CreateMemoryPlanner(memory_planner_type, memory_allocator);
 
   return Create(memory_allocator, memory_planner);
 }
@@ -408,7 +429,8 @@ MicroAllocator* MicroAllocator::Create(
 MicroAllocator* MicroAllocator::Create(uint8_t* persistent_tensor_arena,
                                        size_t persistent_arena_size,
                                        uint8_t* non_persistent_tensor_arena,
-                                       size_t non_persistent_arena_size) {
+                                       size_t non_persistent_arena_size,
+                                       MemoryPlannerType memory_planner_type) {
   TFLITE_DCHECK(persistent_tensor_arena != nullptr);
   TFLITE_DCHECK(non_persistent_tensor_arena != nullptr);
   TFLITE_DCHECK(persistent_tensor_arena != non_persistent_tensor_arena);
@@ -421,11 +443,22 @@ MicroAllocator* MicroAllocator::Create(uint8_t* persistent_tensor_arena,
                                         non_persistent_arena_size,
                                         persistent_buffer_allocator);
 
-  uint8_t* memory_planner_buffer =
-      persistent_buffer_allocator->AllocatePersistentBuffer(
-          sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
-  GreedyMemoryPlanner* memory_planner =
-      new (memory_planner_buffer) GreedyMemoryPlanner();
+  // TODO(b/297821738): this should be changed to CreateMemoryPlanner if
+  // possible once  it's figured out why it breaks the HifiMini Build
+  uint8_t* memory_planner_buffer = nullptr;
+  MicroMemoryPlanner* memory_planner = nullptr;
+
+  if (memory_planner_type == MemoryPlannerType::kGreedy) {
+    memory_planner_buffer =
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            sizeof(GreedyMemoryPlanner), alignof(GreedyMemoryPlanner));
+    memory_planner = new (memory_planner_buffer) GreedyMemoryPlanner();
+  } else if (memory_planner_type == MemoryPlannerType::kLinear) {
+    memory_planner_buffer =
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            sizeof(LinearMemoryPlanner), alignof(LinearMemoryPlanner));
+    memory_planner = new (memory_planner_buffer) LinearMemoryPlanner();
+  }
 
   uint8_t* micro_allocator_buffer =
       persistent_buffer_allocator->AllocatePersistentBuffer(

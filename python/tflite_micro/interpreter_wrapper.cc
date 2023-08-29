@@ -15,6 +15,11 @@ limitations under the License.
 
 #include "python/tflite_micro/interpreter_wrapper.h"
 
+#include <cstddef>
+
+#include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_utils.h"
+
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 // See https://numpy.org/doc/1.16/reference/c-api.array.html#importing-the-api
@@ -187,6 +192,39 @@ PyObject* GetTensorDetails(const TfLiteTensor* tensor) {
   return result;
 }
 
+PyObject* GetEvalTensorDetails(const TfLiteEvalTensor* eval_tensor) {
+  PyObject* tensor_type =
+      PyArray_TypeObjectFromType(TfLiteTypeToPyArrayType(eval_tensor->type));
+  PyObject* np_size_array =
+      PyArrayFromIntVector(eval_tensor->dims->data, eval_tensor->dims->size);
+  PyObject* tensor_size =
+      PyArray_Return(reinterpret_cast<PyArrayObject*>(np_size_array));
+
+  size_t eval_tensor_bytes = tflite::EvalTensorBytes(eval_tensor);
+  void* data = malloc(eval_tensor_bytes);
+  memcpy(data, eval_tensor->data.data, eval_tensor_bytes);
+
+  std::vector<npy_intp> dims(eval_tensor->dims->data,
+                             eval_tensor->dims->data + eval_tensor->dims->size);
+  int py_type_num = TfLiteTypeToPyArrayType(eval_tensor->type);
+  PyObject* np_array =
+      PyArray_SimpleNewFromData(dims.size(), dims.data(), py_type_num, data);
+
+  // Transfer ownership to Python so that there's Python will take care of
+  // releasing this buffer
+  PyArray_ENABLEFLAGS(reinterpret_cast<PyArrayObject*>(np_array),
+                      NPY_ARRAY_OWNDATA);
+
+  PyObject* result = PyDict_New();
+  PyDict_SetItemString(result, "dtype", tensor_type);
+  PyDict_SetItemString(result, "shape", tensor_size);
+  PyDict_SetItemString(
+      result, "tensor_data",
+      PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array)));
+
+  return result;
+}
+
 }  // namespace
 
 InterpreterWrapper::~InterpreterWrapper() {
@@ -204,7 +242,7 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size, int num_resource_variables) {
+    size_t arena_size, int num_resource_variables, InterpreterConfig config) {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
@@ -223,12 +261,6 @@ InterpreterWrapper::InterpreterWrapper(
   const Model* model = GetModel(buf);
   model_ = model_data;
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
-  allocator_ = RecordingMicroAllocator::Create(memory_arena_.get(), arena_size);
-  MicroResourceVariables* resource_variables_ = nullptr;
-  if (num_resource_variables > 0)
-    resource_variables_ =
-        MicroResourceVariables::Create(allocator_, num_resource_variables);
-
   for (const std::string& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(),
                                      &python_ops_resolver_)) {
@@ -236,6 +268,24 @@ InterpreterWrapper::InterpreterWrapper(
           ("TFLM could not register custom op via " + registerer).c_str());
     }
   }
+
+  switch (config) {
+    case InterpreterConfig::kAllocationRecording: {
+      recording_allocator_ =
+          RecordingMicroAllocator::Create(memory_arena_.get(), arena_size);
+      allocator_ = recording_allocator_;
+      break;
+    }
+    case InterpreterConfig::kPreserveAllTensors: {
+      allocator_ = MicroAllocator::Create(memory_arena_.get(), arena_size,
+                                          MemoryPlannerType::kLinear);
+      break;
+    }
+  }
+  MicroResourceVariables* resource_variables_ = nullptr;
+  if (num_resource_variables > 0)
+    resource_variables_ =
+        MicroResourceVariables::Create(allocator_, num_resource_variables);
 
   interpreter_ = new MicroInterpreter(model, python_ops_resolver_, allocator_,
                                       resource_variables_);
@@ -250,7 +300,13 @@ InterpreterWrapper::InterpreterWrapper(
   ImportNumpy();
 }
 
-void InterpreterWrapper::PrintAllocations() { allocator_->PrintAllocations(); }
+void InterpreterWrapper::PrintAllocations() {
+  if (!recording_allocator_) {
+    ThrowValueError("Cannot print allocations as they were not recorded");
+    return;
+  }
+  return recording_allocator_->PrintAllocations();
+}
 
 int InterpreterWrapper::Invoke() {
   TfLiteStatus status = interpreter_->Invoke();
@@ -356,6 +412,18 @@ PyObject* InterpreterWrapper::GetOutputTensor(size_t index) const {
                       NPY_ARRAY_OWNDATA);
 
   return PyArray_Return(reinterpret_cast<PyArrayObject*>(np_array));
+}
+
+PyObject* InterpreterWrapper::GetTensor(size_t tensor_index,
+                                        size_t subgraph_index) {
+  if (!interpreter_->preserve_all_tensors()) {
+    ThrowRuntimeError(
+        "TFLM only supports GetTensor() when using a python interpreter with "
+        "the InterpreterConfig.kPeserverAllTensors interpreter_config");
+    return nullptr;
+  }
+  return GetEvalTensorDetails(
+      interpreter_->GetTensor(tensor_index, subgraph_index));
 }
 
 PyObject* InterpreterWrapper::GetInputTensorDetails(size_t index) const {

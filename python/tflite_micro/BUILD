@@ -72,9 +72,7 @@ py_library(
     srcs = [
         "runtime.py",
     ],
-    data = [
-        ":_runtime.so",
-    ],
+    data = [":_runtime.so"],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
@@ -93,9 +91,10 @@ py_test(
         "noubsan",
     ],
     deps = [
+        ":runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        ":runtime",
+        "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
     ],
 )
