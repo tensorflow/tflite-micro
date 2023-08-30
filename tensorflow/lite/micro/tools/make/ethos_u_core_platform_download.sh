@@ -60,7 +60,7 @@ else
   rm -rf .git
   create_git_repo ./
 
-  apply_patch_to_folder ./ ../../increase-stack-size-and-switch-DTCM-SRAM.patch "TFLM patch"
+  apply_patch_to_folder ./ ../../ethos_u_core_platform.patch "TFLM patch"
 
   cd "${ROOT_DIR}"
 
