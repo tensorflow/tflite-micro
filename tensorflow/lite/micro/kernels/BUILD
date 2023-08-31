@@ -266,6 +266,7 @@ tflm_kernel_cc_library(
         "squared_difference.cc",
         "squeeze.cc",
         "strided_slice.cc",
+        "strided_slice_common.cc",
         "sub.cc",
         "sub_common.cc",
         "svdf.cc",
@@ -304,6 +305,7 @@ tflm_kernel_cc_library(
         "reshape.h",
         "softmax.h",
         "sub.h",
+        "strided_slice.h",
         "svdf.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
