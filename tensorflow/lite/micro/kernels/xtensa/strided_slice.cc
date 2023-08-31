@@ -69,7 +69,7 @@ const int kMaxDim = 4;
 
 tflite::StridedSliceParams BuildStridedSliceParams(
     StridedSliceContext* op_context) {
-  tflite::StridedSliceParams op_params;
+  tflite::StridedSliceParams op_params = {};
   op_params.start_indices_count = op_context->dims;
   op_params.stop_indices_count = op_context->dims;
   op_params.strides_count = op_context->dims;
