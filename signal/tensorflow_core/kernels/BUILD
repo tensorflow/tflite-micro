@@ -66,6 +66,15 @@ tflm_signal_kernel_library(
 )
 
 tflm_signal_kernel_library(
+    name = "pcan_kernel",
+    srcs = ["pcan_kernel.cc"],
+    deps = [
+        "//signal/src:pcan_argc_fixed",
+        "@tensorflow_cc_deps//:cc_library",
+    ],
+)
+
+tflm_signal_kernel_library(
     name = "stacker_kernel",
     srcs = ["stacker_kernel.cc"],
     deps = [
