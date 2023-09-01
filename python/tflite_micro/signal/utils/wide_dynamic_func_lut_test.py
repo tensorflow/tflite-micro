@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
 """Tests for signal.python.utils.wide_dynamic_func_lut"""
 import unittest
 from tflite_micro.python.tflite_micro.signal.utils import wide_dynamic_func_lut_wrapper
@@ -149,7 +148,8 @@ class WideDynamicFuncLutTest(unittest.TestCase):
         0,
         0,
     ]
-    lut = wide_dynamic_func_lut_wrapper.wide_dynamic_func_lut(0.95, 80.0, 7, 21)
+    lut = wide_dynamic_func_lut_wrapper.wide_dynamic_func_lut(
+        0.95, 80.0, 7, 21)
     self.assertEqual(lut, expected_lut)
 
 

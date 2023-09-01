@@ -304,8 +304,8 @@ tflm_kernel_cc_library(
         "reduce.h",
         "reshape.h",
         "softmax.h",
-        "sub.h",
         "strided_slice.h",
+        "sub.h",
         "svdf.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),

@@ -24,6 +24,7 @@ PCAN_SNR_BITS = 12
 
 def _pcan_wrapper(pcan_fn, default_name):
   """Wrapper around gen_pcan.pcan*."""
+
   def _pcan(input_tensor,
             noise_estimate,
             strength,
@@ -42,8 +43,7 @@ def _pcan_wrapper(pcan_fn, default_name):
         raise ValueError("SNR shift must be non-negative: %d" % snr_shift)
 
       lut = wide_dynamic_func_lut_wrapper.wide_dynamic_func_lut(
-          strength, offset, input_bits, gain_bits
-      )
+          strength, offset, input_bits, gain_bits)
 
       lut_tensor = tf.convert_to_tensor(lut, dtype=tf.int16)
 
@@ -55,16 +55,16 @@ def _pcan_wrapper(pcan_fn, default_name):
         raise ValueError("Noise estimate must have a rank of 1")
 
       snr_shift = 6
-      return pcan_fn(
-          input_tensor,
-          noise_estimate,
-          lut_tensor,
-          snr_shift=snr_shift,
-          name=scope)
+      return pcan_fn(input_tensor,
+                     noise_estimate,
+                     lut_tensor,
+                     snr_shift=snr_shift,
+                     name=scope)
+
   return _pcan
+
 
 # TODO(b/286250473): change back name after name clash resolved
 pcan = _pcan_wrapper(gen_pcan_op.signal_pcan, "signal_pcan")
-
 
 tf.no_gradient("pcan")

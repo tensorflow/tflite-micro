@@ -42,7 +42,7 @@ int16_t PcanGainLookupFunction(const float strength, const float offset,
 
 py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
                             int gain_bits) {
-  int16_t *gain_lut =  new int16_t[kWideDynamicFunctionLUTSize];
+  int16_t* gain_lut = new int16_t[kWideDynamicFunctionLUTSize];
 
   gain_lut[0] =
       PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 0);

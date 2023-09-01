@@ -48,19 +48,21 @@ class PcanOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
         tf.TensorSpec(channel_num, dtype=tf.uint32),
         tf.TensorSpec(channel_num, dtype=tf.uint32),
-        strength=strength, offset=offset, gain_bits=gain_bits,
+        strength=strength,
+        offset=offset,
+        gain_bits=gain_bits,
         smoothing_bits=smoothing_bits,
         input_correction_bits=input_correction_bits)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
 
     # Read lines in pairs <input, noise_estimate, expected>
     for i in range(1, len(lines), 3):
-      in_frame = np.array(
-          [int(j) for j in lines[i + 0].split()], dtype='uint32')
-      noise_estimate = np.array(
-          [int(j) for j in lines[i + 1].split()], dtype='uint32')
-      output_expected = np.array(
-          [int(j) for j in lines[i + 2].split()], dtype='uint32')
+      in_frame = np.array([int(j) for j in lines[i + 0].split()],
+                          dtype='uint32')
+      noise_estimate = np.array([int(j) for j in lines[i + 1].split()],
+                                dtype='uint32')
+      output_expected = np.array([int(j) for j in lines[i + 2].split()],
+                                 dtype='uint32')
       # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.set_input(noise_estimate, 1)
@@ -68,13 +70,14 @@ class PcanOpTest(tf.test.TestCase):
       output = interpreter.get_output(0)
       self.assertAllEqual(output_expected, output)
       # TF
-      output = self.evaluate(pcan_op.pcan(
-          in_frame, noise_estimate,
-          strength, offset, gain_bits, smoothing_bits, input_correction_bits))
+      output = self.evaluate(
+          pcan_op.pcan(in_frame, noise_estimate, strength, offset, gain_bits,
+                       smoothing_bits, input_correction_bits))
       self.assertAllEqual(output_expected, output)
 
   def testPcanOp(self):
     self.SinglePcanOpTest('testdata/pcan_op_test1.txt')
+
 
 if __name__ == '__main__':
   tf.test.main()

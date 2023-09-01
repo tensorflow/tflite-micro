@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "signal/src/pcan_argc_fixed.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/types.h"
-#include "signal/src/pcan_argc_fixed.h"
 
 namespace tensorflow {
 namespace signal {
@@ -24,19 +24,18 @@ class PcanOp : public tensorflow::OpKernel {
  public:
   explicit PcanOp(tensorflow::OpKernelConstruction* context)
       : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context,
-                   context->GetAttr("snr_shift", &snr_shift_));
+    OP_REQUIRES_OK(context, context->GetAttr("snr_shift", &snr_shift_));
   }
 
   void Compute(tensorflow::OpKernelContext* context) override {
-    tensorflow::Tensor *output_tensor = nullptr;
-    const uint32_t *input = context->input(0).flat<uint32_t>().data();
-    const uint32_t *noise_estimate = context->input(1).flat<uint32_t>().data();
-    const int16_t *gain_lut = context->input(2).flat<int16_t>().data();
+    tensorflow::Tensor* output_tensor = nullptr;
+    const uint32_t* input = context->input(0).flat<uint32_t>().data();
+    const uint32_t* noise_estimate = context->input(1).flat<uint32_t>().data();
+    const int16_t* gain_lut = context->input(2).flat<int16_t>().data();
     int32_t num_channels = context->input(0).NumElements();
-    OP_REQUIRES_OK(context, context->allocate_output(0, {num_channels},
-                                                     &output_tensor));
-    uint32_t *output = output_tensor->flat<uint32_t>().data();
+    OP_REQUIRES_OK(context,
+                   context->allocate_output(0, {num_channels}, &output_tensor));
+    uint32_t* output = output_tensor->flat<uint32_t>().data();
 
     memcpy(output, input, sizeof(uint32_t) * num_channels);
     tflite::tflm_signal::ApplyPcanAutoGainControlFixed(
