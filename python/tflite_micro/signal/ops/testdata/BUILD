@@ -16,6 +16,7 @@ exports_files([
     "filter_bank_square_root_test1.txt",
     "filter_bank_spectral_subtraction_test1.txt",
     "framer_test1.txt",
+    "pcan_op_test1.txt",
     "rfft_test1.txt",
     "stacker_test1.txt",
     "window_test1.txt",
