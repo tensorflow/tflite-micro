@@ -130,7 +130,6 @@ endif
 CC_WARNINGS := \
   -Wsign-compare \
   -Wdouble-promotion \
-  -Wshadow \
   -Wunused-variable \
   -Wunused-function \
   -Wswitch \
@@ -140,6 +139,14 @@ CC_WARNINGS := \
   -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
+
+ifneq ($(TOOLCHAIN), gcc)
+  # GCC can be overly aggressive with shadow warnings, such as warning when a
+  # lambda has variable with the same name as a non-captured variable from the
+  # enclosing scope. As such, we don't enable shadow warnings on gcc.
+  # https://stackoverflow.com/q/66404751
+  CC_WARNINGS += -Wshadow
+endif
 
 COMMON_FLAGS := \
   -Werror \
