@@ -1,4 +1,5 @@
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(
     features = ["-layering_check"],
