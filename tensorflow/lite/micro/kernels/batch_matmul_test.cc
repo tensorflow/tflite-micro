@@ -65,9 +65,9 @@ micro::KernelRunner* GetKernelRunnerInstance(
 
   static micro::KernelRunner* runner = nullptr;
   if (runner == nullptr || need_init_prepare) {
-    runner = new (kernel_runner_buffer) micro::KernelRunner(
-        registration, tensors, tensors_count, inputs_array, outputs_array,
-        const_cast<TfLiteBatchMatMulParams*>(&params));
+    runner = new (kernel_runner_buffer)
+        micro::KernelRunner(registration, tensors, tensors_count, inputs_array,
+                            outputs_array, &params);
 
     TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->InitAndPrepare());
   }
@@ -82,12 +82,9 @@ void TestBatchMatMulFloat(const TfLiteBatchMatMulParams& params,
                           const float* expected_data, float* output_data,
                           bool need_constant_rhs = false,
                           bool need_init_prepare = true) {
-  TfLiteIntArray* input_dims_lhs =
-      IntArrayFromInts(const_cast<int*>(input_dims_data[0]));
-  TfLiteIntArray* input_dims_rhs =
-      IntArrayFromInts(const_cast<int*>(input_dims_data[1]));
-  TfLiteIntArray* output_dims =
-      IntArrayFromInts(const_cast<int*>(expected_dims));
+  TfLiteIntArray* input_dims_lhs = IntArrayFromInts(input_dims_data[0]);
+  TfLiteIntArray* input_dims_rhs = IntArrayFromInts(input_dims_data[1]);
+  TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
   const int kOutputCount = ElementCount(*output_dims);
 
   static TfLiteTensor tensors[kNumInputs + kNumOutputs];
@@ -143,12 +140,9 @@ void TestBatchMatMulQuantized(
     const int* input_dims_data[kNumInputs], const float* input_data_lhs,
     const float* input_data_rhs, const int* expected_dims,
     const T* expected_data, const float* output_data) {
-  TfLiteIntArray* input_dims_lhs =
-      IntArrayFromInts(const_cast<int*>(input_dims_data[0]));
-  TfLiteIntArray* input_dims_rhs =
-      IntArrayFromInts(const_cast<int*>(input_dims_data[1]));
-  TfLiteIntArray* output_dims =
-      IntArrayFromInts(const_cast<int*>(expected_dims));
+  TfLiteIntArray* input_dims_lhs = IntArrayFromInts(input_dims_data[0]);
+  TfLiteIntArray* input_dims_rhs = IntArrayFromInts(input_dims_data[1]);
+  TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
   const int kOutputCount = ElementCount(*output_dims);
 
   static TfLiteTensor tensors[kNumInputs + kNumOutputs];
