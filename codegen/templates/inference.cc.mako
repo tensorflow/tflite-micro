@@ -17,11 +17,14 @@ limitations under the License.
 
 #include "${header_file}"
 
+#include "codegen/runtime/micro_codegen_context.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
 
 namespace ${model_name} {
 namespace {
@@ -44,21 +47,36 @@ TFLMInferenceRegistration op_table[OpCode::kCount] = {
 ${buffer.generate_c_buffer_array("")}
 % endfor
 % for subgraph in graph.subgraphs:
+${subgraph.generate_c_input_array("")}
+
+${subgraph.generate_c_output_array("")}
+
 ${subgraph.generate_c_node_data("")}
 
 ${subgraph.generate_c_tensor_data("")}
 % endfor
-
 % if graph.needs_zero_length_int_array:
+
 TfLiteIntArray zero_length_int_array = {};
 % endif
+
+% for subgraph in graph.subgraphs:
+${subgraph.generate_c_invoke("")}
+% endfor
+
 }  // namespace
 
-Model::Model() {
-  context_.impl_ = nullptr;
+Model::Model()
+  : subgraphs_{
+%for subgraph in graph.subgraphs:
+${subgraph.generate_c_subgraph_init("      ")}
+%endfor
+    },
+    micro_context_{&context_, {&subgraphs_[0], ${len(graph.subgraphs)}}} {
+  context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = nullptr;
   context_.GetTensor = nullptr;
-  context_.GetEvalTensor = nullptr;
+  context_.GetEvalTensor = tflite::MicroContextGetEvalTensor;
   context_.profiler = nullptr;
   context_.GetExternalContext = nullptr;
   context_.GetScratchBuffer = nullptr;
@@ -70,13 +88,6 @@ ${subgraph.generate_c_tensor_init("  ")}
 % endfor
 }
 
-TfLiteStatus Model::Invoke() { return InvokeSubgraph0(); }
-
-% for subgraph in graph.subgraphs:
-TfLiteStatus Model::InvokeSubgraph${subgraph.index}() {
-${subgraph.generate_c_invoke("  ")}
-  return kTfLiteOk;
-}
-% endfor
+TfLiteStatus Model::Invoke() { return micro_context_.InvokeSubgraph(0); }
 
 }  // namespace ${model_name}

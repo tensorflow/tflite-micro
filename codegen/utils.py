@@ -14,8 +14,9 @@
 # ==============================================================================
 """ Utility functions and classes for code generation. """
 
-from typing import Any, Generator, Iterable, List, Optional, Tuple
+from typing import Any, Generator, Iterable, List, Optional, Sequence, Tuple
 import string
+import textwrap
 import itertools
 
 
@@ -41,6 +42,40 @@ def split_into_chunks(
     if not chunk:
       break
     yield chunk
+
+
+def generate_c_int_array(indent: str, int_type: str, name: str,
+                         ints: Sequence[int]) -> str:
+  int_strs = ['{}'.format(i) for i in ints]
+
+  # Try to do it on a single line first
+  single_line_array_template = string.Template(
+      "constexpr ${int_type} ${name}[${size}] = {${data}};")
+  single_line = textwrap.indent(
+      single_line_array_template.substitute(int_type=int_type,
+                                            name=name,
+                                            size=len(int_strs),
+                                            data=', '.join(int_strs)), indent)
+
+  if len(single_line) < 81:
+    return single_line
+
+  # Couldn't fit, so split it across multiple lines
+  multi_line_array_template = string.Template(
+      "constexpr ${int_type} ${name}[${size}] = {\n"
+      "${body}\n"
+      "};\n")
+
+  lines = []
+  for int_strs_for_line in split_into_chunks(int_strs, 12):
+    ints_segment = ', '.join(int_strs_for_line)
+    lines.append(f'    {ints_segment},')
+
+  return textwrap.indent(
+      multi_line_array_template.substitute(int_type=int_type,
+                                           name=name,
+                                           size=len(ints),
+                                           body='\n'.join(lines)), indent)
 
 
 class IntArray(object):
