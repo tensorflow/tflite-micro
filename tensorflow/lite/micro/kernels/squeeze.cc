@@ -55,7 +55,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Determines number of dimensions of output tensor after squeeze.
   const TfLiteIntArray* input_dims = op_context.input->dims;
   const TfLiteIntArray* output_dims = op_context.output->dims;
-  const int* squeeze_dims = op_context.params->squeeze_dims;
+  const int32_t* squeeze_dims = op_context.params->squeeze_dims;
 
   constexpr int max_squeeze_dims = 8;
   TF_LITE_ENSURE(context, input_num_dims <= max_squeeze_dims);

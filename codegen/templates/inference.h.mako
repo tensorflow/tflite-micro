@@ -17,8 +17,29 @@ limitations under the License.
 
 #pragma once
 
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+
 namespace ${model_name} {
 
-void Invoke();
+class Model {
+ public:
+  Model();
+
+  TfLiteStatus Invoke();
+
+ private:
+% for subgraph_idx in range(len(graph.subgraphs)):
+  TfLiteStatus InvokeSubgraph${subgraph_idx}();
+% endfor
+
+  TfLiteContext context_ = {};
+% for subgraph in graph.subgraphs:
+  TfLiteNode ${subgraph.nodes_array}[${len(subgraph.operators)}] = {};
+% endfor
+% for subgraph in graph.subgraphs:
+  TfLiteEvalTensor ${subgraph.tensors_array}[${len(subgraph.tensors)}] = {};
+% endfor
+};
 
 }  // namespace ${model_name}

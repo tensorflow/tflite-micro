@@ -92,6 +92,11 @@ $(eval $(call microlite_test,kernel_signal_overlap_add_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,kernel_signal_pcan_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_stacker_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_flexbuffers_generated_data.cc, \

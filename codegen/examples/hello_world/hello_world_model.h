@@ -17,8 +17,23 @@ limitations under the License.
 
 #pragma once
 
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+
 namespace hello_world_model {
 
-void Invoke();
+class Model {
+ public:
+  Model();
+
+  TfLiteStatus Invoke();
+
+ private:
+  TfLiteStatus InvokeSubgraph0();
+
+  TfLiteContext context_ = {};
+  TfLiteNode subgraph0_nodes_[3] = {};
+  TfLiteEvalTensor subgraph0_tensors_[10] = {};
+};
 
 }  // namespace hello_world_model

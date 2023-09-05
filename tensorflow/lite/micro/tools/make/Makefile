@@ -130,7 +130,6 @@ endif
 CC_WARNINGS := \
   -Wsign-compare \
   -Wdouble-promotion \
-  -Wshadow \
   -Wunused-variable \
   -Wunused-function \
   -Wswitch \
@@ -140,6 +139,14 @@ CC_WARNINGS := \
   -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
+
+ifneq ($(TOOLCHAIN), gcc)
+  # GCC can be overly aggressive with shadow warnings, such as warning when a
+  # lambda has variable with the same name as a non-captured variable from the
+  # enclosing scope. As such, we don't enable shadow warnings on gcc.
+  # https://stackoverflow.com/q/66404751
+  CC_WARNINGS += -Wshadow
+endif
 
 COMMON_FLAGS := \
   -Werror \
@@ -326,6 +333,7 @@ $(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
 $(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
 $(TENSORFLOW_ROOT)signal/src/energy.cc \
@@ -342,6 +350,7 @@ $(TENSORFLOW_ROOT)signal/src/max_abs.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_32.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_64.cc \
 $(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
@@ -440,6 +449,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \

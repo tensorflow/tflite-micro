@@ -81,6 +81,10 @@ class MicroMemoryPlanner {
     return kTfLiteOk;
   }
 
+  // Method will return True if the MicroMemoryPlanner preserves all tensors
+  // after invocation, and False if it doesn't.
+  virtual bool preserves_all_tensors() const = 0;
+
   virtual void PrintMemoryPlan() {
     // Default does nothing.
   }

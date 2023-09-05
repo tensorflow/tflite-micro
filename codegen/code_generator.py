@@ -21,6 +21,8 @@ from absl import flags
 from collections.abc import Sequence
 
 from tflite_micro.codegen import inference_generator
+from tflite_micro.codegen import graph
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 # Usage information:
 # Default:
@@ -51,7 +53,10 @@ def main(argv: Sequence[str]) -> None:
   output_name = _OUTPUT_NAME.value or os.path.splitext(
       os.path.basename(_MODEL_PATH.value))[0]
 
-  inference_generator.generate(output_dir, output_name)
+  model = flatbuffer_utils.read_model(_MODEL_PATH.value)
+
+  inference_generator.generate(output_dir, output_name,
+                               graph.OpCodeTable([model]), graph.Graph(model))
 
 
 if __name__ == "__main__":

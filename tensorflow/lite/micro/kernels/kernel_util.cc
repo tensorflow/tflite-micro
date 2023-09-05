@@ -53,6 +53,15 @@ TFLMRegistration RegisterOp(
           /*custom_name=*/nullptr};
 }
 
+TFLMInferenceRegistration RegisterOp(
+    TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node),
+    void (*reset)(TfLiteContext* context, void* buffer)) {
+  return {
+      /*invoke=*/invoke,
+      /*reset*/ reset,
+  };
+}
+
 // Returns a mutable tensor for a given input index. is_variable must be checked
 // during prepare when the full TfLiteTensor is available.
 TfLiteEvalTensor* GetMutableEvalInput(const TfLiteContext* context,

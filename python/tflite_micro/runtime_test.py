@@ -21,13 +21,78 @@
 
 import gc
 import weakref
+
 import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
-from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
 from tflite_micro.python.tflite_micro import runtime
+from tflite_micro.tensorflow.lite.micro.examples.recipes import add_four_numbers
+from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
+
+
+class PeserveAllTensorsTest(test_util.TensorFlowTestCase):
+
+  def AddFourNumbersTestInterpreterMaker(self, inputs):
+    """Returns a tflm interpreter with a simple model that loads 4 numbers loaded
+
+    into it and loads the 4 inputs into the model
+    """
+    model_data = add_four_numbers.generate_model(write_file=False)
+    tflm_interpreter = runtime.Interpreter.from_bytes(
+        model_data,
+        intrepreter_config=runtime.InterpreterConfig.kPreserveAllTensors,
+    )
+    self.assertEqual(len(inputs), 4)
+    tflm_interpreter.set_input(inputs[0], 0)
+    tflm_interpreter.set_input(inputs[1], 1)
+    tflm_interpreter.set_input(inputs[2], 2)
+    tflm_interpreter.set_input(inputs[3], 3)
+    return tflm_interpreter
+
+  def testGetTensorAccuratelyGetsAllTenors(self):
+    """Test checks that GetTensor() returns accurate values for each tensor in the
+
+    model based on inputs of 1 2 3 4 into the AddFourNumbers TfLite model
+    """
+    tflm_interpreter = self.AddFourNumbersTestInterpreterMaker(
+        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]])
+
+    tflm_interpreter.invoke()
+
+    tflm_output = tflm_interpreter.get_output(0)
+    self.assertEqual(tflm_output[0].astype("float32"), 10.0)
+    self.assertEqual(tflm_interpreter.GetTensor(0, 0)["tensor_data"][0], 1.0)
+    self.assertEqual(tflm_interpreter.GetTensor(1, 0)["tensor_data"][0], 2.0)
+    self.assertEqual(tflm_interpreter.GetTensor(2, 0)["tensor_data"][0], 3.0)
+    self.assertEqual(tflm_interpreter.GetTensor(3, 0)["tensor_data"][0], 4.0)
+    self.assertEqual(tflm_interpreter.GetTensor(4, 0)["tensor_data"][0], 7.0)
+    self.assertEqual(tflm_interpreter.GetTensor(5, 0)["tensor_data"][0], 9.0)
+    self.assertEqual(tflm_interpreter.GetTensor(6, 0)["tensor_data"][0], 10.0)
+
+  def testGetTensorAllUniqueTensors(self):
+    """Test checks that GetTensor() returns all the tensors in the model.
+
+    Due to the values used as inputs all the Tensors have unique data values so
+    this test confirms that this is the case.
+    """
+    tflm_interpreter = self.AddFourNumbersTestInterpreterMaker(
+        [[np.float32(1)], [np.float32(2)], [np.float32(3)], [np.float32(4)]])
+
+    tflm_interpreter.invoke()
+    tensors = [
+        tflm_interpreter.GetTensor(0, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(1, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(2, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(3, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(4, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(5, 0)["tensor_data"][0],
+        tflm_interpreter.GetTensor(6, 0)["tensor_data"][0],
+    ]
+
+    # Check that all tensors are unique
+    self.assertEqual(len(set(tensors)), 7)
 
 
 class ConvModelTests(test_util.TensorFlowTestCase):
