@@ -1876,8 +1876,8 @@ int TestStrcmp(const char* a, const char* b) {
 
 // Create a TfLiteIntArray from an array of ints.  The first element in the
 // supplied array must be the size of the array expressed as an int.
-TfLiteIntArray* IntArrayFromInts(int* int_array) {
-  return reinterpret_cast<TfLiteIntArray*>(int_array);
+TfLiteIntArray* IntArrayFromInts(const int* int_array) {
+  return reinterpret_cast<TfLiteIntArray*>(const_cast<int*>(int_array));
 }
 
 // Create a TfLiteFloatArray from an array of floats.  The first element in the

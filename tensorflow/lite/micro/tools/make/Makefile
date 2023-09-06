@@ -364,6 +364,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/assign_variable.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
