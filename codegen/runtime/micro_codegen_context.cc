@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "codegen/runtime/micro_codegen_context.h"
 
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -30,6 +32,8 @@ void* MicroCodegenContext::GetScratchBuffer(int buffer_idx) {
 }
 
 TfLiteEvalTensor* MicroCodegenContext::GetEvalTensor(int tensor_idx) {
+  TFLITE_DCHECK(static_cast<size_t>(tensor_idx) <
+                subgraphs_[current_subgraph_idx_].tensors.size());
   return &subgraphs_[current_subgraph_idx_].tensors[tensor_idx];
 }
 
@@ -88,6 +92,8 @@ void MicroCodegenContext::DeallocateTempBuffer(uint8_t*) {
 }
 
 TfLiteStatus MicroCodegenContext::InvokeSubgraph(int subgraph_idx) {
+  TF_LITE_ENSURE(context_,
+                 static_cast<size_t>(subgraph_idx) < subgraphs_.size());
   size_t previous_subgraph_idx = current_subgraph_idx_;
   TfLiteStatus status =
       subgraphs_[subgraph_idx].invoke(context_, subgraphs_[subgraph_idx].nodes);
@@ -96,21 +102,29 @@ TfLiteStatus MicroCodegenContext::InvokeSubgraph(int subgraph_idx) {
 }
 
 size_t MicroCodegenContext::NumSubgraphInputs(int subgraph_idx) {
+  TFLITE_DCHECK(static_cast<size_t>(subgraph_idx) < subgraphs_.size());
   return subgraphs_[subgraph_idx].inputs.size();
 }
 
 TfLiteEvalTensor* MicroCodegenContext::GetSubgraphInput(int subgraph_idx,
                                                         int input_idx) {
+  TFLITE_DCHECK(static_cast<size_t>(subgraph_idx) < subgraphs_.size());
+  TFLITE_DCHECK(static_cast<size_t>(input_idx) <
+                subgraphs_[subgraph_idx].inputs.size());
   const size_t tensor_idx = subgraphs_[subgraph_idx].inputs[input_idx];
   return &subgraphs_[subgraph_idx].tensors[tensor_idx];
 }
 
 size_t MicroCodegenContext::NumSubgraphOutputs(int subgraph_idx) {
+  TFLITE_DCHECK(static_cast<size_t>(subgraph_idx) < subgraphs_.size());
   return subgraphs_[subgraph_idx].outputs.size();
 }
 
 TfLiteEvalTensor* MicroCodegenContext::GetSubgraphOutput(int subgraph_idx,
                                                          int output_idx) {
+  TFLITE_DCHECK(static_cast<size_t>(subgraph_idx) < subgraphs_.size());
+  TFLITE_DCHECK(static_cast<size_t>(output_idx) <
+                subgraphs_[subgraph_idx].outputs.size());
   const size_t tensor_idx = subgraphs_[subgraph_idx].outputs[output_idx];
   return &subgraphs_[subgraph_idx].tensors[tensor_idx];
 }
