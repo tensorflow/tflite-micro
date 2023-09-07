@@ -22,17 +22,26 @@ from collections.abc import Sequence
 
 from tflite_micro.codegen import inference_generator
 from tflite_micro.codegen import graph
+from tflite_micro.codegen.preprocessor import preprocessor_schema_py_generated as preprocessor_fb
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 # Usage information:
 # Default:
-#   `bazel run codegen:code_generator -- --model=</path/to/my_model.tflite>`
+#   `bazel run codegen:code_generator -- \
+#        --model=</path/to/my_model.tflite> \
+#        --preprocessed_data=</path/to/preprocesser_output>`
 # Output will be located at: /path/to/my_model.h|cc
 
 _MODEL_PATH = flags.DEFINE_string(name="model",
                                   default=None,
                                   help="Path to the TFLite model file.",
                                   required=True)
+
+_PREPROCESSED_DATA_PATH = flags.DEFINE_string(
+    name="preprocessed_data",
+    default=None,
+    help="Path to output of codegen_preprocessor.",
+    required=True)
 
 _OUTPUT_DIR = flags.DEFINE_string(
     name="output_dir",
@@ -48,12 +57,27 @@ _OUTPUT_NAME = flags.DEFINE_string(
     required=False)
 
 
+def _read_preprocessed_data(
+    preprocessed_data_file: str) -> preprocessor_fb.DataT:
+  with open(preprocessed_data_file, 'rb') as file:
+    data_byte_array = bytearray(file.read())
+  return preprocessor_fb.DataT.InitFromObj(
+      preprocessor_fb.Data.GetRootAs(data_byte_array, 0))
+
+
 def main(argv: Sequence[str]) -> None:
   output_dir = _OUTPUT_DIR.value or os.path.dirname(_MODEL_PATH.value)
   output_name = _OUTPUT_NAME.value or os.path.splitext(
       os.path.basename(_MODEL_PATH.value))[0]
 
   model = flatbuffer_utils.read_model(_MODEL_PATH.value)
+  preprocessed_data = _read_preprocessed_data(_PREPROCESSED_DATA_PATH.value)
+
+  print("Generating inference code for model:\n"
+        "  model: {}\n"
+        "  preprocessed_model: {}\n".format(
+            _MODEL_PATH.value,
+            preprocessed_data.inputModelPath.decode('utf-8')))
 
   inference_generator.generate(output_dir, output_name,
                                graph.OpCodeTable([model]), graph.Graph(model))

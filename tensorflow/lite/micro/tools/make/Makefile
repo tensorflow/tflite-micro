@@ -294,6 +294,8 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
+MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
+
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
 
 MICROLITE_TEST_SRCS := \
@@ -704,6 +706,9 @@ include $(MICRO_LITE_BENCHMARKS)
 # Load custom kernel tests.
 include $(MAKEFILE_DIR)/additional_tests.inc
 
+# Load codegen preprocessor rules
+include $(MICRO_LITE_CODEGEN_PREPROCESSOR)
+
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
@@ -862,6 +867,16 @@ test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
+
+CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
+
+codegen_preprocessor: $(CODEGEN_PREPROCESSOR_PATH)
+
+$(CODEGEN_PREPROCESSOR_PATH): $(CODEGEN_PREPROCESSOR_SRCS) $(MICROLITE_LIB_PATH)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	-o $@ $< \
+	$(MICROLITE_LIB_PATH) $(LDFLAGS) $(MICROLITE_LIBS)
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
