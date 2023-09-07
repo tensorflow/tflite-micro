@@ -86,6 +86,8 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e third_party/xtensa \
   -e ci \
   -e c/common.c \
+  -e codegen/preprocessor/preprocessor_schema_generated.h \
+  -e codegen/preprocessor/preprocessor_schema_py_generated.py \
   -e core/api/error_reporter.cc \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
