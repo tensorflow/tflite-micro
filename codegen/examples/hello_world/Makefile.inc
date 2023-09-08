@@ -10,5 +10,6 @@ $(TENSORFLOW_ROOT)codegen/examples/hello_world/hello_world_model.h \
 $(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.h
 
 # Builds a standalone binary.
-$(eval $(call microlite_test,codegen_hello_world,\
-$(CODEGEN_HELLO_WORLD_SRCS),,))
+$(eval $(call codegen_model_binary,codegen_hello_world,hello_world_model,\
+$(CODEGEN_HELLO_WORLD_MODEL),$(CODEGEN_HELLO_WORLD_SRCS),,))
+

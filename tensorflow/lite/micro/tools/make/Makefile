@@ -294,6 +294,8 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
+CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
+
 MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
 
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
@@ -867,8 +869,6 @@ test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
-
-CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
 
 codegen_preprocessor: $(CODEGEN_PREPROCESSOR_PATH)
 
