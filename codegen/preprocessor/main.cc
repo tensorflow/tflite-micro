@@ -34,7 +34,7 @@ std::unique_ptr<char[]> ReadModelFile(const char* model_file_name) {
 
   model_file.seekg(0, std::ios::end);
   size_t num_bytes = model_file.tellg();
-  model_file.seekg(0,std::ios::beg);
+  model_file.seekg(0, std::ios::beg);
   std::unique_ptr<char[]> model_data(new char[num_bytes]);
   model_file.read(model_data.get(), num_bytes);
 
