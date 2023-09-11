@@ -185,6 +185,7 @@ tflm_kernel_cc_library(
         "add_n.cc",
         "arg_min_max.cc",
         "assign_variable.cc",
+        "batch_matmul.cc",
         "batch_to_space_nd.cc",
         "broadcast_args.cc",
         "broadcast_to.cc",
@@ -304,8 +305,8 @@ tflm_kernel_cc_library(
         "reduce.h",
         "reshape.h",
         "softmax.h",
-        "sub.h",
         "strided_slice.h",
+        "sub.h",
         "svdf.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
@@ -415,6 +416,20 @@ cc_test(
     name = "arg_min_max_test",
     srcs = [
         "arg_min_max_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "batch_matmul_test",
+    srcs = [
+        "batch_matmul_test.cc",
     ],
     deps = [
         ":kernel_runner",

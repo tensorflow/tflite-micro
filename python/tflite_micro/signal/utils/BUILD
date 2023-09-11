@@ -38,8 +38,37 @@ py_library(
     name = "util",
     srcs = ["util.py"],
     deps = [
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
         "//python/tflite_micro/signal:ops",
-        requirement("tensorflow-cpu"),
+    ],
+)
+
+pybind_extension(
+    name = "wide_dynamic_func_lut_wrapper",  # :wide_dynamic_func_lut_wrapper.so
+    srcs = [
+        "wide_dynamic_func_lut_wrapper.cc",
+    ],
+)
+
+py_library(
+    name = "wide_dynamic_func_lut",
+    data = [
+        ":wide_dynamic_func_lut_wrapper.so",
+    ],
+)
+
+py_test(
+    name = "wide_dynamic_func_lut_test",
+    srcs = ["wide_dynamic_func_lut_test.py"],
+    data = [
+        ":wide_dynamic_func_lut_wrapper.so",
+    ],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
     ],
 )
