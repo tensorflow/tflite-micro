@@ -12,12 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_interpreter_context.h"
 
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -26,23 +27,20 @@ using ::tflite::testing::IntArrayFromInts;
 namespace tflite {
 namespace {
 
-tflite::MicroContext CreateMicroContext() {
+tflite::MicroInterpreterContext CreateMicroInterpreterContext() {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transient memories in static variables. This is
   // safe because tests are guaranteed to run serially.
-  constexpr size_t kMicroGraphPlacementBufferSize = 1024;
-  alignas(4) static uint8_t
-      micro_graph_placement_buffer[kMicroGraphPlacementBufferSize];
   constexpr size_t kArenaSize = 1024;
   static uint8_t tensor_arena[kArenaSize];
 
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   MicroAllocator* micro_allocator =
       MicroAllocator::Create(tensor_arena, kArenaSize);
-  MicroGraph* micro_graph = new (micro_graph_placement_buffer)
-      MicroGraph(nullptr, nullptr, nullptr, nullptr);
+  static MicroInterpreterGraph micro_graph(nullptr, nullptr, nullptr, nullptr);
 
-  tflite::MicroContext micro_context(micro_allocator, model, micro_graph);
+  tflite::MicroInterpreterContext micro_context(micro_allocator, model,
+                                                &micro_graph);
   return micro_context;
 }
 
@@ -58,9 +56,10 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 // Ensures that a regular set and get pair works ok.
 TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
   micro_context.SetInterpreterState(
-      tflite::MicroContext::InterpreterState::kInvoke);
+      tflite::MicroInterpreterContext::InterpreterState::kInvoke);
 
   tflite::TestExternalContextPayloadData payload;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -75,7 +74,8 @@ TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
 }
 
 TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
 
   tflite::TestExternalContextPayloadData* returned_external_context =
       reinterpret_cast<tflite::TestExternalContextPayloadData*>(
@@ -86,9 +86,10 @@ TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
 }
 
 TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
   micro_context.SetInterpreterState(
-      tflite::MicroContext::InterpreterState::kPrepare);
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
   tflite::TestExternalContextPayloadData payload;
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -100,15 +101,17 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
 }
 
 TF_LITE_MICRO_TEST(TestSetExternalContextToNullShouldFail) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
   micro_context.SetInterpreterState(
-      tflite::MicroContext::InterpreterState::kPrepare);
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           micro_context.set_external_context(nullptr));
 }
 
 TF_LITE_MICRO_TEST(TestGetTempInputTensor) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
 
   TfLiteNode node;
   int input_data[] = {2, 0, 1};
@@ -127,7 +130,8 @@ TF_LITE_MICRO_TEST(TestGetTempInputTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
 
   TfLiteNode node;
   int output_data[] = {1, 0};
@@ -143,16 +147,18 @@ TF_LITE_MICRO_TEST(TestGetTempOutputTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestAllocateTempBuffer) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
   micro_context.SetInterpreterState(
-      tflite::MicroContext::InterpreterState::kPrepare);
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
   uint8_t* buffer1 =
       micro_context.AllocateTempBuffer(10, tflite::MicroArenaBufferAlignment());
   TF_LITE_MICRO_EXPECT(buffer1 != nullptr);
 }
 
 TF_LITE_MICRO_TEST(TestGetTempIntermediateTensor) {
-  tflite::MicroContext micro_context = tflite::CreateMicroContext();
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
 
   TfLiteNode node;
   int intermediate_data[] = {1, 0};
