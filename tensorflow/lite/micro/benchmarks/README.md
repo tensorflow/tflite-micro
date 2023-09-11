@@ -82,17 +82,17 @@ downloaded model will be optimized for Ethos-U. For more info see:
 To run the keyword benchmark on FVP:
 
 ```
-make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_keyword_benchmark
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_keyword_benchmark
 ```
 
 To run the person detection benchmark on FVP:
 
 ```
-make -j -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_person_detection_benchmark
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_person_detection_benchmark
 ```
 
 To run the person detection benchmark on FVP with Ethos-U:
 
 ```
-make -j -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_person_detection_benchmark
+make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_person_detection_benchmark
 ```

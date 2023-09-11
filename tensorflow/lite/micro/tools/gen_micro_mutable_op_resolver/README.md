@@ -4,6 +4,8 @@ The MicroMutableOpResolver includes the operators explictly specified in source 
 This generally requires manually finding out which operators are used in the model through the use of a visualization tool, which may be impractical in some cases.
 This script will automatically generate a MicroMutableOpResolver with only the used operators for a given model or set of models.
 
+Note: Check ci/Dockerfile.micro for supported python version.
+
 ## How to run
 
 bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
