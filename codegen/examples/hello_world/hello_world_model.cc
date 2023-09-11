@@ -213,7 +213,7 @@ Model::Model() {
   context_.GetExternalContext = nullptr;
   context_.GetScratchBuffer = nullptr;
 
-  subgraph0_nodes_[0] = {
+  subgraph0_nodes_[0] = TfLiteNode{
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_0.outputs),
       .intermediates = nullptr,
@@ -221,7 +221,7 @@ Model::Model() {
       .builtin_data = static_cast<void*>(&node_0_0.builtin_data),
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
-  subgraph0_nodes_[1] = {
+  subgraph0_nodes_[1] = TfLiteNode{
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_1.outputs),
       .intermediates = nullptr,
@@ -229,7 +229,7 @@ Model::Model() {
       .builtin_data = static_cast<void*>(&node_0_1.builtin_data),
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
-  subgraph0_nodes_[2] = {
+  subgraph0_nodes_[2] = TfLiteNode{
       .inputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.inputs),
       .outputs = reinterpret_cast<TfLiteIntArray*>(&node_0_2.outputs),
       .intermediates = nullptr,
@@ -238,43 +238,43 @@ Model::Model() {
       .custom_initial_data = nullptr,
       .custom_initial_data_size = 0};
 
-  subgraph0_tensors_[0] = {
+  subgraph0_tensors_[0] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(nullptr /* buffer_1 */)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_0_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[1] = {
+  subgraph0_tensors_[1] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_2)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_1_dims),
       .type = kTfLiteInt32};
-  subgraph0_tensors_[2] = {
+  subgraph0_tensors_[2] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_3)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_2_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[3] = {
+  subgraph0_tensors_[3] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_4)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_3_dims),
       .type = kTfLiteInt32};
-  subgraph0_tensors_[4] = {
+  subgraph0_tensors_[4] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_5)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_4_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[5] = {
+  subgraph0_tensors_[5] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_6)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_5_dims),
       .type = kTfLiteInt32};
-  subgraph0_tensors_[6] = {
+  subgraph0_tensors_[6] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(&buffer_7)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_6_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[7] = {
+  subgraph0_tensors_[7] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(nullptr /* buffer_8 */)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_7_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[8] = {
+  subgraph0_tensors_[8] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(nullptr /* buffer_9 */)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_8_dims),
       .type = kTfLiteInt8};
-  subgraph0_tensors_[9] = {
+  subgraph0_tensors_[9] = TfLiteEvalTensor{
       .data = {.data = static_cast<void*>(nullptr /* buffer_10 */)},
       .dims = reinterpret_cast<TfLiteIntArray*>(&tensor0_9_dims),
       .type = kTfLiteInt8};

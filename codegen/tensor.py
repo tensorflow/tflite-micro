@@ -111,7 +111,7 @@ class Tensor(object):
   def generate_c_tensor_init(self, tflite_tensor_name: str,
                              tensor_name: str) -> str:
     init_template = string.Template(
-        "${tflite_tensor_name} = {\n"
+        "${tflite_tensor_name} = TfLiteEvalTensor{\n"
         "    .data = {.data = static_cast<void*>(${data})},\n"
         "    .dims = ${dims},\n"
         "    .type = ${tflite_type}};")

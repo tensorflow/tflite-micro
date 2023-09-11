@@ -40,6 +40,7 @@ TFLMRegistration Register_ARG_MAX();
 TFLMRegistration Register_ARG_MIN();
 TFLMRegistration Register_ASSIGN_VARIABLE();
 TFLMRegistration Register_AVERAGE_POOL_2D();
+TFLMRegistration Register_BATCH_MATMUL();
 TFLMRegistration Register_BATCH_TO_SPACE_ND();
 TFLMRegistration Register_BROADCAST_ARGS();
 TFLMRegistration Register_BROADCAST_TO();

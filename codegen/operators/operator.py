@@ -60,7 +60,7 @@ class Operator(abc.ABC):
   def generate_c_node_init(self, tflite_node_name: str,
                            node_data_name: str) -> str:
     init_template = string.Template(
-        "${tflite_node_name} = {\n"
+        "${tflite_node_name} = TfLiteNode{\n"
         "    .inputs ="
         " reinterpret_cast<TfLiteIntArray*>(&${node_data_name}.inputs),\n"
         "    .outputs ="

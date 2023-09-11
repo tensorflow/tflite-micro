@@ -130,7 +130,6 @@ endif
 CC_WARNINGS := \
   -Wsign-compare \
   -Wdouble-promotion \
-  -Wshadow \
   -Wunused-variable \
   -Wunused-function \
   -Wswitch \
@@ -140,6 +139,14 @@ CC_WARNINGS := \
   -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
+
+ifneq ($(TOOLCHAIN), gcc)
+  # GCC can be overly aggressive with shadow warnings, such as warning when a
+  # lambda has variable with the same name as a non-captured variable from the
+  # enclosing scope. As such, we don't enable shadow warnings on gcc.
+  # https://stackoverflow.com/q/66404751
+  CC_WARNINGS += -Wshadow
+endif
 
 COMMON_FLAGS := \
   -Werror \
@@ -357,6 +364,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/assign_variable.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
@@ -441,6 +449,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
