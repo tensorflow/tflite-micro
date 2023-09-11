@@ -127,21 +127,22 @@ recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call rec
 # Calling eval on the output will create the targets that you need.
 define codegen_model
 
-$(1)_MODEL := $(abspath $(3))
-$(1)_PREPROCESSOR_OUTPUT := $(abspath $(GENERATED_SRCS_DIR)/$(2).ppd)
-$(1)_GENERATED_SRC_DIR := $(abspath $(GENERATED_SRCS_DIR))
+$(1)_MODEL := $(3)
+$(1)_PREPROCESSOR_OUTPUT := $(GENERATED_SRCS_DIR)/$(2).ppd
 
-$(1)_GENERATED_SRCS := $$($(1)_GENERATED_SRC_DIR)/$(2).cc
-$(1)_GENERATED_HDRS := $$($(1)_GENERATED_SRC_DIR)/$(2).h
+$(1)_GENERATED_SRCS := $(GENERATED_SRCS_DIR)$(2).cc
+$(1)_GENERATED_HDRS := $(GENERATED_SRCS_DIR)$(2).h
 
 $$($(1)_PREPROCESSOR_OUTPUT): $(CODEGEN_PREPROCESSOR_PATH) $$($(1)_MODEL)
 	@mkdir -p $$(dir $$@)
-	$$(TEST_SCRIPT) $(CODEGEN_PREPROCESSOR_PATH) $$($(1)_MODEL) $$($(1)_PREPROCESSOR_OUTPUT)
+	$$(RUN_COMMAND) $(CODEGEN_PREPROCESSOR_PATH) \
+	$(abspath $$($(1)_MODEL)) $(abspath $$($(1)_PREPROCESSOR_OUTPUT))
 
 $$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL) $$($(1)_PREPROCESSOR_OUTPUT)
-	bazel run //codegen:code_generator -- \
-        --model $$($(1)_MODEL) --preprocessed_data $$($(1)_PREPROCESSOR_OUTPUT) \
-        --output_dir $$($(1)_GENERATED_SRC_DIR) --output_name $(2)
+	cd $(TENSORFLOW_ROOT) && bazel run //codegen:code_generator -- \
+	--model $(abspath $$($(1)_MODEL)) \
+	--preprocessed_data $(abspath $$($(1)_PREPROCESSOR_OUTPUT)) \
+	--output_dir $(abspath $(GENERATED_SRCS_DIR)) --output_name $(2)
 
 $(1): $$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS)
 
@@ -159,14 +160,14 @@ endef # codegen_model
 # Calling eval on the output will create the targets that you need.
 define codegen_model_binary
 
-$(1)_LOCAL_SRCS := $(4)
-$(1)_LOCAL_HDRS := $(5)
+$(1)_CODEGEN_SRCS := $(4)
+$(1)_CODEGEN_HDRS := $(5)
 
 $(call codegen_model,$(1)_codegen,$(2),$(3))
 
-$(1)_LOCAL_SRCS += $$($(1)_codegen_GENERATED_SRCS)
-$(1)_LOCAL_HDRS += $$($(1)_codegen_GENERATED_HDRS)
+$(1)_CODEGEN_SRCS += $$($(1)_codegen_GENERATED_SRCS)
+$(1)_CODEGEN_HDRS += $$($(1)_codegen_GENERATED_HDRS)
 
-$(call microlite_test,$(1),$$($(1)_LOCAL_SRCS),$$($(1)_LOCAL_HDRS),,)
+$(call microlite_test,$(1),$$($(1)_CODEGEN_SRCS),$$($(1)_CODEGEN_HDRS),,)
 
 endef # codegen_model_binary

@@ -44,3 +44,4 @@ EXCLUDED_TESTS := \
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh arm $(TARGET_ARCH)
+RUN_COMMAND := qemu-arm -cpu $(TARGET_ARCH)
