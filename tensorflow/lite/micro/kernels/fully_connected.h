@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -95,6 +95,10 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT8() {
 // int16.
 TFLMRegistration Register_FULLY_CONNECTED_INT16();
 
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// int8 and int4 packed kernels.
+TFLMRegistration Register_FULLY_CONNECTED_INT4();
+
 #else
 // Note that while this block gets used for both reference and optimized kernels
 // that do not have any specialized implementations, the only goal here is to
@@ -102,6 +106,10 @@ TFLMRegistration Register_FULLY_CONNECTED_INT16();
 // from applications that call a more specific kernel variant.
 
 inline TFLMRegistration Register_FULLY_CONNECTED_INT16() {
+  return Register_FULLY_CONNECTED();
+}
+
+inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
   return Register_FULLY_CONNECTED();
 }
 
