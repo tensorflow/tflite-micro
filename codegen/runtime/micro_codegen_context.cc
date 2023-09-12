@@ -95,6 +95,7 @@ TfLiteStatus MicroCodegenContext::InvokeSubgraph(int subgraph_idx) {
   TF_LITE_ENSURE(context_,
                  static_cast<size_t>(subgraph_idx) < subgraphs_.size());
   size_t previous_subgraph_idx = current_subgraph_idx_;
+  current_subgraph_idx_ = subgraph_idx;
   TfLiteStatus status =
       subgraphs_[subgraph_idx].invoke(context_, subgraphs_[subgraph_idx].nodes);
   current_subgraph_idx_ = previous_subgraph_idx;
