@@ -74,6 +74,14 @@ class Subgraph(object):
     return self._subgraph_idx
 
   @property
+  def inputs(self) -> Sequence[int]:
+    return self._subgraph.inputs
+
+  @property
+  def outputs(self) -> Sequence[int]:
+    return self._subgraph.outputs
+
+  @property
   def operators(self) -> Sequence[operator.Operator]:
     return self._operators
 
@@ -84,6 +92,18 @@ class Subgraph(object):
   @property
   def needs_zero_length_int_array(self) -> bool:
     return any(t.needs_zero_length_int_array for t in self.tensors)
+
+  @property
+  def invoke_fn_name(self) -> str:
+    return f"InvokeSubgraph{self.index}"
+
+  @property
+  def inputs_array_name(self) -> str:
+    return f"kSubgraph{self.index}Inputs"
+
+  @property
+  def outputs_array_name(self) -> str:
+    return f"kSubgraph{self.index}Outputs"
 
   @property
   def nodes_array(self) -> str:
@@ -116,16 +136,54 @@ class Subgraph(object):
     return textwrap.indent("\n".join(node_init_strs), indent)
 
   def generate_c_invoke(self, indent: str) -> str:
-    invoke_template = string.Template(
-        "TF_LITE_ENSURE_OK(context_, op_table[${op_code}].invoke(\n"
-        "                                &context_, &${node}));\n")
+    function_template = string.Template(
+        "TfLiteStatus ${function_name}(TfLiteContext* context,\n"
+        "                             tflite::Span<TfLiteNode> nodes) {\n"
+        "  TFLITE_DCHECK(nodes.size() == ${num_nodes});\n"
+        "${body}\n"
+        "  return kTfLiteOk;\n"
+        "}")
+
+    body_template = string.Template(
+        "  TF_LITE_ENSURE_OK(\n"
+        "      context, op_table[${op_code}].invoke(context, &${node}));\n")
     invoke_strs: List[str] = []
     for op_idx, op in enumerate(self.operators):
       invoke_strs.append(
-          invoke_template.substitute(
+          body_template.substitute(
               op_code=self._op_codes[op.op_code_index].full_enum_name,
-              node=self.nodes_element(op_idx)))
-    return textwrap.indent("".join(invoke_strs), indent)
+              node=f"nodes[{op_idx}]"))
+
+    invoke = function_template.substitute(function_name=self.invoke_fn_name,
+                                          num_nodes=len(self.operators),
+                                          body="".join(invoke_strs))
+    return textwrap.indent(invoke, indent)
+
+  def generate_c_input_array(self, indent: str) -> str:
+    return utils.generate_c_int_array(indent, "size_t", self.inputs_array_name,
+                                      self.inputs)
+
+  def generate_c_output_array(self, indent: str) -> str:
+    return utils.generate_c_int_array(indent, "size_t",
+                                      self.outputs_array_name, self.outputs)
+
+  def generate_c_subgraph_init(self, indent: str) -> str:
+    init_template = string.Template(
+        "{.inputs = {&${input_array}[0], ${input_size}},\n"
+        " .outputs = {&${output_array}[0], ${output_size}},\n"
+        " .nodes = {&${node_array}[0], ${node_size}},\n"
+        " .tensors = {&${tensor_array}[0], ${tensor_size}},\n"
+        " .invoke = &${invoke}},")
+    return textwrap.indent(
+        init_template.substitute(input_array=self.inputs_array_name,
+                                 input_size=len(self.inputs),
+                                 output_array=self.outputs_array_name,
+                                 output_size=len(self.outputs),
+                                 node_array=self.nodes_array,
+                                 node_size=len(self.operators),
+                                 tensor_array=self.tensors_array,
+                                 tensor_size=len(self.tensors),
+                                 invoke=self.invoke_fn_name), indent)
 
   @property
   def tensors_array(self) -> str:
