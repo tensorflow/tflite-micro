@@ -17,10 +17,10 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_INTERPRETER_CONTEXT_H_
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
