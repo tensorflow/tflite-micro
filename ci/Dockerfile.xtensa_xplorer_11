@@ -19,8 +19,8 @@ WORKDIR /opt/xtensa
 COPY ./Xplorer-8.0.11-linux-x64-installer.bin .
 COPY ./mini1m1m_RI_2019_2_linux_w_keys.tgz .
 COPY ./XtensaTools_RI_2022_9_linux.tgz .
-COPY ./install_cores_xplorer_11.sh .
-
+COPY ci/install_cores_xplorer_11.sh .
+COPY ci/install_bazelisk.sh .
 
 RUN \
   python3 -m pip install -U --force-reinstall pip
@@ -40,6 +40,8 @@ ENV XTENSA_BASE "/opt/xtensa/XtDevTools/install/"
 RUN \
   chmod +x install_cores_xplorer_11.sh && \
   ./install_cores_xplorer_11.sh
+
+RUN ./install_bazelisk.sh
 
 RUN \
   rm Xplorer-8.0.11-linux-x64-installer.bin && \

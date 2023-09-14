@@ -19,8 +19,8 @@ WORKDIR /opt/xtensa
 COPY ./Xplorer-solo-9.0.19-linux-x64-installer.bin .
 COPY ./PRD_H5_RDO_07_01_2022_linux.tgz .
 COPY ./XtensaTools_RI_2022_9_linux.tgz .
-COPY ./install_cores_xplorer_solo.sh .
-
+COPY ci/install_cores_xplorer_solo.sh .
+COPY ci/install_bazelisk.sh .
 
 RUN \
   python3 -m pip install -U --force-reinstall pip
@@ -40,6 +40,8 @@ ENV XTENSA_BASE "/opt/xtensa/XtDevTools/install/"
 RUN \
   chmod +x install_cores_xplorer_solo.sh && \
   ./install_cores_xplorer_solo.sh
+
+RUN ./install_bazelisk.sh
 
 RUN \
   rm Xplorer-solo-9.0.19-linux-x64-installer.bin && \
