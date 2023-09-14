@@ -180,16 +180,15 @@ define codegen_model_binary
 #          C++11 stdlib, so preprocessor fails to link.
 ifneq ($(TARGET), $(filter $(TARGET), bluepill riscv32_generic hexagon))
 
-$(1)_CODEGEN_SRCS := $(4)
-$(1)_CODEGEN_HDRS := $(5)
+$(1)_CODEGEN_SRCS := $(4) $$(CODEGEN_RUNTIME_CC_SRCS)
+$(1)_CODEGEN_HDRS := $(5) $$(CODEGEN_RUNTIME_CC_HDRS)
 
 $(call codegen_model,$(1)_codegen,$(2),$(3))
 
 $(1)_CODEGEN_SRCS += $$($(1)_codegen_GENERATED_SRCS)
 $(1)_CODEGEN_HDRS += $$($(1)_codegen_GENERATED_HDRS)
 
-$(1)_CODEGEN_OBJS := $(MICROLITE_CODEGEN_RUNTIME_OBJS)
-$(1)_CODEGEN_OBJS += $$(addprefix $$(CORE_OBJDIR), \
+$(1)_CODEGEN_OBJS := $$(addprefix $$(CORE_OBJDIR), \
 $$(patsubst %.S,%.o,$$(patsubst %.cc,%.o,$$(patsubst %.c,%.o,$$($(1)_CODEGEN_SRCS)))))
 
 $(1)_BINARY := $$(BINDIR)$(1)
@@ -201,6 +200,8 @@ $$($(1)_BINARY): $$($(1)_CODEGEN_OBJS) $$(MICROLITE_LIB_PATH)
 
 $(1): $$($(1)_BINARY)
 $(1)_bin: $$($(1)_BINARY).bin
+
+MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 
 run_$(1): $$($(1)_BINARY)
 	$$(RUN_COMMAND) $$($(1)_BINARY)

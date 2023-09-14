@@ -302,8 +302,6 @@ CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
 
 MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
 
-MICRO_LITE_CODEGEN_RUNTIME := $(TENSORFLOW_ROOT)codegen/runtime/Makefile.inc
-
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
 
 MICROLITE_TEST_SRCS := \
@@ -560,7 +558,11 @@ include $(MAKEFILE_DIR)/additional_kernels.inc
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
 
+CODEGEN_RUNTIME_CC_SRCS := \
+$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.cc
 
+CODEGEN_RUNTIME_CC_HDRS := \
+$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.h
 
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
@@ -717,9 +719,6 @@ include $(MAKEFILE_DIR)/additional_tests.inc
 # Load codegen preprocessor rules
 include $(MICRO_LITE_CODEGEN_PREPROCESSOR)
 
-# Load codegen runtime rules
-include $(MICRO_LITE_CODEGEN_RUNTIME)
-
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
@@ -736,9 +735,6 @@ $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_C
 
 MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
-
-MICROLITE_CODEGEN_RUNTIME_OBJS := $(addprefix $(CORE_OBJDIR), \
-$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_CODEGEN_RUNTIME_SRCS)))))
 
 $(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)
