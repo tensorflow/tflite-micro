@@ -51,6 +51,6 @@ class FullyConnected(operator.Operator):
         weights_format=_WEIGHTS_FORMATS[self._builtin_options.weightsFormat],
         keep_num_dims=utils.bool_to_c_str(self._builtin_options.keepNumDims),
         quantized_bias_type=utils.bool_to_c_str(
-            self._builtin_options.quantized_bias_type),
+            self._builtin_options.quantizedBiasType),
         asymmetric_quantize_inputs=utils.bool_to_c_str(
             self._builtin_options.asymmetricQuantizeInputs))

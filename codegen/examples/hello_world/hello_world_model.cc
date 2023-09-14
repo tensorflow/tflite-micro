@@ -122,6 +122,7 @@ struct Node0_0 {
       .activation = kTfLiteActRelu,
       .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
       .keep_num_dims = false,
+      .quantized_bias_type = 0,
       .asymmetric_quantize_inputs = false};
 } node_0_0;
 
@@ -139,6 +140,7 @@ struct Node0_1 {
       .activation = kTfLiteActRelu,
       .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
       .keep_num_dims = false,
+      .quantized_bias_type = 0,
       .asymmetric_quantize_inputs = false};
 } node_0_1;
 
@@ -156,6 +158,7 @@ struct Node0_2 {
       .activation = kTfLiteActNone,
       .weights_format = kTfLiteFullyConnectedWeightsFormatDefault,
       .keep_num_dims = false,
+      .quantized_bias_type = 0,
       .asymmetric_quantize_inputs = false};
 } node_0_2;
 
