@@ -53,6 +53,7 @@ static TfLiteConvParams common_conv_params = {
     kTfLiteActNone,       // activation
     1,                    // dilation_width_factor
     1,                    // dilation_height_factor
+    kTfLiteNoType         // quantized_bias_type
 };
 
 }  // namespace
@@ -420,8 +421,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannelRelu632bBias) {
 TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannel) {
   // conv params:
   // padding, stride_<width,height>, activation, dilation_<width, height>
-  TfLiteConvParams conv_params = {kTfLitePaddingValid, 1, 1,
-                                  kTfLiteActNone,      1, 1};
+  TfLiteConvParams conv_params = {
+      kTfLitePaddingValid, 1, 1, kTfLiteActNone, 1, 1, kTfLiteNoType};
 
   int input_shape[] = {4, 1, 2, 2, 4};  // [len,N,H,W,C]
   constexpr int input_elements =
@@ -473,8 +474,8 @@ TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannel) {
 TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannelRelu6) {
   // conv params:
   // padding, stride_<width,height>, activation, dilation_<width, height>
-  TfLiteConvParams conv_params = {kTfLitePaddingValid, 1, 1,
-                                  kTfLiteActRelu6,     1, 1};
+  TfLiteConvParams conv_params = {
+      kTfLitePaddingValid, 1, 1, kTfLiteActRelu6, 1, 1, kTfLiteNoType};
 
   int input_shape[] = {4, 1, 2, 2, 4};  // [len,N,H,W,C]
   constexpr int input_elements =
@@ -526,8 +527,8 @@ TF_LITE_MICRO_TEST(Kernel1x1QuantizedPerChannelRelu6) {
 TF_LITE_MICRO_TEST(Kernel1x1Quantized16x8PerChannelRelu6) {
   // conv params:
   // padding, stride_<width,height>, activation, dilation_<width, height>
-  TfLiteConvParams conv_params = {kTfLitePaddingValid, 1, 1,
-                                  kTfLiteActRelu6,     1, 1};
+  TfLiteConvParams conv_params = {
+      kTfLitePaddingValid, 1, 1, kTfLiteActRelu6, 1, 1, kTfLiteNoType};
 
   int input_shape[] = {4, 1, 2, 2, 4};  // [len,N,H,W,C]
   const int input_elements = 1 * 2 * 2 * 4;
