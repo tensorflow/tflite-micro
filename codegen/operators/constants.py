@@ -26,3 +26,25 @@ ACTIVATION_FUNCS: Dict[int, str] = {
     schema_fb.ActivationFunctionType.TANH: "kTfLiteActTanh",
     schema_fb.ActivationFunctionType.SIGN_BIT: "kTfLiteActSignBit",
 }
+
+TFLITE_TYPE: Dict[int, str] = {
+    0: "kTfLiteNoType",
+    1: "kTfLiteFloat32",
+    2: "kTfLiteInt32",
+    3: "kTfLiteUInt8",
+    4: "kTfLiteInt64",
+    5: "kTfLiteString",
+    6: "kTfLiteBool",
+    7: "kTfLiteInt16",
+    8: "kTfLiteComplex64",
+    9: "kTfLiteInt8",
+    10: "kTfLiteFloat16",
+    11: "kTfLiteFloat64",
+    12: "kTfLiteComplex128",
+    13: "kTfLiteUInt64",
+    14: "kTfLiteResource",
+    15: "kTfLiteVariant",
+    16: "kTfLiteUInt32",
+    17: "kTfLiteUInt16",
+    18: "kTfLiteInt4",
+}
