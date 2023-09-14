@@ -44,7 +44,8 @@ class FullyConnected(operator.Operator):
         "    .weights_format = ${weights_format},\n"
         "    .keep_num_dims = ${keep_num_dims},\n"
         "    .asymmetric_quantize_inputs = ${asymmetric_quantize_inputs},\n"
-        "    .quantized_bias_type = ${quantized_bias_type}};")
+        "    .quantized_bias_type = static_cast<TfLiteType>(${quantized_bias_type})};"
+    )
     return builtin_template.substitute(
         activation=constants.ACTIVATION_FUNCS[
             self._builtin_options.fusedActivationFunction],
