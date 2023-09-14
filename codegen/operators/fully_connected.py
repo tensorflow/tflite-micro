@@ -43,11 +43,14 @@ class FullyConnected(operator.Operator):
         "    .activation = ${activation},\n"
         "    .weights_format = ${weights_format},\n"
         "    .keep_num_dims = ${keep_num_dims},\n"
-        "    .asymmetric_quantize_inputs = ${asymmetric_quantize_inputs}};")
+        "    .asymmetric_quantize_inputs = ${asymmetric_quantize_inputs},\n"
+        "    .quantized_bias_type = ${quantized_bias_type}};")
     return builtin_template.substitute(
         activation=constants.ACTIVATION_FUNCS[
             self._builtin_options.fusedActivationFunction],
         weights_format=_WEIGHTS_FORMATS[self._builtin_options.weightsFormat],
         keep_num_dims=utils.bool_to_c_str(self._builtin_options.keepNumDims),
         asymmetric_quantize_inputs=utils.bool_to_c_str(
-            self._builtin_options.asymmetricQuantizeInputs))
+            self._builtin_options.asymmetricQuantizeInputs),
+        quantized_bias_type=constants.TFLITE_TYPE[
+            self._builtin_options.quantizedBiasType])
