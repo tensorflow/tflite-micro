@@ -21,6 +21,10 @@ endif
 TENSORFLOW_ROOT :=
 RELATIVE_MAKEFILE_DIR := tensorflow/lite/micro/tools/make
 MAKEFILE_DIR := $(TENSORFLOW_ROOT)$(RELATIVE_MAKEFILE_DIR)
+BAZEL_ROOT := $(TENSORFLOW_ROOT)
+ifeq ($(BAZEL_ROOT),)
+ BAZEL_ROOT = .
+endif
 
 # Pull in some convenience functions.
 include $(MAKEFILE_DIR)/helper_functions.inc
@@ -297,6 +301,8 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark
 CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
 
 MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
+
+MICRO_LITE_CODEGEN_RUNTIME := $(TENSORFLOW_ROOT)codegen/runtime/Makefile.inc
 
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
 
@@ -711,6 +717,9 @@ include $(MAKEFILE_DIR)/additional_tests.inc
 # Load codegen preprocessor rules
 include $(MICRO_LITE_CODEGEN_PREPROCESSOR)
 
+# Load codegen runtime rules
+include $(MICRO_LITE_CODEGEN_RUNTIME)
+
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
@@ -727,6 +736,9 @@ $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(THIRD_PARTY_KERNEL_C
 
 MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
+
+MICROLITE_CODEGEN_RUNTIME_OBJS := $(addprefix $(CORE_OBJDIR), \
+$(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_CODEGEN_RUNTIME_SRCS)))))
 
 $(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
 	@mkdir -p $(dir $@)

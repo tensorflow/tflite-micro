@@ -13,7 +13,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile codegen_hello_world
 ## Running the example
 
 TODO(rjascani): The command works, but it'll just crash as we don't have all of
-the data structures fullypopulated yet.
+the data structures fully populated yet.
 
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile run_codegen_hello_world
