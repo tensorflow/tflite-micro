@@ -18,5 +18,5 @@ set -e
 wget https://github.com/bazelbuild/bazelisk/releases/download/v1.16.0/bazelisk-linux-amd64
 mv bazelisk-linux-amd64 bazel
 chmod +x bazel
-sudo mv bazel /usr/local/bin
+mv bazel /usr/local/bin
 
