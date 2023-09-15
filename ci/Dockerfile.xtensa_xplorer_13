@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM python:3.10-bullseye
 ENV DEBIAN_FRONTEND noninterative
 
 RUN \
@@ -9,10 +9,7 @@ RUN \
     curl \
     git \
     unzip \
-    wget \
-    python3 \
-    python \
-    python3-pip
+    wget
 
 WORKDIR /opt/xtensa
 
@@ -23,9 +20,6 @@ COPY ./P6_200528_linux.tgz .
 COPY ./HIFI_190304_swupgrade_linux.tgz .
 COPY ci/install_cores_xplorer_13.sh .
 COPY ci/install_bazelisk.sh .
-
-RUN \
-  python3 -m pip install -U --force-reinstall pip
 
 RUN \
   pip3 install Pillow
