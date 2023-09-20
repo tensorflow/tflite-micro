@@ -16,12 +16,12 @@ build is instead driven by its C/C++ build system Bazel.
 The Bazel target `//python/tflite_micro:whl.dist` builds a `tflite_micro`
 Python *.whl* under the output directory `bazel-bin/python/tflite_micro/whl_dist`. For example:
 ```
-% bazel build //python/tflite_micro:whl.dist                                                                   ~/wetu/tflite-micro
+% bazel build //python/tflite_micro:whl.dist
 ....
 Target //python/tflite_micro:whl.dist up-to-date:
   bazel-bin/python/tflite_micro/whl_dist
 
-% tree bazel-bin/python/tflite_micro/whl_dist                                                                ~/wetu/tflite-micro
+% tree bazel-bin/python/tflite_micro/whl_dist
 bazel-bin/python/tflite_micro/whl_dist
 └── tflite_micro-0.dev20230920161638-py3-none-any.whl
 ```
