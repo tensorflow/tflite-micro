@@ -225,11 +225,10 @@ void FullyConnected(const FullyConnectedParams& params,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#else // #if !(defined(HIFI5) || defined(HIFI4))
+#else  // #if !(defined(HIFI5) || defined(HIFI4))
 void Sigmoid(int16_t* data, int32_t data_size) {
   WORD32 err;
-  err = xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0,
-      data_size);
+  err = xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
 }
 
 void Sigmoid(float* data, int32_t data_size) {
@@ -245,7 +244,8 @@ void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
   if (tanh_input_left_shift < 0) /* handling negative shift value */
   {
     tanh_input_left_shift = -tanh_input_left_shift;
-#if (defined(USE_HIFI_ACT_TIE) && (defined(AE_TANH16X4X2) || defined(AE_TANH16X4)))
+#if (defined(USE_HIFI_ACT_TIE) && \
+     (defined(AE_TANH16X4X2) || defined(AE_TANH16X4)))
     input_multiplier = 1;
 #else
     input_multiplier = 3;
@@ -253,25 +253,24 @@ void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
   }
   WORD32 err;
   err = xa_nn_vec_tanh_sym16s_sym16s(output_data, input_data, input_multiplier,
-      tanh_input_left_shift, data_size);
+                                     tanh_input_left_shift, data_size);
 }
 
 void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
           int32_t data_size) {
   int data_dims[2] = {1, data_size};
   RuntimeShape data_shape(2, reinterpret_cast<const int32_t*>(data_dims));
-  reference_ops::Tanh(data_shape, input_data, data_shape,
-                      output_data);
+  reference_ops::Tanh(data_shape, input_data, data_shape, output_data);
 }
 
 // Input and output have the same shape in LSTM
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int8_t* output_data, int32_t data_size) {
   WORD32 err;
-  err = xa_nn_elm_mul_sym16sxsym16s_asym8s(output_data, params.output_offset,
-      params.output_shift, params.output_multiplier,
-      params.quantized_activation_min, params.quantized_activation_max,
-      input1_data, input2_data, data_size);
+  err = xa_nn_elm_mul_sym16sxsym16s_asym8s(
+      output_data, params.output_offset, params.output_shift,
+      params.output_multiplier, params.quantized_activation_min,
+      params.quantized_activation_max, input1_data, input2_data, data_size);
 }
 
 // Input and output have the same shape in LSTM
@@ -279,8 +278,8 @@ void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int16_t* output_data, int32_t data_size) {
   int dims_4D[4] = {1, 1, 1, data_size};
   WORD32 err;
-  err = xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(output_data,
-      dims_4D, params.output_shift, params.output_multiplier,
+  err = xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(
+      output_data, dims_4D, params.output_shift, params.output_multiplier,
       params.quantized_activation_min, params.quantized_activation_max,
       input1_data, dims_4D, input2_data, dims_4D);
   return;
@@ -301,8 +300,8 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
   WORD32 err;
-#pragma loop_count min=1
-  for(int b = 0; b < num_batches; b++) {
+#pragma loop_count min = 1
+  for (int b = 0; b < num_batches; b++) {
     err = xa_nn_matXvec_out_stride_sym8sxasym8s_16(
         output_data + b * output_depth, filter_data,
         input_data + b * accum_depth, bias_data, output_depth, accum_depth,
@@ -319,18 +318,18 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int accum_depth) {
   WORD32 err;
 
-  err = xa_nn_matmul_sym8sxsym16s_sym16s(output_data, filter_data, input_data,
-      bias_data, output_depth, accum_depth, accum_depth, num_batches,
-      accum_depth, output_depth, 1, params.input_offset,
-      params.output_multiplier, params.output_shift, params.output_offset);
+  err = xa_nn_matmul_sym8sxsym16s_sym16s(
+      output_data, filter_data, input_data, bias_data, output_depth,
+      accum_depth, accum_depth, num_batches, accum_depth, output_depth, 1,
+      params.input_offset, params.output_multiplier, params.output_shift,
+      params.output_offset);
   return;
 }
 
-void FullyConnected(const FullyConnectedParams& params,
-                    const float* input_data, const float* filter_data,
-                    const float* bias_data, float* output_data,
-                    const int num_batches, const int output_depth,
-                    const int accum_depth) {
+void FullyConnected(const FullyConnectedParams& params, const float* input_data,
+                    const float* filter_data, const float* bias_data,
+                    float* output_data, const int num_batches,
+                    const int output_depth, const int accum_depth) {
   int input_dims[2] = {num_batches, output_depth};
   RuntimeShape input_shape(2, reinterpret_cast<const int32_t*>(input_dims));
   RuntimeShape bias_shape(1, bias_data == NULL ? 0 : output_depth);
@@ -342,7 +341,7 @@ void FullyConnected(const FullyConnectedParams& params,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#endif // #if !(defined(HIFI5) || defined(HIFI4))
+#endif  // #if !(defined(HIFI5) || defined(HIFI4))
 
 void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               int16_t* vector) {
@@ -372,18 +371,16 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                     const ArithmeticParams& forget_cell_mul_params,
                     const ArithmeticParams& input_mul_params,
                     const CellStateInfo& cell_state_info, int16_t* buffer) {
-
   auto cell_state_shape = step_info.StateShape();
   // Check offset validity to avoid memory overflow
-  TFLITE_DCHECK_LE(
-      step_info.CellStateOffset() + cell_state_shape.FlatSize(),
-      tflite::micro::GetTensorShape(cell_state).FlatSize());
+  TFLITE_DCHECK_LE(step_info.CellStateOffset() + cell_state_shape.FlatSize(),
+                   tflite::micro::GetTensorShape(cell_state).FlatSize());
 
   WORD32 err;
   // Multiplier is equivalent to 0.5 here so adding 1 to shifts
   err = xa_nn_lstm_cell_state_update_16(
       tflite::micro::GetTensorData<int16_t>(cell_state) +
-      step_info.CellStateOffset(),
+          step_info.CellStateOffset(),
       forget_gate_output, cell_gate_output, input_gate_output,
       forget_cell_mul_params.output_shift - 1,
       input_mul_params.output_shift - 1, cell_state_info.quantized_cell_clip,
@@ -393,8 +390,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
 void UpdateLstmCell(const LstmStepManager& step_info,
                     TfLiteEvalTensor* cell_state,
                     // Gate outputs
-                    float* forget_gate_output,
-                    const float* input_gate_output,
+                    float* forget_gate_output, const float* input_gate_output,
                     const float* cell_gate_output,
                     // Mul parameters
                     const ArithmeticParams& forget_cell_mul_params,
@@ -432,7 +428,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#endif // #if defined(HIFI5) || defined(HIFI4)
+#endif  // #if defined(HIFI5) || defined(HIFI4)
 
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
@@ -490,7 +486,6 @@ RuntimeShape LstmStepManager::StateShape() const {
   const int32_t* dims_data = reinterpret_cast<const int32_t*>(dims);
   return RuntimeShape(2, dims_data);
 }
-
 
 }  // namespace lstm_internal
 }  // namespace tflite

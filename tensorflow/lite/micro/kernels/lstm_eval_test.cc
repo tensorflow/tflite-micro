@@ -34,7 +34,7 @@ namespace {
 // Test Settings
 constexpr float kTestFloatTolerance = 1e-6f;
 }  // namespace
-#endif // !defined(XTENSA)
+#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_BEGIN
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
@@ -454,6 +454,6 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt16) {
                                        cell_state_tolerance,
                                        int16_node_contents);
 }
-#endif // !defined(XTENSA)
+#endif  // !defined(XTENSA)
 
 TF_LITE_MICRO_TESTS_END

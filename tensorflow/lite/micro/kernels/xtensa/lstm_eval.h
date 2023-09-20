@@ -26,8 +26,8 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
-#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -200,7 +200,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const RuntimeShape& filter_shape, const float* filter_data,
                     const RuntimeShape& bias_shape, const float* bias_data,
                     const RuntimeShape& output_shape, float* output_data);
-#else // #if !(defined(HIFI5) || defined(HIFI4))
+#else   // #if !(defined(HIFI5) || defined(HIFI4))
 void Sigmoid(int16_t* data, int32_t data_size);
 
 void Sigmoid(float* data, int32_t data_size);
@@ -208,8 +208,8 @@ void Sigmoid(float* data, int32_t data_size);
 void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
           int16_t* output_data, int32_t data_size);
 
-void Tanh(int32_t cell_state_scale_power, float* input_data,
-          float* output_data, int32_t data_size);
+void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
+          int32_t data_size);
 
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int8_t* output_data, int32_t data_size);
@@ -232,12 +232,11 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int num_batches, const int output_depth,
                     const int accum_depth);
 
-void FullyConnected(const FullyConnectedParams& params,
-                    const float* input_data, const float* filter_data,
-                    const float* bias_data, float* output_data,
-                    const int num_batches, const int output_depth,
-                    const int accum_depth);
-#endif // #if !(defined(HIFI5) || defined(HIFI4))
+void FullyConnected(const FullyConnectedParams& params, const float* input_data,
+                    const float* filter_data, const float* bias_data,
+                    float* output_data, const int num_batches,
+                    const int output_depth, const int accum_depth);
+#endif  // #if !(defined(HIFI5) || defined(HIFI4))
 
 void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
                     int n_input, int16_t* output);
@@ -407,7 +406,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#else // #if !defined(HIFI5) || defined(HIFI4)
+#else   // #if !defined(HIFI5) || defined(HIFI4)
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void CalculateLstmGate(
@@ -424,7 +423,6 @@ void CalculateLstmGate(
     CellType* fc_output_buffer, const TfLiteFusedActivation activation,
     const int num_batches, const int input_dimension,
     const int state_dimension) {
-
   // RuntimeShape step_input_shape = step_info.InputShape();
   // RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
   // RuntimeShape step_state_shape = step_info.StateShape();
@@ -433,10 +431,10 @@ void CalculateLstmGate(
   // Moved these to LstmStep function
   // Check offset validity to avoid memory overflow
   // TFLITE_DCHECK_LE(step_info.InputOffset() + step_input_shape.FlatSize(),
-                   // input_shape.FlatSize());
+  // input_shape.FlatSize());
   // TFLITE_DCHECK_LE(
-      // step_info.HiddenStateOffset() + step_state_shape.FlatSize(),
-      // recurrent_shape.FlatSize());
+  // step_info.HiddenStateOffset() + step_state_shape.FlatSize(),
+  // recurrent_shape.FlatSize());
 
   // Input FC
   FullyConnected(gate_params.input_fc_params,
@@ -492,14 +490,13 @@ void UpdateLstmCell(const LstmStepManager& step_info,
 void UpdateLstmCell(const LstmStepManager& step_info,
                     TfLiteEvalTensor* cell_state,
                     // Gate outputs
-                    float* forget_gate_output,
-                    const float* input_gate_output,
+                    float* forget_gate_output, const float* input_gate_output,
                     const float* cell_gate_output,
                     // Mul parameters
                     const ArithmeticParams& forget_cell_mul_params,
                     const ArithmeticParams& input_mul_params,
                     const CellStateInfo& cell_state_info, float* buffer);
-#endif // #if defined(HIFI5) || defined(HIFI4)
+#endif  // #if defined(HIFI5) || defined(HIFI4)
 
 // Update the hidden state of the LSTM kernel using the following formula:
 // updated_hidden_state = Tanh(updated_cell_state) * output_gate_output, * means
@@ -533,8 +530,7 @@ void UpdateLstmHidden(const LstmStepManager& step_info,
           step_info.HiddenStateOffset());
 #else
   int32_t cell_state_size = cell_state_shape.FlatSize();
-  Tanh(cell_state_scale_power, cell_state_data, buffer,
-       cell_state_size);
+  Tanh(cell_state_scale_power, cell_state_data, buffer, cell_state_size);
   // Update the hidden state
   Mul(mul_params, buffer, output_gate_output,
       tflite::micro::GetTensorData<ActivationType>(hidden_state) +
@@ -655,13 +651,12 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
                   step_info.HiddenStateOffset(),
               step_info.StateShape().FlatSize() * sizeof(ActivationType));
 }
-#else // #if !(defined(HIFI5) || defined(HIFI4))
+#else   // #if !(defined(HIFI5) || defined(HIFI4))
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
               LSTMKernelContents& kernel_content,
               const LSTMBuffers<CellType>& buffers) {
-
   const TfLiteEvalTensor* input =
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor);
   TfLiteEvalTensor* recurrent = kernel_content.HiddenStateTensor();
@@ -684,11 +679,11 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
   CalculateLstmGate<ActivationType, WeightType, CellType, BiasType>(
       step_info, op_data.forget_gate_parameters,
       // Input FC
-      input, // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
+      input,  // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToForgetWeightsTensor),
       kernel_content.GetInternalTensor(tflite::kLstmForgetGateBiasTensor),
       // Recurrent FC
-      recurrent, // kernel_content.HiddenStateTensor(),
+      recurrent,  // kernel_content.HiddenStateTensor(),
       kernel_content.GetInternalTensor(
           tflite::kLstmRecurrentToForgetWeightsTensor),
       /*recurrent_bias*/ nullptr,
@@ -703,11 +698,11 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
   CalculateLstmGate<ActivationType, WeightType, CellType, BiasType>(
       step_info, op_data.input_gate_parameters,
       // Input FC
-      input, // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
+      input,  // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToInputWeightsTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputGateBiasTensor),
       // Recurrent FC
-      recurrent, // kernel_content.HiddenStateTensor(),
+      recurrent,  // kernel_content.HiddenStateTensor(),
       kernel_content.GetInternalTensor(
           tflite::kLstmRecurrentToInputWeightsTensor),
       /*recurrent_bias*/ nullptr,
@@ -722,11 +717,11 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
   CalculateLstmGate<ActivationType, WeightType, CellType, BiasType>(
       step_info, op_data.cell_gate_parameters,
       // Input FC
-      input, // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
+      input,  // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToCellWeightsTensor),
       kernel_content.GetInternalTensor(tflite::kLstmCellGateBiasTensor),
       // Recurrent FC
-      recurrent, // kernel_content.HiddenStateTensor(),
+      recurrent,  // kernel_content.HiddenStateTensor(),
       kernel_content.GetInternalTensor(
           tflite::kLstmRecurrentToCellWeightsTensor),
       /*recurrent_bias*/ nullptr,
@@ -741,22 +736,21 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
   CellType* updated_input_buffer = buffers.buffer1;  // reuse buffer
 
   UpdateLstmCell(step_info, kernel_content.CellStateTensor(),
-                           forget_gate_output, input_gate_output,
-                           cell_gate_output,
-                           inter_gate_params.forget_cell_mul_params,
-                           inter_gate_params.input_mul_params,
-                           op_data.cell_state_info, updated_input_buffer);
+                 forget_gate_output, input_gate_output, cell_gate_output,
+                 inter_gate_params.forget_cell_mul_params,
+                 inter_gate_params.input_mul_params, op_data.cell_state_info,
+                 updated_input_buffer);
 
   /*Step3: update the hidden state */
   CellType* output_gate_output = buffers.buffer1;  // reuse buffer
   CalculateLstmGate<ActivationType, WeightType, CellType, BiasType>(
       step_info, op_data.output_gate_parameters,
       // Input FC
-      input, // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
+      input,  // kernel_content.GetInternalTensor(tflite::kLstmInputTensor),
       kernel_content.GetInternalTensor(tflite::kLstmInputToOutputWeightsTensor),
       kernel_content.GetInternalTensor(tflite::kLstmOutputGateBiasTensor),
       // Recurrent FC
-      recurrent, // kernel_content.HiddenStateTensor(),
+      recurrent,  // kernel_content.HiddenStateTensor(),
       kernel_content.GetInternalTensor(
           tflite::kLstmRecurrentToOutputWeightsTensor),
       /*recurrent_bias*/ nullptr,
@@ -768,8 +762,8 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
 
   CellType* tanh_activated_cell_buffer = buffers.buffer0;  // reuse buffer
   tflite::lstm_internal::UpdateLstmHidden<CellType, ActivationType>(
-      step_info, kernel_content.CellStateTensor(),
-      recurrent, /* kernel_content.HiddenStateTensor(), */ output_gate_output,
+      step_info, kernel_content.CellStateTensor(), recurrent,
+      /* kernel_content.HiddenStateTensor(), */ output_gate_output,
       inter_gate_params.output_mul_params,
       op_data.cell_state_info.cell_state_scale_power,
       tanh_activated_cell_buffer);
@@ -788,7 +782,7 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
                   step_info.HiddenStateOffset(),
               step_info.StateShape().FlatSize() * sizeof(ActivationType));
 }
-#endif // #if !(defined(HIFI5) || defined(HIFI4))
+#endif  // #if !(defined(HIFI5) || defined(HIFI4))
 
 }  // namespace lstm_internal
 
