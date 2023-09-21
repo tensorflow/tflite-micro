@@ -38,6 +38,7 @@ package_group(
 cc_library(
     name = "activation_utils",
     hdrs = ["activation_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",
@@ -52,6 +53,7 @@ cc_library(
     hdrs = [
         "circular_buffer_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -62,6 +64,7 @@ cc_library(
     hdrs = [
         "conv_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_runner",
         ":micro_ops",
@@ -79,6 +82,7 @@ cc_library(
     hdrs = [
         "detection_postprocess_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -87,6 +91,7 @@ cc_library(
         "kernel_runner.cc",
     ],
     hdrs = ["kernel_runner.h"],
+    copts = micro_copts(),
     visibility = [
         "//visibility:public",
     ],
@@ -107,6 +112,7 @@ cc_library(
         "kernel_util.cc",
     ],
     hdrs = ["kernel_util.h"],
+    copts = micro_copts(),
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
@@ -126,6 +132,7 @@ cc_library(
     hdrs = [
         "lstm_shared.h",
     ],
+    copts = micro_copts(),
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
@@ -134,6 +141,7 @@ cc_library(
     hdrs = [
         "lstm_eval_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_util",
         ":micro_ops",
@@ -149,6 +157,7 @@ cc_library(
         "micro_tensor_utils.cc",
     ],
     hdrs = ["micro_tensor_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",

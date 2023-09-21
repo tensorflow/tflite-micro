@@ -124,6 +124,7 @@ cc_library(
 cc_library(
     name = "micro_graph",
     hdrs = ["micro_graph.h"],
+    copts = micro_copts(),
     deps = [
         ":micro_common",
         ":micro_resource_variable",
@@ -135,6 +136,7 @@ cc_library(
     name = "micro_interpreter_graph",
     srcs = ["micro_interpreter_graph.cc"],
     hdrs = ["micro_interpreter_graph.h"],
+    copts = micro_copts(),
     deps = [
         ":memory_helpers",
         ":micro_allocator",
@@ -154,6 +156,7 @@ cc_library(
     name = "mock_micro_graph",
     srcs = ["mock_micro_graph.cc"],
     hdrs = ["mock_micro_graph.h"],
+    copts = micro_copts(),
     deps = [
         ":micro_allocator",
         ":micro_graph",
@@ -210,6 +213,7 @@ cc_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/schema:schema_fbs",
@@ -221,6 +225,7 @@ cc_library(
     name = "memory_helpers",
     srcs = ["memory_helpers.cc"],
     hdrs = ["memory_helpers.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:reference",
