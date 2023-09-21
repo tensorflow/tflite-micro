@@ -1,6 +1,7 @@
 def micro_copts():
     return [
         "-Wall",
+        "-Wno-unused-parameter",
         "-Wnon-virtual-dtor",
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
     ]
