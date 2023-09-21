@@ -1,6 +1,8 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//python:py_namespace.bzl", "py_namespace")
+load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
@@ -71,9 +73,7 @@ py_library(
     srcs = [
         "runtime.py",
     ],
-    data = [
-        ":_runtime.so",
-    ],
+    data = [":_runtime.so"],
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
@@ -92,9 +92,10 @@ py_test(
         "noubsan",
     ],
     deps = [
+        ":runtime",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        ":runtime",
+        "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
     ],
 )
@@ -107,6 +108,14 @@ py_library(
     data = [
         "sine_float.tflite",
     ],
+)
+
+# Generate a version attribute, imported as tflite_micro.__version__, using
+# stamp (a.k.a. workspace status) variables.
+expand_stamp_vars(
+    name = "version",
+    out = "_version.py",
+    template = "_version.py.in",
 )
 
 # Collect the `deps` and their transitive dependences together into a set of
@@ -129,6 +138,7 @@ py_package(
     deps = [
         ":postinstall_check",
         ":runtime",
+        ":version",
     ],
 )
 
@@ -151,16 +161,78 @@ py_namespace(
     ],
 )
 
+expand_stamp_vars(
+    name = "description_file",
+    out = "README.pypi.md",
+    template = "README.pypi.md.in",
+)
+
+# Building the :whl or its descendants requires the following build setting to
+# supply the Python compatibility tags for the wheel metadata.
+string_flag(
+    name = "compatibility_tag",
+    build_setting_default = "local",
+    values = [
+        "cp310_cp310_manylinux_2_28_x86_64",
+        "cp311_cp311_manylinux_2_28_x86_64",
+        "local",
+    ],
+)
+
+config_setting(
+    name = "cp310_cp310_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp310_cp310_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
+    name = "cp311_cp311_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp311_cp311_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
+    name = "local",
+    flag_values = {
+        ":compatibility_tag": "local",
+    },
+)
+
 py_wheel(
     name = "whl",
+    # This macro yields additional targets:
+    #
+    # - whl.dist: build a properly named file under whl_dist/
+    #
+    abi = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
+        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":local": "none",
+    }),
+    description_file = ":description_file",
     distribution = "tflite_micro",
+    platform = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":local": "any",
+    }),
+    python_tag = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
+        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":local": "py3",
+    }),
     requires = [
         "flatbuffers",
         "numpy",
         "tensorflow",
     ],
+    stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
-    version = "0.1.0",
+    summary = "TensorFlow Lite for Microcontrollers",
+    twine = "@tflm_pip_deps_twine//:pkg",
+    version = "{BUILD_EMBED_LABEL}.dev{STABLE_GIT_COMMIT_TIME}",
     deps = [
         ":namespace",
     ],

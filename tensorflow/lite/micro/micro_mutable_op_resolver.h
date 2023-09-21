@@ -143,6 +143,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D, registration, ParsePool);
   }
 
+  TfLiteStatus AddBatchMatMul() {
+    return AddBuiltin(BuiltinOperator_BATCH_MATMUL,
+                      tflite::Register_BATCH_MATMUL(), ParseBatchMatMul);
+  }
+
   TfLiteStatus AddBatchToSpaceNd() {
     return AddBuiltin(BuiltinOperator_BATCH_TO_SPACE_ND,
                       Register_BATCH_TO_SPACE_ND(), ParseBatchToSpaceNd);
@@ -460,6 +465,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddPadV2() {
     return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
+  }
+
+  TfLiteStatus AddPCAN() {
+    // TODO(b/286250473): change back name to "PCAN" and remove namespace
+    return AddCustom("SignalPCAN", tflite::tflm_signal::Register_PCAN());
   }
 
   TfLiteStatus AddPrelu() {

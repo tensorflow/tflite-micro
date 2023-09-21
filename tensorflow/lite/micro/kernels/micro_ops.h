@@ -40,6 +40,7 @@ TFLMRegistration Register_ARG_MAX();
 TFLMRegistration Register_ARG_MIN();
 TFLMRegistration Register_ASSIGN_VARIABLE();
 TFLMRegistration Register_AVERAGE_POOL_2D();
+TFLMRegistration Register_BATCH_MATMUL();
 TFLMRegistration Register_BATCH_TO_SPACE_ND();
 TFLMRegistration Register_BROADCAST_ARGS();
 TFLMRegistration Register_BROADCAST_TO();
@@ -133,6 +134,9 @@ TFLMRegistration Register_VAR_HANDLE();
 TFLMRegistration Register_WHILE();
 TFLMRegistration Register_ZEROS_LIKE();
 
+// TODO(b/295174388): Add the rest of inference only registration functions.
+TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED();
+
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY();
@@ -144,6 +148,7 @@ TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT();
 TFLMRegistration* Register_ENERGY();
 TFLMRegistration* Register_FRAMER();
 TFLMRegistration* Register_OVERLAP_ADD();
+TFLMRegistration* Register_PCAN();
 TFLMRegistration* Register_STACKER();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal

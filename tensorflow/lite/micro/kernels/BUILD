@@ -38,6 +38,7 @@ package_group(
 cc_library(
     name = "activation_utils",
     hdrs = ["activation_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",
@@ -52,6 +53,7 @@ cc_library(
     hdrs = [
         "circular_buffer_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -62,6 +64,7 @@ cc_library(
     hdrs = [
         "conv_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_runner",
         ":micro_ops",
@@ -79,6 +82,7 @@ cc_library(
     hdrs = [
         "detection_postprocess_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -87,6 +91,7 @@ cc_library(
         "kernel_runner.cc",
     ],
     hdrs = ["kernel_runner.h"],
+    copts = micro_copts(),
     visibility = [
         "//visibility:public",
     ],
@@ -107,6 +112,7 @@ cc_library(
         "kernel_util.cc",
     ],
     hdrs = ["kernel_util.h"],
+    copts = micro_copts(),
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
@@ -126,6 +132,7 @@ cc_library(
     hdrs = [
         "lstm_shared.h",
     ],
+    copts = micro_copts(),
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
@@ -134,6 +141,7 @@ cc_library(
     hdrs = [
         "lstm_eval_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_util",
         ":micro_ops",
@@ -149,6 +157,7 @@ cc_library(
         "micro_tensor_utils.cc",
     ],
     hdrs = ["micro_tensor_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
@@ -185,6 +194,7 @@ tflm_kernel_cc_library(
         "add_n.cc",
         "arg_min_max.cc",
         "assign_variable.cc",
+        "batch_matmul.cc",
         "batch_to_space_nd.cc",
         "broadcast_args.cc",
         "broadcast_to.cc",
@@ -266,6 +276,7 @@ tflm_kernel_cc_library(
         "squared_difference.cc",
         "squeeze.cc",
         "strided_slice.cc",
+        "strided_slice_common.cc",
         "sub.cc",
         "sub_common.cc",
         "svdf.cc",
@@ -303,6 +314,7 @@ tflm_kernel_cc_library(
         "reduce.h",
         "reshape.h",
         "softmax.h",
+        "strided_slice.h",
         "sub.h",
         "svdf.h",
     ] + select({
@@ -413,6 +425,20 @@ cc_test(
     name = "arg_min_max_test",
     srcs = [
         "arg_min_max_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "batch_matmul_test",
+    srcs = [
+        "batch_matmul_test.cc",
     ],
     deps = [
         ":kernel_runner",

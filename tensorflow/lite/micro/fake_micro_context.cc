@@ -15,28 +15,18 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/fake_micro_context.h"
 
+#include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
-#include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-namespace {
-// Dummy static variables to allow creation of dummy MicroAllocator.
-// All tests are guarateed to run serially.
-static constexpr int KDummyTensorArenaSize = 256;
-static uint8_t dummy_tensor_arena[KDummyTensorArenaSize];
-}  // namespace
 
 FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
                                    SingleArenaBufferAllocator* allocator,
                                    MicroGraph* micro_graph)
-    : MicroContext(
-          MicroAllocator::Create(dummy_tensor_arena, KDummyTensorArenaSize),
-          nullptr, micro_graph),
-      tensors_(tensors),
-      allocator_(allocator) {}
+    : graph_(*micro_graph), tensors_(tensors), allocator_(allocator) {}
 
 TfLiteTensor* FakeMicroContext::AllocateTempTfLiteTensor(int tensor_index) {
   allocated_temp_count_++;
@@ -112,5 +102,14 @@ void* FakeMicroContext::GetScratchBuffer(int buffer_index) {
   }
   return scratch_buffers_[buffer_index];
 }
+
+TfLiteStatus FakeMicroContext::set_external_context(
+    void* external_context_payload) {
+  return kTfLiteError;
+}
+
+void* FakeMicroContext::external_context() { return nullptr; }
+
+MicroGraph& FakeMicroContext::graph() { return graph_; }
 
 }  // namespace tflite

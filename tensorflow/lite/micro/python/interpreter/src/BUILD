@@ -44,10 +44,7 @@ cc_library(
         "python_ops_resolver.h",
     ],
     copts = micro_copts(),
-    visibility = [
-        ":op_resolver_friends",
-        "//tensorflow/lite/micro/integration_tests:__subpackages__",
-    ],
+    visibility = [":op_resolver_friends"],
     deps = [
         "//python/tflite_micro:python_ops_resolver",
     ],

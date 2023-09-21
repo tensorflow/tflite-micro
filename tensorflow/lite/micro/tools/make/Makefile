@@ -130,7 +130,6 @@ endif
 CC_WARNINGS := \
   -Wsign-compare \
   -Wdouble-promotion \
-  -Wshadow \
   -Wunused-variable \
   -Wunused-function \
   -Wswitch \
@@ -140,6 +139,14 @@ CC_WARNINGS := \
   -Wmissing-field-initializers \
   -Wstrict-aliasing \
   -Wno-unused-parameter
+
+ifneq ($(TOOLCHAIN), gcc)
+  # GCC can be overly aggressive with shadow warnings, such as warning when a
+  # lambda has variable with the same name as a non-captured variable from the
+  # enclosing scope. As such, we don't enable shadow warnings on gcc.
+  # https://stackoverflow.com/q/66404751
+  CC_WARNINGS += -Wshadow
+endif
 
 COMMON_FLAGS := \
   -Werror \
@@ -287,6 +294,8 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
+MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
+
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
 
 MICROLITE_TEST_SRCS := \
@@ -296,7 +305,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_helpers_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocation_info_test.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_context_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_log_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
@@ -326,6 +335,7 @@ $(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
 $(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
 $(TENSORFLOW_ROOT)signal/src/energy.cc \
@@ -342,6 +352,7 @@ $(TENSORFLOW_ROOT)signal/src/max_abs.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_32.cc \
 $(TENSORFLOW_ROOT)signal/src/msb_64.cc \
 $(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
 $(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
@@ -355,6 +366,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/assign_variable.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
@@ -439,6 +451,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
@@ -693,6 +706,9 @@ include $(MICRO_LITE_BENCHMARKS)
 # Load custom kernel tests.
 include $(MAKEFILE_DIR)/additional_tests.inc
 
+# Load codegen preprocessor rules
+include $(MICRO_LITE_CODEGEN_PREPROCESSOR)
+
 # Create rules for downloading third-party dependencies.
 THIRD_PARTY_TARGETS :=
 $(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
@@ -851,6 +867,16 @@ test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
+
+CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
+
+codegen_preprocessor: $(CODEGEN_PREPROCESSOR_PATH)
+
+$(CODEGEN_PREPROCESSOR_PATH): $(CODEGEN_PREPROCESSOR_SRCS) $(MICROLITE_LIB_PATH)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	-o $@ $< \
+	$(MICROLITE_LIB_PATH) $(LDFLAGS) $(MICROLITE_LIBS)
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)

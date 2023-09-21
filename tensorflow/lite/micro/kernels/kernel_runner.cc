@@ -37,7 +37,8 @@ void ClearBufferApi(TfLiteContext* context_) {
 KernelRunner::KernelRunner(const TFLMRegistration& registration,
                            TfLiteTensor* tensors, int tensors_size,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
-                           void* builtin_data, TfLiteIntArray* intermediates)
+                           const void* builtin_data,
+                           TfLiteIntArray* intermediates)
     : registration_(registration),
       allocator_(SingleArenaBufferAllocator::Create(kKernelRunnerBuffer_,
                                                     kKernelRunnerBufferSize_)),
@@ -57,7 +58,7 @@ KernelRunner::KernelRunner(const TFLMRegistration& registration,
   // Prepare TfLiteNode:
   node_.inputs = inputs;
   node_.outputs = outputs;
-  node_.builtin_data = builtin_data;
+  node_.builtin_data = const_cast<void*>(builtin_data);
   node_.intermediates = intermediates;
 }
 

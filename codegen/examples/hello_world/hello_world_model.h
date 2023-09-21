@@ -17,8 +17,24 @@ limitations under the License.
 
 #pragma once
 
+#include "codegen/runtime/micro_codegen_context.h"
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+
 namespace hello_world_model {
 
-void Invoke();
+class Model {
+ public:
+  Model();
+
+  TfLiteStatus Invoke();
+
+ private:
+  TfLiteContext context_ = {};
+  tflite::Subgraph subgraphs_[1];
+  tflite::MicroCodegenContext micro_context_;
+  TfLiteNode subgraph0_nodes_[3] = {};
+  TfLiteEvalTensor subgraph0_tensors_[10] = {};
+};
 
 }  // namespace hello_world_model

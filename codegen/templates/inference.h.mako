@@ -17,8 +17,28 @@ limitations under the License.
 
 #pragma once
 
+#include "codegen/runtime/micro_codegen_context.h"
+#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/c/common.h"
+
 namespace ${model_name} {
 
-void Invoke();
+class Model {
+ public:
+  Model();
+
+  TfLiteStatus Invoke();
+
+ private:
+  TfLiteContext context_ = {};
+  tflite::Subgraph subgraphs_[${len(graph.subgraphs)}];
+  tflite::MicroCodegenContext micro_context_;
+% for subgraph in graph.subgraphs:
+  TfLiteNode ${subgraph.nodes_array}[${len(subgraph.operators)}] = {};
+% endfor
+% for subgraph in graph.subgraphs:
+  TfLiteEvalTensor ${subgraph.tensors_array}[${len(subgraph.tensors)}] = {};
+% endfor
+};
 
 }  // namespace ${model_name}

@@ -1,16 +1,16 @@
-From 470dee13bffc0adb9a778d56fab3028031f71e80 Mon Sep 17 00:00:00 2001
+From 70e504abb13fe56244250ac7ac58b1b5232481c7 Mon Sep 17 00:00:00 2001
 From: TFLM <tflm@google.com>
-Date: Fri, 28 Oct 2022 11:01:15 +0200
+Date: Mon, 28 Aug 2023 16:07:22 +0000
 Subject: [PATCH] TFLM patch
 
 ---
- targets/corstone-300/platform.ld      |  8 +++-----
- targets/corstone-300/platform.scatter |  5 +++--
+ targets/corstone-300/platform.ld      | 10 ++++------
+ targets/corstone-300/platform.scatter |  7 ++++---
  targets/corstone-300/retarget.c       | 16 ++++++++--------
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
 diff --git a/targets/corstone-300/platform.ld b/targets/corstone-300/platform.ld
-index ec58acc..21316a4 100644
+index ec58acc..51c93ca 100644
 --- a/targets/corstone-300/platform.ld
 +++ b/targets/corstone-300/platform.ld
 @@ -75,7 +75,7 @@
@@ -22,6 +22,15 @@ index ec58acc..21316a4 100644
  __HEAP_SIZE  = 0x00008000;
  
  MEMORY
+@@ -83,7 +83,7 @@ MEMORY
+   ITCM  (rx)  : ORIGIN = 0x10000000, LENGTH = 0x00080000
+   BRAM  (rw)  : ORIGIN = 0x11000000, LENGTH = 0x00400000
+   DTCM  (rw)  : ORIGIN = 0x30000000, LENGTH = 0x00080000
+-  SRAM  (rw)  : ORIGIN = 0x31000000, LENGTH = 0x00200000
++  SRAM  (rw)  : ORIGIN = 0x31000000, LENGTH = 0x02000000
+   DDR   (rwx) : ORIGIN = 0x70000000, LENGTH = 0x60000000
+ }
+ 
 @@ -150,9 +150,6 @@ SECTIONS
      *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
      *(SORT(.dtors.*))
@@ -50,7 +59,7 @@ index ec58acc..21316a4 100644
    .heap (COPY) :
    {
 diff --git a/targets/corstone-300/platform.scatter b/targets/corstone-300/platform.scatter
-index fab12d1..be5c227 100644
+index fab12d1..2180aca 100644
 --- a/targets/corstone-300/platform.scatter
 +++ b/targets/corstone-300/platform.scatter
 @@ -1,3 +1,4 @@
@@ -67,6 +76,15 @@ index fab12d1..be5c227 100644
  #endif
  
  #ifndef HEAP_SIZE
+@@ -108,7 +109,7 @@
+ #define DTCM_SIZE  0x00080000
+ 
+ #define SRAM_START 0x31000000
+-#define SRAM_SIZE  0x00200000
++#define SRAM_SIZE  0x02000000
+ 
+ #define DDR_START  0x70000000
+ #define DDR_SIZE   0x02000000
 @@ -136,7 +137,6 @@ APP_IMAGE LR_START LR_SIZE
          ; Make sure reset_handler ends up in root segment, when split across
          ; ITCM and DTCM
@@ -115,5 +133,5 @@ index 4bde44d..b510ad8 100644
 +}
 +#endif
 -- 
-2.17.1
+2.42.0.rc2.253.gd59a3bf2b4-goog
 

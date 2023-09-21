@@ -19,6 +19,8 @@ import pathlib
 from mako import template
 from typing import TypedDict
 
+from tflite_micro.codegen import graph
+
 _TEMPLATE_DIR = pathlib.Path(__file__).parent / 'templates'
 _HEADER_TEMPLATE = _TEMPLATE_DIR / 'inference.h.mako'
 _SOURCE_TEMPLATE = _TEMPLATE_DIR / 'inference.cc.mako'
@@ -27,6 +29,8 @@ _SOURCE_TEMPLATE = _TEMPLATE_DIR / 'inference.cc.mako'
 class ModelData(TypedDict):
   header_file: str
   model_name: str
+  op_code_table: graph.OpCodeTable
+  graph: graph.Graph
 
 
 def _render(output_file: pathlib.Path, template_file: pathlib.Path,
@@ -45,12 +49,15 @@ def _generate_source(source_path: pathlib.Path, model_data: ModelData) -> None:
   _render(source_path, _SOURCE_TEMPLATE, model_data)
 
 
-def generate(output_dir: str, output_name: str) -> None:
+def generate(output_dir: str, output_name: str,
+             op_code_table: graph.OpCodeTable, graph: graph.Graph) -> None:
   """ Generate C/C++ inference code. """
   header_file = f"{output_name}.h"
   model_data: ModelData = {
       'header_file': header_file,
-      'model_name': output_name
+      'model_name': output_name,
+      'op_code_table': op_code_table,
+      'graph': graph,
   }
 
   # Ensure output directory exists

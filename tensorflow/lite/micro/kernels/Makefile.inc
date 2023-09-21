@@ -1,4 +1,4 @@
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -92,6 +92,11 @@ $(eval $(call microlite_test,kernel_signal_overlap_add_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,kernel_signal_pcan_test,\
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_test.cc \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_flexbuffers_generated_data.cc, \
+  $(TENSORFLOW_ROOT)signal/micro/kernels/pcan_flexbuffers_generated_data.h))
+
 $(eval $(call microlite_test,kernel_signal_stacker_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/stacker_flexbuffers_generated_data.cc, \
@@ -109,6 +114,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to_test.cc \

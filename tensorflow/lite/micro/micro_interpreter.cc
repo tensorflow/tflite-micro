@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
-#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_interpreter_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
@@ -33,17 +33,28 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
+namespace {
+MemoryPlannerType FlagToMemoryPlannerType(bool preserve_all_tensors) {
+  if (preserve_all_tensors) {
+    return MemoryPlannerType::kLinear;
+  } else {
+    return MemoryPlannerType::kGreedy;
+  }
+}
+}  // namespace
 
 MicroInterpreter::MicroInterpreter(const Model* model,
                                    const MicroOpResolver& op_resolver,
                                    uint8_t* tensor_arena,
                                    size_t tensor_arena_size,
                                    MicroResourceVariables* resource_variables,
-                                   MicroProfilerInterface* profiler)
+                                   MicroProfilerInterface* profiler,
+                                   bool preserve_all_tensors)
     : model_(model),
       op_resolver_(op_resolver),
-      allocator_(*MicroAllocator::Create(tensor_arena, tensor_arena_size)),
-
+      allocator_(*MicroAllocator::Create(
+          tensor_arena, tensor_arena_size,
+          FlagToMemoryPlannerType(preserve_all_tensors))),
       graph_(&context_, model, &allocator_, resource_variables),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
@@ -77,7 +88,8 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInit);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInit);
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
@@ -198,15 +210,17 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInit);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInit);
   TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kPrepare);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kPrepare);
 
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
 
   micro_context_.SetInterpreterState(
-      MicroContext::InterpreterState::kMemoryPlanning);
+      MicroInterpreterContext::InterpreterState::kMemoryPlanning);
 
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),
@@ -261,7 +275,8 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   TF_LITE_ENSURE_STATUS(Reset());
 
   tensors_allocated_ = true;
-  micro_context_.SetInterpreterState(MicroContext::InterpreterState::kInvoke);
+  micro_context_.SetInterpreterState(
+      MicroInterpreterContext::InterpreterState::kInvoke);
   return kTfLiteOk;
 }
 
@@ -303,6 +318,15 @@ TfLiteStatus MicroInterpreter::Reset() {
     return status;
   }
   return graph_.ResetVariableTensors();
+}
+
+TfLiteEvalTensor* MicroInterpreter::GetTensor(int tensor_index,
+                                              int subgraph_index) {
+  if (!allocator_.preserves_all_tensor()) {
+    MicroPrintf("GetTensor requires all tensors to be preserved");
+    return nullptr;
+  }
+  return &graph_.GetAllocations()[subgraph_index].tensors[tensor_index];
 }
 
 TfLiteStatus MicroInterpreter::SetMicroExternalContext(

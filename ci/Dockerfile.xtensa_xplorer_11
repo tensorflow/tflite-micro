@@ -1,0 +1,49 @@
+FROM python:3.10-bullseye
+ENV DEBIAN_FRONTEND noninterative
+
+RUN \
+  apt update && \
+  apt install -y \
+    automake \
+    build-essential \
+    curl \
+    git \
+    unzip \
+    wget
+
+WORKDIR /opt/xtensa
+
+COPY ./Xplorer-8.0.11-linux-x64-installer.bin .
+COPY ./mini1m1m_RI_2019_2_linux_w_keys.tgz .
+COPY ./XtensaTools_RI_2022_9_linux.tgz .
+COPY ci/install_cores_xplorer_11.sh .
+COPY ci/install_bazelisk.sh .
+
+RUN \
+  pip3 install Pillow
+
+RUN \
+  pip3 install numpy
+
+RUN \
+  chmod +x Xplorer-8.0.11-linux-x64-installer.bin && \
+  ./Xplorer-8.0.11-linux-x64-installer.bin --prefix /opt/xtensa --mode unattended
+
+ENV XTENSA_BASE "/opt/xtensa/XtDevTools/install/"
+
+RUN \
+  chmod +x install_cores_xplorer_11.sh && \
+  ./install_cores_xplorer_11.sh
+
+RUN ./install_bazelisk.sh
+
+RUN \
+  rm Xplorer-8.0.11-linux-x64-installer.bin && \
+  rm mini1m1m_RI_2019_2_linux_w_keys.tgz && \
+  rm XtensaTools_RI_2022_9_linux.tgz && \
+  rm -f install_cores_xplorer_11.sh
+
+ENV LIC_DIR "/opt/xtensa/licenses/RI-2020.4-linux"
+ENV LM_LICENSE_FILE "/opt/xtensa/licenses/RI-2019.2-linux/mini1m1m_RG/misc/license.dat"
+
+CMD /opt/xtensa/XtDevTools/install/tools/RI-2020.4-linux/XtensaTools/bin/xt-clang++ --xtensa-core=
