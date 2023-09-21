@@ -1,24 +1,126 @@
-# TFLM Python Interpreter
+# The `tflite_micro` Python Package
 
-The TFLM interpreter can be invoked from Python by using the Python interpreter
-wrapper in this directory.
+This directory contains the `tflite_micro` Python package. The following is
+mainly documentation for its developers.
 
-## Usage
+The `tflite_micro` package contains a complete TFLM interpreter built as a
+CPython extension module. The build of simple Python packages may be driven by
+standard Python package builders such as `build`, `setuptools`, and `flit`;
+however, as TFLM is first and foremost a large C/C++ project, `tflite_micro`'s
+build is instead driven by its C/C++ build system Bazel.
 
-There are two ways to import the Python wrapper, either by using Bazel/Blaze, or
-in near future by installing a PyPi package.
+## Building and installing locally
 
-### Bazel
+### Building
 
-#### Build
+The Bazel target `//python/tflite_micro:whl.dist` builds a `tflite_micro`
+Python *.whl* under the output directory `bazel-bin/python/tflite_micro/whl_dist`. For example:
+```
+% bazel build //python/tflite_micro:whl.dist
+....
+Target //python/tflite_micro:whl.dist up-to-date:
+  bazel-bin/python/tflite_micro/whl_dist
+
+% tree bazel-bin/python/tflite_micro/whl_dist
+bazel-bin/python/tflite_micro/whl_dist
+└── tflite_micro-0.dev20230920161638-py3-none-any.whl
+```
+
+### Installing
+
+Install the resulting *.whl* via pip. For example, in a Python virtual
+environment:
+```
+% python3 -m venv ~/tmp/venv
+% source ~/tmp/venv/bin/activate
+(venv) $ pip install bazel-bin/python/tflite_micro/whl_dist/tflite_micro-0.dev20230920161638-py3-none-any.whl
+Processing ./bazel-bin/python/tflite_micro/whl_dist/tflite_micro-0.dev20230920161638-py3-none-any.whl
+....
+Installing collected packages: [....]
+```
+
+The package should now be importable and usable. For example:
+```
+(venv) $ python
+Python 3.10.12 (main, Jun 11 2023, 05:26:28) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import tflite_micro
+>>> tflite_micro.postinstall_check.passed()
+True
+>>>  i = tflite_micro.runtime.Interpreter.from_file("foo.tflite")
+>>> # etc.
+```
+
+## Building and uploading to PyPI
+
+The *.whl* generated above is unsuitable for distribution to the wider world
+via PyPI. The extension module is inevitably compiled against a particular
+Python implementation and platform C library. The resulting package is only
+binary-compatible with a system running the same Python implementation and a
+compatible (typically the same or newer) C library.
+
+The solution is to distribute multiple *.whl*s, one built for each Python
+implementation and platform combination. TFLM accomplishes this by running
+Bazel builds from within multiple, uniquely configured Docker containers. The
+images used are based on standards-conforming images published by the Python
+Package Authority (PyPA) for exactly such use.
+
+Python *.whl*s contain metadata used by installers such as `pip` to determine
+which distributions (*.whl*s) are compatible with the target platform. See the PyPA
+specification for [platform compatibility
+tags](https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/).
+
+### Building
+
+In an environment with a working Docker installation, run the script
+`python/tflite_micro/pypi_build.sh <python-tag>` once for each tag. The
+script's online help (`--help`) lists the available tags. The script builds an
+appropriate Docker container and invokes a Bazel build and test within it.
+For example:
+```
+% python/tflite_micro/pypi_build.sh cp310
+[+] Building 2.6s (7/7) FINISHED
+=> writing image sha256:900704dad7fa27938dcc1c5057c0e760fb4ab0dff676415182455ae66546bbd4
+bazel build //python/tflite_micro:whl.dist \
+    --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
+bazel test //python/tflite_micro:whl_test \
+    --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
+//python/tflite_micro:whl_test
+Executed 1 out of 1 test: 1 test passes.
+Output:
+bazel-pypi-out/tflite_micro-0.dev20230920031310-cp310-cp310-manylinux_2_28_x86_64.whl
+```
+
+By default, *.whl*s are generated under the output directory `bazel-pypi-out/`.
+
+### Uploading to PyPI
+
+Upload the generated *.whl*s to PyPI with the script
+`python/tflite_micro/pypi_upload.sh`. This script lightly wraps the standard
+upload tool `twine`. A PyPI authentication token must be assigned to
+`TWINE_PASSWORD` in the environment. For example:
+```
+% export TWINE_PASSWORD=pypi-AgENdGV[....]
+% ./python/tflite_micro/pypi_upload.sh --test-pypi bazel-pypi-out/tflite_micro-*.whl
+Uploading distributions to https://test.pypi.org/legacy/
+Uploading tflite_micro-0.dev20230920031310-cp310-cp310-manylinux_2_28_x86_64.whl
+Uploading tflite_micro-0.dev20230920031310-cp311-cp311-manylinux_2_28_x86_64.whl
+View at:
+https://test.pypi.org/project/tflite-micro/0.dev20230920031310/
+```
+
+See the script's online help (`--help`) for more.
+
+## Using `tflite_micro` from within the TFLM source tree
+
+:construction:
+*The remainder of this document is under construction and may contain some
+obsolete information.*
+:construction:
 
 The only package that needs to be included in the `BUILD` file is
 `//python/tflite_micro:runtime`. It contains all
 the correct dependencies to build the Python interpreter.
-
-### PyPi
-
-Work in progress.
 
 ### Examples
 
@@ -55,7 +157,7 @@ print(tflm_interpreter.get_input_details(0))
 print(tflm_interpreter.get_output_details(0))
 ```
 
-## Technical Details
+### Technical Details
 
 The Python interpreter uses [pybind11](https://github.com/pybind/pybind11) to
 expose an evolving set of C++ APIs. The Bazel build leverages the
@@ -64,7 +166,7 @@ expose an evolving set of C++ APIs. The Bazel build leverages the
 The most updated Python APIs can be found in
 `python/tflite_micro/runtime.py`.
 
-## Custom Ops
+### Custom Ops
 
 The Python interpreter works with models with
 [custom ops](https://www.tensorflow.org/lite/guide/ops_custom) but special steps
@@ -126,7 +228,7 @@ The interpreter will then perform a dynamic lookup for the symbol called
 properly included in TFLM's op resolver. This approach is very similar to
 TFLite's custom op support.
 
-## Print Allocations
+### Print Allocations
 
 The Python interpreter can also be used to print memory arena allocations. This
 is very helpful to figure out actual memory arena usage.
