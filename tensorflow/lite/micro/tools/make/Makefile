@@ -21,6 +21,10 @@ endif
 TENSORFLOW_ROOT :=
 RELATIVE_MAKEFILE_DIR := tensorflow/lite/micro/tools/make
 MAKEFILE_DIR := $(TENSORFLOW_ROOT)$(RELATIVE_MAKEFILE_DIR)
+BAZEL_ROOT := $(TENSORFLOW_ROOT)
+ifeq ($(BAZEL_ROOT),)
+ BAZEL_ROOT = .
+endif
 
 # Pull in some convenience functions.
 include $(MAKEFILE_DIR)/helper_functions.inc
@@ -294,6 +298,8 @@ MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tool
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
+CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
+
 MICRO_LITE_CODEGEN_PREPROCESSOR := $(TENSORFLOW_ROOT)codegen/preprocessor/Makefile.inc
 
 MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
@@ -552,7 +558,11 @@ include $(MAKEFILE_DIR)/additional_kernels.inc
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
 
+CODEGEN_RUNTIME_CC_SRCS := \
+$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.cc
 
+CODEGEN_RUNTIME_CC_HDRS := \
+$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.h
 
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
@@ -867,8 +877,6 @@ test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
 generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
-
-CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
 
 codegen_preprocessor: $(CODEGEN_PREPROCESSOR_PATH)
 
