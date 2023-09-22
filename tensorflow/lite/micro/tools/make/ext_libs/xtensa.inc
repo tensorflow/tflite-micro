@@ -1,3 +1,4 @@
+
 # Explicitly add kernel sources specific to the Xtensa optimized
 # implementations.
 MICROLITE_CC_KERNEL_SRCS += \
@@ -33,6 +34,11 @@ else ifeq ($(TARGET_ARCH), hifi5)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
   endif
 
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the xtensa ndsp download: $(DOWNLOAD_RESULT))
+  endif
+
   # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
   # not have separate cflags (or the concept of modular build targets) with the
   # Makefile, -Wno-shadow will be used for everything.
@@ -45,9 +51,16 @@ else ifeq ($(TARGET_ARCH), hifi5)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi5
+  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-hifi5
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
+
+  # The NDSP library has a lot of file. Add as needed.
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
@@ -57,7 +70,8 @@ else ifeq ($(TARGET_ARCH), hifi5)
   THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
   THIRD_PARTY_CC_HDRS += \
-    $(shell find $(NNLIB_PATH) -name "*.h")
+    $(shell find $(NNLIB_PATH) -name "*.h") \
+    $(shell find $(NDSPLIB_PATH) -name "*.h")
 
   INCLUDES += \
     -I$(NNLIB_PATH)/ \
@@ -65,13 +79,18 @@ else ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/include/nnlib/ \
     -I$(NNLIB_PATH)/include/ \
     -I$(NNLIB_PATH)/algo/common/include/ \
-    -I$(NNLIB_PATH)/algo/ndsp/hifi5/include/
+    -I$(NDSPLIB_PATH)/library/include/ \
+    -I$(NDSPLIB_PATH)/library/include_private/
 
 else ifeq ($(TARGET_ARCH), hifi4)
-
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
+  endif
+
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the xtensa ndsp download: $(DOWNLOAD_RESULT))
   endif
 
   # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
@@ -86,19 +105,34 @@ else ifeq ($(TARGET_ARCH), hifi4)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi4
+  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-hifi4
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
+
+  # The NDSP library has a lot of file. Add as needed.
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
     $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
+    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_depthwise_f32.c \
+    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_pointwise_f32.c \
+    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_matXvec_f32_circ.c \
+    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_f32.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_sub_f32.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_sine_f32.c \
+    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_mul_acc_f32.c
 
   THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
   THIRD_PARTY_CC_HDRS += \
-    $(shell find $(NNLIB_PATH) -name "*.h")
+    $(shell find $(NNLIB_PATH) -name "*.h") \
+    $(shell find $(NDSPLIB_PATH) -name "*.h")
 
   INCLUDES += \
     -I$(NNLIB_PATH)/ \
@@ -106,7 +140,8 @@ else ifeq ($(TARGET_ARCH), hifi4)
     -I$(NNLIB_PATH)/include/nnlib/ \
     -I$(NNLIB_PATH)/include/ \
     -I$(NNLIB_PATH)/algo/common/include/ \
-    -I$(NNLIB_PATH)/algo/ndsp/hifi4/include/
+    -I$(NDSPLIB_PATH)/library/include/ \
+    -I$(NDSPLIB_PATH)/library/include_private/
 
 else ifeq ($(TARGET_ARCH), vision_p6)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} vision_p6 $(TENSORFLOW_ROOT))
