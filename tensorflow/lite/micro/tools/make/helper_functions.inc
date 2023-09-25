@@ -128,12 +128,14 @@ recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call rec
 define codegen_model
 # Filter out targets that currently don't support codegen:
 # Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
+# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
 # RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
 #         hosting, which prevents the preprocessor from opening a file on the
 #         host filesystem.
 # Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
 #          C++11 stdlib, so preprocessor fails to link.
-ifneq ($(TARGET), $(filter $(TARGET), bluepill riscv32_generic hexagon))
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
 
 $(1)_MODEL := $(3)
 $(1)_PREPROCESSOR_OUTPUT := $(GENERATED_SRCS_DIR)$(2).ppd
@@ -173,12 +175,14 @@ endef # codegen_model
 define codegen_model_binary
 # Filter out targets that currently don't support codegen:
 # Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
+# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
 # RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
 #         hosting, which prevents the preprocessor from opening a file on the
 #         host filesystem.
 # Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
 #          C++11 stdlib, so preprocessor fails to link.
-ifneq ($(TARGET), $(filter $(TARGET), bluepill riscv32_generic hexagon))
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
 
 $(1)_CODEGEN_SRCS := $(4) $$(CODEGEN_RUNTIME_CC_SRCS)
 $(1)_CODEGEN_HDRS := $(5) $$(CODEGEN_RUNTIME_CC_HDRS)
