@@ -261,9 +261,9 @@ void BroadcastSubSlow(const ArithmeticParams& params,
   BroadcastSubCommon<T>(
       params, input1_shape, input1_data, input2_shape, input2_data,
       output_shape, output_data,
-      [](T input1_val, T input2_val, const ArithmeticParams& params) {
+      [](T input1_val, T input2_val, const ArithmeticParams& input_params) {
         T activation_min, activation_max;
-        GetActivationParams(params, &activation_min, &activation_max);
+        GetActivationParams(input_params, &activation_min, &activation_max);
         return ActivationFunctionWithMinMax(input1_val - input2_val,
                                             activation_min, activation_max);
       });
@@ -281,15 +281,15 @@ inline void BroadcastSub16POTSlow(const ArithmeticParams& params,
       params, input1_shape, input1_data, input2_shape, input2_data,
       output_shape, output_data,
       [](int16_t input1_val, int16_t input2_val,
-         const ArithmeticParams& params) {
+         const ArithmeticParams& input_params) {
         const int32_t scaled_input1_val =
-            gemmlowp::RoundingDivideByPOT(input1_val, -params.input1_shift);
+            gemmlowp::RoundingDivideByPOT(input1_val, -input_params.input1_shift);
         const int32_t scaled_input2_val =
-            gemmlowp::RoundingDivideByPOT(input2_val, -params.input2_shift);
+            gemmlowp::RoundingDivideByPOT(input2_val, -input_params.input2_shift);
         const int32_t raw_output = scaled_input1_val - scaled_input2_val;
         const int32_t clamped_output =
-            std::min(params.quantized_activation_max,
-                     std::max(params.quantized_activation_min, raw_output));
+            std::min(input_params.quantized_activation_max,
+                     std::max(input_params.quantized_activation_min, raw_output));
         return static_cast<int16_t>(clamped_output);
       });
 }
@@ -305,27 +305,27 @@ void BroadcastQuantSubSlow(const ArithmeticParams& params,
   BroadcastSubCommon<T>(
       params, input1_shape, input1_data, input2_shape, input2_data,
       output_shape, output_data,
-      [](T input1_val, T input2_val, const ArithmeticParams& params) {
+      [](T input1_val, T input2_val, const ArithmeticParams& input_params) {
         const int32_t shifted_input1_val =
-            (params.input1_offset + input1_val) * (1 << params.left_shift);
+            (input_params.input1_offset + input1_val) * (1 << input_params.left_shift);
         const int32_t shifted_input2_val =
-            (params.input2_offset + input2_val) * (1 << params.left_shift);
+            (input_params.input2_offset + input2_val) * (1 << input_params.left_shift);
         const int32_t scaled_input1_val =
             MultiplyByQuantizedMultiplierSmallerThanOneExp(
-                shifted_input1_val, params.input1_multiplier,
-                params.input1_shift);
+                shifted_input1_val, input_params.input1_multiplier,
+                input_params.input1_shift);
         const int32_t scaled_input2_val =
             MultiplyByQuantizedMultiplierSmallerThanOneExp(
-                shifted_input2_val, params.input2_multiplier,
-                params.input2_shift);
+                shifted_input2_val, input_params.input2_multiplier,
+                input_params.input2_shift);
         const int32_t raw_sub = scaled_input1_val - scaled_input2_val;
         const int32_t raw_output =
             MultiplyByQuantizedMultiplierSmallerThanOneExp(
-                raw_sub, params.output_multiplier, params.output_shift) +
-            params.output_offset;
+                raw_sub, input_params.output_multiplier, input_params.output_shift) +
+            input_params.output_offset;
         const int32_t clamped_output =
-            std::min(params.quantized_activation_max,
-                     std::max(params.quantized_activation_min, raw_output));
+            std::min(input_params.quantized_activation_max,
+                     std::max(input_params.quantized_activation_min, raw_output));
         return static_cast<T>(clamped_output);
       });
 }
@@ -417,7 +417,7 @@ void Sub(const ArithmeticParams& params, const RuntimeShape& input1_shape,
   BroadcastSubCommon<T>(
       params, input1_shape, input1_data, input2_shape, input2_data,
       output_shape, output_data,
-      [](T input1_val, T input2_val, const ArithmeticParams& params) {
+      [](T input1_val, T input2_val, const ArithmeticParams& input_params) {
         return input1_val - input2_val;
       });
 }

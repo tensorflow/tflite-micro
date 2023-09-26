@@ -147,18 +147,18 @@ inline void BroadcastMul6DSlow(const ArithmeticParams& params,
   BroadcastMulRecursiveDimensions(
       params, 0, input1_data, input2_data, output_data, &input1_offset,
       &input2_offset, &output_offset, desc1, desc2, extended_output_shape_dims,
-      [](const ArithmeticParams& params, const uint8_t input1_val,
+      [](const ArithmeticParams& input_params, const uint8_t input1_val,
          const uint8_t input2_val) {
-        const int32_t offsetted_input1_val = params.input1_offset + input1_val;
-        const int32_t offsetted_input2_val = params.input2_offset + input2_val;
+        const int32_t offsetted_input1_val = input_params.input1_offset + input1_val;
+        const int32_t offsetted_input2_val = input_params.input2_offset + input2_val;
         const int32_t unclamped_result =
-            params.output_offset +
+            input_params.output_offset +
             MultiplyByQuantizedMultiplier(
                 offsetted_input1_val * offsetted_input2_val,
-                params.output_multiplier, params.output_shift);
+                input_params.output_multiplier, input_params.output_shift);
         const int32_t clamped_output = std::min(
-            params.quantized_activation_max,
-            std::max(params.quantized_activation_min, unclamped_result));
+            input_params.quantized_activation_max,
+            std::max(input_params.quantized_activation_min, unclamped_result));
         return static_cast<uint8_t>(clamped_output);
       });
 }
@@ -206,11 +206,11 @@ BroadcastMul6DSlow(const ArithmeticParams& params,
   BroadcastMulRecursiveDimensions(
       params, 0, input1_data, input2_data, output_data, &input1_offset,
       &input2_offset, &output_offset, desc1, desc2, extended_output_shape_dims,
-      [](const ArithmeticParams& params, const T input1_val,
+      [](const ArithmeticParams& input_params, const T input1_val,
          const T input2_val) {
         T output_activation_min;
         T output_activation_max;
-        GetActivationParams(params, &output_activation_min,
+        GetActivationParams(input_params, &output_activation_min,
                             &output_activation_max);
         return ActivationFunctionWithMinMax<T>(input1_val * input2_val,
                                                output_activation_min,
@@ -246,7 +246,7 @@ inline void BroadcastMul6DSlow(const ArithmeticParams& params,
   BroadcastMulRecursiveDimensions(
       params, 0, input1_data, input2_data, output_data, &input1_offset,
       &input2_offset, &output_offset, desc1, desc2, extended_output_shape_dims,
-      [](const ArithmeticParams& params, const std::complex<float> input1_val,
+      [](const ArithmeticParams& input_params, const std::complex<float> input1_val,
          const std::complex<float> input2_val) {
         return input1_val * input2_val;
       });
