@@ -42,7 +42,8 @@ int16_t PcanGainLookupFunction(const float strength, const float offset,
 
 py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
                             int gain_bits) {
-  int16_t* gain_lut = new int16_t[kWideDynamicFunctionLUTSize];
+  int16_t gain_lut_storage[kWideDynamicFunctionLUTSize];
+  int16_t* gain_lut = gain_lut_storage;
 
   gain_lut[0] =
       PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 0);
@@ -52,7 +53,7 @@ py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
   // loop below a lot simpler.
   gain_lut -= 6;
 
-  for (int interval = 2; interval <= kWideDynamicFunctionBits; ++interval) {
+  for (size_t interval = 2; interval <= kWideDynamicFunctionBits; ++interval) {
     const uint32_t x0 = static_cast<uint32_t>(1) << (interval - 1);
     const uint32_t x1 = x0 + (x0 >> 1);
     const uint32_t x2 =
@@ -80,10 +81,9 @@ py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
   gain_lut += 6;
 
   py::list lut_list = py::list();
-  for (int i = 0; i < kWideDynamicFunctionLUTSize; i++) {
+  for (size_t i = 0; i < kWideDynamicFunctionLUTSize; i++) {
     lut_list.append(gain_lut[i]);
   }
-  free(gain_lut);
 
   return lut_list;
 }
