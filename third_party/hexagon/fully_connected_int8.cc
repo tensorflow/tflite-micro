@@ -145,6 +145,8 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context,
   TF_LITE_ENSURE_MSG(context, input->type == filter->type,
                      "Hybrid models are not supported on TFLite Micro.");
 
+  if (input->type == kTfLiteInt8) MicroPrintf("Hexagon PREPARE");
+  
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
   if (bias != nullptr) {
@@ -155,7 +157,7 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context,
   tflite::hexagon_fully_connected::HexagonOptimizationEvaluation(context, node);
 
   if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
-    MicroPrintf("Hexagon optimized PREPARE");
+    MicroPrintf("  Hexagon optimized PREPARE");
     return tflite::hexagon_fully_connected::HexagonPrepare(context, node);
   }
   return kTfLiteOk;
@@ -186,8 +188,9 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
   }
   TFLITE_DCHECK(output->type == kTfLiteInt8);
 
+  MicroPrintf("Hexagon EVAL");
   if (tflite::hexagon_fully_connected::HexagonOptimizable(context, node)) {
-    MicroPrintf("Hexagon optimized EVAL");
+    MicroPrintf("  Hexagon optimized EVAL");
     return tflite::hexagon_fully_connected::HexagonEvalQuantizedInt8(
         context, node, node->user_data, input, filter, bias, output);
   } else {
