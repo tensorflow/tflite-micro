@@ -54,6 +54,6 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
-  test -j$(nproc)
+  test -j1
 
 
