@@ -101,6 +101,7 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
   TF_LITE_MICRO_EXPECT(RegisterOps(op_resolver) == kTfLiteOk);
   TF_LITE_MICRO_CHECK_FAIL();
 
+  std::fill(std::begin(g_arena), std::end(g_arena), 0);
   tflite::MicroInterpreter interpreter(model, op_resolver, g_arena, kArenaSize);
 
   TF_LITE_MICRO_EXPECT(interpreter.AllocateTensors() == kTfLiteOk);
@@ -200,6 +201,7 @@ TfLiteStatus GenerateFeatures(const int16_t* audio_data,
   TF_LITE_MICRO_EXPECT(RegisterOps(op_resolver) == kTfLiteOk);
   TF_LITE_MICRO_CHECK_FAIL();
 
+  std::fill(std::begin(g_arena), std::end(g_arena), 0);
   tflite::MicroInterpreter interpreter(model, op_resolver, g_arena, kArenaSize);
 
   TF_LITE_MICRO_EXPECT(interpreter.AllocateTensors() == kTfLiteOk);
