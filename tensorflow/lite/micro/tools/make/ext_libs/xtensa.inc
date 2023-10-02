@@ -28,6 +28,11 @@ ifeq ($(TARGET_ARCH), hifimini)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc
 
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
+  THIRD_PARTY_CC_HDRS += \
+    $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
+
 else ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -65,7 +70,8 @@ else ifeq ($(TARGET_ARCH), hifi5)
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
-    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
+    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c \
+    $(shell find $(NNLIB_PATH)/algo/ndsp/hifi5/src -name "*.c")
 
   THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
@@ -81,14 +87,14 @@ else ifeq ($(TARGET_ARCH), hifi5)
     -I$(NNLIB_PATH)/algo/common/include/ \
     -I$(NDSPLIB_PATH)/library/include/ \
     -I$(NDSPLIB_PATH)/library/include_private/
-
-else ifeq ($(TARGET_ARCH), hifi4)
+else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
+  # NNLib hifi4 also supports hifi3
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
   endif
 
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} $(TARGET_ARCH) $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
     $(error Something went wrong with the xtensa ndsp download: $(DOWNLOAD_RESULT))
   endif
@@ -104,8 +110,9 @@ else ifeq ($(TARGET_ARCH), hifi4)
   CCFLAGS += $(PLATFORM_FLAGS)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
+  # NNLib for hifi4 also supports hifi3
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi4
-  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-hifi4
+  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-$(TARGET_ARCH)
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
@@ -119,14 +126,9 @@ else ifeq ($(TARGET_ARCH), hifi4)
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
-    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
-    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_depthwise_f32.c \
-    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_pointwise_f32.c \
-    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_matXvec_f32_circ.c \
-    $(NNLIB_PATH)/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_f32.c \
-    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_sub_f32.c \
-    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_sine_f32.c \
-    $(NNLIB_PATH)/algo/kernels/basic/hifi4/xa_nn_elm_mul_acc_f32.c
+    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c \
+    $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_32_32.c \
+    $(shell find $(NNLIB_PATH)/algo/ndsp/hifi4/src -name "*.c")
 
   THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
 
@@ -175,22 +177,4 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   LDFLAGS += -lidma
 else
   $(error Unsupported TARGET_ARCH=$(TARGET_ARCH))
-endif
-
-FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
-
-INCLUDES += -I$(FFT_PATH)/
-
-ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4 hifi5))
-THIRD_PARTY_KERNEL_CC_SRCS += \
-    $(shell find $(FFT_PATH)/hifi3_fft -name "*.c")
-
-THIRD_PARTY_CC_HDRS += \
-    $(shell find $(FFT_PATH)/hifi3_fft -name "*.h")
-else ifeq ($(TARGET_ARCH), hifimini)
-THIRD_PARTY_KERNEL_CC_SRCS += \
-    $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
-
-THIRD_PARTY_CC_HDRS += \
-    $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 endif

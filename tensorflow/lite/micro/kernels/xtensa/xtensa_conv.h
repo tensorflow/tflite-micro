@@ -25,7 +25,7 @@ namespace tflite {
 struct XtensaConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
 #endif  // defined(HIFI4) || defined(HIFI5)
 
@@ -40,7 +40,7 @@ struct XtensaConvOpData {
 #endif  // VISION_P6
 };
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
@@ -51,7 +51,7 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* bias,
                               TfLiteEvalTensor* output);
 
-#if defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4)
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
                                const XtensaConvOpData& data,
@@ -59,9 +59,9 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output);
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4)
 
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
 
