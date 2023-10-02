@@ -91,6 +91,15 @@ else
     unzip -qo ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/NDSP_${CORE_NAME}*.zip -d ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/ >&2
     find ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/* -maxdepth 0 -type d -exec mv {} ${LIBRARY_INSTALL_PATH} \;
     rm -rf "${TEMPDIR}"
+    # NDSP sources in GitHub currently uses DOS style newlines, which causes compiler errors.
+    find ${LIBRARY_INSTALL_PATH} -type f -exec dos2unix -q {} \;
+
+    pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
+    chmod -R +w ./
+    if [[ -f "../../ext_libs/ndsplib-${2}.patch" ]]; then
+      create_git_repo ./
+      apply_patch_to_folder ./ "../../ext_libs/ndsplib-${2}.patch" "TFLM patch"
+    fi
   fi
 fi
 
