@@ -12,6 +12,7 @@ py_library(
         "graph.py",
     ],
     deps = [
+        ":tensor",
         ":utils",
         "//codegen/operators:factory",
         "//codegen/operators:operator",
@@ -36,6 +37,17 @@ py_library(
 )
 
 py_library(
+    name = "tensor",
+    srcs = [
+        "tensor.py",
+    ],
+    deps = [
+        ":utils",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+py_library(
     name = "utils",
     srcs = [
         "utils.py",
@@ -52,6 +64,7 @@ py_binary(
     deps = [
         ":graph",
         ":inference_generator",
+        "//codegen/preprocessor:preprocessor_schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",

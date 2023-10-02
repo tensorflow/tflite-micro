@@ -87,7 +87,7 @@ class MicroProfiler : public MicroProfilerInterface {
 
   int FindExistingOrNextPosition(const char* tag_name);
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE;
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 #if defined(TF_LITE_STRIP_ERROR_STRINGS)

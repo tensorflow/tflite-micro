@@ -27,6 +27,8 @@ namespace tflite {
 
 class FakeMicroContext : public MicroContext {
  public:
+  ~FakeMicroContext() = default;
+
   FakeMicroContext(TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
                    MicroGraph* micro_graph);
 
@@ -44,9 +46,14 @@ class FakeMicroContext : public MicroContext {
 
   TfLiteEvalTensor* GetEvalTensor(int tensor_index) override;
 
+  TfLiteStatus set_external_context(void* external_context_payload) override;
+  void* external_context() override;
+  MicroGraph& graph() override;
+
  private:
   static constexpr int kNumScratchBuffers_ = 12;
 
+  MicroGraph& graph_;
   int scratch_buffer_count_ = 0;
   uint8_t* scratch_buffers_[kNumScratchBuffers_];
 

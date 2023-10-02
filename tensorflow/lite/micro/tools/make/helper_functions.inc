@@ -117,3 +117,98 @@ endef
 # 2 - File pattern, e.g: *.h
 recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))
 
+# Generates code capable of performing inference without an interpreter. It run
+# the codegen preprocessor and the code generator.
+#
+# Arguments are:
+# 1 - Name of target
+# 2 - Generated source basename
+# 3 - Model
+# Calling eval on the output will create the targets that you need.
+define codegen_model
+# Filter out targets that currently don't support codegen:
+# Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
+# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
+# RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
+#         hosting, which prevents the preprocessor from opening a file on the
+#         host filesystem.
+# Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
+#          C++11 stdlib, so preprocessor fails to link.
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+
+$(1)_MODEL := $(3)
+$(1)_PREPROCESSOR_OUTPUT := $(GENERATED_SRCS_DIR)$(2).ppd
+
+$(1)_GENERATED_SRCS := $(GENERATED_SRCS_DIR)$(2).cc
+$(1)_GENERATED_HDRS := $(GENERATED_SRCS_DIR)$(2).h
+
+$$($(1)_PREPROCESSOR_OUTPUT): $(CODEGEN_PREPROCESSOR_PATH) $$($(1)_MODEL)
+	@mkdir -p $$(dir $$@)
+	$$(RUN_COMMAND) $(CODEGEN_PREPROCESSOR_PATH) \
+	$(abspath $$($(1)_MODEL)) $(abspath $$($(1)_PREPROCESSOR_OUTPUT))
+
+$$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL) $$($(1)_PREPROCESSOR_OUTPUT)
+	cd $(BAZEL_ROOT) && bazel run //codegen:code_generator -- \
+	--model $(abspath $$($(1)_MODEL)) \
+	--preprocessed_data $(abspath $$($(1)_PREPROCESSOR_OUTPUT)) \
+	--output_dir $(abspath $(GENERATED_SRCS_DIR)) --output_name $(2)
+
+$(1): $$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS)
+
+endif
+endef # codegen_model
+
+# Generates and compiles code capable of performing inference without an
+# interpreter.
+#
+# Users can use `make run_<target>` to execute the binary in the appropriate
+# simulator.
+#
+# Arguments are:
+# 1 - Name of target
+# 2 - Generated source basename
+# 3 - Model
+# 4 - C/C++ source files
+# 5 - C/C++ header files
+# Calling eval on the output will create the targets that you need.
+define codegen_model_binary
+# Filter out targets that currently don't support codegen:
+# Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
+# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
+# RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
+#         hosting, which prevents the preprocessor from opening a file on the
+#         host filesystem.
+# Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
+#          C++11 stdlib, so preprocessor fails to link.
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+
+$(1)_CODEGEN_SRCS := $(4) $$(CODEGEN_RUNTIME_CC_SRCS)
+$(1)_CODEGEN_HDRS := $(5) $$(CODEGEN_RUNTIME_CC_HDRS)
+
+$(call codegen_model,$(1)_codegen,$(2),$(3))
+
+$(1)_CODEGEN_SRCS += $$($(1)_codegen_GENERATED_SRCS)
+$(1)_CODEGEN_HDRS += $$($(1)_codegen_GENERATED_HDRS)
+
+$(1)_CODEGEN_OBJS := $$(addprefix $$(CORE_OBJDIR), \
+$$(patsubst %.S,%.o,$$(patsubst %.cc,%.o,$$(patsubst %.c,%.o,$$($(1)_CODEGEN_SRCS)))))
+
+$(1)_BINARY := $$(BINDIR)$(1)
+$$($(1)_BINARY): $$($(1)_CODEGEN_OBJS) $$(MICROLITE_LIB_PATH)
+	@mkdir -p $$(dir $$@)
+	$$(CXX) $$(CXXFLAGS) $$(INCLUDES) \
+	-o $$($(1)_BINARY) $$($(1)_CODEGEN_OBJS) \
+	$$(MICROLITE_LIB_PATH) $$(LDFLAGS) $$(MICROLITE_LIBS)
+
+$(1): $$($(1)_BINARY)
+$(1)_bin: $$($(1)_BINARY).bin
+
+MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
+
+run_$(1): $$($(1)_BINARY)
+	$$(RUN_COMMAND) $$($(1)_BINARY)
+
+endif
+endef # codegen_model_binary

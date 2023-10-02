@@ -104,7 +104,7 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
 int Benchmark(const char* model_file_name) {
   Profiler profiler;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
-  alignas(16) unsigned char model_file_content[kModelSize];
+  alignas(16) static uint8_t model_file_content[kModelSize];
 
   if (!ReadFile(model_file_name, model_file_content, kModelSize)) {
     return -1;

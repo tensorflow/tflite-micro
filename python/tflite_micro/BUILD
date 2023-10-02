@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//python:py_namespace.bzl", "py_namespace")
@@ -166,17 +167,62 @@ expand_stamp_vars(
     template = "README.pypi.md.in",
 )
 
+# Building the :whl or its descendants requires the following build setting to
+# supply the Python compatibility tags for the wheel metadata.
+string_flag(
+    name = "compatibility_tag",
+    build_setting_default = "local",
+    values = [
+        "cp310_cp310_manylinux_2_28_x86_64",
+        "cp311_cp311_manylinux_2_28_x86_64",
+        "local",
+    ],
+)
+
+config_setting(
+    name = "cp310_cp310_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp310_cp310_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
+    name = "cp311_cp311_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp311_cp311_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
+    name = "local",
+    flag_values = {
+        ":compatibility_tag": "local",
+    },
+)
+
 py_wheel(
     name = "whl",
     # This macro yields additional targets:
     #
-    # - whl.publish: publish the package to PyPI via a command like:
+    # - whl.dist: build a properly named file under whl_dist/
     #
-    #     TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-***  \
-    #     bazel run //python/tflite_micro:whl.publish -- --repository testpypi
-    #
+    abi = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
+        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":local": "none",
+    }),
     description_file = ":description_file",
     distribution = "tflite_micro",
+    platform = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":local": "any",
+    }),
+    python_tag = select({
+        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
+        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":local": "py3",
+    }),
     requires = [
         "flatbuffers",
         "numpy",

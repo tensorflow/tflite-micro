@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -41,6 +42,8 @@ struct OpData {
 
   // Index to buffer for optimizations if applicable.
   int buffer_idx;
+
+  int32_t* kernel_sums;
 
   int32_t batches;
   int32_t accum_depth;
@@ -124,6 +127,35 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       buf_size = arm_convolve_1x1_s8_fast_get_buffer_size(&input_dims);
     } else {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
+
+      if (buf_size > 0) {
+        data->kernel_sums = static_cast<int32_t*>(
+            context->AllocatePersistentBuffer(context, buf_size));
+
+        int8_t* filter_data = GetTensorData<int8_t>(filter);
+
+        if (filter->type == kTfLiteInt4) {
+          size_t filter_size = GetTensorShape(filter).FlatSize();
+          int8_t* unpacked_filter_buf =
+              reinterpret_cast<int8_t*>(micro_context->AllocateTempBuffer(
+                  filter_size, tflite::MicroArenaBufferAlignment()));
+
+          tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+              filter_data, filter_size, unpacked_filter_buf);
+          filter_data = unpacked_filter_buf;
+        }
+
+        arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
+                          filter_data);
+
+        if (filter->type == kTfLiteInt4) {
+          micro_context->DeallocateTempBuffer(
+              reinterpret_cast<uint8_t*>(filter_data));
+        }
+
+        // Do not request a scratch buffer since using persistent memory
+        buf_size = 0;
+      }
     }
   }
 
@@ -252,6 +284,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     fc_params.activation.min = data.reference_op_data.output_activation_min;
     fc_params.activation.max = data.reference_op_data.output_activation_max;
 
+    ctx.buf = data.kernel_sums;
     TF_LITE_ENSURE_EQ(
         context,
         arm_fully_connected_s8(

@@ -1,0 +1,49 @@
+FROM python:3.10-bullseye
+ENV DEBIAN_FRONTEND noninterative
+
+RUN \
+  apt update && \
+  apt install -y \
+    automake \
+    build-essential \
+    curl \
+    git \
+    unzip \
+    wget
+
+WORKDIR /opt/xtensa
+
+COPY ./Xplorer-solo-9.0.19-linux-x64-installer.bin .
+COPY ./PRD_H5_RDO_07_01_2022_linux.tgz .
+COPY ./XtensaTools_RI_2022_9_linux.tgz .
+COPY ci/install_cores_xplorer_solo.sh .
+COPY ci/install_bazelisk.sh .
+
+RUN \
+  pip3 install Pillow
+
+RUN \
+  pip3 install numpy
+
+RUN \
+  chmod +x Xplorer-solo-9.0.19-linux-x64-installer.bin && \
+  ./Xplorer-solo-9.0.19-linux-x64-installer.bin --prefix /opt/xtensa --mode unattended
+
+ENV XTENSA_BASE "/opt/xtensa/XtDevTools/install/"
+
+RUN \
+  chmod +x install_cores_xplorer_solo.sh && \
+  ./install_cores_xplorer_solo.sh
+
+RUN ./install_bazelisk.sh
+
+RUN \
+  rm Xplorer-solo-9.0.19-linux-x64-installer.bin && \
+  rm PRD_H5_RDO_07_01_2022_linux.tgz && \
+  rm XtensaTools_RI_2022_9_linux.tgz && \
+  rm -f install_cores_xplorer_solo.sh
+
+ENV LIC_DIR "/opt/xtensa/licenses/RI-2020.4-linux"
+ENV LM_LICENSE_FILE "/opt/xtensa/licenses/RI-2022.9-linux/PRD_H5_RDO_07_01_2022/misc/license.dat"
+
+CMD /opt/xtensa/XtDevTools/install/tools/RI-2020.4-linux/XtensaTools/bin/xt-clang++ --xtensa-core=

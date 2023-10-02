@@ -247,7 +247,8 @@ TfLiteStatus ValidateFullyConnectedGoldens(
     const TfLiteFusedActivation activation, const float tolerance,
     const int output_len, const T* golden, T* output_data) {
   TfLiteFullyConnectedParams builtin_data = {
-      activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false};
+      activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false,
+      kTfLiteNoType};
 
   // Avoid variable length array warning.
   constexpr int inputs_array_len = 4;

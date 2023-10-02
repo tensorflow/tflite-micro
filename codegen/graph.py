@@ -15,12 +15,13 @@
 """ Provides object representation for the model that is conducive to code 
     generation using templates. """
 
-from typing import List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 import string
 import textwrap
 
 from tflite_micro.codegen.operators import factory
 from tflite_micro.codegen.operators import operator
+from tflite_micro.codegen import tensor
 from tflite_micro.codegen import utils
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 from tflite_micro.tensorflow.lite.tools import visualize
@@ -52,13 +53,17 @@ class OpCode(object):
 
 class Subgraph(object):
 
-  def __init__(self, model: schema_fb.ModelT, subgraph_idx: int,
-               subgraph: schema_fb.SubGraphT):
+  def __init__(self, model: schema_fb.ModelT, buffers: Sequence[tensor.Buffer],
+               subgraph_idx: int, subgraph: schema_fb.SubGraphT):
     self._subgraph_idx: int = subgraph_idx
     self._subgraph: schema_fb.SubGraphT = subgraph
     self._op_codes: List[OpCode] = [
         OpCode(op_code) for op_code in model.operatorCodes
     ]
+    self._tensors: List[Tensor] = []
+    for t in subgraph.tensors:
+      self._tensors.append(tensor.Tensor(buffers[t.buffer], t))
+
     self._operators: List[operator.Operator] = []
     for op in subgraph.operators:
       op_code = model.operatorCodes[op.opcodeIndex]
@@ -69,8 +74,36 @@ class Subgraph(object):
     return self._subgraph_idx
 
   @property
+  def inputs(self) -> Sequence[int]:
+    return self._subgraph.inputs
+
+  @property
+  def outputs(self) -> Sequence[int]:
+    return self._subgraph.outputs
+
+  @property
   def operators(self) -> Sequence[operator.Operator]:
     return self._operators
+
+  @property
+  def tensors(self) -> Sequence[tensor.Tensor]:
+    return self._tensors
+
+  @property
+  def needs_zero_length_int_array(self) -> bool:
+    return any(t.needs_zero_length_int_array for t in self.tensors)
+
+  @property
+  def invoke_fn_name(self) -> str:
+    return f"InvokeSubgraph{self.index}"
+
+  @property
+  def inputs_array_name(self) -> str:
+    return f"kSubgraph{self.index}Inputs"
+
+  @property
+  def outputs_array_name(self) -> str:
+    return f"kSubgraph{self.index}Outputs"
 
   @property
   def nodes_array(self) -> str:
@@ -103,29 +136,115 @@ class Subgraph(object):
     return textwrap.indent("\n".join(node_init_strs), indent)
 
   def generate_c_invoke(self, indent: str) -> str:
-    invoke_template = string.Template(
-        "TF_LITE_ENSURE_OK(context_, op_table[${op_code}].invoke(\n"
-        "                                &context_, &${node}));\n")
+    function_template = string.Template(
+        "TfLiteStatus ${function_name}(TfLiteContext* context,\n"
+        "                             tflite::Span<TfLiteNode> nodes) {\n"
+        "  TFLITE_DCHECK(nodes.size() == ${num_nodes});\n"
+        "${body}\n"
+        "  return kTfLiteOk;\n"
+        "}")
+
+    body_template = string.Template(
+        "  TF_LITE_ENSURE_OK(\n"
+        "      context, op_table[${op_code}].invoke(context, &${node}));\n")
     invoke_strs: List[str] = []
     for op_idx, op in enumerate(self.operators):
       invoke_strs.append(
-          invoke_template.substitute(
+          body_template.substitute(
               op_code=self._op_codes[op.op_code_index].full_enum_name,
-              node=self.nodes_element(op_idx)))
-    return textwrap.indent("".join(invoke_strs), indent)
+              node=f"nodes[{op_idx}]"))
+
+    invoke = function_template.substitute(function_name=self.invoke_fn_name,
+                                          num_nodes=len(self.operators),
+                                          body="".join(invoke_strs))
+    return textwrap.indent(invoke, indent)
+
+  def generate_c_input_array(self, indent: str) -> str:
+    return utils.generate_c_int_array(indent, "size_t", self.inputs_array_name,
+                                      self.inputs)
+
+  def generate_c_output_array(self, indent: str) -> str:
+    return utils.generate_c_int_array(indent, "size_t",
+                                      self.outputs_array_name, self.outputs)
+
+  def generate_c_subgraph_init(self, indent: str) -> str:
+    init_template = string.Template(
+        "{.inputs = {&${input_array}[0], ${input_size}},\n"
+        " .outputs = {&${output_array}[0], ${output_size}},\n"
+        " .nodes = {&${node_array}[0], ${node_size}},\n"
+        " .tensors = {&${tensor_array}[0], ${tensor_size}},\n"
+        " .invoke = &${invoke}},")
+    return textwrap.indent(
+        init_template.substitute(input_array=self.inputs_array_name,
+                                 input_size=len(self.inputs),
+                                 output_array=self.outputs_array_name,
+                                 output_size=len(self.outputs),
+                                 node_array=self.nodes_array,
+                                 node_size=len(self.operators),
+                                 tensor_array=self.tensors_array,
+                                 tensor_size=len(self.tensors),
+                                 invoke=self.invoke_fn_name), indent)
+
+  @property
+  def tensors_array(self) -> str:
+    return f"subgraph{self.index}_tensors_"
+
+  def tensors_element(self, tensor_idx: int) -> str:
+    return self.tensors_array + f"[{tensor_idx}]"
+
+  def tensor_data_type(self, tensor_idx: int) -> str:
+    return f"Tensor{self.index}_{tensor_idx}"
+
+  def tensor_data_name(self, tensor_idx: int) -> str:
+    return f"tensor{self.index}_{tensor_idx}"
+
+  def generate_c_tensor_data(self, indent: str) -> str:
+    tensor_dims_strs: List[str] = []
+    for tensor_idx, tensor in enumerate(self.tensors):
+      type_name = self.tensor_data_type(tensor_idx)
+      tensor_name = self.tensor_data_name(tensor_idx)
+      tensor_dims_strs.append(
+          tensor.generate_c_tensor_dims(type_name, tensor_name))
+    return textwrap.indent("\n\n".join(tensor_dims_strs), indent)
+
+  def generate_c_tensor_init(self, indent: str) -> str:
+    tensor_init_strs: List[str] = []
+    for tensor_idx, tensor in enumerate(self.tensors):
+      tflite_tensor_name = self.tensors_element(tensor_idx)
+      tensor_data_name = self.tensor_data_name(tensor_idx)
+      tensor_init_strs.append(
+          tensor.generate_c_tensor_init(tflite_tensor_name, tensor_data_name))
+    return textwrap.indent("\n".join(tensor_init_strs), indent)
 
 
 class Graph(object):
 
   def __init__(self, model: schema_fb.ModelT):
+    buffers: List[tensor.Buffer] = [
+        tensor.Buffer("buffer_{}".format(idx), buffer)
+        for idx, buffer in enumerate(model.buffers)
+    ]
     self._subgraphs: List[SubGraph] = [
-        Subgraph(model, idx, subgraph)
+        Subgraph(model, buffers, idx, subgraph)
         for idx, subgraph in enumerate(model.subgraphs)
     ]
 
   @property
   def subgraphs(self) -> Sequence[Subgraph]:
     return self._subgraphs
+
+  @property
+  def buffers(self) -> Sequence[tensor.Buffer]:
+    buffers: List[tensor.Buffer] = []
+    for subgraph in self.subgraphs:
+      for t in subgraph.tensors:
+        buffers.append(t.buffer)
+    return buffers
+
+  @property
+  def needs_zero_length_int_array(self) -> bool:
+    return any(subgraph.needs_zero_length_int_array
+               for subgraph in self.subgraphs)
 
 
 class OpCodeTable(object):
