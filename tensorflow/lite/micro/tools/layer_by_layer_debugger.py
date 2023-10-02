@@ -29,16 +29,16 @@ from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 
 np.set_printoptions(threshold=sys.maxsize)
 
-
 # Usage information:
 # Default no Golden Data/Input provided will Compare TFLM vs TfLite using random input:
 #   `bazel run tensorflow/lite/micro/tools:layer_by_layer_debugger -- \
 #     --input_tflite_file=</path/to/my_model.tflite>`
 
 _INPUT_TFLITE_FILE = flags.DEFINE_string(
-    "input_tflite_file", None, "Full path name to the input TFLite file.",required=True
-)
-
+    "input_tflite_file",
+    None,
+    "Full path name to the input TFLite file.",
+    required=True)
 
 _RNG = flags.DEFINE_integer(
     "rng",
@@ -93,8 +93,7 @@ def main(_) -> None:
   for index, input_tensor_index in enumerate(model.subgraphs[0].inputs):
     input_tensor = model.subgraphs[0].tensors[input_tensor_index]
     random_data = model_transforms_utils.generate_random_input_data(
-        model, input_tensor, rng_seed
-    )
+        model, input_tensor, rng_seed)
     tflm_interpreter.set_input(random_data, index)
     tflite_interpreter.set_tensor(input_tensor_index, random_data)
 
@@ -104,24 +103,23 @@ def main(_) -> None:
   for subgraph_index in range(len(subgraph_info)):
     for layer_number in range(len(subgraph_info[subgraph_index])):
       tflm_ouput = tflm_interpreter.GetTensor(
-          subgraph_info[subgraph_index][layer_number][0], subgraph_index
-      )["tensor_data"]
+          subgraph_info[subgraph_index][layer_number][0],
+          subgraph_index)["tensor_data"]
       tflite_output = tflite_interpreter.get_tensor(
-          subgraph_info[subgraph_index][layer_number][0], subgraph_index
-      )
+          subgraph_info[subgraph_index][layer_number][0], subgraph_index)
       error_message = (
           "\n\nTFLM output does not match TfLite output.\n Subgraph number is"
           " {subgraph_index} \n Layer number is {layer_number} \n The Tensor"
-          " Index where this output does not match is {tensor_index} \n\n\n"
-          .format(
+          " Index where this output does not match is {tensor_index} \n\n\n".
+          format(
               subgraph_index=subgraph_index,
               layer_number=layer_number,
               tensor_index=subgraph_info[subgraph_index][layer_number][0],
-          )
-      )
-      np.testing.assert_array_equal(
-          tflm_ouput, tflite_output, err_msg=error_message, verbose=True
-      )
+          ))
+      np.testing.assert_array_equal(tflm_ouput,
+                                    tflite_output,
+                                    err_msg=error_message,
+                                    verbose=True)
   print("\n\nTFLM output matched TfLite output for all Layers in the Model.")
 
 
