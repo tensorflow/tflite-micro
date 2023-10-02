@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_cc_library")
 load(
     "//tensorflow:extra_rules.bzl",
@@ -1452,30 +1453,46 @@ cc_test(
 # Bazel config settings.
 ####################################
 
+# Command line flag to select which set of optimized kernels to use.
+# Each value should have a `config_setting` which is selected on in the
+# `micro_ops` target to pickup optimized kernel sources. An empty value
+# indicates only reference kernels should be used.
+string_flag(
+    name = "optimized_kernels",
+    build_setting_default = "",
+    values = [
+        "",
+        "xtensa_fusion_f1",
+        "xtensa_hifi_3z",
+        "xtensa_hifi_5",
+        "xtensa_vision_p6",
+    ],
+)
+
 config_setting(
     name = "xtensa_fusion_f1_default",
-    values = {
-        "cpu": "F1_190305_swupgrade",
+    flag_values = {
+        ":optimized_kernels": "xtensa_fusion_f1",
     },
 )
 
 config_setting(
     name = "xtensa_hifi_3z_default",
-    values = {
-        "cpu": "HIFI_190304_swupgrade",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_3z",
     },
 )
 
 config_setting(
     name = "xtensa_hifi_5_default",
-    values = {
-        "cpu": "AE_HiFi5_LE5_AO_FP_XC",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_5",
     },
 )
 
 config_setting(
     name = "xtensa_vision_p6_default",
-    values = {
-        "cpu": "P6_200528",
+    flag_values = {
+        ":optimized_kernels": "xtensa_vision_p6",
     },
 )
