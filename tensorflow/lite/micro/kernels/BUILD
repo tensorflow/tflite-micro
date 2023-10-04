@@ -341,7 +341,7 @@ tflm_kernel_cc_library(
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
-        xtensa_hifi3_config(): HIFI3_COPTS,
+        xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
         xtensa_vision_p6_config(): VP6_COPTS,
