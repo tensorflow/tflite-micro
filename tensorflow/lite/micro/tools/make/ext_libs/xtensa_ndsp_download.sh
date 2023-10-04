@@ -92,7 +92,7 @@ else
     find ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/* -maxdepth 0 -type d -exec mv {} ${LIBRARY_INSTALL_PATH} \;
     rm -rf "${TEMPDIR}"
     # NDSP sources in GitHub currently uses DOS style newlines, which causes compiler errors.
-    find ${LIBRARY_INSTALL_PATH} -type f -exec dos2unix -q {} \;
+    find ${LIBRARY_INSTALL_PATH} -type f -exec sed -i.bak 's/\r$//g' {} \;
 
     pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
     chmod -R +w ./
