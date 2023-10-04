@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #include <cstdint>
 
@@ -55,14 +55,14 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   /* TODO(b/277112516): Dilation is currently not supported on HiFi 4 NN Library
    */
   bool inputs_and_bias_ok = bias != nullptr;
-#ifdef HIFI4
+#if defined(HIFI3) || defined(HIFI4)
   inputs_and_bias_ok =
       inputs_and_bias_ok &&
       (input->type == kTfLiteInt8 ||
        (input->type == kTfLiteInt16 && bias->type == kTfLiteInt64));
 #else
   inputs_and_bias_ok = inputs_and_bias_ok && (input->type == kTfLiteInt8);
-#endif  // HIFI4
+#endif  // defined(HIFI3) || defined(HIFI4)
   if (!(inputs_and_bias_ok && params->dilation_width_factor == 1 &&
         params->dilation_height_factor == 1 &&
         input_shape.Dims(1) >= filter_shape.Dims(1) &&
@@ -115,7 +115,7 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-#if defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4)
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
                                const XtensaConvOpData& data,
@@ -210,7 +210,7 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
 
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4)
+#endif // defined(HIFI3) || defined(HIFI4)
 
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteConvParams& params,
@@ -325,4 +325,4 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
 }
 
 }  // namespace tflite
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)

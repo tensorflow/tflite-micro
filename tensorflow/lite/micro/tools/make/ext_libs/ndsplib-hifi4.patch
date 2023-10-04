@@ -11,6 +11,20 @@ index 82f48e2..bdce59e 100644
               fft_real24x24,
               (f24* y,
                int32_t* x,
+diff --git a/library/include/NatureDSP_types.h b/library/include/NatureDSP_types.h
+index 0069361..c0f411f 100644
+--- a/library/include/NatureDSP_types.h
++++ b/library/include/NatureDSP_types.h
+@@ -332,7 +332,9 @@ typedef struct tagComplex32_t
+   #define NASSERT(x) 
+   #define restrict 
+ #elif defined (COMPILER_XTENSA)
++#if !defined restrict
+   #define restrict __restrict
++#endif
+   #define onchip
+   #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
+ #else
 diff --git a/library/include_private/common.h b/library/include_private/common.h
 index d647af4..25d0ca8 100644
 --- a/library/include_private/common.h

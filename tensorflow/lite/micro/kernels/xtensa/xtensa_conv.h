@@ -27,7 +27,7 @@ struct XtensaConvOpData {
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
   int8_t* reorder_coefficient_bias;  // buffers used to keep reordered coeff and

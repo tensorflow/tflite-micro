@@ -170,6 +170,11 @@ cc_library(
     ],
 )
 
+HIFI3_COPTS = [
+    "-DXTENSA=1",
+    "-DHIFI3=1",
+]
+
 HIFI4_COPTS = [
     "-DXTENSA=1",
     "-DHIFI4=1",
@@ -332,6 +337,7 @@ tflm_kernel_cc_library(
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
+        xtensa_hifi3_config(): HIFI3_COPTS,
         xtensa_fusion_f1_config(): HIFI4_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,

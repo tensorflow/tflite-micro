@@ -65,7 +65,8 @@ else ifeq ($(TARGET_ARCH), hifi5)
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
     $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c")
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/twiddles -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
@@ -121,7 +122,8 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
     $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c")
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/twiddles -name "*.c")
 
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \

@@ -25,9 +25,9 @@ namespace tflite {
 struct XtensaDepthwiseConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
   int8_t* reorder_coefficient_bias;  // buffers used to keep reordered coeff and
@@ -39,7 +39,7 @@ struct XtensaDepthwiseConvOpData {
 #endif  // VISION_P6
 };
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
@@ -52,7 +52,7 @@ TfLiteStatus DepthwiseConvEvalHifi(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
                                             TfLiteNode* node);
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
 

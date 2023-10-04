@@ -61,9 +61,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   }
   micro_context->DeallocateTempTfLiteTensor(input);
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareVision(context, node));
@@ -97,7 +97,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (filter_int8.type) {
         case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
           DepthwiseConvEvalHifi(context, node, params, op_data, input,
                                 &filter_int8, bias, output);
 #elif defined(VISION_P6)
@@ -116,7 +116,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
           break;
         }
         default:
