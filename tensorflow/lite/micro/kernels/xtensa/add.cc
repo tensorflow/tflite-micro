@@ -126,7 +126,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
           *(reinterpret_cast<XtensaAddOpData*>(node->user_data));
       AddEvalQuantizedVision(context, node, *params, op_data, input1, input2,
                              output);
-#elif defined(HIFI3) || defined(HIFI4) // defined(VISION_P6)
+#elif defined(HIFI3) || defined(HIFI4)  // defined(VISION_P6)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(4, tflite::micro::GetTensorShape(input1));
@@ -150,7 +150,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
           op_params.left_shift);
 
       TF_LITE_ENSURE(context, err == 0);
-#else                 // defined(VISION_P6)
+#else                                   // defined(VISION_P6)
       if (need_broadcast) {
         reference_integer_ops::BroadcastAdd4DSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -168,7 +168,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif                // defined(VISION_P6)
+#endif                                  // defined(VISION_P6)
       break;
     }
     case kTfLiteInt16: {

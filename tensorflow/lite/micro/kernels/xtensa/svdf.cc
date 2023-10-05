@@ -252,7 +252,8 @@ TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) ||
+        // defined(HIFI5)
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -277,7 +278,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return status;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) ||
+        // defined(HIFI5)
 }
 
 TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {

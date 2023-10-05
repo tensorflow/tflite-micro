@@ -210,7 +210,7 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
 
   return kTfLiteOk;
 }
-#endif // defined(HIFI3) || defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4)
 
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteConvParams& params,

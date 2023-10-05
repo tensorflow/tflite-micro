@@ -4,8 +4,8 @@ load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
-    "xtensa_hifi_3z_config",
     "xtensa_hifi_3_config",
+    "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
 )
