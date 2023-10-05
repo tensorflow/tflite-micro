@@ -1,3 +1,15 @@
+diff --git a/library/include/NatureDSP_Signal_math.h b/library/include/NatureDSP_Signal_math.h
+index 2ffea63..f1f89b3 100644
+--- a/library/include/NatureDSP_Signal_math.h
++++ b/library/include/NatureDSP_Signal_math.h
+@@ -660,6 +660,7 @@ int32_t scl_tanh32x32(int32_t x);
+ -------------------------------------------------------------------------*/
+ void vec_sigmoid32x32(int32_t * y, const int32_t * x, int N);
+ int32_t scl_sigmoid32x32(int32_t x);
++float32_t scl_sigmoidf(float32_t x);
+ 
+ /*-------------------------------------------------------------------------
+   Softmax
 diff --git a/library/include/NatureDSP_types.h b/library/include/NatureDSP_types.h
 index a38b334..bce8636 100644
 --- a/library/include/NatureDSP_types.h

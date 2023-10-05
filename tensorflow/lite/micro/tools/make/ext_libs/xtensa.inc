@@ -133,7 +133,6 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
     EXCLUDED_NNLIB_SRCS += \
       $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_32_32.c \
       $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_f32_f32.c \
-      $(NNLIB_PATH)/algo/ndsp/hifi4/src/vec_sigmoidf_hifi4.c \
       $(NNLIB_PATH)/algo/ndsp/hifi4/src/pow2f_tbl.c \
       $(NNLIB_PATH)/algo/ndsp/hifi4/src/scl_tanhf_hifi4.c \
       $(NNLIB_PATH)/algo/ndsp/hifi4/src/vec_tanhf_hifi4.c \
