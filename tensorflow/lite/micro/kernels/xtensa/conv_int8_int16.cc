@@ -42,7 +42,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* bias =
       tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   return ConvEvalHifiInt8(context, node, params, op_data, input, filter, bias,
                           output);
 #elif defined(VISION_P6)
@@ -54,7 +54,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4)
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));

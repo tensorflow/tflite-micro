@@ -1,0 +1,94 @@
+diff --git a/library/include/NatureDSP_Signal_math.h b/library/include/NatureDSP_Signal_math.h
+index 2ffea63..55074ab 100644
+--- a/library/include/NatureDSP_Signal_math.h
++++ b/library/include/NatureDSP_Signal_math.h
+@@ -635,6 +635,7 @@ float32_t scl_atan2f (float32_t y, float32_t x);
+   return result, Q16.15 
+ -------------------------------------------------------------------------*/
+ void vec_tanh32x32(int32_t * y, const int32_t * x, int N);
++void vec_tanhf    (float32_t * y, const float32_t * x,int N);
+ int32_t scl_tanh32x32(int32_t x);
+ 
+ /*-------------------------------------------------------------------------
+@@ -659,8 +660,12 @@ int32_t scl_tanh32x32(int32_t x);
+   return result, Q16.15
+ -------------------------------------------------------------------------*/
+ void vec_sigmoid32x32(int32_t * y, const int32_t * x, int N);
++void vec_sigmoidf    (float32_t * y, const float32_t * x, int N);
+ int32_t scl_sigmoid32x32(int32_t x);
++float32_t scl_sigmoidf(float32_t x);
+ 
++void vec_relu32x32 (int32_t   * y, const int32_t   * x, int32_t   K, int N);
++void vec_reluf     (float32_t * y, const float32_t * x, float32_t K, int N);
+ /*-------------------------------------------------------------------------
+   Softmax
+   The function computes the softmax (normalized exponential function) of 
+@@ -685,6 +690,7 @@ int32_t scl_sigmoid32x32(int32_t x);
+ 
+ -------------------------------------------------------------------------*/
+ void vec_softmax32x32(int32_t * y, const int32_t * x, int N);
++void vec_softmaxf    (float32_t * y, const float32_t * x,int N);
+ 
+ /*-------------------------------------------------------------------------
+   Integer to float conversion
+diff --git a/library/include/NatureDSP_types.h b/library/include/NatureDSP_types.h
+index a38b334..bce8636 100644
+--- a/library/include/NatureDSP_types.h
++++ b/library/include/NatureDSP_types.h
+@@ -332,7 +332,9 @@ typedef struct tagComplex32_t
+   #define NASSERT(x) 
+   #define restrict 
+ #elif defined (COMPILER_XTENSA)
++#if !defined restrict
+   #define restrict __restrict
++#endif  
+   #define onchip
+   #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
+ #else
+diff --git a/library/include_private/common.h b/library/include_private/common.h
+index 20206e4..74d4d42 100644
+--- a/library/include_private/common.h
++++ b/library/include_private/common.h
+@@ -157,6 +157,12 @@ __pragma (warning(pop))
+ __asm__(".type "#name", @object\n\t.global "#name"\n\t.align 4\n\t"#name":\n\t.long 0x49438B96,0x4D73F192\n\t");
+ #endif
+ 
++#if defined(COMPILER_XTENSA)
++#define DISCARD_FUN_FOR_NONVOID_RETURN(retval_type,name,arglist) \
++__attribute__ ((section ("/DISCARD/"))) \
++retval_type name arglist \
++{ return (retval_type) 0; }
++#endif
+ 
+ #ifdef __cplusplus
+ #define externC extern "C" 
+diff --git a/library/include_private/fft_real_twiddles.h b/library/include_private/fft_real_twiddles.h
+index 10cd4b2..c5fe6b9 100644
+--- a/library/include_private/fft_real_twiddles.h
++++ b/library/include_private/fft_real_twiddles.h
+@@ -44,7 +44,10 @@
+      7               128
+ */
+ 
++#if !defined MAX_RFFT_PWR
+ #define MAX_RFFT_PWR 13
++#endif
++
+ #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
+ 
+ extern const int16_t twiddleSplit[MAX_RFFT_LEN/2];
+diff --git a/library/include_private/fft_real_twiddles_24x24.h b/library/include_private/fft_real_twiddles_24x24.h
+index 3017c61..1e52320 100644
+--- a/library/include_private/fft_real_twiddles_24x24.h
++++ b/library/include_private/fft_real_twiddles_24x24.h
+@@ -44,7 +44,10 @@
+      7               128
+ */
+ 
++#if !defined MAX_RFFT_PWR
+ #define MAX_RFFT_PWR 13
++#endif
++
+ #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
+ 
+ extern const int32_t twiddleSplit24x24[MAX_RFFT_LEN/2];
