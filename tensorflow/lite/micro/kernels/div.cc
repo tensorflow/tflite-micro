@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -91,12 +91,21 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(
       CalculateOpDataDiv(context, input1, input2, output, params, data));
 
+  if (output->type == kTfLiteInt32) {
+    // Only support int32 unquantized DIV for now.
+    TF_LITE_ENSURE_EQ(context, input1->quantization.type,
+                      kTfLiteNoQuantization);
+    TF_LITE_ENSURE_EQ(context, input2->quantization.type,
+                      kTfLiteNoQuantization);
+  }
+
   micro_context->DeallocateTempTfLiteTensor(input1);
   micro_context->DeallocateTempTfLiteTensor(input2);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
+template <typename T>
 void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
              const OpDataDiv* data, const TfLiteEvalTensor* input1,
              const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
@@ -120,9 +129,9 @@ void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
       tflite::micro::GetTensorShape(input2), &op_params);
 
   if (requires_broadcast) {
-    TF_LITE_DIV(reference_ops, BroadcastDivSlow, float);
+    TF_LITE_DIV(reference_ops, BroadcastDivSlow, T);
   } else {
-    TF_LITE_DIV(reference_ops, Div, float);
+    TF_LITE_DIV(reference_ops, Div, T);
   }
 #undef TF_LITE_DIV
 }
@@ -184,13 +193,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
   if (output->type == kTfLiteFloat32) {
-    EvalDiv(context, node, params, data, input1, input2, output);
+    EvalDiv<float>(context, node, params, data, input1, input2, output);
+  } else if (output->type == kTfLiteInt32) {
+    EvalDiv<int32_t>(context, node, params, data, input1, input2, output);
   } else if (output->type == kTfLiteInt8) {
     TF_LITE_ENSURE_OK(context, EvalQuantized(context, node, params, data,
                                              input1, input2, output));
   } else {
     MicroPrintf(
-        "DIV only supports FLOAT32, quantized INT8 "
+        "DIV only supports FLOAT32, INT32, quantized INT8 "
         "now, got type %s (%d).",
         TfLiteTypeGetName(output->type), output->type);
     return kTfLiteError;

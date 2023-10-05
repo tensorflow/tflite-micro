@@ -77,31 +77,36 @@ docker run \
     PY_PLATFORM=\$AUDITWHEEL_PLAT
     PY_COMPATIBILITY=${PY_TAG}_\${PY_ABI}_\${PY_PLATFORM}
 
-    # Link the desired Python version in the PATH where bazel will find it. The
-    # build image contains many differnet Python installations as options.
+    # Link the desired Python version into the PATH, where bazel will find it.
+    # The build image contains many different Python versions as options.
     ln -sf /opt/python/$PY_TAG-$PY_TAG/bin/* /usr/bin
 
-    # Bazelisk fails if it can't check HOME for a .rc file.
+    # Bazelisk fails if it can't check HOME for a .rc file., and pip (in
+    # :whl_test) installation of some dependencies (e.g., wrapt) expects HOME.
     export HOME=$OUTDIR
 
     # Bazelisk, bazel, and pip all need a writable cache directory.
     export XDG_CACHE_HOME=$OUTDIR/cache
 
-    # Build the wheel via bazel, using the Python compatibility tag matching the
-    # build environment. Drop root privledges and run as the invoking user.
-    # Relocate the bazel cache to keep the cache used for each toolchain
-    # separate.
-    setpriv --reuid=$(id -u) --regid=$(id -g) --clear-groups \
-        bazel --output_user_root=$OUTDIR/$PY_TAG-out \
-            build \
-            //python/tflite_micro:whl.dist \
-            --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY
+    # Relocate the bazel root to keep the cache used for each Python toolchain
+    # separate. Drop root privledges and run as the invoking user.
+    call_bazel() {
+        setpriv --reuid=$(id -u) --regid=$(id -g) --clear-groups \
+            bazel \
+                --output_user_root=$OUTDIR/$PY_TAG-out \
+                "\$@" \
+                --action_env=HOME `# help setuptools find HOME in container` \
+                --action_env=USER `# bazel reads USER via whoami` \
+                --action_env=XDG_CACHE_HOME `# locate pip's cache inside OUTDIR`
+    }
 
-    # Test, in the container environment
-    setpriv --reuid=$(id -u) --regid=$(id -g) --clear-groups \
-        bazel --output_user_root=$OUTDIR/$PY_TAG-out \
-            test \
-            //python/tflite_micro:whl_test \
+    # Build the wheel via bazel, using the Python compatibility tag matching the
+    # build environment.
+    call_bazel build //python/tflite_micro:whl.dist \
+        --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY
+
+    # Test, in the container environment.
+    call_bazel test //python/tflite_micro:whl_test \
             --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY
 EOF
 
