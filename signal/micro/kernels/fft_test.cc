@@ -274,11 +274,11 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_INT16();
 // See (b/287518815) for why this is needed.
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int tolerance = 9;
-#else   // defined(HIFI4) || defined(HIFI5)
+#else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int tolerance = 3;
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestFFT<int16_t>(
                      input_shape, tflite::kRfftInt16Length512Input,

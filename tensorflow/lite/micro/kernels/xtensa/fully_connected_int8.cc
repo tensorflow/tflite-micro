@@ -57,7 +57,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
                              tflite::micro::GetTensorShape(bias), bias_data,
                              tflite::micro::GetTensorShape(output),
                              tflite::micro::GetTensorData<int8_t>(output));
-#elif defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
   const int num_batches =
       FlatSizeSkipDim(output_shape, output_shape.DimensionsCount() - 1);
@@ -103,7 +103,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
       tflite::micro::GetTensorShape(bias), bias_data,
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
   return kTfLiteOk;
 }

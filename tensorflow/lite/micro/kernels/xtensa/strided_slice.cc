@@ -30,7 +30,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-#if defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4)
 void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
                                  const RuntimeShape& unextended_input_shape,
                                  const int16_t* input_data,
@@ -77,7 +77,7 @@ void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
                             input_shape.Dims(1), input_shape.Dims(2),
                             input_shape.Dims(3), input_shape.Dims(4));
 }
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4)
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -104,7 +104,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                   tflite::micro::GetTensorData<int8_t>(output));
       break;
     case kTfLiteInt16:
-#if defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4)
       StridedSlice_int16_hifi4opt(
           op_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int16_t>(input),
@@ -116,7 +116,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int16_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
-#endif  // defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4)
       break;
     case kTfLiteInt32:
       reference_ops::StridedSlice(

@@ -4,6 +4,7 @@ load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
+    "xtensa_hifi_3_config",
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
@@ -170,6 +171,11 @@ cc_library(
     ],
 )
 
+HIFI3_COPTS = [
+    "-DXTENSA=1",
+    "-DHIFI3=1",
+]
+
 HIFI4_COPTS = [
     "-DXTENSA=1",
     "-DHIFI4=1",
@@ -320,6 +326,7 @@ tflm_kernel_cc_library(
         "svdf.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
+        xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.h"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.h"]),
@@ -327,12 +334,14 @@ tflm_kernel_cc_library(
     }),
     accelerated_srcs = {
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_hifi_3_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
+        xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
         xtensa_vision_p6_config(): VP6_COPTS,
@@ -368,6 +377,7 @@ tflm_kernel_cc_library(
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        xtensa_hifi_3_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_5_config(): ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
         xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
@@ -1463,6 +1473,7 @@ string_flag(
     values = [
         "",
         "xtensa_fusion_f1",
+        "xtensa_hifi_3",
         "xtensa_hifi_3z",
         "xtensa_hifi_5",
         "xtensa_vision_p6",
@@ -1473,6 +1484,13 @@ config_setting(
     name = "xtensa_fusion_f1_default",
     flag_values = {
         ":optimized_kernels": "xtensa_fusion_f1",
+    },
+)
+
+config_setting(
+    name = "xtensa_hifi_3_default",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_3",
     },
 )
 

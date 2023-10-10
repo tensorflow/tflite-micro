@@ -29,7 +29,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   auto* op_data = static_cast<OpDataQuantizeReference*>(node->user_data);
@@ -267,7 +267,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -301,11 +301,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   return EvalXtensa(context, node);
 #else
   return EvalQuantizeReference(context, node);
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 }
 
 }  // namespace
