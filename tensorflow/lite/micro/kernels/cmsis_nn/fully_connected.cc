@@ -104,7 +104,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
     TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
     buf_size = arm_fully_connected_s16_get_buffer_size(&filter_dims);
-  } else if (input->type == kTfLiteInt8) {
+  } else if (input->type == kTfLiteInt8 &&
+             data->reference_op_data.filter_zero_point == 0) {
     const RuntimeShape input_shape = GetTensorShape(input);
 
     TFLITE_DCHECK_GE(output_dim_count, 2);
@@ -374,8 +375,22 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (filter_int8.type) {
         case kTfLiteInt8:
-          return EvalQuantizedInt8(context, node, data, input, &filter_int8,
-                                   bias, output);
+          if (data.reference_op_data.filter_zero_point == 0) {
+            return EvalQuantizedInt8(context, node, data, input, &filter_int8,
+                                     bias, output);
+          } else {
+            tflite::reference_integer_ops::FullyConnected(
+                FullyConnectedParamsQuantized(data.reference_op_data),
+                tflite::micro::GetTensorShape(input),
+                tflite::micro::GetTensorData<int8_t>(input),
+                tflite::micro::GetTensorShape(filter),
+                tflite::micro::GetTensorData<int8_t>(filter),
+                tflite::micro::GetTensorShape(bias),
+                tflite::micro::GetOptionalTensorData<int32_t>(bias),
+                tflite::micro::GetTensorShape(output),
+                tflite::micro::GetTensorData<int8_t>(output));
+            return kTfLiteOk;
+          }
         default:
           MicroPrintf("Filter Type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);
