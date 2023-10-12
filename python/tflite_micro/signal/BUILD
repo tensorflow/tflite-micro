@@ -33,7 +33,7 @@ py_library(
         "ops/__init__.py",
     ],
     srcs_version = "PY3",
-    visibility = ["//python/tflite_micro/signal/utils:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         ":delay_op",
         ":energy_op",

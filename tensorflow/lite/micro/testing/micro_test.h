@@ -259,6 +259,7 @@ inline void InitializeTest() { InitializeTarget(); }
         MicroPrintf("FAIL: %s did not match %s", string1, string2, __FILE__, \
                     __LINE__);                                               \
         micro_test::did_test_fail = true;                                    \
+        break;                                                               \
       }                                                                      \
     }                                                                        \
   } while (false)

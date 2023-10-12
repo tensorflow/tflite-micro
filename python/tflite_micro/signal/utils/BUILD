@@ -37,6 +37,7 @@ pybind_extension(
 py_library(
     name = "util",
     srcs = ["util.py"],
+    visibility = ["//visibility:public"],
     deps = [
         requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
@@ -71,4 +72,5 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    visibility = ["//visibility:public"],
 )
