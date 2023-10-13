@@ -2,10 +2,6 @@
 
 mkdir /opt/xtensa/licenses
 
-mkdir -p /opt/xtensa/XtDevTools/install/tools/
-tar xvzf XtensaTools_RI_2022_9_linux.tgz --dir /opt/xtensa/XtDevTools/install/tools/
-
-
 ##############
 #  Fusion F1
 ##############
