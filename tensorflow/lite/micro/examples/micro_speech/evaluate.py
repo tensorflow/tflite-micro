@@ -29,7 +29,7 @@ from pathlib import Path
 from tflite_micro.python.tflite_micro import runtime
 from tensorflow.python.platform import resource_loader
 import tensorflow as tf
-import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
 
 _SAMPLE_PATH = flags.DEFINE_string(
     name='sample_path',

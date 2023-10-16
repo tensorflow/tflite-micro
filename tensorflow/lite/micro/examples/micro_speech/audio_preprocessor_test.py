@@ -28,7 +28,7 @@ from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 
 import tensorflow as tf
-import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
 
 
 class AudioPreprocessorTest(test_util.TensorFlowTestCase):
