@@ -1,5 +1,5 @@
 diff --git a/include/flatbuffers/base.h b/include/flatbuffers/base.h
-index a5ac10d..371b6fd 100644
+index 5c4cae79..1a631641 100644
 --- a/include/flatbuffers/base.h
 +++ b/include/flatbuffers/base.h
 @@ -1,6 +1,16 @@
@@ -20,10 +20,10 @@ index a5ac10d..371b6fd 100644
  
  // If activate should be declared and included first.
 diff --git a/include/flatbuffers/default_allocator.h b/include/flatbuffers/default_allocator.h
-index 8b173af..975d938 100644
+index d4724122..975d9380 100644
 --- a/include/flatbuffers/default_allocator.h
 +++ b/include/flatbuffers/default_allocator.h
-@@ -39,26 +39,20 @@ class DefaultAllocator : public Allocator {
+@@ -39,24 +39,18 @@ class DefaultAllocator : public Allocator {
  // This is to avoid having a statically or dynamically allocated default
  // allocator, or having to move it between the classes that may own it.
  inline uint8_t *Allocate(Allocator *allocator, size_t size) {
@@ -52,15 +52,11 @@ index 8b173af..975d938 100644
  }
  
  }  // namespace flatbuffers
- 
--#endif  // FLATBUFFERS_DEFAULT_ALLOCATOR_H_
-\ No newline at end of file
-+#endif  // FLATBUFFERS_DEFAULT_ALLOCATOR_H_
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
-index 89f3f30..6e6d0b3 100644
+index 8e8cac14..52dae316 100644
 --- a/include/flatbuffers/flexbuffers.h
 +++ b/include/flatbuffers/flexbuffers.h
-@@ -496,9 +496,24 @@ class Reference {
+@@ -495,9 +495,24 @@ class Reference {
            return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
          case FBT_NULL: return 0.0;
          case FBT_STRING: {
@@ -86,10 +82,10 @@ index 89f3f30..6e6d0b3 100644
          case FBT_VECTOR: return static_cast<double>(AsVector().size());
          case FBT_BOOL:
 diff --git a/include/flatbuffers/util.h b/include/flatbuffers/util.h
-index 93a39de..1cd4e8f 100644
+index 1ccf3517..34a75193 100644
 --- a/include/flatbuffers/util.h
 +++ b/include/flatbuffers/util.h
-@@ -24,6 +24,12 @@
+@@ -23,6 +23,12 @@
  #include "flatbuffers/base.h"
  #include "flatbuffers/stl_emulation.h"
  
@@ -102,4 +98,3 @@ index 93a39de..1cd4e8f 100644
  #ifndef FLATBUFFERS_PREFER_PRINTF
  #  include <iomanip>
  #  include <sstream>
- 
