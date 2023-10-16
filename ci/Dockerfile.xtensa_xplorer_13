@@ -14,7 +14,6 @@ RUN \
 WORKDIR /opt/xtensa
 
 COPY ./Xplorer-8.0.13-linux-x64-installer.bin .
-COPY ./XtensaTools_RI_2022_9_linux.tgz .
 COPY ./F1_190305_swupgrade_linux.tgz .
 COPY ./P6_200528_linux.tgz .
 COPY ./HIFI_190304_swupgrade_linux.tgz .
@@ -41,7 +40,6 @@ RUN ./install_bazelisk.sh
 
 RUN \
   rm Xplorer-8.0.13-linux-x64-installer.bin && \
-  rm XtensaTools_RI_2022_9_linux.tgz && \
   rm F1_190305_swupgrade_linux.tgz && \
   rm P6_200528_linux.tgz && \
   rm HIFI_190304_swupgrade_linux.tgz && \
