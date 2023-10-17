@@ -27,8 +27,8 @@ from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.python.tflite_micro import runtime
-import evaluate
-import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import evaluate
 
 
 class MicroSpeechTest(test_util.TensorFlowTestCase):
