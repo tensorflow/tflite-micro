@@ -28,6 +28,9 @@ ifeq ($(TARGET_ARCH), hifimini)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc
 
+  FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
+  INCLUDES += -I$(FFT_PATH)/
+
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(FFT_PATH)/hifi2_fft -name "*.c")
   THIRD_PARTY_CC_HDRS += \
