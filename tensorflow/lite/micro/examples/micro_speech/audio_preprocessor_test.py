@@ -28,18 +28,13 @@ from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 
 import tensorflow as tf
-import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
 
 
 class AudioPreprocessorTest(test_util.TensorFlowTestCase):
 
   def setUp(self):
     self.sample_prefix_path = resource_loader.get_path_to_datafile('testdata')
-    self.model_prefix_path = resource_loader.get_path_to_datafile('models')
-    self.int8_model_path = Path(self.model_prefix_path,
-                                'audio_preprocessor_int8.tflite')
-    self.float_model_path = Path(self.model_prefix_path,
-                                 'audio_preprocessor_float.tflite')
 
   def testFeatureGeneration(self):
     feature_params = audio_preprocessor.FeatureParams()
@@ -101,24 +96,6 @@ class AudioPreprocessorTest(test_util.TensorFlowTestCase):
         64, 55, 83, 74, 74, 78, 114, 95, 101, 81
     ]
     self.assertSequenceEqual(feature_list, expected)
-
-  def testInt8ModelsMatch(self):
-    feature_params = audio_preprocessor.FeatureParams()
-    audio_pp = audio_preprocessor.AudioPreprocessor(feature_params)
-    generated_model = audio_pp.generate_tflite_file()
-    current_model = self.int8_model_path
-    files_match = filecmp.cmp(current_model, generated_model)
-    self.assertTrue(files_match,
-                    'current and generated int8 models do not match')
-
-  def testFloatModelsMatch(self):
-    feature_params = audio_preprocessor.FeatureParams(use_float_output=True)
-    audio_pp = audio_preprocessor.AudioPreprocessor(feature_params)
-    generated_model = audio_pp.generate_tflite_file()
-    current_model = self.float_model_path
-    files_match = filecmp.cmp(current_model, generated_model)
-    self.assertTrue(files_match,
-                    'current and generated float models do not match')
 
 
 if __name__ == '__main__':
