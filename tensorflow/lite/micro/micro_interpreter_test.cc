@@ -548,4 +548,23 @@ TF_LITE_MICRO_TEST(TestArenaUsedBytes) {
   TF_LITE_MICRO_EXPECT_EQ(interpreter2.Invoke(), kTfLiteOk);
 }
 
+TF_LITE_MICRO_TEST(TestGetTensorFailsNoLinearMemoryPlanner) {
+  const tflite::Model* model = tflite::testing::GetModelWith256x256Tensor();
+  TF_LITE_MICRO_EXPECT(model != nullptr);
+
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(tflite::testing::GetTestingOpResolver(op_resolver),
+                          kTfLiteOk);
+  tflite::MicroInterpreter interpreter(model, op_resolver, tflite::arena_buffer,
+                                       tflite::buffer_arena_size);
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
+
+  // GetTensor Should return a null_ptr when a linear memory planner isn't used
+  // to initialize it. preserve_all_tensors() getter should also return false
+  TF_LITE_MICRO_EXPECT_EQ(interpreter.preserve_all_tensors(), false);
+  TF_LITE_MICRO_EXPECT(interpreter.GetTensor(0) == nullptr);
+}
+
 TF_LITE_MICRO_TESTS_END
