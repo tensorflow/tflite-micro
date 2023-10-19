@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
@@ -29,12 +30,12 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/mul.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 TFLMRegistration* Register_DETECTION_POSTPROCESS();
