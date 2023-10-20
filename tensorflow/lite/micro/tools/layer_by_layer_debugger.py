@@ -24,15 +24,39 @@ import numpy as np
 import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tensorflow.python.platform import gfile
 from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.tensorflow.lite.micro.tools import layer_by_layer_schema_py_generated as layer_schema_fb
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 
 np.set_printoptions(threshold=sys.maxsize)
 
 # Usage information:
-# Default no Golden Data/Input provided will Compare TFLM vs TfLite using random input:
+# This Python Tool/Script can first be used to compare TFLM vs Tflite outputs for
+# random Inputs by only providing a TfLite file
+
+# TfLite vs TFLM command:
 #   `bazel run tensorflow/lite/micro/tools:layer_by_layer_debugger -- \
 #     --input_tflite_file=</path/to/my_model.tflite>`
+
+# This Python Tool/Script can also be used to comapre TFLM vs Expected
+# Output/Flatbuffer provided by the C++ Tool/binary.
+
+# TFLM vs Expected Command:
+#   `bazel run tensorflow/lite/micro/tools:layer_by_layer_debugger -- \
+#     --input_tflite_file=</path/to/my_model.tflite> \
+#     --dbg_file=</path/to/my_debug_flatbuffer_file>`
+
+# Optional Flags:
+#   --print_dump
+#           when this flags is set it will dump a part of the TFLM and Ouput
+#           it's compared against for each layer
+
+#   --rng
+#           integer flag that only works in TfLite vs TFLM comparison(when only
+#           a TfLite Model is Provided).It can be used to set the rng seed to a
+#           differen value then it's default value of 42.
+
 
 _INPUT_TFLITE_FILE = flags.DEFINE_string(
     "input_tflite_file",
@@ -47,6 +71,101 @@ _RNG = flags.DEFINE_integer(
     " provided model. This only occurs when no input/golden data are provided."
     " It is defaulted to 42. ",
 )
+
+_DEBUG_FILE = flags.DEFINE_string(
+    "layer_by_layer_data_file",
+    None,
+    "Full path to the debug file , generated in C++",
+    required=False,
+)
+
+_PRINT_PREVIEW = flags.DEFINE_bool(
+    "print_dump",
+    False,
+    "When this flag is set to True, it prints a preview of elements of the TFLM"
+    " output and output it's being compared with.",
+    required=False,
+)
+
+
+def numpy_from_tensor_type(tensor_type_idx):
+  """Gives the equivalent numpy dtype based on TensorType class (schema) number."""
+  tensor_type_idx_to_numpy = {
+      layer_schema_fb.TensorTypes.FLOAT32: np.float32,
+      layer_schema_fb.TensorTypes.FLOAT16: np.float16,
+      layer_schema_fb.TensorTypes.INT32: np.int32,
+      layer_schema_fb.TensorTypes.UINT8: np.uint8,
+      layer_schema_fb.TensorTypes.INT64: np.int64,
+      layer_schema_fb.TensorTypes.STRING: np.string_,
+      layer_schema_fb.TensorTypes.BOOL: np.bool_,
+      layer_schema_fb.TensorTypes.INT16: np.int16,
+      layer_schema_fb.TensorTypes.COMPLEX64: np.complex64,
+      layer_schema_fb.TensorTypes.INT8: np.int8,
+      layer_schema_fb.TensorTypes.FLOAT64: np.float64,
+      layer_schema_fb.TensorTypes.COMPLEX128: np.complex128,
+      layer_schema_fb.TensorTypes.UINT64: np.uint64,
+      layer_schema_fb.TensorTypes.RESOURCE: "RESORCE",
+      layer_schema_fb.TensorTypes.VARIANT: "VARIANT",
+      layer_schema_fb.TensorTypes.UINT32: np.uint32,
+      layer_schema_fb.TensorTypes.UINT16: np.uint16,
+      # INT4 is mapped to INT8, b/246806634
+      layer_schema_fb.TensorTypes.INT4: np.int8,
+  }
+  return tensor_type_idx_to_numpy.get(tensor_type_idx)
+
+
+def GenerateRandomInputTfLiteComparison(
+    tflm_interpreter, tflite_interpreter, model, rng_value
+):
+  subgraph_info = layer_schema_fb.ModelTestDataT()
+  subgraph_info.subgraphData = []
+  rng_seed = np.random.default_rng(seed=rng_value)
+
+  for subgraph_index, subgraph in enumerate(model.subgraphs):
+    subgraph_data = layer_schema_fb.SubgraphDataT()
+    subgraph_data.subgraphIndex = subgraph_index
+    subgraph_data.outputs = []
+
+    for op_index, operator in enumerate(subgraph.operators):
+      for output in operator.outputs:
+        tensor_data = layer_schema_fb.TensorDataT()
+        tensor_data.layerNumber = op_index
+        tensor_data.tensorIndex = output
+        subgraph_data.outputs.append(tensor_data)
+    subgraph_info.subgraphData.append(subgraph_data)
+
+  for index, input_tensor_index in enumerate(model.subgraphs[0].inputs):
+    input_tensor = model.subgraphs[0].tensors[input_tensor_index]
+    random_data = model_transforms_utils.generate_random_input_data(
+        model, input_tensor, rng_seed
+    )
+    tflm_interpreter.set_input(random_data, index)
+    tflite_interpreter.set_tensor(input_tensor_index, random_data)
+  return subgraph_info, tflm_interpreter, tflite_interpreter
+
+
+def ReadDebugFile():
+  with gfile.GFile(_DEBUG_FILE.value, "rb") as debug_file_handle:
+    debug_bytearray = bytearray(debug_file_handle.read())
+  flatbuffer_root_object = layer_schema_fb.ModelTestData.GetRootAs(
+      debug_bytearray, 0
+  )
+  debug_obj = layer_schema_fb.ModelTestDataT.InitFromObj(flatbuffer_root_object)
+  return debug_obj
+
+
+def SetDebugFileInterpreterInput(
+    tflm_interpreter, tflite_interpreter, debug_obj
+):
+  for inputs in debug_obj.inputData:
+    input_array = np.frombuffer(
+        bytearray(inputs.data), dtype=numpy_from_tensor_type(inputs.dtype)
+    )
+    input_array = np.reshape(input_array, inputs.shape)
+    tflm_interpreter.set_input(input_array, inputs.inputIndex)
+    tflite_interpreter.set_tensor(inputs.tensorIndex, input_array)
+
+  return tflm_interpreter, tflite_interpreter
 
 
 def main(_) -> None:
@@ -68,59 +187,75 @@ def main(_) -> None:
   )
 
   tflite_interpreter.allocate_tensors()
-  """
-  subgraph_info
-  Dictionary with the following format:
-  subgraph index  :
-        {
-             layer_number/op_index : [output_tensors] for corresponding layer
-        }
-  """
 
-  # TODO(b/302738798): look into refactoring subgraph info this based on
-  # Comments RJ made regarding turning this into a list of a defined
-  # OutputTensor class that has relevant info
+  debug_obj = None
 
-  subgraph_info = {}
-  rng_seed = np.random.default_rng(seed=_RNG.value)
-
-  for subgraph_index, subgraph in enumerate(model.subgraphs):
-    subgraph_info[subgraph_index] = {}
-
-    for op_index, operator in enumerate(subgraph.operators):
-      subgraph_info[subgraph_index][op_index] = operator.outputs
-
-  for index, input_tensor_index in enumerate(model.subgraphs[0].inputs):
-    input_tensor = model.subgraphs[0].tensors[input_tensor_index]
-    random_data = model_transforms_utils.generate_random_input_data(
-        model, input_tensor, rng_seed)
-    tflm_interpreter.set_input(random_data, index)
-    tflite_interpreter.set_tensor(input_tensor_index, random_data)
+  # Setting Inputs either randomly or using provided Debug File
+  if _DEBUG_FILE.value == None:
+    debug_obj, tflm_interpreter, tflite_interpreter = (
+        GenerateRandomInputTfLiteComparison(
+            tflm_interpreter, tflite_interpreter, model, _RNG.value
+        )
+    )
+    tflite_interpreter.invoke()
+  else:
+    debug_obj = ReadDebugFile()
+    tflm_interpreter, tflite_interpreter = SetDebugFileInterpreterInput(
+        tflm_interpreter, tflite_interpreter, debug_obj
+    )
 
   tflm_interpreter.invoke()
-  tflite_interpreter.invoke()
+  comparison = ""
 
-  for subgraph_index in range(len(subgraph_info)):
-    for layer_number in range(len(subgraph_info[subgraph_index])):
+  for subgraph in debug_obj.subgraphData:
+    for output in subgraph.outputs:
       tflm_ouput = tflm_interpreter.GetTensor(
-          subgraph_info[subgraph_index][layer_number][0],
-          subgraph_index)["tensor_data"]
-      tflite_output = tflite_interpreter.get_tensor(
-          subgraph_info[subgraph_index][layer_number][0], subgraph_index)
+          output.tensorIndex, subgraph.subgraphIndex
+      )["tensor_data"]
+
+      comparison_ouput = None
+
+      if _DEBUG_FILE.value == None:
+        tflite_output = tflite_interpreter.get_tensor(
+            output.tensorIndex, subgraph.subgraphIndex
+        )
+        comparison_ouput = tflite_output
+        comparison = "TfLite"
+      else:
+        expected_output_data = np.frombuffer(
+            bytearray(output.data), dtype=numpy_from_tensor_type(output.dtype)
+        )
+        expected_output_data = np.reshape(expected_output_data, output.shape)
+        comparison = "Expected Golden Data"
+        comparison_ouput = expected_output_data
+
       error_message = (
-          "\n\nTFLM output does not match TfLite output.\n Subgraph number is"
-          " {subgraph_index} \n Layer number is {layer_number} \n The Tensor"
-          " Index where this output does not match is {tensor_index} \n\n\n".
-          format(
-              subgraph_index=subgraph_index,
-              layer_number=layer_number,
-              tensor_index=subgraph_info[subgraph_index][layer_number][0],
-          ))
-      np.testing.assert_array_equal(tflm_ouput,
-                                    tflite_output,
-                                    err_msg=error_message,
-                                    verbose=True)
-  print("\n\nTFLM output matched TfLite output for all Layers in the Model.")
+          "\n\nTFLM output does not match {comparison} output.\n Subgraph"
+          " number is {subgraph_index} \n Layer number is {layer_number} \n The"
+          " Tensor Index where this output does not match is {tensor_index}"
+          " \n\n\n".format(
+              comparison=comparison,
+              subgraph_index=subgraph.subgraphIndex,
+              layer_number=output.layerNumber,
+              tensor_index=output.tensorIndex,
+          )
+      )
+      if _PRINT_PREVIEW.value:
+        print("layer number ", output.layerNumber)
+        print("tensor index ", output.tensorIndex, "\n\n")
+        print("TFLM output \n ", tflm_ouput[:10])
+        print(
+            "{comparison} output \n".format(comparison=comparison),
+            comparison_ouput[: _PRINT_PREVIEW.value],
+        )
+        print("--------------\n\n\n")
+      np.testing.assert_array_equal(
+          tflm_ouput, comparison_ouput, err_msg=error_message, verbose=True
+      )
+  print(
+      "\n\nTFLM output matched {comparison} output for all Layers in the Model."
+      .format(comparison=comparison)
+  )
 
 
 if __name__ == "__main__":

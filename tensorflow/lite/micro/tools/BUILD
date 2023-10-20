@@ -1,4 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
@@ -140,6 +141,28 @@ py_library(
     ],
 )
 
+cc_binary(
+    name = "layer_by_layer_output_tool",
+    srcs = ["layer_by_layer.cc"],
+    deps = [
+        ":layer_by_layer_schema",
+        "//tensorflow/lite/c:c_api_types",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/kernels:op_macros",
+        "//tensorflow/lite/micro:micro_allocator",
+        "//tensorflow/lite/micro:micro_context",
+        "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_resource_variable",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro/kernels:kernel_util",
+        "//tensorflow/lite/micro/tools/benchmarking:op_resolver",
+        "//tensorflow/lite/schema:schema_fbs",
+        "@flatbuffers",
+    ],
+)
+
 py_binary(
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
@@ -180,6 +203,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     deps = [
+        ":layer_by_layer_schema_py",
         ":model_transforms_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -187,4 +211,14 @@ py_binary(
         "//tensorflow/lite/micro/python/interpreter/src:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
+)
+
+flatbuffer_cc_library(
+    name = "layer_by_layer_schema",
+    srcs = ["layer_by_layer_schema.fbs"],
+)
+
+flatbuffer_py_library(
+    name = "layer_by_layer_schema_py",
+    srcs = ["layer_by_layer_schema.fbs"],
 )
