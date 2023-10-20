@@ -31,7 +31,6 @@ limitations under the License.
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/op_macros.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
@@ -42,6 +41,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 

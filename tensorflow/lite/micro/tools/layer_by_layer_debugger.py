@@ -57,7 +57,6 @@ np.set_printoptions(threshold=sys.maxsize)
 #           a TfLite Model is Provided).It can be used to set the rng seed to a
 #           differen value then it's default value of 42.
 
-
 _INPUT_TFLITE_FILE = flags.DEFINE_string(
     "input_tflite_file",
     None,
@@ -91,32 +90,49 @@ _PRINT_PREVIEW = flags.DEFINE_bool(
 def numpy_from_tensor_type(tensor_type_idx):
   """Gives the equivalent numpy dtype based on TensorType class (schema) number."""
   tensor_type_idx_to_numpy = {
-      layer_schema_fb.TensorTypes.FLOAT32: np.float32,
-      layer_schema_fb.TensorTypes.FLOAT16: np.float16,
-      layer_schema_fb.TensorTypes.INT32: np.int32,
-      layer_schema_fb.TensorTypes.UINT8: np.uint8,
-      layer_schema_fb.TensorTypes.INT64: np.int64,
-      layer_schema_fb.TensorTypes.STRING: np.string_,
-      layer_schema_fb.TensorTypes.BOOL: np.bool_,
-      layer_schema_fb.TensorTypes.INT16: np.int16,
-      layer_schema_fb.TensorTypes.COMPLEX64: np.complex64,
-      layer_schema_fb.TensorTypes.INT8: np.int8,
-      layer_schema_fb.TensorTypes.FLOAT64: np.float64,
-      layer_schema_fb.TensorTypes.COMPLEX128: np.complex128,
-      layer_schema_fb.TensorTypes.UINT64: np.uint64,
-      layer_schema_fb.TensorTypes.RESOURCE: "RESORCE",
-      layer_schema_fb.TensorTypes.VARIANT: "VARIANT",
-      layer_schema_fb.TensorTypes.UINT32: np.uint32,
-      layer_schema_fb.TensorTypes.UINT16: np.uint16,
+      layer_schema_fb.TensorTypes.FLOAT32:
+      np.float32,
+      layer_schema_fb.TensorTypes.FLOAT16:
+      np.float16,
+      layer_schema_fb.TensorTypes.INT32:
+      np.int32,
+      layer_schema_fb.TensorTypes.UINT8:
+      np.uint8,
+      layer_schema_fb.TensorTypes.INT64:
+      np.int64,
+      layer_schema_fb.TensorTypes.STRING:
+      np.string_,
+      layer_schema_fb.TensorTypes.BOOL:
+      np.bool_,
+      layer_schema_fb.TensorTypes.INT16:
+      np.int16,
+      layer_schema_fb.TensorTypes.COMPLEX64:
+      np.complex64,
+      layer_schema_fb.TensorTypes.INT8:
+      np.int8,
+      layer_schema_fb.TensorTypes.FLOAT64:
+      np.float64,
+      layer_schema_fb.TensorTypes.COMPLEX128:
+      np.complex128,
+      layer_schema_fb.TensorTypes.UINT64:
+      np.uint64,
+      layer_schema_fb.TensorTypes.RESOURCE:
+      "RESORCE",
+      layer_schema_fb.TensorTypes.VARIANT:
+      "VARIANT",
+      layer_schema_fb.TensorTypes.UINT32:
+      np.uint32,
+      layer_schema_fb.TensorTypes.UINT16:
+      np.uint16,
       # INT4 is mapped to INT8, b/246806634
-      layer_schema_fb.TensorTypes.INT4: np.int8,
+      layer_schema_fb.TensorTypes.INT4:
+      np.int8,
   }
   return tensor_type_idx_to_numpy.get(tensor_type_idx)
 
 
-def GenerateRandomInputTfLiteComparison(
-    tflm_interpreter, tflite_interpreter, model, rng_value
-):
+def GenerateRandomInputTfLiteComparison(tflm_interpreter, tflite_interpreter,
+                                        model, rng_value):
   subgraph_info = layer_schema_fb.ModelTestDataT()
   subgraph_info.subgraphData = []
   rng_seed = np.random.default_rng(seed=rng_value)
@@ -137,8 +153,7 @@ def GenerateRandomInputTfLiteComparison(
   for index, input_tensor_index in enumerate(model.subgraphs[0].inputs):
     input_tensor = model.subgraphs[0].tensors[input_tensor_index]
     random_data = model_transforms_utils.generate_random_input_data(
-        model, input_tensor, rng_seed
-    )
+        model, input_tensor, rng_seed)
     tflm_interpreter.set_input(random_data, index)
     tflite_interpreter.set_tensor(input_tensor_index, random_data)
   return subgraph_info, tflm_interpreter, tflite_interpreter
@@ -148,19 +163,17 @@ def ReadDebugFile():
   with gfile.GFile(_DEBUG_FILE.value, "rb") as debug_file_handle:
     debug_bytearray = bytearray(debug_file_handle.read())
   flatbuffer_root_object = layer_schema_fb.ModelTestData.GetRootAs(
-      debug_bytearray, 0
-  )
-  debug_obj = layer_schema_fb.ModelTestDataT.InitFromObj(flatbuffer_root_object)
+      debug_bytearray, 0)
+  debug_obj = layer_schema_fb.ModelTestDataT.InitFromObj(
+      flatbuffer_root_object)
   return debug_obj
 
 
-def SetDebugFileInterpreterInput(
-    tflm_interpreter, tflite_interpreter, debug_obj
-):
+def SetDebugFileInterpreterInput(tflm_interpreter, tflite_interpreter,
+                                 debug_obj):
   for inputs in debug_obj.inputData:
-    input_array = np.frombuffer(
-        bytearray(inputs.data), dtype=numpy_from_tensor_type(inputs.dtype)
-    )
+    input_array = np.frombuffer(bytearray(inputs.data),
+                                dtype=numpy_from_tensor_type(inputs.dtype))
     input_array = np.reshape(input_array, inputs.shape)
     tflm_interpreter.set_input(input_array, inputs.inputIndex)
     tflite_interpreter.set_tensor(inputs.tensorIndex, input_array)
@@ -193,16 +206,14 @@ def main(_) -> None:
   # Setting Inputs either randomly or using provided Debug File
   if _DEBUG_FILE.value == None:
     debug_obj, tflm_interpreter, tflite_interpreter = (
-        GenerateRandomInputTfLiteComparison(
-            tflm_interpreter, tflite_interpreter, model, _RNG.value
-        )
-    )
+        GenerateRandomInputTfLiteComparison(tflm_interpreter,
+                                            tflite_interpreter, model,
+                                            _RNG.value))
     tflite_interpreter.invoke()
   else:
     debug_obj = ReadDebugFile()
     tflm_interpreter, tflite_interpreter = SetDebugFileInterpreterInput(
-        tflm_interpreter, tflite_interpreter, debug_obj
-    )
+        tflm_interpreter, tflite_interpreter, debug_obj)
 
   tflm_interpreter.invoke()
   comparison = ""
@@ -210,21 +221,19 @@ def main(_) -> None:
   for subgraph in debug_obj.subgraphData:
     for output in subgraph.outputs:
       tflm_ouput = tflm_interpreter.GetTensor(
-          output.tensorIndex, subgraph.subgraphIndex
-      )["tensor_data"]
+          output.tensorIndex, subgraph.subgraphIndex)["tensor_data"]
 
       comparison_ouput = None
 
       if _DEBUG_FILE.value == None:
-        tflite_output = tflite_interpreter.get_tensor(
-            output.tensorIndex, subgraph.subgraphIndex
-        )
+        tflite_output = tflite_interpreter.get_tensor(output.tensorIndex,
+                                                      subgraph.subgraphIndex)
         comparison_ouput = tflite_output
         comparison = "TfLite"
       else:
-        expected_output_data = np.frombuffer(
-            bytearray(output.data), dtype=numpy_from_tensor_type(output.dtype)
-        )
+        expected_output_data = np.frombuffer(bytearray(output.data),
+                                             dtype=numpy_from_tensor_type(
+                                                 output.dtype))
         expected_output_data = np.reshape(expected_output_data, output.shape)
         comparison = "Expected Golden Data"
         comparison_ouput = expected_output_data
@@ -238,24 +247,23 @@ def main(_) -> None:
               subgraph_index=subgraph.subgraphIndex,
               layer_number=output.layerNumber,
               tensor_index=output.tensorIndex,
-          )
-      )
+          ))
       if _PRINT_PREVIEW.value:
         print("layer number ", output.layerNumber)
         print("tensor index ", output.tensorIndex, "\n\n")
         print("TFLM output \n ", tflm_ouput[:10])
         print(
             "{comparison} output \n".format(comparison=comparison),
-            comparison_ouput[: _PRINT_PREVIEW.value],
+            comparison_ouput[:_PRINT_PREVIEW.value],
         )
         print("--------------\n\n\n")
-      np.testing.assert_array_equal(
-          tflm_ouput, comparison_ouput, err_msg=error_message, verbose=True
-      )
+      np.testing.assert_array_equal(tflm_ouput,
+                                    comparison_ouput,
+                                    err_msg=error_message,
+                                    verbose=True)
   print(
       "\n\nTFLM output matched {comparison} output for all Layers in the Model."
-      .format(comparison=comparison)
-  )
+      .format(comparison=comparison))
 
 
 if __name__ == "__main__":
