@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/filter_bank_square_root.h"
+#include "signal/micro/kernels/filter_bank_square_root.h"
 
 #include <stdint.h>
 
@@ -29,36 +30,6 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kScaleBitsTensor = 1;
 constexpr int kOutputTensor = 0;
-
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kInputTensor);
-  TfLiteTensor* scale_bits =
-      micro_context->AllocateTempInputTensor(node, kScaleBitsTensor);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TF_LITE_ENSURE(context, scale_bits != nullptr);
-  TF_LITE_ENSURE(context, output != nullptr);
-
-  TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
-  TF_LITE_ENSURE_EQ(context, NumDimensions(scale_bits), 0);
-  TF_LITE_ENSURE_EQ(context, NumDimensions(output), 1);
-
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteUInt64);
-  TF_LITE_ENSURE_TYPES_EQ(context, scale_bits->type, kTfLiteInt32);
-  TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteUInt32);
-
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(output);
-  micro_context->DeallocateTempTfLiteTensor(scale_bits);
-  return kTfLiteOk;
-}
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
@@ -83,7 +54,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(nullptr, FilterBankSquareRootPrepare, Eval);
   return &r;
 }
 

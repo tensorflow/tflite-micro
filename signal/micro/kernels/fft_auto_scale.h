@@ -12,24 +12,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#ifndef SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
+#define SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
 
-#ifndef SIGNAL_SRC_MAX_ABS_H_
-#define SIGNAL_SRC_MAX_ABS_H_
+#include "tensorflow/lite/c/common.h"
 
-#include <stdint.h>
-
-// TODO(b/286250473): remove namespace once de-duped libraries
 namespace tflite {
-namespace tflm_signal {
 
-#if defined(XTENSA)
-  int16_t XtensaMaxAbs16(const int16_t* input, int size);
-#endif
+TfLiteStatus FftAutoScalePrepare(TfLiteContext* context,
+                                         TfLiteNode* node);
 
-// Returns the maximum absolute value of the `size` elements in `input`
-int16_t MaxAbs16(const int16_t* input, int size);
-
-}  // namespace tflm_signal
 }  // namespace tflite
 
-#endif  // SIGNAL_SRC_MAX_ABS_H_
+#endif  // SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
