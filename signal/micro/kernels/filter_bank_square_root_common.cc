@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "signal/micro/kernels/filter_bank_square_root.h"
-
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
@@ -55,4 +54,3 @@ TfLiteStatus FilterBankSquareRootPrepare(TfLiteContext* context,
 }
 
 }  // namespace tflite
-

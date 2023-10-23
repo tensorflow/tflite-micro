@@ -14,12 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/fft_auto_scale.h"
-#include "signal/micro/kernels/fft_auto_scale.h"
 
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include "signal/micro/kernels/fft_auto_scale.h"
 #include "signal/src/max_abs.h"
 #include "signal/src/msb.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -31,22 +31,22 @@ limitations under the License.
 #include <xtensa/tie/xt_hifi3.h>
 // Implementation for DSPs that support the Hifi3 ISA. Bit exact with the
 // portable version below.
-int FftAutoScale(const int16_t *input, int size, int16_t *output) {
+int FftAutoScale(const int16_t* input, int size, int16_t* output) {
   const int16_t max = tflite::tflm_signal::XtensaMaxAbs16(input, size);
   int scale_bits = (sizeof(int16_t) * 8) -
                    tflite::tflm_signal::MostSignificantBit32(max) - 1;
   int i;
   if (scale_bits > 0) {
-    const ae_int16x4 *input_16x4_ptr =
-        reinterpret_cast<const ae_int16x4 *>(input);
-    ae_int16x4 *output_16x4_ptr = reinterpret_cast<ae_int16x4 *>(output);
+    const ae_int16x4* input_16x4_ptr =
+        reinterpret_cast<const ae_int16x4*>(input);
+    ae_int16x4* output_16x4_ptr = reinterpret_cast<ae_int16x4*>(output);
     const int num_iterations = ((size + 3) >> 2);
     for (i = 0; i < num_iterations; ++i) {
       ae_int16x4 input_16x4;
       AE_L16X4_IP(input_16x4, input_16x4_ptr, 8);
-      ae_f16x4 input_f16x4 = *reinterpret_cast<ae_f16x4 *>(&input_16x4);
+      ae_f16x4 input_f16x4 = *reinterpret_cast<ae_f16x4*>(&input_16x4);
       input_f16x4 = AE_SLAA16S(input_f16x4, scale_bits);
-      input_16x4 = *reinterpret_cast<ae_int16x4 *>(&input_f16x4);
+      input_16x4 = *reinterpret_cast<ae_int16x4*>(&input_f16x4);
       AE_S16X4_IP(input_16x4, output_16x4_ptr, 8);
     }
   } else {

@@ -34,7 +34,7 @@ constexpr int kScaleBitsTensor = 1;
 constexpr int kOutputTensor = 0;
 
 void ApplyFilterbankSqrt(const uint64_t* input, int num_channels,
-                    int scale_down_bits, uint32_t* output) {
+                         int scale_down_bits, uint32_t* output) {
   for (int i = 0; i < num_channels; ++i) {
     output[i] = xtensa_sqrt_64(input[i]) >> scale_down_bits;
   }
@@ -53,8 +53,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetTensorData<int32_t>(scale_bits);
   uint32_t* output_data = tflite::micro::GetTensorData<uint32_t>(output);
   int32_t num_channels = input->dims->data[0];
-  ApplyFilterbankSqrt(input_data, num_channels, *scale_bits_data,
-                              output_data);
+  ApplyFilterbankSqrt(input_data, num_channels, *scale_bits_data, output_data);
   return kTfLiteOk;
 }
 

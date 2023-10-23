@@ -19,8 +19,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus FftAutoScalePrepare(TfLiteContext* context,
-                                         TfLiteNode* node);
+TfLiteStatus FftAutoScalePrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 

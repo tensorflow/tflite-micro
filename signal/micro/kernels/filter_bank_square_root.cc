@@ -14,10 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 #include "signal/src/filter_bank_square_root.h"
-#include "signal/micro/kernels/filter_bank_square_root.h"
 
 #include <stdint.h>
 
+#include "signal/micro/kernels/filter_bank_square_root.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
