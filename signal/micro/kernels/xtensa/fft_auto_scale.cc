@@ -29,10 +29,11 @@ limitations under the License.
 
 #if XCHAL_HAVE_HIFI3
 #include <xtensa/tie/xt_hifi3.h>
+namespace {
 // Implementation for DSPs that support the Hifi3 ISA. Bit exact with the
 // portable version below.
-int FftAutoScale(const int16_t* input, int size, int16_t* output) {
-  const int16_t max = tflite::tflm_signal::XtensaMaxAbs16(input, size);
+int XtensaFftAutoScale(const int16_t* input, int size, int16_t* output) {
+  const int16_t max = tflite::tflm_signal::MaxAbs16(input, size);
   int scale_bits = (sizeof(int16_t) * 8) -
                    tflite::tflm_signal::MostSignificantBit32(max) - 1;
   int i;
@@ -55,6 +56,7 @@ int FftAutoScale(const int16_t* input, int size, int16_t* output) {
   }
   return scale_bits;
 }
+}  // namespace
 #endif
 
 namespace tflite {
@@ -78,7 +80,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 #if XCHAL_HAVE_HIFI3
   *scale_bit_data =
-      FftAutoScale(input_data, output->dims->data[0], output_data);
+      XtensaFftAutoScale(input_data, output->dims->data[0], output_data);
 #else
   *scale_bit_data =
       tflm_signal::FftAutoScale(input_data, output->dims->data[0], output_data);

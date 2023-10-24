@@ -22,10 +22,6 @@ limitations under the License.
 namespace tflite {
 namespace tflm_signal {
 
-#if defined(XTENSA)
-int16_t XtensaMaxAbs16(const int16_t* input, int size);
-#endif
-
 // Returns the maximum absolute value of the `size` elements in `input`
 int16_t MaxAbs16(const int16_t* input, int size);
 

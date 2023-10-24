@@ -62,6 +62,9 @@ int16_t XtensaMaxAbs16(const int16_t* input, int size) {
 #endif
 
 int16_t MaxAbs16(const int16_t* input, int size) {
+#if defined(XTENSA)
+  return XtensaMaxAbs16(input, size);
+#else
   int16_t max = 0;
   for (int i = 0; i < size; i++) {
     const int16_t value = input[i];
@@ -72,6 +75,7 @@ int16_t MaxAbs16(const int16_t* input, int size) {
     }
   }
   return max;
+#endif
 }
 
 }  // namespace tflm_signal
