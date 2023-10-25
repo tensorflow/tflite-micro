@@ -10,7 +10,7 @@ cc_library(
     srcs = [
         "delay.cc",
         "energy.cc",
-        "fft_auto_scale.cc",
+        "fft_auto_scale_kernel.cc",
         "fft_auto_scale_common.cc",
         "filter_bank.cc",
         "filter_bank_log.cc",
@@ -26,7 +26,7 @@ cc_library(
         "window.cc",
     ],
     hdrs = [
-        "fft_auto_scale.h",
+        "fft_auto_scale_kernel.h",
         "filter_bank_square_root.h",
         "irfft.h",
         "rfft.h",

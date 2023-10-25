@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
-#define SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
+#ifndef SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_KERNEL_H_
+#define SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_KERNEL_H_
 
 #include "tensorflow/lite/c/common.h"
 
@@ -23,4 +23,4 @@ TfLiteStatus FftAutoScalePrepare(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
-#endif  // SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_H_
+#endif  // SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_KERNEL_H_

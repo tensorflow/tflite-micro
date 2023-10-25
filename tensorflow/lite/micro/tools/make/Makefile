@@ -332,7 +332,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_pla
 MICROLITE_CC_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_kernel.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_common.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
