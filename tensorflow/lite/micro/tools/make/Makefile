@@ -67,6 +67,7 @@ OPTIMIZED_KERNEL_DIR :=
 # Override this variable from the command line in case the optimized kernels are
 # in a different directory.
 OPTIMIZED_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels
+OPTIMIZED_SIGNAL_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)signal/micro/kernels
 
 # Specify which co-processor's kernel implementation should be pulled in.
 # If the same kernel is implemented in both kernels/OPTIMIZED_KERNEL_DIR and
@@ -331,10 +332,12 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_pla
 MICROLITE_CC_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_kernel.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_common.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root_common.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
 $(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
@@ -621,6 +624,7 @@ endif
 
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
   PATH_TO_OPTIMIZED_KERNELS := $(OPTIMIZED_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+  PATH_TO_SIGNAL_OPTIMIZED_KERNELS := $(OPTIMIZED_SIGNAL_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
@@ -634,6 +638,22 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
   MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
+
+  ifneq ($(filter $(OPTIMIZED_KERNEL_DIR), xtensa),)
+    # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
+    # reference kernels. See http://b/183546742 for more context.
+    RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    ifneq ($(RESULT), SUCCESS)
+      $(error Incorrect SIGNAL OPTIMIZED_KERNEL_DIR: $(RESULT))
+    endif
+
+    # Specialize for the optimized kernels
+    MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+      --base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+      --specialize_directory $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    MICROLITE_CC_KERNEL_SRCS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.S)
+    MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.h)
+  endif
 
   # The first ifneq is needed to be compatible with make versions prior to 4.2
   # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,

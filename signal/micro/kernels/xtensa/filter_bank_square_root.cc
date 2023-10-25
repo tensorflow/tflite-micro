@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,16 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/filter_bank_square_root.h"
+#include "signal/micro/kernels/filter_bank_square_root.h"
 
 #include <stdint.h>
 
-#include "signal/micro/kernels/filter_bank_square_root.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+
+// Defined in square_root.S
+extern "C" uint32_t xtensa_sqrt_64(const uint64_t num);
 
 namespace tflite {
 namespace {
@@ -30,6 +32,13 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kScaleBitsTensor = 1;
 constexpr int kOutputTensor = 0;
+
+void ApplyFilterbankSqrt(const uint64_t* input, int num_channels,
+                         int scale_down_bits, uint32_t* output) {
+  for (int i = 0; i < num_channels; ++i) {
+    output[i] = xtensa_sqrt_64(input[i]) >> scale_down_bits;
+  }
+}
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
@@ -44,8 +53,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetTensorData<int32_t>(scale_bits);
   uint32_t* output_data = tflite::micro::GetTensorData<uint32_t>(output);
   int32_t num_channels = input->dims->data[0];
-  tflm_signal::FilterbankSqrt(input_data, num_channels, *scale_bits_data,
-                              output_data);
+  ApplyFilterbankSqrt(input_data, num_channels, *scale_bits_data, output_data);
   return kTfLiteOk;
 }
 
