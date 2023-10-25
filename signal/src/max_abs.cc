@@ -36,7 +36,8 @@ static inline ae_p24x2s MaxAbs16Single(ae_p24x2s max, ae_p24x2s current) {
 namespace tflite {
 namespace tflm_signal {
 
-#if defined(XTENSA)
+#if XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP || \
+    XCHAL_HAVE_HIFI3
 int16_t XtensaMaxAbs16(const int16_t* input, int size) {
   int i;
   ae_p24x2s current_24x2;
@@ -62,7 +63,8 @@ int16_t XtensaMaxAbs16(const int16_t* input, int size) {
 #endif
 
 int16_t MaxAbs16(const int16_t* input, int size) {
-#if defined(XTENSA)
+#if XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP || \
+    XCHAL_HAVE_HIFI3
   return XtensaMaxAbs16(input, size);
 #else
   int16_t max = 0;
