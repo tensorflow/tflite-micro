@@ -10,8 +10,8 @@ cc_library(
     srcs = [
         "delay.cc",
         "energy.cc",
-        "fft_auto_scale_kernel.cc",
         "fft_auto_scale_common.cc",
+        "fft_auto_scale_kernel.cc",
         "filter_bank.cc",
         "filter_bank_log.cc",
         "filter_bank_spectral_subtraction.cc",

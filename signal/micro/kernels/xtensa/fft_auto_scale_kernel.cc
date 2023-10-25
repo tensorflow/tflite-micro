@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/fft_auto_scale.h"
+#include "signal/micro/kernels/fft_auto_scale_kernel.h"
 
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include "signal/micro/kernels/fft_auto_scale_kernel.h"
+#include "signal/src/fft_auto_scale.h"
 #include "signal/src/max_abs.h"
 #include "signal/src/msb.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
