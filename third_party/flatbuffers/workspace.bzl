@@ -10,7 +10,7 @@ def repo():
         urls = [
             "https://github.com/google/flatbuffers/archive/v23.5.26.tar.gz",
         ],
-        build_file = "//third_party/flatbuffers:BUILD.external",
+        build_file = "//third_party/flatbuffers:BUILD.oss",
         system_build_file = "//third_party/flatbuffers:BUILD.system",
         link_files = {
             "//third_party/flatbuffers:build_defs.bzl": "build_defs.bzl",
