@@ -116,6 +116,7 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
       MicroPrintf("Unsupported data type %d in tensor\n", tensor_type);
       return kTfLiteError;
   }
+  return kTfLiteOk;
 }
 
 TfLiteStatus SetRandomInput(const uint32_t random_seed,
@@ -175,12 +176,12 @@ std::unique_ptr<char[]> ReadModelFile(const char* model_file_name) {
 TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
                                    const ModelT& tflite_model,
                                    ModelTestDataT& output_data) {
-  for (int i = 0; i < tflite_model.subgraphs.size(); ++i) {
+  for (unsigned int i = 0; i < tflite_model.subgraphs.size(); ++i) {
     auto subgraph_data = std::make_unique<SubgraphDataT>();
     subgraph_data->subgraph_index = i;
 
-    for (int j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
-      for (int k = 0;
+    for (unsigned int j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
+      for ( unsigned int k = 0;
            k < tflite_model.subgraphs[i]->operators[j]->outputs.size(); ++k) {
         TensorDataT layer_output_tensor_data = TensorDataT();
 
@@ -283,12 +284,12 @@ TfLiteStatus Invoke(const Model* model, ModelTestDataT& output_data) {
 }  // namespace
 }  // namespace tflite
 
-// Usage information:
-// This binary will write a debugging flatbuffer to the path provide in 2nd arg
-// using the tflite_model provided in the 1st arg :
-//   `bazel run tensorflow/lite/micro/tools:layer_by_layer_output_tool -- \
-//     </path/to/input_model.tflite>
-//     </path/to/output.file_name>`
+/* Usage information:
+ This binary will write a debugging flatbuffer to the path provide in 2nd arg
+ using the tflite_model provided in the 1st arg :
+   `bazel run tensorflow/lite/micro/tools:layer_by_layer_output_tool -- \
+     </path/to/input_model.tflite>
+     </path/to/output.file_name>` */
 
 int main(int argc, char** argv) {
   if (argc < 2) {
