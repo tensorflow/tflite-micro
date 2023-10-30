@@ -127,7 +127,7 @@ TfLiteStatus SetRandomInput(const uint32_t random_seed,
   std::uniform_int_distribution<uint32_t> dist(0, 255);
   for (size_t i = 0; i < interpreter.inputs_size(); ++i) {
     TfLiteTensor* input = interpreter.input_tensor(i);
-    auto test_data = std::make_unique<TensorDataT>();
+    std::unique_ptr<TensorDataT> test_data(new TensorDataT());
     test_data->input_index = i;
     test_data->layer_number = -1;
     test_data->tensor_index = -1;
@@ -177,50 +177,48 @@ TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
                                    const ModelT& tflite_model,
                                    ModelTestDataT& output_data) {
   for (unsigned int i = 0; i < tflite_model.subgraphs.size(); ++i) {
-    auto subgraph_data = std::make_unique<SubgraphDataT>();
+    std::unique_ptr<SubgraphDataT> subgraph_data(new SubgraphDataT());
     subgraph_data->subgraph_index = i;
 
     for (unsigned int j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
       for ( unsigned int k = 0;
            k < tflite_model.subgraphs[i]->operators[j]->outputs.size(); ++k) {
-        TensorDataT layer_output_tensor_data = TensorDataT();
+            subgraph_data->outputs.emplace_back();
 
         // input_index
-        layer_output_tensor_data.input_index = -1;
+        subgraph_data->outputs.back()->input_index = -1;
 
         // tensor index
-        layer_output_tensor_data.tensor_index =
+        subgraph_data->outputs.back()->tensor_index =
             tflite_model.subgraphs[i]->operators[j]->outputs[k];
 
         TfLiteEvalTensor* layer_output_tensor =
-            interpreter.GetTensor(layer_output_tensor_data.tensor_index,
+            interpreter.GetTensor(subgraph_data->outputs.back()->tensor_index,
                                   subgraph_data->subgraph_index);
 
         // dims
-        layer_output_tensor_data.shape.assign(
+        subgraph_data->outputs.back()->shape.assign(
             layer_output_tensor->dims->data,
             layer_output_tensor->dims->data + layer_output_tensor->dims->size);
 
         // dtype
         TF_LITE_ENSURE_STATUS(ConvertTensorType(
-            layer_output_tensor->type, layer_output_tensor_data.dtype));
+            layer_output_tensor->type, subgraph_data->outputs.back()->dtype));
         // num_bytes
-        layer_output_tensor_data.num_bytes =
+        subgraph_data->outputs.back()->num_bytes =
             EvalTensorBytes(layer_output_tensor);
 
         uint8_t* tensor_values =
             micro::GetTensorData<uint8_t>(layer_output_tensor);
 
         // data
-        layer_output_tensor_data.data.assign(
+        subgraph_data->outputs.back()->data.assign(
             tensor_values,
             tensor_values + EvalTensorBytes(layer_output_tensor));
 
         // layer_number
-        layer_output_tensor_data.layer_number = j;
+        subgraph_data->outputs.back()->layer_number = j;
 
-        subgraph_data->outputs.push_back(
-            std::make_unique<TensorDataT>(layer_output_tensor_data));
       }
     }
     output_data.subgraph_data.push_back(std::move(subgraph_data));
