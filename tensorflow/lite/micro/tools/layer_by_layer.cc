@@ -56,6 +56,13 @@ constexpr uint32_t kRandomSeed = 0xFB;
 constexpr size_t kTensorArenaSize = 3e6;
 constexpr int kNumResourceVariable = 100;
 
+bool SaveFile(const char *name, const char *buf, size_t len, bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
+
 TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
   switch (type) {
     case kTfLiteFloat16:
@@ -183,7 +190,7 @@ TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
     for (unsigned int j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
       for ( unsigned int k = 0;
            k < tflite_model.subgraphs[i]->operators[j]->outputs.size(); ++k) {
-            subgraph_data->outputs.emplace_back();
+            subgraph_data->outputs.emplace_back(new TensorDataT());
 
         // input_index
         subgraph_data->outputs.back()->input_index = -1;
@@ -231,7 +238,7 @@ bool WriteToFile(const char* output_file_name, ModelTestDataT& output_data) {
   flatbuffers::FlatBufferBuilder fbb;
   auto new_model = ModelTestData::Pack(fbb, &output_data);
   fbb.Finish(new_model);
-  return flatbuffers::SaveFile(output_file_name,
+  return SaveFile(output_file_name,
                                reinterpret_cast<char*>(fbb.GetBufferPointer()),
                                fbb.GetSize(), /*binary*/ true);
 }
