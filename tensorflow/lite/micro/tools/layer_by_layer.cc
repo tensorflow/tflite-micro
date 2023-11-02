@@ -235,7 +235,8 @@ TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
 }
 
 bool WriteToFile(const char* output_file_name, ModelTestDataT& output_data) {
-  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::DefaultAllocator allocator;
+  flatbuffers::FlatBufferBuilder fbb{2048, &allocator};
   auto new_model = ModelTestData::Pack(fbb, &output_data);
   fbb.Finish(new_model);
   return SaveFile(output_file_name,
