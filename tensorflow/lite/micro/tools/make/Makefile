@@ -744,7 +744,10 @@ include $(MICRO_LITE_INTEGRATION_TESTS)
 include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
 
 # Load layer_by_layer_output_tool
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
 include ${MICRO_LITE_LAYER_BY_LAYER_OUTPUT}
+endif
 
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
