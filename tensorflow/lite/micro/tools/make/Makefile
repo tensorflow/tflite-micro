@@ -295,6 +295,8 @@ MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
 
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/Makefile.inc)
 
+MICRO_LITE_LAYER_BY_LAYER_OUTPUT := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/Makefile.inc)
+
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
@@ -740,6 +742,12 @@ include $(MICRO_LITE_INTEGRATION_TESTS)
 
 # Load generated micro mutable op resolver test.
 include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
+
+# Load layer_by_layer_output_tool
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+include ${MICRO_LITE_LAYER_BY_LAYER_OUTPUT}
+endif
 
 # Load the benchmarks.
 include $(MICRO_LITE_BENCHMARKS)
