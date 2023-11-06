@@ -56,8 +56,8 @@ constexpr uint32_t kRandomSeed = 0xFB;
 constexpr size_t kTensorArenaSize = 3e6;
 constexpr int kNumResourceVariable = 100;
 
-bool SaveFile(const char* name, const char* buf, size_t len, bool binary) {
-  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+bool SaveFile(const char* name, const char* buf, size_t len) {
+  std::ofstream ofs(name, std::ofstream::binary);
   if (!ofs.is_open()) return false;
   ofs.write(buf, len);
   return !ofs.bad();
@@ -183,21 +183,22 @@ std::unique_ptr<char[]> ReadModelFile(const char* model_file_name) {
 TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
                                    const ModelT& tflite_model,
                                    ModelTestDataT& output_data) {
-  for (unsigned int i = 0; i < tflite_model.subgraphs.size(); ++i) {
+  for (size_t i = 0; i < tflite_model.subgraphs.size(); ++i) {
     std::unique_ptr<SubgraphDataT> subgraph_data(new SubgraphDataT());
     subgraph_data->subgraph_index = i;
 
-    for (unsigned int j = 0; j < tflite_model.subgraphs[i]->operators.size();
-         ++j) {
-      for (unsigned int k = 0;
+    for (size_t j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
+      for (size_t k = 0;
            k < tflite_model.subgraphs[i]->operators[j]->outputs.size(); ++k) {
         subgraph_data->outputs.emplace_back(new TensorDataT());
+        std::unique_ptr<TensorDataT>& tensor_data =
+            subgraph_data->outputs.back();
 
         // input_index
-        subgraph_data->outputs.back()->input_index = -1;
+        tensor_data->input_index = -1;
 
         // tensor index
-        subgraph_data->outputs.back()->tensor_index =
+        tensor_data->tensor_index =
             tflite_model.subgraphs[i]->operators[j]->outputs[k];
 
         TfLiteEvalTensor* layer_output_tensor =
@@ -205,27 +206,26 @@ TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
                                   subgraph_data->subgraph_index);
 
         // dims
-        subgraph_data->outputs.back()->shape.assign(
+        tensor_data->shape.assign(
             layer_output_tensor->dims->data,
             layer_output_tensor->dims->data + layer_output_tensor->dims->size);
 
         // dtype
-        TF_LITE_ENSURE_STATUS(ConvertTensorType(
-            layer_output_tensor->type, subgraph_data->outputs.back()->dtype));
+        TF_LITE_ENSURE_STATUS(
+            ConvertTensorType(layer_output_tensor->type, tensor_data->dtype));
         // num_bytes
-        subgraph_data->outputs.back()->num_bytes =
-            EvalTensorBytes(layer_output_tensor);
+        tensor_data->num_bytes = EvalTensorBytes(layer_output_tensor);
 
         uint8_t* tensor_values =
             micro::GetTensorData<uint8_t>(layer_output_tensor);
 
         // data
-        subgraph_data->outputs.back()->data.assign(
+        tensor_data->data.assign(
             tensor_values,
             tensor_values + EvalTensorBytes(layer_output_tensor));
 
         // layer_number
-        subgraph_data->outputs.back()->layer_number = j;
+        tensor_data->layer_number = j;
       }
     }
     output_data.subgraph_data.push_back(std::move(subgraph_data));
@@ -241,7 +241,7 @@ bool WriteToFile(const char* output_file_name, ModelTestDataT& output_data) {
   fbb.Finish(new_model);
   return SaveFile(output_file_name,
                   reinterpret_cast<char*>(fbb.GetBufferPointer()),
-                  fbb.GetSize(), /*binary*/ true);
+                  fbb.GetSize());
 }
 
 TfLiteStatus Invoke(const Model* model, ModelTestDataT& output_data) {
