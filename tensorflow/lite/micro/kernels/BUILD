@@ -324,6 +324,7 @@ tflm_kernel_cc_library(
         "strided_slice.h",
         "sub.h",
         "svdf.h",
+        "transpose_conv.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
