@@ -293,10 +293,12 @@ MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/m
 MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
 
+OLD_MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
 MICROLITE_BENCHMARK_SRCS := \
+$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
 CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
@@ -742,6 +744,7 @@ include $(MICRO_LITE_INTEGRATION_TESTS)
 include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
 
 # Load the benchmarks.
+include $(OLD_MICRO_LITE_BENCHMARKS)
 include $(MICRO_LITE_BENCHMARKS)
 
 # Load custom kernel tests.
