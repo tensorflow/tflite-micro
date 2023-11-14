@@ -56,6 +56,13 @@ constexpr uint32_t kRandomSeed = 0xFB;
 constexpr size_t kTensorArenaSize = 3e6;
 constexpr int kNumResourceVariable = 100;
 
+bool SaveFile(const char* name, const char* buf, size_t len) {
+  std::ofstream ofs(name, std::ofstream::binary);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
+
 TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
   switch (type) {
     case kTfLiteFloat16:
@@ -116,6 +123,7 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
       MicroPrintf("Unsupported data type %d in tensor\n", tensor_type);
       return kTfLiteError;
   }
+  return kTfLiteOk;
 }
 
 TfLiteStatus SetRandomInput(const uint32_t random_seed,
@@ -126,7 +134,7 @@ TfLiteStatus SetRandomInput(const uint32_t random_seed,
   std::uniform_int_distribution<uint32_t> dist(0, 255);
   for (size_t i = 0; i < interpreter.inputs_size(); ++i) {
     TfLiteTensor* input = interpreter.input_tensor(i);
-    auto test_data = std::make_unique<TensorDataT>();
+    std::unique_ptr<TensorDataT> test_data(new TensorDataT());
     test_data->input_index = i;
     test_data->layer_number = -1;
     test_data->tensor_index = -1;
@@ -175,51 +183,49 @@ std::unique_ptr<char[]> ReadModelFile(const char* model_file_name) {
 TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
                                    const ModelT& tflite_model,
                                    ModelTestDataT& output_data) {
-  for (int i = 0; i < tflite_model.subgraphs.size(); ++i) {
-    auto subgraph_data = std::make_unique<SubgraphDataT>();
+  for (size_t i = 0; i < tflite_model.subgraphs.size(); ++i) {
+    std::unique_ptr<SubgraphDataT> subgraph_data(new SubgraphDataT());
     subgraph_data->subgraph_index = i;
 
-    for (int j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
-      for (int k = 0;
+    for (size_t j = 0; j < tflite_model.subgraphs[i]->operators.size(); ++j) {
+      for (size_t k = 0;
            k < tflite_model.subgraphs[i]->operators[j]->outputs.size(); ++k) {
-        TensorDataT layer_output_tensor_data = TensorDataT();
+        subgraph_data->outputs.emplace_back(new TensorDataT());
+        std::unique_ptr<TensorDataT>& tensor_data =
+            subgraph_data->outputs.back();
 
         // input_index
-        layer_output_tensor_data.input_index = -1;
+        tensor_data->input_index = -1;
 
         // tensor index
-        layer_output_tensor_data.tensor_index =
+        tensor_data->tensor_index =
             tflite_model.subgraphs[i]->operators[j]->outputs[k];
 
         TfLiteEvalTensor* layer_output_tensor =
-            interpreter.GetTensor(layer_output_tensor_data.tensor_index,
+            interpreter.GetTensor(subgraph_data->outputs.back()->tensor_index,
                                   subgraph_data->subgraph_index);
 
         // dims
-        layer_output_tensor_data.shape.assign(
+        tensor_data->shape.assign(
             layer_output_tensor->dims->data,
             layer_output_tensor->dims->data + layer_output_tensor->dims->size);
 
         // dtype
-        TF_LITE_ENSURE_STATUS(ConvertTensorType(
-            layer_output_tensor->type, layer_output_tensor_data.dtype));
+        TF_LITE_ENSURE_STATUS(
+            ConvertTensorType(layer_output_tensor->type, tensor_data->dtype));
         // num_bytes
-        layer_output_tensor_data.num_bytes =
-            EvalTensorBytes(layer_output_tensor);
+        tensor_data->num_bytes = EvalTensorBytes(layer_output_tensor);
 
         uint8_t* tensor_values =
             micro::GetTensorData<uint8_t>(layer_output_tensor);
 
         // data
-        layer_output_tensor_data.data.assign(
+        tensor_data->data.assign(
             tensor_values,
             tensor_values + EvalTensorBytes(layer_output_tensor));
 
         // layer_number
-        layer_output_tensor_data.layer_number = j;
-
-        subgraph_data->outputs.push_back(
-            std::make_unique<TensorDataT>(layer_output_tensor_data));
+        tensor_data->layer_number = j;
       }
     }
     output_data.subgraph_data.push_back(std::move(subgraph_data));
@@ -229,12 +235,13 @@ TfLiteStatus StoreLayerByLayerData(MicroInterpreter& interpreter,
 }
 
 bool WriteToFile(const char* output_file_name, ModelTestDataT& output_data) {
-  flatbuffers::FlatBufferBuilder fbb;
+  flatbuffers::DefaultAllocator allocator;
+  flatbuffers::FlatBufferBuilder fbb{2048, &allocator};
   auto new_model = ModelTestData::Pack(fbb, &output_data);
   fbb.Finish(new_model);
-  return flatbuffers::SaveFile(output_file_name,
-                               reinterpret_cast<char*>(fbb.GetBufferPointer()),
-                               fbb.GetSize(), /*binary*/ true);
+  return SaveFile(output_file_name,
+                  reinterpret_cast<char*>(fbb.GetBufferPointer()),
+                  fbb.GetSize());
 }
 
 TfLiteStatus Invoke(const Model* model, ModelTestDataT& output_data) {
@@ -283,12 +290,12 @@ TfLiteStatus Invoke(const Model* model, ModelTestDataT& output_data) {
 }  // namespace
 }  // namespace tflite
 
-// Usage information:
-// This binary will write a debugging flatbuffer to the path provide in 2nd arg
-// using the tflite_model provided in the 1st arg :
-//   `bazel run tensorflow/lite/micro/tools:layer_by_layer_output_tool -- \
-//     </path/to/input_model.tflite>
-//     </path/to/output.file_name>`
+/* Usage information:
+ This binary will write a debugging flatbuffer to the path provide in 2nd arg
+ using the tflite_model provided in the 1st arg :
+   `bazel run tensorflow/lite/micro/tools:layer_by_layer_output_tool -- \
+     </path/to/input_model.tflite>
+     </path/to/output.file_name>` */
 
 int main(int argc, char** argv) {
   if (argc < 2) {
