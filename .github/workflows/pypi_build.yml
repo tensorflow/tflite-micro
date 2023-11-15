@@ -26,7 +26,7 @@ env:
   TWINE_PASSWORD: ${{ secrets.PYPI_API_KEY }}
 
 jobs:
-  test-pypi-build:
+  pypi-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
