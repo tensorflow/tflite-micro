@@ -17,10 +17,10 @@ on:
       upload-type:
         description: 'Upload type'
         required: true
-        default: 'test-pypi'
+        default: 'pypi'
         type: choice
         options:
-          - 'test-pypi'
+          - 'pypi'
           - 'no upload'
 env:
   TWINE_PASSWORD: ${{ secrets.PYPI_API_KEY }}
@@ -41,10 +41,10 @@ jobs:
       - name: Check Directory Output
         run: |
           ls -l bazel-pypi-out
-      - name: upload to test pypi
+      - name: upload to pypi
         if: |
           github.event.inputs.upload-type == 'test-pypi' ||
           github.event_name == 'schedule'
         run: |
           python/tflite_micro/pypi_upload.sh \
-          --test-pypi bazel-pypi-out/tflite_micro-*.whl
+          bazel-pypi-out/tflite_micro-*.whl
