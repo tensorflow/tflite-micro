@@ -21,7 +21,6 @@ on:
         type: choice
         options:
           - 'test-pypi'
-          - 'release'
           - 'no upload'
 env:
   TWINE_PASSWORD: ${{ secrets.PYPI_API_KEY }}
@@ -49,8 +48,3 @@ jobs:
         run: |
           python/tflite_micro/pypi_upload.sh \
           --test-pypi bazel-pypi-out/tflite_micro-*.whl
-      - name: upload to pypi release
-        if: github.event.inputs.upload-type == 'release'
-        run: |
-          python/tflite_micro/pypi_upload.sh \ 
-          bazel-pypi-out/tflite_micro-*.whl 
