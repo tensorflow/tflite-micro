@@ -43,7 +43,7 @@ jobs:
           ls -l bazel-pypi-out
       - name: upload to pypi
         if: |
-          github.event.inputs.upload-type == 'test-pypi' ||
+          github.event.inputs.upload-type == 'pypi' ||
           github.event_name == 'schedule'
         run: |
           python/tflite_micro/pypi_upload.sh \
