@@ -1,6 +1,7 @@
 queue_rules:
   - name: default
     checks_timeout: 2 h
+    require_branch_protection: true
     conditions:
       - base=main
       - label=ci:ready_to_merge
@@ -14,7 +15,6 @@ pull_request_rules:
     actions:
       queue:
         name: default
-        require_branch_protection: true
         method: squash
         commit_message_template: |
           {{ title }} (#{{ number }})
