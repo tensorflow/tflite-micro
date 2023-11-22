@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,11 +31,8 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
-
-source tensorflow/lite/micro/tools/make/bash_helpers.sh
+TENSORFLOW_ROOT=${2}
+source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
 if [ ! -d ${DOWNLOADS_DIR} ]; then
@@ -55,23 +52,21 @@ else
   fi
 
   git clone https://git.mlplatform.org/ml/ethos-u/ethos-u-core-platform.git ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
-  cd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}
+  pushd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
   git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
   rm -rf .git
   create_git_repo ./
-
   apply_patch_to_folder ./ ../../ethos_u_core_platform.patch "TFLM patch"
-
-  cd "${ROOT_DIR}"
+  popd > /dev/null
 
   LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
 
   # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
   COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
   if [ ! -f ${COMPILER} ]; then
-    RETURN_VALUE=`./tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR}`
+    RETURN_VALUE=`${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT}`
     if [ "SUCCESS" != "${RETURN_VALUE}" ]; then
-      echo "The script ./tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
+      echo "The script ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
       exit 1
     fi
   fi
