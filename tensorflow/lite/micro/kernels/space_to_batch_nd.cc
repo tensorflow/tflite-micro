@@ -66,8 +66,9 @@ TfLiteStatus ReshapeOutputTensor(TfLiteContext* context, const TfLiteNode* node,
   TF_LITE_ENSURE_EQ(context, padding->dims->data[0], spatial_dims_num);
   TF_LITE_ENSURE_EQ(context, padding->dims->data[1], 2);
 
-  RuntimeShape output_shape(input_dims->size, input_dims->data);
-  RuntimeShape old_output_shape(NumDimensions(output), output->dims->data);
+  RuntimeShape output_shape =
+      GetTensorShape(input);  // yes, copy from input tensor
+  RuntimeShape old_output_shape = GetTensorShape(output);
 
   // Ensures the input height and width (with padding) is a multiple of block
   // shape height and width.
@@ -138,9 +139,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       *(static_cast<SpaceToBatchParams*>(node->user_data));
 
   if (input->type == kTfLiteInt8) {
-    TF_LITE_ENSURE_EQ(context, input->params.scale, output->params.scale);
-    TF_LITE_ENSURE_EQ(context, input->params.zero_point,
-                      output->params.zero_point);
+    TF_LITE_ENSURE(context, input->params.scale == output->params.scale);
+    TF_LITE_ENSURE(context,
+                   input->params.zero_point == output->params.zero_point);
     params.output_offset = output->params.zero_point;
   } else {
     params.output_offset = 0;
