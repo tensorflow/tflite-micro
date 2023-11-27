@@ -473,9 +473,7 @@ TF_LITE_MICRO_TEST(BatchToSpaceNDOpTestSimple3DConstTestWithCropsINT8) {
   constexpr int kOutputCount = std::extent<decltype(kGolden)>::value;
 
   tflite::testing::TestQuantParams<int8_t, kInputCount, kOutputCount> params = {
-      -16,
-      16,
-  };
+      -16, 16, {}, {}};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestBatchToSpaceNdQuantized(

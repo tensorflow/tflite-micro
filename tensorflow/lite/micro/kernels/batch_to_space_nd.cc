@@ -65,8 +65,9 @@ TfLiteStatus ReshapeOutputTensor(TfLiteContext* context, const TfLiteNode* node,
     TF_LITE_ENSURE(context, crops_data[i] >= 0);
   }
 
-  RuntimeShape output_shape(input_dims->size, input_dims->data);
-  RuntimeShape old_output_shape(NumDimensions(output), output->dims->data);
+  RuntimeShape output_shape =
+      GetTensorShape(input);  // yes, copy the input tensor shape
+  RuntimeShape old_output_shape = GetTensorShape(output);
 
   int output_batch_size = input_dims->data[0];
   for (int dim = 0; dim < spatial_dims_num; ++dim) {
@@ -129,9 +130,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                  input->type == kTfLiteFloat32 || input->type == kTfLiteInt8);
 
   if (input->type == kTfLiteInt8) {
-    TF_LITE_ENSURE_EQ(context, input->params.scale, output->params.scale);
-    TF_LITE_ENSURE_EQ(context, input->params.zero_point,
-                      output->params.zero_point);
+    TF_LITE_ENSURE(context, input->params.scale == output->params.scale);
+    TF_LITE_ENSURE(context,
+                   input->params.zero_point == output->params.zero_point);
   }
 
   TfLiteStatus status =
