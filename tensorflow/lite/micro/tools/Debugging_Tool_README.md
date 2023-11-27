@@ -21,7 +21,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile layer_by_layer_output_tool -j2
 
 # Python Layer by Layer Debugging Tool 
 
-The Python Tool/Script can first be used to comapre TFLM vs Tflite Ouputs for random Inputs by only providing a TfLite file
+The Python Tool/Script can first be used to comapre TFLM vs Tflite outputs for random inputs by only providing a TfLite file.
 
 #### TfLite vs TFLM command:
 ``` 
@@ -29,7 +29,7 @@ The Python Tool/Script can first be used to comapre TFLM vs Tflite Ouputs for ra
     --input_tflite_file=</path/to/my_model.tflite>
 ```
 
-The Python Tool/Script can also be used to comapre TFLM vs Expected Output/Flatbuffer provided by the C++ Tool/binary. 
+The Python Tool/Script can also be used to compare, TFLM's python x86 output vs expected output provided by the C++ Tool/binary. 
 
 #### TFLM vs Expected Command:
 ``` 
@@ -40,8 +40,7 @@ The Python Tool/Script can also be used to comapre TFLM vs Expected Output/Flatb
 
 #### Optional Flags:
  ` --print_dump  `
-when this flags is set it will dump a part of the TFLM and Ouput it's compared against for each layer
+When this flag is set, it will print the TFLM output for each layer that is compared.
 
  ` --rng`
-integer flag that only works in TfLite vs TFLM comparison(when only a TfLite Model is Provided).It can be used to set the rng seed to a differen value then it's default value of 42.
-
+Integer random number seed for generating input data for comparisons against TFLite. (Default: 42)
