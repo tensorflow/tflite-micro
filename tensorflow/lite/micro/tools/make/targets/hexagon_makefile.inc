@@ -80,6 +80,10 @@ PLATFORM_ARGS = \
   -mcpu=$(HEXAGON_CPU_VER) \
   -m$(HEXAGON_CPU_VER)
 
+ifeq ($(HEXAGON_PIC_BUILD), true)
+  PLATFORM_ARGS += -fPIC
+endif
+
 # See http://b/183462077 for more details on why we need -G0 for an LPI build.
 ifeq ($(HEXAGON_LPI_BUILD), true)
   PLATFORM_ARGS += -G0
