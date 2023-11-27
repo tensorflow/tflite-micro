@@ -400,8 +400,7 @@ TF_LITE_MICRO_TEST(QuantizedSpaceToBatchNDOpTestSimplePaddingConstTestInt8) {
       std::numeric_limits<int8_t>::max() /
           static_cast<float>(std::numeric_limits<int8_t>::max() + 1),
       {},
-      {}
-  };
+      {}};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestSpaceToBatchNdQuantized(
@@ -434,11 +433,7 @@ TF_LITE_MICRO_TEST(QuantizedSpaceToBatchNDOpTestComplexPaddingConstTest) {
   constexpr int kOutputCount = std::extent<decltype(kGolden)>::value;
 
   tflite::testing::TestQuantParams<int8_t, kInputCount, kOutputCount> params = {
-      -1,
-      1,
-      {},
-      {}
-  };
+      -1, 1, {}, {}};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestSpaceToBatchNdQuantized(
