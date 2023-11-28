@@ -1,11 +1,36 @@
-# C++ Layer by Layer Output Tool on TFLite Micro
+The TFLM debugging output tools allow TFLM users to easily debug their models
+by providing a tool that will compare the intermediate  values(output of each OP/Kernel)
+from a model post invoke between the TFLM and TfLite. As well as a way to
+compare intermediate values between TFLM x86 implementations and Optimized 
+Implementations.
 
-This tool allows you to pass in a TfLite model and returns a flatbuffer file
-with input and the corresponding output values appended into it that can be
+
+The workflow can be divided into two parts:
+
+The first is a C++ binary that takes a TfLite model and returns a file that has
+random inputs and their corresponding output values for each layer of the model
+it was provided. 
+
+The second is a python script that takes a TfLite model and optionally can take
+ the file outputted by the C++ binary mentioned above. When only the TfLite
+ model is provided as input, the script generates random input and compares
+ TFLM vs TfLite inference outputs for each layer of the model. When the file
+ from the C++ binary is provided alongside the TfLite model as inputs , the
+ script runs TFLM x86 inference comparison to the expected output. 
+
+
+
+
+
+
+# C++ Excpected Layer by Layer Output Tool on TFLite Micro
+
+This C++ binary allows you to pass in a TfLite model and returns a flatbuffer
+file with input and the corresponding output values appended into it that can be
 passed into a python debugging tool which can compare those golden values vs
 the x86 TFLM reference kernel implementation.
 
-The C++ Tool/binary will write a debugging flatbuffer to the path provide in
+The C++ Tool/binary will write a debugging file to the path provide in
 2nd arg using the tflite_model provided in the 1st arg 
 
 ##### Command bazel/blaze:
