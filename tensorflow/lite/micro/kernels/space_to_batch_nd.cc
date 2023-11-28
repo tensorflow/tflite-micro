@@ -66,8 +66,9 @@ TfLiteStatus ReshapeOutputTensor(TfLiteContext* context, const TfLiteNode* node,
   TF_LITE_ENSURE_EQ(context, padding->dims->data[0], spatial_dims_num);
   TF_LITE_ENSURE_EQ(context, padding->dims->data[1], 2);
 
-  RuntimeShape output_shape =
-      GetTensorShape(input);  // yes, copy from input tensor
+  // copy from input tensor as per TfLite code
+  RuntimeShape output_shape = GetTensorShape(input);
+  // keep a copy of the output tensor shape for later comparison
   RuntimeShape old_output_shape = GetTensorShape(output);
 
   // Ensures the input height and width (with padding) is a multiple of block
