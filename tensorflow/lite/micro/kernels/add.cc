@@ -38,7 +38,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
                      const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   switch (output->type) {
     case kTfLiteFloat32: {
-      tflite::ArithmeticParams op_params;
+      tflite::ArithmeticParams op_params = {};
       SetActivationParams(data->output_activation_min_f32,
                           data->output_activation_max_f32, &op_params);
       if (data->requires_broadcast) {
@@ -59,7 +59,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
       }
     } break;
     case kTfLiteInt32: {
-      tflite::ArithmeticParams op_params;
+      tflite::ArithmeticParams op_params = {};
       SetActivationParams(std::numeric_limits<int32_t>::lowest(),
                           std::numeric_limits<int32_t>::max(), &op_params);
       if (data->requires_broadcast) {
@@ -93,7 +93,7 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* input1,
                               const TfLiteEvalTensor* input2,
                               TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params;
+  tflite::ArithmeticParams op_params = {};
   op_params.left_shift = data->left_shift;
   op_params.input1_offset = data->input1_offset;
   op_params.input1_multiplier = data->input1_multiplier;
