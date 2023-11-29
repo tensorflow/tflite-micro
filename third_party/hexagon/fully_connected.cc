@@ -129,4 +129,8 @@ TFLMRegistration Register_FULLY_CONNECTED() {
                                    HexagonFullyConnectedEval);
 }
 
+TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
+  return tflite::micro::RegisterOp(HexagonFullyConnectedEval);
+}
+
 }  // namespace tflite

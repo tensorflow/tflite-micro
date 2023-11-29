@@ -28,7 +28,7 @@ from absl import logging
 import numpy as np
 from PIL import Image
 
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.python.tflite_micro import runtime
 
 FLAGS = flags.FLAGS
 
@@ -65,7 +65,7 @@ def quantize_input_data(data, input_details):
   """quantize the input data using scale and zero point
 
   Args:
-      data (np.array in float): input data for the interpreter 
+      data (np.array in float): input data for the interpreter
       input_details : output of get_input_details from the tflm interpreter.
   """
   # Get input quantization parameters
@@ -79,10 +79,10 @@ def quantize_input_data(data, input_details):
 
 
 def dequantize_output_data(data, output_details):
-  """Dequantize the data 
+  """Dequantize the data
 
   Args:
-      data (int8 or int16): integer data that need to be dequantized 
+      data (int8 or int16): integer data that need to be dequantized
       output_details : output of get_output_details from the tflm interpreter.
   """
   output_quantization_parameters = output_details["quantization_parameters"]
@@ -95,14 +95,14 @@ def dequantize_output_data(data, output_details):
 
 
 def tflm_predict(tflm_interpreter, data):
-  """Predict using the tflm interpreter 
+  """Predict using the tflm interpreter
 
   Args:
       tflm_interpreter (Interpreter): TFLM interpreter
-      data (np.array): data that need to be predicted 
+      data (np.array): data that need to be predicted
 
   Returns:
-      prediction (np.array): predicted results from the model using TFLM interpreter 
+      prediction (np.array): predicted results from the model using TFLM interpreter
   """
   tflm_interpreter.set_input(data, 0)
   tflm_interpreter.invoke()
@@ -113,7 +113,7 @@ def predict(interpreter, data):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
-      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      interpreter (runtime.Interpreter): the TFLM python interpreter
       data (np.array): data to be predicted
 
   Returns:
@@ -141,7 +141,7 @@ def predict_image(interpreter, image_path):
   """Use TFLM interpreter to predict a MNIST image
 
   Args:
-      interpreter (tflm_runtime.Interpreter): the TFLM python interpreter
+      interpreter (runtime.Interpreter): the TFLM python interpreter
       image_path (str): path for the image that need to be tested
 
   Returns:
@@ -158,7 +158,7 @@ def main(_):
   if not os.path.exists(FLAGS.img_path):
     raise ValueError("Image file does not exist. Please check the image path.")
 
-  tflm_interpreter = tflm_runtime.Interpreter.from_file(FLAGS.model_path)
+  tflm_interpreter = runtime.Interpreter.from_file(FLAGS.model_path)
   category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
   predicted_category = np.argmax(category_probabilities)
   logging.info("Model predicts the image as %i with probability %.2f",

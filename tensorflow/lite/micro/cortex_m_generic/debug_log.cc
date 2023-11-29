@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,17 +24,33 @@ extern "C" {
 
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include <stdio.h>
+#endif
+
 static DebugLogCallback debug_log_callback = nullptr;
+
+namespace {
+
+void InvokeDebugLogCallback(const char* s) {
+  if (debug_log_callback != nullptr) {
+    debug_log_callback(s);
+  }
+}
+
+}  // namespace
 
 void RegisterDebugLogCallback(void (*cb)(const char* s)) {
   debug_log_callback = cb;
 }
 
-void DebugLog(const char* s) {
+void DebugLog(const char* format, va_list args) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-  if (debug_log_callback != nullptr) {
-    debug_log_callback(s);
-  }
+  constexpr int kMaxLogLen = 256;
+  char log_buffer[kMaxLogLen];
+
+  vsnprintf(log_buffer, kMaxLogLen, format, args);
+  InvokeDebugLogCallback(log_buffer);
 #endif
 }
 

@@ -14,7 +14,7 @@ cc_library(
         "op_macros.h",
     ],
     copts = tflite_copts(),
-    deps = ["//tensorflow/lite/micro:debug_log"],
+    deps = ["//tensorflow/lite/micro:micro_log"],
 )
 
 cc_library(
@@ -27,6 +27,7 @@ cc_library(
     ],
     copts = tflite_copts() + micro_copts(),
     deps = [
+        "//tensorflow/lite:array",
         "//tensorflow/lite:kernel_api",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",

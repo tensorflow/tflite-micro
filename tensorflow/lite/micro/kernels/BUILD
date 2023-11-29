@@ -1,8 +1,10 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_cc_library")
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
+    "xtensa_hifi_3_config",
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
@@ -38,6 +40,7 @@ package_group(
 cc_library(
     name = "activation_utils",
     hdrs = ["activation_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",
@@ -52,6 +55,7 @@ cc_library(
     hdrs = [
         "circular_buffer_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -62,6 +66,7 @@ cc_library(
     hdrs = [
         "conv_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_runner",
         ":micro_ops",
@@ -79,6 +84,7 @@ cc_library(
     hdrs = [
         "detection_postprocess_flexbuffers_generated_data.h",
     ],
+    copts = micro_copts(),
 )
 
 cc_library(
@@ -87,6 +93,7 @@ cc_library(
         "kernel_runner.cc",
     ],
     hdrs = ["kernel_runner.h"],
+    copts = micro_copts(),
     visibility = [
         "//visibility:public",
     ],
@@ -107,6 +114,7 @@ cc_library(
         "kernel_util.cc",
     ],
     hdrs = ["kernel_util.h"],
+    copts = micro_copts(),
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
@@ -126,6 +134,7 @@ cc_library(
     hdrs = [
         "lstm_shared.h",
     ],
+    copts = micro_copts(),
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
@@ -134,6 +143,7 @@ cc_library(
     hdrs = [
         "lstm_eval_test.h",
     ],
+    copts = micro_copts(),
     deps = [
         ":kernel_util",
         ":micro_ops",
@@ -149,6 +159,7 @@ cc_library(
         "micro_tensor_utils.cc",
     ],
     hdrs = ["micro_tensor_utils.h"],
+    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
@@ -159,6 +170,11 @@ cc_library(
         "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
     ],
 )
+
+HIFI3_COPTS = [
+    "-DXTENSA=1",
+    "-DHIFI3=1",
+]
 
 HIFI4_COPTS = [
     "-DXTENSA=1",
@@ -185,6 +201,7 @@ tflm_kernel_cc_library(
         "add_n.cc",
         "arg_min_max.cc",
         "assign_variable.cc",
+        "batch_matmul.cc",
         "batch_to_space_nd.cc",
         "broadcast_args.cc",
         "broadcast_to.cc",
@@ -250,6 +267,7 @@ tflm_kernel_cc_library(
         "reduce.cc",
         "reduce_common.cc",
         "reshape.cc",
+        "reshape_common.cc",
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
         "round.cc",
@@ -265,6 +283,7 @@ tflm_kernel_cc_library(
         "squared_difference.cc",
         "squeeze.cc",
         "strided_slice.cc",
+        "strided_slice_common.cc",
         "sub.cc",
         "sub_common.cc",
         "svdf.cc",
@@ -300,11 +319,15 @@ tflm_kernel_cc_library(
         "prelu.h",
         "quantize.h",
         "reduce.h",
+        "reshape.h",
         "softmax.h",
+        "strided_slice.h",
         "sub.h",
         "svdf.h",
+        "transpose_conv.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
+        xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.h"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.h"]),
@@ -312,12 +335,14 @@ tflm_kernel_cc_library(
     }),
     accelerated_srcs = {
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_hifi_3_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = micro_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
+        xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
         xtensa_vision_p6_config(): VP6_COPTS,
@@ -331,6 +356,7 @@ tflm_kernel_cc_library(
         ":activation_utils",
         ":kernel_util",
         ":micro_tensor_utils",
+        "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:kernel_util",
         "//tensorflow/lite/kernels:op_macros",
@@ -352,6 +378,7 @@ tflm_kernel_cc_library(
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
+        xtensa_hifi_3_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_5_config(): ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
         xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
@@ -410,6 +437,20 @@ cc_test(
     name = "arg_min_max_test",
     srcs = [
         "arg_min_max_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "batch_matmul_test",
+    srcs = [
+        "batch_matmul_test.cc",
     ],
     deps = [
         ":kernel_runner",
@@ -1423,30 +1464,54 @@ cc_test(
 # Bazel config settings.
 ####################################
 
+# Command line flag to select which set of optimized kernels to use.
+# Each value should have a `config_setting` which is selected on in the
+# `micro_ops` target to pickup optimized kernel sources. An empty value
+# indicates only reference kernels should be used.
+string_flag(
+    name = "optimized_kernels",
+    build_setting_default = "",
+    values = [
+        "",
+        "xtensa_fusion_f1",
+        "xtensa_hifi_3",
+        "xtensa_hifi_3z",
+        "xtensa_hifi_5",
+        "xtensa_vision_p6",
+    ],
+)
+
 config_setting(
     name = "xtensa_fusion_f1_default",
-    values = {
-        "cpu": "F1_190305_swupgrade",
+    flag_values = {
+        ":optimized_kernels": "xtensa_fusion_f1",
+    },
+)
+
+config_setting(
+    name = "xtensa_hifi_3_default",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_3",
     },
 )
 
 config_setting(
     name = "xtensa_hifi_3z_default",
-    values = {
-        "cpu": "HIFI_190304_swupgrade",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_3z",
     },
 )
 
 config_setting(
     name = "xtensa_hifi_5_default",
-    values = {
-        "cpu": "AE_HiFi5_LE5_AO_FP_XC",
+    flag_values = {
+        ":optimized_kernels": "xtensa_hifi_5",
     },
 )
 
 config_setting(
     name = "xtensa_vision_p6_default",
-    values = {
-        "cpu": "P6_200528",
+    flag_values = {
+        ":optimized_kernels": "xtensa_vision_p6",
     },
 )

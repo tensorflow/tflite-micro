@@ -1,0 +1,5 @@
+# TensorFlow Lite for Microcontrollers
+
+This package is built from commit
+[{STABLE_GIT_HASH}](https://github.com/tensorflow/tflite-micro/blob/{STABLE_GIT_HASH}/python/tflite_micro)
+of [github.com/tensorflow/tflite-micro](https://github.com/tensorflow/tflite-micro).

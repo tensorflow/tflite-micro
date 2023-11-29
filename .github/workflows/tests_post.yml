@@ -30,7 +30,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue_on_error:
-    needs: [xtensa_postmerge]
+    needs: [riscv_postmerge,xtensa_postmerge]
     if: ${{ always() && contains(needs.*.result, 'failure') &&
             !contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
     uses: ./.github/workflows/issue_on_error.yml

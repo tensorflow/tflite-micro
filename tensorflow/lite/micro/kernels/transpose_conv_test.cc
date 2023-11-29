@@ -53,7 +53,8 @@ static TfLiteConvParams common_conv_params = {kTfLitePaddingSame,  // padding
                                               1,  // stride_height
                                               kTfLiteActNone,
                                               1,
-                                              1};
+                                              1,
+                                              kTfLiteNoType};
 
 template <typename T>
 TfLiteStatus InvokeTransposeConv(TfLiteTensor* tensors, int tensors_size,
@@ -253,7 +254,8 @@ TF_LITE_MICRO_TEST(fusedRELUTest) {
                                   1,                   // stride_height
                                   kTfLiteActRelu,
                                   1,
-                                  1};
+                                  1,
+                                  kTfLiteNoType};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestTransposeConvFloat(
@@ -276,7 +278,8 @@ TF_LITE_MICRO_TEST(AccuracyWithFusedActivationTest) {
                                   3,                   // stride_height
                                   kTfLiteActRelu,
                                   1,
-                                  1};
+                                  1,
+                                  kTfLiteNoType};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::testing::TestTransposeConvFloat(
@@ -304,7 +307,8 @@ TF_LITE_MICRO_TEST(MultiChannelBiasWithFusedActivationTest) {
                                   2,                    // stride_height
                                   kTfLiteActRelu,
                                   1,
-                                  1};
+                                  1,
+                                  kTfLiteNoType};
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,

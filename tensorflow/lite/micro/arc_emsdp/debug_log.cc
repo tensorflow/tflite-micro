@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,12 @@ limitations under the License.
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+#include "eyalroz_printf/src/printf/printf.h"
+#endif
+
+namespace {
 
 // Print to debug console by default. One can define next to extend destinations
 // set: EMSDP_LOG_TO_MEMORY
@@ -89,9 +95,7 @@ void LogToMem(const char* s) {
   debug_log_mem[cursor] = '^';
 }
 
-extern "C" void DebugLog(const char* s) {
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-
+void LogDebugString(const char* s) {
 #if defined EMSDP_LOG_TO_UART
   DbgUartSendStr(s);
 #endif
@@ -106,6 +110,16 @@ extern "C" void DebugLog(const char* s) {
 #warning "EMSDP_LOG_TO_HOST is defined. Ensure hostlib is linked."
   fprintf(stderr, "%s", s);
 #endif
+}
 
-#endif  // TF_LITE_STRIP_ERROR_STRINGS
+}  // namespace
+
+extern "C" void DebugLog(const char* format, va_list args) {
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+  constexpr int kMaxLogLen = 256;
+  char log_buffer[kMaxLogLen];
+
+  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  LogDebugString(log_buffer);
+#endif
 }

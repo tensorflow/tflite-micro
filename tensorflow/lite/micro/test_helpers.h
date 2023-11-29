@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -195,7 +196,7 @@ void PopulateContext(TfLiteTensor* tensors, int tensors_size,
 
 // Create a TfLiteIntArray from an array of ints.  The first element in the
 // supplied array must be the size of the array expressed as an int.
-TfLiteIntArray* IntArrayFromInts(int* int_array);
+TfLiteIntArray* IntArrayFromInts(const int* int_array);
 
 // Create a TfLiteFloatArray from an array of floats.  The first element in the
 // supplied array must be the size of the array expressed as a float.
@@ -325,7 +326,7 @@ inline float SymmetricScaleFromMinMax(const float min, const float max) {
 template <typename T>
 inline int ZeroPointFromMinMax(const float min, const float max) {
   return static_cast<int>(std::numeric_limits<T>::min()) +
-         static_cast<int>(-min / ScaleFromMinMax<T>(min, max) + 0.5f);
+         static_cast<int>(roundf(-min / ScaleFromMinMax<T>(min, max)));
 }
 
 }  // namespace testing

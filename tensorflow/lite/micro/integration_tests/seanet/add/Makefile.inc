@@ -69,12 +69,12 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/add/add16_input
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/add/add16_golden_int16.csv \
 
 integration_tests_seanet_add_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/add/integration_tests.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/seanet/add/integration_tests.cc  \
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \
+
 
 integration_tests_seanet_add_HDR := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/python/interpreter/src/python_ops_resolver.h \
-
+$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \
 
 
 $(eval $(call microlite_test,integration_tests_seanet_add_test,\

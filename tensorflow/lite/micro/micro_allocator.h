@@ -66,6 +66,13 @@ struct ScratchBufferRequest {
 
 }  // namespace internal
 
+// Enum used to keep track of which MemoryPlanner is being used for
+// MicroAllocater::Create();
+enum class MemoryPlannerType {
+  kGreedy,
+  kLinear,
+};
+
 struct NodeAndRegistration {
   TfLiteNode node;
   const TFLMRegistration* registration;
@@ -117,7 +124,9 @@ class MicroAllocator {
   // Note: Please use alignas(16) to make sure tensor_arena is 16
   // bytes aligned, otherwise some head room will be wasted.
   // TODO(b/157615197): Cleanup constructor + factory usage.
-  static MicroAllocator* Create(uint8_t* tensor_arena, size_t arena_size);
+  static MicroAllocator* Create(
+      uint8_t* tensor_arena, size_t arena_size,
+      MemoryPlannerType memory_planner_type = MemoryPlannerType::kGreedy);
 
   // Creates a MicroAllocator instance from a given tensor arena and a given
   // MemoryPlanner. This arena will be managed by the created instance. Note:
@@ -137,13 +146,19 @@ class MicroAllocator {
   // SingleArenaBufferAllocator instance and the MemoryPlanner. This allocator
   // instance will use the SingleArenaBufferAllocator instance to manage
   // allocations internally.
-  static MicroAllocator* Create(uint8_t* persistent_tensor_arena,
-                                size_t persistent_arena_size,
-                                uint8_t* non_persistent_tensor_arena,
-                                size_t non_persistent_arena_size);
+  static MicroAllocator* Create(
+      uint8_t* persistent_tensor_arena, size_t persistent_arena_size,
+      uint8_t* non_persistent_tensor_arena, size_t non_persistent_arena_size,
+      MemoryPlannerType memory_planner_type = MemoryPlannerType::kGreedy);
 
   // Returns the fixed amount of memory overhead of MicroAllocator.
   static size_t GetDefaultTailUsage(bool is_memory_planner_given);
+
+  // Returns True if the MicroAllocator uses a LinearMemoryPlanner(is compatible
+  // with the PerserveAllTensors flag / feature ) and False otherwise.
+  bool preserves_all_tensor() const {
+    return memory_planner_->preserves_all_tensors();
+  };
 
   // Allocates internal resources required for model inference for each subgraph
   // from the arena.

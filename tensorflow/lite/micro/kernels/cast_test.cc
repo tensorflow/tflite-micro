@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -110,6 +110,22 @@ TF_LITE_MICRO_TEST(CastInt32ToInt16) {
   int input_dims[] = {2, 3, 2};
   const int32_t input_values[] = {123, 0, 1, 2, 3, 4};
   const int16_t golden[] = {123, 0, 1, 2, 3, 4};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
+TF_LITE_MICRO_TEST(CastUInt32ToInt32) {
+  int32_t output_data[6];
+  int input_dims[] = {2, 2, 3};
+  const uint32_t input_values[] = {100, 200, 300, 400, 500, 600};
+  const int32_t golden[] = {100, 200, 300, 400, 500, 600};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
+TF_LITE_MICRO_TEST(CastUInt32ToInt32) {
+  uint32_t output_data[6];
+  int input_dims[] = {2, 2, 3};
+  const int32_t input_values[] = {100, 200, 300, 400, 500, 600};
+  const uint32_t golden[] = {100, 200, 300, 400, 500, 600};
   tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 

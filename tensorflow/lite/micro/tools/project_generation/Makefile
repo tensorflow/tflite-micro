@@ -1,4 +1,4 @@
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -90,7 +90,15 @@ BINDIR := $(GENDIR)/bin
 LIB := $(GENDIR)/libtflm.a
 
 TFLM_CC_SRCS := $(shell find $(TENSORFLOW_ROOT)tensorflow -name "*.cc" -o -name "*.c")
+TFLM_CC_SRCS += $(shell find $(TENSORFLOW_ROOT)signal -name "*.cc" -o -name "*.c")
 OBJS := $(addprefix $(OBJDIR)/, $(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(TFLM_CC_SRCS))))
+
+# if the third party printf library is present, add the include paths
+TFLM_PRINTF_PATH := $(shell find third_party -name eyalroz_printf)
+ifneq ($(TFLM_PRINTF_PATH),)
+  INCLUDES += \
+    -I./third_party
+endif
 
 $(OBJDIR)/%.o: %.cc
 	@mkdir -p $(dir $@)

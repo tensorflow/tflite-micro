@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ FVP+="-C mps3_board.visualisation.disable-visualisation=1 "
 FVP+="-C mps3_board.telnetterminal0.start_telnet=0 "
 FVP+='-C mps3_board.uart0.out_file="-" '
 FVP+='-C mps3_board.uart0.unbuffered_output=1 '
-FVP+='-C mps3_board.uart0.shutdown_on_eot=1'
+FVP+='-C mps3_board.uart0.shutdown_on_eot=1 '
+FVP+='--stat'
 ${FVP} ${BINARY_TO_TEST} | tee ${MICRO_LOG_FILENAME}
 
 if [[ ${2} != "non_test_binary" ]]

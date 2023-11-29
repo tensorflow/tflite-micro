@@ -20,11 +20,7 @@ limitations under the License.
 namespace tflite {
 
 MockMicroGraph::MockMicroGraph(SingleArenaBufferAllocator* allocator)
-    : MicroGraph(nullptr, nullptr, nullptr, nullptr),
-      allocator_(allocator),
-      init_count_(0),
-      prepare_count_(0),
-      free_count_(0) {
+    : allocator_(allocator), init_count_(0), prepare_count_(0), free_count_(0) {
   memset(invoke_counts_, 0, sizeof(invoke_counts_));
   mock_tensor_ =
       reinterpret_cast<TfLiteEvalTensor*>(allocator_->AllocatePersistentBuffer(
@@ -45,8 +41,6 @@ TfLiteStatus MockMicroGraph::InvokeSubgraph(int subgraph_idx) {
   return kTfLiteOk;
 }
 
-TfLiteStatus MockMicroGraph::ResetVariableTensors() { return kTfLiteOk; }
-
 size_t MockMicroGraph::NumSubgraphInputs(int subgraph_idx) { return 1; }
 
 TfLiteEvalTensor* MockMicroGraph::GetSubgraphInput(int subgraph_idx,
@@ -62,5 +56,9 @@ TfLiteEvalTensor* MockMicroGraph::GetSubgraphOutput(int subgraph_idx,
 }
 
 int MockMicroGraph::NumSubgraphs() { return kMaxSubgraphs; }
+
+MicroResourceVariables* MockMicroGraph::GetResourceVariables() {
+  return nullptr;
+}
 
 }  // namespace tflite

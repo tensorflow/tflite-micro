@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 package(
@@ -55,7 +56,7 @@ py_test(
     python_version = "PY3",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from interpreter_wrapper_pybind.so
+        "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
     deps = [

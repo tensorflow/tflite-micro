@@ -77,6 +77,8 @@ else
   FIX_FORMAT_OPTIONS=""
 fi
 
+EXCLUDE_SHARED_TFL_CODE=$(sed 's/^/-e /' ci/tflite_files.txt)
+
 tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
   ${FIX_FORMAT_OPTIONS} \
   -e "\.github" \
@@ -84,6 +86,8 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e third_party/xtensa \
   -e ci \
   -e c/common.c \
+  -e codegen/preprocessor/preprocessor_schema_generated.h \
+  -e codegen/preprocessor/preprocessor_schema_py_generated.py \
   -e core/api/error_reporter.cc \
   -e kernels/internal/reference/integer_ops/ \
   -e kernels/internal/reference/reference_ops.h \
@@ -94,7 +98,8 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e schema/schema_generated.h \
   -e schema/schema_utils.h \
   -e "\.inc" \
-  -e "\.md"
+  -e "\.md" \
+  ${EXCLUDE_SHARED_TFL_CODE}
 
 CODE_FORMAT_RESULT=$?
 
@@ -142,7 +147,6 @@ ASSERT_PATHSPEC=\
 " :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\
-" :(exclude)*zephyr_riscv/Makefile.inc"
 
 check_contents "\<assert\>" "${ASSERT_PATHSPEC}" \
   "assert should not be used in TFLM code.."

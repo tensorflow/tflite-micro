@@ -48,10 +48,22 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepare(context, node));
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
 
-#if defined(HIFI4) || defined(HIFI5)
+  // For int16 input, only fallback to the reference kernel is used
+  // so there is no need to prepare the Hifi/Vision kernel.
+  if (input->type == kTfLiteInt16) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    return kTfLiteOk;
+  }
+  micro_context->DeallocateTempTfLiteTensor(input);
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareHifi(context, node));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, DepthwiseConvPrepareVision(context, node));
@@ -85,7 +97,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       switch (filter_int8.type) {
         case kTfLiteInt8: {
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
           DepthwiseConvEvalHifi(context, node, params, op_data, input,
                                 &filter_int8, bias, output);
 #elif defined(VISION_P6)
@@ -104,12 +116,37 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
           break;
         }
         default:
           MicroPrintf("Filter type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);
+          return kTfLiteError;
+      }
+      break;
+    }
+    case kTfLiteInt16: {
+      switch (filter->type) {
+        case kTfLiteInt8: {
+          reference_integer_ops::DepthwiseConvPerChannel(
+              DepthwiseConvParamsQuantized(params, op_data.reference_op_data),
+              op_data.reference_op_data.per_channel_output_multiplier,
+              op_data.reference_op_data.per_channel_output_shift,
+              tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int16_t>(input),
+              tflite::micro::GetTensorShape(filter),
+              tflite::micro::GetTensorData<int8_t>(&filter_int8),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetOptionalTensorData<int64_t>(bias),
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int16_t>(output));
+          break;
+        }
+        default:
+          MicroPrintf("Filter type %s (%d) for input type %s not supported.",
+                      TfLiteTypeGetName(filter->type), filter->type,
+                      TfLiteTypeGetName(input->type));
           return kTfLiteError;
       }
       break;

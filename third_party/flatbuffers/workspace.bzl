@@ -5,12 +5,12 @@ load("//third_party:repo.bzl", "tf_http_archive")
 def repo():
     tf_http_archive(
         name = "flatbuffers",
-        strip_prefix = "flatbuffers-a66de58af9565586832c276fbb4251fc416bf07f",
-        sha256 = "da06ac2fc6fed8e38b6392f5a20fa24a4290cecaadd87aef16b6b84960408680",
+        strip_prefix = "flatbuffers-23.5.26",
+        sha256 = "1cce06b17cddd896b6d73cc047e36a254fb8df4d7ea18a46acf16c4c0cd3f3f3",
         urls = [
-            "https://github.com/google/flatbuffers/archive/a66de58af9565586832c276fbb4251fc416bf07f.tar.gz",
+            "https://github.com/google/flatbuffers/archive/v23.5.26.tar.gz",
         ],
-        build_file = "//third_party/flatbuffers:BUILD.external",
+        build_file = "//third_party/flatbuffers:BUILD.oss",
         system_build_file = "//third_party/flatbuffers:BUILD.system",
         link_files = {
             "//third_party/flatbuffers:build_defs.bzl": "build_defs.bzl",

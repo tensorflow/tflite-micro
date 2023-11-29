@@ -34,9 +34,16 @@ BUILD_TYPE := micro
 
 LDFLAGS += --specs=nano.specs
 
+# See http://b/158651472 for why memory arena threshold test is disabled.
+EXCLUDED_TESTS := \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
+
+MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
 # This disables the "linker relaxation" optimization, which produced incorrect code.
 # TODO(b/279805615): Check whether this is fixed in newer versions of the toolchain.
 LDFLAGS += -mno-relax
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh riscv32 rv32
 SIZE_SCRIPT := ${TENSORFLOW_ROOT}tensorflow/lite/micro/testing/size_riscv32_binary.sh
+RUN_COMMAND := qemu-riscv32 -cpu rv32
 
