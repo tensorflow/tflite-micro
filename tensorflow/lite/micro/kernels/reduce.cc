@@ -29,7 +29,9 @@ limitations under the License.
 namespace tflite {
 
 void* InitReduce(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
+  void* op_data =
+      context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
+  return new (op_data) OpDataReduce();
 }
 
 TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
