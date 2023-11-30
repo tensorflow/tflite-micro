@@ -264,11 +264,4 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                                        \
   } while (false)
 
-#define TF_LITE_MICRO_CHECK_FAIL()   \
-  do {                               \
-    if (micro_test::did_test_fail) { \
-      return kTfLiteError;           \
-    }                                \
-  } while (false)
-
 #endif  // TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_H_
