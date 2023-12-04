@@ -40,7 +40,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // only once per event_handle.
   //
   // If EndEvent is called more than once for the same event_handle, the last
-  // call will be used as the end of event marker.If EndEvent is called 0 times
+  // call will be used as the end of event marker. If EndEvent is called 0 times
   // for a particular event_handle, the duration of that event will be 0 ticks.
   virtual void EndEvent(uint32_t event_handle) override;
 
@@ -66,9 +66,9 @@ class MicroProfiler : public MicroProfilerInterface {
   void LogTicksPerTagCsv();
 
  private:
-  // Maximum number of events that this class can keep track of. If we call
-  // AddEvent more than kMaxEvents number of times, then the oldest event's
-  // profiling information will be overwritten.
+  // Maximum number of events that this class can keep track of. The
+  // MicroProfiler will assert if AddEvent is called more than kMaxEvents number
+  // of times. Increase this number if you need more events.
   static constexpr int kMaxEvents = 4096;
 
   const char* tags_[kMaxEvents];
