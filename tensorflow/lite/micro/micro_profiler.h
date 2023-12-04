@@ -67,7 +67,7 @@ class MicroProfiler : public MicroProfilerInterface {
 
  private:
   // Maximum number of events that this class can keep track of. The
-  // MicroProfiler will assert if AddEvent is called more than kMaxEvents number
+  // MicroProfiler will abort if AddEvent is called more than kMaxEvents number
   // of times. Increase this number if you need more events.
   static constexpr int kMaxEvents = 4096;
 
