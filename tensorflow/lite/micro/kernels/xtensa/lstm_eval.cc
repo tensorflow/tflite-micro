@@ -360,7 +360,7 @@ void Clipping(const int v_size, const CellStateInfo& cell_state_info,
   }
 }
 
-#if define(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 void UpdateLstmCell(const LstmStepManager& step_info,
                     TfLiteEvalTensor* cell_state,
                     // Gate outputs
@@ -428,7 +428,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#endif  // #if define(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
