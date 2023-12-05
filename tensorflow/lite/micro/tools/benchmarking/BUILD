@@ -1,6 +1,7 @@
 cc_library(
     name = "op_resolver",
     hdrs = ["op_resolver.h"],
+    visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],
     deps = ["//tensorflow/lite/micro:op_resolvers"],
 )
 

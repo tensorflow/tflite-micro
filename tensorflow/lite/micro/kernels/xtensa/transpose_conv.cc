@@ -415,7 +415,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
       } else {
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
         const RuntimeShape& filter_shape =
             tflite::micro::GetTensorShape(filter);
@@ -457,7 +457,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               data.per_channel_output_shift, data.per_channel_output_multiplier,
               scratch_buffer);
         }
-#else   // #if defined(HIFI4) || defined(HIFI5)
+#else   // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
         reference_integer_ops::TransposeConv(
             data.params, data.per_channel_output_multiplier,
             data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
@@ -469,7 +469,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
-#endif  // #if defined(HIFI4) || defined(HIFI5)
+#endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       }
       break;
     }

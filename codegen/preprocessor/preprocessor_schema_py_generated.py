@@ -32,15 +32,16 @@ class Data(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
-def DataStart(builder): builder.StartObject(1)
-def Start(builder):
-    return DataStart(builder)
-def DataAddInputModelPath(builder, inputModelPath): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(inputModelPath), 0)
-def AddInputModelPath(builder, inputModelPath):
-    return DataAddInputModelPath(builder, inputModelPath)
-def DataEnd(builder): return builder.EndObject()
-def End(builder):
-    return DataEnd(builder)
+def DataStart(builder):
+    builder.StartObject(1)
+
+def DataAddInputModelPath(builder, inputModelPath):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(inputModelPath), 0)
+
+def DataEnd(builder):
+    return builder.EndObject()
+
+
 
 class DataT(object):
 
@@ -53,6 +54,11 @@ class DataT(object):
         data = Data()
         data.Init(buf, pos)
         return cls.InitFromObj(data)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
 
     @classmethod
     def InitFromObj(cls, data):
@@ -75,3 +81,5 @@ class DataT(object):
             DataAddInputModelPath(builder, inputModelPath)
         data = DataEnd(builder)
         return data
+
+

@@ -15,12 +15,25 @@ limitations under the License.
 
 #include "signal/src/msb.h"
 
+#if defined(XTENSA)
+#include <xtensa/tie/xt_misc.h>
+#endif
+
 namespace tflite {
 namespace tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 
 uint32_t MostSignificantBit64(uint64_t x) {
-#if defined(__GNUC__)
+#if defined(XTENSA)
+  // XT_NSAU returns the number of left shifts needed to put the MSB in the
+  // leftmost position. Returns 32 if the argument is 0.
+  uint32_t upper = 64 - XT_NSAU((uint32_t)(x >> 32));
+  if (upper != 32) {
+    return upper;
+  }
+  // Only if the upper bits are all clear do we want to look at the lower bits.
+  return 32 - XT_NSAU((uint32_t)x);
+#elif defined(__GNUC__)
   if (x) {
     return 64 - __builtin_clzll(x);
   }

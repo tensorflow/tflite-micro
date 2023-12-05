@@ -69,8 +69,9 @@ def ParseString(word):
     else:
       formated_op_string += part.upper()
 
-  # Edge case for AddUnidirectionalSequenceLSTM().
+  # Edge cases
   formated_op_string = formated_op_string.replace('Lstm', 'LSTM')
+  formated_op_string = formated_op_string.replace('BatchMatmul', 'BatchMatMul')
 
   return 'Add' + formated_op_string
 

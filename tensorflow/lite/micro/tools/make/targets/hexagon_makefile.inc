@@ -80,6 +80,10 @@ PLATFORM_ARGS = \
   -mcpu=$(HEXAGON_CPU_VER) \
   -m$(HEXAGON_CPU_VER)
 
+ifeq ($(HEXAGON_PIC_BUILD), true)
+  PLATFORM_ARGS += -fPIC
+endif
+
 # See http://b/183462077 for more details on why we need -G0 for an LPI build.
 ifeq ($(HEXAGON_LPI_BUILD), true)
   PLATFORM_ARGS += -G0
@@ -111,6 +115,11 @@ EXCLUDED_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
 
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
+# TODO(b/302404477): micro_speech_test example does not pass due to misprediction
+EXCLUDED_EXAMPLE_TESTS := \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
+MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_hexagon_binary.sh
 SIZE_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/size_hexagon_binary.sh

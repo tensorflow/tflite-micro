@@ -1,0 +1,14 @@
+diff --git a/library/include/NatureDSP_types.h b/library/include/NatureDSP_types.h
+index 82e16c7..ce7fb75 100644
+--- a/library/include/NatureDSP_types.h
++++ b/library/include/NatureDSP_types.h
+@@ -332,7 +332,9 @@ typedef struct tagComplex32_t
+   #define NASSERT(x) 
+   #define restrict 
+ #elif defined (COMPILER_XTENSA)
++#if !defined restrict
+   #define restrict __restrict
++#endif
+   #define onchip
+   #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
+ #else

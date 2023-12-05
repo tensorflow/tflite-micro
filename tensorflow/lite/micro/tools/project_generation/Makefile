@@ -90,6 +90,7 @@ BINDIR := $(GENDIR)/bin
 LIB := $(GENDIR)/libtflm.a
 
 TFLM_CC_SRCS := $(shell find $(TENSORFLOW_ROOT)tensorflow -name "*.cc" -o -name "*.c")
+TFLM_CC_SRCS += $(shell find $(TENSORFLOW_ROOT)signal -name "*.cc" -o -name "*.c")
 OBJS := $(addprefix $(OBJDIR)/, $(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(TFLM_CC_SRCS))))
 
 # if the third party printf library is present, add the include paths

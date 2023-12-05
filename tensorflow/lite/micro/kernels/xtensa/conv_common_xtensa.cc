@@ -42,9 +42,9 @@ void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, ConvPrepareVision(context, node));

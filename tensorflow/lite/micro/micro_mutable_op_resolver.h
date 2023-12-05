@@ -29,9 +29,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/mul.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/kernels/transpose_conv.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -616,9 +618,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_TANH, Register_TANH(), ParseTanh);
   }
 
-  TfLiteStatus AddTransposeConv() {
-    return AddBuiltin(BuiltinOperator_TRANSPOSE_CONV,
-                      tflite::Register_TRANSPOSE_CONV(), ParseTransposeConv);
+  TfLiteStatus AddTransposeConv(
+      const TFLMRegistration& registration = Register_TRANSPOSE_CONV()) {
+    return AddBuiltin(BuiltinOperator_TRANSPOSE_CONV, registration,
+                      ParseTransposeConv);
   }
 
   TfLiteStatus AddTranspose() {

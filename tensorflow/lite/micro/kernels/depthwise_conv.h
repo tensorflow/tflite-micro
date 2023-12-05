@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -65,6 +65,11 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8();
 // implementations.
 TFLMRegistration Register_DEPTHWISE_CONV_2D_INT16();
 
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// int8 activations and int4 weights and uses the latency optimized
+// implementations.
+TFLMRegistration Register_DEPTHWISE_CONV_2D_INT4();
+
 #else
 inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8() {
   return Register_DEPTHWISE_CONV_2D();
@@ -73,6 +78,11 @@ inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT8() {
 inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT16() {
   return Register_DEPTHWISE_CONV_2D();
 }
+
+inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT4() {
+  return Register_DEPTHWISE_CONV_2D();
+}
+
 #endif
 
 }  // namespace tflite

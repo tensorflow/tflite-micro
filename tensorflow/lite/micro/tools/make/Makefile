@@ -67,6 +67,7 @@ OPTIMIZED_KERNEL_DIR :=
 # Override this variable from the command line in case the optimized kernels are
 # in a different directory.
 OPTIMIZED_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels
+OPTIMIZED_SIGNAL_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)signal/micro/kernels
 
 # Specify which co-processor's kernel implementation should be pulled in.
 # If the same kernel is implemented in both kernels/OPTIMIZED_KERNEL_DIR and
@@ -292,10 +293,14 @@ MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/m
 MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
 
+OLD_MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
 MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/Makefile.inc)
+
+MICRO_LITE_LAYER_BY_LAYER_OUTPUT := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/Makefile.inc)
 
 # TODO(b/152645559): move all benchmarks to benchmarks directory.
 MICROLITE_BENCHMARK_SRCS := \
+$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
 CODEGEN_PREPROCESSOR_PATH := $(BINDIR)codegen_preprocessor
@@ -329,42 +334,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/linear_memory_planner_tes
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
-$(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
-$(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
-$(TENSORFLOW_ROOT)signal/src/energy.cc \
-$(TENSORFLOW_ROOT)signal/src/fft_auto_scale.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_log.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_square_root.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_spectral_subtraction.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_float.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_int16.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_int32.cc \
-$(TENSORFLOW_ROOT)signal/src/log.cc \
-$(TENSORFLOW_ROOT)signal/src/max_abs.cc \
-$(TENSORFLOW_ROOT)signal/src/msb_32.cc \
-$(TENSORFLOW_ROOT)signal/src/msb_64.cc \
-$(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
-$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
-$(TENSORFLOW_ROOT)signal/src/square_root_32.cc \
-$(TENSORFLOW_ROOT)signal/src/square_root_64.cc \
-$(TENSORFLOW_ROOT)signal/src/window.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add.cc \
@@ -471,6 +440,46 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc
 
+MICROLITE_CC_SIGNAL_KERNEL_SRCS := \
+$(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_kernel.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_common.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root_common.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
+$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
+$(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
+$(TENSORFLOW_ROOT)signal/src/energy.cc \
+$(TENSORFLOW_ROOT)signal/src/fft_auto_scale.cc \
+$(TENSORFLOW_ROOT)signal/src/filter_bank.cc \
+$(TENSORFLOW_ROOT)signal/src/filter_bank_log.cc \
+$(TENSORFLOW_ROOT)signal/src/filter_bank_square_root.cc \
+$(TENSORFLOW_ROOT)signal/src/filter_bank_spectral_subtraction.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_float.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_int16.cc \
+$(TENSORFLOW_ROOT)signal/src/irfft_int32.cc \
+$(TENSORFLOW_ROOT)signal/src/log.cc \
+$(TENSORFLOW_ROOT)signal/src/max_abs.cc \
+$(TENSORFLOW_ROOT)signal/src/msb_32.cc \
+$(TENSORFLOW_ROOT)signal/src/msb_64.cc \
+$(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
+$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
+$(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
+$(TENSORFLOW_ROOT)signal/src/square_root_32.cc \
+$(TENSORFLOW_ROOT)signal/src/square_root_64.cc \
+$(TENSORFLOW_ROOT)signal/src/window.cc
+
 MICROLITE_TEST_HDRS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/*.h)
 
@@ -522,20 +531,31 @@ $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/array.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/base.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/buffer.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/buffer_ref.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/code_generator.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/code_generators.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/default_allocator.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/detached_buffer.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/file_manager.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flatbuffer_builder.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flatbuffers.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flex_flat_util.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flexbuffers.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/grpc.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/hash.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/idl.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/minireflect.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/reflection.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/reflection_generated.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/registry.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/stl_emulation.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/string.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/struct.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/table.h \
+$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/util.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector_downward.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/verifier.h \
-$(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/util.h \
-$(DOWNLOADS_DIR)/flatbuffers/LICENSE.txt \
+$(DOWNLOADS_DIR)/flatbuffers/LICENSE \
 $(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint.h \
 $(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_neon.h \
 $(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_sse.h \
@@ -610,6 +630,7 @@ endif
 
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
   PATH_TO_OPTIMIZED_KERNELS := $(OPTIMIZED_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+  PATH_TO_SIGNAL_OPTIMIZED_KERNELS := $(OPTIMIZED_SIGNAL_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
 
   # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
   # reference kernels. See http://b/183546742 for more context.
@@ -623,6 +644,22 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
   MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
+
+  ifneq ($(filter $(OPTIMIZED_KERNEL_DIR), xtensa),)
+    # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
+    # reference kernels. See http://b/183546742 for more context.
+    RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    ifneq ($(RESULT), SUCCESS)
+      $(error Incorrect SIGNAL OPTIMIZED_KERNEL_DIR: $(RESULT))
+    endif
+
+    # Specialize for the optimized kernels
+    MICROLITE_CC_SIGNAL_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+      --base_files "$(MICROLITE_CC_SIGNAL_KERNEL_SRCS)" \
+      --specialize_directory $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    MICROLITE_CC_KERNEL_SRCS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.S)
+    MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.h)
+  endif
 
   # The first ifneq is needed to be compatible with make versions prior to 4.2
   # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
@@ -638,6 +675,8 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
   # list of headers.
   MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_OPTIMIZED_KERNELS)/*.h)
 endif
+
+MICROLITE_CC_KERNEL_SRCS += $(MICROLITE_CC_SIGNAL_KERNEL_SRCS)
 
 # If a co-processor is specified on the command line with
 # CO_PROCESSOR=<co_processor> then we will include ext_libs/<co_processor>.inc
@@ -710,7 +749,14 @@ include $(MICRO_LITE_INTEGRATION_TESTS)
 # Load generated micro mutable op resolver test.
 include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
 
+# Load layer_by_layer_output_tool
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+include ${MICRO_LITE_LAYER_BY_LAYER_OUTPUT}
+endif
+
 # Load the benchmarks.
+include $(OLD_MICRO_LITE_BENCHMARKS)
 include $(MICRO_LITE_BENCHMARKS)
 
 # Load custom kernel tests.
