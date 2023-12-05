@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 #include <xtensa/tie/xt_hifi2.h>
 
@@ -498,7 +498,7 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
     AE_S8_0_IP(data_c, (ae_int8*)output, 1);
   }
 }
-#elif defined(HIFI4)
+#elif defined(HIFI3) || defined(HIFI4)
 #if TFLITE_SINGLE_ROUNDING
 #define MPY_BY_QUANT_MULT_X2_OUT32(out, inp, multiplier, l_shift, r_shift) \
   {                                                                        \
@@ -1018,4 +1018,4 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
 
 }  // namespace tflite
 
-#endif  // defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)

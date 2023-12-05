@@ -183,7 +183,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Quantized kernels use an int32 scratch buffer.
   if (input->type == kTfLiteInt8) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
 
@@ -200,7 +200,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context, scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
-#else  // #if defined(HIFI4) || defined(HIFI5)
+#else  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(int32_t),
@@ -211,7 +211,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
 
@@ -228,12 +228,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context, scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
-#else   // #if defined(HIFI4) || defined(HIFI5)
+#else   // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(std::int64_t),
                       &(data->scratch_buffer_index)) == kTfLiteOk);
-#endif  // #if defined(HIFI4) || defined(HIFI5)
+#endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   }
 
   // All per-channel quantized tensors need valid zero point and scale arrays.
@@ -320,7 +320,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       int32_t* scratch_buffer = static_cast<int32_t*>(
           context->GetScratchBuffer(context, data.scratch_buffer_index));
-#if defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       if (bias->type == kTfLiteInt32) {
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
         const RuntimeShape& filter_shape =

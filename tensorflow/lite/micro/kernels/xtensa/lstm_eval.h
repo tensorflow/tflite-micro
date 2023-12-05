@@ -158,7 +158,7 @@ LSTMBuffers<CellType> CreateLSTMBuffers(TfLiteContext* context,
 // namespace to expose them for testing
 namespace lstm_internal {
 
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 void Sigmoid(const RuntimeShape& data_shape, int16_t* data);
 
 void Sigmoid(const RuntimeShape& data_shape, float* data);
@@ -200,7 +200,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const RuntimeShape& filter_shape, const float* filter_data,
                     const RuntimeShape& bias_shape, const float* bias_data,
                     const RuntimeShape& output_shape, float* output_data);
-#else   // #if !(defined(HIFI5) || defined(HIFI4))
+#else   // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 void Sigmoid(int16_t* data, int32_t data_size);
 
 void Sigmoid(float* data, int32_t data_size);
@@ -236,7 +236,7 @@ void FullyConnected(const FullyConnectedParams& params, const float* input_data,
                     const float* filter_data, const float* bias_data,
                     float* output_data, const int num_batches,
                     const int output_depth, const int accum_depth);
-#endif  // #if !(defined(HIFI5) || defined(HIFI4))
+#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 
 void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
                     int n_input, int16_t* output);
@@ -272,7 +272,7 @@ class LstmStepManager {
   int OutputOffset() const { return output_offset_; }
   int HiddenStateOffset() const { return hidden_state_offset_; }
   int CellStateOffset() const { return cell_state_offset_; }
-#if defined(HIFI5) || defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int time_major() const { return size_info_.time_major; }
 
   int batch_size() const { return size_info_.batch_size; }
@@ -298,7 +298,7 @@ class LstmStepManager {
 // Implements the following formula:
 //   gate = activate(FC(input) + FC(recurrent))
 // Activation is sigmoid except for the "cell" gate (configurable, usually tanh)
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void CalculateLstmGate(
@@ -406,7 +406,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#else   // #if !defined(HIFI5) || defined(HIFI4)
+#else   // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void CalculateLstmGate(
@@ -496,7 +496,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                     const ArithmeticParams& forget_cell_mul_params,
                     const ArithmeticParams& input_mul_params,
                     const CellStateInfo& cell_state_info, float* buffer);
-#endif  // #if defined(HIFI5) || defined(HIFI4)
+#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 
 // Update the hidden state of the LSTM kernel using the following formula:
 // updated_hidden_state = Tanh(updated_cell_state) * output_gate_output, * means
@@ -521,7 +521,7 @@ void UpdateLstmHidden(const LstmStepManager& step_info,
       tflite::micro::GetTensorData<CellType>(cell_state) +
       step_info.CellStateOffset();
   // Tanh(cell_state)
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
   Tanh(cell_state_scale_power, cell_state_shape, cell_state_data,
        cell_state_shape, buffer);
   // Update the hidden state
@@ -539,7 +539,7 @@ void UpdateLstmHidden(const LstmStepManager& step_info,
 #endif
 }
 
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
@@ -651,7 +651,7 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
                   step_info.HiddenStateOffset(),
               step_info.StateShape().FlatSize() * sizeof(ActivationType));
 }
-#else   // #if !(defined(HIFI5) || defined(HIFI4))
+#else   // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
 void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
@@ -782,7 +782,7 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
                   step_info.HiddenStateOffset(),
               step_info.StateShape().FlatSize() * sizeof(ActivationType));
 }
-#endif  // #if !(defined(HIFI5) || defined(HIFI4))
+#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 
 }  // namespace lstm_internal
 

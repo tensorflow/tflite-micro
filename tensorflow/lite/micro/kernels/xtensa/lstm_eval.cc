@@ -105,14 +105,14 @@ TfLiteStatus LstmTensors::ValidateTensorStatus(TfLiteContext* context) const {
 
 namespace lstm_internal {
 
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 const int32_t kInt16Max = std::numeric_limits<int16_t>::max();
 const int32_t kInt16Min = std::numeric_limits<int16_t>::min();
 #endif
 
 void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
                     int n_input, int16_t* output) {
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
@@ -137,7 +137,7 @@ void AddElementWise(const float* input_1, const float* input_2, int n_batch,
   }
 }
 
-#if !(defined(HIFI5) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 void Sigmoid(const RuntimeShape& data_shape, int16_t* data) {
   reference_integer_ops::Logistic(
       0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
@@ -225,7 +225,7 @@ void FullyConnected(const FullyConnectedParams& params,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#else  // #if !(defined(HIFI5) || defined(HIFI4))
+#else  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 void Sigmoid(int16_t* data, int32_t data_size) {
   WORD32 err;
   err = xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
@@ -341,7 +341,7 @@ void FullyConnected(const FullyConnectedParams& params, const float* input_data,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#endif  // #if !(defined(HIFI5) || defined(HIFI4))
+#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 
 void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               int16_t* vector) {
@@ -360,7 +360,7 @@ void Clipping(const int v_size, const CellStateInfo& cell_state_info,
   }
 }
 
-#if defined(HIFI5) || defined(HIFI4)
+#if define(HIFI3) || defined(HIFI4) || defined(HIFI5)
 void UpdateLstmCell(const LstmStepManager& step_info,
                     TfLiteEvalTensor* cell_state,
                     // Gate outputs
@@ -428,7 +428,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#endif  // #if defined(HIFI5) || defined(HIFI4)
+#endif  // #if define(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
