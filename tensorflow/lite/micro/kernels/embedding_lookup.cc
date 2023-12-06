@@ -65,7 +65,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EmbeddingLookUpPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -178,7 +178,7 @@ TfLiteStatus EvalHybrid(const OpData& op_data, const TfLiteEvalTensor* lookup,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EmbeddingLookUpEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* lookup =
       tflite::micro::GetEvalInput(context, node, kInputTensor_0);
   const TfLiteEvalTensor* value =
@@ -207,7 +207,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_EMBEDDING_LOOKUP() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, EmbeddingLookUpPrepare, EmbeddingLookUpEval);
 }
 
 }  // namespace tflite
