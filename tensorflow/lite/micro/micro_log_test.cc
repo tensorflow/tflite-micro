@@ -21,9 +21,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace {
+
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
 constexpr int kMaxBufferSize = 128;
 const char* kFormat = "%2d%6.2f%#5x%5s";
 const char* kExpect = "42 42.42 0x42 \"42\"";
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+
 }  // namespace
 
 TF_LITE_MICRO_TESTS_BEGIN
