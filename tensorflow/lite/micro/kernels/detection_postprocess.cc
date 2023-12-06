@@ -117,7 +117,7 @@ struct OpData {
   TfLiteQuantizationParams input_anchors;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* DetecctionPostProcessInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpData* op_data = nullptr;
 
