@@ -38,7 +38,7 @@ constexpr int kOutputTensor = 0;
 const int kInputOutputMinDimensionNum = 3;
 const int kInputOutputMaxDimensionNum = 4;
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BatchToSpaceNDPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -62,7 +62,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BatchToSpaceNDEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   const TfLiteEvalTensor* block_shape =
@@ -106,7 +106,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace.
 
 TFLMRegistration Register_BATCH_TO_SPACE_ND() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, BatchToSpaceNDPrepare, BatchToSpaceNDEval);
 }
 
 }  // namespace tflite

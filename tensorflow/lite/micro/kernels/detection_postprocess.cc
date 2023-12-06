@@ -149,7 +149,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return op_data;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DetecctionPostProcessPrepare(TfLiteContext* context, TfLiteNode* node) {
   auto* op_data = static_cast<OpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -774,7 +774,7 @@ TfLiteStatus NonMaxSuppressionMultiClass(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DetecctionPostProcessEval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, (kBatchSize == 1));
   auto* op_data = static_cast<OpData*>(node->user_data);
 
@@ -800,7 +800,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration* Register_DETECTION_POSTPROCESS() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
+  static TFLMRegistration r = tflite::micro::RegisterOp(DetecctionPostProcessInit, DetecctionPostProcessPrepare, DetecctionPostProcessEval);
   return &r;
 }
 

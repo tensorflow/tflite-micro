@@ -108,7 +108,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
   // This function only checks the types. Additional shape validations are
   // performed in the reference implementation called during Eval().
   const TfLiteConcatenationParams* params =
@@ -214,7 +214,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConcatenationEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* output_tensor =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   TF_LITE_ENSURE(context, output_tensor != nullptr);
@@ -252,7 +252,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_CONCATENATION() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(ConcatenationInit, ConcatenationPrepare, ConcatenationEval);
 }
 
 }  // namespace tflite
