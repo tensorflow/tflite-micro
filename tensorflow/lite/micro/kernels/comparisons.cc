@@ -528,7 +528,7 @@ TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void* ComparisonsComparisonsInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
@@ -580,27 +580,27 @@ TfLiteStatus ComparisonsPrepare(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_EQUAL() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, EqualEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, EqualEval);
 }
 
 TFLMRegistration Register_NOT_EQUAL() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, NotEqualEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, NotEqualEval);
 }
 
 TFLMRegistration Register_GREATER() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, GreaterEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, GreaterEval);
 }
 
 TFLMRegistration Register_GREATER_EQUAL() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, GreaterEqualEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, GreaterEqualEval);
 }
 
 TFLMRegistration Register_LESS() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, LessEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, LessEval);
 }
 
 TFLMRegistration Register_LESS_EQUAL() {
-  return tflite::micro::RegisterOp(ComparisonsInit, ComparisonsPrepare, LessEqualEval);
+  return tflite::micro::RegisterOp(Init, ComparisonsPrepare, LessEqualEval);
 }
 
 }  // namespace tflite
