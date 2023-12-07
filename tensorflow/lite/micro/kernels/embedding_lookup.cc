@@ -207,7 +207,8 @@ TfLiteStatus EmbeddingLookUpEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_EMBEDDING_LOOKUP() {
-  return tflite::micro::RegisterOp(nullptr, EmbeddingLookUpPrepare, EmbeddingLookUpEval);
+  return tflite::micro::RegisterOp(nullptr, EmbeddingLookUpPrepare,
+                                   EmbeddingLookUpEval);
 }
 
 }  // namespace tflite

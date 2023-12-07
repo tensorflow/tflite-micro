@@ -106,7 +106,8 @@ TfLiteStatus BatchToSpaceNDEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace.
 
 TFLMRegistration Register_BATCH_TO_SPACE_ND() {
-  return tflite::micro::RegisterOp(nullptr, BatchToSpaceNDPrepare, BatchToSpaceNDEval);
+  return tflite::micro::RegisterOp(nullptr, BatchToSpaceNDPrepare,
+                                   BatchToSpaceNDEval);
 }
 
 }  // namespace tflite

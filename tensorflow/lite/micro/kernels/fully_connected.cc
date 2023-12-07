@@ -26,7 +26,8 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-void* FullyConnectedInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* FullyConnectedInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(OpDataFullyConnected));
@@ -200,7 +201,8 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(FullyConnectedInit, FullyConnectedPrepare, FullyConnectedEval);
+  return tflite::micro::RegisterOp(FullyConnectedInit, FullyConnectedPrepare,
+                                   FullyConnectedEval);
 }
 
 TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {

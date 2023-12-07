@@ -136,7 +136,8 @@ TfLiteStatus DepthToSpaceEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_DEPTH_TO_SPACE() {
-  return tflite::micro::RegisterOp(nullptr, DepthToSpacePrepare, DepthToSpaceEval);
+  return tflite::micro::RegisterOp(nullptr, DepthToSpacePrepare,
+                                   DepthToSpaceEval);
 }
 
 }  // namespace tflite

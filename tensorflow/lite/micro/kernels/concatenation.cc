@@ -103,7 +103,8 @@ void EvalUnquantized(TfLiteContext* context, TfLiteNode* node) {
                                tflite::micro::GetTensorData<data_type>(output));
 }
 
-void* ConcatenationInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* ConcatenationInit(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
@@ -252,7 +253,8 @@ TfLiteStatus ConcatenationEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_CONCATENATION() {
-  return tflite::micro::RegisterOp(ConcatenationInit, ConcatenationPrepare, ConcatenationEval);
+  return tflite::micro::RegisterOp(ConcatenationInit, ConcatenationPrepare,
+                                   ConcatenationEval);
 }
 
 }  // namespace tflite

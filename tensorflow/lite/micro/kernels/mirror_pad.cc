@@ -209,7 +209,8 @@ TfLiteStatus MirrorPadPrepare(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_MIRROR_PAD() {
-  return tflite::micro::RegisterOp(MirrorPadInit, MirrorPadPrepare, MirrorPadEval);
+  return tflite::micro::RegisterOp(MirrorPadInit, MirrorPadPrepare,
+                                   MirrorPadEval);
 }
 
 }  // namespace tflite

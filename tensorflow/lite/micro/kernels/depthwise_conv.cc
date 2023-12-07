@@ -27,7 +27,8 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-void* DepthwiseConvInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* DepthwiseConvInit(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataConv));
 }
@@ -143,7 +144,8 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_DEPTHWISE_CONV_2D() {
-  return tflite::micro::RegisterOp(DepthwiseConvInit, DepthwiseConvPrepare, DepthwiseConvEval);
+  return tflite::micro::RegisterOp(DepthwiseConvInit, DepthwiseConvPrepare,
+                                   DepthwiseConvEval);
 }
 
 }  // namespace tflite
