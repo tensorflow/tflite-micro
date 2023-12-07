@@ -117,7 +117,7 @@ struct OpData {
   TfLiteQuantizationParams input_anchors;
 };
 
-void* DetecctionPostProcessInit(TfLiteContext* context, const char* buffer,
+void* DetectionPostProcessInit(TfLiteContext* context, const char* buffer,
                                 size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpData* op_data = nullptr;
@@ -150,7 +150,7 @@ void* DetecctionPostProcessInit(TfLiteContext* context, const char* buffer,
   return op_data;
 }
 
-TfLiteStatus DetecctionPostProcessPrepare(TfLiteContext* context,
+TfLiteStatus DetectionPostProcessPrepare(TfLiteContext* context,
                                           TfLiteNode* node) {
   auto* op_data = static_cast<OpData*>(node->user_data);
 
@@ -776,7 +776,7 @@ TfLiteStatus NonMaxSuppressionMultiClass(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus DetecctionPostProcessEval(TfLiteContext* context,
+TfLiteStatus DetectionPostProcessEval(TfLiteContext* context,
                                        TfLiteNode* node) {
   TF_LITE_ENSURE(context, (kBatchSize == 1));
   auto* op_data = static_cast<OpData*>(node->user_data);
@@ -804,8 +804,8 @@ TfLiteStatus DetecctionPostProcessEval(TfLiteContext* context,
 
 TFLMRegistration* Register_DETECTION_POSTPROCESS() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      DetecctionPostProcessInit, DetecctionPostProcessPrepare,
-      DetecctionPostProcessEval);
+      DetectionPostProcessInit, DetectionPostProcessPrepare,
+      DetectionPostProcessEval);
   return &r;
 }
 
