@@ -118,7 +118,7 @@ struct OpData {
 };
 
 void* DetectionPostProcessInit(TfLiteContext* context, const char* buffer,
-                                size_t length) {
+                               size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpData* op_data = nullptr;
 
@@ -151,7 +151,7 @@ void* DetectionPostProcessInit(TfLiteContext* context, const char* buffer,
 }
 
 TfLiteStatus DetectionPostProcessPrepare(TfLiteContext* context,
-                                          TfLiteNode* node) {
+                                         TfLiteNode* node) {
   auto* op_data = static_cast<OpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -777,7 +777,7 @@ TfLiteStatus NonMaxSuppressionMultiClass(TfLiteContext* context,
 }
 
 TfLiteStatus DetectionPostProcessEval(TfLiteContext* context,
-                                       TfLiteNode* node) {
+                                      TfLiteNode* node) {
   TF_LITE_ENSURE(context, (kBatchSize == 1));
   auto* op_data = static_cast<OpData*>(node->user_data);
 
