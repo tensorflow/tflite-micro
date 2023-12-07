@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ struct AllocationInfo {
   int last_used;
   int32_t offline_offset;
   bool needs_allocating;
+  bool needs_resizing;
 };
 
 // Used to hold the allocation info list and related metadata for the entire
@@ -91,6 +92,12 @@ class AllocationInfoBuilder {
       int subgraph_idx, internal::ScratchBufferRequest* scratch_buffer_request,
       ScratchBufferHandle* scratch_buffer_handles,
       SubgraphAllocations* allocations);
+
+  TfLiteStatus ReAdjustScratchBufferOffsets(
+      int subgraph_idx, internal::ScratchBufferRequest* scratch_buffer_requests,
+      ScratchBufferHandle* scratch_buffer_handles,
+      SubgraphAllocations* allocations, MicroMemoryPlanner* planner,
+      size_t allocation_info_size);
 
   // Identify control flow operators and recursively mark all subgraphs which
   // that operator can invoke. The lifetime of all tensors within a subgraph

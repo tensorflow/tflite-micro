@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ class MicroContext {
   // by the interpreter between Prepare and Eval stage. In Eval stage,
   // GetScratchBuffer API can be used to fetch the address.
   virtual TfLiteStatus RequestScratchBufferInArena(size_t bytes,
-                                                   int* buffer_idx) = 0;
+                                                   int* buffer_idx,
+                                                   size_t extra = 0) = 0;
 
   // Get the scratch buffer pointer.
   // This method is only available in Eval stage.
@@ -116,6 +117,11 @@ inline TfLiteStatus MicroContextRequestScratchBufferInArena(TfLiteContext* ctx,
                                                             size_t bytes,
                                                             int* buffer_idx) {
   return GetMicroContext(ctx)->RequestScratchBufferInArena(bytes, buffer_idx);
+}
+inline TfLiteStatus MicroContextRequestScratchBufferInArenaMinOptional(
+    TfLiteContext* ctx, size_t bytes, int* buffer_idx, size_t extra) {
+  return GetMicroContext(ctx)->RequestScratchBufferInArena(bytes, buffer_idx,
+                                                           extra);
 }
 inline void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
   return GetMicroContext(ctx)->GetScratchBuffer(buffer_idx);

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -57,7 +57,8 @@ class MicroInterpreterContext : public MicroContext {
   // GetScratchBuffer API can be used to fetch the address.
   // Virtual so that it can be faked for kernel tests.
   virtual TfLiteStatus RequestScratchBufferInArena(size_t bytes,
-                                                   int* buffer_idx) override;
+                                                   int* buffer_idx,
+                                                   size_t extra = 0) override;
 
   // Get the scratch buffer pointer.
   // This method is only available in Eval stage.

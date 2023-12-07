@@ -224,11 +224,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     output_dims.w = output_shape.Dims(2);
     output_dims.c = output_depth;
 
+    const size_t minimal_buf_size =
+        GetTensorShape(output).FlatSize() * sizeof(int32_t);
     const size_t buf_size = arm_transpose_conv_s8_get_buffer_size(
         &input_dims, &filter_dims, &output_dims);
-    TFLITE_DCHECK(context->RequestScratchBufferInArena(
-                      context, buf_size, &(data->scratch_buffer_index)) ==
-                  kTfLiteOk);
+
+    TFLITE_DCHECK(context->RequestScratchBufferInArenaMinOptional(
+                      context, buf_size, &(data->scratch_buffer_index),
+                      minimal_buf_size) == kTfLiteOk);
 
     // Quantized 8-bit kernels use an int32 scratch buffer.
     TFLITE_DCHECK(
@@ -389,6 +392,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
+  // TODO(xxx) check what scratch buffer size is supported not using reserved
+  // custom variable.
+  bool fallback = false;
+  if (node->custom_initial_data_size > 0) {
+    fallback = true;
+  }
+
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
@@ -416,8 +426,26 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
-      return EvalQuantizedPerChannel(context, node, params, data, input, filter,
-                                     bias, output);
+      if (fallback) {
+        MicroPrintf("CMSISN-NN-> ref");
+        int32_t* scratch_buffer = static_cast<int32_t*>(
+            context->GetScratchBuffer(context, data.scratch_buffer_index));
+        reference_integer_ops::TransposeConv(
+            data.params, data.per_channel_output_multiplier,
+            data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
+            tflite::micro::GetTensorData<int8_t>(input),
+            tflite::micro::GetTensorShape(filter),
+            tflite::micro::GetTensorData<int8_t>(filter),
+            tflite::micro::GetTensorShape(bias),
+            tflite::micro::GetOptionalTensorData<int32_t>(bias),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int8_t>(output),
+            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+      } else {
+        MicroPrintf("CMSISN-NN-> cmsis-nn");
+        return EvalQuantizedPerChannel(context, node, params, data, input,
+                                       filter, bias, output);
+      }
       break;
     }
     case kTfLiteInt16: {

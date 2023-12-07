@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,6 +63,12 @@ class MicroMemoryPlanner {
                                  int last_time_used, int offline_offset) {
     return kTfLiteError;
   }
+
+  virtual TfLiteStatus AdjustBufferSize(int buffer_index, size_t size) {
+    return kTfLiteError;
+  }
+
+  virtual TfLiteStatus ReCalculateOffsets() { return kTfLiteError; }
 
   // The largest contiguous block of memory that's needed to hold the layout.
   virtual size_t GetMaximumMemorySize() = 0;

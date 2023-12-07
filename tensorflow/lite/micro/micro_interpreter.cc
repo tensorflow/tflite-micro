@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -97,11 +97,42 @@ void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
   context_.profiler = profiler;
   context_.RequestScratchBufferInArena =
       MicroContextRequestScratchBufferInArena;
+  context_.RequestScratchBufferInArenaMinOptional =
+      MicroContextRequestScratchBufferInArenaMinOptional;
   context_.GetExternalContext = MicroContextGetExternalContext;
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
   context_.GetScratchBuffer = MicroContextGetScratchBuffer;
 
   initialization_status_ = kTfLiteOk;
+}
+
+TfLiteStatus MicroInterpreter::SetMinimalScratchNufferUsage() {
+  MicroPrintf("MicroInterpreter::SetMinimalScratchNufferUsage() ");
+  for (int subgraph_idx = 0; subgraph_idx < graph_.NumSubgraphs();
+       subgraph_idx++) {
+    const SubGraph* subgraph = model_->subgraphs()->Get(subgraph_idx);
+    TFLITE_DCHECK(subgraph != nullptr);
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
+    for (size_t i = 0; i < operators_size; ++i) {
+      const auto* registration = graph_.GetAllocations()[subgraph_idx]
+                                     .node_and_registrations[i]
+                                     .registration;
+      BuiltinOperator op_type =
+          static_cast<BuiltinOperator>(registration->builtin_code);
+
+      // TODO(xxxx) Not only for builtins since this is reserved for customs.
+      if (op_type != BuiltinOperator_CUSTOM) {
+        MicroPrintf(
+            "MicroInterpreter::SetMinimalScratchNufferUsage() set custom "
+            "size ");
+        TfLiteNode* node = &(graph_.GetAllocations()[subgraph_idx]
+                                 .node_and_registrations[i]
+                                 .node);
+        node->custom_initial_data_size = 1;
+      }
+    }
+  }
+  return kTfLiteOk;
 }
 
 TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
@@ -222,11 +253,17 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kMemoryPlanning);
 
-  TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
-                                   model_, graph_.GetAllocations(),
-                                   &scratch_buffer_handles_));
+  int minimal_scratch_buffer_usage = -1;
+  TF_LITE_ENSURE_OK(
+      &context_, allocator_.FinishModelAllocation(
+                     model_, graph_.GetAllocations(), &scratch_buffer_handles_,
+                     &minimal_scratch_buffer_usage));
 
   micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
+
+  if (minimal_scratch_buffer_usage > -1) {
+    TF_LITE_ENSURE_OK(&context_, SetMinimalScratchNufferUsage());
+  }
 
   // TODO(b/162311891): Drop these allocations when the interpreter supports
   // handling buffers from TfLiteEvalTensor.

@@ -57,6 +57,8 @@ struct ScratchBufferRequest {
   // Number of bytes required by the buffer. The actual allocated size might be
   // greater than `bytes` due to buffer alignment.
   size_t bytes;
+
+  size_t optional_bytes;
   // Node where the buffer is allocated for. This provides useful information to
   // determine the lifetime of the buffer. In AllocationInfo, this buffer will
   // have `before` = node_idx and `after` = node_idx.
@@ -185,7 +187,8 @@ class MicroAllocator {
   // call to retrieve scratch buffers.
   TfLiteStatus FinishModelAllocation(
       const Model* model, SubgraphAllocations* subgraph_allocations,
-      ScratchBufferHandle** scratch_buffer_handles);
+      ScratchBufferHandle** scratch_buffer_handles,
+      int* minimal_scratch_buffer_usage);
 
   // Allocates a TfLiteTensor struct and populates the returned value with
   // properties from the model flatbuffer. This struct is allocated from
@@ -236,7 +239,8 @@ class MicroAllocator {
   // model has finished allocation via FinishModelAllocation(). All requested
   // buffers will be accessible by the out-param in that method.
   TfLiteStatus RequestScratchBufferInArena(size_t bytes, int subgraph_idx,
-                                           int* buffer_idx);
+                                           int* buffer_idx,
+                                           size_t minimal_size = 0);
 
   // Finish allocating a specific NodeAndRegistration prepare block (kernel
   // entry for a model) with a given node ID. This call ensures that any scratch
@@ -301,7 +305,8 @@ class MicroAllocator {
   // the head section.
   virtual TfLiteStatus CommitStaticMemoryPlan(
       const Model* model, SubgraphAllocations* allocations,
-      ScratchBufferHandle* scratch_buffer_handles);
+      ScratchBufferHandle* scratch_buffer_handles,
+      int* minimal_scratch_buffer_usage);
 
   // Allocates an array of ScratchBufferHandle structs in the tail section for a
   // given number of handles.

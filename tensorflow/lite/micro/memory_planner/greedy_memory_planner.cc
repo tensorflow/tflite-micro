@@ -406,6 +406,28 @@ TfLiteStatus GreedyMemoryPlanner::GetOffsetForBuffer(int buffer_index,
   return kTfLiteOk;
 }
 
+TfLiteStatus GreedyMemoryPlanner::AdjustBufferSize(int buffer_index,
+                                                   size_t size) {
+  if ((buffer_index < 0) || (buffer_index >= buffer_count_)) {
+    MicroPrintf("buffer index %d is outside range 0 to %d", buffer_index,
+                buffer_count_);
+    return kTfLiteError;
+  }
+  BufferRequirements* current = &requirements_[buffer_index];
+  MicroPrintf("Adjust Buffer size current %d new %d", current->size, size);
+  current->size = size;
+
+  return kTfLiteOk;
+}
+
+TfLiteStatus GreedyMemoryPlanner::ReCalculateOffsets() {
+  need_to_calculate_offsets_ = true;
+
+  CalculateOffsetsIfNeeded();
+
+  return kTfLiteOk;
+}
+
 bool GreedyMemoryPlanner::DoAnyBuffersOverlap() {
   CalculateOffsetsIfNeeded();
   bool were_overlaps_found = false;
