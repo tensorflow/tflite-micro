@@ -48,7 +48,7 @@ TF_LITE_MICRO_TEST(MicroSnPrintf) {
   size_t result =
       MicroSnPrintf(buffer, kMaxBufferSize, kFormat, 42, 42.42, 0x42, "\"42\"");
   TF_LITE_MICRO_EXPECT_EQ(result, strlen(buffer));
-  TF_LITE_MICRO_EXPECT_STRING_EQ(buffer, kExpect);
+  TF_LITE_MICRO_EXPECT_STRING_EQ(kExpect, buffer);
 }
 
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
