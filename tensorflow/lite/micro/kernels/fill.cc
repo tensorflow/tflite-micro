@@ -64,7 +64,7 @@ constexpr int kDimsTensor = 0;
 constexpr int kValueTensor = 1;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FillPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   // Ensure inputs and outputs exist.
@@ -107,7 +107,7 @@ void FillImpl(const TfLiteEvalTensor* value, TfLiteEvalTensor* output) {
       micro::GetTensorShape(output), micro::GetTensorData<T>(output));
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FillEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* value =
       micro::GetEvalInput(context, node, kValueTensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
@@ -134,7 +134,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_FILL() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, FillPrepare, FillEval);
 }
 
 }  // namespace tflite

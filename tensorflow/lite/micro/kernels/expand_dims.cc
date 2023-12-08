@@ -82,7 +82,7 @@ TfLiteStatus VerifyTensorDim(TfLiteContext* context, const TfLiteTensor* input,
   return kTfLiteOk;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ExpandDimsPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
@@ -116,7 +116,7 @@ void memCopyN(T* out, const T* in, const int num_elements) {
   }
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ExpandDimsEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output =
@@ -143,7 +143,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_EXPAND_DIMS() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, ExpandDimsPrepare, ExpandDimsEval);
 }
 
 }  // namespace tflite

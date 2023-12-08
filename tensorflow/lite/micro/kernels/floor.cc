@@ -26,7 +26,7 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FloorEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
@@ -42,7 +42,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_FLOOR() {
-  return tflite::micro::RegisterOp(nullptr, nullptr, Eval);
+  return tflite::micro::RegisterOp(nullptr, nullptr, FloorEval);
 }
 
 }  // namespace tflite

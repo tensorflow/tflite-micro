@@ -100,7 +100,7 @@ void MirrorPad(const TfLiteEvalTensor* padding_matrix,
   }
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus MirrorPadEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TfLiteStatus status = kTfLiteOk;
   const OpDataMirrorPad* data =
@@ -161,12 +161,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return status;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* MirrorPadInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataMirrorPad));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus MirrorPadPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -209,7 +209,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_MIRROR_PAD() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(MirrorPadInit, MirrorPadPrepare,
+                                   MirrorPadEval);
 }
 
 }  // namespace tflite

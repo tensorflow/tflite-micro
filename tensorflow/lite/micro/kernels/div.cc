@@ -65,12 +65,12 @@ TfLiteStatus CalculateOpDataDiv(TfLiteContext* context, TfLiteTensor* input1,
   return kTfLiteOk;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* DivInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataDiv));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DivPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
@@ -179,7 +179,7 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DivEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = static_cast<TfLiteDivParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -213,7 +213,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_DIV() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(DivInit, DivPrepare, DivEval);
 }
 
 }  // namespace tflite

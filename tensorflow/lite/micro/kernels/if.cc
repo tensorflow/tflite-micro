@@ -38,12 +38,12 @@ struct OpData {
   int else_subgraph_index;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* IfInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus IfPrepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   const auto* params =
       reinterpret_cast<const TfLiteIfParams*>(node->builtin_data);
@@ -85,7 +85,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus IfEval(TfLiteContext* context, TfLiteNode* node) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
@@ -117,7 +117,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace.
 
 TFLMRegistration Register_IF() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(IfInit, IfPrepare, IfEval);
 }
 
 }  // namespace tflite
