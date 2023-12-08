@@ -17,6 +17,7 @@ limitations under the License.
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <cstring>
 #include <memory>
 #include <random>
 
@@ -29,7 +30,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 #include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -52,9 +52,6 @@ constexpr int kTfLiteAbort = -9;
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
 constexpr uint32_t kRandomSeed = 0xFB;
-
-// Which format should be used to output debug information.
-constexpr PrettyPrintType kPrintType = PrettyPrintType::kTable;
 
 constexpr size_t kTensorArenaSize = 3e6;
 constexpr int kNumResourceVariable = 100;
@@ -101,7 +98,7 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
   return true;
 }
 
-int Benchmark(const char* model_file_name) {
+int Benchmark(const char* model_file_name, tflite::PrettyPrintType print_type) {
   Profiler profiler;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
   alignas(16) static uint8_t model_file_content[kModelSize];
@@ -154,11 +151,31 @@ int Benchmark(const char* model_file_name) {
     }
   }
 
-  LogAllocatorEvents(*allocator, kPrintType);
+  LogAllocatorEvents(*allocator, print_type);
 
   return 0;
 }
 }  // namespace
 }  // namespace tflite
 
-int main(int argc, char** argv) { return tflite::Benchmark(argv[1]); }
+void usage(const char* prog_name) {
+  MicroPrintf("usage: %s filename [--csv]", prog_name);
+}
+
+int main(int argc, char** argv) {
+  // Which format should be used to output debug information.
+  tflite::PrettyPrintType print_type = tflite::PrettyPrintType::kTable;
+
+  if (--argc > 1) {
+    if (std::strcmp(argv[2], "--csv") == 0) {
+      print_type = tflite::PrettyPrintType::kCsv;
+    } else {
+      usage(argv[0]);
+      return -1;
+    }
+  } else if (argc != 1) {
+    usage(argv[0]);
+    return -1;
+  }
+  return tflite::Benchmark(argv[1], print_type);
+}
