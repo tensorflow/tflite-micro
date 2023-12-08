@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,19 +63,26 @@ else
     # host architechture
     UNAME_M=`uname -m`
     if [ "${UNAME_M}" == "x86_64" ]; then
-      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2"
-      EXPECTED_MD5="2383e4eb4ea23f248d33adc70dc3227e"
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz"
+      EXPECTED_MD5="791754852f8c18ea04da7139f153a5b7"
     elif [ "${UNAME_M}" == "aarch64" ]; then
-      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-aarch64-linux.tar.bz2"
-      EXPECTED_MD5="3fe3d8bb693bd0a6e4615b6569443d0d"
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz"
+      EXPECTED_MD5="5a08122e6d4caf97c6ccd1d29e62599c"
     fi
 
   elif [ "${HOST_OS}" == "osx" ]; then
-    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.tar.bz2"
-    EXPECTED_MD5="7f2a7b7b23797302a9d6182c6e482449"
+    # host architechture
+    UNAME_M=`uname -m`
+    if [ "${UNAME_M}" == "arm64" ]; then
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-arm64-arm-none-eabi.tar.xz"
+      EXPECTED_MD5="2c43e9d72206c1f81227b0a685df5ea6"
+    else
+      GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xz"
+      EXPECTED_MD5="41d49840b0fc676d2ae35aab21a58693"
+    fi
   elif [ "${HOST_OS}" == "windows" ]; then
-    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip"
-    EXPECTED_MD5="2bc8f0c4c4659f8259c8176223eeafc1"
+    GCC_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi.zip"
+    EXPECTED_MD5="7fd677088038cdf82f33f149e2e943ee"
   else
     echo "OS type ${HOST_OS} not supported."
     exit 1
@@ -92,7 +99,7 @@ else
     unzip -q ${TEMPFILE} -d ${TEMPDIR} >&2
     mv ${TEMPDIR}/*/* ${DOWNLOADED_GCC_PATH}
   else
-    tar -C ${DOWNLOADED_GCC_PATH} --strip-components=1 -xjf ${TEMPFILE} >&2
+    tar -C ${DOWNLOADED_GCC_PATH} --strip-components=1 -xJf ${TEMPFILE} >&2
   fi
   echo >&2 "Unpacked to directory: ${DOWNLOADED_GCC_PATH}"
 fi
