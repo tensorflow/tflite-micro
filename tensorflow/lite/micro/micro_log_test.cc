@@ -42,11 +42,11 @@ TF_LITE_MICRO_TEST(MicroPrintfTest) {
   MicroPrintf("Another %# badly-formed %% format string");
 }
 
-TF_LITE_MICRO_TEST(MicroSnPrintf) {
+TF_LITE_MICRO_TEST(MicroSnprintf) {
   char buffer[kMaxBufferSize];
   buffer[0] = '\0';
   size_t result =
-      MicroSnPrintf(buffer, kMaxBufferSize, kFormat, 42, 42.42, 0x42, "\"42\"");
+      MicroSnprintf(buffer, kMaxBufferSize, kFormat, 42, 42.42, 0x42, "\"42\"");
   TF_LITE_MICRO_EXPECT_EQ(result, strlen(buffer));
   TF_LITE_MICRO_EXPECT_STRING_EQ(kExpect, buffer);
 }

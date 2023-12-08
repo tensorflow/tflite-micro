@@ -48,7 +48,7 @@ extern "C" void DebugLog(const char* format, va_list args) {
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
 // Only called from MicroVsnprintf (micro_log.h)
-extern "C" int DebugLogVsnprintf(char* buffer, size_t buf_size,
+extern "C" int DebugVsnprintf(char* buffer, size_t buf_size,
                                  const char* format, va_list vlist) {
   return vsnprintf_(buffer, buf_size, format, vlist);
 }

@@ -22,16 +22,16 @@ limitations under the License.
 // printf-like functionalitys and are common to all target platforms.
 void MicroPrintf(const char* format, ...);
 void VMicroPrintf(const char* format, va_list args);
-int MicroSnPrintf(char* buffer, size_t buf_size, const char* format, ...);
-int VMicroSnPrintf(char* buffer, size_t buf_size, const char* format,
+int MicroSnprintf(char* buffer, size_t buf_size, const char* format, ...);
+int MicroVsnprintf(char* buffer, size_t buf_size, const char* format,
                    va_list vlist);
 #else
 // We use a #define to ensure that the strings are completely stripped, to
 // prevent an unnecessary increase in the binary size.
 #define MicroPrintf(...) tflite::Unused(__VA_ARGS__)
 #define VMicroPrintf(...) tflite::Unused(__VA_ARGS__)
-#define MicroSnPrintf(...) tflite::Unused(__VA_ARGS__)
-#define VMicroSnPrintf(...) tflite::Unused(__VA_ARGS__)
+#define MicroSnprintf(...) tflite::Unused<int>(__VA_ARGS__)
+#define MicroVsnprintf(...) tflite::Unused<int>(__VA_ARGS__)
 #endif
 
 namespace tflite {
@@ -41,6 +41,12 @@ namespace tflite {
 template <typename... Args>
 void Unused(Args&&... args) {
   (void)(sizeof...(args));
+}
+
+template <typename T, typename... Args>
+T Unused(Args&&... args) {
+  (void)(sizeof...(args));
+  return static_cast<T>(0);
 }
 
 }  // namespace tflite

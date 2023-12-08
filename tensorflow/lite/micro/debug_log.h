@@ -32,8 +32,8 @@ extern "C" {
 // the tensorflow/lite/micro/debug_log.cc file.  These functions should support
 // standard C/C++ stdio style formatting operations.
 void DebugLog(const char* format, va_list args);
-int DebugLogVsnprintf(char* buffer, size_t buf_size, const char* format,
-                      va_list vlist);
+int DebugVsnprintf(char* buffer, size_t buf_size, const char* format,
+                   va_list vlist);
 
 #ifdef __cplusplus
 }  // extern "C"
