@@ -120,11 +120,11 @@ void UpdateColumnWidths(int (&widths)[kArenaColumns],
   char buf[kMaxBufSize];
   int count;
 
-  count = MicroSnPrintf(buf, kMaxBufSize, "%s", record.title);
+  count = MicroSnprintf(buf, kMaxBufSize, "%s", record.title);
   widths[0] = std::max(widths[0], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%d", record.allocations);
+  count = MicroSnprintf(buf, kMaxBufSize, "%d", record.allocations);
   widths[1] = std::max(widths[1], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%.2f",
+  count = MicroSnprintf(buf, kMaxBufSize, "%.2f",
                         static_cast<double>(record.percentage));
   widths[2] = std::max(widths[2], count);
 }
@@ -134,17 +134,17 @@ void UpdateColumnWidths(int (&widths)[kAllocationColumns],
   char buf[kMaxBufSize];
   int count;
 
-  count = MicroSnPrintf(buf, kMaxBufSize, "%s", record.title);
+  count = MicroSnprintf(buf, kMaxBufSize, "%s", record.title);
   widths[0] = std::max(widths[0], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%d", record.type);
+  count = MicroSnprintf(buf, kMaxBufSize, "%d", record.type);
   widths[1] = std::max(widths[1], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%d", record.used_bytes);
+  count = MicroSnprintf(buf, kMaxBufSize, "%d", record.used_bytes);
   widths[2] = std::max(widths[2], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%d", record.requested_bytes);
+  count = MicroSnprintf(buf, kMaxBufSize, "%d", record.requested_bytes);
   widths[3] = std::max(widths[3], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%d", record.count);
+  count = MicroSnprintf(buf, kMaxBufSize, "%d", record.count);
   widths[4] = std::max(widths[4], count);
-  count = MicroSnPrintf(buf, kMaxBufSize, "%.2f",
+  count = MicroSnprintf(buf, kMaxBufSize, "%.2f",
                         static_cast<double>(record.percentage));
   widths[5] = std::max(widths[5], count);
 }
@@ -158,10 +158,10 @@ BufferDatum AddTableColumnValue(const BufferDatum& buffer, const char* format,
   char* p;
   char* p_end;
   std::tie(p, p_end) = buffer;
-  int count = MicroSnPrintf(p, p_end - p, format, column_width, value);
+  int count = MicroSnprintf(p, p_end - p, format, column_width, value);
   p += count;
   if (separator != nullptr && p < p_end) {
-    count = MicroSnPrintf(p, p_end - p, separator);
+    count = MicroSnprintf(p, p_end - p, separator);
     p += count;
   }
 
