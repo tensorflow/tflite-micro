@@ -13,55 +13,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// Implementation for the DebugLog() function that prints to the debug logger on
-// an generic Cortex-M device.
-
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
 #include "tensorflow/lite/micro/debug_log.h"
 
-#include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
+#include <cstdio>
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
-#include <stdio.h>
+#include "eyalroz_printf/src/printf/printf.h"
 #endif
 
-static DebugLogCallback debug_log_callback = nullptr;
-
-namespace {
-
-void InvokeDebugLogCallback(const char* s) {
-  if (debug_log_callback != nullptr) {
-    debug_log_callback(s);
-  }
-}
-
-}  // namespace
-
-void RegisterDebugLogCallback(void (*cb)(const char* s)) {
-  debug_log_callback = cb;
-}
-
-void DebugLog(const char* format, va_list args) {
+extern "C" void DebugLog(const char* format, va_list args) {
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
   constexpr int kMaxLogLen = 256;
   char log_buffer[kMaxLogLen];
 
-  vsnprintf(log_buffer, kMaxLogLen, format, args);
-  InvokeDebugLogCallback(log_buffer);
+  vsnprintf_(log_buffer, kMaxLogLen, format, args);
+  std::fputs(log_buffer, stdout);
 #endif
 }
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
 // Only called from MicroVsnprintf (micro_log.h)
-int DebugVsnprintf(char* buffer, size_t buf_size, const char* format,
-                   va_list vlist) {
-  return vsnprintf(buffer, buf_size, format, vlist);
+extern "C" int DebugVsnprintf(char* buffer, size_t buf_size, const char* format,
+                              va_list vlist) {
+  return vsnprintf_(buffer, buf_size, format, vlist);
 }
 #endif
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
