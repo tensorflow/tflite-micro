@@ -218,7 +218,7 @@ TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TFLMRegistration Register_PAD() {
-  return tflite::micro::RegisterOp(Init, PadPrepare, Eval);
+  return tflite::micro::RegisterOp(PadInit, PadPrepare, PadEval);
 }
 
 // Also register Pad as PadV2.
