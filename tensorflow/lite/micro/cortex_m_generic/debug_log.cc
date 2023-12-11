@@ -16,11 +16,11 @@ limitations under the License.
 // Implementation for the DebugLog() function that prints to the debug logger on
 // an generic Cortex-M device.
 
+#include "tensorflow/lite/micro/debug_log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
-
-#include "tensorflow/lite/micro/debug_log.h"
 
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
