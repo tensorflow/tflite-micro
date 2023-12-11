@@ -31,7 +31,7 @@ constexpr int kInputTensor = 0;
 constexpr int kSizeTensor = 1;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus ResizeNearestNeighbor(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ResizeNearestNeighborPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
