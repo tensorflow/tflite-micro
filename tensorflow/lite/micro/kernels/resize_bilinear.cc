@@ -30,7 +30,7 @@ constexpr int kInputTensor = 0;
 constexpr int kSizeTensor = 1;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ResizeBilinearPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
@@ -66,7 +66,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ResizeBilinearEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteResizeBilinearParams*>(node->builtin_data);
 
@@ -110,7 +110,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_RESIZE_BILINEAR() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, ResizeBilinearPrepare,
+                                   ResizeBilinearEval);
 }
 
 }  // namespace tflite

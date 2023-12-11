@@ -29,7 +29,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EvalReshapeReference(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kReshapeInputTensor);
   TfLiteEvalTensor* output =
@@ -52,7 +52,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_RESHAPE() {
-  return tflite::micro::RegisterOp(nullptr, PrepareReshapeReference, Eval);
+  return tflite::micro::RegisterOp(nullptr, PrepareReshapeReference,
+                                   EvalReshapeReference);
 }
 
 }  // namespace tflite
