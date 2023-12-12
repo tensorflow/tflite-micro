@@ -125,19 +125,23 @@ recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call rec
 # 3 - Model
 # Calling eval on the output will create the targets that you need.
 define codegen_model
+# Filter out targets that currently don't support codegen:
+# Hexagon: Docker container doesn't have Bazel support.
+ifneq ($(TARGET), $(filter $(TARGET), hexagon))
 
 $(1)_MODEL := $(3)
 
 $(1)_GENERATED_SRCS := $(GENERATED_SRCS_DIR)$(2).cc
 $(1)_GENERATED_HDRS := $(GENERATED_SRCS_DIR)$(2).h
 
-$$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL) $$($(1)_PREPROCESSOR_OUTPUT)
+$$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL)
 	cd $(BAZEL_ROOT) && bazel run //codegen:code_generator -- \
 	--model $(abspath $$($(1)_MODEL)) \
 	--output_dir $(abspath $(GENERATED_SRCS_DIR)) --output_name $(2)
 
 $(1): $$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS)
 
+endif
 endef # codegen_model
 
 # Generates and compiles code capable of performing inference without an
@@ -154,6 +158,9 @@ endef # codegen_model
 # 5 - C/C++ header files
 # Calling eval on the output will create the targets that you need.
 define codegen_model_binary
+# Filter out targets that currently don't support codegen:
+# Hexagon: Docker container doesn't have Bazel support.
+ifneq ($(TARGET), $(filter $(TARGET), hexagon))
 
 $(1)_CODEGEN_SRCS := $(4) $$(CODEGEN_RUNTIME_CC_SRCS)
 $(1)_CODEGEN_HDRS := $(5) $$(CODEGEN_RUNTIME_CC_HDRS)
@@ -181,4 +188,5 @@ MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 run_$(1): $$($(1)_BINARY)
 	$$(RUN_COMMAND) $$($(1)_BINARY)
 
+endif
 endef # codegen_model_binary
