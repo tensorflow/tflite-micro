@@ -279,7 +279,8 @@ RuntimeShape SwapRowColumnDims(const RuntimeShape& shape) {
   return swapped_shape;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* BatchMatMulInit(TfLiteContext* context, const char* buffer,
+                      size_t length) {
   // This is a builtin op, so we don't use the contents in 'buffer', if any.
   // Instead, we allocate a new object to carry information from Prepare() to
   // Eval().
@@ -288,7 +289,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return micro_context->AllocatePersistentBuffer(sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BatchMatMulPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -463,7 +464,7 @@ TfLiteStatus EvalInt16(TfLiteContext* context, const OpData& data,
 // RHS <..., C, B> X LHS <..., B, A>
 // where output is a C X A column-oriented, which is equivalent to
 // A X C row-oriented.
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus BatchMatMulEval(TfLiteContext* context, TfLiteNode* node) {
   EvalOpContext op_context(context, node);
   OpData* op_data = op_context.op_data;
   const TfLiteEvalTensor* lhs = op_context.lhs;
@@ -550,7 +551,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_BATCH_MATMUL() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(BatchMatMulInit, BatchMatMulPrepare,
+                                   BatchMatMulEval);
 }
 
 }  // namespace tflite

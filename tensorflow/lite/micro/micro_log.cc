@@ -46,4 +46,17 @@ void MicroPrintf(const char* format, ...) {
   VMicroPrintf(format, args);
   va_end(args);
 }
+
+int MicroSnprintf(char* buffer, size_t buf_size, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int result = MicroVsnprintf(buffer, buf_size, format, args);
+  va_end(args);
+  return result;
+}
+
+int MicroVsnprintf(char* buffer, size_t buf_size, const char* format,
+                   va_list vlist) {
+  return DebugVsnprintf(buffer, buf_size, format, vlist);
+}
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)

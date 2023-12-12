@@ -27,7 +27,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
   const TfLiteEvalTensor* filter =
@@ -144,7 +144,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_CONV_2D() {
-  return tflite::micro::RegisterOp(ConvInit, ConvPrepare, Eval);
+  return tflite::micro::RegisterOp(ConvInit, ConvPrepare, ConvEval);
 }
 
 }  // namespace tflite

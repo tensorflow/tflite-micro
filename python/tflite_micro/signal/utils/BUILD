@@ -41,7 +41,6 @@ py_library(
     deps = [
         requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
-        "//python/tflite_micro/signal:ops",
     ],
 )
 
