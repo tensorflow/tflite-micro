@@ -21,6 +21,7 @@ limitations under the License.
 #include <type_traits>
 #include <utility>
 
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -53,13 +54,15 @@ constexpr int kMaxBufSize = 100;
 LogArenaRecord GetLogArenaRecord(
     const tflite::RecordingSingleArenaBufferAllocator* allocator,
     int row_index) {
+  TFLITE_DCHECK(row_index < kArenaRows);
+
   const size_t total_bytes = allocator->GetUsedBytes();
   const size_t allocations[] = {total_bytes,
                                 allocator->GetNonPersistentUsedBytes(),
                                 allocator->GetPersistentUsedBytes()};
   static_assert(std::extent<decltype(allocations)>::value == kArenaRows,
                 "kArenaRows mismatch");
-  const char* titles[] = {"Total", "Head", "Tail"};
+  const char* titles[] = {"Total", "NonPersistent", "Persistent"};
   static_assert(std::extent<decltype(titles)>::value == kArenaRows,
                 "kArenaRows mismatch");
 
@@ -73,6 +76,8 @@ LogArenaRecord GetLogArenaRecord(
 
 LogAllocationRecord GetLogAllocationRecord(
     const tflite::RecordingMicroAllocator& allocator, int row_index) {
+  TFLITE_DCHECK(row_index < kAllocationTypes);
+
   const tflite::RecordedAllocationType types[] = {
       tflite::RecordedAllocationType::kTfLiteEvalTensorData,
       tflite::RecordedAllocationType::kPersistentTfLiteTensorData,

@@ -166,16 +166,20 @@ int main(int argc, char** argv) {
   // Which format should be used to output debug information.
   tflite::PrettyPrintType print_type = tflite::PrettyPrintType::kTable;
 
-  if (--argc > 1) {
+  if (argc < 2 || argc > 3) {
+    usage(argv[0]);
+    return -1;
+  }
+  const char* model_filename = argv[1];
+
+  if (argc == 3) {
     if (std::strcmp(argv[2], "--csv") == 0) {
       print_type = tflite::PrettyPrintType::kCsv;
     } else {
       usage(argv[0]);
       return -1;
     }
-  } else if (argc != 1) {
-    usage(argv[0]);
-    return -1;
   }
-  return tflite::Benchmark(argv[1], print_type);
+
+  return tflite::Benchmark(model_filename, print_type);
 }
