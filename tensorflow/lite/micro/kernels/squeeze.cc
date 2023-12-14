@@ -44,7 +44,7 @@ struct SqueezeContext {
   TfLiteTensor* output;
 };
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SqueezePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -87,7 +87,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SqueezeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
 
   if (input->type == kTfLiteString) {
@@ -112,7 +112,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_SQUEEZE() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, SqueezePrepare, SqueezeEval);
 }
 
 }  // namespace tflite

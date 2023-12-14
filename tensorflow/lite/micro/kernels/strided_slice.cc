@@ -29,7 +29,7 @@ namespace tflite {
 
 namespace {
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus StridedSliceEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const StridedSliceParams& op_params =
       *(static_cast<const StridedSliceParams*>(node->user_data));
@@ -85,7 +85,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_STRIDED_SLICE() {
-  return tflite::micro::RegisterOp(StridedSliceInit, StridedSlicePrepare, Eval);
+  return tflite::micro::RegisterOp(StridedSliceInit, StridedSlicePrepare,
+                                   StridedSliceEval);
 }
 
 }  // namespace tflite
