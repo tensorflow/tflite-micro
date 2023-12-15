@@ -37,10 +37,10 @@ void* MicroInterpreterContext::AllocatePersistentBuffer(size_t bytes) {
 }
 
 TfLiteStatus MicroInterpreterContext::RequestScratchBufferInArena(
-    size_t bytes, int* buffer_idx, size_t extra) {
+    size_t bytes, int* buffer_idx) {
   TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
   return allocator_.RequestScratchBufferInArena(
-      bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx, extra);
+      bytes, graph_.GetCurrentSubgraphIndex(), buffer_idx);
 }
 
 void* MicroInterpreterContext::GetScratchBuffer(int buffer_idx) {

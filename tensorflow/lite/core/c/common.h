@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -915,9 +915,6 @@ typedef struct TfLiteContext {
   /// WARNING: This is an experimental interface that is subject to change.
   TfLiteStatus (*RequestScratchBufferInArena)(struct TfLiteContext* ctx,
                                               size_t bytes, int* buffer_idx);
-
-  TfLiteStatus (*RequestScratchBufferInArenaMinOptional)(
-      struct TfLiteContext* ctx, size_t bytes, int* buffer_idx, size_t extra);
 
   /// Get the scratch buffer pointer.
   /// This method is only available in Eval stage.

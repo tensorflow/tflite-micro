@@ -511,8 +511,7 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
 
 TfLiteStatus MicroAllocator::FinishModelAllocation(
     const Model* model, SubgraphAllocations* subgraph_allocations,
-    ScratchBufferHandle** scratch_buffer_handles,
-    int* minimal_scratch_buffer_usage) {
+    ScratchBufferHandle** scratch_buffer_handles) {
   if (!model_is_allocating_) {
     MicroPrintf(
         "MicroAllocator: Model allocation finished before "
@@ -526,8 +525,7 @@ TfLiteStatus MicroAllocator::FinishModelAllocation(
 
   // Plan all subgraphs and scratch buffers together.
   TF_LITE_ENSURE_STATUS(CommitStaticMemoryPlan(model, subgraph_allocations,
-                                               *scratch_buffer_handles,
-                                               minimal_scratch_buffer_usage));
+                                               *scratch_buffer_handles));
   model_is_allocating_ = false;
   return kTfLiteOk;
 }
@@ -539,8 +537,7 @@ void* MicroAllocator::AllocatePersistentBuffer(size_t bytes) {
 
 TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
                                                          int subgraph_idx,
-                                                         int* buffer_idx,
-                                                         size_t minimal_size) {
+                                                         int* buffer_idx) {
   // All scratch buffer requests are stored in the head section of the arena
   // when a model is in the prepare phase. First align a scratch buffer request
   // pointer to the start of the head:
@@ -568,7 +565,6 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
   // Assign -1 as a sentinel value that will be updated when the node finishes
   // allocating:
   current_request->bytes = bytes;
-  current_request->optional_bytes = minimal_size;
   current_request->node_idx = kUnassignedScratchBufferRequestIndex;
   current_request->subgraph_idx = subgraph_idx;
 
@@ -843,10 +839,8 @@ TfLiteStatus MicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
 
 TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
     const Model* model, SubgraphAllocations* allocations,
-    ScratchBufferHandle* scratch_buffer_handles,
-    int* minimal_scratch_buffer_usage) {
+    ScratchBufferHandle* scratch_buffer_handles) {
   size_t head_usage = 0;
-
   // Create static memory plan
   // 1. Calculate AllocationInfo to know the lifetime of each tensor/buffer.
   // 2. Add them into the planner (such as the GreedyMemoryPlanner).
@@ -920,7 +914,6 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
 #ifdef TF_LITE_SHOW_MEMORY_USE
   memory_planner_->PrintMemoryPlan();
 #endif
-
   head_usage = memory_planner_->GetMaximumMemorySize();
 
   // The head is used to store memory plans for one model at a time during the
@@ -935,32 +928,9 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
   // The head is used for storing scratch buffer allocations before finalizing a
   // memory plan in this function. Ensure that the head is set to the largest
   // memory plan sent through the allocator:
-  if (kTfLiteOk !=
+  TF_LITE_ENSURE_STATUS(
       non_persistent_buffer_allocator_->ReserveNonPersistentOverlayMemory(
-          max_head_buffer_usage_, MicroArenaBufferAlignment())) {
-    // Make a second attempt with potentially smaller scratch buffer usage
-    TF_LITE_ENSURE_STATUS(builder.ReAdjustScratchBufferOffsets(
-        0, scratch_buffer_requests, scratch_buffer_handles, allocations,
-        memory_planner_, allocation_info_count));
-
-    // Re-commit the plan.
-    TF_LITE_ENSURE_STATUS(
-        CommitPlan(memory_planner_,
-                   non_persistent_buffer_allocator_->GetOverlayMemoryAddress(),
-                   allocation_info, allocation_info_count));
-    max_head_buffer_usage_ = memory_planner_->GetMaximumMemorySize();
-
-    TF_LITE_ENSURE_STATUS(
-        non_persistent_buffer_allocator_->ReserveNonPersistentOverlayMemory(
-            max_head_buffer_usage_, MicroArenaBufferAlignment()));
-
-    // Signal back that minimal scratch buffer usage is needed.
-    // TODO(xxx) ideally per operator
-    *minimal_scratch_buffer_usage = 1;
-  }
-
-  MicroPrintf(
-      "Done that :ReserveNonPersistentOverlayMemory-> ResizeBuffern666");
+          max_head_buffer_usage_, MicroArenaBufferAlignment()));
   return kTfLiteOk;
 }
 

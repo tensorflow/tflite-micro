@@ -203,7 +203,6 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
           (eval_tensors[i].data.data == nullptr) &&
           (!subgraph->tensors()->Get(i)->is_variable()) &&
           (current->bytes != 0);
-      current->needs_resizing = false;
       if (offline_offsets) {
         current->offline_offset = offline_offsets[offline_index++];
 
@@ -226,66 +225,8 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
     current->first_created = kUninitializedLifetime;
     current->last_used = kUninitializedLifetime;
     current->needs_allocating = true;
-    current->needs_resizing = false;
     current->offline_offset = kOnlinePlannedBuffer;
   }
-  return kTfLiteOk;
-}
-
-TfLiteStatus AllocationInfoBuilder::ReAdjustScratchBufferOffsets(
-    int subgraph_idx, internal::ScratchBufferRequest* scratch_buffer_requests,
-    ScratchBufferHandle* scratch_buffer_handles,
-    SubgraphAllocations* allocations, MicroMemoryPlanner* planner,
-    size_t allocation_info_size) {
-  const SubGraph* subgraph = model_->subgraphs()->Get(subgraph_idx);
-  const uint32_t operators_size = NumSubgraphOperators(subgraph);
-  AllocationInfo* allocation_info = info_.allocation_info;
-
-  // Update AllocationInfo from ScratchBufferRequest.
-  bool found_no_smaller_request = true;
-  for (uint32_t i = 0; i < operators_size; i++) {
-    AllocationInfo* scratch_allocation_info =
-        &allocation_info[info_.scratch_offset];
-
-    for (size_t scratch_idx = 0; scratch_idx < info_.scratch_buffer_count;
-         scratch_idx++) {
-      internal::ScratchBufferRequest request =
-          scratch_buffer_requests[scratch_idx];
-      AllocationInfo* current = &scratch_allocation_info[scratch_idx];
-      if (request.node_idx == static_cast<int>(i) &&
-          request.subgraph_idx == static_cast<int>(subgraph_idx)) {
-        ScratchBufferHandle* current_handle =
-            &(scratch_buffer_handles[scratch_idx]);
-        current->output_ptr = reinterpret_cast<void**>(&current_handle->data);
-
-        if (request.optional_bytes > 0) {
-          current->bytes = request.optional_bytes;
-          current->needs_resizing = true;
-
-          found_no_smaller_request = false;
-        }
-      }
-    }
-  }
-
-  if (found_no_smaller_request) {
-    return kTfLiteError;
-  }
-
-  // Update actual planner buffers from AllocationInfo.
-  int planner_buffer_idx = 0;
-  for (size_t i = 0; i < allocation_info_size; ++i) {
-    const AllocationInfo* current = &allocation_info[i];
-    if (current->needs_allocating) {
-      if (current->needs_resizing) {
-        planner->AdjustBufferSize(planner_buffer_idx, current->bytes);
-      }
-      planner_buffer_idx++;
-    }
-  }
-
-  planner->ReCalculateOffsets();
-
   return kTfLiteOk;
 }
 

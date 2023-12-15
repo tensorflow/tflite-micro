@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ class FakeMicroContext : public MicroContext {
                    MicroGraph* micro_graph);
 
   void* AllocatePersistentBuffer(size_t bytes) override;
-  TfLiteStatus RequestScratchBufferInArena(size_t bytes, int* buffer_index,
-                                           size_t minimal_size = 0) override;
+  TfLiteStatus RequestScratchBufferInArena(size_t bytes,
+                                           int* buffer_index) override;
   void* GetScratchBuffer(int buffer_index) override;
 
   TfLiteTensor* AllocateTempTfLiteTensor(int tensor_index) override;
