@@ -75,29 +75,26 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
-  RuntimeShape input_shape = GetTensorShape(input);
-  RuntimeShape output_shape = GetTensorShape(output);
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+
+  // Check input channels matching filter
+  const int input_channels = input->dims->data[3];
+  const int filter_input_channels = filter->dims->data[3];
+  TF_LITE_ENSURE(context, filter_input_channels > 0);
+  TF_LITE_ENSURE_EQ(context, input_channels % filter_input_channels, 0);
 
   // Initialize cmsis_nn input dimensions
   cmsis_nn_dims input_dims;
-  input_dims.n = MatchingDim(input_shape, 0, output_shape, 0);
   input_dims.h = input->dims->data[1];
   input_dims.w = input->dims->data[2];
-  input_dims.c = input_shape.Dims(3);
 
   // Initialize cmsis_nn filter dimensions
   cmsis_nn_dims filter_dims;
-  filter_dims.n = output_shape.Dims(3);
   filter_dims.h = filter->dims->data[1];
   filter_dims.w = filter->dims->data[2];
-  filter_dims.c = input_dims.c;
-
-  // Initialize cmsis_nn output dimensions
-  cmsis_nn_dims output_dims;
-  output_dims.n = input_dims.n;
-  output_dims.h = output->dims->data[1];
-  output_dims.w = output->dims->data[2];
-  output_dims.c = output_shape.Dims(3);
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const int num_channels = filter->dims->data[kConvQuantizedDimension];
@@ -109,10 +106,31 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
             context, num_channels * sizeof(int32_t)));
   }
 
+  int output_height = 0;
+  int output_width = 0;
   TF_LITE_ENSURE_STATUS(CalculateOpDataConv(
       context, node, params, input_dims.w, input_dims.h, filter_dims.w,
-      filter_dims.h, output_dims.w, output_dims.h, input->type,
+      filter_dims.h, &output_width, &output_height, input->type,
       &data->reference_op_data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(ConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
+
+  // Finish initializing cmsis_nn input, filter dimensions
+  RuntimeShape input_shape = GetTensorShape(input);
+  RuntimeShape output_shape = GetTensorShape(output);
+  input_dims.n = MatchingDim(input_shape, 0, output_shape, 0);
+  input_dims.c = input_shape.Dims(3);
+  filter_dims.n = output_shape.Dims(3);
+  filter_dims.c = input_dims.c;
+
+  // Initialize cmsis_nn output dimensions
+  cmsis_nn_dims output_dims;
+  output_dims.n = input_dims.n;
+  output_dims.h = output_shape.Dims(1);
+  output_dims.w = output_shape.Dims(2);
+  output_dims.c = output_shape.Dims(3);
 
   // CMSIS_NN allows INT64 or nullptr bias data pointer
   if (input->type == kTfLiteInt8 ||

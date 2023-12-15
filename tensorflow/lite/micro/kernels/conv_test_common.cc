@@ -18,13 +18,18 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
+constexpr int kInputIndex = 0;
+constexpr int kFilterIndex = 1;
+constexpr int kBiasIndex = 2;
+constexpr int kOutputIndex = 3;
+
 template <typename T>
 TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
                         int output_length, TfLiteConvParams* conv_params,
                         TFLMRegistration registration, T* output_data) {
-  int inputs_array_data[] = {3, 0, 1, 2};
+  int inputs_array_data[] = {3, kInputIndex, kFilterIndex, kBiasIndex};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  int outputs_array_data[] = {1, 3};
+  int outputs_array_data[] = {1, kOutputIndex};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
@@ -45,15 +50,37 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  TfLiteConvParams* conv_params,
                                  TFLMRegistration registration, T* output_data,
                                  float tolerance) {
+  // grab pointer to expected tensor shape
+  TfLiteIntArray* expected_out_dims = tensors[kOutputIndex].dims;
+
   TfLiteStatus status = InvokeConv(tensors, tensors_size, output_length,
                                    conv_params, registration, output_data);
   if (status != kTfLiteOk) {
     return status;
   }
+
+  // check output dimensions (relocated) against original dimensions
+  TF_LITE_MICRO_EXPECT_EQ(expected_out_dims->size,
+                          tensors[kOutputIndex].dims->size);
+  TF_LITE_MICRO_CHECK_FAIL();
+  for (int i = 0; i < expected_out_dims->size; i++) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_out_dims->data[i],
+                            tensors[kOutputIndex].dims->data[i]);
+    // TODO(b/158102673): workaround for not having fatal test assertions.
+    TF_LITE_MICRO_CHECK_FAIL();
+  }
+
+  // compare expected against output data
+  const int actual_output_length = ElementCount(*expected_out_dims);
+  TF_LITE_MICRO_EXPECT_EQ(output_length, actual_output_length);
+  TF_LITE_MICRO_CHECK_FAIL();
   for (int i = 0; i < output_length; ++i) {
     TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
                               tolerance);
+    // TODO(b/158102673): workaround for not having fatal test assertions.
+    TF_LITE_MICRO_CHECK_FAIL();
   }
+
   return kTfLiteOk;
 }
 

@@ -70,9 +70,19 @@ ConvParams ConvParamsQuantized(const TfLiteConvParams& params,
 TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteConvParams& params, int width,
                                  int height, int filter_width,
-                                 int filter_height, int out_width,
-                                 int out_height, const TfLiteType data_type,
+                                 int filter_height, int* out_width,
+                                 int* out_height, const TfLiteType data_type,
                                  OpDataConv* data);
+
+// When this method is called, the output tensor shape is computed and
+// relocated to persistent arena memory.
+// The height and width parameters should be the computed results from
+// CalculateOpDataConv.
+TfLiteStatus ConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
+                                     const TfLiteTensor* input,
+                                     const TfLiteTensor* filter,
+                                     TfLiteTensor* output, int height,
+                                     int width);
 
 void* ConvInit(TfLiteContext* context, const char* buffer, size_t length);
 

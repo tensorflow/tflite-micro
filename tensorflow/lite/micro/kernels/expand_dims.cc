@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,38 +47,43 @@ TfLiteStatus GetAxisValueFromTensor(TfLiteContext* context,
   }
 }
 
-// Verifies that the output tensor's dimension shape is equivalent to inserting
+// Rewrite the output tensor's dimension shape so it is equivalent to inserting
 // a dimension of length 1 at the dimension index axis of input's shape as
 // defined in https://www.tensorflow.org/api_docs/python/tf/expand_dims.
-TfLiteStatus VerifyTensorDim(TfLiteContext* context, const TfLiteTensor* input,
-                             const TfLiteTensor* axis_tensor,
-                             const TfLiteTensor* output) {
+TfLiteStatus ReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
+                                 const TfLiteTensor* input,
+                                 const TfLiteTensor* axis_tensor,
+                                 TfLiteTensor* output) {
   int32_t axis_value = 0;
   TF_LITE_ENSURE_OK(context,
                     GetAxisValueFromTensor(context, axis_tensor, &axis_value));
 
-  tflite::RuntimeShape input_shape = tflite::GetTensorShape(input);
+  TfLiteIntArray* input_shape = input->dims;
   if (axis_value < 0) {
-    axis_value = input_shape.DimensionsCount() + 1 + axis_value;
+    axis_value = input_shape->size + 1 + axis_value;
   }
-  TF_LITE_ENSURE(context, axis_value <= input_shape.DimensionsCount());
 
-  // TFLM only supports fixed dimension tensor and assumes that the output shape
-  // is fully specified in the model. As such, TFLM directly use the pointer to
-  // the dimension array in the model buffer.
-  tflite::RuntimeShape output_shape = tflite::GetTensorShape(output);
+  // relocate output tensor dims so they can be updated
+  TfLiteEvalTensor* output_eval =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+  TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
+      context, output, output_eval));
 
-  TF_LITE_ENSURE(context, output_shape.DimensionsCount() ==
-                              input_shape.DimensionsCount() + 1);
-  for (int i = 0; i < output_shape.DimensionsCount(); ++i) {
+  TfLiteIntArray* output_shape = output->dims;
+  TF_LITE_ENSURE(context, output_shape->size == input_shape->size + 1);
+  TF_LITE_ENSURE(context, axis_value < output_shape->size);
+  TF_LITE_ENSURE(context, axis_value >= 0);
+
+  for (int i = 0; i < output_shape->size; ++i) {
     if (i < axis_value) {
-      TF_LITE_ENSURE(context, output_shape.Dims(i) == input_shape.Dims(i));
+      output_shape->data[i] = input_shape->data[i];
     } else if (i == axis_value) {
-      TF_LITE_ENSURE(context, output_shape.Dims(i) == 1);
+      output_shape->data[i] = 1;
     } else {
-      TF_LITE_ENSURE(context, output_shape.Dims(i) == input_shape.Dims(i - 1));
+      output_shape->data[i] = input_shape->data[i - 1];
     }
   }
+
   return kTfLiteOk;
 }
 
@@ -101,7 +106,8 @@ TfLiteStatus ExpandDimsPrepare(TfLiteContext* context, TfLiteNode* node) {
     MicroPrintf("DynamicTensor is not yet supported by Expand_Dims.");
     return kTfLiteError;
   }
-  TF_LITE_ENSURE_OK(context, VerifyTensorDim(context, input, axis, output));
+  TF_LITE_ENSURE_OK(context,
+                    ReshapeOutputTensor(context, node, input, axis, output));
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(axis);
