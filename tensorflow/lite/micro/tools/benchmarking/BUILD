@@ -10,9 +10,10 @@ cc_library(
     srcs = ["metrics.cc"],
     hdrs = ["metrics.h"],
     deps = [
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:recording_allocators",
-        "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator",
     ],
 )
 
