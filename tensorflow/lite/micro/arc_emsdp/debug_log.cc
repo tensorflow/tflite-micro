@@ -123,3 +123,11 @@ extern "C" void DebugLog(const char* format, va_list args) {
   LogDebugString(log_buffer);
 #endif
 }
+
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+// Only called from MicroVsnprintf (micro_log.h)
+extern "C" int DebugVsnprintf(char* buffer, size_t buf_size, const char* format,
+                              va_list vlist) {
+  return vsnprintf_(buffer, buf_size, format, vlist);
+}
+#endif

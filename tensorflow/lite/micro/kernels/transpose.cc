@@ -46,7 +46,7 @@ struct TransposeContext {
   TfLiteTensor* output;
 };
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -72,7 +72,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* perm_tensor =
       tflite::micro::GetEvalInput(context, node, kPermTensor);
   const int32_t* perm_data = perm_tensor->data.i32;
@@ -117,6 +117,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_TRANSPOSE() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, TransposePrepare, TransposeEval);
 }
 }  // namespace tflite

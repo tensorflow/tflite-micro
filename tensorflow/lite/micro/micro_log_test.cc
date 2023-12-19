@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,18 +15,42 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_log.h"
 
-#include "tensorflow/lite/micro/system_setup.h"
+#include <cstddef>
+#include <cstring>
 
-namespace tflite {
-inline void InitializeTest() { InitializeTarget(); }
-}  // namespace tflite
+#include "tensorflow/lite/micro/testing/micro_test.h"
 
-int main(int argc, char** argv) {
-  tflite::InitializeTest();
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-  MicroPrintf("Number: %d", 42);
-  MicroPrintf("Badly-formed format string %");
-  MicroPrintf("Another % badly-formed %% format string");
-  MicroPrintf("~~~%s~~~", "ALL TESTS PASSED");
+namespace {
+
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+constexpr int kMaxBufferSize = 128;
+const char* kFormat = "%2d%6.2f%#5x%5s";
+const char* kExpect = "42 42.42 0x42 \"42\"";
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+
+}  // namespace
+
+TF_LITE_MICRO_TESTS_BEGIN
+
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+
+TF_LITE_MICRO_TEST(MicroPrintfTest) {
+  MicroPrintf("Integer 42: %d", 42);
+  MicroPrintf("Float 42.42: %2.2f", 42.42);
+  MicroPrintf("String \"Hello World!\": %s", "\"Hello World!\"");
+  MicroPrintf("Badly-formed format string %");
+  MicroPrintf("Another %# badly-formed %% format string");
 }
+
+TF_LITE_MICRO_TEST(MicroSnprintf) {
+  char buffer[kMaxBufferSize];
+  buffer[0] = '\0';
+  size_t result =
+      MicroSnprintf(buffer, kMaxBufferSize, kFormat, 42, 42.42, 0x42, "\"42\"");
+  TF_LITE_MICRO_EXPECT_EQ(result, strlen(buffer));
+  TF_LITE_MICRO_EXPECT_STRING_EQ(kExpect, buffer);
+}
+
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+
+TF_LITE_MICRO_TESTS_END

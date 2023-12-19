@@ -91,7 +91,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* PoolInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataPooling));
 }
@@ -99,11 +99,11 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }  // namespace
 
 TFLMRegistration Register_AVERAGE_POOL_2D() {
-  return tflite::micro::RegisterOp(Init, PoolingPrepare, AverageEval);
+  return tflite::micro::RegisterOp(PoolInit, PoolingPrepare, AverageEval);
 }
 
 TFLMRegistration Register_MAX_POOL_2D() {
-  return tflite::micro::RegisterOp(Init, PoolingPrepare, MaxEval);
+  return tflite::micro::RegisterOp(PoolInit, PoolingPrepare, MaxEval);
 }
 
 }  // namespace tflite

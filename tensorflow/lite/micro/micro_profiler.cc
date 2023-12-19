@@ -99,7 +99,7 @@ void MicroProfiler::LogTicksPerTagCsv() {
     }
     MicroPrintf("%s, %d", each_tag_entry.tag, each_tag_entry.ticks);
   }
-  MicroPrintf("total number of ticks, %d", total_ticks);
+  MicroPrintf("\"total number of ticks\", %d", total_ticks);
 #endif
 }
 

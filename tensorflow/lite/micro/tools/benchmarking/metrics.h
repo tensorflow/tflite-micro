@@ -16,16 +16,18 @@ limitations under the License.
 #ifndef TFLM_BENCHMARK_INTERNAL_METRICS_H_
 #define TFLM_BENCHMARK_INTERNAL_METRICS_H_
 
-#include <stdio.h>
-
-#include <cmath>
-#include <cstdint>
-
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 
 namespace tflite {
+
+// Defines how formatted data is printed to stdout.
+enum class PrettyPrintType {
+  // Prints as a CSV file.
+  kCsv,
+  // Prints as a formatted table.
+  kTable,
+};
 
 // Logs the allocation events. Prints out two tables, one for the arena
 // allocations, and one for each type of TFLM allocation type.

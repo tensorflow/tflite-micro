@@ -16,11 +16,11 @@ limitations under the License.
 // Implementation for the DebugLog() function that prints to the debug logger on
 // an generic Cortex-M device.
 
+#include "tensorflow/lite/micro/debug_log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
-
-#include "tensorflow/lite/micro/debug_log.h"
 
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 
@@ -53,6 +53,14 @@ void DebugLog(const char* format, va_list args) {
   InvokeDebugLogCallback(log_buffer);
 #endif
 }
+
+#ifndef TF_LITE_STRIP_ERROR_STRINGS
+// Only called from MicroVsnprintf (micro_log.h)
+int DebugVsnprintf(char* buffer, size_t buf_size, const char* format,
+                   va_list vlist) {
+  return vsnprintf(buffer, buf_size, format, vlist);
+}
+#endif
 
 #ifdef __cplusplus
 }  // extern "C"
