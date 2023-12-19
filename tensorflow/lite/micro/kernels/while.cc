@@ -36,12 +36,12 @@ struct OpData {
   int body_subgraph_index;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* WhileInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus WhilePrepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   const auto* params =
       reinterpret_cast<const TfLiteWhileParams*>(node->builtin_data);
@@ -74,7 +74,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus WhileEval(TfLiteContext* context, TfLiteNode* node) {
   const OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
   tflite::MicroContext* micro_context = tflite::GetMicroContext(context);
@@ -127,7 +127,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace.
 
 TFLMRegistration Register_WHILE() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(WhileInit, WhilePrepare, WhileEval);
 }
 
 }  // namespace tflite

@@ -69,7 +69,7 @@ TfLiteStatus PackImpl(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus PackEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLitePackParams* data =
       reinterpret_cast<TfLitePackParams*>(node->builtin_data);
 
@@ -106,7 +106,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_PACK() {
-  return tflite::micro::RegisterOp(nullptr, nullptr, Eval);
+  return tflite::micro::RegisterOp(nullptr, nullptr, PackEval);
 }
 
 }  // namespace tflite
