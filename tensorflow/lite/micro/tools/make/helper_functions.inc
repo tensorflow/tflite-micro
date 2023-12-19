@@ -117,8 +117,7 @@ endef
 # 2 - File pattern, e.g: *.h
 recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))
 
-# Generates code capable of performing inference without an interpreter. It run
-# the codegen preprocessor and the code generator.
+# Generates code capable of performing inference without an interpreter.
 #
 # Arguments are:
 # 1 - Name of target
@@ -127,31 +126,17 @@ recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call rec
 # Calling eval on the output will create the targets that you need.
 define codegen_model
 # Filter out targets that currently don't support codegen:
-# Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
-# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
-# RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
-#         hosting, which prevents the preprocessor from opening a file on the
-#         host filesystem.
-# Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
-#          C++11 stdlib, so preprocessor fails to link.
-ifneq ($(TARGET), $(filter $(TARGET), \
-  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+# Hexagon: Docker container doesn't have Bazel support.
+ifneq ($(TARGET), $(filter $(TARGET), hexagon))
 
 $(1)_MODEL := $(3)
-$(1)_PREPROCESSOR_OUTPUT := $(GENERATED_SRCS_DIR)$(2).ppd
 
 $(1)_GENERATED_SRCS := $(GENERATED_SRCS_DIR)$(2).cc
 $(1)_GENERATED_HDRS := $(GENERATED_SRCS_DIR)$(2).h
 
-$$($(1)_PREPROCESSOR_OUTPUT): $(CODEGEN_PREPROCESSOR_PATH) $$($(1)_MODEL)
-	@mkdir -p $$(dir $$@)
-	$$(RUN_COMMAND) $(CODEGEN_PREPROCESSOR_PATH) \
-	$(abspath $$($(1)_MODEL)) $(abspath $$($(1)_PREPROCESSOR_OUTPUT))
-
-$$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL) $$($(1)_PREPROCESSOR_OUTPUT)
+$$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS): $$($(1)_MODEL)
 	cd $(BAZEL_ROOT) && bazel run //codegen:code_generator -- \
 	--model $(abspath $$($(1)_MODEL)) \
-	--preprocessed_data $(abspath $$($(1)_PREPROCESSOR_OUTPUT)) \
 	--output_dir $(abspath $(GENERATED_SRCS_DIR)) --output_name $(2)
 
 $(1): $$($(1)_GENERATED_SRCS) $$($(1)_GENERATED_HDRS)
@@ -174,15 +159,8 @@ endef # codegen_model
 # Calling eval on the output will create the targets that you need.
 define codegen_model_binary
 # Filter out targets that currently don't support codegen:
-# Bluepill: Is compiled with nostdlib, but preprocessor uses standard library.
-# Corstone: This uses a FVP for simulation, which can't run the preprocessor.
-# RISC-V: TODO(b/300484340): qemu-riscv32 currently does not support semi-
-#         hosting, which prevents the preprocessor from opening a file on the
-#         host filesystem.
-# Hexagon: TODO(b/300322637): The hexagon 3.5.1 SDK doesn't provide a working
-#          C++11 stdlib, so preprocessor fails to link.
-ifneq ($(TARGET), $(filter $(TARGET), \
-  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+# Hexagon: Docker container doesn't have Bazel support.
+ifneq ($(TARGET), $(filter $(TARGET), hexagon))
 
 $(1)_CODEGEN_SRCS := $(4) $$(CODEGEN_RUNTIME_CC_SRCS)
 $(1)_CODEGEN_HDRS := $(5) $$(CODEGEN_RUNTIME_CC_HDRS)
