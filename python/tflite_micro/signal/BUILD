@@ -3,7 +3,10 @@ load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
 load("//tensorflow:extra_rules.bzl", "tflm_signal_friends")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
-package(licenses = ["notice"])
+package(
+    default_visibility = [":__subpackages__"],
+    licenses = ["notice"],
+)
 
 package_group(
     name = "signal_friends",
