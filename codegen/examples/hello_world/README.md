@@ -25,4 +25,3 @@ To update the generated source, you can execute this make target:
 ```
 ./codegen/examples/hello_world/update_example_source.sh
 ```
-
