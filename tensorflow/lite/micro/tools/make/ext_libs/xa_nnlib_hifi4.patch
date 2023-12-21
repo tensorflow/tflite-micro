@@ -1,0 +1,226 @@
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+index b9905e9..990b713 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
+@@ -49,6 +49,24 @@ static inline ae_int32x2 MultiplyByQuantizedMultiplier_ref(ae_int64 d_x,
+   return result;
+ }
+ 
++static inline ae_int32x2 MultiplyByQuantizedMultiplier_x2_opt(ae_int64 d_x1, ae_int64 d_x2,
++                                             int32_t quantized_multiplier,
++                                             int shift) {
++  ae_int32x2 d_q_mul = AE_MOVDA32(quantized_multiplier);
++  ae_int16x4 d_red_mul16 = AE_ROUND16X4F32SASYM(d_q_mul, d_q_mul);
++  ae_int32x2 d_red_mul32 = AE_SEXT32X2D16_32(d_red_mul16);
++  ae_int64 qL1 = AE_MUL32U_LL(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x1));
++  ae_int64 qL2 = AE_MUL32U_LL(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x2));
++  ae_int64 qH1 = AE_SLAI64(AE_MUL32_LH(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x1)), 32);
++  ae_int64 qH2 = AE_SLAI64(AE_MUL32_LH(d_red_mul32, AE_MOVINT32X2_FROMINT64(d_x2)), 32);
++  ae_int64 q1 = AE_ADD64(qL1, qH1);
++  ae_int64 q2 = AE_ADD64(qL2, qH2);
++  q1 = AE_SRAA64(q1, (-shift-17));
++  q2 = AE_SRAA64(q2, (-shift-17));
++  ae_int32x2 result = AE_ROUND32X2F64SASYM(q1, q2);
++  return result;
++}
++
+ static WORD32 conv_x_left_pad(
+     WORD32 x_padding,
+     WORD32 kernel_width,
+@@ -129,6 +147,160 @@ static WORD32 conv_x_right_pad(
+   return out_width_over_x_r_pad;
+ }
+ 
++static WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s_no_circ_buf(
++    WORD16* __restrict__ p_out,
++    const WORD16* __restrict__ p_inp,
++    const WORD8* __restrict__ p_kernel,
++    const WORD64* __restrict__ p_bias,
++    WORD32 input_height,
++    WORD32 input_width,
++    WORD32 input_channels,
++    WORD32 kernel_height,
++    WORD32 kernel_width,
++    WORD32 out_channels,
++    WORD32 x_stride,
++    WORD32 y_stride,
++    WORD32 x_padding,
++    WORD32 y_padding,
++    WORD32 out_height,
++    WORD32 out_width,
++    WORD32 input_zero_bias,
++    WORD32 * p_out_multiplier,
++    WORD32 * p_out_shift,
++    WORD32 out_zero_bias,
++    WORD32 out_data_format
++    )
++    {
++
++    const WORD16 *p_dst0_0 = p_out + 0;
++    const WORD16 *p_dst0_1 = p_out + 1;
++    const WORD16 *p_dst0_2 = p_out + 2;
++    const WORD16 *p_dst0_3 = p_out + 3;
++    const WORD16 *p_dst1_0 = p_out + out_channels + 0;
++    const WORD16 *p_dst1_1 = p_out + out_channels + 1;
++    const WORD16 *p_dst1_2 = p_out + out_channels + 2;
++    const WORD16 *p_dst1_3 = p_out + out_channels + 3;
++    int kernel_out_ch_offset = kernel_height * kernel_width * input_channels;
++    int input_x_offset = (input_channels * x_stride) / 4;
++    int p_inp_vec_stride = (input_width * input_channels) / 4;
++    int p_kern_vec_stride = kernel_width * input_channels;
++    int vec_len = kernel_width * input_channels;
++    for (int out_y = 0; out_y < out_height; ++out_y) {
++      for (int out_x = 0; out_x < out_width; out_x += 2) {
++        for (int out_ch = 0; out_ch < out_channels; out_ch += 4) {
++          ae_int64 out0_0 = p_bias[out_ch + 0];
++          ae_int64 out0_1 = p_bias[out_ch + 1];
++          ae_int64 out0_2 = p_bias[out_ch + 2];
++          ae_int64 out0_3 = p_bias[out_ch + 3];
++          ae_int64 out1_0 = p_bias[out_ch + 0];
++          ae_int64 out1_1 = p_bias[out_ch + 1];
++          ae_int64 out1_2 = p_bias[out_ch + 2];
++          ae_int64 out1_3 = p_bias[out_ch + 3];
++
++          out0_0 = AE_SLAI64(out0_0, 8);
++          out0_1 = AE_SLAI64(out0_1, 8);
++          out0_2 = AE_SLAI64(out0_2, 8);
++          out0_3 = AE_SLAI64(out0_3, 8);
++          out1_0 = AE_SLAI64(out1_0, 8);
++          out1_1 = AE_SLAI64(out1_1, 8);
++          out1_2 = AE_SLAI64(out1_2, 8);
++          out1_3 = AE_SLAI64(out1_3, 8);
++
++          int in_x_o = out_x * x_stride;
++          int in_y_o = out_y * y_stride - y_padding;
++          int k_y_min = -in_y_o;
++          int k_y_max = input_height - in_y_o;
++          k_y_min = (k_y_min < 0) ? 0 : k_y_min;
++          k_y_min = (k_y_min < kernel_height) ? k_y_min : kernel_height;
++          k_y_max = (k_y_max < 0) ? 0 : k_y_max;
++          k_y_max = (k_y_max < kernel_height) ? k_y_max : kernel_height;
++          const ae_int16x4 *p_inp_vec =
++              (ae_int16x4 *)&p_inp[((in_y_o + k_y_min) * input_width + in_x_o) *
++                                      input_channels +
++                                  0];
++          const WORD8 *p_kern_vec =
++              &p_kernel[(((out_ch + 0) * kernel_height + k_y_min) * kernel_width +
++                        0) *
++                            input_channels +
++                        0];
++          for (int k_y = k_y_min; k_y < k_y_max; ++k_y) {
++            const ae_int16x4 *p_inp_vec0 = p_inp_vec;
++            const ae_int16x4 *p_inp_vec1 = p_inp_vec + input_x_offset;
++            const WORD8 *p_kern_vec0 = p_kern_vec;
++            const WORD8 *p_kern_vec1 = p_kern_vec0 + kernel_out_ch_offset;
++            const WORD8 *p_kern_vec2 = p_kern_vec1 + kernel_out_ch_offset;
++            const WORD8 *p_kern_vec3 = p_kern_vec2 + kernel_out_ch_offset;
++            p_inp_vec += p_inp_vec_stride;
++            p_kern_vec += p_kern_vec_stride;
++            ae_int16x4 d_inp0;
++            ae_int16x4 d_inp1;
++            ae_int16x4 d_kern0;
++            ae_int16x4 d_kern1;
++            ae_int16x4 d_kern2;
++            ae_int16x4 d_kern3;
++            for (int i = 0; i < vec_len; i += 4) {
++              AE_L16X4_IP(d_inp0, p_inp_vec0, 8);
++              AE_L16X4_IP(d_inp1, p_inp_vec1, 8);
++              AE_L8X4F_IP(d_kern0, p_kern_vec0, 4);
++              AE_L8X4F_IP(d_kern1, p_kern_vec1, 4);
++              AE_L8X4F_IP(d_kern2, p_kern_vec2, 4);
++              AE_L8X4F_IP(d_kern3, p_kern_vec3, 4);
++              AE_MULAAAAQ16(out0_0, d_inp0, d_kern0);
++              AE_MULAAAAQ16(out0_1, d_inp0, d_kern1);
++              AE_MULAAAAQ16(out0_2, d_inp0, d_kern2);
++              AE_MULAAAAQ16(out0_3, d_inp0, d_kern3);
++              AE_MULAAAAQ16(out1_0, d_inp1, d_kern0);
++              AE_MULAAAAQ16(out1_1, d_inp1, d_kern1);
++              AE_MULAAAAQ16(out1_2, d_inp1, d_kern2);
++              AE_MULAAAAQ16(out1_3, d_inp1, d_kern3);
++            }
++          }
++
++          out0_0 = AE_SRAI64(out0_0, 8);
++          out0_1 = AE_SRAI64(out0_1, 8);
++          out0_2 = AE_SRAI64(out0_2, 8);
++          out0_3 = AE_SRAI64(out0_3, 8);
++          out1_0 = AE_SRAI64(out1_0, 8);
++          out1_1 = AE_SRAI64(out1_1, 8);
++          out1_2 = AE_SRAI64(out1_2, 8);
++          out1_3 = AE_SRAI64(out1_3, 8);
++
++          ae_int32x2 acc_vec0 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_0, out1_0, p_out_multiplier[out_ch + 0],
++              p_out_shift[out_ch + 0]);
++          ae_int32x2 acc_vec1 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_1, out1_1, p_out_multiplier[out_ch + 1],
++              p_out_shift[out_ch + 1]);
++          ae_int32x2 acc_vec2 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_2, out1_2, p_out_multiplier[out_ch + 2],
++              p_out_shift[out_ch + 2]);
++          ae_int32x2 acc_vec3 = MultiplyByQuantizedMultiplier_x2_opt(
++              out0_3, out1_3, p_out_multiplier[out_ch + 3],
++              p_out_shift[out_ch + 3]);
++          ae_int16x4 d1 = AE_SAT16X4(acc_vec0, acc_vec1);
++          ae_int16x4 d2 = AE_SAT16X4(acc_vec2, acc_vec3);
++          AE_S16_0_XP(AE_SEL16_6543(d1, d1), (ae_int16 *)p_dst0_0, 8);
++          AE_S16_0_XP(AE_SEL16_5432(d1, d1), (ae_int16 *)p_dst1_0, 8);
++          AE_S16_0_XP(AE_SEL16_4321(d1, d1), (ae_int16 *)p_dst0_1, 8);
++          AE_S16_0_XP(d1, (ae_int16 *)p_dst1_1, 8);
++          AE_S16_0_XP(AE_SEL16_6543(d2, d2), (ae_int16 *)p_dst0_2, 8);
++          AE_S16_0_XP(AE_SEL16_5432(d2, d2), (ae_int16 *)p_dst1_2, 8);
++          AE_S16_0_XP(AE_SEL16_4321(d2, d2), (ae_int16 *)p_dst0_3, 8);
++          AE_S16_0_XP(d2, (ae_int16 *)p_dst1_3, 8);
++        }
++        p_dst0_0 += out_channels;
++        p_dst0_1 += out_channels;
++        p_dst0_2 += out_channels;
++        p_dst0_3 += out_channels;
++        p_dst1_0 += out_channels;
++        p_dst1_1 += out_channels;
++        p_dst1_2 += out_channels;
++        p_dst1_3 += out_channels;
++      }
++    }
++  return 0;
++}
++
+ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
+     WORD16* __restrict__ p_out,
+     const WORD16* __restrict__ p_inp,
+@@ -180,6 +352,35 @@ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
+     XA_NNLIB_ARG_CHK_COND((p_out_shift[itr] < -31 || p_out_shift[itr] > 31), -1);
+   }
+ 
++  if ( !(x_padding) && !(input_channels & 0x3) && !(out_channels & 0x3) && !(out_width & 0x1) && (out_data_format == 0) && ((out_width-1)*x_stride <=(input_width-kernel_width) ) )
++  {
++    int ret_val=0;
++    ret_val=xa_nn_conv2d_std_per_chan_sym8sxsym16s_no_circ_buf(p_out,
++                                                              p_inp,
++                                                              p_kernel,
++                                                              p_bias,
++                                                              input_height,
++                                                              input_width,
++                                                              input_channels,
++                                                              kernel_height,
++                                                              kernel_width,
++                                                              out_channels,
++                                                              x_stride,
++                                                              y_stride,
++                                                              x_padding,
++                                                              y_padding,
++                                                              out_height,
++                                                              out_width,
++                                                              input_zero_bias,
++                                                              p_out_multiplier,
++                                                              p_out_shift,
++                                                              out_zero_bias,
++                                                              out_data_format
++                                                            );
++
++    return ret_val;
++  }
++
+   WORD32 j;
+   WORD32 input_bytewidth = 2;
+   VOID *pp_inp = (VOID *)p_inp;
