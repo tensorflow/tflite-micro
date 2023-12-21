@@ -19,6 +19,7 @@
 # in the Python installation environment rather than to locations in the tflm
 # source tree.
 from tflite_micro import runtime
+from tflite_micro.python.tflite_micro.signal.ops import fft_ops
 
 import numpy as np
 import pkg_resources
@@ -40,13 +41,18 @@ def passed():
     interpreter.invoke()
     return interpreter.get_output(OUTPUT_INDEX).squeeze()
 
+  # The signal package
+  def signal_check():
+    fft_length, fft_bits = fft_ops.get_pow2_fft_length(131)
+    return (fft_length == 256 and fft_bits == 8)
+
   # Check a few inferred values against a numerical computation
   PI = 3.14
   inputs = (0.0, PI / 2, PI, 3 * PI / 2, 2 * PI)
   outputs = [infer(x) for x in inputs]
   goldens = np.sin(inputs)
 
-  return np.allclose(outputs, goldens, atol=0.05)
+  return (np.allclose(outputs, goldens, atol=0.05) and signal_check())
 
 
 if __name__ == "__main__":
