@@ -53,7 +53,7 @@ TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
     // use new shape tensor data
     TF_LITE_ENSURE_EQ(context, new_shape->type, kTfLiteInt32);
     TF_LITE_ENSURE_EQ(context, new_shape->dims->size, 1);
-    output_shape_data = GetTensorData<int32_t>(new_shape);
+    output_shape_data = GetTensorData<int>(new_shape);
     output_shape_size = new_shape->dims->data[0];
     TF_LITE_ENSURE_EQ(context, output_shape_size,
                       static_cast<int32_t>(output->dims->size));
