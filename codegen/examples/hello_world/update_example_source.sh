@@ -24,6 +24,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../..
 cd "${ROOT_DIR}"
 
-make -j8 -f tensorflow/lite/micro/tools/make/Makefile codegen_hello_world
-cp ./gen/linux_x86_64_default/genfiles/hello_world_model.h ${SCRIPT_DIR}
-cp ./gen/linux_x86_64_default/genfiles/hello_world_model.cc ${SCRIPT_DIR}
+bazel build //codegen/examples/hello_world:hello_world_model
+cp ./bazel-bin/codegen/examples/hello_world/hello_world_model.h ${SCRIPT_DIR}
+cp ./bazel-bin/codegen/examples/hello_world/hello_world_model.cc ${SCRIPT_DIR}
+clang-format --style=google -i \
+  ${SCRIPT_DIR}/hello_world_model.h \
+  ${SCRIPT_DIR}/hello_world_model.cc

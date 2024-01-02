@@ -420,6 +420,7 @@ cc_test(
     deps = [
         ":micro_log",
         ":system_setup",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 

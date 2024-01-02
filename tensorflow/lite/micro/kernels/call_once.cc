@@ -36,12 +36,12 @@ struct OpData {
   bool has_run;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* CallOnceInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CallOncePrepare(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
   const auto* params =
       reinterpret_cast<const TfLiteCallOnceParams*>(node->builtin_data);
@@ -60,7 +60,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CallOnceEval(TfLiteContext* context, TfLiteNode* node) {
   OpData* op_data = reinterpret_cast<OpData*>(node->user_data);
 
   // Call once only runs one time then is a no-op for every subsequent call.
@@ -82,7 +82,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace.
 
 TFLMRegistration Register_CALL_ONCE() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(CallOnceInit, CallOncePrepare, CallOnceEval);
 }
 
 }  // namespace tflite

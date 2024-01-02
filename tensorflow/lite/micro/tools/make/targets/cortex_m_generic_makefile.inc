@@ -92,8 +92,6 @@ else ifeq ($(TARGET_ARCH), cortex-m85)
   CORE=M85
   ARM_LDFLAGS := -Wl,--cpu=8.1-M.Main.mve.fp
   FLOAT=hard
-  # GCC does not yet support cortex-m85 option hence go with cortex-m55 for now.
-  GCC_TARGET_ARCH := cortex-m55
 
 else ifeq ($(TARGET_ARCH), project_generation)
   # No flags needed here as project_generation does not build anything.

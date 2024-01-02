@@ -57,11 +57,11 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* FloorDivInit(TfLiteContext* context, const char* buffer, size_t length) {
   return nullptr;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FloorDivPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpData(context, node);
 }
 
@@ -101,7 +101,7 @@ TfLiteStatus EvalFloorDiv(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FloorDivEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input1 =
       tflite::micro::GetEvalInput(context, node, kInputTensor1);
   const TfLiteEvalTensor* input2 =
@@ -124,7 +124,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_FLOOR_DIV() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
+  return tflite::micro::RegisterOp(FloorDivInit, FloorDivPrepare, FloorDivEval);
 }
 
 }  // namespace tflite
