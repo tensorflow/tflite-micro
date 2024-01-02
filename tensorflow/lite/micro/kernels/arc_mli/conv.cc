@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
+#include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -122,7 +123,7 @@ bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
                              const TfLiteConvParams* params, int width,
                              int height, int filter_width, int filter_height,
-                             int out_width, int out_height,
+                             int* out_width, int* out_height,
                              const TfLiteType data_type, OpData* data) {
   bool has_bias = node->inputs->size == 3;
   // Check number of inputs/outputs
@@ -134,7 +135,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   data->padding = ComputePaddingHeightWidth(
       params->stride_height, params->stride_width,
       params->dilation_height_factor, params->dilation_width_factor, height,
-      width, filter_height, filter_width, padding, &out_height, &out_width);
+      width, filter_height, filter_width, padding, out_height, out_width);
   // Note that quantized inference requires that all tensors have their
   // parameters set. This is usually done during quantized training.
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
@@ -167,6 +168,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 #endif
   return kTfLiteOk;
 }
+
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -190,6 +192,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(context, node, kBiasTensor);
 
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+
+  // Check input channels matching filter
+  const int input_channels = input->dims->data[3];
+  const int filter_input_channels = filter->dims->data[3];
+  TF_LITE_ENSURE(context, filter_input_channels > 0);
+  TF_LITE_ENSURE_EQ(context, input_channels % filter_input_channels, 0);
+
   int input_width = input->dims->data[2];
   int input_height = input->dims->data[1];
 #if defined(MLI_2_0) && !defined(MLI_2_0_KRNL_TEST)
@@ -199,8 +212,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   int filter_width = filter->dims->data[2];
   int filter_height = filter->dims->data[1];
 #endif
-  int output_width = output->dims->data[2];
-  int output_height = output->dims->data[1];
+  int output_width = 0;
+  int output_height = 0;
 
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels = filter->dims->data[kConvQuantizedDimension];
@@ -235,7 +248,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(CalculateOpData(
       context, node, params, input_width, input_height, filter_width,
-      filter_height, output_width, output_height, input->type, data));
+      filter_height, &output_width, &output_height, input->type, data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(ConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
 
   data->input_zero_point = input->params.zero_point;
   data->filter_zero_point = filter->params.zero_point;

@@ -19,6 +19,7 @@ limitations under the License.
 namespace tflite {
 
 constexpr int kReshapeInputTensor = 0;
+constexpr int kReshapeShapeTensor = 1;
 constexpr int kReshapeOutputTensor = 0;
 
 TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node);

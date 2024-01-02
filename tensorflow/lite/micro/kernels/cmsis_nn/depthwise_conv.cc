@@ -75,13 +75,29 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kDepthwiseConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+  TF_LITE_ENSURE(context, params.dilation_height_factor > 0);
+  TF_LITE_ENSURE(context, params.dilation_width_factor > 0);
+
+  // Filter in DepthwiseConv is expected to be [1, height, width, channels].
+  TF_LITE_ENSURE_EQ(context, filter->dims->data[0], 1);
+
+  // Check input channels matching filter
+  const int num_filter_channels = filter->dims->data[3];
+  const int num_input_channels = input->dims->data[3];
+  TF_LITE_ENSURE(context, num_input_channels != 0);
+  TF_LITE_ENSURE_EQ(context, num_filter_channels % num_input_channels, 0);
+
   const TfLiteType data_type = input->type;
   int input_width = SizeOfDimension(input, 2);
   int input_height = SizeOfDimension(input, 1);
   int filter_width = SizeOfDimension(filter, 2);
   int filter_height = SizeOfDimension(filter, 1);
-  int output_width = SizeOfDimension(output, 2);
-  int output_height = SizeOfDimension(output, 1);
+  int output_width = 0;
+  int output_height = 0;
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     TF_LITE_ENSURE_EQ(context, filter->quantization.type,
@@ -120,8 +136,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataDepthwiseConv(
       context, node, params, input_width, input_height, filter_width,
-      filter_height, output_width, output_height, data_type,
+      filter_height, &output_width, &output_height, data_type,
       &data->reference_op_data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(DepthwiseConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
 
   if (input->type == kTfLiteInt8) {
     RuntimeShape input_shape = GetTensorShape(input);

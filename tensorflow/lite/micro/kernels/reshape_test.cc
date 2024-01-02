@@ -265,7 +265,7 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
       golden_dims_len, false);
 }
 
-// Stretch is not supported with TF Micro
+// Stretch is supported with TF Micro
 TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
   float output_data_float[32];
   int8_t output_data_int8[32];
@@ -347,7 +347,7 @@ TF_LITE_MICRO_TEST(ReshapeWithLegacyScalarOutputShouldSucceed) {
   const float input_data[] = {3.0f};
   auto input_tensor = CreateTensor(input_data, input_dims);
 
-  float output_data[1];
+  float output_data[] = {0.0f};
   int output_dims_data[2] = {1, 0};
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   auto output_tensor = CreateTensor(output_data, output_dims);

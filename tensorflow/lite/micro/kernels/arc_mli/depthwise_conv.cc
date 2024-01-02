@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
+#include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -118,17 +119,16 @@ bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
                              TfLiteDepthwiseConvParams* params, int width,
                              int height, int filter_width, int filter_height,
+                             int* out_width, int* out_height,
                              const TfLiteType data_type, OpData* data) {
   bool has_bias = node->inputs->size == 3;
   // Check number of inputs/outputs
   TF_LITE_ENSURE(context, has_bias || node->inputs->size == 2);
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
 
-  int unused_output_height, unused_output_width;
   data->padding = ComputePaddingHeightWidth(
       params->stride_height, params->stride_width, 1, 1, height, width,
-      filter_height, filter_width, params->padding, &unused_output_height,
-      &unused_output_width);
+      filter_height, filter_width, params->padding, out_height, out_width);
 
   // Note that quantized inference requires that all tensors have their
   // parameters set. This is usually done during quantized training.
@@ -182,6 +182,25 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteTensor* bias =
       AllocateTempInputTensor(context, node, kBiasTensor);
 
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+  TF_LITE_ENSURE(context, params.dilation_height_factor > 0);
+  TF_LITE_ENSURE(context, params.dilation_width_factor > 0);
+
+  // Filter in DepthwiseConv is expected to be [1, height, width, channels].
+  TF_LITE_ENSURE_EQ(context, filter->dims->data[0], 1);
+
+  // Check input channels matching filter
+  const int num_filter_channels = filter->dims->data[3];
+  const int num_input_channels = input->dims->data[3];
+  TF_LITE_ENSURE(context, num_input_channels != 0);
+  TF_LITE_ENSURE_EQ(context, num_filter_channels % num_input_channels, 0);
+
+  int output_width = 0;
+  int output_height = 0;
+
   const TfLiteType data_type = input->type;
   int width = SizeOfDimension(input, 2);
   int height = SizeOfDimension(input, 1);
@@ -227,9 +246,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                       affine_quantization->zero_point->size);
   }
 
-  TF_LITE_ENSURE_STATUS(CalculateOpData(context, node, params, width, height,
-                                        filter_width, filter_height, data_type,
-                                        data));
+  TF_LITE_ENSURE_STATUS(CalculateOpData(
+      context, node, params, width, height, filter_width, filter_height,
+      &output_width, &output_height, data_type, data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(DepthwiseConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
 
   data->input_zero_point = input->params.zero_point;
   data->filter_zero_point = filter->params.zero_point;
