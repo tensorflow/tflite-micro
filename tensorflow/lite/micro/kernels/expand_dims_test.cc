@@ -209,7 +209,7 @@ TF_LITE_MICRO_TEST(ExpandDimsInputOutputDimsMismatch) {
                                          golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsAxisOutOfRangeShallFailTest1) {
+TF_LITE_MICRO_TEST(ExpandDimsAxisPositiveOutOfRangeShallFailTest) {
   int8_t output_data[6];
   int input_dims[] = {3, 1, 3, 2};
   const int8_t input_data[] = {1, 8, 2, 5, 9, 3};
@@ -227,7 +227,7 @@ TF_LITE_MICRO_TEST(ExpandDimsAxisOutOfRangeShallFailTest1) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsAxisOutOfRangeShallFailTest2) {
+TF_LITE_MICRO_TEST(ExpandDimsAxisNegativeOutOfRangeShallFailTest) {
   int8_t output_data[6];
   int input_dims[] = {3, 1, 3, 2};
   const int8_t input_data[] = {1, 8, 2, 5, 9, 3};
