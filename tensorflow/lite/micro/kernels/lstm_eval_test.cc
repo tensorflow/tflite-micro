@@ -454,6 +454,6 @@ TF_LITE_MICRO_TEST(TestLSTMEvalInt16) {
                                        cell_state_tolerance,
                                        int16_node_contents);
 }
-
 #endif  // !defined(XTENSA)
+
 TF_LITE_MICRO_TESTS_END
