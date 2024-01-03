@@ -1,4 +1,1 @@
-# The version of bazel for Bazelisk to download and use. See
-# https://github.com/bazelbuild/bazelisk.
-
 7.0.0
