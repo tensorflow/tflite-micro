@@ -47,7 +47,7 @@ namespace tflite {
 
 namespace {
 
-using TflmOpResolver = MicroMutableOpResolver<96>;
+using TflmOpResolver = MicroMutableOpResolver<128>;
 
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
