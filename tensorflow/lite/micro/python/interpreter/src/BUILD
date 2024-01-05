@@ -18,24 +18,6 @@ package_group(
     packages = tflm_python_op_resolver_friends(),
 )
 
-# tflm_runtime is deprecated, please use //python/tflite_micro:runtime instead.
-# TODO(b/286456378): remove once all usage is changed to the runtime target.
-py_library(
-    name = "tflm_runtime",
-    srcs = ["tflm_runtime.py"],
-    visibility = ["//visibility:public"],
-    deps = ["//python/tflite_micro:runtime"],
-)
-
-# runtime is deprecated, please use //python/tflite_micro:runtime instead.
-# TODO(b/286456378): remove once all usage is changed to the runtime target.
-py_library(
-    name = "runtime",
-    srcs = ["runtime.py"],
-    visibility = ["//visibility:public"],
-    deps = ["//python/tflite_micro:runtime"],
-)
-
 # TODO(b/286456378): remove once all internal usage is fixed.
 cc_library(
     name = "python_ops_resolver",
