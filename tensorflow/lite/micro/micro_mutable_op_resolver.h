@@ -618,6 +618,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_TANH, Register_TANH(), ParseTanh);
   }
 
+  TfLiteStatus AddStreamingConv2D(
+      const TFLMRegistration& registration = Register_CONV_2D()) {
+    return AddBuiltin(BuiltinOperator_TEMP_STREAMING_CONV_2D, registration,
+                      ParseConv2D);
+  }
+
   TfLiteStatus AddTransposeConv(
       const TFLMRegistration& registration = Register_TRANSPOSE_CONV()) {
     return AddBuiltin(BuiltinOperator_TRANSPOSE_CONV, registration,

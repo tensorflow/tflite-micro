@@ -1198,11 +1198,12 @@ enum BuiltinOperator : int32_t {
   BuiltinOperator_DILATE = 203,
   BuiltinOperator_STABLEHLO_RNG_BIT_GENERATOR = 204,
   BuiltinOperator_REDUCE_WINDOW = 205,
+  BuiltinOperator_TEMP_STREAMING_CONV_2D = 225,
   BuiltinOperator_MIN = BuiltinOperator_ADD,
-  BuiltinOperator_MAX = BuiltinOperator_REDUCE_WINDOW
+  BuiltinOperator_MAX = BuiltinOperator_TEMP_STREAMING_CONV_2D
 };
 
-inline const BuiltinOperator (&EnumValuesBuiltinOperator())[206] {
+inline const BuiltinOperator (&EnumValuesBuiltinOperator())[207] {
   static const BuiltinOperator values[] = {
     BuiltinOperator_ADD,
     BuiltinOperator_AVERAGE_POOL_2D,
@@ -1409,13 +1410,14 @@ inline const BuiltinOperator (&EnumValuesBuiltinOperator())[206] {
     BuiltinOperator_STABLEHLO_TRANSPOSE,
     BuiltinOperator_DILATE,
     BuiltinOperator_STABLEHLO_RNG_BIT_GENERATOR,
-    BuiltinOperator_REDUCE_WINDOW
+    BuiltinOperator_REDUCE_WINDOW,
+    BuiltinOperator_TEMP_STREAMING_CONV_2D
   };
   return values;
 }
 
 inline const char * const *EnumNamesBuiltinOperator() {
-  static const char * const names[207] = {
+  static const char * const names[227] = {
     "ADD",
     "AVERAGE_POOL_2D",
     "CONCATENATION",
@@ -1622,13 +1624,33 @@ inline const char * const *EnumNamesBuiltinOperator() {
     "DILATE",
     "STABLEHLO_RNG_BIT_GENERATOR",
     "REDUCE_WINDOW",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "TEMP_STREAMING_CONV_2D",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameBuiltinOperator(BuiltinOperator e) {
-  if (::flatbuffers::IsOutRange(e, BuiltinOperator_ADD, BuiltinOperator_REDUCE_WINDOW)) return "";
+  if (::flatbuffers::IsOutRange(e, BuiltinOperator_ADD, BuiltinOperator_TEMP_STREAMING_CONV_2D)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBuiltinOperator()[index];
 }

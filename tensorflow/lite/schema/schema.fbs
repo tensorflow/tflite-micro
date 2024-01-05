@@ -470,6 +470,8 @@ enum BuiltinOperator : int32 {
   DILATE = 203,
   STABLEHLO_RNG_BIT_GENERATOR = 204,
   REDUCE_WINDOW = 205 (deprecated),
+
+  TEMP_STREAMING_CONV_2D = 225, // DO NOT USE. This is only temporary.
 }
 // LINT.ThenChange(nnapi_linter/linter.proto)
 

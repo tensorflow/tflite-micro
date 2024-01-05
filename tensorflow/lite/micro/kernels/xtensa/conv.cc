@@ -120,4 +120,9 @@ TFLMRegistration Register_CONV_2D() {
   return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa, Eval);
 }
 
+TFLMRegistration Register_STREAMING_CONV_2D() {
+  // TODO(Cadence): These should be replaced with Streaming wrapper functions.
+  return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa, Eval);
+}
+
 }  // namespace tflite
