@@ -272,6 +272,7 @@ class BuiltinOperator(object):
     DILATE = 203
     STABLEHLO_RNG_BIT_GENERATOR = 204
     REDUCE_WINDOW = 205
+    TEMP_STREAMING_CONV_2D = 225
 
 
 class BuiltinOptions(object):

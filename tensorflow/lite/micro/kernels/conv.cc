@@ -147,4 +147,9 @@ TFLMRegistration Register_CONV_2D() {
   return tflite::micro::RegisterOp(ConvInit, ConvPrepare, ConvEval);
 }
 
+TFLMRegistration Register_STREAMING_CONV_2D() {
+  // TODO(rjascani): These should be replaced with Streaming wrapper functions.
+  return tflite::micro::RegisterOp(ConvInit, ConvPrepare, ConvEval);
+}
+
 }  // namespace tflite

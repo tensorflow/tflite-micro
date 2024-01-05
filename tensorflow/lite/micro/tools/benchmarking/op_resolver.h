@@ -24,7 +24,7 @@ limitations under the License.
 namespace tflite {
 
 inline TfLiteStatus CreateOpResolver(
-    tflite::MicroMutableOpResolver<96>& op_resolver) {
+    tflite::MicroMutableOpResolver<128>& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddFullyConnected());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAdd());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAbs());
@@ -121,6 +121,8 @@ inline TfLiteStatus CreateOpResolver(
   TF_LITE_ENSURE_STATUS(op_resolver.AddPad());
   TF_LITE_ENSURE_STATUS(op_resolver.AddMaxPool2D());
   TF_LITE_ENSURE_STATUS(op_resolver.AddMul());
+
+  TF_LITE_ENSURE_STATUS(op_resolver.AddStreamingConv2D());
   return kTfLiteOk;
 }
 }  // namespace tflite

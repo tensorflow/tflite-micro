@@ -120,6 +120,7 @@ TFLMRegistration Register_SQRT();
 TFLMRegistration Register_SQUARE();
 TFLMRegistration Register_SQUARED_DIFFERENCE();
 TFLMRegistration Register_SQUEEZE();
+TFLMRegistration Register_STREAMING_CONV_2D();
 TFLMRegistration Register_STRIDED_SLICE();
 TFLMRegistration Register_SUB();
 TFLMRegistration Register_SUM();

@@ -45,7 +45,7 @@ namespace {
 
 using Profiler = ::tflite::MicroProfiler;
 
-using TflmOpResolver = tflite::MicroMutableOpResolver<96>;
+using TflmOpResolver = tflite::MicroMutableOpResolver<128>;
 
 constexpr int kTfLiteAbort = -9;
 
