@@ -136,7 +136,7 @@ py_library(
         "@absl_py//absl/logging",
         requirement("numpy"),
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
@@ -208,7 +208,7 @@ py_binary(
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
         requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
