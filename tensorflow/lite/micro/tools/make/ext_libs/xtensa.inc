@@ -130,7 +130,8 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   EXCLUDED_NNLIB_SRCS = \
     $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
     $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
-    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c
+    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c \
+    $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_asym8_asym8.c
 
   ifeq ($(TARGET_ARCH), hifi3)
     EXCLUDED_NNLIB_SRCS += \
