@@ -12,3 +12,20 @@ index 82e16c7..ce7fb75 100644
    #define onchip
    #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
  #else
+diff --git a/library/include_private/common.h b/library/include_private/common.h
+index 2eaf70f..9df811c 100644
+--- a/library/include_private/common.h
++++ b/library/include_private/common.h
+@@ -172,6 +172,12 @@ __pragma (warning(pop))
+ #if defined(COMPILER_XTENSA) || defined(COMPILER_GNU)
+ #define DISCARD_FUN(retval_type,name,arglist) \
+ __asm__(".type "#name", @object\n\t.global "#name"\n\t.align 4\n\t"#name":\n\t.long 0x49438B96,0x4D73F192\n\t");
++
++#define DISCARD_FUN_FOR_NONVOID_RETURN(retval_type,name,arglist) \
++__attribute__ ((section ("/DISCARD/"))) \
++retval_type name arglist \
++{ return (retval_type) 0; }
++
+ #endif
+ 
+ /*------ LIST OF DEFINES DEPENDING ON ISA OPTIONS ------*/

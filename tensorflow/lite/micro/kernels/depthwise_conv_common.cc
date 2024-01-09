@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ DepthwiseParams DepthwiseConvParamsQuantized(
 TfLiteStatus CalculateOpDataDepthwiseConv(
     TfLiteContext* context, TfLiteNode* node,
     const TfLiteDepthwiseConvParams& params, int width, int height,
-    int filter_width, int filter_height, int out_width, int out_height,
+    int filter_width, int filter_height, int* out_width, int* out_height,
     const TfLiteType data_type, OpDataConv* data) {
   bool has_bias = node->inputs->size == 3;
   // Check number of inputs/outputs
@@ -92,7 +92,7 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
   data->padding = ComputePaddingHeightWidth(
       params.stride_height, params.stride_width, params.dilation_height_factor,
       params.dilation_width_factor, height, width, filter_height, filter_width,
-      padding, &out_height, &out_width);
+      padding, out_height, out_width);
 
   MicroContext* micro_context = GetMicroContext(context);
 
@@ -133,6 +133,26 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
   return kTfLiteOk;
 }
 
+TfLiteStatus DepthwiseConvReshapeOutputTensor(
+    TfLiteContext* context, TfLiteNode* node, const TfLiteTensor* input,
+    const TfLiteTensor* filter, TfLiteTensor* output, int height, int width) {
+  const int filter_output_channels = filter->dims->data[3];
+  const int batches = input->dims->data[0];
+
+  // relocate output tensor dims so they can be updated
+  TfLiteEvalTensor* output_eval =
+      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
+      context, output, output_eval));
+
+  output->dims->data[0] = batches;
+  output->dims->data[1] = height;
+  output->dims->data[2] = width;
+  output->dims->data[3] = filter_output_channels;
+
+  return kTfLiteOk;
+}
+
 TfLiteStatus DepthwiseConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -152,12 +172,28 @@ TfLiteStatus DepthwiseConvPrepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempInputTensor(node, kDepthwiseConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+  TF_LITE_ENSURE(context, params.dilation_height_factor > 0);
+  TF_LITE_ENSURE(context, params.dilation_width_factor > 0);
+
+  // Filter in DepthwiseConv is expected to be [1, height, width, channels].
+  TF_LITE_ENSURE_EQ(context, filter->dims->data[0], 1);
+
+  // Check input channels matching filter
+  const int num_filter_channels = filter->dims->data[3];
+  const int num_input_channels = input->dims->data[3];
+  TF_LITE_ENSURE(context, num_input_channels != 0);
+  TF_LITE_ENSURE_EQ(context, num_filter_channels % num_input_channels, 0);
+
   const int input_width = input->dims->data[2];
   const int input_height = input->dims->data[1];
   const int filter_width = filter->dims->data[2];
   const int filter_height = filter->dims->data[1];
-  const int output_width = output->dims->data[2];
-  const int output_height = output->dims->data[1];
+  int output_width = 0;
+  int output_height = 0;
 
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
@@ -207,7 +243,11 @@ TfLiteStatus DepthwiseConvPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataDepthwiseConv(
       context, node, params, input_width, input_height, filter_width,
-      filter_height, output_width, output_height, input->type, data));
+      filter_height, &output_width, &output_height, input->type, data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(DepthwiseConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
 
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(input);

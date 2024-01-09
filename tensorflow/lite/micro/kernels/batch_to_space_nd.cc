@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/reference/batch_to_space_nd.h"
 
+#include <algorithm>
+
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/runtime_shape.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -38,6 +41,68 @@ constexpr int kOutputTensor = 0;
 const int kInputOutputMinDimensionNum = 3;
 const int kInputOutputMaxDimensionNum = 4;
 
+TfLiteStatus ReshapeOutputTensor(TfLiteContext* context, const TfLiteNode* node,
+                                 const TfLiteTensor* input,
+                                 const TfLiteTensor* block_shape,
+                                 const TfLiteTensor* crops,
+                                 TfLiteTensor* output) {
+  TF_LITE_ENSURE(context, IsConstantOrPersistentTensor(block_shape));
+  TF_LITE_ENSURE(context, IsConstantOrPersistentTensor(crops));
+  const int32_t* block_shape_data = GetTensorData<int32_t>(block_shape);
+  const int32_t* crops_data = GetTensorData<int32_t>(crops);
+
+  TfLiteIntArray* input_dims = input->dims;
+  int spatial_dims_num = input_dims->size - 2;
+  // Block_shape should be a 1D tensor with dimension [spatial_dims_num].
+  TF_LITE_ENSURE_EQ(context, NumDimensions(block_shape), 1);
+  TF_LITE_ENSURE_EQ(context, block_shape->dims->data[0], spatial_dims_num);
+  // Crops should be a 2D tensor with dimension [spatial_dims_num, 2].
+  TF_LITE_ENSURE_EQ(context, NumDimensions(crops), 2);
+  TF_LITE_ENSURE_EQ(context, crops->dims->data[0], spatial_dims_num);
+  TF_LITE_ENSURE_EQ(context, crops->dims->data[1], 2);
+
+  for (int i = 0; i < spatial_dims_num * 2; ++i) {
+    TF_LITE_ENSURE(context, crops_data[i] >= 0);
+  }
+
+  // copy from input tensor as per TfLite code
+  TF_LITE_ENSURE_EQ(context, input_dims->size, output->dims->size);
+  RuntimeShape output_shape = GetTensorShape(input);
+  // keep a copy of the output tensor shape for later comparison
+  RuntimeShape old_output_shape = GetTensorShape(output);
+
+  int output_batch_size = input_dims->data[0];
+  for (int dim = 0; dim < spatial_dims_num; ++dim) {
+    // Number of batch must be multiple of (block_shape[dim]).
+    TF_LITE_ENSURE(context, block_shape_data[dim] != 0);
+    TF_LITE_ENSURE_EQ(context, output_batch_size % block_shape_data[dim], 0);
+    output_batch_size = output_batch_size / block_shape_data[dim];
+    output_shape.SetDim(dim + 1,
+                        input_dims->data[dim + 1] * block_shape_data[dim] -
+                            crops_data[dim * 2] - crops_data[dim * 2 + 1]);
+  }
+  output_shape.SetDim(0, output_batch_size);
+  output_shape.SetDim(input_dims->size - 1,
+                      input_dims->data[input_dims->size - 1]);
+
+  // check if need to relocate output tensor dims
+  if (output_shape == old_output_shape) {
+    return kTfLiteOk;
+  }
+  TF_LITE_ENSURE(context,
+                 output_shape.FlatSize() <= old_output_shape.FlatSize());
+
+  // set the output tensor dims from output_shape
+  TfLiteEvalTensor* output_eval =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+  TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
+      context, output, output_eval));
+  std::copy_n(output_shape.DimsData(), output_shape.DimensionsCount(),
+              output->dims->data);
+
+  return kTfLiteOk;
+}
+
 TfLiteStatus BatchToSpaceNDPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 3);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
@@ -46,20 +111,40 @@ TfLiteStatus BatchToSpaceNDPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* block_shape =
+      micro_context->AllocateTempInputTensor(node, kBlockShapeTensor);
+  TF_LITE_ENSURE(context, block_shape != nullptr);
+  TfLiteTensor* crops =
+      micro_context->AllocateTempInputTensor(node, kCropsTensor);
+  TF_LITE_ENSURE(context, crops != nullptr);
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  TF_LITE_ENSURE(context, input != nullptr && output != nullptr);
+  TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE(context, NumDimensions(input) >= kInputOutputMinDimensionNum);
   TF_LITE_ENSURE(context, NumDimensions(output) >= kInputOutputMinDimensionNum);
   TF_LITE_ENSURE(context, NumDimensions(input) <= kInputOutputMaxDimensionNum);
   TF_LITE_ENSURE(context, NumDimensions(output) <= kInputOutputMaxDimensionNum);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context,
+                 input->type == kTfLiteFloat32 || input->type == kTfLiteInt8);
+
+  if (input->type == kTfLiteInt8) {
+    TF_LITE_ENSURE(context, input->params.scale == output->params.scale);
+    TF_LITE_ENSURE(context,
+                   input->params.zero_point == output->params.zero_point);
+  }
+
+  TfLiteStatus status =
+      ReshapeOutputTensor(context, node, input, block_shape, crops, output);
 
   micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(block_shape);
+  micro_context->DeallocateTempTfLiteTensor(crops);
   micro_context->DeallocateTempTfLiteTensor(output);
 
-  return kTfLiteOk;
+  return status;
 }
 
 TfLiteStatus BatchToSpaceNDEval(TfLiteContext* context, TfLiteNode* node) {

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "hello_world_model.h"
+#include "codegen/examples/hello_world/hello_world_model.h"
 #include "tensorflow/lite/c/c_api_types.h"
 
 int main(int argc, char** argv) {
