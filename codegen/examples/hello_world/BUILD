@@ -10,5 +10,8 @@ tflm_inference_library(
 cc_binary(
     name = "hello_world",
     srcs = ["hello_world.cc"],
-    deps = [":hello_world_model"],
+    deps = [
+        ":hello_world_model",
+        "//tensorflow/lite/c:c_api_types",
+    ],
 )
