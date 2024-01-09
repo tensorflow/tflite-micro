@@ -277,9 +277,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel32bBias) {
 }
 
 TF_LITE_MICRO_TEST(SimpleTestDilatedQuantizedPerChannel) {
-  const int output_dims_count = 24;
-  int8_t output_data[output_dims_count];
-
   const float input_scale = 0.5f;
   const float output_scale = 1.0f;
   const int input_zero_point = 0;
@@ -292,10 +289,10 @@ TF_LITE_MICRO_TEST(SimpleTestDilatedQuantizedPerChannel) {
       1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4,
       // b = 1
       1, 2, 3, 4, 5, 6, 2, 6, 2, 4, 4, 2, 3, 2, 6, 5, 1, 4, 1, 2, 1, 4, 6, 3};
-  const int output_elements = 24;
-  int output_shape[] = {4, 2, 2, 2, 3};
-  const float golden_data[] = {25, 2, 7, 25, 2, 7, 10, 2, -3, 10, 2, -3,
-                               39, 7, 6, 50, 3, 4, 14, 4, -5, 15, 0, -7};
+  constexpr int output_elements = 12;
+  int output_shape[] = {4, 2, 1, 2, 3};
+  int8_t output_data[output_elements];
+  const float golden_data[] = {25, 2, 7, 25, 2, 7, 39, 7, 6, 50, 3, 4};
 
   int8_t input_quantized[input_elements];
   int8_t filter_quantized[tflite::testing::kFilterElements];
@@ -1087,7 +1084,7 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
   using tflite::ElementCount;
   using tflite::kConvBiasQuantized8;
   using tflite::kConvFilter8x3x3x3;
-  using tflite::kConvGoldenOutput1x16x16x8;
+  using tflite::kConvGoldenOutput1x15x15x8;
   using tflite::kConvInput1x32x32x3;
   using tflite::testing::CreateTensor;
   using tflite::testing::FloatArrayFromFloats;
@@ -1159,8 +1156,8 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
                                            0};
 
   // Create output tensor of 16x16x8
-  int8_t output_data[1 * 16 * 16 * kOutDepth];
-  int output_shape[] = {4, 1, 16, 16, kOutDepth};
+  int8_t output_data[1 * 15 * 15 * kOutDepth];
+  int output_shape[] = {4, 1, 15, 15, kOutDepth};
   TfLiteIntArray* output_dims = IntArrayFromInts(output_shape);
   const int output_dims_count = ElementCount(*output_dims);
   TfLiteTensor output_tensor = CreateTensor(output_data, output_dims);
@@ -1183,7 +1180,7 @@ TF_LITE_MICRO_TEST(Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
-      ValidateConvGoldens(tensors, tensors_size, kConvGoldenOutput1x16x16x8,
+      ValidateConvGoldens(tensors, tensors_size, kConvGoldenOutput1x15x15x8,
                           output_dims_count, &conv_params,
                           tflite::Register_CONV_2D(), output_data,
                           1.0 /* tolerance */));

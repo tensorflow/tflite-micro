@@ -18,6 +18,7 @@ py_binary(
     deps = [
         "//python/tflite_micro:runtime",
         "@absl_py//absl:app",
+        requirement("pillow"),
     ],
 )
 

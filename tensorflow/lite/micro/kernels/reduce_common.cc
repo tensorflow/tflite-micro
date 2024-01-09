@@ -74,7 +74,9 @@ TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
   TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
 
+  op_data->input_zp = input->params.zero_point;
   op_data->input_scale = input->params.scale;
+  op_data->output_zp = output->params.zero_point;
   op_data->output_scale = output->params.scale;
   op_data->num_output_elements = NumElements(output);
 

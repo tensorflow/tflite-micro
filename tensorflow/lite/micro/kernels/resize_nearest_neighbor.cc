@@ -31,7 +31,8 @@ constexpr int kInputTensor = 0;
 constexpr int kSizeTensor = 1;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ResizeNearestNeighborPrepare(TfLiteContext* context,
+                                          TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
@@ -65,7 +66,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus ResizeNearestNeighborEval(TfLiteContext* context,
+                                       TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteResizeNearestNeighborParams*>(node->builtin_data);
 
@@ -117,7 +119,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, ResizeNearestNeighborPrepare,
+                                   ResizeNearestNeighborEval);
 }
 
 }  // namespace tflite

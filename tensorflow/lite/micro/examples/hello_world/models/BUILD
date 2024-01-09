@@ -9,7 +9,10 @@ exports_files(
         "hello_world_float.tflite",
         "hello_world_int8.tflite",
     ],
-    visibility = ["//tensorflow/lite/micro/examples/hello_world:__subpackages__"],
+    visibility = [
+        "//codegen/examples/hello_world:__subpackages__",
+        "//tensorflow/lite/micro/examples/hello_world:__subpackages__",
+    ],
 )
 
 generate_cc_arrays(

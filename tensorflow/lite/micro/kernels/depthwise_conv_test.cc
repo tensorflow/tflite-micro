@@ -1,5 +1,5 @@
 
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,8 +25,11 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// Index of the output tensor in context->tensors, specific to
+// Indices of the tensors in context->tensors, specific to
 // DepthwiseConv.
+constexpr int kInputTensorIndex = 0;
+constexpr int kFilterTensorIndex = 1;
+constexpr int kBiasTensorIndex = 2;
 constexpr int kOutputTensorIndex = 3;
 
 constexpr int kMaxFilterChannels = 64;
@@ -43,9 +46,10 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
     const T* expected_output_data, int output_length,
     TfLiteDepthwiseConvParams* conv_params, float tolerance, int tensors_size,
     TfLiteTensor* tensors) {
-  int inputs_array_data[] = {3, 0, 1, 2};
+  int inputs_array_data[] = {3, kInputTensorIndex, kFilterTensorIndex,
+                             kBiasTensorIndex};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  int outputs_array_data[] = {1, 3};
+  int outputs_array_data[] = {1, kOutputTensorIndex};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   const TFLMRegistration registration = Register_DEPTHWISE_CONV_2D();
@@ -61,6 +65,8 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   conv_params->depth_multiplier = depth_mul;
 
   const char* init_data = reinterpret_cast<const char*>(conv_params);
+  // grab pointer to expected tensor shape
+  TfLiteIntArray* expected_out_dims = tensors[kOutputTensorIndex].dims;
 
   // TODO(b/154240825): Use a test macro here which fails and returns.
   TfLiteStatus status = runner.InitAndPrepare(init_data);
@@ -69,12 +75,28 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   }
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  const T* output_data = tflite::GetTensorData<T>(&tensors[kOutputTensorIndex]);
+  // check output dimensions (relocated) against original dimensions
+  TF_LITE_MICRO_EXPECT_EQ(expected_out_dims->size,
+                          tensors[kOutputTensorIndex].dims->size);
+  TF_LITE_MICRO_CHECK_FAIL();
+  for (int i = 0; i < expected_out_dims->size; i++) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_out_dims->data[i],
+                            tensors[kOutputTensorIndex].dims->data[i]);
+    // TODO(b/158102673): workaround for not having fatal test assertions.
+    TF_LITE_MICRO_CHECK_FAIL();
+  }
 
+  const int actual_output_length = ElementCount(*expected_out_dims);
+  TF_LITE_MICRO_EXPECT_EQ(output_length, actual_output_length);
+  TF_LITE_MICRO_CHECK_FAIL();
+  const T* output_data = tflite::GetTensorData<T>(&tensors[kOutputTensorIndex]);
   for (int i = 0; i < output_length; ++i) {
     TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
                               tolerance);
+    // TODO(b/158102673): workaround for not having fatal test assertions.
+    TF_LITE_MICRO_CHECK_FAIL();
   }
+
   return kTfLiteOk;
 }
 

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ namespace tflite {
 extern const int8_t kConvInput1x32x32x3[];
 extern const int8_t kConvFilter8x3x3x3[];
 extern const int32_t kConvBiasQuantized8[];
-extern const int8_t kConvGoldenOutput1x16x16x8[];
+extern const int8_t kConvGoldenOutput1x15x15x8[];
 
 // Kernel Conv Test Cases: Int8Filter1x3x3x1ShouldMatchGolden
 extern const int8_t kConvInput1x4x4x1[];

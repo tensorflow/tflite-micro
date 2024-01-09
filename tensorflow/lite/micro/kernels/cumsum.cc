@@ -104,11 +104,11 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CumSumPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpData(context, node);
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus CumSumEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   const TfLiteEvalTensor* axis_tensor =
@@ -169,7 +169,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_CUMSUM() {
-  return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
+  return tflite::micro::RegisterOp(nullptr, CumSumPrepare, CumSumEval);
 }
 
 }  // namespace tflite

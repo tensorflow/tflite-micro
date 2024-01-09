@@ -47,3 +47,4 @@ TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_qemu.sh
 SIZE_SCRIPT := ${TENSORFLOW_ROOT}tensorflow/lite/micro/testing/size_riscv32_binary.sh
 RUN_COMMAND := qemu-riscv32 -cpu rv32
 
+include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc

@@ -32,12 +32,12 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* InitSvdf(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EvalSvdf(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSvdf& data = *(static_cast<const OpDataSvdf*>(node->user_data));
@@ -99,7 +99,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_SVDF() {
-  return tflite::micro::RegisterOp(Init, PrepareSvdf, Eval);
+  return tflite::micro::RegisterOp(InitSvdf, PrepareSvdf, EvalSvdf);
 }
 
 }  // namespace tflite
