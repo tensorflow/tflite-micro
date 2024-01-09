@@ -25,7 +25,7 @@ import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tensorflow.python.platform import gfile
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import runtime
+from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.tools import layer_by_layer_schema_py_generated as layer_schema_fb
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 

@@ -18,9 +18,7 @@ from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 from tflite_micro.tensorflow.lite.micro.examples.recipes import resource_variables_lib
 
-# TODO(b/286456378): change tflm_runtime to runtime when we all other usage has
-# been updated.
-from tflite_micro.tensorflow.lite.micro.python.interpreter.src import tflm_runtime
+from tflite_micro.python.tflite_micro import runtime as tflm_runtime
 
 
 class ResourceVariablesTest(test_util.TensorFlowTestCase):
