@@ -24,11 +24,14 @@ limitations under the License.
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-MicroPrintf("\nThis example demonstrates LSTM layers on HiFi DSP, NOT for evaluating noise suppression quality.\n");
+MicroPrintf(
+    "\nThis example demonstrates LSTM layers on HiFi DSP, NOT for evaluating "
+    "noise suppression quality.\n");
 TF_LITE_MICRO_TEST(TestInvoke) {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
-  const tflite::Model* model = ::tflite::GetModel(g_dtln_noise_suppression_model_data);
+  const tflite::Model* model =
+      ::tflite::GetModel(g_dtln_noise_suppression_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     MicroPrintf(
         "Model provided is schema version %d not equal "
@@ -86,8 +89,9 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TF_LITE_MICRO_EXPECT_EQ(257, output->dims->data[2]);
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
 
-  int output_size = output->dims->data[0]*output->dims->data[1]*output->dims->data[2];
-  for(int i=0; i<output_size; i++)
+  int output_size =
+      output->dims->data[0] * output->dims->data[1] * output->dims->data[2];
+  for (int i = 0; i < output_size; i++)
     TF_LITE_MICRO_EXPECT_EQ(output->data.int8[i], golden_ref[i]);
 
   MicroPrintf("Ran successfully\n");
