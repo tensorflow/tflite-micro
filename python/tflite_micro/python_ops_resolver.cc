@@ -28,6 +28,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddArgMin();
   AddAssignVariable();
   AddAveragePool2D();
+  AddBatchMatMul();
   AddBatchToSpaceNd();
   AddBroadcastArgs();
   AddBroadcastTo();
@@ -45,8 +46,9 @@ PythonOpsResolver::PythonOpsResolver() {
   AddDequantize();
   AddDetectionPostprocess();
   AddDiv();
-  AddEnergy();
   AddElu();
+  AddEmbeddingLookup();
+  AddEnergy();
   AddEqual();
   AddEthosU();
   AddExp();
@@ -55,8 +57,8 @@ PythonOpsResolver::PythonOpsResolver() {
   AddFill();
   AddFilterBank();
   AddFilterBankLog();
-  AddFilterBankSquareRoot();
   AddFilterBankSpectralSubtraction();
+  AddFilterBankSquareRoot();
   AddFloor();
   AddFloorDiv();
   AddFloorMod();
@@ -75,11 +77,11 @@ PythonOpsResolver::PythonOpsResolver() {
   AddLess();
   AddLessEqual();
   AddLog();
+  AddLogSoftmax();
   AddLogicalAnd();
   AddLogicalNot();
   AddLogicalOr();
   AddLogistic();
-  AddLogSoftmax();
   AddMaxPool2D();
   AddMaximum();
   AddMean();
@@ -89,10 +91,10 @@ PythonOpsResolver::PythonOpsResolver() {
   AddNeg();
   AddNotEqual();
   AddOverlapAdd();
+  AddPCAN();
   AddPack();
   AddPad();
   AddPadV2();
-  AddPCAN();
   AddPrelu();
   AddQuantize();
   AddReadVariable();
@@ -118,8 +120,8 @@ PythonOpsResolver::PythonOpsResolver() {
   AddSquare();
   AddSquaredDifference();
   AddSqueeze();
-  AddStridedSlice();
   AddStacker();
+  AddStridedSlice();
   AddSub();
   AddSum();
   AddSvdf();
