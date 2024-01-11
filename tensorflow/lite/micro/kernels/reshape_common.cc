@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,9 +52,9 @@ TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
   if (new_shape != nullptr && new_shape->dims->size > 0) {
     // use new shape tensor data
     TF_LITE_ENSURE_EQ(context, new_shape->type, kTfLiteInt32);
+    TF_LITE_ENSURE_EQ(context, new_shape->dims->size, 1);
     output_shape_data = GetTensorData<int>(new_shape);
-    output_shape_size = new_shape->dims->data[new_shape->dims->size - 1];
-
+    output_shape_size = new_shape->dims->data[0];
     TF_LITE_ENSURE_EQ(context, output_shape_size,
                       static_cast<int32_t>(output->dims->size));
   } else {
