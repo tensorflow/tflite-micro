@@ -24,7 +24,7 @@ CCFLAGS := $(filter-out $(CC_WARNINGS),$(CCFLAGS))
 
 # Tests loading and running a dtln model.
 # TODO(b/319712246): Re-enable tests once the dtln_test works on HiFi Mini & VP6
-ifneq($(TARGET_ARCH), $(filter $(TARGET_ARCH, hifimini, vision_p6))
+ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifimini vision_p6))
   $(eval $(call microlite_test,dtln_test,\
   $(DTLN_TEST_SRCS),$(DTLN_TEST_HDRS),$(DTLN_GENERATOR_INPUTS)))
 endif
