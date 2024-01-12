@@ -72,6 +72,7 @@ inline bool ResolveAxis(const int num_dims, const int* axis,
   }
   return true;
 }
+
 TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -83,14 +84,14 @@ TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
   TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
 
-  uint32_t inputDims[4] = {1, 1, 1, 1};
-  uint32_t outputDims[4] = {1, 1, 1, 1};
-  uint32_t shouldReduceR[4] = {0, 0, 0, 0};
+  uint32_t input_dims[4] = {1, 1, 1, 1};
+  uint32_t output_dims[4] = {1, 1, 1, 1};
+  uint32_t should_reduce_r[4] = {0, 0, 0, 0};
   int32_t resolved_axis[4] = {0, 0, 0, 0};
-  OperandDims4D(inputDims, input);
-  OperandDims4D(outputDims, output);
+  OperandDims4D(input_dims, input);
+  OperandDims4D(output_dims, output);
 
-  uint32_t inputRank = NumDimensions(input);
+  const int input_rank = NumDimensions(input);
   // Interpret an axis tensor with null dimensions as a scalar
   int num_axis = static_cast<int>(ElementCount(*axis->dims));
   // Resolve axis.
@@ -99,16 +100,22 @@ TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node) {
                    &num_resolved_axis)) {
     return kTfLiteError;
   }
-  std::vector<bool> shouldReduce(inputRank);
 
-  for (int32_t i = 0; i < num_axis; ++i) {
-    int32_t axisD = resolved_axis[i];
-    shouldReduce[axisD] = true;
+  // ResolveAxis should eliminate dupes and negative axis, so the number of axis
+  // should be no greater than the input rank.
+  TFLITE_DCHECK(num_resolved_axis <= input_rank);
+
+  bool should_reduce[4] = {false, false, false, false};
+
+  for (int32_t i = 0; i < num_resolved_axis; ++i) {
+    int32_t axis_d = resolved_axis[i];
+    should_reduce[axis_d] = true;
   }
 
   // reverse axes and align it to dimension 0 as OperandDims4D
-  for (uint32_t axisI = 0; axisI < inputRank; ++axisI) {
-    shouldReduceR[inputRank - 1 - axisI] = (uint32_t)shouldReduce[axisI];
+  for (int axis_i = 0; axis_i < input_rank; ++axis_i) {
+    should_reduce_r[input_rank - 1 - axis_i] =
+        static_cast<uint32_t>(should_reduce[axis_i]);
   }
 
   uint32_t context_size = 0;
@@ -123,8 +130,8 @@ TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node) {
     data->context_size = context_size;
   }
 
-  status = xiReduceSetContext(data->p_context, data->context_size, inputDims,
-                              outputDims, shouldReduceR);
+  status = xiReduceSetContext(data->p_context, data->context_size, input_dims,
+                              output_dims, should_reduce_r);
 
   if (status) {
     return kTfLiteError;
