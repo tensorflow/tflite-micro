@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,14 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 
-namespace tflite {
-
-constexpr int kReshapeInputTensor = 0;
-constexpr int kReshapeOutputTensor = 0;
-
-TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node);
-
-}  // namespace tflite
+extern int8_t feature_data[];
+extern int8_t golden_ref[];

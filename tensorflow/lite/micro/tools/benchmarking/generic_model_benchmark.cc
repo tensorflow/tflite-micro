@@ -45,8 +45,6 @@ namespace {
 
 using Profiler = ::tflite::MicroProfiler;
 
-using TflmOpResolver = tflite::MicroMutableOpResolver<96>;
-
 constexpr int kTfLiteAbort = -9;
 
 // Seed used for the random input. Input data shouldn't affect invocation timing
