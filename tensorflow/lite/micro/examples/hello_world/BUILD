@@ -54,7 +54,7 @@ py_binary(
         "@absl_py//absl/flags",
         "@absl_py//absl/logging",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -79,6 +79,6 @@ py_binary(
     srcs_version = "PY3",
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )

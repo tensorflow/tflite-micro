@@ -71,7 +71,7 @@ py_test(
     deps = [
         ":delay_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -99,7 +99,7 @@ py_test(
     deps = [
         ":energy_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -127,7 +127,7 @@ py_test(
     deps = [
         ":fft_ops",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -161,7 +161,7 @@ py_test(
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -189,7 +189,7 @@ py_test(
     deps = [
         ":framer_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -215,7 +215,7 @@ py_test(
         ":overlap_add_op",
         "@absl_py//absl/testing:parameterized",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -248,7 +248,7 @@ py_test(
     deps = [
         ":pcan_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -276,7 +276,7 @@ py_test(
     deps = [
         ":stacker_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -303,6 +303,6 @@ py_test(
     deps = [
         ":window_op",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )

@@ -7,7 +7,7 @@ py_binary(
     srcs_version = "PY3",
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 

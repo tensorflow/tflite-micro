@@ -78,7 +78,7 @@ py_library(
     ],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -94,6 +94,6 @@ py_binary(
     deps = [
         "@absl_py//absl:app",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
