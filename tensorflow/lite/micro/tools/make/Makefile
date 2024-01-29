@@ -21,10 +21,6 @@ endif
 TENSORFLOW_ROOT :=
 RELATIVE_MAKEFILE_DIR := tensorflow/lite/micro/tools/make
 MAKEFILE_DIR := $(TENSORFLOW_ROOT)$(RELATIVE_MAKEFILE_DIR)
-BAZEL_ROOT := $(TENSORFLOW_ROOT)
-ifeq ($(BAZEL_ROOT),)
- BAZEL_ROOT = .
-endif
 
 # Pull in some convenience functions.
 include $(MAKEFILE_DIR)/helper_functions.inc
@@ -303,8 +299,6 @@ MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
 
-MICRO_LITE_CODEGEN_EXAMPLES := $(shell find $(TENSORFLOW_ROOT)codegen/examples/ -name Makefile.inc)
-
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
@@ -574,11 +568,7 @@ include $(MAKEFILE_DIR)/additional_kernels.inc
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
 
-CODEGEN_RUNTIME_CC_SRCS := \
-$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.cc
 
-CODEGEN_RUNTIME_CC_HDRS := \
-$(TENSORFLOW_ROOT)codegen/runtime/micro_codegen_context.h
 
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
@@ -735,9 +725,6 @@ INCLUDES += -I$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)
 
 # Load the examples.
 include $(MICRO_LITE_EXAMPLE_TESTS)
-
-# Load codegen examples.
-include $(MICRO_LITE_CODEGEN_EXAMPLES)
 
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
