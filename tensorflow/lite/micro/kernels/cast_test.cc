@@ -129,4 +129,12 @@ TF_LITE_MICRO_TEST(CastUInt32ToInt32) {
   tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 
+TF_LITE_MICRO_TEST(CastBoolToFloat) {
+  float output_data[6];
+  int input_dims[] = {2, 2, 3};
+  const bool input_values[] = {true, true, false, true, false, true};
+  const float golden[] = {1.f, 1.0f, 0.f, 1.0f, 0.0f, 1.0f};
+  tflite::testing::TestCast(input_dims, input_values, golden, output_data);
+}
+
 TF_LITE_MICRO_TESTS_END
