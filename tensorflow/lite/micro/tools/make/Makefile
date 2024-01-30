@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,6 +60,17 @@ endif
 # Specify which specialized kernel implementation should be pulled in.
 OPTIMIZED_KERNEL_DIR :=
 
+# Optimize kernels for speed or memory. This is similar but not the same as KERNEL_OPTIMIZATION_LEVEL and
+# CORE_OPTIMIZATION_LEVEL, which specify compiler optimization level.
+# Instead this enables a kernel to provide multiple implementations that is configured at build time.
+# An example could be a kernel requiring a bigger scratch buffer for certain use cases.
+# The example kernel would have a smaller scratch buffer usage when building for size.
+# Vice versa it would use more scratch buffer when building for speed and would be more performant.
+# Note that this is optional. If having one implementation, nothing needs to be done.
+# OPTIMIZE_KERNELS_FOR has only two valid values, KERNELS_OPTIMIZED_FOR_SIZE and KERNELS_OPTIMIZED_FOR_SPEED where the
+# former is default.
+OPTIMIZE_KERNELS_FOR := KERNELS_OPTIMIZED_FOR_SPEED
+
 # Override this variable from the command line in case the optimized kernels are
 # in a different directory.
 OPTIMIZED_KERNEL_DIR_PREFIX := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels
@@ -99,7 +110,7 @@ TEST_SCRIPT :=
 
 MICROLITE_LIBS := -lm
 
-# For the optimized_kernel_dir, and co-processor as specified on the
+# For the optimized_kernel_dir, co-processor and optimize_kernels_for as specified on the
 # command line we add -D<tag> to the cflags to allow for #idefs in the code.
 #
 # We apply the following transformations (via the tr command):
@@ -111,6 +122,10 @@ endif
 
 ifneq ($(CO_PROCESSOR),)
   ADDITIONAL_DEFINES += -D$(shell echo $(CO_PROCESSOR) | tr [a-z] [A-Z])
+endif
+
+ifneq ($(OPTIMIZE_KERNELS_FOR),)
+  ADDITIONAL_DEFINES += -D$(shell echo $(OPTIMIZE_KERNELS_FOR) | tr [a-z] [A-Z])
 endif
 
 ifeq ($(TOOLCHAIN), armclang)
@@ -483,11 +498,11 @@ $(shell find $(TENSORFLOW_ROOT)tensorflow/lite -type d \( -path $(TENSORFLOW_ROO
 
 ifneq ($(BUILD_TYPE), no_tf_lite_static_memory)
   EXCLUDED_TFL_CC_SRCS := \
-  	$(TENSORFLOW_ROOT)tensorflow/lite/array.cc
+	$(TENSORFLOW_ROOT)tensorflow/lite/array.cc
   TFL_CC_SRCS := $(filter-out $(EXCLUDED_TFL_CC_SRCS), $(TFL_CC_SRCS))
 
   EXCLUDED_TFL_CC_HDRS := \
-  	$(TENSORFLOW_ROOT)tensorflow/lite/array.h
+	$(TENSORFLOW_ROOT)tensorflow/lite/array.h
   TFL_CC_HDRS := $(filter-out $(EXCLUDED_TFL_CC_HDRS), $(TFL_CC_HDRS))
 endif
 
@@ -612,6 +627,11 @@ TARGET_SPECIFIC_MAKE_TEST:=0
 
 ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
   include $(MAKEFILE_DIR)/targets/$(TARGET)_makefile.inc
+endif
+
+# Validate valid options.
+ifeq (,$(filter $(OPTIMIZE_KERNELS_FOR),KERNELS_OPTIMIZED_FOR_SPEED KERNELS_OPTIMIZED_FOR_SIZE))
+    $(error Incorrect OPTIMIZE_KERNELS_FOR: $(OPTIMIZE_KERNELS_FOR))
 endif
 
 ifneq ($(OPTIMIZED_KERNEL_DIR),)
