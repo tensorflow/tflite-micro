@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -129,6 +129,11 @@ ifeq ($(TOOLCHAIN), armclang)
   # and so no such flag is necessary."
   # https://developer.arm.com/documentation/100891/0611/troubleshooting/general-troubleshooting-advice
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
+
+  # This does not build with armclang and is anyway not used by this target.
+  EXCLUDED_TESTS := \
+    tensorflow/lite/micro/tools/benchmarking/Makefile.inc
+  MICRO_LITE_BENCHMARKS := $(filter-out $(EXCLUDED_TESTS), $(MICRO_LITE_BENCHMARKS))
 
 else ifeq ($(TOOLCHAIN), gcc)
   TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
