@@ -18,16 +18,16 @@ endif
 export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 
 PLATFORM_FLAGS = \
-   -march=$(RISCV_ARCH) \
-   -mabi=$(RISCV_ABI) \
-   -mcmodel=$(RISCV_CODE_MODEL) \
-   -mexplicit-relocs \
-   -fno-builtin-printf \
-   -DTF_LITE_MCU_DEBUG_LOG \
-   -DTF_LITE_USE_GLOBAL_CMATH_FUNCTIONS \
-   -funsigned-char \
-   -fno-delete-null-pointer-checks \
-   -fomit-frame-pointer
+  -march=$(RISCV_ARCH) \
+  -mabi=$(RISCV_ABI) \
+  -mcmodel=$(RISCV_CODE_MODEL) \
+  -mexplicit-relocs \
+  -fno-builtin-printf \
+  -DTF_LITE_MCU_DEBUG_LOG \
+  -DTF_LITE_USE_GLOBAL_CMATH_FUNCTIONS \
+  -funsigned-char \
+  -fno-delete-null-pointer-checks \
+  -fomit-frame-pointer
 
 CXXFLAGS += $(PLATFORM_FLAGS) \
   -fpermissive \
