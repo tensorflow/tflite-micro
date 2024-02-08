@@ -91,12 +91,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Bias size equal to output channels
   if (bias != nullptr) {
     TF_LITE_ENSURE_EQ(context, bias->dims->size, 4);
-    const int bias_size = bias->dims->data[0] * bias->dims->data[1] *
-                          bias->dims->data[2] * bias->dims->data[3];
+    const int bias_size = NumElements(bias->dims);
     TFLITE_DCHECK_EQ(bias_size, output->dims->data[3]);
   }
 
-  // Initialize cmsis_nn dimension dimensions
+  // Initialize cmsis_nn dimensions
   cmsis_nn_dims input_dims;
   input_dims.n = input->dims->data[0];
   input_dims.h = input->dims->data[1];
