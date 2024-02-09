@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,5 +49,13 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
-  test -j$(nproc)
+  build -j$(nproc)
+
+readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=${TARGET} \
+  TARGET_ARCH=${TARGET_ARCH} \
+  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
+  test
 
