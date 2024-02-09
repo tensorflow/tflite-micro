@@ -327,14 +327,20 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
   }
 
   size_t number_of_buffers;
-  bool cmsis_nn_used =
-      (cell_state_type == kTfLiteInt16 && activation_type == kTfLiteInt16);
-  if (cmsis_nn_used) {
-    number_of_buffers = 3;
-  } else {
+  if (activation_type != kTfLiteInt8) {
     number_of_buffers = 4;
-  }
+  } else {
+    bool cmsis_nn_used = (cell_state_type == kTfLiteInt16);
+    if (cmsis_nn_used) {
+      auto kernel_content = CreateLSTMKernelContent(context, node);
+      PortOpData_s8(context, op_data_lstm, kernel_content,
+                    &op_data->params_cmsis_nn);
 
+      number_of_buffers = 3;
+    } else {
+      number_of_buffers = 4;
+    }
+  }
   for (size_t i = 0; i < number_of_buffers; i++) {
     TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
                                    context,
@@ -343,10 +349,6 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
                                        TfLiteTypeGetSize(cell_state_type),
                                    &(op_data_lstm->buffer_indices[i])));
   }
-
-  auto kernel_content = CreateLSTMKernelContent(context, node);
-  PortOpData_s8(context, op_data_lstm, kernel_content,
-                &op_data->params_cmsis_nn);
 
   return kTfLiteOk;
 }
