@@ -69,10 +69,10 @@ else
   MICROLITE_TEST_TARGETS += test_$(1)
 endif
 
-# For bluepill, the CI build is failing due to introduction of the
-# introduction of test_run_latency.sh script. Looks at
+# For bluepill and cortex_m_qemu_makefile, the CI build is failing due to
+# introduction of the test_run_latency.sh script. Look at
 # https://b.corp.google.com/issues/268565399#comment11 for more details.
-ifneq ($(TARGET), bluepill)
+ifneq ($(TARGET), $(filter $(TARGET), bluepill cortex_m_qemu))
 test_$(1):$$($(1)_BINARY)
 	$(MAKEFILE_DIR)/test_latency_log.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
 else
