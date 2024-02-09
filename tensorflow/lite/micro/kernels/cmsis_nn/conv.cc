@@ -75,29 +75,44 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
       "Hybrid models are not supported on TFLite Micro.");
 
-  RuntimeShape input_shape = GetTensorShape(input);
-  RuntimeShape output_shape = GetTensorShape(output);
+  // Consistency check tensor dims
+  // Dimensionality
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+  // Equal batch size in input and output
+  TF_LITE_ENSURE_EQ(context, input->dims->data[0], output->dims->data[0]);
+  // Input channels should be an even multiple of filter channels
+  TF_LITE_ENSURE(context, filter->dims->data[3] > 0);
+  TF_LITE_ENSURE_EQ(context, input->dims->data[3] % filter->dims->data[3], 0);
+  // Output channels should be an even multiple of the number of groups
+  const int groups = input->dims->data[3] / filter->dims->data[3];
+  TFLITE_DCHECK_EQ(output->dims->data[3] % groups, 0);
+  // Bias size equal to output channels
+  if (bias != nullptr) {
+    TF_LITE_ENSURE_EQ(context, bias->dims->size, 4);
+    const int bias_size = NumElements(bias->dims);
+    TFLITE_DCHECK_EQ(bias_size, output->dims->data[3]);
+  }
 
-  // Initialize cmsis_nn input dimensions
+  // Initialize cmsis_nn dimensions
   cmsis_nn_dims input_dims;
-  input_dims.n = MatchingDim(input_shape, 0, output_shape, 0);
+  input_dims.n = input->dims->data[0];
   input_dims.h = input->dims->data[1];
   input_dims.w = input->dims->data[2];
-  input_dims.c = input_shape.Dims(3);
+  input_dims.c = input->dims->data[3];
 
-  // Initialize cmsis_nn filter dimensions
   cmsis_nn_dims filter_dims;
-  filter_dims.n = output_shape.Dims(3);
+  filter_dims.n = 1;
   filter_dims.h = filter->dims->data[1];
   filter_dims.w = filter->dims->data[2];
-  filter_dims.c = input_dims.c;
+  filter_dims.c = filter->dims->data[3];
 
-  // Initialize cmsis_nn output dimensions
   cmsis_nn_dims output_dims;
-  output_dims.n = input_dims.n;
+  output_dims.n = output->dims->data[0];
   output_dims.h = output->dims->data[1];
   output_dims.w = output->dims->data[2];
-  output_dims.c = output_shape.Dims(3);
+  output_dims.c = output->dims->data[3];
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const int num_channels = filter->dims->data[kConvQuantizedDimension];
@@ -233,51 +248,31 @@ TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
   quant_params.shift =
       const_cast<int32_t*>(data.reference_op_data.per_channel_output_shift);
 
-  RuntimeShape filter_shape = tflite::micro::GetTensorShape(filter);
-  RuntimeShape input_shape = tflite::micro::GetTensorShape(input);
-  RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
-  RuntimeShape bias_shape = tflite::micro::GetTensorShape(bias);
-
-  // Consistency check.
-  TFLITE_DCHECK_LE(conv_params.activation.min, conv_params.activation.max);
-  TFLITE_DCHECK_EQ(input_shape.DimensionsCount(), 4);
-  TFLITE_DCHECK_EQ(filter_shape.DimensionsCount(), 4);
-  TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 4);
-  const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
-  const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
-  const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
-  if (tflite::micro::GetOptionalTensorData<BiasType>(bias)) {
-    TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
-  }
-
-  // Initialize cmsis_nn dimensions
-  // Input
+  // Initialize cmsis_nn dimension structs, consistency is checked in the
+  // prepare stage
   cmsis_nn_dims input_dims;
-  input_dims.n = batch_size;
-  input_dims.h = input_shape.Dims(1);
-  input_dims.w = input_shape.Dims(2);
-  input_dims.c = input_depth;
+  input_dims.n = input->dims->data[0];
+  input_dims.h = input->dims->data[1];
+  input_dims.w = input->dims->data[2];
+  input_dims.c = input->dims->data[3];
 
-  // Filter
   cmsis_nn_dims filter_dims;
-  filter_dims.n = output_depth;
-  filter_dims.h = filter_shape.Dims(1);
-  filter_dims.w = filter_shape.Dims(2);
-  filter_dims.c = input_depth;
+  filter_dims.n = 1;
+  filter_dims.h = filter->dims->data[1];
+  filter_dims.w = filter->dims->data[2];
+  filter_dims.c = filter->dims->data[3];
 
-  // Bias
   cmsis_nn_dims bias_dims;
   bias_dims.n = 1;
   bias_dims.h = 1;
   bias_dims.w = 1;
-  bias_dims.c = output_depth;
+  bias_dims.c = output->dims->data[3];
 
-  // Output
   cmsis_nn_dims output_dims;
-  output_dims.n = batch_size;
-  output_dims.h = output_shape.Dims(1);
-  output_dims.w = output_shape.Dims(2);
-  output_dims.c = output_depth;
+  output_dims.n = output->dims->data[0];
+  output_dims.h = output->dims->data[1];
+  output_dims.w = output->dims->data[2];
+  output_dims.c = output->dims->data[3];
 
   // Initialize cmsis_nn context
   cmsis_nn_context ctx;
