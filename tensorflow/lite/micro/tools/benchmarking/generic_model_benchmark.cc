@@ -176,6 +176,7 @@ void usage(const char* prog_name) {
 int main(int argc, char** argv) {
   // Which format should be used to output debug information.
   tflite::PrettyPrintType print_type = tflite::PrettyPrintType::kTable;
+  tflite::InitializeTarget();
 
 #if !defined(MODEL_HEADER_PATH)
   if (argc < 2 || argc > 3) {
