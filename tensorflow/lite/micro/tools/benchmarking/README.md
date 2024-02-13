@@ -6,19 +6,21 @@ file to be specified as a program argument
 2. With a model compiled into the tool, allowing use in any simulator or on
 any hardware platform
 
-Building the tool with the model compiled in requires two additional Makefile
+Building the tool with the model compiled in uses two additional Makefile
 variables:
 * `BENCHMARK_MODEL_PATH`: the path to the TfLite format model file.  This
-can be a relative or absolute path.
-* `BENCHMARK_ARENA_SIZE`: the size of the TFLM interpreter arena, in bytes
+can be a relative or absolute path.  This variable is required.
+* `BENCHMARK_ARENA_SIZE`: the size of the TFLM interpreter arena, in bytes.
+This variable is optional.
 
 ## Tested, working targets
 * x86
 * cortex_m_qemu (no timing data)
 * Xtensa
+* cortex_m_corstone_300
 
 ## Tested, non-working targets
-* cortex_m_corstone_300 (hangs simulator)
+* none currently
 
 ## Build and run for x86
 Build for command line arguments:
