@@ -105,17 +105,12 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       // TODO(b/259724572): Refactor the following block of code.
       int b;
       int inp1_off = 0;
-      int inp2_off = 0;
       int out_off;
       out_off =
           output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if (input1_dims[0] > 1) {
         inp1_off =
             input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
-      }
-      if (input2_dims[0] > 1) {
-        inp2_off =
-            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
       for (b = 0; b < output_dims[0]; b++) {
@@ -168,17 +163,12 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       const int* output_dims = extended_output_shape.DimsData();
       int b;
       int inp1_off = 0;
-      int inp2_off = 0;
       int out_off;
       out_off =
           output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if (input1_dims[0] > 1) {
         inp1_off =
             input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
-      }
-      if (input2_dims[0] > 1) {
-        inp2_off =
-            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
       for (b = 0; b < output_dims[0]; b++) {
