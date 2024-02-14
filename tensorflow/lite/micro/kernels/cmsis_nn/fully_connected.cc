@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
         int8_t* filter_data = GetTensorData<int8_t>(filter);
         arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
-                          filter_data);
+                          filter_data, 1, nullptr);
 
         // Do not request a scratch buffer since using persistent memory
         buf_size = 0;
