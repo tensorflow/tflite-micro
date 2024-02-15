@@ -20,10 +20,11 @@ index 2ffea63..5aa7cd5 100644
  void vec_rsqrt32x32 ( int32_t * frac, int16_t * exp, const int32_t * x, int N);
 @@ -661,6 +661,8 @@ int32_t scl_tanh32x32(int32_t x);
  void vec_sigmoid32x32(int32_t * y, const int32_t * x, int N);
++void vec_sigmoidf    (float32_t * y, const float32_t * x, int N);
  int32_t scl_sigmoid32x32(int32_t x);
  
 +void vec_relu32x32 (int32_t   * y, const int32_t   * x, int32_t   K, int N);
-+
++void vec_reluf     (float32_t * y, const float32_t * x, float32_t K, int N);
  /*-------------------------------------------------------------------------
    Softmax
    The function computes the softmax (normalized exponential function) of 
