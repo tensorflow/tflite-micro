@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,7 +69,6 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
   sed -i 's/gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
       ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/'  ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/g_person_detect_model_data_len/g_person_detect_model_data_size/'  ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/unsigned int/const unsigned int/' ${CONVERTED_PERSON_MODEL_INT8}
 fi
 
