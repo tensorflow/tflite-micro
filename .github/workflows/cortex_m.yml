@@ -25,7 +25,8 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
+      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
 
     name: Cortex-M Generic
     steps:
@@ -47,7 +48,8 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
+      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
 
     name: Cortex-M Corstone 300 (FVP)
     steps:
