@@ -14,13 +14,19 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+  pull_request_target:
+    types:
+      - closed
+      - labeled
+
 jobs:
   cortex_m_generic:
     runs-on: ubuntu-latest
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
+      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
 
     name: Cortex-M Generic
     steps:
@@ -42,7 +48,8 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
+      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
 
     name: Cortex-M Corstone 300 (FVP)
     steps:
