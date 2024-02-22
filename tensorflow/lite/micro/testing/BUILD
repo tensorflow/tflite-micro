@@ -33,7 +33,6 @@ cc_library(
     ],
     visibility = [
         ":kernel_test_friends",
-        ":microfrontend",
         ":tflite_micro",
     ],
     deps = [

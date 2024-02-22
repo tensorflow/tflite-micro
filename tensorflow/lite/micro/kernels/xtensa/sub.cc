@@ -83,7 +83,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
                       &op_params);
   // TODO(b/259724572): vision_p6 and hifi code path is getting very confusing.
   // Let's separate them into two different files.
-#if !(defined(HIFI3) || defined(HIFI4))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
       tflite::micro::GetTensorShape(input1),
       tflite::micro::GetTensorShape(input2), &op_params);
@@ -91,7 +91,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
   switch (output->type) {
     case kTfLiteInt8: {
-#if defined(HIFI3) || defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -105,17 +105,12 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       // TODO(b/259724572): Refactor the following block of code.
       int b;
       int inp1_off = 0;
-      int inp2_off = 0;
       int out_off;
       out_off =
           output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if (input1_dims[0] > 1) {
         inp1_off =
             input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
-      }
-      if (input2_dims[0] > 1) {
-        inp2_off =
-            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
       for (b = 0; b < output_dims[0]; b++) {
@@ -133,7 +128,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else   // defined(HIFI3) || defined(HIFI4)
+#else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -151,11 +146,11 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif  // defined(HIFI3) || defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI3) || defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       int err;
       const RuntimeShape extended_input1_shape =
           RuntimeShape::ExtendedShape(5, tflite::micro::GetTensorShape(input1));
@@ -168,17 +163,12 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       const int* output_dims = extended_output_shape.DimsData();
       int b;
       int inp1_off = 0;
-      int inp2_off = 0;
       int out_off;
       out_off =
           output_dims[1] * output_dims[2] * output_dims[3] * output_dims[4];
       if (input1_dims[0] > 1) {
         inp1_off =
             input1_dims[1] * input1_dims[2] * input1_dims[3] * input1_dims[4];
-      }
-      if (input2_dims[0] > 1) {
-        inp2_off =
-            input2_dims[1] * input2_dims[2] * input2_dims[3] * input2_dims[4];
       }
 
       for (b = 0; b < output_dims[0]; b++) {
@@ -196,7 +186,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
 
         TF_LITE_ENSURE(context, err == 0);
       }
-#else   // defined(HIFI3) || defined(HIFI4)
+#else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       if (need_broadcast) {
         tflite::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
@@ -214,7 +204,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       }
-#endif  // defined(HIFI3) || defined(HIFI4)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       break;
     }
     default:

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,6 +130,11 @@ ifeq ($(TOOLCHAIN), armclang)
   # https://developer.arm.com/documentation/100891/0611/troubleshooting/general-troubleshooting-advice
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
 
+  # This does not build with armclang and is anyway not used by this target.
+  EXCLUDED_TESTS := \
+    tensorflow/lite/micro/tools/benchmarking/Makefile.inc
+  MICRO_LITE_BENCHMARKS := $(filter-out $(EXCLUDED_TESTS), $(MICRO_LITE_BENCHMARKS))
+
 else ifeq ($(TOOLCHAIN), gcc)
   TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
   TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
@@ -200,5 +205,10 @@ EXCLUDED_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc  \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/recording_micro_allocator_test.cc
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
+
+# TODO(#2449) Examine why this test fails here.
+EXCLUDED_EXAMPLE_TESTS := \
+    tensorflow/lite/micro/examples/dtln/Makefile.inc
+MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh

@@ -29,8 +29,16 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  cortex_m_ci_full:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+    uses: ./.github/workflows/cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   issue_on_error:
-    needs: [riscv_postmerge,xtensa_postmerge]
+    needs: [riscv_postmerge,xtensa_postmerge,cortex_m_ci_full]
     if: ${{ always() && contains(needs.*.result, 'failure') &&
             !contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
     uses: ./.github/workflows/issue_on_error.yml
