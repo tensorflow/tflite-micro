@@ -18,6 +18,15 @@ on:
     types:
       - closed
       - labeled
+  
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
 
 jobs:
   cortex_m_generic:
