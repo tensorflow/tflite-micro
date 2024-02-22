@@ -74,8 +74,7 @@ def generate_conv_model(write_to_file=True,
   # TODO(b/324385802): Disable per channel quantization in FC layers (currently
   # default behaviour) since it's not yet supported in TFLM.
   converter._experimental_disable_per_channel_quantization_for_dense_layers = (  # pylint: disable=protected-access
-      True
-  )
+      True)
 
   tflite_model = converter.convert()
   if write_to_file:
