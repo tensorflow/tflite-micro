@@ -47,9 +47,9 @@ if [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_NN_PATH} already exists, skipping the download."
 else
 
-  ZIP_PREFIX_NN="2a999a2fd887c98042353accac77479f00b5f99d"
+  ZIP_PREFIX_NN="72e1ebf623ab1660a3e14e4e36fdcddce46f1991"
   CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
-  CMSIS_NN_MD5="c6cfe1f8e0f6518c92f7e42ed7b7afd4"
+  CMSIS_NN_MD5="23a623f4eca6c8f11ee5366c2cf61a44"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
