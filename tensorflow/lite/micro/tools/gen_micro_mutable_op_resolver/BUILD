@@ -42,7 +42,7 @@ py_binary(
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         requirement("mako"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",

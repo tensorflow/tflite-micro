@@ -122,8 +122,7 @@ void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
     }
   }
 #else
-  WORD32 err;
-  err = xa_nn_elm_add_16x16_16(output, input_1, input_2, n_batch * n_input);
+  xa_nn_elm_add_16x16_16(output, input_1, input_2, n_batch * n_input);
 #endif
 }
 
@@ -227,8 +226,7 @@ void FullyConnected(const FullyConnectedParams& params,
 }
 #else  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
 void Sigmoid(int16_t* data, int32_t data_size) {
-  WORD32 err;
-  err = xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
+  xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
 }
 
 void Sigmoid(float* data, int32_t data_size) {
@@ -251,9 +249,8 @@ void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
     input_multiplier = 3;
 #endif
   }
-  WORD32 err;
-  err = xa_nn_vec_tanh_sym16s_sym16s(output_data, input_data, input_multiplier,
-                                     tanh_input_left_shift, data_size);
+  xa_nn_vec_tanh_sym16s_sym16s(output_data, input_data, input_multiplier,
+                               tanh_input_left_shift, data_size);
 }
 
 void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
@@ -266,8 +263,7 @@ void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
 // Input and output have the same shape in LSTM
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int8_t* output_data, int32_t data_size) {
-  WORD32 err;
-  err = xa_nn_elm_mul_sym16sxsym16s_asym8s(
+  xa_nn_elm_mul_sym16sxsym16s_asym8s(
       output_data, params.output_offset, params.output_shift,
       params.output_multiplier, params.quantized_activation_min,
       params.quantized_activation_max, input1_data, input2_data, data_size);
@@ -277,8 +273,7 @@ void Mul(const ArithmeticParams& params, const int16_t* input1_data,
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int16_t* output_data, int32_t data_size) {
   int dims_4D[4] = {1, 1, 1, data_size};
-  WORD32 err;
-  err = xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(
+  xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(
       output_data, dims_4D, params.output_shift, params.output_multiplier,
       params.quantized_activation_min, params.quantized_activation_max,
       input1_data, dims_4D, input2_data, dims_4D);
@@ -299,10 +294,9 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int32_t* bias_data, int16_t* output_data,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
-  WORD32 err;
 #pragma loop_count min = 1
   for (int b = 0; b < num_batches; b++) {
-    err = xa_nn_matXvec_out_stride_sym8sxasym8s_16(
+    xa_nn_matXvec_out_stride_sym8sxasym8s_16(
         output_data + b * output_depth, filter_data,
         input_data + b * accum_depth, bias_data, output_depth, accum_depth,
         accum_depth, 1, params.input_offset, params.output_multiplier,
@@ -316,9 +310,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int64_t* bias_data, int16_t* output_data,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
-  WORD32 err;
-
-  err = xa_nn_matmul_sym8sxsym16s_sym16s(
+  xa_nn_matmul_sym8sxsym16s_sym16s(
       output_data, filter_data, input_data, bias_data, output_depth,
       accum_depth, accum_depth, num_batches, accum_depth, output_depth, 1,
       params.input_offset, params.output_multiplier, params.output_shift,
@@ -376,9 +368,8 @@ void UpdateLstmCell(const LstmStepManager& step_info,
   TFLITE_DCHECK_LE(step_info.CellStateOffset() + cell_state_shape.FlatSize(),
                    tflite::micro::GetTensorShape(cell_state).FlatSize());
 
-  WORD32 err;
   // Multiplier is equivalent to 0.5 here so adding 1 to shifts
-  err = xa_nn_lstm_cell_state_update_16(
+  xa_nn_lstm_cell_state_update_16(
       tflite::micro::GetTensorData<int16_t>(cell_state) +
           step_info.CellStateOffset(),
       forget_gate_output, cell_gate_output, input_gate_output,

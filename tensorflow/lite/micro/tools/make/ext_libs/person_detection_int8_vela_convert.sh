@@ -47,6 +47,7 @@ fi
 # See tensorflow/lite/micro/kernels/ethos_u/README.md for more info.
 MODEL_DIR=${GENERATED_SRCS_DIR}tensorflow/lite/micro/models
 CONVERTED_PERSON_MODEL_INT8=${MODEL_DIR}/person_detect_model_data_vela.cc
+PERSON_MODEL_HEADER=${MODEL_DIR}/person_detect_model_data.h
 
 if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
   # Compile an optimized .tflite version for Ethos-U.
@@ -68,9 +69,10 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
   xxd -i ${MODEL_DIR}/person_detect_vela.tflite >> ${CONVERTED_PERSON_MODEL_INT8}
   sed -i 's/gen_cortex_m_corstone_300_cortex_m55_default_genfiles_tensorflow_lite_micro_models_person_detect_vela_tflite/g_person_detect_model_data/' \
       ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/'  ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/g_person_detect_model_data_len/g_person_detect_model_data_size/'  ${CONVERTED_PERSON_MODEL_INT8}
-  sed -i 's/unsigned int/const unsigned int/' ${CONVERTED_PERSON_MODEL_INT8}
+  sed -i 's/^const unsigned char g_person_detect_model_data/alignas\(16\) &/' ${CONVERTED_PERSON_MODEL_INT8}
+  SIZE=$(sed -E -n -e 's/^.*g_person_detect_model_data_len = ([0-9]+);/\1/p' ${CONVERTED_PERSON_MODEL_INT8})
+  sed -i 's/^.*g_person_detect_model_data_len.*$//' ${CONVERTED_PERSON_MODEL_INT8}
+  sed -E -i "s/(^constexpr.*g_person_detect_model_data_size = )([0-9]+);/\1$SIZE;/" ${PERSON_MODEL_HEADER}
 fi
 
 echo "SUCCESS"
