@@ -116,11 +116,11 @@ class MicroInterpreter {
     return nullptr;
   }
 
-  // Returns a pointer to the tensor for the corresponding tensor_index
+  // Returns a pointer to the tensor for the corresponding tensor_index.
   TfLiteEvalTensor* GetTensor(int tensor_index, int subgraph_index = 0);
 
   // Reset the state to be what you would expect when the interpreter is first
-  // created. i.e. after Init and Prepare is called for the very first time.
+  // created. i.e. after Init and Prepare are called for the very first time.
   TfLiteStatus Reset();
 
   TfLiteStatus initialization_status() const { return initialization_status_; }
@@ -135,13 +135,13 @@ class MicroInterpreter {
   // Returns the actual used arena in bytes. This method gives the optimal arena
   // size. It's only available after `AllocateTensors` has been called.
   // Note that normally `tensor_arena` requires 16 bytes alignment to fully
-  // utilize the space. If it's not the case, the optimial arena size would be
+  // utilize the space. If it's not the case, the optimal arena size would be
   // arena_used_bytes() + 16.
   size_t arena_used_bytes() const { return allocator_.used_bytes(); }
 
-  // Returns True if all Tensors are being preserves
+  // Returns True if all Tensors are being preserved
   // TODO(b/297106074) : revisit making C++ example or test for
-  // preserve_all_tesnors
+  // preserve_all_tensors.
   bool preserve_all_tensors() const {
     return allocator_.preserves_all_tensor();
   }
