@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -198,13 +198,21 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   if (input->type == kTfLiteInt8) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
 
-    RuntimeShape filter_shape = GetTensorShape(filter);
     RuntimeShape input_shape = GetTensorShape(input);
     RuntimeShape output_shape = GetTensorShape(output);
+    RuntimeShape filter_shape = GetTensorShape(filter);
 
     const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
-    const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
     const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
+
+    cmsis_nn_dims output_dims;
+    output_dims.n = batch_size;
+    output_dims.h = output_shape.Dims(1);
+    output_dims.w = output_shape.Dims(2);
+    output_dims.c = output_depth;
+
+#if defined(KERNELS_OPTIMIZED_FOR_SPEED)
+    const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
 
     cmsis_nn_dims input_dims;
     input_dims.n = batch_size;
@@ -218,17 +226,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     filter_dims.w = filter_shape.Dims(2);
     filter_dims.c = input_depth;
 
-    cmsis_nn_dims output_dims;
-    output_dims.n = batch_size;
-    output_dims.h = output_shape.Dims(1);
-    output_dims.w = output_shape.Dims(2);
-    output_dims.c = output_depth;
-
     const size_t buf_size = arm_transpose_conv_s8_get_buffer_size(
         &input_dims, &filter_dims, &output_dims);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context, buf_size, &(data->scratch_buffer_index)) ==
                   kTfLiteOk);
+#endif
 
     // Quantized 8-bit kernels use an int32 scratch buffer.
     TFLITE_DCHECK(
@@ -285,6 +288,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+#if defined(KERNELS_OPTIMIZED_FOR_SPEED)
 TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
                                      const TfLiteConvParams& params,
                                      const OpData& data,
@@ -376,6 +380,7 @@ TfLiteStatus EvalQuantizedPerChannel(TfLiteContext* context, TfLiteNode* node,
 
   return kTfLiteOk;
 }
+#endif
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
@@ -416,8 +421,29 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
+#if defined(KERNELS_OPTIMIZED_FOR_SIZE)
+      int32_t* scratch_buffer = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, data.scratch_buffer_index));
+      reference_integer_ops::TransposeConv(
+          data.params, data.per_channel_output_multiplier,
+          data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int8_t>(input),
+          tflite::micro::GetTensorShape(filter),
+          tflite::micro::GetTensorData<int8_t>(filter),
+          tflite::micro::GetTensorShape(bias),
+          tflite::micro::GetOptionalTensorData<int32_t>(bias),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int8_t>(output),
+          tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+#elif defined(KERNELS_OPTIMIZED_FOR_SPEED)
       return EvalQuantizedPerChannel(context, node, params, data, input, filter,
                                      bias, output);
+#else
+      MicroPrintf(
+          "Either KERNELS_OPTIMIZED_FOR_SIZE or KERNELS_OPTIMIZED_FOR_SPEED "
+          "must be defined");
+      return kTfLiteError;
+#endif
       break;
     }
     case kTfLiteInt16: {
@@ -481,12 +507,33 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
-  TF_LITE_ENSURE_EQ(context, input->type, output->type);
+#if defined(KERNELS_OPTIMIZED_FOR_SIZE)
+  int32_t* scratch_buffer = static_cast<int32_t*>(
+      context->GetScratchBuffer(context, data.scratch_buffer_index));
+  reference_integer_ops::TransposeConv(
+      data.params, data.per_channel_output_multiplier,
+      data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(filter),
+      tflite::micro::GetTensorData<int8_t>(filter),
+      tflite::micro::GetTensorShape(bias),
+      tflite::micro::GetOptionalTensorData<int32_t>(bias),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output),
+      tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+#elif defined(KERNELS_OPTIMIZED_FOR_SPEED)
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
 
   return EvalQuantizedPerChannel(context, node, params, data, input, filter,
                                  bias, output);
+#else
+  MicroPrintf(
+      "Either KERNELS_OPTIMIZED_FOR_SIZE or KERNELS_OPTIMIZED_FOR_SPEED must "
+      "be defined");
+  return kTfLiteError;
+#endif
+  return kTfLiteOk;
 }
 
 }  // namespace
