@@ -42,7 +42,8 @@ int16_t PcanGainLookupFunction(const float strength, const float offset,
 
 py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
                             int gain_bits) {
-  int16_t gain_lut_storage[kWideDynamicFunctionLUTSize];
+  // Avoid accessing outside of the buffer below gain_lut[4 * interval + 3].
+  int16_t gain_lut_storage[kWideDynamicFunctionLUTSize + 1];
   int16_t* gain_lut = gain_lut_storage;
 
   gain_lut[0] =
