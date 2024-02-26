@@ -22,7 +22,7 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status StackerShape(InferenceContext* c) {
+absl::Status StackerShape(InferenceContext* c) {
   int num_channels, stacker_left_context, stacker_right_context;
   TF_RETURN_IF_ERROR(c->GetAttr<int>("num_channels", &num_channels));
   TF_RETURN_IF_ERROR(
@@ -41,7 +41,7 @@ Status StackerShape(InferenceContext* c) {
       c->ReplaceDim(out, 0, c->MakeDim(num_channels * output_frames), &out));
   c->set_output(0, out);
   c->set_output(1, c->Scalar());
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved

@@ -22,11 +22,11 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status DelayShape(InferenceContext* c) {
+absl::Status DelayShape(InferenceContext* c) {
   ShapeHandle out;
   TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved

@@ -22,7 +22,7 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status FramerShape(InferenceContext* c) {
+absl::Status FramerShape(InferenceContext* c) {
   ShapeHandle unused;
   ShapeHandle in;
   int frame_step, frame_size;
@@ -41,7 +41,7 @@ Status FramerShape(InferenceContext* c) {
   TF_RETURN_IF_ERROR(c->ReplaceDim(out, -1, c->MakeDim(frame_size), &out));
   c->set_output(0, out);
   c->set_output(1, c->Scalar());
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved
