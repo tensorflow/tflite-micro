@@ -17,6 +17,10 @@ limitations under the License.
 
 namespace tflite {
 
+
+// Defining a constexpr static class member is necessary in C++11
+constexpr int tflite::RuntimeShape::kMaxSmallSize;
+
 // Single-rounding MultiplyByQuantizedMultiplier
 #if TFLITE_SINGLE_ROUNDING
 int32_t MultiplyByQuantizedMultiplier(int32_t x, int32_t quantized_multiplier,
