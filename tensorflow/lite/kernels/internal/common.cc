@@ -17,7 +17,6 @@ limitations under the License.
 
 namespace tflite {
 
-
 // Single-rounding MultiplyByQuantizedMultiplier
 #if TFLITE_SINGLE_ROUNDING
 int32_t MultiplyByQuantizedMultiplier(int32_t x, int32_t quantized_multiplier,
