@@ -24,14 +24,14 @@ namespace signal {
 
 namespace {
 
-Status PcanShape(InferenceContext* c) {
+absl::Status PcanShape(InferenceContext* c) {
   ShapeHandle out, lut;
   TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
   TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
   TF_RETURN_IF_ERROR(c->WithRank(c->input(2), 1, &lut));
 
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace
