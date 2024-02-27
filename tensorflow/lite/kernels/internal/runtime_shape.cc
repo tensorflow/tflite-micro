@@ -20,4 +20,4 @@ namespace tflite {
 // Defining a constexpr static class member is necessary in C++11
 constexpr int tflite::RuntimeShape::kMaxSmallSize;
 
-} // namespace tflite
+}  // namespace tflite
