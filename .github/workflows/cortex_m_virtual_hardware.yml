@@ -7,74 +7,123 @@
 name: Cortex-M on Arm Virtual Hardware
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
-on:
-  schedule:
-    - cron: '0 4 * * *'
+on: [push, pull_request]
 
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
-
-env:
-  AWS_DEFAULT_REGION: eu-west-1
-  AWS_S3_BUCKET_NAME: tensorflow-ci-1
-  AWS_IAM_PROFILE: Proj-s3-orta-vht-role
-  AWS_SECURITY_GROUP_ID: sg-03afe5ec007b4bcb0
-  AWS_SUBNET_ID: subnet-025b7baebd743a68b
 jobs:
-  cortex_m_generic:
+  cortex_m_generic_gcc:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-    name: Cortex-M Generic
+    container:
+      # Use the custom Docker image with the necessary tools and dependencies
+      image: ghcr.io/arm-software/avh-mlops/arm-mlops-docker-licensed-community:latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.10'
-      - name: Install AVH Client for Python
+      - uses: actions/checkout@v4
+      - name: Set permissions for working directory __w
+        run: chmod 777 -R /__w
+      - uses: actions/setup-python@v5
+        with: 
+              python-version: '3.10'
+      - name: Install dependencies
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@v0.1
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: arn:aws:iam::720528183931:role/Proj-vht-assume-role
-          aws-region: eu-west-1
-      - name: Execute test suite on Arm Virtual Hardware at AWS
+              sudo apt-get update
+              sudo apt-get install --fix-missing
+              pip3 install Pillow
+              pip3 install Wave
+              pip3 install numpy
+              sudo apt-get install zip unzip git curl -y
+      - name: Test with GCC
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic_avh.yml
-      - name: Fetch results from Arm Virtual Hardware
-        run: |
-          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_generic.log
+              su -l arm_mlops_docker -c "cd /__w/tflite-micro/tflite-micro/ && tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh gcc" 
 
-
-  cortex_m_corstone_300:
+  cortex_m_generic_ac6:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-    name: Cortex-M Corstone 300 (FVP)
+    container:
+      # Use the custom Docker image with the necessary tools and dependencies
+      image: ghcr.io/arm-software/avh-mlops/arm-mlops-docker-licensed-community:latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.10'
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: arn:aws:iam::720528183931:role/Proj-vht-assume-role
-          aws-region: eu-west-1
-      - name: Install AVH Client for Python
+      - uses: actions/checkout@v4
+      - name: Set permissions for working directory __w
+        run: chmod 777 -R /__w
+      - uses: actions/setup-python@v5
+        with: 
+              python-version: '3.10'
+      - name: Install dependencies
         run: |
-          pip install git+https://github.com/ARM-software/avhclient.git@v0.1.1
-      - name: Execute test suite on Arm Virtual Hardware at AWS
+              sudo apt-get update
+              sudo apt-get install --fix-missing
+              pip3 install Pillow
+              pip3 install Wave
+              pip3 install numpy
+              sudo apt-get install zip unzip git curl -y
+      - name: Test with Arm Compiler 6
         run: |
-          avhclient -b aws execute --specfile ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/cortex_m_corstone_300_avh.yml
-      - name: Fetch results from Arm Virtual Hardware
+              su -l arm_mlops_docker -c "export PATH=$PATH:/home/arm_mlops_docker/ArmCompilerforEmbedded6.20/bin/"
+              su -l arm_mlops_docker -c "cd /__w/tflite-micro/tflite-micro/ && tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang" 
+
+  cortex_m_corstone_300_gcc:
+    runs-on: ubuntu-latest
+    container:
+      # Use the custom Docker image with the necessary tools and dependencies
+      image: ghcr.io/arm-software/avh-mlops/arm-mlops-docker-licensed-community:latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set permissions for working directory __w
+        # Set permissions for the working directory to avoid permission errors
+        run: chmod 777 -R /__w
+      - uses: actions/setup-python@v5
+        with: 
+              python-version: '3.10'
+      - name: Install dependencies
         run: |
-          cat ./tensorflow/lite/micro/tools/github/arm_virtual_hardware/corstone300.log
+              sudo apt-get update
+              sudo apt-get install --fix-missing
+              pip3 install Pillow
+              pip3 install Wave
+              pip3 install numpy
+              sudo apt-get install zip unzip git curl xxd -y
+      - name: Test with GCC
+        run: |
+              su -l arm_mlops_docker -c "cd /__w/tflite-micro/tflite-micro/ && tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh gcc" 
+
+  cortex_m_corstone_300_ac6:
+    runs-on: ubuntu-latest
+    container:
+      # Use the custom Docker image with the necessary tools and dependencies
+      image: ghcr.io/arm-software/avh-mlops/arm-mlops-docker-licensed-community:latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set permissions for working directory __w
+        # Set permissions for the working directory to avoid permission errors
+        run: chmod 777 -R /__w
+      - uses: actions/setup-python@v5
+        with: 
+              python-version: '3.10'
+      - name: Install dependencies
+        run: |
+              sudo apt-get update
+              sudo apt-get install --fix-missing
+              pip3 install Pillow
+              pip3 install Wave
+              pip3 install numpy
+              sudo apt-get install zip unzip git curl xxd -y
+      - name: Test with Arm Compiler 6
+        run: |
+              su -l arm_mlops_docker -c "export PATH=$PATH:/home/arm_mlops_docker/ArmCompilerforEmbedded6.20/bin/"
+              su -l arm_mlops_docker -c "cd /__w/tflite-micro/tflite-micro/ && tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang" 
+
+  
+  issue-on-error:
+    needs: [cortex_m_generic_gcc, cortex_m_generic_ac6, cortex_m_corstone_300_gcc, cortex_m_corstone_300_ac6]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository }}
+      workflow: ${{ github.workflow }}
+      run_id: ${{ github.run_id }}
+      run_number: ${{ github.run_number }}
+      flag_label: ci:bot_issue
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
