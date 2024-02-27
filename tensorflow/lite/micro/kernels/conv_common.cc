@@ -76,6 +76,11 @@ void* ConvInit(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpDataConv));
 }
 
+void* StreamingConvInit(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataStreamingConv));
+}
+
 TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteConvParams& params, int width,
                                  int height, int filter_width,
@@ -231,6 +236,110 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataConv(
       context, node, params, input_width, input_height, filter_width,
+      filter_height, &output_width, &output_height, input->type, data));
+
+  // compute output tensor shape and relocate shape data
+  TF_LITE_ENSURE_STATUS(ConvReshapeOutputTensor(
+      context, node, input, filter, output, output_height, output_width));
+
+  if (filter->type == kTfLiteInt4) {
+    int filter_size =
+        RuntimeShape(filter->dims->size,
+                     reinterpret_cast<const int32_t*>(filter->dims->data))
+            .FlatSize();
+    context->RequestScratchBufferInArena(context, filter_size,
+                                         &data->filter_buffer_index);
+  }
+
+  micro_context->DeallocateTempTfLiteTensor(filter);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  return kTfLiteOk;
+}
+
+TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
+  OpDataStreamingConv* sdata = static_cast<OpDataStreamingConv*>(node->user_data);
+  OpDataConv* data = &(sdata->op_data);
+  const auto& params =
+      *(static_cast<const TfLiteConvParams*>(node->builtin_data));
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* filter =
+      micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+  TF_LITE_ENSURE(context, filter != nullptr);
+
+  TF_LITE_ENSURE_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_MSG(
+      context,
+      (input->type == kTfLiteFloat32 && filter->type == kTfLiteFloat32) ||
+          (input->type == kTfLiteInt16 && filter->type == kTfLiteInt8) ||
+          (input->type == kTfLiteInt8 &&
+           (filter->type == kTfLiteInt4 || filter->type == kTfLiteInt8)),
+      "Hybrid models are not supported on TFLite Micro.");
+
+  // Check dimensionality of input, filter, output
+  TF_LITE_ENSURE_EQ(context, input->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, filter->dims->size, 4);
+  TF_LITE_ENSURE_EQ(context, output->dims->size, 4);
+
+  // Check input channels matching filter
+  const int input_channels = input->dims->data[3];
+  const int filter_input_channels = filter->dims->data[3];
+  TF_LITE_ENSURE(context, filter_input_channels > 0);
+  TF_LITE_ENSURE_EQ(context, input_channels % filter_input_channels, 0);
+
+//  const int input_width = input->dims->data[2];
+  const int input_height = input->dims->data[1];
+  const int filter_width = filter->dims->data[2];
+  const int filter_height = filter->dims->data[1];
+  int output_width = 0;
+  int output_height = 0;
+
+
+//  TFLITE_DCHECK_EQ(input_width, 1); /* iw is 1 for streaming conv */
+
+  // Dynamically allocate per-channel quantization parameters.
+  const int num_channels = filter->dims->data[kConvQuantizedDimension];
+  data->per_channel_output_multiplier =
+      static_cast<int32_t*>(context->AllocatePersistentBuffer(
+          context, num_channels * sizeof(int32_t)));
+  data->per_channel_output_shift =
+      static_cast<int32_t*>(context->AllocatePersistentBuffer(
+          context, num_channels * sizeof(int32_t)));
+  sdata->input_state =
+      static_cast<void*>(context->AllocatePersistentBuffer(
+          context, input_height * input_channels * filter_width  * sizeof(int16_t)));
+
+  memset(sdata->input_state, 0, input_height * input_channels * filter_width  * sizeof(int16_t));
+
+  // All per-channel quantized tensors need valid zero point and scale arrays.
+  if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, filter->quantization.type,
+                      kTfLiteAffineQuantization);
+
+    const auto* affine_quantization =
+        static_cast<TfLiteAffineQuantization*>(filter->quantization.params);
+    TFLITE_DCHECK(affine_quantization != nullptr);
+    TFLITE_DCHECK(affine_quantization->scale != nullptr);
+    TFLITE_DCHECK(affine_quantization->zero_point != nullptr);
+
+    TF_LITE_ENSURE(context,
+                   affine_quantization->scale->size == 1 ||
+                       affine_quantization->scale->size ==
+                           filter->dims->data[kConvQuantizedDimension]);
+  }
+
+  TF_LITE_ENSURE_STATUS(CalculateOpDataConv(
+      context, node, params, filter_width, input_height, filter_width,
       filter_height, &output_width, &output_height, input->type, data));
 
   // compute output tensor shape and relocate shape data

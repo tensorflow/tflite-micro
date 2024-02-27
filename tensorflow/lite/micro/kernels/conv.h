@@ -51,6 +51,11 @@ struct OpDataConv {
   int filter_buffer_index;
 };
 
+struct OpDataStreamingConv {
+  struct OpDataConv op_data;
+  void *input_state;
+};
+
 extern const int kConvInputTensor;
 extern const int kConvWeightsTensor;
 extern const int kConvBiasTensor;
@@ -85,8 +90,10 @@ TfLiteStatus ConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
                                      int width);
 
 void* ConvInit(TfLiteContext* context, const char* buffer, size_t length);
-
 TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
+
+void* StreamingConvInit(TfLiteContext* context, const char* buffer, size_t length);
+TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
 // This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
