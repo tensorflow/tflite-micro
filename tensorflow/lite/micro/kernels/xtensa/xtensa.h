@@ -35,4 +35,8 @@ limitations under the License.
 #include "vision_api.h"
 #endif  // defined(VISION_P6)
 
+#if (( XCHAL_HAVE_HIFI5_VFPU || XCHAL_HAVE_HIFI4_VFPU || XCHAL_HAVE_HIFI3Z_VFPU || XCHAL_HAVE_HIFI3_VFPU || XCHAL_HAVE_HIFI1_VFPU ) && FLOAT_OPT_FLAG )
+#define INCLUDE_FLOAT_OPT 
+#endif
+
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
