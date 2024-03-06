@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -104,9 +104,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
     TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
     buf_size = arm_fully_connected_s16_get_buffer_size(&filter_dims);
-  } else if (input->type == kTfLiteInt8 &&
-             data->reference_op_data.filter_zero_point == 0 &&
-             filter->type != kTfLiteInt4) {
+  } else if (input->type == kTfLiteInt8 && filter->type != kTfLiteInt4) {
     const RuntimeShape input_shape = GetTensorShape(input);
 
     TFLITE_DCHECK_GE(output_dim_count, 2);
@@ -130,13 +128,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     } else {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
 
-      if (buf_size > 0) {
+      int8_t* filter_data = GetTensorData<int8_t>(filter);
+      data->kernel_sums = nullptr;
+
+      if (buf_size > 0 && filter_data != nullptr) {
         data->kernel_sums = static_cast<int32_t*>(
             context->AllocatePersistentBuffer(context, buf_size));
 
-        int8_t* filter_data = GetTensorData<int8_t>(filter);
         arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
-                          filter_data);
+                          filter_data, 1, nullptr);
 
         // Do not request a scratch buffer since using persistent memory
         buf_size = 0;
@@ -298,12 +298,20 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
   } else {
     cmsis_nn_fc_params fc_params;
     fc_params.input_offset = -data.reference_op_data.input_zero_point;
+    fc_params.filter_offset = -data.reference_op_data.filter_zero_point;
     fc_params.output_offset = data.reference_op_data.output_zero_point;
-    fc_params.filter_offset = 0;
     fc_params.activation.min = data.reference_op_data.output_activation_min;
     fc_params.activation.max = data.reference_op_data.output_activation_max;
 
-    ctx.buf = data.kernel_sums;
+    if (data.kernel_sums != nullptr) {
+      ctx.buf = data.kernel_sums;
+    } else if (ctx.buf != nullptr) {
+      // If behaving like batch matmul we calculate kernel sums in eval.
+      arm_vector_sum_s8(
+          static_cast<int32_t*>(ctx.buf), filter_dims.n, data.output_depth,
+          tflite::micro::GetTensorData<int8_t>(filter), 1, nullptr);
+    }
+
     TF_LITE_ENSURE_EQ(
         context,
         arm_fully_connected_s8(
@@ -393,22 +401,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           return EvalQuantizedInt4(context, node, data, input, filter, bias,
                                    output);
         case kTfLiteInt8:
-          if (data.reference_op_data.filter_zero_point == 0) {
-            return EvalQuantizedInt8(context, node, data, input, filter, bias,
-                                     output);
-          } else {
-            tflite::reference_integer_ops::FullyConnected(
-                FullyConnectedParamsQuantized(data.reference_op_data),
-                tflite::micro::GetTensorShape(input),
-                tflite::micro::GetTensorData<int8_t>(input),
-                tflite::micro::GetTensorShape(filter),
-                tflite::micro::GetTensorData<int8_t>(filter),
-                tflite::micro::GetTensorShape(bias),
-                tflite::micro::GetOptionalTensorData<int32_t>(bias),
-                tflite::micro::GetTensorShape(output),
-                tflite::micro::GetTensorData<int8_t>(output));
-            return kTfLiteOk;
-          }
+          return EvalQuantizedInt8(context, node, data, input, filter, bias,
+                                   output);
         default:
           MicroPrintf("Filter Type %s (%d) not supported.",
                       TfLiteTypeGetName(filter->type), filter->type);

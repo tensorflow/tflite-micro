@@ -12,8 +12,9 @@ on:
 
 jobs:
   riscv_postmerge:
-    if: ${{ github.event.pull_request.merged == true ||
-      contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+    if: github.event.pull_request.merged == true ||
+        (github.event.action == 'labeled' &&
+         github.event.label.name == 'ci:run_full')
     uses: ./.github/workflows/riscv_postmerge.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -21,16 +22,26 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   xtensa_postmerge:
-    if: ${{ github.event.pull_request.merged == true ||
-            contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+    if: github.event.pull_request.merged == true ||
+        (github.event.action == 'labeled' &&
+         github.event.label.name == 'ci:run_full')
     uses: ./.github/workflows/xtensa_postmerge.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  cortex_m_ci_full:
+    if: github.event.action == 'labeled' &&
+         github.event.label.name == 'ci:run_full'
+    uses: ./.github/workflows/cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   issue_on_error:
-    needs: [riscv_postmerge,xtensa_postmerge]
+    needs: [riscv_postmerge, xtensa_postmerge, cortex_m_ci_full]
     if: ${{ always() && contains(needs.*.result, 'failure') &&
             !contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
     uses: ./.github/workflows/issue_on_error.yml
@@ -50,7 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: remove-cirun-full
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+        if: github.event.action == 'labeled' &&
+            github.event.label.name == 'ci:run_full'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
@@ -62,4 +74,3 @@ jobs:
               name: 'ci:run_full'
             })
         continue-on-error: true
-

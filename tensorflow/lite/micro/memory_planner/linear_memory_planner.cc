@@ -19,6 +19,9 @@ limitations under the License.
 
 namespace tflite {
 
+// C++11 requires defining a constexpr static class member in a .cc file
+constexpr int tflite::LinearMemoryPlanner::kMaxBufferCount;
+
 LinearMemoryPlanner::LinearMemoryPlanner()
     : current_buffer_count_(0), next_free_offset_(0) {}
 LinearMemoryPlanner::~LinearMemoryPlanner() {}

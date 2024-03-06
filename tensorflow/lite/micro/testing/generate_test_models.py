@@ -71,6 +71,10 @@ def generate_conv_model(write_to_file=True,
   converter.inference_input_type = tf.int8
   converter.inference_output_type = tf.int8
   converter.representative_dataset = representative_dataset_gen
+  # TODO(b/324385802): Disable per channel quantization in FC layers (currently
+  # default behaviour) since it's not yet supported in TFLM.
+  converter._experimental_disable_per_channel_quantization_for_dense_layers = (  # pylint: disable=protected-access
+      True)
 
   tflite_model = converter.convert()
   if write_to_file:

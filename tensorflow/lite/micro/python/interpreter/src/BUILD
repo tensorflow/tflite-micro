@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "micro_copts",
@@ -16,24 +15,6 @@ package(
 package_group(
     name = "op_resolver_friends",
     packages = tflm_python_op_resolver_friends(),
-)
-
-# tflm_runtime is deprecated, please use //python/tflite_micro:runtime instead.
-# TODO(b/286456378): remove once all usage is changed to the runtime target.
-py_library(
-    name = "tflm_runtime",
-    srcs = ["tflm_runtime.py"],
-    visibility = ["//visibility:public"],
-    deps = ["//python/tflite_micro:runtime"],
-)
-
-# runtime is deprecated, please use //python/tflite_micro:runtime instead.
-# TODO(b/286456378): remove once all usage is changed to the runtime target.
-py_library(
-    name = "runtime",
-    srcs = ["runtime.py"],
-    visibility = ["//visibility:public"],
-    deps = ["//python/tflite_micro:runtime"],
 )
 
 # TODO(b/286456378): remove once all internal usage is fixed.

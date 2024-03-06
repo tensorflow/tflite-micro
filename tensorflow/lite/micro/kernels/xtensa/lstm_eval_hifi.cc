@@ -435,7 +435,6 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
   ae_int16x4 data_a_0, data_a_1;
   ae_int16x4 data_b_0, data_b_1;
   ae_int32x2 data_ab_0, data_ab_1, data_ab_2, data_ab_3;
-  ae_int32x2 d_multiplier, d_left_shift;
   ae_int16x4 d_zp;
   ae_int16x4 data_c_0, data_c_1;
   ae_int8x8 data_c;
@@ -449,7 +448,6 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
   align_src_input_2 = AE_LA128_PP((ae_int16x8*)tmp_input_2);
   align_dst_output = AE_ZALIGN64();  // zero alignment reg
 
-  d_multiplier = AE_MOVDA32(multiplier);
   d_zp = AE_MOVDA16(zero_point);
 
 #if TFLITE_SINGLE_ROUNDING
@@ -459,8 +457,6 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
   left_shift = shift < 0 ? 0 : shift;
   right_shift = shift > 0 ? 0 : -shift;
 #endif /* #if TFLITE_SINGLE_ROUNDING */
-
-  d_left_shift = AE_MOVDA32(1 << left_shift);
 #pragma concurrent
   for (i = 0; i < (num_elms >> 3); i++) {
     AE_LA16X4X2_IP(data_a_0, data_a_1, align_src_input_1, tmp_input_1);

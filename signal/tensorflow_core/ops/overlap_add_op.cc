@@ -22,7 +22,7 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status OverlapAddShape(InferenceContext* c) {
+absl::Status OverlapAddShape(InferenceContext* c) {
   shape_inference::DimensionHandle unused;
   ShapeHandle in;
   ShapeHandle out;
@@ -39,7 +39,7 @@ Status OverlapAddShape(InferenceContext* c) {
         c->ReplaceDim(out, -1, c->MakeDim(n_frames * frame_step), &out));
   }
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved
