@@ -31,7 +31,7 @@ jobs:
         if: github.event.action == 'labeled' &&
           !(github.event.label.name == 'ci:run' ||
             github.event.label.name == 'ci:ready_to_merge' ||
-            github.event.label.name = 'ci:run_full')
+            github.event.label.name == 'ci:run_full')
         run: exit 1
 
   ci-ready-to-merge:
@@ -81,7 +81,7 @@ jobs:
     steps:
       - name: remove-cirun-full
         if: github.event.action == 'labeled' &&
-            github.event.label.name = 'ci:run_full'
+            github.event.label.name == 'ci:run_full'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
