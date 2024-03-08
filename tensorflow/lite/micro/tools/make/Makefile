@@ -423,6 +423,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/streaming_conv.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/streaming_conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \

@@ -23,60 +23,21 @@ limitations under the License.
 
 namespace tflite {
 
-const int kConvInputTensor = 0;
-const int kConvWeightsTensor = 1;
-const int kConvBiasTensor = 2;
-const int kConvOutputTensor = 0;
+const int kStreamingConvInputTensor = 0;
+const int kStreamingConvWeightsTensor = 1;
+const int kStreamingConvBiasTensor = 2;
+const int kStreamingConvOutputTensor = 0;
 
 // Conv is quantized along dimension 0:
 // https://www.tensorflow.org/lite/performance/quantization_spec
-const int kConvQuantizedDimension = 0;
+const int kStreamingConvQuantizedDimension = 0;
 
-// Returns a ConvParams struct with all the parameters needed for a
-// float computation.
-ConvParams ConvParamsFloat(const TfLiteConvParams& params,
-                           const OpDataConv& data) {
-  ConvParams op_params;
-  CalculateActivationRange(params.activation, &op_params.float_activation_min,
-                           &op_params.float_activation_max);
-  op_params.padding_type = tflite::micro::RuntimePaddingType(params.padding);
-  op_params.padding_values.width = data.padding.width;
-  op_params.padding_values.height = data.padding.height;
-  op_params.stride_width = params.stride_width;
-  op_params.stride_height = params.stride_height;
-  op_params.dilation_width_factor = params.dilation_width_factor;
-  op_params.dilation_height_factor = params.dilation_height_factor;
-  return op_params;
-}
-
-// Returns a ConvParams struct with all the parameters needed for a
-// quantized computation.
-ConvParams ConvParamsQuantized(const TfLiteConvParams& params,
-                               const OpDataConv& data) {
-  ConvParams op_params;
-  op_params.input_offset = -data.input_zero_point;
-  op_params.weights_offset = -data.filter_zero_point;
-  op_params.output_offset = data.output_zero_point;
-  op_params.output_multiplier = data.output_multiplier;
-  op_params.output_shift = -data.output_shift;
-  op_params.padding_type = tflite::micro::RuntimePaddingType(params.padding);
-  op_params.padding_values.height = data.padding.height;
-  op_params.padding_values.width = data.padding.width;
-  op_params.stride_height = params.stride_height;
-  op_params.stride_width = params.stride_width;
-  op_params.dilation_height_factor = params.dilation_height_factor;
-  op_params.dilation_width_factor = params.dilation_width_factor;
-  op_params.quantized_activation_min = data.output_activation_min;
-  op_params.quantized_activation_max = data.output_activation_max;
-  return op_params;
-}
-
-void* ConvInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* StreamingConvInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataConv));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataStreamingConv));
 }
 
-TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus CalculateOpDataStreamingConv(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteConvParams& params, int width,
                                  int height, int filter_width,
                                  int filter_height, int* out_width,
@@ -97,21 +58,21 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
   MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+      micro_context->AllocateTempInputTensor(node, kStreamingConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* filter =
-      micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+      micro_context->AllocateTempInputTensor(node, kStreamingConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* bias =
-      micro_context->AllocateTempInputTensor(node, kConvBiasTensor);
+      micro_context->AllocateTempInputTensor(node, kStreamingConvBiasTensor);
   TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+      micro_context->AllocateTempOutputTensor(node, kStreamingConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   // Note that quantized inference requires that all tensors have their
   // parameters set. This is usually done during quantized training.
   if (data_type != kTfLiteFloat32) {
-    int output_channels = filter->dims->data[kConvQuantizedDimension];
+    int output_channels = filter->dims->data[kStreamingConvQuantizedDimension];
 
     TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, params.activation,
@@ -135,7 +96,7 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus ConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus StreamingConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
                                      const TfLiteTensor* input,
                                      const TfLiteTensor* filter,
                                      TfLiteTensor* output, int height,
@@ -145,7 +106,7 @@ TfLiteStatus ConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
 
   // relocate output tensor dims so they can be updated
   TfLiteEvalTensor* output_eval =
-      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kStreamingConvOutputTensor);
   TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
       context, output, output_eval));
 
@@ -157,23 +118,24 @@ TfLiteStatus ConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
-  OpDataConv* data = static_cast<OpDataConv*>(node->user_data);
+  OpDataStreamingConv* sdata = static_cast<OpDataStreamingConv*>(node->user_data);
+  OpDataConv* data = &(sdata->op_data);
   const auto& params =
       *(static_cast<const TfLiteConvParams*>(node->builtin_data));
   MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+      micro_context->AllocateTempOutputTensor(node, kStreamingConvOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+      micro_context->AllocateTempInputTensor(node, kStreamingConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* filter =
-      micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+      micro_context->AllocateTempInputTensor(node, kStreamingConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
 
   TF_LITE_ENSURE_EQ(context, input->type, output->type);
@@ -203,14 +165,22 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   int output_width = 0;
   int output_height = 0;
 
+
+  TFLITE_DCHECK_EQ(input_width, 1); /* iw is 1 for streaming conv */
+
   // Dynamically allocate per-channel quantization parameters.
-  const int num_channels = filter->dims->data[kConvQuantizedDimension];
+  const int num_channels = filter->dims->data[kStreamingConvQuantizedDimension];
   data->per_channel_output_multiplier =
       static_cast<int32_t*>(context->AllocatePersistentBuffer(
           context, num_channels * sizeof(int32_t)));
   data->per_channel_output_shift =
       static_cast<int32_t*>(context->AllocatePersistentBuffer(
           context, num_channels * sizeof(int32_t)));
+  sdata->input_state =
+      static_cast<void*>(context->AllocatePersistentBuffer(
+          context, input_height * input_channels * filter_width  * sizeof(int16_t)));
+
+  memset(sdata->input_state, 0, input_height * input_channels * filter_width  * sizeof(int16_t));
 
   // All per-channel quantized tensors need valid zero point and scale arrays.
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
@@ -226,15 +196,15 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE(context,
                    affine_quantization->scale->size == 1 ||
                        affine_quantization->scale->size ==
-                           filter->dims->data[kConvQuantizedDimension]);
+                           filter->dims->data[kStreamingConvQuantizedDimension]);
   }
 
-  TF_LITE_ENSURE_STATUS(CalculateOpDataConv(
-      context, node, params, input_width, input_height, filter_width,
+  TF_LITE_ENSURE_STATUS(CalculateOpDataStreamingConv(
+      context, node, params, filter_width, input_height, filter_width,
       filter_height, &output_width, &output_height, input->type, data));
 
   // compute output tensor shape and relocate shape data
-  TF_LITE_ENSURE_STATUS(ConvReshapeOutputTensor(
+  TF_LITE_ENSURE_STATUS(StreamingConvReshapeOutputTensor(
       context, node, input, filter, output, output_height, output_width));
 
   if (filter->type == kTfLiteInt4) {
@@ -251,5 +221,4 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
-
 }  // namespace tflite
