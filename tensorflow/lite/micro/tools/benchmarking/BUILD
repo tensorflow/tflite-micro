@@ -20,6 +20,8 @@ cc_library(
 cc_library(
     name = "generic_benchmark_lib",
     srcs = ["generic_model_benchmark.cc"],
+    hdrs = ["show_meta_data.h"],
+    defines = ["GENERIC_BENCHMARK_NO_META_DATA"],
     deps = [
         ":metrics",
         ":op_resolver",
