@@ -1,0 +1,177 @@
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+#include <cstddef>
+#include <cstring>
+#include <type_traits>
+
+#include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/tools/benchmarking/show_meta_data.h"
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#include "NatureDSP_Signal_id.h"
+#include "xa_nnlib_standards.h"
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+
+namespace tflite {
+namespace {
+
+#if defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+const char* model_analysis_strings[] = {
+    // %%%_model_analysis_strings_%%%
+};
+
+const char* model_sha1_strings[] = {
+    // %%%_model_sha1_strings_%%%
+};
+#endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+
+const char* compilation_date_strings[] = {
+    // %%%_compilation_date_strings_%%%
+};
+
+const char* git_commit_strings[] = {
+    // %%%_git_commit_strings_%%%
+};
+
+const char* git_status_strings[] = {
+    // %%%_git_status_strings_%%%
+};
+
+const char* cc_name_strings[] = {
+    // %%%_cc_name_strings_%%%
+};
+
+const char* cc_version_strings[] = {
+    // %%%_cc_version_strings_%%%
+};
+
+const char* cc_flags_strings[] = {
+    // %%%_cc_flags_strings_%%%
+};
+
+const char* cxx_name_strings[] = {
+    // %%%_cxx_name_strings_%%%
+};
+
+const char* cxx_version_strings[] = {
+    // %%%_cxx_version_strings_%%%
+};
+
+const char* cxx_flags_strings[] = {
+    // %%%_cxx_flags_strings_%%%
+};
+
+const char* optimization_flag_strings[] = {
+    // %%%_optimization_flag_strings_%%%
+};
+
+const char* target_info_strings[] = {
+    // %%%_target_info_strings_%%%
+};
+
+#if defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || \
+    defined(VISION_P6)
+const char* nn_library_url_strings[] = {
+    // %%%_nn_library_url_strings_%%%
+};
+
+const char* nn_library_md5_strings[] = {
+    // %%%_nn_library_md5_strings_%%%
+};
+#endif  // defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) ||
+        // defined(HIFI5) || defined(VISION_P6)
+
+void ShowStrings(const char* title, const char** str, const size_t count) {
+  MicroPrintf("%s%s", title, str[0]);
+  for (size_t i = 1; i < count; i++) {
+    MicroPrintf("%s", str[i]);
+  }
+}
+
+void ShowSeparator() { MicroPrintf("--------------------"); }
+
+}  // namespace
+
+void GenericBenchmarkShowMetaData() {
+  ShowSeparator();
+  ShowStrings("Compiled on:\n\n", compilation_date_strings,
+              std::extent<decltype(compilation_date_strings)>::value);
+
+  ShowSeparator();
+  ShowStrings("Git SHA: ", git_commit_strings,
+              std::extent<decltype(git_commit_strings)>::value);
+  ShowStrings("\nGit status:\n\n", git_status_strings,
+              std::extent<decltype(git_status_strings)>::value);
+
+  ShowSeparator();
+  ShowStrings("C compiler: ", cc_name_strings,
+              std::extent<decltype(cc_name_strings)>::value);
+  ShowStrings("Version:\n\n", cc_version_strings,
+              std::extent<decltype(cc_version_strings)>::value);
+  ShowStrings("\nFlags:\n\n", cc_flags_strings,
+              std::extent<decltype(cc_flags_strings)>::value);
+  ShowStrings("\nC++ compiler: ", cxx_name_strings,
+              std::extent<decltype(cxx_name_strings)>::value);
+  ShowStrings("Version:\n\n", cxx_version_strings,
+              std::extent<decltype(cxx_version_strings)>::value);
+  ShowStrings("\nFlags:\n\n", cxx_flags_strings,
+              std::extent<decltype(cxx_flags_strings)>::value);
+  ShowStrings("\nOptimization: ", optimization_flag_strings,
+              std::extent<decltype(optimization_flag_strings)>::value);
+
+  ShowSeparator();
+  ShowStrings("Target information:\n\n", target_info_strings,
+              std::extent<decltype(target_info_strings)>::value);
+
+#if defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || \
+    defined(VISION_P6)
+  ShowSeparator();
+  ShowStrings("NN library download URLs:\n\n", nn_library_url_strings,
+              std::extent<decltype(nn_library_url_strings)>::value);
+  ShowStrings("\nNN library MD5 checksums:\n\n", nn_library_md5_strings,
+              std::extent<decltype(nn_library_md5_strings)>::value);
+#endif  // defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) ||
+        // defined(HIFI5) || defined(VISION_P6)
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  ShowSeparator();
+
+  char version_buffer[30 + 1];
+  memset(version_buffer, 0, sizeof(version_buffer));
+  NatureDSP_Signal_get_library_version(version_buffer);
+  MicroPrintf("NatureDSP library version: %s", version_buffer);
+  memset(version_buffer, 0, sizeof(version_buffer));
+  NatureDSP_Signal_get_library_api_version(version_buffer);
+  MicroPrintf("NatureDSP API version: %s", version_buffer);
+
+  const char* nnlib_library_version = xa_nnlib_get_lib_version_string();
+  const char* nnlib_api_version = xa_nnlib_get_lib_api_version_string();
+  MicroPrintf("NNLIB library version: %s", nnlib_library_version);
+  MicroPrintf("NNLIB API version: %s", nnlib_api_version);
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+
+#if defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+  ShowSeparator();
+  ShowStrings("Model SHA1:\n\n", model_sha1_strings,
+              std::extent<decltype(model_sha1_strings)>::value);
+  ShowStrings("\nModel analysis:\n\n", model_analysis_strings,
+              std::extent<decltype(model_analysis_strings)>::value);
+#endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+
+  ShowSeparator();
+}
+
+}  // namespace tflite

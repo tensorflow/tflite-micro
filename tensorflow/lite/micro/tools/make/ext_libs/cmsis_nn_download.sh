@@ -36,21 +36,22 @@ TENSORFLOW_ROOT=${2}
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
-if [ ! -d ${DOWNLOADS_DIR} ]; then
-  echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
-  exit 1
-fi
-
 DOWNLOADED_CMSIS_NN_PATH=${DOWNLOADS_DIR}/cmsis_nn
 
-if [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
+ZIP_PREFIX_NN="01dee38e6d6bfbbf202f0cd425bbea1731747d51"
+CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
+CMSIS_NN_MD5="f20be93ededf42bb704c19f699a24313"
+
+should_download=$(check_should_download ${DOWNLOADS_DIR})
+
+if [[ ${should_download} == "no" ]]; then
+  show_download_url_md5 ${CMSIS_NN_URL} ${CMSIS_NN_MD5}
+elif [ ! -d ${DOWNLOADS_DIR} ]; then
+  echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
+  exit 1
+elif [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_NN_PATH} already exists, skipping the download."
 else
-
-  ZIP_PREFIX_NN="01dee38e6d6bfbbf202f0cd425bbea1731747d51"
-  CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
-  CMSIS_NN_MD5="f20be93ededf42bb704c19f699a24313"
-
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
   wget ${CMSIS_NN_URL} -O /tmp/${ZIP_PREFIX_NN}.zip >&2
