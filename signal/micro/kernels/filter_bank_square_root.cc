@@ -31,7 +31,8 @@ constexpr int kInputTensor = 0;
 constexpr int kScaleBitsTensor = 1;
 constexpr int kOutputTensor = 0;
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FilterBankSquareRootEval(
+  TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   const TfLiteEvalTensor* scale_bits =
@@ -55,7 +56,8 @@ namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT() {
   static TFLMRegistration r =
-      tflite::micro::RegisterOp(nullptr, FilterBankSquareRootPrepare, Eval);
+      tflite::micro::RegisterOp(
+        nullptr, FilterBankSquareRootPrepare, FilterBankSquareRootEval);
   return &r;
 }
 
