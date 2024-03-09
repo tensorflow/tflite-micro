@@ -104,8 +104,8 @@ TfLiteStatus EnergyEval(TfLiteContext* context, TfLiteNode* node) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_ENERGY() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(
-    EnergyInit, EnergyPrepare, EnergyEval);
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(EnergyInit, EnergyPrepare, EnergyEval);
   return &r;
 }
 }  // namespace tflm_signal

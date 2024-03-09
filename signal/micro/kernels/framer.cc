@@ -190,9 +190,8 @@ void FramerReset(TfLiteContext* context, void* buffer) {
 namespace tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 TFLMRegistration* Register_FRAMER() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(
-        FramerInit, FramerPrepare, FramerEval, nullptr, FramerReset);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      FramerInit, FramerPrepare, FramerEval, nullptr, FramerReset);
   return &r;
 }
 }  // namespace tflm_signal

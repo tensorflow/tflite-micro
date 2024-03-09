@@ -55,8 +55,8 @@ void OverlapAddResetState(TFLMSignalOverlapAddParams<T>* params) {
 }
 
 template <typename T>
-void* OverlapAddInit(
-  TfLiteContext* context, const char* buffer, size_t length) {
+void* OverlapAddInit(TfLiteContext* context, const char* buffer,
+                     size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
 
   auto* params = static_cast<TFLMSignalOverlapAddParams<T>*>(
@@ -149,8 +149,8 @@ void OverlapAddReset(TfLiteContext* context, void* buffer) {
   OverlapAddResetState(static_cast<TFLMSignalOverlapAddParams<T>*>(buffer));
 }
 
-void* OverlapAddInitAll(
-  TfLiteContext* context, const char* buffer, size_t length) {
+void* OverlapAddInitAll(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
   const flexbuffers::Map& m = flexbuffers::GetRoot(buffer_t, length).AsMap();
   auto tensor_type = static_cast<tflite::TensorType>(m["T"].AsInt32());
@@ -221,34 +221,22 @@ void OverlapAddResetAll(TfLiteContext* context, void* buffer) {
 namespace tflm_signal {
 TFLMRegistration* Register_OVERLAP_ADD() {
   static TFLMRegistration r =
-    tflite::micro::RegisterOp(
-      OverlapAddInitAll,
-      OverlapAddPrepareAll,
-      OverlapAddEvalAll,
-      nullptr,
-      OverlapAddResetAll);
+      tflite::micro::RegisterOp(OverlapAddInitAll, OverlapAddPrepareAll,
+                                OverlapAddEvalAll, nullptr, OverlapAddResetAll);
   return &r;
 }
 
 TFLMRegistration* Register_OVERLAP_ADD_FLOAT() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(
-        OverlapAddInit<float>,
-        OverlapAddPrepare<float, kTfLiteFloat32>,
-        OverlapAddEval<float>,
-        nullptr,
-        OverlapAddReset<float>);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      OverlapAddInit<float>, OverlapAddPrepare<float, kTfLiteFloat32>,
+      OverlapAddEval<float>, nullptr, OverlapAddReset<float>);
   return &r;
 }
 
 TFLMRegistration* Register_OVERLAP_ADD_INT16() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(
-        OverlapAddInit<int16_t>,
-        OverlapAddPrepare<int16_t, kTfLiteInt16>,
-        OverlapAddEval<int16_t>,
-        nullptr,
-        OverlapAddReset<int16_t>);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      OverlapAddInit<int16_t>, OverlapAddPrepare<int16_t, kTfLiteInt16>,
+      OverlapAddEval<int16_t>, nullptr, OverlapAddReset<int16_t>);
   return &r;
 }
 }  // namespace tflm_signal

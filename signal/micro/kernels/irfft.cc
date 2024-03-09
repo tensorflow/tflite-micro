@@ -141,15 +141,15 @@ void* IrfftInitAll(TfLiteContext* context, const char* buffer, size_t length) {
   switch (tensor_type) {
     case TensorType_INT16: {
       return IrfftInit<int16_t, tflm_signal::IrfftInt16GetNeededMemory,
-                  tflm_signal::IrfftInt16Init>(context, buffer, length);
+                       tflm_signal::IrfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
       return IrfftInit<int32_t, tflm_signal::IrfftInt32GetNeededMemory,
-                  tflm_signal::IrfftInt32Init>(context, buffer, length);
+                       tflm_signal::IrfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
       return IrfftInit<float, tflm_signal::IrfftFloatGetNeededMemory,
-                  tflm_signal::IrfftFloatInit>(context, buffer, length);
+                       tflm_signal::IrfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;

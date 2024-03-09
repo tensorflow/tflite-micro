@@ -145,8 +145,8 @@ void DelayReset(TfLiteContext* context, void* buffer) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY() {
-  static TFLMRegistration r =
-      micro::RegisterOp(DelayInit, DelayPrepare, DelayEval, nullptr, DelayReset);
+  static TFLMRegistration r = micro::RegisterOp(DelayInit, DelayPrepare,
+                                                DelayEval, nullptr, DelayReset);
   return &r;
 }
 }  // namespace tflm_signal

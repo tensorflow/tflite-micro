@@ -42,8 +42,8 @@ struct TFLMSignalLogParams {
   int output_scale;
 };
 
-void* FilterBankLogInit(
-  TfLiteContext* context, const char* buffer, size_t length) {
+void* FilterBankLogInit(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   auto* params = static_cast<TFLMSignalLogParams*>(
@@ -105,7 +105,7 @@ namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK_LOG() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-    FilterBankLogInit, FilterBankLogPrepare, FilterBankLogEval);
+      FilterBankLogInit, FilterBankLogPrepare, FilterBankLogEval);
   return &r;
 }
 

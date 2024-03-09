@@ -46,8 +46,8 @@ struct TFLMSignalFilterBankParams {
   uint64_t* work_area;
 };
 
-void* FilterBankInit(
-  TfLiteContext* context, const char* buffer, size_t length) {
+void* FilterBankInit(TfLiteContext* context, const char* buffer,
+                     size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   auto* params = static_cast<TFLMSignalFilterBankParams*>(
@@ -168,7 +168,7 @@ namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-    FilterBankInit, FilterBankPrepare, FilterBankEval);
+      FilterBankInit, FilterBankPrepare, FilterBankEval);
   return &r;
 }
 

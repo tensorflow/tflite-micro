@@ -167,8 +167,7 @@ void StackerReset(TfLiteContext* context, void* buffer) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_STACKER() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(
+  static TFLMRegistration r = tflite::micro::RegisterOp(
       StackerInit, StackerPrepare, StackerEval, /*Free*/ nullptr, StackerReset);
   return &r;
 }

@@ -143,15 +143,15 @@ void* RfftInitAll(TfLiteContext* context, const char* buffer, size_t length) {
   switch (tensor_type) {
     case TensorType_INT16: {
       return RfftInit<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
-                  ::tflm_signal::RfftInt16Init>(context, buffer, length);
+                      ::tflm_signal::RfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
       return RfftInit<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
-                  ::tflm_signal::RfftInt32Init>(context, buffer, length);
+                      ::tflm_signal::RfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
       return RfftInit<float, ::tflm_signal::RfftFloatGetNeededMemory,
-                  ::tflm_signal::RfftFloatInit>(context, buffer, length);
+                      ::tflm_signal::RfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;
@@ -209,7 +209,7 @@ TFLMRegistration* Register_RFFT() {
 TFLMRegistration* Register_RFFT_FLOAT() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
       RfftInit<float, ::tflm_signal::RfftFloatGetNeededMemory,
-           ::tflm_signal::RfftFloatInit>,
+               ::tflm_signal::RfftFloatInit>,
       RfftPrepare<float, kTfLiteFloat32>,
       RfftEval<float, ::tflm_signal::RfftFloatApply>);
   return &r;
@@ -218,7 +218,7 @@ TFLMRegistration* Register_RFFT_FLOAT() {
 TFLMRegistration* Register_RFFT_INT16() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
       RfftInit<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
-           ::tflm_signal::RfftInt16Init>,
+               ::tflm_signal::RfftInt16Init>,
       RfftPrepare<int16_t, kTfLiteInt16>,
       RfftEval<int16_t, ::tflm_signal::RfftInt16Apply>);
   return &r;
@@ -227,7 +227,7 @@ TFLMRegistration* Register_RFFT_INT16() {
 TFLMRegistration* Register_RFFT_INT32() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
       RfftInit<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
-           ::tflm_signal::RfftInt32Init>,
+               ::tflm_signal::RfftInt32Init>,
       RfftPrepare<int32_t, kTfLiteInt32>,
       RfftEval<int32_t, ::tflm_signal::RfftInt32Apply>);
   return &r;

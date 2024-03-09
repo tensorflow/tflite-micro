@@ -126,8 +126,8 @@ TfLiteStatus PcanEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TFLMRegistration* Register_PCAN() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(
-    PcanInit, PcanPrepare, PcanEval);
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(PcanInit, PcanPrepare, PcanEval);
   return &r;
 }
 
