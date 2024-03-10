@@ -51,7 +51,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile   TARGET=cortex_m_corstone_300
 
 ## Build and run using Bazel
 
-This is only for x86 and only for the command line argument build:
+This is only for the x86 command line argument build, and does not contain meta-data:
 ```
 bazel build tensorflow/lite/micro/tools/benchmarking:tflm_benchmark
 bazel-bin/tensorflow/lite/micro/tools/benchmarking/tflm_benchmark tensorflow/lite/micro/models/person_detect.tflite
