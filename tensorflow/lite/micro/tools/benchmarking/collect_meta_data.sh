@@ -90,13 +90,21 @@ result=$(date)
 substitute_strings compilation_date_strings "${result}"
 
 GIT_TENSORFLOW_ROOT="${TENSORFLOW_ROOT:-./}"
+set +e
 # Git repo commit information
 result=$(cd ${GIT_TENSORFLOW_ROOT} && git rev-parse --verify HEAD)
+if [[ $? != 0 ]]; then
+  result="<git commit information not available>"
+fi
 substitute_strings git_commit_strings "${result}"
 
 # Git repo status information
 result=$(cd ${GIT_TENSORFLOW_ROOT} && git status)
+if [[ $? != 0 ]]; then
+  result="<git status information not available>"
+fi
 substitute_strings git_status_strings "${result}"
+set -e
 
 # Compiler information
 result="${CC}"
