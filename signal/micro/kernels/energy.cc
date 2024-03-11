@@ -42,7 +42,7 @@ struct TFLMSignalEnergyParams {
   int32_t start_index;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* EnergyInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   auto* data =
@@ -60,7 +60,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return data;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EnergyPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -83,7 +83,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus EnergyEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TFLMSignalEnergyParams*>(node->user_data);
 
   const TfLiteEvalTensor* input =
@@ -104,7 +104,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_ENERGY() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(EnergyInit, EnergyPrepare, EnergyEval);
   return &r;
 }
 }  // namespace tflm_signal
