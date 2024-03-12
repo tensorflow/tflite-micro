@@ -921,6 +921,9 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
     case BuiltinOperator_STABLEHLO_PAD: {
       return ParseStablehloPad(op, error_reporter, allocator, builtin_data);
     }
+    case BuiltinOperator_TEMP_STREAMING_CONV_2D: {
+      return ParseConv2D(op, error_reporter, allocator, builtin_data);
+    }
     // TODO: skip param parsing for now since ops below don't have kernels
     case BuiltinOperator_STABLEHLO_SLICE:
     case BuiltinOperator_STABLEHLO_BROADCAST_IN_DIM:
