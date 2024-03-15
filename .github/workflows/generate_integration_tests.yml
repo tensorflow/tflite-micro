@@ -30,7 +30,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
