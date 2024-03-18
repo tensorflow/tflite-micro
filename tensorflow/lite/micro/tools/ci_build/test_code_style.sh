@@ -97,6 +97,7 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e experimental \
   -e schema/schema_generated.h \
   -e schema/schema_utils.h \
+  -e tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h \
   -e "\.inc" \
   -e "\.md" \
   ${EXCLUDE_SHARED_TFL_CODE}

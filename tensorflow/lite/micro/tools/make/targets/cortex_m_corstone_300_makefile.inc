@@ -204,11 +204,11 @@ INCLUDES += \
 EXCLUDED_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc  \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/recording_micro_allocator_test.cc
+ifeq ($(CO_PROCESSOR), ethos_u)
+# This does not work with Ethos-U enabled since then NPU PMU counters are used instead for the sake of the benchmark example.
+EXCLUDED_TESTS += \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_time_test.cc
+endif
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
-
-# TODO(#2449) Examine why this test fails here.
-EXCLUDED_EXAMPLE_TESTS := \
-    tensorflow/lite/micro/examples/dtln/Makefile.inc
-MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh

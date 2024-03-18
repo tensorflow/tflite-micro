@@ -59,7 +59,6 @@ RUN pip install yapf==0.32.0
 # https://github.com/tensorflow/tflite-micro/pull/337
 # https://github.com/tensorflow/tflite-micro/pull/410
 RUN pip install Pillow
-RUN pip install Wave
 
 # necessary bits for create_size_log scripts
 RUN pip install pandas

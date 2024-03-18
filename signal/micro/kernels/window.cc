@@ -41,7 +41,7 @@ struct TFLMSignalWindowParams {
   int32_t input_size;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* WindowInit(TfLiteContext* context, const char* buffer, size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
 
   auto* params =
@@ -53,7 +53,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return params;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus WindowPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -87,7 +87,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus WindowEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TFLMSignalWindowParams*>(node->user_data);
 
   const TfLiteEvalTensor* input =
@@ -114,7 +114,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 namespace tflm_signal {
 
 TFLMRegistration* Register_WINDOW() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(WindowInit, WindowPrepare, WindowEval);
   return &r;
 }
 

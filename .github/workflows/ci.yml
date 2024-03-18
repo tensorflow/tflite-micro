@@ -35,7 +35,6 @@ jobs:
         run: |
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -56,7 +55,6 @@ jobs:
         run: |
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -77,8 +75,12 @@ jobs:
         run: |
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
+      - name: Fix kernel mmap rnd bits
+        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
+        # high-entropy ASLR in much newer kernels that GitHub runners are
+        # using leading to random crashes: https://reviews.llvm.org/D148280
+        run: sudo sysctl vm.mmap_rnd_bits=28
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_msan.sh
@@ -98,8 +100,12 @@ jobs:
         run: |
           sudo ci/install_bazelisk.sh
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
+      - name: Fix kernel mmap rnd bits
+        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
+        # high-entropy ASLR in much newer kernels that GitHub runners are
+        # using leading to random crashes: https://reviews.llvm.org/D148280
+        run: sudo sysctl vm.mmap_rnd_bits=28
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel_asan.sh
@@ -118,7 +124,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -139,7 +144,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -160,7 +164,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -213,7 +216,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -234,7 +236,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -256,7 +257,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -278,7 +278,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -300,7 +299,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |

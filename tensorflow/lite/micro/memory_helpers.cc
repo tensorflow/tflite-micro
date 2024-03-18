@@ -50,6 +50,9 @@ TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
     case kTfLiteFloat16:
       *size = sizeof(int16_t);
       break;
+    case kTfLiteBFloat16:
+      *size = sizeof(int16_t);
+      break;
     case kTfLiteFloat32:
       *size = sizeof(float);
       break;

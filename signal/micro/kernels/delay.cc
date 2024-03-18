@@ -44,7 +44,7 @@ struct TFLMSignalFrontendDelayParams {
   tflm_signal::CircularBuffer** circular_buffers;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* DelayInit(TfLiteContext* context, const char* buffer, size_t length) {
   auto* params = static_cast<TFLMSignalFrontendDelayParams*>(
       context->AllocatePersistentBuffer(context,
                                         sizeof(TFLMSignalFrontendDelayParams)));
@@ -58,7 +58,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return params;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DelayPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -108,7 +108,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus DelayEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TFLMSignalFrontendDelayParams*>(node->user_data);
   const TfLiteEvalTensor* input =
@@ -132,7 +132,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void Reset(TfLiteContext* context, void* buffer) {
+void DelayReset(TfLiteContext* context, void* buffer) {
   auto* params = static_cast<TFLMSignalFrontendDelayParams*>(buffer);
   for (int i = 0; i < params->outer_dims; ++i) {
     tflm_signal::CircularBufferReset(params->circular_buffers[i]);
@@ -145,8 +145,8 @@ void Reset(TfLiteContext* context, void* buffer) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY() {
-  static TFLMRegistration r =
-      micro::RegisterOp(Init, Prepare, Eval, nullptr, Reset);
+  static TFLMRegistration r = micro::RegisterOp(DelayInit, DelayPrepare,
+                                                DelayEval, nullptr, DelayReset);
   return &r;
 }
 }  // namespace tflm_signal

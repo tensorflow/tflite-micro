@@ -28,7 +28,6 @@ namespace testing {
 namespace {
 
 constexpr int kLstmMaxNumInputOutputTensors = 24 + 1;
-constexpr int kLstmIntermediateTensorBase = kLstmMaxNumInputOutputTensors + 1;
 
 // Validate the output result array with golden values
 template <typename T>
@@ -50,42 +49,20 @@ void TestUnidirectionalLSTMInteger(
     LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
                     time_steps, input_dimension, state_dimension>&
         node_contents) {
-  TfLiteTensor tensors[kLstmMaxNumInputOutputTensors + 1 + 5];
-  memcpy(tensors, node_contents.GetTensors(),
-         kLstmMaxNumInputOutputTensors * sizeof(TfLiteTensor));
-
-  // Provide also intermediate tensors needed by older LSTM implementations
-  int intermediate_array_data[6] = {5,
-                                    kLstmIntermediateTensorBase,
-                                    kLstmIntermediateTensorBase + 1,
-                                    kLstmIntermediateTensorBase + 2,
-                                    kLstmIntermediateTensorBase + 3,
-                                    kLstmIntermediateTensorBase + 4};
-  int input_zero_points[2] = {1, -21};
-  float input_scales[2] = {1, 0.004705882165580988};
-  TfLiteAffineQuantization input_quant = {
-      tflite::testing::FloatArrayFromFloats(input_scales),
-      tflite::testing::IntArrayFromInts(input_zero_points), 0};
-  int intermediate_dim[2] = {1, 0};
-  for (int i = 0; i < 5; ++i) {
-    tensors[kLstmIntermediateTensorBase + i] =
-        CreateTensor<int16_t>(nullptr, IntArrayFromInts(intermediate_dim));
-    tensors[kLstmIntermediateTensorBase + i].quantization = {
-        kTfLiteAffineQuantization, &input_quant};
-  }
-
   const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(
-      registration, tensors, kLstmMaxNumInputOutputTensors + 1 + 5,
+      registration, node_contents.GetTensors(), kLstmMaxNumInputOutputTensors,
       node_contents.KernelInputs(), node_contents.KernelOutputs(),
-      reinterpret_cast<void*>(&buildin_data),
-      IntArrayFromInts(intermediate_array_data));
+      reinterpret_cast<void*>(&buildin_data));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const auto& quantization_settings = node_contents.QuantizationSettings();
 
+// CMSIS-NN does not use the hidden state and cell state tensors so these tests
+// fail.
+#if !defined(CMSIS_NN)
   float dequantized_hidden_state[batch_size * state_dimension] = {};
   Dequantize(node_contents.GetHiddenStateData(), batch_size * state_dimension,
              quantization_settings.hidden_state.scale,
@@ -104,6 +81,7 @@ void TestUnidirectionalLSTMInteger(
   ValidateResultGoldens(eval_check_data.expected_cell_state,
                         dequantized_cell_state, batch_size * state_dimension,
                         cell_state_tolerance);
+#endif
 
   float dequantized_output[batch_size * state_dimension * time_steps] = {};
   Dequantize(node_contents.GetOutputData(),
@@ -162,9 +140,6 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMFloat) {
                                                tolerance, float_node_contents);
 }
 
-// TODO(#2249) Unidirectional_sequence_lstm_test fails for new CMSIS-NN lstm
-// implementation
-#if !defined(CMSIS_NN)
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =
       tflite::testing::Get2X2LstmEvalCheckData();
@@ -179,7 +154,6 @@ TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt8) {
       kernel_eval_data, hidden_state_tolerance, cell_state_tolerance,
       int8_node_contents);
 }
-#endif
 
 TF_LITE_MICRO_TEST(TestUnidirectionalLSTMInt16) {
   const tflite::testing::LstmEvalCheckData<12, 4, 12> kernel_eval_data =

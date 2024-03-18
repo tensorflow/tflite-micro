@@ -178,8 +178,8 @@ Below are some tips that might be useful and improve the development experience.
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
   or install it:
 
-* Install Pillow and Wave.  For example, [here](ci/Dockerfile.micro) is what we
-  do for the TFLM continuous integration Docker container.
+* Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
+  the TFLM continuous integration Docker container.
 
   ```
   pip install cpplint

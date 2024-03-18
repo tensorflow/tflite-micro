@@ -52,7 +52,7 @@ struct TFLMSignalStackerParams {
   tflm_signal::CircularBuffer* circular_buffer;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* StackerInit(TfLiteContext* context, const char* buffer, size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
 
   auto* params =
@@ -88,7 +88,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return params;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus StackerPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 2);
 
@@ -118,7 +118,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus StackerEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TFLMSignalStackerParams*>(node->user_data);
   TF_LITE_ENSURE(context, params != nullptr);
 
@@ -157,7 +157,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void Reset(TfLiteContext* context, void* buffer) {
+void StackerReset(TfLiteContext* context, void* buffer) {
   auto* params = static_cast<TFLMSignalStackerParams*>(buffer);
   tflm_signal::CircularBufferReset(params->circular_buffer);
   params->stacker_has_first_frame = false;
@@ -167,8 +167,8 @@ void Reset(TfLiteContext* context, void* buffer) {
 
 namespace tflm_signal {
 TFLMRegistration* Register_STACKER() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(Init, Prepare, Eval, /*Free*/ nullptr, Reset);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      StackerInit, StackerPrepare, StackerEval, /*Free*/ nullptr, StackerReset);
   return &r;
 }
 }  // namespace tflm_signal

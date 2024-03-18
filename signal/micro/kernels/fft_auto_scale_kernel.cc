@@ -32,7 +32,7 @@ constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
 constexpr int kScaleBitTensor = 1;
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FftAutoScaleEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   TfLiteEvalTensor* output =
@@ -56,7 +56,7 @@ namespace tflm_signal {
 
 TFLMRegistration* Register_FFT_AUTO_SCALE() {
   static TFLMRegistration r =
-      tflite::micro::RegisterOp(nullptr, FftAutoScalePrepare, Eval);
+      tflite::micro::RegisterOp(nullptr, FftAutoScalePrepare, FftAutoScaleEval);
   return &r;
 }
 

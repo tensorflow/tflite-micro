@@ -70,26 +70,17 @@ Refer to flashing instructions in the [Person Detection Example](https://github.
 For more info about the Corstone-300 software see:
 [tensorflow/lite/micro/cortex_m_corstone_300/README.md](../cortex_m_corstone_300/README.md).
 
-Disclaimer: Executing the benchmark test on the Corstone-300 software will
-provide a general metric of instructions executed. The estimates are not cycle
-accurate, however it aligns to instruction per cycle, and is a consistent
-environment. This means it can detect if code changes changed performance.
+Disclaimer: The FVP can not be used to measure CPU performance.
+The results are not reliable, not even for relative measurements.
+FVP may however be used for performance measurements when running on NPU and only NPU PMU numbers can be used. The NPU model is cycle accurate within approximately +-10%.
 
-The person detection benchmark can also run with Ethos-U enabled, as the
-downloaded model will be optimized for Ethos-U. For more info see:
+As an example, the person detect downloaded model will be optimized for Ethos-U. For more info see:
 [tensorflow/lite/micro/kernels/ethos_u/README.md](../kernels/ethos_u/README.md).
+And since it only makes sense to measure performance on the NPU, only the person detection benchmark should be run and only with Ethos-U enabled.
+See also network tester example, where person detect model is used in the same way when Ethos-U is enabled:
+[tensorflow/lite/micro/examples/network_tester/README.md](../examples/network_tester/README.md).
 
-To run the keyword benchmark on FVP:
-
-```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_keyword_benchmark
-```
-
-To run the person detection benchmark on FVP:
-
-```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 run_person_detection_benchmark
-```
+The person detect model is not an optimial model for Ethos-U since it quite small. Also note that only the NPU PMU cycles are logged even though the CPU is setting up the Ethos-U driver in each iteration.
 
 To run the person detection benchmark on FVP with Ethos-U:
 
