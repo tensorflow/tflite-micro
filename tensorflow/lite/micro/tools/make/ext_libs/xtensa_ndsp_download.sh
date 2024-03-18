@@ -102,7 +102,7 @@ else
     fi
     # Rename the strings in __renaming__.h to names that are traceable to TFLM.
     # Note that renaming is disabled by default and must be enabled with -D__RENAMING__
-    sed s/NatureDSP_Signal/NatureDSP_TFLM/ library/include_private/__renaming__.h
+    sed -i 's/NatureDSP_/NatureDSP_TFLM_/' library/include_private/__renaming__.h
   fi
 fi
 
