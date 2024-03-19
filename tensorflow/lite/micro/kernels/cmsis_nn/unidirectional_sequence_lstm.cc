@@ -37,20 +37,41 @@ struct OpData {
   cmsis_nn_lstm_params params_cmsis_nn;  // Used for  CMSIS-NN implementation
 };
 
-TfLiteStatus PortOpData_s8(TfLiteContext* context, OpDataLSTM* params_ref,
-                           const LSTMKernelContents& kernel_content,
-                           cmsis_nn_lstm_params* params_cmsis_nn) {
+LSTMBuffers<int16_t> CMSIS_NN_CreateLSTMBuffers(TfLiteContext* context,
+                                                const int* buffer_indices) {
+  LSTMBuffers<int16_t> buffers;
+  buffers.buffer0 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[0]));
+  buffers.buffer1 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[1]));
+  buffers.buffer2 = reinterpret_cast<int16_t*>(
+      context->GetScratchBuffer(context, buffer_indices[2]));
+
+  return buffers;
+}
+
+void CMSIS_NN_VectorSum(int32_t* kernel_sum, const int32_t size1,
+                        const int32_t size2, const int8_t* weights,
+                        const int32_t offset, const int32_t* biases) {
+  arm_vector_sum_s8(kernel_sum, size1, size2, weights, offset, biases);
+}
+
+template <typename BiasType>
+TfLiteStatus CMSIS_NN_PortOpData(TfLiteContext* context, OpDataLSTM* params_ref,
+                                 const LSTMKernelContents& kernel_content,
+                                 cmsis_nn_lstm_params* params_cmsis_nn) {
   // Unwrap pointers
-  const int32_t* input_gate_bias =
-      tflite::micro::GetOptionalTensorData<int32_t>(
+  const BiasType* input_gate_bias =
+      tflite::micro::GetOptionalTensorData<BiasType>(
           kernel_content.GetInternalTensor(tflite::kLstmInputGateBiasTensor));
-  const int32_t* forget_gate_bias =
-      tflite::micro::GetOptionalTensorData<int32_t>(
+  const BiasType* forget_gate_bias =
+      tflite::micro::GetOptionalTensorData<BiasType>(
           kernel_content.GetInternalTensor(tflite::kLstmForgetGateBiasTensor));
-  const int32_t* cell_gate_bias = tflite::micro::GetOptionalTensorData<int32_t>(
-      kernel_content.GetInternalTensor(tflite::kLstmCellGateBiasTensor));
-  const int32_t* output_gate_bias =
-      tflite::micro::GetOptionalTensorData<int32_t>(
+  const BiasType* cell_gate_bias =
+      tflite::micro::GetOptionalTensorData<BiasType>(
+          kernel_content.GetInternalTensor(tflite::kLstmCellGateBiasTensor));
+  const BiasType* output_gate_bias =
+      tflite::micro::GetOptionalTensorData<BiasType>(
           kernel_content.GetInternalTensor(tflite::kLstmOutputGateBiasTensor));
 
   const int8_t* input_to_input_weights =
@@ -90,72 +111,72 @@ TfLiteStatus PortOpData_s8(TfLiteContext* context, OpDataLSTM* params_ref,
   int32_t size_data = params_ref->size_info.input_dimension;
   int32_t size_hidden = params_ref->size_info.state_dimension;
 
-  int32_t* input_data_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* forget_data_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* cell_data_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* output_data_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
+  BiasType* input_data_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* forget_data_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* cell_data_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* output_data_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
 
-  int32_t* input_hidden_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* forget_hidden_kernel_sum{
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* cell_hidden_kernel_sum = {
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
-  int32_t* output_hidden_kernel_sum = {
-      static_cast<int32_t*>(context->AllocatePersistentBuffer(
-          context, size_hidden * sizeof(int32_t)))};
+  BiasType* input_hidden_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* forget_hidden_kernel_sum{
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* cell_hidden_kernel_sum = {
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
+  BiasType* output_hidden_kernel_sum = {
+      static_cast<BiasType*>(context->AllocatePersistentBuffer(
+          context, size_hidden * sizeof(BiasType)))};
 
   // Compute effective biases
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       input_data_kernel_sum, size_data, size_hidden, input_to_input_weights,
       params_ref->input_gate_parameters.input_fc_params.input_offset,
       input_gate_bias);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       forget_data_kernel_sum, size_data, size_hidden, input_to_forget_weights,
       params_ref->forget_gate_parameters.input_fc_params.input_offset,
       forget_gate_bias);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       cell_data_kernel_sum, size_data, size_hidden, input_to_cell_weights,
       params_ref->cell_gate_parameters.input_fc_params.input_offset,
       cell_gate_bias);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       output_data_kernel_sum, size_data, size_hidden, input_to_output_weights,
       params_ref->output_gate_parameters.input_fc_params.input_offset,
       output_gate_bias);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       input_hidden_kernel_sum, size_hidden, size_hidden,
       recurrent_to_input_weights,
       -params_ref->inter_gate_parameters.output_mul_params.output_offset,
       nullptr);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       forget_hidden_kernel_sum, size_hidden, size_hidden,
       recurrent_to_forget_weights,
       -params_ref->inter_gate_parameters.output_mul_params.output_offset,
       nullptr);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       cell_hidden_kernel_sum, size_hidden, size_hidden,
       recurrent_to_cell_weights,
       -params_ref->inter_gate_parameters.output_mul_params.output_offset,
       nullptr);
 
-  arm_vector_sum_s8(
+  CMSIS_NN_VectorSum(
       output_hidden_kernel_sum, size_hidden, size_hidden,
       recurrent_to_output_weights,
       -params_ref->inter_gate_parameters.output_mul_params.output_offset,
@@ -242,10 +263,9 @@ TfLiteStatus PortOpData_s8(TfLiteContext* context, OpDataLSTM* params_ref,
   return kTfLiteOk;
 }
 
-template <typename CellType>
 TfLiteStatus CMSIS_NN_EvalInteger8x8_16Lstm(
     const OpData& op_data, const LSTMKernelContents& kernel_content,
-    const LSTMBuffers<CellType>& buffers) {
+    const LSTMBuffers<int16_t>& buffers) {
   TFLITE_DCHECK(
       kernel_content.GetInternalTensor(tflite::kLstmInputTensor)->dims->size >=
           2 &&
@@ -270,7 +290,6 @@ TfLiteStatus CMSIS_NN_EvalInteger8x8_16Lstm(
 }
 
 /*Kernel functions*/
-
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
                                      size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -327,20 +346,15 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
   }
 
   size_t number_of_buffers;
-  if (activation_type != kTfLiteInt8) {
-    number_of_buffers = 4;
+  if (activation_type == kTfLiteInt8 && cell_state_type == kTfLiteInt16) {
+    auto kernel_content = CreateLSTMKernelContent(context, node);
+    number_of_buffers = 3;
+    CMSIS_NN_PortOpData<int32_t>(context, op_data_lstm, kernel_content,
+                                 &op_data->params_cmsis_nn);
   } else {
-    bool cmsis_nn_used = (cell_state_type == kTfLiteInt16);
-    if (cmsis_nn_used) {
-      auto kernel_content = CreateLSTMKernelContent(context, node);
-      PortOpData_s8(context, op_data_lstm, kernel_content,
-                    &op_data->params_cmsis_nn);
-
-      number_of_buffers = 3;
-    } else {
-      number_of_buffers = 4;
-    }
+    number_of_buffers = 4;
   }
+
   for (size_t i = 0; i < number_of_buffers; i++) {
     TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
                                    context,
@@ -379,9 +393,9 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
         case kTfLiteInt8: {
           // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
           LSTMBuffers<int16_t> buffers =
-              CreateLSTMBuffers<int16_t>(context, op_data_lstm.buffer_indices);
-          return CMSIS_NN_EvalInteger8x8_16Lstm<int16_t>(
-              op_data, kernel_content, buffers);
+              CMSIS_NN_CreateLSTMBuffers(context, op_data_lstm.buffer_indices);
+          return CMSIS_NN_EvalInteger8x8_16Lstm(op_data, kernel_content,
+                                                buffers);
           break;
         }
         default: {
@@ -435,10 +449,9 @@ TfLiteStatus UnidirectionalSequenceLstmEvalInt8(TfLiteContext* context,
 
   if (activation_type == kTfLiteInt8) {
     LSTMBuffers<int16_t> buffers =
-        CreateLSTMBuffers<int16_t>(context, op_data_lstm.buffer_indices);
+        CMSIS_NN_CreateLSTMBuffers(context, op_data_lstm.buffer_indices);
 
-    return CMSIS_NN_EvalInteger8x8_16Lstm<int16_t>(op_data, kernel_content,
-                                                   buffers);
+    return CMSIS_NN_EvalInteger8x8_16Lstm(op_data, kernel_content, buffers);
   } else {
     MicroPrintf("Input type %s (%d) not supported.",
                 TfLiteTypeGetName(activation_type), activation_type);

@@ -66,6 +66,9 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
     case kTfLiteFloat16:
       tensor_type = TensorTypes_FLOAT16;
       return kTfLiteOk;
+    case kTfLiteBFloat16:
+      tensor_type = TensorTypes_BFLOAT16;
+      return kTfLiteOk;
     case kTfLiteFloat32:
       tensor_type = TensorTypes_FLOAT32;
       return kTfLiteOk;
