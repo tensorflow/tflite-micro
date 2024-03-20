@@ -101,7 +101,7 @@ subgraph are first, followed by those of the second subgraph, etc.
 
 The `tflite::GreedyMemoryPlanner` treats the provided offline tensor allocation
 plan as constant fixed offset to the start of the head section and will attempt
-to fit any other tensors (such as scratch tensors added a runtime using the
+to fit any other tensors (such as scratch tensors added at runtime using the
 `RequestScratchBufferInArena` API of `TfLiteContext`) around those fixed
 offsets.
 
