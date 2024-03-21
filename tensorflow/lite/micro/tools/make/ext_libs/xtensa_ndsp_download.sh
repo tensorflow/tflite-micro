@@ -100,6 +100,9 @@ else
       create_git_repo ./
       apply_patch_to_folder ./ "../../ext_libs/ndsplib-${2}.patch" "TFLM patch"
     fi
+    # Rename the strings in __renaming__.h to names that are traceable to TFLM.
+    # Note that renaming is disabled by default and must be enabled with -D__RENAMING__
+    sed -i 's/NatureDSP_/NatureDSP_TFLM_/' library/include_private/__renaming__.h
   fi
 fi
 

@@ -47,6 +47,7 @@ done
 git checkout tensorflow/lite/kernels/internal/optimized/neon_check.h
 # http://b/149862813
 git checkout tensorflow/lite/kernels/internal/runtime_shape.h
+git checkout tensorflow/lite/kernels/internal/runtime_shape.cc
 # http://b/187728891
 git checkout tensorflow/lite/kernels/op_macros.h
 # http://b/242077843

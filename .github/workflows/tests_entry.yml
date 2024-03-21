@@ -28,9 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail-without-labels
-        if: ${{ !(contains(github.event.pull_request.labels.*.name, 'ci:run') ||
-          contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') ||
-          contains(github.event.pull_request.labels.*.name, 'ci:run_full')) }}
+        if: github.event.action == 'labeled' &&
+          !(github.event.label.name == 'ci:run' ||
+            github.event.label.name == 'ci:ready_to_merge' ||
+            github.event.label.name == 'ci:run_full')
         run: exit 1
 
   ci-ready-to-merge:
@@ -60,7 +61,8 @@ jobs:
     needs: ci-ready-to-merge
     steps:
       - name: remove-cirun
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run') }}
+        if: github.event.action == 'labeled' &&
+            github.event.label.name == 'ci:run'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
@@ -78,7 +80,8 @@ jobs:
     needs: ci-run
     steps:
       - name: remove-cirun-full
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+        if: github.event.action == 'labeled' &&
+            github.event.label.name == 'ci:run_full'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
@@ -102,7 +105,7 @@ jobs:
           echo "PR description requires a BUG= line with issue number."
           echo "See https://testing.googleblog.com/2017/09/code-health-providing-context-with.html for additional context"
           exit 1
-  
+
   call-ci:
     needs: ci-run
     uses: ./.github/workflows/ci.yml
@@ -128,7 +131,7 @@ jobs:
   call-check-tflite-files:
     needs: ci-run
     uses: ./.github/workflows/check_tflite_files.yml
-    with: 
+    with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-body: ${{ github.event.pull_request.body }}

@@ -208,7 +208,7 @@ py_binary(
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
         "//python/tflite_micro/signal:ops",
         "//python/tflite_micro/signal/utils:util",

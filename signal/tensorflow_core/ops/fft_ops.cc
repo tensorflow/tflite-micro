@@ -22,7 +22,7 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status RfftShape(InferenceContext* c) {
+absl::Status RfftShape(InferenceContext* c) {
   ShapeHandle out;
   int fft_length;
   TF_RETURN_IF_ERROR(c->GetAttr<int>("fft_length", &fft_length));
@@ -30,17 +30,17 @@ Status RfftShape(InferenceContext* c) {
   auto dim = ((fft_length / 2) + 1) * 2;  // * 2 for complex
   TF_RETURN_IF_ERROR(c->ReplaceDim(out, -1, c->MakeDim(dim), &out));
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
-Status IrfftShape(InferenceContext* c) {
+absl::Status IrfftShape(InferenceContext* c) {
   ShapeHandle out;
   int fft_length;
   TF_RETURN_IF_ERROR(c->GetAttr<int>("fft_length", &fft_length));
   TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
   TF_RETURN_IF_ERROR(c->ReplaceDim(out, -1, c->MakeDim(fft_length), &out));
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved
@@ -107,7 +107,7 @@ REGISTER_OP("SignalFftAutoScale")
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
       c->set_output(0, out);
       c->set_output(1, c->Scalar());
-      return OkStatus();
+      return absl::OkStatus();
     })
     .Doc(R"doc(
 Shifts the input left until the amplitude is maximized without clipping. Returns

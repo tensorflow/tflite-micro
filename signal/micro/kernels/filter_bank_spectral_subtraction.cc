@@ -51,12 +51,14 @@ struct TFLMSignalSpectralSubtractionParams {
   size_t noise_estimate_size;
 };
 
-void ResetState(TFLMSignalSpectralSubtractionParams* params) {
+void FilterBankSpectralSubtractionResetState(
+    TFLMSignalSpectralSubtractionParams* params) {
   memset(params->noise_estimate, 0,
          sizeof(uint32_t) * params->config.num_channels);
 }
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* FilterBankSpectralSubtractionInit(TfLiteContext* context,
+                                        const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   auto* params = static_cast<TFLMSignalSpectralSubtractionParams*>(
@@ -96,7 +98,8 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return params;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FilterBankSpectralSubtractionPrepare(TfLiteContext* context,
+                                                  TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 2);
 
@@ -125,7 +128,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTypeSizeOf(output->type, &params->noise_estimate_size);
   params->noise_estimate_size *= ElementCount(*noise_estimate->dims);
 
-  ResetState(params);
+  FilterBankSpectralSubtractionResetState(params);
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
@@ -133,7 +136,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FilterBankSpectralSubtractionEval(TfLiteContext* context,
+                                               TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TFLMSignalSpectralSubtractionParams*>(node->user_data);
 
@@ -158,8 +162,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-void Reset(TfLiteContext* context, void* buffer) {
-  ResetState(static_cast<TFLMSignalSpectralSubtractionParams*>(buffer));
+void FilterBankSpectralSubtractionReset(TfLiteContext* context, void* buffer) {
+  FilterBankSpectralSubtractionResetState(
+      static_cast<TFLMSignalSpectralSubtractionParams*>(buffer));
 }
 
 }  // namespace
@@ -167,8 +172,10 @@ void Reset(TfLiteContext* context, void* buffer) {
 namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK_SPECTRAL_SUBTRACTION() {
-  static TFLMRegistration r =
-      tflite::micro::RegisterOp(Init, Prepare, Eval, /*Free*/ nullptr, Reset);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      FilterBankSpectralSubtractionInit, FilterBankSpectralSubtractionPrepare,
+      FilterBankSpectralSubtractionEval,
+      /*Free*/ nullptr, FilterBankSpectralSubtractionReset);
   return &r;
 }
 
