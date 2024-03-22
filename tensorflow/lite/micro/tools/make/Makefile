@@ -935,6 +935,9 @@ endif
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
 
+list_gendir:
+	@echo $(GENDIR)
+
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
 
