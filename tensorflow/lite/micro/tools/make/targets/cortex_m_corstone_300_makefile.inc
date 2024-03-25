@@ -97,8 +97,7 @@ ifeq ($(TOOLCHAIN), armclang)
   FLAGS_ARMC = \
     --target=arm-arm-none-eabi \
     -Wno-unused-private-field \
-    -mcpu=$(MCPU_OPTION) \
-    -ffp-mode=full
+    -mcpu=$(MCPU_OPTION)
 
   # Pass comma separated linker options to armlink
   ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
