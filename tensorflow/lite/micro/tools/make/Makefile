@@ -860,6 +860,7 @@ $(BINDIR)%.test_target: $(BINDIR)%_test
 # These are microcontroller-specific rules for converting the ELF output
 # of the linker into a binary image that can be loaded directly.
 ifeq ($(TOOLCHAIN), armclang)
+  CXXFLAGS += -ffp-mode=full
   FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
   $(BINDIR)%.bin: $(BINDIR)%
 		@mkdir -p $(dir $@)
