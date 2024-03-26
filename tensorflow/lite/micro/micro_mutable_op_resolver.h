@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/streaming_conv.h"
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
