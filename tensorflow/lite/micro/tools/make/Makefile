@@ -272,7 +272,15 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
 BASE_GENDIR := gen
-GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)
+ifneq ($(OPTIMIZED_KERNEL_DIR),)
+  GENDIR := $(GENDIR)_$(OPTIMIZED_KERNEL_DIR)
+endif
+ifneq ($(CO_PROCESSOR),)
+  GENDIR := $(GENDIR)_$(CO_PROCESSOR)
+endif
+GENDIR := $(GENDIR)_$(TOOLCHAIN)/
+
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
@@ -432,6 +440,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/streaming_conv.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/streaming_conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
@@ -926,6 +936,9 @@ endif
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
+
+list_gendir:
+	@echo $(GENDIR)
 
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)
