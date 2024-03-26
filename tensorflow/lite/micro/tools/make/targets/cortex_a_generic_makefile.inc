@@ -21,7 +21,10 @@ FLOAT_ABI := softfp
 GCC_TARGET_ARCH :=
 GCC_TARGET_CPU :=
 
-ifeq ($(TARGET_ARCH), armv7-a)
+ifeq ($(TARGET_ARCH), armv8.2-a)
+  GCC_TARGET_ARCH := armv8.2-a
+
+else ifeq ($(TARGET_ARCH), armv7-a)
   GCC_TARGET_ARCH := armv7-a
 
 else ifeq ($(TARGET_ARCH), cortex-a32)
