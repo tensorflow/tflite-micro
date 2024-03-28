@@ -38,7 +38,14 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
   // P6 Vision will handle INT4 filters as a reference operation.
   // For all other architectures, unpack INT4 here.
   const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
+#if defined(HIFI5) && defined(NNLIB_HIFI5)  
+  void* p_scratch = (void *)0;
+#endif  
   if (filter->type == kTfLiteInt4) {
+#if defined(HIFI5) && defined(NNLIB_HIFI5)   
+    p_scratch = static_cast<void*>(
+    context->GetScratchBuffer(context, data.filter_buffer_index));
+#else    
     int8_t* unpacked_filter_data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
 
@@ -46,6 +53,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
+#endif    
   }
 #endif  // !defined(VISION_P6)
 
@@ -69,17 +77,73 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
   const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
 
   FullyConnectedParams op_params = FullyConnectedParamsQuantized(data);
-  for (int b = 0; b < num_batches; ++b) {
-    TF_LITE_ENSURE_EQ(
-        context,
-        xa_nn_fully_connected_sym8sxasym8s_asym8s(
-            (tflite::micro::GetTensorData<int8_t>(output) + b * output_depth),
+  if(num_batches == 1) {
+#if defined(HIFI5)  && defined(NNLIB_HIFI5)    
+    if(filter->type == kTfLiteInt4){
+        TF_LITE_ENSURE_EQ(
+            context,
+            xa_nn_fully_connected_asym4sxasym8s_asym8s(
+                tflite::micro::GetTensorData<int8_t>(output),
+                filter_data,
+                tflite::micro::GetTensorData<int8_t>(input),
+                bias_data, accum_depth, output_depth, op_params.input_offset,
+                op_params.weights_offset, op_params.output_multiplier,
+                op_params.output_shift, op_params.output_offset, p_scratch),
+            0);
+    }
+    else{
+#endif        
+        TF_LITE_ENSURE_EQ(
+            context,
+            xa_nn_fully_connected_asym8sxasym8s_asym8s(
+                tflite::micro::GetTensorData<int8_t>(output),
+                filter_data,
+                tflite::micro::GetTensorData<int8_t>(input),
+                bias_data, accum_depth, output_depth, op_params.input_offset,
+                op_params.weights_offset, op_params.output_multiplier,
+                op_params.output_shift, op_params.output_offset),
+            0);
+#if defined(HIFI5) && defined(NNLIB_HIFI5)        
+    }
+#endif    
+  }
+  else {
+#if defined(HIFI5) && defined(NNLIB_HIFI5)    
+    if(filter->type == kTfLiteInt4){
+      for (int b = 0; b < num_batches; ++b) {
+        int8_t *base_input = (int8_t *)tflite::micro::GetTensorData<int8_t>(input);
+        int8_t *input_ptr =  base_input + (b*accum_depth);
+        int8_t *base_output = (int8_t *)tflite::micro::GetTensorData<int8_t>(output);
+        int8_t *output_ptr = base_output + (b*output_depth);
+        TF_LITE_ENSURE_EQ(
+        context,       
+        xa_nn_fully_connected_asym4sxasym8s_asym8s(
+            output_ptr,
             filter_data,
-            (tflite::micro::GetTensorData<int8_t>(input) + b * accum_depth),
+            input_ptr,
             bias_data, accum_depth, output_depth, op_params.input_offset,
-            op_params.output_multiplier, op_params.output_shift,
-            op_params.output_offset),
+            op_params.weights_offset, op_params.output_multiplier,
+            op_params.output_shift, op_params.output_offset, p_scratch),
         0);
+      }        
+    }
+    else{
+#endif        
+        TF_LITE_ENSURE_EQ(
+            context,
+            xa_nn_matmul_asym8sxasym8s_asym8s(
+                tflite::micro::GetTensorData<int8_t>(output),
+                filter_data,
+                tflite::micro::GetTensorData<int8_t>(input),
+                bias_data, output_depth, accum_depth, accum_depth,
+                num_batches, accum_depth, output_depth, 1,
+                op_params.weights_offset, op_params.input_offset,
+                op_params.output_multiplier, op_params.output_shift,
+                op_params.output_offset),
+            0);
+#if defined(HIFI5) && defined(NNLIB_HIFI5)            
+    }
+#endif    
   }
 
   int8_t* output_arr = tflite::micro::GetTensorData<int8_t>(output);
