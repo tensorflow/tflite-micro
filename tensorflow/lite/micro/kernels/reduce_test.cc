@@ -556,6 +556,45 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
+TF_LITE_MICRO_TEST(ProdFloatFlatten2ReduceDims) {
+  int input_shape[] = {3, 4, 3, 2};
+  int output_shape[] = {1, 12};
+  int axis_shape[] = {1, 1};
+  int32_t axis_data[] = {2};
+  float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                        9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                        17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  float expected_output[] = {2.0,   12.0,  30.0,  56.0,  90.0,  132.0,
+                             182.0, 240.0, 306.0, 380.0, 462.0, 552.0};
+
+  float actual_output_data[12];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape,
+      actual_output_data, expected_output, tflite::Register_PROD(), &params);
+}
+
+
+TF_LITE_MICRO_TEST(ProdFloatSmallInput) {
+  int input_shape[] = {4, 3, 2, 2, 2};
+  int output_shape[] = {2, 3, 2};
+  int axis_shape[] = {2};
+  int32_t axis_data[] = {2, 3};
+  float input_data[] = {1.0,  2.0, 3.0,  4.0,  8.0,  7.0, 6.0,  5.0,
+                        10.0, 9.0, 11.0, 12.0, 1.0,  2.0, 3.0,  4.0,
+                        8.0,  7.0, 6.0,  5.0,  10.0, 9.0, 11.0, 12.0};
+  float expected_output[] = {24.0, 1680.0, 11880.0, 24.0, 1680.0, 11880.0};
+  float actual_output_data[6];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape,
+      actual_output_data, expected_output, tflite::Register_PROD(), &params);
+}
+
 TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
   int output_shape[] = {1, 4};
