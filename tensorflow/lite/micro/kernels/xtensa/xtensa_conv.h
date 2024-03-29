@@ -40,8 +40,19 @@ struct XtensaConvOpData {
 #endif  // VISION_P6
 };
 
+
+struct XtensaStreamingConvOpData {
+  OpDataConv reference_op_data;
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  int scratch_tensor_index;
+  void *persistent_buf;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+};
+
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus StreamingConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteConvParams& params,
@@ -52,6 +63,13 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               TfLiteEvalTensor* output);
 
 #if defined(HIFI3) || defined(HIFI4)
+TfLiteStatus StreamingConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
+                               const TfLiteConvParams& params,
+                               const XtensaStreamingConvOpData& data,
+                               const TfLiteEvalTensor* input,
+                               const TfLiteEvalTensor* filter,
+                               const TfLiteEvalTensor* bias,
+                               TfLiteEvalTensor* output);
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
                                const XtensaConvOpData& data,
@@ -82,7 +100,9 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 
 void* ConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
+void* StreamingConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus StreamingConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 

@@ -19,11 +19,20 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/streaming_conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
 
 namespace tflite {
+
+void* StreamingConvInitXtensa(TfLiteContext* context, const char* buffer,
+                     size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(XtensaStreamingConvOpData));
+  return data;
+}
 
 void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
                      size_t length) {
@@ -37,6 +46,16 @@ void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
 #endif  // defined(VISION_P6)
 
   return data;
+}
+
+TfLiteStatus StreamingConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE_OK(context, StreamingConvPrepare(context, node));
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  TF_LITE_ENSURE_OK(context, StreamingConvPrepareHifi(context, node));
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+
+  return kTfLiteOk;
 }
 
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {

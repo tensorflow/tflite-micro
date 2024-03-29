@@ -41,7 +41,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
-  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  const auto& op_data = *(reinterpret_cast<XtensaStreamingConvOpData*>(node->user_data));
 
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
@@ -51,45 +51,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
 
   switch (input->type) {
-    case kTfLiteFloat32: {
-      tflite::reference_ops::Conv(
-          ConvParamsFloat(params, op_data.reference_op_data),
-          tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<float>(input),
-          tflite::micro::GetTensorShape(filter),
-          tflite::micro::GetTensorData<float>(filter),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetOptionalTensorData<float>(bias),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr);
-      break;
-    }
-    case kTfLiteInt8: {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-      if (params.dilation_width_factor == 1 &&
-          params.dilation_height_factor == 1) {
-        return ConvEvalHifiInt8(context, node, params, op_data, input, filter,
-                                bias, output);
-      } else {
-        return ConvReferenceEvalInt8(context, node);
-      }
-#elif defined(VISION_P6)
-      // At this time the optimized implementation is failing the unit tests in
-      // ways that are not entirely clear why. For now, we have identified some
-      // of the problem cases and are manually inserting a reference fallback.
-      // See http://b/270720625 for more details.
-      if (op_data.is_per_channel_quantized ||
-          input->dims->data[1] != input->dims->data[2]) {
-        return ConvReferenceEvalInt8(context, node);
-      } else {
-        return ConvEvalVision(context, node, params, op_data, input, filter,
-                              bias, output);
-      }
-#else
-      return ConvReferenceEvalInt8(context, node);
-#endif
-    }
     case kTfLiteInt16: {
 #if defined(HIFI3) || defined(HIFI4)
       // Note that int32 bias is not widely supported and might be risky (e.g.
@@ -98,7 +59,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       if (bias->type == kTfLiteInt32) {
         return ConvReferenceEvalInt16(context, node);
       } else {
-        return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
+        return StreamingConvEvalHifiInt16(context, node, params, op_data, input, filter,
                                  bias, output);
       }
 #else
@@ -116,15 +77,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TFLMRegistration Register_CONV_2D() {
-  return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa, Eval);
-}
-
-#if 0
 TFLMRegistration Register_STREAMING_CONV_2D() {
   // TODO(Cadence): These should be replaced with Streaming wrapper functions.
-  return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa, Eval);
+  return tflite::micro::RegisterOp(StreamingConvInitXtensa, StreamingConvPrepareXtensa, Eval);
 }
-#endif
 
 }  // namespace tflite
