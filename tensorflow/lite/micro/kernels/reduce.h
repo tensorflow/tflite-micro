@@ -57,6 +57,7 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 TfLiteStatus EvalProdHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
+
 void ReduceResolveAxis(const int* axis_data, int axis_count,
                        MeanParams* op_params);
 
