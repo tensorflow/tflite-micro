@@ -38,6 +38,7 @@ static int kOutputShape2D[] = {2, 1, 2};
 static const float kGoldenData2D[] = {2.5, 6.5};
 
 static const float kGoldenDataSum2D[] = {10.0, 26.0};
+static const float kGoldenDataProd2D[] = {24.0, 1680.0};
 
 // Common 3D inputs, outputs and axis.
 static const int kInputElements3D = 8;
@@ -627,6 +628,18 @@ TF_LITE_MICRO_TEST(ProdFloatFlatten2MiddleDims) {
   tflite::testing::TestReduceOpFloat(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_PROD(), &params);
+}
+
+TF_LITE_MICRO_TEST(ProdFloat2DKeepDims) {
+  float output_data[tflite::testing::kOutputElements2D];
+
+  TfLiteReducerParams params = {true};
+
+  tflite::testing::TestReduceOpFloat(
+      tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
+      tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
+      tflite::testing::kOutputShape2D, output_data,
+      tflite::testing::kGoldenDataProd2D, tflite::Register_PROD(), &params);
 }
 
 TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
