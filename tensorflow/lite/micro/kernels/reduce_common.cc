@@ -303,6 +303,7 @@ TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
   TfLiteReducerParams* params =
       static_cast<TfLiteReducerParams*>(node->builtin_data);
+
   // Interpret an axis tensor with null dimensions as a scalar
   int num_axis = static_cast<int>(ElementCount(*axis->dims));
   int* temp_buffer = static_cast<int*>(
