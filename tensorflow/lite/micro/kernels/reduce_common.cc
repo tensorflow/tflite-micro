@@ -92,7 +92,16 @@ TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
+double GetQuantProdScaling(double input_scale, double output_scale,
+                           int reduced_axis_size) {
+  // The scaling after taking the product of all the quantized values should
+  // be (input_scale**reduced_axis_size)/output_scale but to avoid overflowing
+  // the accumulator we instead scale each multiplication by
+  // input_scale/nth_root(output_scale, reduced_axis_size).
+  return input_scale / std::pow(output_scale, 1.0 / reduced_axis_size);
+}
+
+TfLiteStatus PrepareProdHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data) {
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
@@ -100,9 +109,15 @@ TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
   TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
-    const double real_multiplier = static_cast<double>(input->params.scale) /
-                                   static_cast<double>(output->params.scale);
-    QuantizeMultiplier(real_multiplier, &op_data->multiplier, &op_data->shift);
+
+    const int input_size = NumElements(input);
+    const int output_size = NumElements(output);
+    const int reduced_axis_size = input_size / output_size;
+    const double scaling = GetQuantProdScaling(
+      static_cast<double>(input->params.scale),
+      static_cast<double>(output->params.scale),
+      reduced_axis_size);
+    QuantizeMultiplier(scaling, &op_data->multiplier, &op_data->shift);
   }
 
   int output_size = NumElements(output);
@@ -127,7 +142,7 @@ TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus PrepareProdHelper(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data) {
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
