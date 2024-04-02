@@ -70,7 +70,7 @@ static int kOutputShape4D[] = {4, 2, 1, 1, 2};
 static const float kGoldenData4D[] = {6, 7, 18, 19};
 
 static const float kGoldenDataSum4D[] = {36, 42, 108, 114};
-static const float kGoldenDataProd4D[] = {1.0395000e+04, 4.6080000e+04, 3.0421756e+07, 4.2577920e+07};
+static const float kGoldenDataProd4D[] = {10395.0, 46080.0, 30421755.0, 42577920.0};
 
 template <typename T>
 TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
