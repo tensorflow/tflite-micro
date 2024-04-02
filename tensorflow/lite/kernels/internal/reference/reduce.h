@@ -593,16 +593,17 @@ inline bool QuantizedProdExtraArgs(
     int32_t output_zero_point, const int* output_dims,
     const int output_num_dims, const int* axis, const int num_axis_dimensions,
     bool keep_dims, int* temp_index, int* resolved_axis, U* temp_prod) {
-  /*
-  return QuantizedReduceProd<T> (input_data, input_zero_point, RuntimeShape(input_num_dims), output_data,
-  output_zero_point, RuntimeShape(output_num_dims), axis, num_axis_dimensions, keep_dims, temp_index,
+
+  return QuantizedReduceProd<T> (input_data, input_zero_point, RuntimeShape(input_num_dims, input_dims), output_data,
+  output_zero_point, RuntimeShape(output_num_dims, output_dims), axis, num_axis_dimensions, keep_dims, temp_index,
       resolved_axis, temp_prod, output_multiplier, output_shift);
-  */
+  /*
   return QuantizedProd<T, U>(
       input_data, input_zero_point, input_dims, input_num_dims, output_data,
       output_multiplier, output_shift, output_zero_point, output_dims,
       output_num_dims, axis, num_axis_dimensions, keep_dims, temp_index,
       resolved_axis, temp_prod);
+  */
 }
 
 }  // namespace reference_ops
