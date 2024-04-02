@@ -155,22 +155,6 @@ inline bool ReduceSumImpl(const In* input_data, const int* input_dims,
                          output_data);
 }
 
-// This method expects that output_data has been initialized to 1.
-template <typename In, typename Out>
-inline bool ReduceProdImpl(const In* input_data, const int* input_dims,
-                           const int* output_dims, const int input_num_dims,
-                           const int output_num_dims, const int* axis,
-                           const int num_axis, int* input_iter,
-                           Out* output_data) {
-  auto reducer = [](const Out current, const In in) -> Out {
-    const Out actual_in = static_cast<Out>(in);
-    return current * actual_in;
-  };
-  return Reduce<In, Out>(input_data, input_dims, output_dims, input_num_dims,
-                         output_num_dims, axis, num_axis, input_iter, reducer,
-                         output_data);
-}
-
 template <typename T>
 inline bool InitTensorDataForReduce(const int* dims, const int num_dims,
                                     const T init_value, T* data) {
@@ -449,91 +433,6 @@ inline bool QuantizedMeanOrSumExtraArgs(
       resolved_axis, temp_sum, compute_sum);
 }
 
-// Quantized Prod function rewrite based on SumOrMean version
-template <typename T, typename U>
-inline bool QuantizedProd(const T* input_data, int32_t input_zero_point,
-                               const int* input_dims, const int input_num_dims,
-                               T* output_data, int32_t output_multiplier,
-                               int output_shift, int32_t output_zero_point,
-                               const int* output_dims,
-                               const int output_num_dims, const int* axis,
-                               const int num_axis_dimensions, bool keep_dims,
-                               int* temp_index, int* resolved_axis, U* temp_prod) {
-  const int32_t kMinValue = std::numeric_limits<T>::min();
-  const int32_t kMaxValue = std::numeric_limits<T>::max();
-  const bool uint8_case = std::is_same<T, uint8_t>::value;
-  const bool int16_case = std::is_same<T, int16_t>::value;
-  if (uint8_case) {
-    ruy::profiler::ScopeLabel label("Prod/Uint8");
-  } else if (int16_case) {
-    ruy::profiler::ScopeLabel label("Prod/Int16");
-  } else {
-    ruy::profiler::ScopeLabel label("Prod/Int8");
-  }
-  // Reset output data.
-  size_t num_outputs = 1;
-  for (int idx = 0; idx < output_num_dims; ++idx) {
-    size_t current = static_cast<size_t>(output_dims[idx]);
-    // Overflow prevention.
-    if (num_outputs > std::numeric_limits<size_t>::max() / current) {
-      return false;
-    }
-    num_outputs *= current;
-  }
-  for (size_t idx = 0; idx < num_outputs; ++idx) {
-    output_data[idx] = static_cast<T>(1);
-    temp_prod[idx] = static_cast<U>(1);
-  }
-
-  // Return early when input shape has zero dim. This is done after initializing
-  // data for output tensor because there are cases that the input tensor is
-  // empty but output tensor is not. In that case, output tensor should be
-  // filled with init_value.
-  for (int i = 0; i < input_num_dims; ++i) {
-    if (input_dims[i] == 0) return true;
-  }
-
-  // Resolve axis.
-  int num_resolved_axis = 0;
-  if (!ResolveAxis(input_num_dims, axis, num_axis_dimensions, resolved_axis,
-                   &num_resolved_axis)) {
-    return false;
-  }
-
-  if (!ReduceProdImpl<T, U>(input_data, input_dims, output_dims, input_num_dims,
-                           output_num_dims, resolved_axis, num_resolved_axis,
-                           temp_index, temp_prod)) {
-    return false;
-  }
-
-  // Calculate num_elements_in_axis
-  int64_t num_elements_in_axis = 1;
-  for (int idx = 0; idx < num_resolved_axis; ++idx) {
-    size_t current = static_cast<size_t>(input_dims[resolved_axis[idx]]);
-    // Overflow prevention.
-    if (current > static_cast<size_t>(std::numeric_limits<int64_t>::max() /
-                                      num_elements_in_axis)) {
-      return false;
-    }
-    num_elements_in_axis *= current;
-  }
-
-  if (num_elements_in_axis == 0) {
-    return true;
-  }
-
-  for (size_t idx = 0; idx < num_outputs; ++idx) {
-    const U shifted_prod =
-        static_cast<U>(temp_prod[idx] - input_zero_point * num_elements_in_axis);
-    int32_t output = MultiplyByQuantizedMultiplier(
-                         shifted_prod, output_multiplier, output_shift) +
-                     output_zero_point;
-    output = std::min(std::max(output, kMinValue), kMaxValue);
-    output_data[idx] = static_cast<T>(output);
-  }
-  return true;
-}
-
 template <typename T>
 inline bool QuantizedReduceProd(const T* input_data, int32_t input_zero_point,
                                 const RuntimeShape& input_shape, T* output_data,
@@ -597,13 +496,6 @@ inline bool QuantizedProdExtraArgs(
   return QuantizedReduceProd<T> (input_data, input_zero_point, RuntimeShape(input_num_dims, input_dims), output_data,
   output_zero_point, RuntimeShape(output_num_dims, output_dims), axis, num_axis_dimensions, keep_dims, temp_index,
       resolved_axis, temp_prod, output_multiplier, output_shift);
-  /*
-  return QuantizedProd<T, U>(
-      input_data, input_zero_point, input_dims, input_num_dims, output_data,
-      output_multiplier, output_shift, output_zero_point, output_dims,
-      output_num_dims, axis, num_axis_dimensions, keep_dims, temp_index,
-      resolved_axis, temp_prod);
-  */
 }
 
 }  // namespace reference_ops
