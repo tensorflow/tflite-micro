@@ -642,6 +642,29 @@ TF_LITE_MICRO_TEST(ProdFloat2DKeepDims) {
       tflite::testing::kGoldenDataProd2D, tflite::Register_PROD(), &params);
 }
 
+TF_LITE_MICRO_TEST(ProdInt82DKeepDims) {
+  int8_t expected_output_data_quant[tflite::testing::kOutputElements2D];
+  int8_t output_data_quant[tflite::testing::kOutputElements2D];
+  int8_t input_data_quant[tflite::testing::kInputElements2D];
+
+  float input_scale = 0.5f;
+  int input_zero_point = 0;
+  float output_scale = 0.5f;
+  int output_zero_point = 0;
+
+  TfLiteReducerParams params = {
+      true  // keep_dims
+  };
+
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+    tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
+    input_data_quant, input_scale, input_zero_point,
+    tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
+    tflite::testing::kOutputShape2D, tflite::testing::kGoldenDataProd2D,
+    output_data_quant, expected_output_data_quant, output_scale,
+    output_zero_point, tflite::Register_PROD(), &params, 1.0);
+}
+
 TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
   int output_shape[] = {1, 4};
