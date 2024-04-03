@@ -73,7 +73,7 @@ py_test(
     deps = [
         ":requantize_flatbuffer",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -135,8 +135,8 @@ py_library(
         ":model_transforms_utils",
         "@absl_py//absl/logging",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        requirement("tensorflow"),
+        "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
@@ -192,7 +192,7 @@ py_test(
     deps = [
         ":tflm_model_transforms_lib",
         "@absl_py//absl/testing:parameterized",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )
@@ -207,8 +207,8 @@ py_binary(
         ":model_transforms_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
-        requirement("tensorflow-cpu"),
-        "//tensorflow/lite/micro/python/interpreter/src:runtime",
+        requirement("tensorflow"),
+        "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )

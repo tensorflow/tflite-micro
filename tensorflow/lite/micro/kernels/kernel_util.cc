@@ -252,6 +252,7 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
                                             TfLiteNode* node,
                                             MicroGraph* graph_info,
                                             int subgraph_idx) {
+  if (graph_info->NumSubgraphOutputs(subgraph_idx) == 0) return kTfLiteOk;
   TF_LITE_ENSURE(context, static_cast<size_t>(node->outputs->size) ==
                               graph_info->NumSubgraphOutputs(subgraph_idx));
   for (int i = 0; i < node->outputs->size; i++) {

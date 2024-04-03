@@ -12,7 +12,7 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -23,7 +23,7 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -38,8 +38,6 @@ py_test(
     ],
     deps = [
         ":resource_variables_lib",
-        # TODO(b/286456378): update tflm_runtime to runtime when we are ready to
-        # remove the alias.
-        "//tensorflow/lite/micro/python/interpreter/src:tflm_runtime",
+        "//python/tflite_micro:runtime",
     ],
 )

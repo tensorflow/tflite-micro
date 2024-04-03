@@ -47,8 +47,6 @@ namespace tflite {
 
 namespace {
 
-using TflmOpResolver = MicroMutableOpResolver<96>;
-
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
 constexpr uint32_t kRandomSeed = 0xFB;
@@ -67,6 +65,9 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
   switch (type) {
     case kTfLiteFloat16:
       tensor_type = TensorTypes_FLOAT16;
+      return kTfLiteOk;
+    case kTfLiteBFloat16:
+      tensor_type = TensorTypes_BFLOAT16;
       return kTfLiteOk;
     case kTfLiteFloat32:
       tensor_type = TensorTypes_FLOAT32;

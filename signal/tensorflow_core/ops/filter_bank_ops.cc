@@ -22,7 +22,7 @@ using tensorflow::shape_inference::ShapeHandle;
 namespace tensorflow {
 namespace signal {
 
-Status FilterBankShape(InferenceContext* c) {
+absl::Status FilterBankShape(InferenceContext* c) {
   ShapeHandle out;
   shape_inference::DimensionHandle unused;
   int num_channels;
@@ -49,7 +49,7 @@ Status FilterBankShape(InferenceContext* c) {
       c->WithValue(c->Dim(c->input(5), 0), num_channels + 1, &unused));
   TF_RETURN_IF_ERROR(c->ReplaceDim(out, 0, c->MakeDim(num_channels), &out));
   c->set_output(0, out);
-  return OkStatus();
+  return absl::OkStatus();
 }
 
 // TODO(b/286250473): change back name after name clash resolved
@@ -92,7 +92,7 @@ REGISTER_OP("SignalFilterBankSquareRoot")
       ShapeHandle out;
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
       c->set_output(0, out);
-      return OkStatus();
+      return absl::OkStatus();
     })
     .Doc(R"doc(
 Applies a square root to each element in the input then shift right by
@@ -122,7 +122,7 @@ REGISTER_OP("SignalFilterBankSpectralSubtraction")
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
       c->set_output(0, out);
       c->set_output(1, out);
-      return OkStatus();
+      return absl::OkStatus();
     })
     .Doc(R"doc(
 Applies spectral subtraction to a filter bank output of size num_channels
@@ -152,7 +152,7 @@ REGISTER_OP("SignalFilterBankLog")
       ShapeHandle out;
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
       c->set_output(0, out);
-      return OkStatus();
+      return absl::OkStatus();
     })
     .Doc(R"doc(
 Applies natural log to each element in input with pre-shift and post scaling.

@@ -4,25 +4,27 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 -->
 
 <!--ts-->
-   * [How to Contribute](#how-to-contribute)
-      * [Contributor License Agreement](#contributor-license-agreement)
-      * [Community Guidelines](#community-guidelines)
-   * [Code Contribution Guidelines](#code-contribution-guidelines)
-      * [General Pull Request Guidelines](#general-pull-request-guidelines)
-      * [Guidelines for Specific Contribution Categories](#guidelines-for-specific-contribution-categories)
-         * [Bug Fixes](#bug-fixes)
-         * [Reference Kernel Implementations](#reference-kernel-implementations)
-         * [Optimized Kernel Implementations](#optimized-kernel-implementations)
-         * [New Target / Platform / IDE / Examples](#new-target--platform--ide--examples)
-   * [Development Workflow Notes](#development-workflow-notes)
-      * [Initial Setup](#initial-setup)
-      * [Before submitting your PR](#before-submitting-your-pr)
-      * [During the PR review](#during-the-pr-review)
-      * [Reviewer notes](#reviewer-notes)
-      * [Python notes](#python-notes)
-   * [Continuous Integration System](#continuous-integration-system)
+* [How to Contribute](#how-to-contribute)
+   * [Contributor License Agreement](#contributor-license-agreement)
+   * [Community Guidelines](#community-guidelines)
+* [Code Contribution Guidelines](#code-contribution-guidelines)
+   * [General Pull Request Guidelines](#general-pull-request-guidelines)
+   * [Guidelines for Specific Contribution Categories](#guidelines-for-specific-contribution-categories)
+      * [Bug Fixes](#bug-fixes)
+      * [Reference Kernel Implementations](#reference-kernel-implementations)
+      * [Optimized Kernel Implementations](#optimized-kernel-implementations)
+      * [New Target / Platform / IDE / Examples](#new-target--platform--ide--examples)
+* [Development Environment](#development-environment)
+   * [Prerequisites](#prerequisites)
+   * [Recommendations](#recommendations)
+* [Development Workflow Notes](#development-workflow-notes)
+   * [Before submitting your PR](#before-submitting-your-pr)
+   * [During the PR review](#during-the-pr-review)
+   * [Reviewer notes](#reviewer-notes)
+   * [Python notes](#python-notes)
+* [Continuous Integration System](#continuous-integration-system)
 
-<!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:43:42 AM PDT -->
+<!-- Added by: rkuester, at: Fri Dec 15 04:25:41 PM CST 2023 -->
 
 <!--te-->
 
@@ -143,10 +145,20 @@ Please see the [optimized kernel implementations guide](tensorflow/lite/micro/do
 Please see the [new platform support guide](tensorflow/lite/micro/docs/new_platform_support.md)
 for documentation on how to add TFLM support for your particular platform.
 
+# Development Environment
 
-# Development Workflow Notes
+We support amd64-architecture development and testing on Ubuntu 22.04, although
+other OSes may work.
 
-## Initial Setup
+## Prerequisites
+
+TFLM's primary build system is [Bazel](https://bazel.build). Add
+[Bazelisk](https://github.com/bazelbuild/bazelisk) as the `bazel` executable in
+your PATH ([e.g., copy it to `/usr/local/bin/bazel`](ci/install_bazelisk.sh)) to
+automatically download and run the correct Bazel version as specified in
+`//.bazelversion`.
+
+## Recommendations
 
 Below are some tips that might be useful and improve the development experience.
 
@@ -156,7 +168,9 @@ Below are some tips that might be useful and improve the development experience.
 * Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tflite-micro@main)
   on Sourcegraph. And optionally install the [plugin that enables GitHub integration](https://docs.sourcegraph.com/integration/github#github-integration-with-sourcegraph).
 
-* Install [bazel](ci/install_bazelisk.sh) and [buildifier](ci/install_buildifier.sh).
+* Install
+  [Buildifier](https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md)
+  ([e.g.](ci/install_buildifier.sh)) to format Bazel BUILD and .bzl files.
 
 * Install the latest clang and clang-format. For example, [here](ci/Dockerfile.micro)
   is the what we do for the TFLM continuous integration Docker container.
@@ -164,8 +178,8 @@ Below are some tips that might be useful and improve the development experience.
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
   or install it:
 
-* Install Pillow and Wave.  For example, [here](ci/Dockerfile.micro) is what we
-  do for the TFLM continuous integration Docker container.
+* Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
+  the TFLM continuous integration Docker container.
 
   ```
   pip install cpplint
@@ -183,6 +197,8 @@ Below are some tips that might be useful and improve the development experience.
   ```
   cp tensorflow/lite/micro/tools/dev_setup/pre-push.tflm .git/hooks/pre-push
   ```
+
+# Development Workflow Notes
 
 ## Before submitting your PR
 

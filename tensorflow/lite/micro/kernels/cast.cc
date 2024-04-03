@@ -101,6 +101,9 @@ TfLiteStatus CastEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32:
       return copyToTensor(context, tflite::micro::GetTensorData<float>(input),
                           output, num_elements);
+    case kTfLiteBool:
+      return copyToTensor(context, tflite::micro::GetTensorData<bool>(input),
+                          output, num_elements);
     default:
       // Unsupported type.
       MicroPrintf("Input type %s (%d) not supported.",

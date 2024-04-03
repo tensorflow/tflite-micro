@@ -67,7 +67,7 @@ TfLiteStatus IfPrepare(TfLiteContext* context, TfLiteNode* node) {
   // passed to the branch subgraphs. Therefore, the number of subgraph inputs
   // will be the number of node inputs - 1.
   size_t num_inputs = node->inputs->size - 1;
-  size_t num_outputs = node->outputs->size;
+  size_t num_outputs = NumOutputs(node);
 
   MicroGraph& graph_info = micro_context->graph();
 

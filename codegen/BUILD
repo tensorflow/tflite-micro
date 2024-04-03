@@ -64,7 +64,6 @@ py_binary(
     deps = [
         ":graph",
         ":inference_generator",
-        "//codegen/preprocessor:preprocessor_schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",

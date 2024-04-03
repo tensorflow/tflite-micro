@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ limitations under the License.
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <cstring>
 #include <memory>
 #include <random>
+#include <type_traits>
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -29,10 +32,26 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/micro/tools/benchmarking/log_utils.h"
 #include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+
+#if defined(MODEL_HEADER_PATH)
+#if !defined(MODEL_NAME)
+#error "MODEL_NAME missing from CCFLAGS"
+#endif  // !defined(MODEL_NAME)
+
+#include MODEL_HEADER_PATH
+
+#define __MODEL_DATA(x) g_##x##_model_data
+#define _MODEL_DATA(x) __MODEL_DATA(x)
+#define MODEL_DATA _MODEL_DATA(MODEL_NAME)
+#define __MODEL_SIZE(x) g_##x##_model_data_size
+#define _MODEL_SIZE(x) __MODEL_SIZE(x)
+#define MODEL_SIZE _MODEL_SIZE(MODEL_NAME)
+
+#define USING_BUILTIN_MODEL
+#endif  // defind(MODEL_HEADER_PATH)
 
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided model
@@ -45,20 +64,20 @@ namespace {
 
 using Profiler = ::tflite::MicroProfiler;
 
-using TflmOpResolver = tflite::MicroMutableOpResolver<96>;
-
-constexpr int kTfLiteAbort = -9;
-
 // Seed used for the random input. Input data shouldn't affect invocation timing
 // so randomness isn't really needed.
 constexpr uint32_t kRandomSeed = 0xFB;
 
-// Which format should be used to output debug information.
-constexpr PrettyPrintType kPrintType = PrettyPrintType::kTable;
-
+#if !defined(USING_BUILTIN_MODEL)
 constexpr size_t kTensorArenaSize = 3e6;
-constexpr int kNumResourceVariable = 100;
 constexpr size_t kModelSize = 2e6;
+#elif defined(TENSOR_ARENA_SIZE)
+constexpr size_t kTensorArenaSize = TENSOR_ARENA_SIZE;
+#else
+constexpr size_t kTensorArenaSize = 5e6 - MODEL_SIZE;
+#endif  // !defined(USING_BUILTIN_MODEL)
+
+constexpr int kNumResourceVariable = 100;
 
 void SetRandomInput(const uint32_t random_seed,
                     tflite::MicroInterpreter& interpreter) {
@@ -76,6 +95,7 @@ void SetRandomInput(const uint32_t random_seed,
   }
 }
 
+#if !defined(USING_BUILTIN_MODEL)
 bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
   std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
 
@@ -100,17 +120,16 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
 
   return true;
 }
+#endif  // !defined(USING_BUILTIN_MODEL)
 
-int Benchmark(const char* model_file_name) {
+int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   Profiler profiler;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
-  alignas(16) static uint8_t model_file_content[kModelSize];
 
-  if (!ReadFile(model_file_name, model_file_content, kModelSize)) {
-    return -1;
-  }
+  MicroPrintf("\nConfigured arena size = %d\n", kTensorArenaSize);
+
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
-  const tflite::Model* model = tflite::GetModel(model_file_content);
+  const tflite::Model* model = tflite::GetModel(model_data);
   profiler.EndEvent(event_handle);
 
   TflmOpResolver op_resolver;
@@ -154,11 +173,48 @@ int Benchmark(const char* model_file_name) {
     }
   }
 
-  LogAllocatorEvents(*allocator, kPrintType);
+  LogAllocatorEvents(*allocator, print_type);
 
   return 0;
 }
 }  // namespace
 }  // namespace tflite
 
-int main(int argc, char** argv) { return tflite::Benchmark(argv[1]); }
+#if !defined(USING_BUILTIN_MODEL)
+void usage(const char* prog_name) {
+  MicroPrintf("usage: %s filename [--csv]", prog_name);
+}
+#endif  // !defined(USING_BUILTIN_MODEL)
+
+int main(int argc, char** argv) {
+  // Which format should be used to output debug information.
+  tflite::PrettyPrintType print_type = tflite::PrettyPrintType::kTable;
+  tflite::InitializeTarget();
+
+#if !defined(USING_BUILTIN_MODEL)
+  if (argc < 2 || argc > 3) {
+    usage(argv[0]);
+    return -1;
+  }
+  const char* model_filename = argv[1];
+
+  if (argc == 3) {
+    if (std::strcmp(argv[2], "--csv") == 0) {
+      print_type = tflite::PrettyPrintType::kCsv;
+    } else {
+      usage(argv[0]);
+      return -1;
+    }
+  }
+
+  alignas(16) static uint8_t model_data[tflite::kModelSize];
+
+  if (!tflite::ReadFile(model_filename, model_data, tflite::kModelSize)) {
+    return -1;
+  }
+#else
+  const uint8_t* model_data = MODEL_DATA;
+#endif  // !defined(USING_BUILTIN_MODEL)
+
+  return tflite::Benchmark(model_data, print_type);
+}

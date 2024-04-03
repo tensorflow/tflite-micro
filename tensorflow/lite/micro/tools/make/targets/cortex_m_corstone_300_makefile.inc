@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,8 +97,7 @@ ifeq ($(TOOLCHAIN), armclang)
   FLAGS_ARMC = \
     --target=arm-arm-none-eabi \
     -Wno-unused-private-field \
-    -mcpu=$(MCPU_OPTION) \
-    -ffp-mode=full
+    -mcpu=$(MCPU_OPTION)
 
   # Pass comma separated linker options to armlink
   ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
@@ -129,6 +128,11 @@ ifeq ($(TOOLCHAIN), armclang)
   # and so no such flag is necessary."
   # https://developer.arm.com/documentation/100891/0611/troubleshooting/general-troubleshooting-advice
   MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
+
+  # This does not build with armclang and is anyway not used by this target.
+  EXCLUDED_TESTS := \
+    tensorflow/lite/micro/tools/benchmarking/Makefile.inc
+  MICRO_LITE_BENCHMARKS := $(filter-out $(EXCLUDED_TESTS), $(MICRO_LITE_BENCHMARKS))
 
 else ifeq ($(TOOLCHAIN), gcc)
   TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
@@ -199,6 +203,11 @@ INCLUDES += \
 EXCLUDED_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc  \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/recording_micro_allocator_test.cc
+ifeq ($(CO_PROCESSOR), ethos_u)
+# This does not work with Ethos-U enabled since then NPU PMU counters are used instead for the sake of the benchmark example.
+EXCLUDED_TESTS += \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_time_test.cc
+endif
 MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
 
 TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_arm_corstone_300.sh

@@ -33,7 +33,6 @@ cc_library(
     ],
     visibility = [
         ":kernel_test_friends",
-        ":microfrontend",
         ":tflite_micro",
     ],
     deps = [
@@ -78,7 +77,7 @@ py_library(
     ],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -94,6 +93,6 @@ py_binary(
     deps = [
         "@absl_py//absl:app",
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )

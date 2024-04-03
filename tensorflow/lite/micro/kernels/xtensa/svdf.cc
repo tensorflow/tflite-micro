@@ -63,7 +63,7 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
 #if defined(HIFI5)
   memcpy(state_ptr, state_ptr + 1, num_bytes);
 #else
-  xa_nn_memmove_16(state_ptr, state_ptr + 1, num_bytes);
+  xa_nn_memmove_16(state_ptr, state_ptr + 1, (num_bytes >> 1));
 #endif  // defined(HIFI5)
 
   // Note: no need to clear the latest activation, matmul is not accumulative.
