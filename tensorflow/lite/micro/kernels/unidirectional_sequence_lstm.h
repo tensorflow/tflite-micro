@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,8 +36,17 @@ TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 // implementations.
 TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8();
 
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// int16 activations and int8 weights and uses the latency optimized
+// implementations.
+TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT16();
+
 #else
 inline TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8() {
+  return Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
+}
+
+inline TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT16() {
   return Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
 }
 #endif
