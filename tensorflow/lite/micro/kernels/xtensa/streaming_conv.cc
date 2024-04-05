@@ -52,19 +52,17 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteInt16: {
-#if defined(HIFI3) || defined(HIFI4)
       // Note that int32 bias is not widely supported and might be risky (e.g.
       // http://b/262003750). As such, while we have a fallback to the reference
       // implementation, production use-cases should only have int64 bias.
       if (bias->type == kTfLiteInt32) {
-        return ConvReferenceEvalInt16(context, node);
+        // Streaming conv ref is not implemented for 32-bit bias
+        MicroPrintf("Input Type %s (%d) with Bias Type %s (%d) not supported.", TfLiteTypeGetName(input->type), input->type, TfLiteTypeGetName(bias->type), bias->type);
+        return kTfLiteError;
       } else {
         return StreamingConvEvalHifiInt16(context, node, params, op_data, input, filter,
                                  bias, output);
       }
-#else
-      return ConvReferenceEvalInt16(context, node);
-#endif
     }
     default:
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
@@ -78,7 +76,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_STREAMING_CONV_2D() {
-  // TODO(Cadence): These should be replaced with Streaming wrapper functions.
   return tflite::micro::RegisterOp(StreamingConvInitXtensa, StreamingConvPrepareXtensa, Eval);
 }
 

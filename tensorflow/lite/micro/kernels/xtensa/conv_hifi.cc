@@ -140,14 +140,10 @@ TfLiteStatus StreamingConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) 
   /* TODO(b/277112516): Dilation is currently not supported on HiFi 4 NN Library
    */
   bool inputs_and_bias_ok = bias != nullptr;
-#if defined(HIFI3) || defined(HIFI4)
   inputs_and_bias_ok =
       inputs_and_bias_ok &&
       (input->type == kTfLiteInt8 ||
        (input->type == kTfLiteInt16 && bias->type == kTfLiteInt64));
-#else
-  inputs_and_bias_ok = inputs_and_bias_ok && (input->type == kTfLiteInt8);
-#endif  // defined(HIFI3) || defined(HIFI4)
 
   const int input_height = input_shape.Dims(1);
   const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
@@ -171,7 +167,6 @@ TfLiteStatus StreamingConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) 
   }
   data->persistent_buf = static_cast<void*>(context->AllocatePersistentBuffer(
                    context, required_mem));
-//  memset(data->persistent_buf, 0, required_mem);
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
@@ -277,6 +272,7 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
 
   return kTfLiteOk;
 }
+#endif  // defined(HIFI3) || defined(HIFI4)
 
 TfLiteStatus StreamingConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
@@ -360,7 +356,6 @@ TfLiteStatus StreamingConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node
 
   return kTfLiteOk;
 }
-#endif  // defined(HIFI3) || defined(HIFI4)
 
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteConvParams& params,
