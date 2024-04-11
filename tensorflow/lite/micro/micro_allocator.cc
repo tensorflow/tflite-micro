@@ -181,6 +181,66 @@ INonPersistentBufferAllocator* CreateNonPersistentArenaAllocator(
 
 namespace internal {
 
+#if defined(__m5280) && __m5280 == 1
+TfLiteIntArray *FlatBufferVectorToTfLiteTypeArray_l(
+    IPersistentBufferAllocator* persistent_buffer_allocator,
+    const flatbuffers::Vector<int32_t>* flatbuffer_array) {
+  
+  if (FLATBUFFERS_LITTLEENDIAN) {
+    // On little-endian machines, TfLite*Array happens to have the same memory
+    // layout as flatbuffers:Vector<kFlatBufferVectorType>, so we can
+    // reinterpret_cast the flatbuffer vector and avoid a copy and malloc.
+    return const_cast<TfLiteIntArray*>(
+      reinterpret_cast<const TfLiteIntArray*>(flatbuffer_array));
+  } else {
+      TfLiteIntArray *array = reinterpret_cast<TfLiteIntArray*>(
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
+            alignof(TfLiteIntArray)));
+    if (array == nullptr) {
+      MicroPrintf(
+          "Failed to allocate %d bytes of memory to copy an array.",
+          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()));
+      while (1);
+    }
+    array->size = flatbuffer_array->size();
+    for (int i = 0; i < array->size; ++i) {
+      array->data[i] = flatbuffer_array->Get(i);
+    }
+    return array;
+  }
+}
+
+TfLiteFloatArray *FlatBufferVectorToTfLiteTypeArray_l(
+    IPersistentBufferAllocator* persistent_buffer_allocator,
+    const flatbuffers::Vector<float>* flatbuffer_array) {
+  
+  if (FLATBUFFERS_LITTLEENDIAN) {
+    // On little-endian machines, TfLite*Array happens to have the same memory
+    // layout as flatbuffers:Vector<kFlatBufferVectorType>, so we can
+    // reinterpret_cast the flatbuffer vector and avoid a copy and malloc.
+    return const_cast<TfLiteFloatArray*>(
+      reinterpret_cast<const TfLiteFloatArray*>(flatbuffer_array));
+  } else {
+      TfLiteFloatArray *array = reinterpret_cast<TfLiteFloatArray*>(
+        persistent_buffer_allocator->AllocatePersistentBuffer(
+            TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()),
+            alignof(TfLiteFloatArray)));
+    if (array == nullptr) {
+      MicroPrintf(
+          "Failed to allocate %d bytes of memory to copy an array.",
+          TfLiteIntArrayGetSizeInBytes(flatbuffer_array->size()));
+      while (1);
+    }
+    array->size = flatbuffer_array->size();
+    for (int i = 0; i < array->size; ++i) {
+      array->data[i] = flatbuffer_array->Get(i);
+    }
+    return array;
+  }
+}
+#endif
+
 // Returns a pointer to any buffer associated with the flatbuffer tensor. Can
 // return nullptr if no buffer is found.
 void* GetFlatbufferTensorBuffer(
@@ -258,7 +318,12 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     // allocation so it is safe to drop the const qualifier. In the future, if
     // we really want to update the tensor shape, we can always pass in a new
     // TfLiteIntArray - especially we have to do so if the dimension is
+    #if defined(__m5280) && __m5280 == 1
+    result->dims = internal::FlatBufferVectorToTfLiteTypeArray_l(persistent_buffer_allocator, flatbuffer_tensor.shape());
+    #else
+    //flatbuffer utils
     result->dims = FlatBufferVectorToTfLiteTypeArray(flatbuffer_tensor.shape());
+    #endif
   }
 
   // Copy the quantization information from the serialized data.
@@ -310,9 +375,15 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
       MicroPrintf("Unable to allocate quantization->zero_point.\n");
       return kTfLiteError;
     }
-
+    
+    #if defined(__m5280) && __m5280 == 1
+    quantization->scale =
+        internal::FlatBufferVectorToTfLiteTypeArray_l(persistent_buffer_allocator, src_quantization->scale());
+    #else
+    //flatbuffer utils
     quantization->scale =
         FlatBufferVectorToTfLiteTypeArray(src_quantization->scale());
+    #endif
 
     quantization->zero_point->size = channels;
     int* zero_point_data = quantization->zero_point->data;
@@ -334,6 +405,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 }
 
 TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
+    IPersistentBufferAllocator *allocator,
     const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
     TfLiteEvalTensor* result) {
@@ -350,12 +422,31 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
     // tensor.
     result->dims = const_cast<TfLiteIntArray*>(&kZeroLengthIntArray);
   } else {
+    #if defined(__m5280) && __m5280 == 1
+    result->dims = internal::FlatBufferVectorToTfLiteTypeArray_l(allocator, flatbuffer_tensor.shape());
+    #else
+    //flatbuffer utils
     result->dims = FlatBufferVectorToTfLiteTypeArray(flatbuffer_tensor.shape());
+    #endif
   }
   return kTfLiteOk;
 }
 
 }  // namespace internal
+
+#if defined(__m5280) && __m5280 == 1
+TfLiteIntArray* MicroAllocator::FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<int32_t>* flatbuffer_array) {
+  return internal::FlatBufferVectorToTfLiteTypeArray_l(
+      persistent_buffer_allocator_, flatbuffer_array);
+}
+
+TfLiteFloatArray* MicroAllocator::FlatBufferVectorToTfLiteTypeArray(
+    const flatbuffers::Vector<float>* flatbuffer_array) {
+  return internal::FlatBufferVectorToTfLiteTypeArray_l(
+      persistent_buffer_allocator_, flatbuffer_array);
+}
+#endif
 
 size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
   size_t total_size = AlignSizeUp<SingleArenaBufferAllocator>() +
@@ -779,8 +870,13 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
     }
 
     for (size_t i = 0; i < alloc_count; ++i) {
+      #if defined(__m5280) && __m5280 == 1
       TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(
+          persistent_buffer_allocator_, *subgraph->tensors()->Get(i), model->buffers(), &tensors[i]);
+      #else
+      TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(nullptr,
           *subgraph->tensors()->Get(i), model->buffers(), &tensors[i]);
+      #endif
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to initialize tensor %d", i);
         return kTfLiteError;
