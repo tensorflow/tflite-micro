@@ -173,11 +173,18 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
         TF_LITE_ENSURE_STATUS(CallBuiltinParseFunction(
             parser, op, builtin_data_allocator, (void**)(&builtin_data)));
       }
+#if defined(__m5280) && __m5280 == 1
+      TfLiteIntArray* inputs_array =
+          allocator_.FlatBufferVectorToTfLiteTypeArray(op->inputs());
+      TfLiteIntArray* outputs_array =
+          allocator_.FlatBufferVectorToTfLiteTypeArray(op->outputs());
+#else
 
       TfLiteIntArray* inputs_array =
           FlatBufferVectorToTfLiteTypeArray(op->inputs());
       TfLiteIntArray* outputs_array =
           FlatBufferVectorToTfLiteTypeArray(op->outputs());
+#endif
 
       TfLiteNode* node = &(
           graph_.GetAllocations()[subgraph_idx].node_and_registrations[i].node);
@@ -189,8 +196,13 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
       node->custom_initial_data_size = custom_data_size;
 
       if (op->intermediates() && (op->intermediates()->size() > 0)) {
+#if defined(__m5280) && __m5280 == 1
+        node->intermediates =
+            allocator_.FlatBufferVectorToTfLiteTypeArray(op->intermediates());
+#else
         node->intermediates =
             FlatBufferVectorToTfLiteTypeArray(op->intermediates());
+#endif
       }
     }
   }

@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 
@@ -67,8 +68,13 @@ TfLiteIntArray* FlatBufferVectorToTfLiteTypeArray(
   // layout as flatbuffers:Vector<int32_t>, so we can reinterpret_cast the
   // flatbuffer vector and avoid a copy and malloc.
   // TODO(b/188459715): audit this usage of const_cast.
+#if defined(__m5280) && __m5280 == 1
+  MicroPrintf("5280 should not reach here %s\n", __func__);
+  return nullptr;
+#else
   return const_cast<TfLiteIntArray*>(
       reinterpret_cast<const TfLiteIntArray*>(flatbuffer_array));
+#endif
 }
 
 TfLiteFloatArray* FlatBufferVectorToTfLiteTypeArray(
@@ -77,8 +83,13 @@ TfLiteFloatArray* FlatBufferVectorToTfLiteTypeArray(
   // layout as flatbuffers:Vector<float>, so we can reinterpret_cast the
   // flatbuffer vector and avoid a copy and malloc.
   // TODO(b/188459715): audit this usage of const_cast.
+#if defined(__m5280) && __m5280 == 1
+  MicroPrintf("5280 should not reach here %s\n", __func__);
+  return nullptr;
+#else
   return const_cast<TfLiteFloatArray*>(
       reinterpret_cast<const TfLiteFloatArray*>(flatbuffer_array));
+#endif
 }
 
 }  // namespace tflite
