@@ -75,7 +75,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
 
         case kTfLiteInt8: {
           int size = ElementCount(*input->dims);
-#if defined(HIFI5) || defined(HIFI4)
           int32_t zero_point = op_data->quantization_params.zero_point;
           const int8_t* input_data_ptr;
           int8_t* output_data_ptr;
@@ -89,14 +88,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                   zero_point, op_data->requantize_output_shift,
                   op_data->requantize_output_multiplier, size),
               0);
-#else // #if defined(HIFI5) || defined(HIFI4)          
-          reference_ops::Requantize(
-              tflite::micro::GetTensorData<int8_t>(input), size,
-              op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift, op_data->input_zero_point,
-              op_data->quantization_params.zero_point,
-              tflite::micro::GetTensorData<int8_t>(output));
-#endif              
           break;
         }
 
@@ -114,7 +105,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt32: {
           int size = ElementCount(*input->dims);
           int32_t zero_point = op_data->quantization_params.zero_point;
-#if defined(HIFI5) || defined(HIFI4)
           const int8_t* input_data_ptr;
           int32_t* output_data_ptr;
           input_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
@@ -127,13 +117,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                   zero_point, op_data->requantize_output_shift,
                   op_data->requantize_output_multiplier, size),
               0);
-#else
-          reference_ops::Requantize(
-              tflite::micro::GetTensorData<int8_t>(input), size,
-              op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift, op_data->input_zero_point,
-              zero_point, tflite::micro::GetTensorData<int32_t>(output));
-#endif  // defined(HIFI5) || defined(HIFI4)
           break;
         }
 
@@ -151,17 +134,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
       switch (output->type) {
         case kTfLiteInt8: {
           int size = ElementCount(*input->dims);
-#if defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)
-          TF_LITE_ENSURE_EQ(
-              context,
-              xa_nn_elm_requantize_asym16s_asym8s(
-                  tflite::micro::GetTensorData<int8_t>(output),
-                  tflite::micro::GetTensorData<int16_t>(input),
-                  op_data->input_zero_point, op_data->quantization_params.zero_point,
-                  op_data->requantize_output_shift,
-                  op_data->requantize_output_multiplier, size),
-              0);
-#else // defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)          
           TF_LITE_ENSURE_EQ(context,
                             xa_nn_elm_requantize_asym16s_asym8s(
                                 tflite::micro::GetTensorData<int8_t>(output),
@@ -171,13 +143,11 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                                 op_data->requantize_output_shift,
                                 op_data->requantize_output_multiplier, size),
                             0);
-#endif // defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)                           
           break;
         }
 
         case kTfLiteInt16: {
           int size = ElementCount(*input->dims);
-#if defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)
           TF_LITE_ENSURE_EQ(context,
                             xa_nn_elm_requantize_asym16s_asym16s(
                                 tflite::micro::GetTensorData<int16_t>(output),
@@ -187,20 +157,11 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                                 op_data->requantize_output_shift,
                                 op_data->requantize_output_multiplier, size),
                             0);
-#else // defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)         
-          reference_ops::Requantize(
-              tflite::micro::GetTensorData<int16_t>(input), size,
-              op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift, op_data->input_zero_point,
-              op_data->quantization_params.zero_point,
-              tflite::micro::GetTensorData<int16_t>(output));
-#endif // defined(HIFI5) || defined(HIFI4) || defined(HIFI4_INTERNAL)              
           break;
         }
 
         case kTfLiteInt32: {
           int size = ElementCount(*input->dims);
-#if defined(HIFI5) || defined(HIFI4)
           TF_LITE_ENSURE_EQ(context,
                             xa_nn_elm_requantize_asym16s_asym32s(
                                 tflite::micro::GetTensorData<int32_t>(output),
@@ -210,14 +171,6 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                                 op_data->requantize_output_shift,
                                 op_data->requantize_output_multiplier, size),
                             0);
-#else
-          int32_t zero_point = op_data->quantization_params.zero_point;
-          reference_ops::Requantize(
-              tflite::micro::GetTensorData<int16_t>(input), size,
-              op_data->requantize_output_multiplier,
-              op_data->requantize_output_shift, op_data->input_zero_point,
-              zero_point, tflite::micro::GetTensorData<int32_t>(output));
-#endif  // defined(HIFI5)
           break;
         }
 
@@ -268,7 +221,7 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32: {
       switch (output->type) {
         case kTfLiteInt8: {
-#if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))
+#if HIFI_VFPU
           int size = ElementCount(*input->dims);
           int32_t zero_point = op_data->quantization_params.zero_point;
           const float* input_data_ptr;
@@ -283,19 +236,19 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                   static_cast<float>(op_data->quantization_params.scale),
                   zero_point, size),
               0);
-#else // #if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))          
+#else   // #if HIFI_VFPU
           reference_ops::AffineQuantize(
               op_data->quantization_params,
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<float>(input),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
-#endif // #if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5)) 
+#endif  // #if HIFI_VFPU
           break;
         }
 
         case kTfLiteInt16: {
-#if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))
+#if HIFI_VFPU
           int size = ElementCount(*input->dims);
           int32_t zero_point = op_data->quantization_params.zero_point;
           const float* input_data_ptr;
@@ -310,14 +263,14 @@ TfLiteStatus EvalXtensa(TfLiteContext* context, TfLiteNode* node) {
                   static_cast<float>(op_data->quantization_params.scale),
                   zero_point, size),
               0);
-#else // #if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))          
+#else   // #if HIFI_VFPU
           reference_ops::AffineQuantize(
               op_data->quantization_params,
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<float>(input),
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int16_t>(output));
-#endif // #if HIFI_VFPU && (defined(HIFI4) || defined(HIFI5))               
+#endif  // #if HIFI_VFPU
           break;
         }
 
