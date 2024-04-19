@@ -515,6 +515,7 @@ ifneq ($(BUILD_TYPE), no_tf_lite_static_memory)
 endif
 
 MICROLITE_CC_BASE_SRCS := \
+$(TENSORFLOW_ROOT)tensorflow/lite/array.cc \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
@@ -524,6 +525,7 @@ $(TFL_CC_SRCS)
 MICROLITE_CC_HDRS := \
 $(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
+$(TENSORFLOW_ROOT)tensorflow/lite/array.h \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
