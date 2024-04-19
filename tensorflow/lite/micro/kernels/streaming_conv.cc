@@ -98,7 +98,7 @@ inline void StreamingConvPerChannel(
 
   /* Update streaming conv buffer with input data */
   input_width = filter_width;
-  const int dims_shape[4] = {1, input_height, filter_width, input_depth};
+  const int32_t dims_shape[4] = {1, input_height, filter_width, input_depth};
   RuntimeShape input_state_shape(4, dims_shape);
 
   const int groups = input_depth / filter_input_depth;
