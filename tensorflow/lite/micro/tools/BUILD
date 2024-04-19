@@ -213,6 +213,21 @@ py_binary(
     ],
 )
 
+py_binary(
+    name = "apply_streaming_conv",
+    srcs = ["apply_streaming_conv.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        ":model_transforms_utils",
+        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/tools:flatbuffer_utils",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@absl_py//absl/logging",
+    ],
+)
+
 flatbuffer_cc_library(
     name = "layer_by_layer_schema",
     srcs = ["layer_by_layer_schema.fbs"],
