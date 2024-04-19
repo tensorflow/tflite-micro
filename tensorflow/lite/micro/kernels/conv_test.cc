@@ -56,7 +56,8 @@ static TfLiteConvParams common_conv_params = {
     kTfLiteNoType         // quantized_bias_type
 };
 
-static TfLiteConvParams common_conv_paramsStreamConv = {
+#if not defined(HIFIMINI) && not defined(VISION_P6)
+static TfLiteConvParams common_streaming_conv_params = {
     kTfLitePaddingValid,  // padding
     1,                    // stride_width
     1,                    // stride_height
@@ -65,6 +66,7 @@ static TfLiteConvParams common_conv_paramsStreamConv = {
     1,                    // dilation_height_factor
     kTfLiteNoType         // quantized_bias_type
 };
+#endif
 
 }  // namespace
 }  // namespace testing
@@ -226,6 +228,7 @@ TF_LITE_MICRO_TEST(HybridModeIsError) {
                                   tflite::Register_CONV_2D(), output_data));
 }
 
+#if not defined(HIFIMINI) && not defined(VISION_P6)
 TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
   constexpr int kInputElementsStreamConv = 20;
   static int kInputShapeStreamConv[] = {4, 2, 5, 1, 2};
@@ -269,9 +272,10 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
           kBiasDataStreamConv, bias_quantized, scales, zero_points,
           kOutputShapeStreamConv, kGoldenDataStreamConv, golden_quantized,
           output_scale, output_zero_point,
-          &tflite::testing::common_conv_paramsStreamConv,
+          &tflite::testing::common_streaming_conv_params,
           tflite::Register_STREAMING_CONV_2D(), output_data));
 }
+#endif
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBias) {
   const int output_dims_count = 12;
