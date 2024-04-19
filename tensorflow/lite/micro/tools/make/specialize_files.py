@@ -20,7 +20,7 @@ import os
 # Selects the more specialized files in directory in favor of the file with the
 # same name in base_file_list and returns a list containing all the files as a
 # result of this specialization merge.
-def _specialize_files(base_file_list, directory):
+def _specialize_files(base_file_list, directory, slash_type):
   # If the specialized directory is not a valid path, then return the
   # base_file_list.
   if not os.path.isdir(directory):
@@ -31,7 +31,14 @@ def _specialize_files(base_file_list, directory):
   for fpath in base_file_list:
     fname = os.path.basename(fpath)
     if fname in specialize_files:
-      specialized_list.append(os.path.join(directory, fname))
+      if slash_type == "posix":
+        import posixpath
+        p = posixpath.join(directory, fname)
+      elif slash_type == "native":
+        p = os.path.join(directory, fname)
+      else:
+        raise ValueError("Unknown slash type: " + slash_type)
+      specialized_list.append(p)
     else:
       specialized_list.append(fpath)
   return specialized_list
@@ -50,9 +57,13 @@ if __name__ == "__main__":
   parser.add_argument("--specialize_directory",
                       default="",
                       help="Directory containing the more specialized files.")
+  
+  parser.add_argument("--slash_type", default="posix" if os.name == "nt" else "native", help="Slash type, native or posix")
 
   args = parser.parse_args()
 
+  assert(args.slash_type.lower() in ["native", "posix"])
+
   if args.base_files != "" and args.specialize_directory != "":
     print(" ".join(
-        _specialize_files(args.base_files.split(), args.specialize_directory)))
+        _specialize_files(args.base_files.split(), args.specialize_directory, args.slash_type.lower())))
