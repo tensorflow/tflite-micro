@@ -31,6 +31,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -74,6 +75,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
+#else
+TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+  MicroPrintf("StreamingConv not implemented on this arch");
+  return kTfLiteError;
+}
+#endif
 
 }  // namespace
 
