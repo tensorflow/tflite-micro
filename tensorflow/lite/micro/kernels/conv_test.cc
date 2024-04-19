@@ -226,17 +226,16 @@ TF_LITE_MICRO_TEST(HybridModeIsError) {
                                   tflite::Register_CONV_2D(), output_data));
 }
 
-
 TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
-
   constexpr int kInputElementsStreamConv = 20;
   static int kInputShapeStreamConv[] = {4, 2, 5, 1, 2};
-  static const float kInputDataStreamConv[kInputElementsStreamConv] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 
-                                                                       1, 1, 2, 2, 3, 3, 4, 4, 5, 5 };
+  static const float kInputDataStreamConv[kInputElementsStreamConv] = {
+      1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
 
   constexpr int kFilterElementsStreamConv = 8;
   static int kFilterShapeStreamConv[] = {4, 1, 2, 2, 2};
-  static const float kFilterDataStreamConv[kFilterElementsStreamConv] = {1, 1, 1, 1, 1, 1, 1, 1};
+  static const float kFilterDataStreamConv[kFilterElementsStreamConv] = {
+      1, 1, 1, 1, 1, 1, 1, 1};
 
   constexpr int kBiasElementsStreamConv = 1;
   static int kBiasShapeStreamConv[] = {1, 1};
@@ -244,8 +243,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
 
   constexpr int kOutputElementsStreamConv = 8;
   static int kOutputShapeStreamConv[] = {4, 2, 4, 1, 1};
-  static const float kGoldenDataStreamConv[kOutputElementsStreamConv] = {6, 10, 14, 18,
-                                                                         12, 20, 28, 36 };
+  static const float kGoldenDataStreamConv[kOutputElementsStreamConv] = {
+      6, 10, 14, 18, 12, 20, 28, 36};
 
   const int output_dims_count = 4;
   int16_t output_data[output_dims_count];
@@ -265,15 +264,14 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestConvQuantizedPerChannel(
-          kInputShapeStreamConv, kInputDataStreamConv,
-          input_quantized, input_scale, input_zero_point,
-          kFilterShapeStreamConv, kFilterDataStreamConv,
-          filter_quantized, kBiasShapeStreamConv,
+          kInputShapeStreamConv, kInputDataStreamConv, input_quantized,
+          input_scale, input_zero_point, kFilterShapeStreamConv,
+          kFilterDataStreamConv, filter_quantized, kBiasShapeStreamConv,
           kBiasDataStreamConv, bias_quantized, scales, zero_points,
-          kOutputShapeStreamConv, kGoldenDataStreamConv,
-          golden_quantized, output_scale, output_zero_point,
-          &tflite::testing::common_conv_paramsStreamConv, tflite::Register_STREAMING_CONV_2D(),
-          output_data));
+          kOutputShapeStreamConv, kGoldenDataStreamConv, golden_quantized,
+          output_scale, output_zero_point,
+          &tflite::testing::common_conv_paramsStreamConv,
+          tflite::Register_STREAMING_CONV_2D(), output_data));
 }
 
 TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBias) {

@@ -27,30 +27,32 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-void updateStreamingConvBuffer(int16_t *pbuf, const int16_t *pinp, int ih, int ic, int kw){
-/* This will update the persistent mem. Input data is coming in as ihx1xic, buffer is ihxkwxic */
+void updateStreamingConvBuffer(int16_t* pbuf, const int16_t* pinp, int ih,
+                               int ic, int kw) {
+  /* This will update the persistent mem. Input data is coming in as ihx1xic,
+   * buffer is ihxkwxic */
   int i, j;
 
-/* step 1 : Move the older columns in persistent buffer */
-  int striplength = (kw-1)*ic;
-  int16_t *pbuf_dst = pbuf;
-  int16_t *pbuf_src = pbuf + ic;
+  /* step 1 : Move the older columns in persistent buffer */
+  int striplength = (kw - 1) * ic;
+  int16_t* pbuf_dst = pbuf;
+  int16_t* pbuf_src = pbuf + ic;
 
-  for(i = 0; i < ih; i++){
-    memmove(pbuf_dst, pbuf_src, striplength*sizeof(int16_t));
-    pbuf_dst += kw*ic;
-    pbuf_src += kw*ic;
-  } 
+  for (i = 0; i < ih; i++) {
+    memmove(pbuf_dst, pbuf_src, striplength * sizeof(int16_t));
+    pbuf_dst += kw * ic;
+    pbuf_src += kw * ic;
+  }
 
-/* step 2: Copy new input column to buffer */
-  int16_t *pbuf_base = pbuf+(ic*(kw-1));
-  const int16_t *pinp_base = pinp;
+  /* step 2: Copy new input column to buffer */
+  int16_t* pbuf_base = pbuf + (ic * (kw - 1));
+  const int16_t* pinp_base = pinp;
 
-  for(i = 0; i < ih; i++){
-    for(j = 0; j < ic; j++){
+  for (i = 0; i < ih; i++) {
+    for (j = 0; j < ic; j++) {
       pbuf_base[j] = pinp_base[j];
     }
-    pbuf_base += (kw*ic);
+    pbuf_base += (kw * ic);
     pinp_base += ic;
   }
 }
@@ -62,7 +64,7 @@ inline void StreamingConvPerChannel(
     const int16_t* input_data, const RuntimeShape& filter_shape,
     const int8_t* filter_data, const RuntimeShape& bias_shape,
     const AccumScalar* bias_data, const RuntimeShape& output_shape,
-    int16_t* output_data, int16_t *input_state) {
+    int16_t* output_data, int16_t* input_state) {
   // Get parameters.
   const int stride_width = params.stride_width;
   const int stride_height = params.stride_height;
@@ -97,7 +99,7 @@ inline void StreamingConvPerChannel(
   /* Update streaming conv buffer with input data */
   input_width = filter_width;
   const int dims_shape[4] = {1, input_height, filter_width, input_depth};
-  RuntimeShape input_state_shape(4,dims_shape) ;
+  RuntimeShape input_state_shape(4, dims_shape);
 
   const int groups = input_depth / filter_input_depth;
   TFLITE_DCHECK_EQ(input_depth % filter_input_depth, 0);
@@ -105,7 +107,9 @@ inline void StreamingConvPerChannel(
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
   for (int batch = 0; batch < batches; ++batch) {
-    updateStreamingConvBuffer(input_state, &input_data[Offset(input_shape, batch, 0, 0, 0)], input_height, input_depth, filter_width);
+    updateStreamingConvBuffer(input_state,
+                              &input_data[Offset(input_shape, batch, 0, 0, 0)],
+                              input_height, input_depth, filter_width);
     for (int out_y = 0; out_y < output_height; ++out_y) {
       const int in_y_origin = (out_y * stride_height) - pad_height;
       for (int out_x = 0; out_x < output_width; ++out_x) {
@@ -129,9 +133,9 @@ inline void StreamingConvPerChannel(
 
               for (int in_channel = 0; in_channel < filter_input_depth;
                    ++in_channel) {
-                int32_t input_val =
-                    input_state[Offset(input_state_shape, 0, in_y, in_x,
-                                      in_channel + group * filter_input_depth)];
+                int32_t input_val = input_state[Offset(
+                    input_state_shape, 0, in_y, in_x,
+                    in_channel + group * filter_input_depth)];
                 int32_t filter_val = filter_data[Offset(
                     filter_shape, out_channel, filter_y, filter_x, in_channel)];
                 // Accumulate with 64 bits accumulator.
@@ -175,7 +179,8 @@ TfLiteStatus StreamingConvEval(TfLiteContext* context, TfLiteNode* node) {
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   TFLITE_DCHECK(node->user_data != nullptr);
-  const auto& sdata = *(static_cast<const OpDataStreamingConv*>(node->user_data));
+  const auto& sdata =
+      *(static_cast<const OpDataStreamingConv*>(node->user_data));
   const auto& data = sdata.op_data;
 
   switch (input->type) {  // Already know in/out types are same.
@@ -192,7 +197,7 @@ TfLiteStatus StreamingConvEval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetOptionalTensorData<std::int32_t>(bias),
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
-            (int16_t *)sdata.input_state);
+            (int16_t*)sdata.input_state);
       } else if (bias->type == kTfLiteInt64) {
         StreamingConvPerChannel(
             StreamingConvParamsQuantized(params, data),
@@ -205,7 +210,7 @@ TfLiteStatus StreamingConvEval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetOptionalTensorData<std::int64_t>(bias),
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
-            (int16_t *)sdata.input_state);
+            (int16_t*)sdata.input_state);
       } else {
         MicroPrintf("Bias type %s (%d) not supported.",
                     TfLiteTypeGetName(bias->type), bias->type);
@@ -221,12 +226,11 @@ TfLiteStatus StreamingConvEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-
 }  // namespace
 
 TFLMRegistration Register_STREAMING_CONV_2D() {
-  return tflite::micro::RegisterOp(StreamingConvInit, StreamingConvPrepare, StreamingConvEval);
+  return tflite::micro::RegisterOp(StreamingConvInit, StreamingConvPrepare,
+                                   StreamingConvEval);
 }
 
 }  // namespace tflite
-

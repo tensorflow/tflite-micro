@@ -148,4 +148,3 @@ TFLMRegistration Register_CONV_2D() {
 }
 
 }  // namespace tflite
-

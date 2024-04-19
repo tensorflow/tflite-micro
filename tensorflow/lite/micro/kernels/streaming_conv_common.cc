@@ -18,8 +18,8 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/kernels/padding.h"
-#include "tensorflow/lite/micro/kernels/streaming_conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/streaming_conv.h"
 
 namespace tflite {
 
@@ -33,9 +33,10 @@ const int kStreamingConvOutputTensor = 0;
 const int kStreamingConvQuantizedDimension = 0;
 
 // Returns a ConvParams struct with all the parameters needed for a
-// quantized computation. Allowing reuse of ConvParams as there is no change in structure.
+// quantized computation. Allowing reuse of ConvParams as there is no change in
+// structure.
 ConvParams StreamingConvParamsQuantized(const TfLiteConvParams& params,
-                               const OpDataSConv& data) {
+                                        const OpDataSConv& data) {
   ConvParams op_params;
   op_params.input_offset = -data.input_zero_point;
   op_params.weights_offset = -data.filter_zero_point;
@@ -54,18 +55,17 @@ ConvParams StreamingConvParamsQuantized(const TfLiteConvParams& params,
   return op_params;
 }
 
-
-void* StreamingConvInit(TfLiteContext* context, const char* buffer, size_t length) {
+void* StreamingConvInit(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataStreamingConv));
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(OpDataStreamingConv));
 }
 
-TfLiteStatus CalculateOpDataStreamingConv(TfLiteContext* context, TfLiteNode* node,
-                                 const TfLiteConvParams& params, int width,
-                                 int height, int filter_width,
-                                 int filter_height, int* out_width,
-                                 int* out_height, const TfLiteType data_type,
-                                 OpDataSConv* data) {
+TfLiteStatus CalculateOpDataStreamingConv(
+    TfLiteContext* context, TfLiteNode* node, const TfLiteConvParams& params,
+    int width, int height, int filter_width, int filter_height, int* out_width,
+    int* out_height, const TfLiteType data_type, OpDataSConv* data) {
   bool has_bias = node->inputs->size == 3;
   // Check number of inputs/outputs
   TF_LITE_ENSURE(context, has_bias || node->inputs->size == 2);
@@ -119,11 +119,9 @@ TfLiteStatus CalculateOpDataStreamingConv(TfLiteContext* context, TfLiteNode* no
   return kTfLiteOk;
 }
 
-TfLiteStatus StreamingConvReshapeOutputTensor(TfLiteContext* context, TfLiteNode* node,
-                                     const TfLiteTensor* input,
-                                     const TfLiteTensor* filter,
-                                     TfLiteTensor* output, int height,
-                                     int width) {
+TfLiteStatus StreamingConvReshapeOutputTensor(
+    TfLiteContext* context, TfLiteNode* node, const TfLiteTensor* input,
+    const TfLiteTensor* filter, TfLiteTensor* output, int height, int width) {
   const int filter_output_channels = filter->dims->data[0];
   const int batches = input->dims->data[0];
 
@@ -145,7 +143,8 @@ TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
-  OpDataStreamingConv* sdata = static_cast<OpDataStreamingConv*>(node->user_data);
+  OpDataStreamingConv* sdata =
+      static_cast<OpDataStreamingConv*>(node->user_data);
   OpDataSConv* data = &(sdata->op_data);
   const auto& params =
       *(static_cast<const TfLiteConvParams*>(node->builtin_data));
@@ -188,7 +187,6 @@ TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   int output_width = 0;
   int output_height = 0;
 
-
   TFLITE_DCHECK_EQ(input_width, 1); /* iw is 1 for streaming conv */
 
   // Dynamically allocate per-channel quantization parameters.
@@ -199,11 +197,11 @@ TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   data->per_channel_output_shift =
       static_cast<int32_t*>(context->AllocatePersistentBuffer(
           context, num_channels * sizeof(int32_t)));
-  sdata->input_state =
-      static_cast<void*>(context->AllocatePersistentBuffer(
-          context, input_height * input_channels * filter_width  * sizeof(int16_t)));
+  sdata->input_state = static_cast<void*>(context->AllocatePersistentBuffer(
+      context, input_height * input_channels * filter_width * sizeof(int16_t)));
 
-  memset(sdata->input_state, 0, input_height * input_channels * filter_width  * sizeof(int16_t));
+  memset(sdata->input_state, 0,
+         input_height * input_channels * filter_width * sizeof(int16_t));
 
   // All per-channel quantized tensors need valid zero point and scale arrays.
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
@@ -216,10 +214,10 @@ TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
     TFLITE_DCHECK(affine_quantization->scale != nullptr);
     TFLITE_DCHECK(affine_quantization->zero_point != nullptr);
 
-    TF_LITE_ENSURE(context,
-                   affine_quantization->scale->size == 1 ||
-                       affine_quantization->scale->size ==
-                           filter->dims->data[kStreamingConvQuantizedDimension]);
+    TF_LITE_ENSURE(
+        context, affine_quantization->scale->size == 1 ||
+                     affine_quantization->scale->size ==
+                         filter->dims->data[kStreamingConvQuantizedDimension]);
   }
 
   TF_LITE_ENSURE_STATUS(CalculateOpDataStreamingConv(
@@ -245,4 +243,3 @@ TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 }  // namespace tflite
-

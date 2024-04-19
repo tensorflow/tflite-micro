@@ -53,7 +53,7 @@ struct OpDataSConv {
 
 struct OpDataStreamingConv {
   struct OpDataSConv op_data;
-  void *input_state;
+  void* input_state;
 };
 
 extern const int kConvInputTensor;
@@ -63,9 +63,10 @@ extern const int kConvOutputTensor;
 extern const int kConvQuantizedDimension;
 
 ConvParams StreamingConvParamsQuantized(const TfLiteConvParams& params,
-                               const OpDataSConv& data);
+                                        const OpDataSConv& data);
 
-void* StreamingConvInit(TfLiteContext* context, const char* buffer, size_t length);
+void* StreamingConvInit(TfLiteContext* context, const char* buffer,
+                        size_t length);
 TfLiteStatus StreamingConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
 // This is the most generic TFLMRegistration. The actual supported types
@@ -76,4 +77,3 @@ TFLMRegistration Register_STREAMING_CONV_2D();
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_STREAMING_CONV_H_
-

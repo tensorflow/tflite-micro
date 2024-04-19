@@ -40,13 +40,12 @@ struct XtensaConvOpData {
 #endif  // VISION_P6
 };
 
-
 struct XtensaStreamingConvOpData {
   OpDataConv reference_op_data;
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int scratch_tensor_index;
-  void *persistent_buf;
+  void* persistent_buf;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 };
 
@@ -62,13 +61,11 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* bias,
                               TfLiteEvalTensor* output);
 
-TfLiteStatus StreamingConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
-                               const TfLiteConvParams& params,
-                               const XtensaStreamingConvOpData& data,
-                               const TfLiteEvalTensor* input,
-                               const TfLiteEvalTensor* filter,
-                               const TfLiteEvalTensor* bias,
-                               TfLiteEvalTensor* output);
+TfLiteStatus StreamingConvEvalHifiInt16(
+    TfLiteContext* context, TfLiteNode* node, const TfLiteConvParams& params,
+    const XtensaStreamingConvOpData& data, const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias,
+    TfLiteEvalTensor* output);
 #if defined(HIFI3) || defined(HIFI4)
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
@@ -100,9 +97,11 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
 
 void* ConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
-void* StreamingConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
+void* StreamingConvInitXtensa(TfLiteContext* context, const char* buffer,
+                              size_t length);
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
-TfLiteStatus StreamingConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus StreamingConvPrepareXtensa(TfLiteContext* context,
+                                        TfLiteNode* node);
 
 }  // namespace tflite
 
