@@ -246,8 +246,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasStreaming) {
   static const float kGoldenDataStreamConv[kOutputElementsStreamConv] = {
       6, 10, 14, 18, 12, 20, 28, 36};
 
-  const int output_dims_count = 4;
-  int16_t output_data[output_dims_count];
+  int16_t output_data[kOutputElementsStreamConv];
 
   const float input_scale = 0.5f;
   const float output_scale = 1.0f;
