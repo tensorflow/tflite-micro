@@ -1,5 +1,41 @@
+diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+index b3fa9f6..a6d4f10 100644
+--- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
++++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_circ_buf.c
+@@ -1690,3 +1690,31 @@ VOID conv2d_group_update_cir_buf_asym8(
+   }
+   *pp_inp = (VOID *)p_inp;
+ }
++
++WORD32 xa_nn_streaming_conv_init_state(
++    VOID *p_mem,
++    VOID *p_kernel,
++    WORD32 input_height,
++    WORD32 input_channels,
++    WORD32 kernel_height,
++    WORD32 kernel_width,
++    WORD32 x_stride,
++    WORD32 y_stride,
++    WORD32 y_padding,
++    WORD32 out_height,
++    WORD32 output_channels,
++    WORD32 input_precision,
++    WORD32 kernel_precision,
++    WORD32 pad_val)
++{
++  (void)x_stride;
++  xa_nn_conv2d_std_init_state(p_mem, p_kernel, input_height, input_channels, kernel_height, kernel_width,
++                              y_stride, y_padding, out_height, output_channels, input_precision, kernel_precision);
++  WORD8 *pbegin = AE_GETCBEGIN0();
++  WORD8 *pend  = AE_GETCEND0();
++  UWORD8 padval8 = (UWORD8)pad_val;
++  memset(pbegin, padval8, (unsigned int)(pend-pbegin));
++  return 0;
++}
++
++
 diff --git a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
-index b9905e9..990b713 100644
+index b9905e9..4159db4 100644
 --- a/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 +++ b/algo/kernels/cnn/hifi4/xa_nn_conv2d_std_sym8sxsym16s.c
 @@ -49,6 +49,24 @@ static inline ae_int32x2 MultiplyByQuantizedMultiplier_ref(ae_int64 d_x,
@@ -224,3 +260,173 @@ index b9905e9..990b713 100644
    WORD32 j;
    WORD32 input_bytewidth = 2;
    VOID *pp_inp = (VOID *)p_inp;
+@@ -273,3 +474,103 @@ WORD32 xa_nn_conv2d_std_per_chan_sym8sxsym16s(
+ 
+   return 0;
+ }
++
++/* Streaming Conv
++ * I/O widths are 1
++ * Incoming layer gets updated in circular buffer, which is used to compute one output width layer
++ */
++WORD32 xa_nn_streaming_conv_sym8sxsym16s(
++    WORD16* __restrict__ p_out,
++    const WORD16* __restrict__ p_inp,
++    const WORD8* __restrict__ p_kernel,
++    const WORD64* __restrict__ p_bias,
++    WORD32 input_height,
++    WORD32 input_width,
++    WORD32 input_channels,
++    WORD32 kernel_height,
++    WORD32 kernel_width,
++    WORD32 out_channels,
++    WORD32 x_stride,
++    WORD32 y_stride,
++    WORD32 x_padding,
++    WORD32 y_padding,
++    WORD32 out_height,
++    WORD32 out_width,
++    WORD32 input_zero_bias,
++    WORD32 * p_out_multiplier,
++    WORD32 * p_out_shift,
++    WORD32 out_zero_bias,
++    WORD32 out_data_format,
++    VOID *p_state_ptr
++    ) /* likely not required, p_state_ptr should contain all the info needed */
++{
++   /* NULL pointer checks */
++  XA_NNLIB_ARG_CHK_PTR(p_out, -1);
++  XA_NNLIB_ARG_CHK_PTR(p_kernel, -1);
++  XA_NNLIB_ARG_CHK_PTR(p_inp, -1);
++  XA_NNLIB_ARG_CHK_PTR(p_bias, -1);
++  /* Pointer alignment checks */
++  XA_NNLIB_ARG_CHK_ALIGN(p_bias, sizeof(WORD64), -1);
++  /* Basic Parameter checks */
++  XA_NNLIB_ARG_CHK_COND((input_height <= 0 || input_width <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((input_channels <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((kernel_height <= 0 || kernel_width <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((out_channels <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((y_stride <= 0 || x_stride <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((y_padding < 0 || x_padding < 0), -1);
++  XA_NNLIB_ARG_CHK_COND((out_height <= 0 || out_width <= 0), -1);
++  XA_NNLIB_ARG_CHK_COND((input_zero_bias != 0), -1);
++  XA_NNLIB_ARG_CHK_COND((out_zero_bias != 0), -1);
++  XA_NNLIB_ARG_CHK_COND((out_data_format != 0 && out_data_format != 1), -1);
++  // Specific for streaming conv
++  XA_NNLIB_ARG_CHK_COND((input_width != 1), -1);
++  XA_NNLIB_ARG_CHK_COND((out_width != 1), -1);
++  XA_NNLIB_ARG_CHK_COND((x_padding != 0), -1);
++  XA_NNLIB_ARG_CHK_COND((x_stride != 1), -1);
++
++  int itr;
++  for(itr=0;itr<out_channels;itr++){
++    XA_NNLIB_ARG_CHK_COND((p_out_shift[itr] < -31 || p_out_shift[itr] > 31), -1);
++  }
++
++  WORD32 j;
++  WORD32 input_bytewidth = 2;
++  VOID *pp_inp = (VOID *)p_inp;
++
++  xa_nn_conv_state_t *p_state = (xa_nn_conv_state_t *)p_state_ptr;
++
++  WORD32 out_channels_offset = out_data_format ? out_height * out_width : 1;
++  WORD32 out_height_offset = out_data_format ? out_width : out_width * out_channels;
++  WORD32 out_width_offset = out_data_format ? 1 : out_channels;
++
++#if !ENABLE_PADDING_CONV2D_STD
++  WORD32 input_channels_pad = input_channels;
++#else
++  WORD32 input_channels_pad = PADDED_SIZE(input_channels, (ALIGNMENT>>1));
++#endif
++
++  WORD32 y_b_pad = kernel_height + (out_height - 1) * y_stride - (y_padding + input_height);
++  y_b_pad = y_b_pad < 0 ? 0 : y_b_pad;
++
++  // Add x_stride x (input_height x input_channels) new planes to circular buffer
++  conv2d_std_update_cir_buf(input_channels, input_channels_pad, input_bytewidth, input_width, input_height, y_padding, y_b_pad, 0, kernel_width, x_stride, (VOID**)&pp_inp, 0, p_state);
++
++  // Convolution using matXvec with matrix as circular buffer
++  xa_nn_matXvec_sym8sxsym16s_sym16s_circ
++    (p_out /* output */
++     ,p_state->cir_buf.p_curr/* matrix: rows x cols */
++     ,p_state->p_kernel_padded /* vec: cols */
++     ,p_bias /* bias */
++     ,out_height /* rows */
++     ,input_channels_pad * kernel_width * kernel_height /* cols */
++     ,input_channels_pad * kernel_width * y_stride/* row_offset */
++     ,out_channels /* vec_count */
++     ,input_channels_pad * kernel_width * kernel_height /* vec_stride */
++     ,out_channels_offset /* out_col_offset */
++     ,out_height_offset /* out_row_offset */
++     ,p_out_multiplier
++     ,p_out_shift
++    );
++
++  return 0;
++}
+diff --git a/include/nnlib/xa_nnlib_kernels_api.h b/include/nnlib/xa_nnlib_kernels_api.h
+index a883075..325a97a 100644
+--- a/include/nnlib/xa_nnlib_kernels_api.h
++++ b/include/nnlib/xa_nnlib_kernels_api.h
+@@ -1863,6 +1863,61 @@
+ 			WORD32 out_data_format,
+ 			VOID *p_scratch);
+ 
++         WORD32 xa_nn_streaming_conv_init_state(
++                        VOID *p_scratch,
++                        VOID *p_kernel,
++                        WORD32 input_height,
++                        WORD32 input_channels,
++                        WORD32 kernel_height,
++                        WORD32 kernel_width,
++                        WORD32 x_stride,
++                        WORD32 y_stride,
++                        WORD32 y_padding,
++                        WORD32 out_height,
++                        WORD32 output_channels,
++                        WORD32 input_precision,
++                        WORD32 kernel_precision,
++                        WORD32 padval);
++
++	WORD32 xa_nn_streaming_conv_sym8sxsym16s(
++			WORD16* __restrict__ p_out,
++			const WORD16* __restrict__ p_inp,
++			const WORD8* __restrict__ p_kernel,
++			const WORD64* __restrict__ p_bias,
++			WORD32 input_height,
++			WORD32 input_width,
++			WORD32 input_channels,
++			WORD32 kernel_height,
++			WORD32 kernel_width,
++			WORD32 out_channels,
++			WORD32 x_stride,
++			WORD32 y_stride,
++			WORD32 x_padding,
++			WORD32 y_padding,
++			WORD32 out_height,
++			WORD32 out_width,
++			WORD32 input_zero_bias,
++			WORD32 * p_out_multiplier,
++			WORD32 * p_out_shift,
++			WORD32 out_zero_bias,
++			WORD32 out_data_format,
++                        VOID *p_state
++			);
++
++        VOID xa_nn_conv2d_std_init_state(
++                       VOID *p_scratch,
++                       VOID *p_kernel,
++                       WORD32 input_height,
++                       WORD32 input_channels,
++                       WORD32 kernel_height,
++                       WORD32 kernel_width,
++                       WORD32 y_stride,
++                       WORD32 y_padding,
++                       WORD32 out_height,
++                       WORD32 output_channels,
++                       WORD32 input_precision,
++                       WORD32 kernel_precision);
++
+ 	WORD32 xa_nn_conv2d_std_per_chan_sym8sxasym8s(
+ 			WORD8* __restrict__ p_out,
+ 			const WORD8* __restrict__ p_inp,
