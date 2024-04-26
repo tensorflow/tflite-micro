@@ -56,6 +56,12 @@ void CMSIS_NN_VectorSum(int32_t* kernel_sum, const int32_t size1,
   arm_vector_sum_s8(kernel_sum, size1, size2, weights, offset, biases);
 }
 
+void CMSIS_NN_VectorSum(int64_t* kernel_sum, const int32_t size1,
+                        const int32_t size2, const int8_t* weights,
+                        const int32_t offset, const int64_t* biases) {
+  arm_vector_sum_s8_s64(kernel_sum, size1, size2, weights, offset, biases);
+}
+
 template <typename BiasType>
 TfLiteStatus CMSIS_NN_PortOpData(TfLiteContext* context, OpDataLSTM* params_ref,
                                  const LSTMKernelContents& kernel_content,
@@ -289,6 +295,32 @@ TfLiteStatus CMSIS_NN_EvalInteger8x8_16Lstm(
   return kTfLiteOk;
 }
 
+TfLiteStatus CMSIS_NN_EvalInteger16x8_16Lstm(
+    const OpData& op_data, const LSTMKernelContents& kernel_content,
+    const LSTMBuffers<int16_t>& buffers) {
+  TFLITE_DCHECK(
+      kernel_content.GetInternalTensor(tflite::kLstmInputTensor)->dims->size >=
+          2 &&
+      kernel_content.GetInternalTensor(tflite::kLstmInputTensor)->dims->size <=
+          3);
+
+  const int16_t* input = tflite::micro::GetOptionalTensorData<int16_t>(
+      kernel_content.GetInternalTensor(tflite::kLstmInputTensor));
+  int16_t* output =
+      tflite::micro::GetTensorData<int16_t>(kernel_content.output_tensor);
+
+  // Create lstm buffer struct
+  cmsis_nn_lstm_context cmsis_buffers;
+  cmsis_buffers.temp1 = reinterpret_cast<int16_t*>(buffers.buffer0);
+  cmsis_buffers.temp2 = reinterpret_cast<int16_t*>(buffers.buffer1);
+  cmsis_buffers.cell_state = reinterpret_cast<int16_t*>(buffers.buffer2);
+
+  arm_lstm_unidirectional_s16(input, output, &op_data.params_cmsis_nn,
+                              &cmsis_buffers);
+
+  return kTfLiteOk;
+}
+
 /*Kernel functions*/
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
                                      size_t length) {
@@ -351,6 +383,12 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
     number_of_buffers = 3;
     CMSIS_NN_PortOpData<int32_t>(context, op_data_lstm, kernel_content,
                                  &op_data->params_cmsis_nn);
+  } else if (activation_type == kTfLiteInt16 &&
+             cell_state_type == kTfLiteInt16) {
+    auto kernel_content = CreateLSTMKernelContent(context, node);
+    number_of_buffers = 3;
+    CMSIS_NN_PortOpData<int64_t>(context, op_data_lstm, kernel_content,
+                                 &op_data->params_cmsis_nn);
   } else {
     number_of_buffers = 4;
   }
@@ -394,8 +432,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
           // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
           LSTMBuffers<int16_t> buffers =
               CMSIS_NN_CreateLSTMBuffers(context, op_data_lstm.buffer_indices);
-          return CMSIS_NN_EvalInteger8x8_16Lstm(op_data, kernel_content,
-                                                buffers);
+          CMSIS_NN_EvalInteger8x8_16Lstm(op_data, kernel_content, buffers);
           break;
         }
         default: {
@@ -411,9 +448,8 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
         case kTfLiteInt8: {
           // 16(activation)x8(weight)->16(cell) LSTM with 64 bits bias
           LSTMBuffers<int16_t> buffers =
-              CreateLSTMBuffers<int16_t>(context, op_data_lstm.buffer_indices);
-          EvalLstm<int16_t, int8_t, int16_t, int64_t>(op_data_lstm,
-                                                      kernel_content, buffers);
+              CMSIS_NN_CreateLSTMBuffers(context, op_data_lstm.buffer_indices);
+          CMSIS_NN_EvalInteger16x8_16Lstm(op_data, kernel_content, buffers);
           break;
         }
         default: {
@@ -460,6 +496,33 @@ TfLiteStatus UnidirectionalSequenceLstmEvalInt8(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+TfLiteStatus UnidirectionalSequenceLstmEvalInt16(TfLiteContext* context,
+                                                 TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData& op_data = *reinterpret_cast<const OpData*>(node->user_data);
+  const OpDataLSTM& op_data_lstm = op_data.params_ref;
+  auto kernel_content = CreateLSTMKernelContent(context, node);
+  const auto activation_type =
+      kernel_content.internal_tensors[kLstmInputTensor]->type;
+  const auto weight_type =
+      kernel_content.internal_tensors[kLstmInputToInputWeightsTensor]->type;
+
+  TFLITE_DCHECK(weight_type == kTfLiteInt16 &&
+                "Only int16 filter type supported.");
+
+  if (activation_type == kTfLiteInt16) {
+    LSTMBuffers<int16_t> buffers =
+        CMSIS_NN_CreateLSTMBuffers(context, op_data_lstm.buffer_indices);
+
+    return CMSIS_NN_EvalInteger16x8_16Lstm(op_data, kernel_content, buffers);
+  } else {
+    MicroPrintf("Input type %s (%d) not supported.",
+                TfLiteTypeGetName(activation_type), activation_type);
+    return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
 }  // namespace
 
 TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM() {
@@ -472,6 +535,12 @@ TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8() {
   return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
                                    UnidirectionalSequenceLstmPrepare,
                                    UnidirectionalSequenceLstmEvalInt8);
+}
+
+TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT16() {
+  return tflite::micro::RegisterOp(UnidirectionalSequenceLstmInit,
+                                   UnidirectionalSequenceLstmPrepare,
+                                   UnidirectionalSequenceLstmEvalInt16);
 }
 
 }  // namespace tflite
