@@ -91,7 +91,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #endif
     }
     case kTfLiteInt16: {
-#if defined(HIFI3) || defined(HIFI4)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       // Note that int32 bias is not widely supported and might be risky (e.g.
       // http://b/262003750). As such, while we have a fallback to the reference
       // implementation, production use-cases should only have int64 bias.
