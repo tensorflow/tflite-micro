@@ -18,7 +18,7 @@ on:
     types:
       - closed
       - labeled
-  
+
   workflow_call:
     inputs:
       trigger-sha:
@@ -34,19 +34,20 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
-      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
+      (github.event_name == 'schedule' &&
+       github.repository == 'tensorflow/tflite-micro') ||
+      (github.event.action == 'labeled' &&
+       github.event.label.name == 'ci:run_full')
 
     name: Cortex-M Generic
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |
@@ -57,19 +58,20 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro') ||
-      contains(github.event.pull_request.labels.*.name, 'ci:run_full')
+      (github.event_name == 'schedule' &&
+       github.repository == 'tensorflow/tflite-micro') ||
+      (github.event.action == 'labeled' &&
+       github.event.label.name == 'ci:run_full')
 
     name: Cortex-M Corstone 300 (FVP)
     steps:
       - uses: actions/setup-python@v4
-        with: 
+        with:
           python-version: '3.10'
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
           pip3 install Pillow
-          pip3 install Wave
           pip3 install numpy
       - name: Test
         run: |

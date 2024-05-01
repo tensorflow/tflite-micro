@@ -259,7 +259,9 @@ TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphInput(int subgraph_idx,
 }
 
 size_t MicroInterpreterGraph::NumSubgraphOutputs(int subgraph_idx) {
-  return model_->subgraphs()->Get(subgraph_idx)->outputs()->size();
+  return model_->subgraphs()->Get(subgraph_idx)->outputs() == nullptr
+             ? 0
+             : model_->subgraphs()->Get(subgraph_idx)->outputs()->size();
 }
 
 TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphOutput(int subgraph_idx,

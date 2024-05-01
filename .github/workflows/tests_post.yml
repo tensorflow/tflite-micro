@@ -11,54 +11,12 @@ on:
       - labeled
 
 jobs:
-  riscv_postmerge:
-    if: ${{ github.event.pull_request.merged == true ||
-      contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
-    uses: ./.github/workflows/riscv_postmerge.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  xtensa_postmerge:
-    if: ${{ github.event.pull_request.merged == true ||
-            contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
-    uses: ./.github/workflows/xtensa_postmerge.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  cortex_m_ci_full:
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
-    uses: ./.github/workflows/cortex_m.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  issue_on_error:
-    needs: [riscv_postmerge,xtensa_postmerge,cortex_m_ci_full]
-    if: ${{ always() && contains(needs.*.result, 'failure') &&
-            !contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
-    uses: ./.github/workflows/issue_on_error.yml
-    with:
-      repo: ${{ github.repository}}
-      workflow: ${{ github.workflow }}
-      run_number: ${{ github.run_number }}
-      run_id: ${{ github.run_id }}
-      flag_label: ci:bot_issue
-      pr_number: ${{ github.event.number }}
-      pr_link: ${{ github.event.pull_request._links.html.href }}
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
   ci_run_full:
-    needs: [issue_on_error]
     runs-on: ubuntu-latest
     steps:
       - name: remove-cirun-full
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'ci:run_full') }}
+        if: github.event.action == 'labeled' &&
+            github.event.label.name == 'ci:run_full'
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
@@ -71,3 +29,48 @@ jobs:
             })
         continue-on-error: true
 
+  riscv_postmerge:
+    needs: [ci_run_full]
+    if: always() && github.event.pull_request.merged == true ||
+        (github.event.action == 'labeled' &&
+         github.event.label.name == 'ci:run_full')
+    uses: ./.github/workflows/riscv_postmerge.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  xtensa_postmerge:
+    needs: [ci_run_full]
+    if: always() && github.event.pull_request.merged == true ||
+        (github.event.action == 'labeled' &&
+         github.event.label.name == 'ci:run_full')
+    uses: ./.github/workflows/xtensa_postmerge.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  cortex_m_ci_full:
+    needs: [ci_run_full]
+    uses: ./.github/workflows/cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  issue_on_error:
+    needs: [riscv_postmerge, xtensa_postmerge, cortex_m_ci_full]
+    if: ${{ always() && contains(needs.*.result, 'failure') &&
+            github.event.pull_request.merged == true }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository}}
+      workflow: ${{ github.workflow }}
+      run_number: ${{ github.run_number }}
+      run_id: ${{ github.run_id }}
+      flag_label: ci:bot_issue
+      pr_number: ${{ github.event.number }}
+      pr_link: ${{ github.event.pull_request._links.html.href }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

@@ -51,7 +51,6 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* bias,
                               TfLiteEvalTensor* output);
 
-#if defined(HIFI3) || defined(HIFI4)
 TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteConvParams& params,
                                const XtensaConvOpData& data,
@@ -59,7 +58,6 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output);
-#endif  // defined(HIFI3) || defined(HIFI4)
 
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 

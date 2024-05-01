@@ -48,12 +48,13 @@ struct TfLiteAudioFrontendRfftParams {
   int32_t output_length;
   TfLiteType fft_type;
   T* work_area;
+  int scratch_buffer_index;
   int8_t* state;
 };
 
 template <typename T, size_t (*get_needed_memory_func)(int32_t),
           void* (*init_func)(int32_t, void*, size_t)>
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* RfftInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
@@ -65,9 +66,6 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   params->fft_length = fbw.ElementAsInt32(kFftLengthIndex);
   params->fft_type = typeToTfLiteType<T>();
 
-  params->work_area = static_cast<T*>(context->AllocatePersistentBuffer(
-      context, params->fft_length * sizeof(T)));
-
   size_t state_size = (*get_needed_memory_func)(params->fft_length);
   params->state = static_cast<int8_t*>(
       context->AllocatePersistentBuffer(context, state_size * sizeof(int8_t)));
@@ -76,7 +74,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 template <typename T, TfLiteType TfLiteTypeEnum>
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus RfftPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -103,13 +101,15 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   params->output_length =
       output_shape.Dims(output_shape.DimensionsCount() - 1) / 2;
 
+  context->RequestScratchBufferInArena(context, params->fft_length * sizeof(T),
+                                       &params->scratch_buffer_index);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
 
 template <typename T, void (*apply_func)(void*, const T* input, Complex<T>*)>
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus RfftEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteAudioFrontendRfftParams<T>*>(node->user_data);
 
@@ -122,74 +122,76 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   Complex<T>* output_data = tflite::micro::GetTensorData<Complex<T>>(output);
 
+  T* work_area = static_cast<T*>(
+      context->GetScratchBuffer(context, params->scratch_buffer_index));
+
   for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
        input_idx += params->input_length, output_idx += params->output_length) {
-    memcpy(params->work_area, &input_data[input_idx],
-           sizeof(T) * params->input_length);
+    memcpy(work_area, &input_data[input_idx], sizeof(T) * params->input_length);
     // Zero pad input to FFT length
-    memset(&params->work_area[params->input_length], 0,
+    memset(&work_area[params->input_length], 0,
            sizeof(T) * (params->fft_length - params->input_length));
 
-    (*apply_func)(params->state, params->work_area, &output_data[output_idx]);
+    (*apply_func)(params->state, work_area, &output_data[output_idx]);
   }
   return kTfLiteOk;
 }
 
-void* InitAll(TfLiteContext* context, const char* buffer, size_t length) {
+void* RfftInitAll(TfLiteContext* context, const char* buffer, size_t length) {
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
   const flexbuffers::Map& m = flexbuffers::GetRoot(buffer_t, length).AsMap();
   auto tensor_type = static_cast<tflite::TensorType>(m["T"].AsInt32());
 
   switch (tensor_type) {
     case TensorType_INT16: {
-      return Init<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
-                  ::tflm_signal::RfftInt16Init>(context, buffer, length);
+      return RfftInit<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
+                      ::tflm_signal::RfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
-      return Init<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
-                  ::tflm_signal::RfftInt32Init>(context, buffer, length);
+      return RfftInit<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
+                      ::tflm_signal::RfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
-      return Init<float, ::tflm_signal::RfftFloatGetNeededMemory,
-                  ::tflm_signal::RfftFloatInit>(context, buffer, length);
+      return RfftInit<float, ::tflm_signal::RfftFloatGetNeededMemory,
+                      ::tflm_signal::RfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;
   }
 }
 
-TfLiteStatus PrepareAll(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus RfftPrepareAll(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteAudioFrontendRfftParams<void>*>(node->user_data);
 
   switch (params->fft_type) {
     case kTfLiteInt16: {
-      return Prepare<int16_t, kTfLiteInt16>(context, node);
+      return RfftPrepare<int16_t, kTfLiteInt16>(context, node);
     }
     case kTfLiteInt32: {
-      return Prepare<int32_t, kTfLiteInt32>(context, node);
+      return RfftPrepare<int32_t, kTfLiteInt32>(context, node);
     }
     case kTfLiteFloat32: {
-      return Prepare<float, kTfLiteFloat32>(context, node);
+      return RfftPrepare<float, kTfLiteFloat32>(context, node);
     }
     default:
       return kTfLiteError;
   }
 }
 
-TfLiteStatus EvalAll(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus RfftEvalAll(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteAudioFrontendRfftParams<void>*>(node->user_data);
 
   switch (params->fft_type) {
     case kTfLiteInt16: {
-      return Eval<int16_t, ::tflm_signal::RfftInt16Apply>(context, node);
+      return RfftEval<int16_t, ::tflm_signal::RfftInt16Apply>(context, node);
     }
     case kTfLiteInt32: {
-      return Eval<int32_t, ::tflm_signal::RfftInt32Apply>(context, node);
+      return RfftEval<int32_t, ::tflm_signal::RfftInt32Apply>(context, node);
     }
     case kTfLiteFloat32: {
-      return Eval<float, ::tflm_signal::RfftFloatApply>(context, node);
+      return RfftEval<float, ::tflm_signal::RfftFloatApply>(context, node);
     }
     default:
       return kTfLiteError;
@@ -202,34 +204,34 @@ namespace tflm_signal {
 
 TFLMRegistration* Register_RFFT() {
   static TFLMRegistration r =
-      tflite::micro::RegisterOp(InitAll, PrepareAll, EvalAll);
+      tflite::micro::RegisterOp(RfftInitAll, RfftPrepareAll, RfftEvalAll);
   return &r;
 }
 
 TFLMRegistration* Register_RFFT_FLOAT() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<float, ::tflm_signal::RfftFloatGetNeededMemory,
-           ::tflm_signal::RfftFloatInit>,
-      Prepare<float, kTfLiteFloat32>,
-      Eval<float, ::tflm_signal::RfftFloatApply>);
+      RfftInit<float, ::tflm_signal::RfftFloatGetNeededMemory,
+               ::tflm_signal::RfftFloatInit>,
+      RfftPrepare<float, kTfLiteFloat32>,
+      RfftEval<float, ::tflm_signal::RfftFloatApply>);
   return &r;
 }
 
 TFLMRegistration* Register_RFFT_INT16() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
-           ::tflm_signal::RfftInt16Init>,
-      Prepare<int16_t, kTfLiteInt16>,
-      Eval<int16_t, ::tflm_signal::RfftInt16Apply>);
+      RfftInit<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
+               ::tflm_signal::RfftInt16Init>,
+      RfftPrepare<int16_t, kTfLiteInt16>,
+      RfftEval<int16_t, ::tflm_signal::RfftInt16Apply>);
   return &r;
 }
 
 TFLMRegistration* Register_RFFT_INT32() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      Init<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
-           ::tflm_signal::RfftInt32Init>,
-      Prepare<int32_t, kTfLiteInt32>,
-      Eval<int32_t, ::tflm_signal::RfftInt32Apply>);
+      RfftInit<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
+               ::tflm_signal::RfftInt32Init>,
+      RfftPrepare<int32_t, kTfLiteInt32>,
+      RfftEval<int32_t, ::tflm_signal::RfftInt32Apply>);
   return &r;
 }
 

@@ -272,7 +272,15 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 
 # Where compiled objects are stored.
 BASE_GENDIR := gen
-GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)/
+GENDIR := $(BASE_GENDIR)/$(TARGET)_$(TARGET_ARCH)_$(BUILD_TYPE)
+ifneq ($(OPTIMIZED_KERNEL_DIR),)
+  GENDIR := $(GENDIR)_$(OPTIMIZED_KERNEL_DIR)
+endif
+ifneq ($(CO_PROCESSOR),)
+  GENDIR := $(GENDIR)_$(CO_PROCESSOR)
+endif
+GENDIR := $(GENDIR)_$(TOOLCHAIN)/
+
 CORE_OBJDIR := $(GENDIR)obj/core/
 KERNEL_OBJDIR := $(GENDIR)obj/kernels/
 THIRD_PARTY_KERNEL_OBJDIR := $(GENDIR)obj/third_party_kernels/
@@ -852,6 +860,7 @@ $(BINDIR)%.test_target: $(BINDIR)%_test
 # These are microcontroller-specific rules for converting the ELF output
 # of the linker into a binary image that can be loaded directly.
 ifeq ($(TOOLCHAIN), armclang)
+  CXXFLAGS += -ffp-mode=full
   FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
   $(BINDIR)%.bin: $(BINDIR)%
 		@mkdir -p $(dir $@)
@@ -926,6 +935,9 @@ endif
 
 # Just build the test targets
 build: $(MICROLITE_BUILD_TARGETS)
+
+list_gendir:
+	@echo $(GENDIR)
 
 list_library_sources:
 	@echo $(MICROLITE_CC_SRCS) $(MICROLITE_CC_KERNEL_SRCS)

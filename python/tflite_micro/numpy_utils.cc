@@ -40,6 +40,9 @@ int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type) {
       return NPY_FLOAT32;
     case kTfLiteFloat16:
       return NPY_FLOAT16;
+    case kTfLiteBFloat16:
+      // TODO(b/329491949): NPY_BFLOAT16 currently doesn't exist
+      return NPY_FLOAT16;
     case kTfLiteFloat64:
       return NPY_FLOAT64;
     case kTfLiteInt32:

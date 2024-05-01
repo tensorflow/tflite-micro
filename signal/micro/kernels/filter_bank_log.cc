@@ -42,7 +42,8 @@ struct TFLMSignalLogParams {
   int output_scale;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+void* FilterBankLogInit(TfLiteContext* context, const char* buffer,
+                        size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 
   auto* params = static_cast<TFLMSignalLogParams*>(
@@ -59,7 +60,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return params;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FilterBankLogPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -82,7 +83,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus FilterBankLogEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TFLMSignalLogParams*>(node->user_data);
 
   const TfLiteEvalTensor* input =
@@ -103,7 +104,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 namespace tflm_signal {
 
 TFLMRegistration* Register_FILTER_BANK_LOG() {
-  static TFLMRegistration r = tflite::micro::RegisterOp(Init, Prepare, Eval);
+  static TFLMRegistration r = tflite::micro::RegisterOp(
+      FilterBankLogInit, FilterBankLogPrepare, FilterBankLogEval);
   return &r;
 }
 

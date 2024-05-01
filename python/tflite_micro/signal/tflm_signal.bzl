@@ -25,7 +25,7 @@ def py_tflm_signal_library(
       srcs: Python source files for the Python library.
       deps: Dependencies for the Python library.
       visibility: Visibility for the Python library.
-      cc_op_defs: A list of c++ src files containing REGISTER_OP definitions.
+      cc_op_defs: A list of c++ libraries containing REGISTER_OP definitions.
       cc_op_kernels: A list of c++ targets containing kernels that are used
           by the Python library.
     """
@@ -39,12 +39,12 @@ def py_tflm_signal_library(
         library_name = name + "_cc"
         native.cc_library(
             name = library_name,
-            srcs = cc_op_defs,
             copts = select({
                 "//conditions:default": ["-pthread"],
             }),
             alwayslink = 1,
             deps =
+                cc_op_defs +
                 cc_op_kernels +
                 ["@tensorflow_cc_deps//:cc_library"] +
                 select({"//conditions:default": []}),

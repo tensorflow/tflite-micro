@@ -92,14 +92,14 @@ def sigmoid(x):
 
 
 def quantized_sigmoid(input, input_scale, output_scale, num_bits=16):
-  """Sigmoid (interger)"""
+  """Sigmoid (integer)"""
   float_input = input * input_scale
   float_result = sigmoid(float_input)
   return quantize_data(float_result, output_scale, bit_width=num_bits)
 
 
 def quantized_tanh(input, input_scale, output_scale, num_bits=16):
-  """Tanh (interger)"""
+  """Tanh (integer)"""
   float_input = input * input_scale
   float_result = np.tanh(float_input)
   return quantize_data(float_result, output_scale, bit_width=num_bits)
