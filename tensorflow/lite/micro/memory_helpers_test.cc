@@ -180,8 +180,8 @@ TF_LITE_MICRO_TEST(TestTypeSizeOf) {
                           tflite::TfLiteTypeSizeOf(kTfLiteComplex128, &size));
   TF_LITE_MICRO_EXPECT_EQ(sizeof(double) * 2, size);
 
-  TF_LITE_MICRO_EXPECT_NE(
-      kTfLiteOk, tflite::TfLiteTypeSizeOf(static_cast<TfLiteType>(-1), &size));
+  TF_LITE_MICRO_EXPECT_NE(kTfLiteOk,
+                          tflite::TfLiteTypeSizeOf(kTfLiteNoType, &size));
 }
 
 TF_LITE_MICRO_TEST(TestBytesRequiredForTensor) {
