@@ -1,18 +1,76 @@
 diff --git a/library/include/NatureDSP_Signal_math.h b/library/include/NatureDSP_Signal_math.h
-index 8d32ffc..bb216f3 100644
+index 2ffea63..adf08ab 100644
 --- a/library/include/NatureDSP_Signal_math.h
 +++ b/library/include/NatureDSP_Signal_math.h
-@@ -661,6 +661,8 @@ int32_t scl_tanh32x32(int32_t x);
- void vec_sigmoid32x32(int32_t * y, const int32_t * x, int N);
- int32_t scl_sigmoid32x32(int32_t x);
+@@ -38,7 +38,7 @@ extern "C" {
+   vec_log              Logarithm 
+   vec_antilog          Antilogarithm         
+   vec_sqrt             Square Root
+-  vec_rsqrt	           Reciprocal Square Root
++  vec_rsqrt            Reciprocal Square Root
+   vec_sine,vec_cosine  Sine/Cosine
+   vec_tan              Tangent 
+   vec_atan             Arctangent 
+@@ -384,9 +384,9 @@ int32_t scl_sqrt64x32(int64_t x);
+   part left by exponent value.
  
-+void vec_relu32x32 (int32_t   * y, const int32_t   * x, int32_t   K, int N);
+   Mantissa accuracy is 1 LSB, so relative accuracy is:
+-  vec_rsqrt16x16, scl_rsqrt16x16	6.2e-5
+-  scl_rsqrt32x32	                2.4e-7
+-  vec_rsqrt32x32	                9.2e-10
++  vec_rsqrt16x16, scl_rsqrt16x16  6.2e-5
++  scl_rsqrt32x32                  2.4e-7
++  vec_rsqrt32x32                  9.2e-10
+ 
+   Precision: 
+   16x16  16-bit inputs, 16-bit output. Accuracy: 2LSB
+@@ -406,11 +406,11 @@ int32_t scl_sqrt64x32(int64_t x);
+   ----------------
+   Returned packed value: 
+   scl_rsqrt32x32():
+-  bits 23…0 fractional part
+-  bits 31…24 exponent
++  bits 23ï¿½0 fractional part
++  bits 31ï¿½24 exponent
+   scl_rsqrt16x16():
+-  bits 15…0 fractional part
+-  bits 31…16 exponent
++  bits 15ï¿½0 fractional part
++  bits 31ï¿½16 exponent
+ 
+ -------------------------------------------------------------------------*/
+ void vec_rsqrt32x32 ( int32_t * frac, int16_t * exp, const int32_t * x, int N);
+@@ -635,6 +635,7 @@ float32_t scl_atan2f (float32_t y, float32_t x);
+   return result, Q16.15 
+ -------------------------------------------------------------------------*/
+ void vec_tanh32x32(int32_t * y, const int32_t * x, int N);
++void vec_tanhf    (float32_t * y, const float32_t * x,int N);
+ int32_t scl_tanh32x32(int32_t x);
+ 
+ /*-------------------------------------------------------------------------
+@@ -659,7 +660,12 @@ int32_t scl_tanh32x32(int32_t x);
+   return result, Q16.15
+ -------------------------------------------------------------------------*/
+ void vec_sigmoid32x32(int32_t * y, const int32_t * x, int N);
++void vec_sigmoidf    (float32_t * y, const float32_t * x, int N);
+ int32_t scl_sigmoid32x32(int32_t x);
++float32_t scl_sigmoidf(float32_t x);
 +
++void vec_relu32x32 (int32_t   * y, const int32_t   * x, int32_t   K, int N);
++void vec_reluf     (float32_t * y, const float32_t * x, float32_t K, int N);
+ 
  /*-------------------------------------------------------------------------
    Softmax
-   The function computes the softmax (normalized exponential function) of 
+@@ -685,6 +691,7 @@ int32_t scl_sigmoid32x32(int32_t x);
+ 
+ -------------------------------------------------------------------------*/
+ void vec_softmax32x32(int32_t * y, const int32_t * x, int N);
++void vec_softmaxf    (float32_t * y, const float32_t * x,int N);
+ 
+ /*-------------------------------------------------------------------------
+   Integer to float conversion
 diff --git a/library/include/NatureDSP_types.h b/library/include/NatureDSP_types.h
-index de3217e..4323b3b 100644
+index a38b334..6322852 100644
 --- a/library/include/NatureDSP_types.h
 +++ b/library/include/NatureDSP_types.h
 @@ -332,7 +332,9 @@ typedef struct tagComplex32_t
@@ -26,7 +84,7 @@ index de3217e..4323b3b 100644
    #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
  #else
 diff --git a/library/include_private/common.h b/library/include_private/common.h
-index 2e91cb4..d494358 100644
+index 20206e4..74d4d42 100644
 --- a/library/include_private/common.h
 +++ b/library/include_private/common.h
 @@ -157,6 +157,12 @@ __pragma (warning(pop))
@@ -43,7 +101,7 @@ index 2e91cb4..d494358 100644
  #ifdef __cplusplus
  #define externC extern "C" 
 diff --git a/library/include_private/fft_real_twiddles.h b/library/include_private/fft_real_twiddles.h
-index 9b76e88..da43091 100644
+index 10cd4b2..eb5765f 100644
 --- a/library/include_private/fft_real_twiddles.h
 +++ b/library/include_private/fft_real_twiddles.h
 @@ -44,7 +44,9 @@
@@ -57,7 +115,7 @@ index 9b76e88..da43091 100644
  
  extern const int16_t twiddleSplit[MAX_RFFT_LEN/2];
 diff --git a/library/include_private/fft_real_twiddles_24x24.h b/library/include_private/fft_real_twiddles_24x24.h
-index ea8aea0..59c9205 100644
+index 3017c61..fd1e2ba 100644
 --- a/library/include_private/fft_real_twiddles_24x24.h
 +++ b/library/include_private/fft_real_twiddles_24x24.h
 @@ -44,7 +44,9 @@
