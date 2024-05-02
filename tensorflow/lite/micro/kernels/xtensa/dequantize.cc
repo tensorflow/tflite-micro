@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/dequantize.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -46,7 +47,7 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteInt8: {
-#if HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#if HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       int err;
       const int8_t* input_data_ptr;
       float* output_data_ptr;
@@ -60,17 +61,17 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
           output_data_ptr, input_data_ptr, data->quantization_params.zero_point,
           data->quantization_params.scale, flat_size);
       TF_LITE_ENSURE(context, (err == 0));
-#else   //  HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#else   //  HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       reference_ops::Dequantize(data->quantization_params,
                                 tflite::micro::GetTensorShape(input),
                                 tflite::micro::GetTensorData<int8_t>(input),
                                 tflite::micro::GetTensorShape(output),
                                 tflite::micro::GetTensorData<float>(output));
-#endif  //  HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#endif  //  HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       break;
     }
     case kTfLiteInt16: {
-#if HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#if HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       int err;
       const int16_t* input_data_ptr;
       float* output_data_ptr;
@@ -83,13 +84,13 @@ TfLiteStatus DequantizeEval(TfLiteContext* context, TfLiteNode* node) {
           output_data_ptr, input_data_ptr, data->quantization_params.zero_point,
           data->quantization_params.scale, flat_size);
       TF_LITE_ENSURE(context, (err == 0));
-#else   // HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#else   // HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       reference_ops::Dequantize(data->quantization_params,
                                 tflite::micro::GetTensorShape(input),
                                 tflite::micro::GetTensorData<int16_t>(input),
                                 tflite::micro::GetTensorShape(output),
                                 tflite::micro::GetTensorData<float>(output));
-#endif  // HIFI_VFPU && (defined(HIFI5) || defined(HIFI4))
+#endif  // HIFI_VFPU && (defined(HIFI5) || defined(HIFI4) || defined(HIFI3))
       break;
     }
     case kTfLiteUInt8:
