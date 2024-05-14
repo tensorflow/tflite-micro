@@ -7,6 +7,7 @@ network to recognize people in images.
 
 -   [Run the tests on a development machine](#run-the-tests-on-a-development-machine)
 -   [Training your own model](#training-your-own-model)
+-   [Additional makefile targets](#additional-makefile-targets)
 
 
 ## Run the tests on a development machine
@@ -25,6 +26,19 @@ and checks that the network correctly identifies them.
 
 To understand how TensorFlow Lite does this, you can look at
 [person_detection_test.cc](person_detection_test.cc).
+
+## Additional makefile targets
+```
+make -f tensorflow/lite/micro/tools/make/Makefile person_detection
+make -f tensorflow/lite/micro/tools/make/Makefile person_detection_bin
+make -f tensorflow/lite/micro/tools/make/Makefile run_person_detection
+```
+
+The `run_person_detection` target will produce continuous output similar
+to the following:
+```
+person score:-72 no person score 72
+```
 
 ## Training your own model
 
