@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,32 @@
 # limitations under the License.
 # ==============================================================================
 
+# Check the download path argument
+#
+# Parameter(s):
+#   ${1} - path to the download directory or --no-downloads
+#
+# Outputs:
+# "yes" or "no"
+function check_should_download() {
+  if [[ ${1} == "--no-downloads" ]]; then
+    echo "no"
+  else
+    echo "yes"
+  fi
+}
+
+# Show the download URL and MD5 checksum
+#
+# Parameter(s):
+#   ${1} - download URL
+#   ${2} - download MD5 checksum
+#
+# Download scripts require informational output should be on stderr.
+function show_download_url_md5() {
+  echo >&2 "LIBRARY_URL=${1}"
+  echo >&2 "LIBRARY_MD5=${2}"
+}
 
 # Compute the MD5 sum.
 #

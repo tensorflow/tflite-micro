@@ -42,3 +42,13 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=etho
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} build
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} test
+
+# run generic benchmark
+readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile \
+  CO_PROCESSOR=ethos_u \
+  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+  TARGET=${TARGET} \
+  TARGET_ARCH=${TARGET_ARCH} \
+  TOOLCHAIN=${TOOLCHAIN} \
+  GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect.tflite \
+  run_tflm_benchmark

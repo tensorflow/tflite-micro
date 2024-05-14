@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,10 +38,6 @@ set -e
 source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
-if [ ! -d ${DOWNLOADS_DIR} ]; then
-  echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
-  exit 1
-fi
 
 if [[ ${2} == "hifi3" ]]; then
   COMMIT="d17bf205dc530a9e1a1d979249520f4401529db1"
@@ -68,42 +64,37 @@ fi
 
 LIBRARY_INSTALL_PATH=${DOWNLOADS_DIR}/${LIBRARY_DIRNAME}
 
-if [ -d ${LIBRARY_INSTALL_PATH} ]; then
+should_download=$(check_should_download ${DOWNLOADS_DIR})
+
+if [[ ${should_download} == "no" ]]; then
+  show_download_url_md5 ${LIBRARY_URL} ${LIBRARY_MD5}
+elif [ ! -d ${DOWNLOADS_DIR} ]; then
+  echo "The top-level downloads directory: ${DOWNLOADS_DIR} does not exist."
+  exit 1
+elif [ -d ${LIBRARY_INSTALL_PATH} ]; then
   echo >&2 "${LIBRARY_INSTALL_PATH} already exists, skipping the download."
 else
   TEMPDIR="$(mktemp -d)"
   TEMPFILE="${TEMPDIR}/${LIBRARY_DIRNAME}.zip"
   wget ${LIBRARY_URL} -O "$TEMPFILE" >&2
-  MD5=`md5sum "$TEMPFILE" | awk '{print $1}'`
+  check_md5 "${TEMPFILE}" ${LIBRARY_MD5}
 
-  if [[ ${MD5} != ${LIBRARY_MD5} ]]
-  then
-    echo "Bad checksum. Expected: ${LIBRARY_MD5}, Got: ${MD5}"
-    exit 1
+  unzip -qo "$TEMPFILE" -d ${TEMPDIR} >&2
+  unzip -qo ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/NDSP_${CORE_NAME}*.zip -d ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/ >&2
+  find ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/* -maxdepth 0 -type d -exec mv {} ${LIBRARY_INSTALL_PATH} \;
+  rm -rf "${TEMPDIR}"
+  # NDSP sources in GitHub currently uses DOS style newlines, which causes compiler errors.
+  find ${LIBRARY_INSTALL_PATH} -type f -exec sed -i.bak 's/\r$//g' {} \;
+
+  pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
+  chmod -R +w ./
+  if [[ -f "../../ext_libs/ndsplib-${2}.patch" ]]; then
+    create_git_repo ./
+    apply_patch_to_folder ./ "../../ext_libs/ndsplib-${2}.patch" "TFLM patch"
   fi
-
-  # Check if another make process has already extracted the downloaded files.
-  # If so, skip extracting and patching.
-  if [ -d ${LIBRARY_INSTALL_PATH} ]; then
-    echo >&2 "${LIBRARY_INSTALL_PATH} already exists, skipping the extraction."
-  else
-    unzip -qo "$TEMPFILE" -d ${TEMPDIR} >&2
-    unzip -qo ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/NDSP_${CORE_NAME}*.zip -d ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/ >&2
-    find ${TEMPDIR}/${LIBRARY_DIRNAME}-${COMMIT}/NDSP_${CORE_NAME}/* -maxdepth 0 -type d -exec mv {} ${LIBRARY_INSTALL_PATH} \;
-    rm -rf "${TEMPDIR}"
-    # NDSP sources in GitHub currently uses DOS style newlines, which causes compiler errors.
-    find ${LIBRARY_INSTALL_PATH} -type f -exec sed -i.bak 's/\r$//g' {} \;
-
-    pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
-    chmod -R +w ./
-    if [[ -f "../../ext_libs/ndsplib-${2}.patch" ]]; then
-      create_git_repo ./
-      apply_patch_to_folder ./ "../../ext_libs/ndsplib-${2}.patch" "TFLM patch"
-    fi
-    # Rename the strings in __renaming__.h to names that are traceable to TFLM.
-    # Note that renaming is disabled by default and must be enabled with -D__RENAMING__
-    sed -i 's/NatureDSP_/NatureDSP_TFLM_/' library/include_private/__renaming__.h
-  fi
+  # Rename the strings in __renaming__.h to names that are traceable to TFLM.
+  # Note that renaming is disabled by default and must be enabled with -D__RENAMING__
+  sed -i 's/NatureDSP_/NatureDSP_TFLM_/' library/include_private/__renaming__.h
 fi
 
 echo "SUCCESS"
