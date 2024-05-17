@@ -46,7 +46,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=visi
 ## Build and run for Cortex-M using Corstone 300 simulator
 Build and run with model compiled into tool:
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile   TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m0   OPTIMIZED_KERNEL_DIR=cmsis_nn   BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 150 \* 1024`
+make -f tensorflow/lite/micro/tools/make/Makefile   TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m4   OPTIMIZED_KERNEL_DIR=cmsis_nn   BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 150 \* 1024`
 ```
 
 ## Build and run using Bazel
@@ -66,20 +66,14 @@ Configured arena size = 153600
 --------------------
 Compiled on:
 
-Thu Mar  7 04:59:13 AM PST 2024
+Fri May 17 03:36:59 PM PDT 2024
 --------------------
-Git SHA: 27b1f546cec03c87deaf2ff94c830f9cbd0f2e69
+Git SHA: a4390a1d73edf5a8d3affa1da60e1eba88e0cb13
 
 Git status:
 
 On branch main
 Your branch is up to date with 'origin/main'.
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-	MODULE.bazel
-	MODULE.bazel.lock
-nothing added to commit but untracked files present (use "git add" to track)
 --------------------
 C compiler: tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin/arm-none-eabi-gcc
 Version:
@@ -93,9 +87,9 @@ Flags:
 
 -Wimplicit-function-declaration -std=c11 -Werror -fno-unwind-tables -ffunction-sections 
 -fdata-sections -fmessage-length=0 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON 
--DCMSIS_NN -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m0 -mfpu=auto 
+-DCMSIS_NN -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto 
 -DTF_LITE_MCU_DEBUG_LOG -mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian 
--fomit-frame-pointer -MD -DARMCM0
+-fomit-frame-pointer -MD -DARMCM4
 
 C++ compiler: tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin/arm-none-eabi-g++
 Version:
@@ -112,31 +106,31 @@ Flags:
 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -Wsign-compare -Wdouble-promotion 
 -Wunused-variable -Wunused-function -Wswitch -Wvla -Wall -Wextra 
 -Wmissing-field-initializers -Wstrict-aliasing -Wno-unused-parameter -DCMSIS_NN 
--DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m0 -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG -mthumb 
--mfloat-abi=soft -funsigned-char -mlittle-endian -fomit-frame-pointer -MD -DARMCM0 
--DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE="ARMCM0.h" 
+-DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG 
+-mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian -fomit-frame-pointer -MD 
+-DARMCM4 -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE="ARMCM4.h" 
 -DGENERIC_BENCHMARK_USING_BUILTIN_MODEL 
 -DGENERIC_BENCHMARK_MODEL_HEADER_PATH="tensorflow/lite/micro/models/person_detect_model_da
 ta.h" -DGENERIC_BENCHMARK_MODEL_NAME=person_detect 
--DGENERIC_BENCHMARK_TENSOR_ARENA_SIZE=153600 -DGENERIC_BENCHMARK_SHOW_META_DATA
+-DGENERIC_BENCHMARK_TENSOR_ARENA_SIZE=153600
 
 Optimization: kernel= -O2  core= -Os  third-party-kernel= -O2
 --------------------
 Target information:
 
 TARGET=cortex_m_corstone_300
-TARGET_ARCH=cortex-m0
+TARGET_ARCH=cortex-m4
 OPTIMIZATION=cmsis_nn
 BUILD_TYPE=default
 --------------------
 NN library download URLs:
 
-http://github.com/ARM-software/CMSIS-NN/archive/8492d82a1a81651977c5f5128492b4a0f0cf6715.z
+http://github.com/ARM-software/CMSIS-NN/archive/01dee38e6d6bfbbf202f0cd425bbea1731747d51.z
 ip
 
 NN library MD5 checksums:
 
-2cb03e4f044b78af6751009cd53247a8
+f20be93ededf42bb704c19f699a24313
 --------------------
 Model SHA1:
 
@@ -241,13 +235,13 @@ type:INT8 RO 1152 bytes, buffer: 71, data:[., ., ., ., Q, ...]
   T#25(MobilenetV1/Conv2d_9_depthwise/depthwise_weights/read) shape:[1, 3, 3, 128], 
 type:INT8 RO 1152 bytes, buffer: 80, data:[^, ., ~, ., ., ...]
   T#26(MobilenetV1/Conv2d_9_pointwise/weights/read) shape:[128, 1, 1, 128], type:INT8 RO 
-16384 bytes, buffer: 16, data:[., .,  , ., , ...]
+16384 bytes, buffer: 16, data:[., .,  , ., %, ...]
   T#27(MobilenetV1/Logits/AvgPool_1a/AvgPool) shape:[1, 1, 1, 256], type:INT8
   T#28(MobilenetV1/Logits/Conv2d_1c_1x1/BiasAdd) shape:[1, 1, 1, 2], type:INT8
   T#29(MobilenetV1/Logits/Conv2d_1c_1x1/Conv2D_bias) shape:[2], type:INT32 RO 8 bytes, 
 buffer: 2, data:[16267, -17079]
   T#30(MobilenetV1/Logits/Conv2d_1c_1x1/weights/read) shape:[2, 1, 1, 256], type:INT8 RO 
-512 bytes, buffer: 3, data:[., , ., ., ., ...]
+512 bytes, buffer: 3, data:[., %, ., ., ., ...]
   T#31(MobilenetV1/Logits/SpatialSqueeze) shape:[1, 2], type:INT8
   T#32(MobilenetV1/Logits/SpatialSqueeze_shape) shape:[2], type:INT32 RO 8 bytes, buffer: 
 1, data:[1, 2]
@@ -336,56 +330,56 @@ RO 512 bytes, buffer: 17, data:[-2063, 10755, -12037, -6417, 2147, ...]
   T#88(input) shape:[1, 96, 96, 1], type:INT8
 ---------------------------------------------------------------
               Model size:     300568 bytes
-    Non-data buffer size:      81640 bytes (27.16 )
-  Total data buffer size:     218928 bytes (72.84 )
-    (Zero value buffers):          0 bytes (00.00 )
+    Non-data buffer size:      81640 bytes (27.16 %)
+  Total data buffer size:     218928 bytes (72.84 %)
+    (Zero value buffers):          0 bytes (00.00 %)
 * Buffers of TFLite model are mostly used for constant tensors.
   And zero value buffers are buffers filled with zeros.
   Non-data buffers area are used to store operators, subgraphs and etc.
   You can find more details from 
 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/schema/schema.fbs
 --------------------
-TfliteGetModel took 0 ticks (0 ms).
+TfliteGetModel took 4 ticks (0 ms).
 
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-DEPTHWISE_CONV_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-AVERAGE_POOL_2D took 0 ticks (0 ms).
-CONV_2D took 0 ticks (0 ms).
-RESHAPE took 0 ticks (0 ms).
-SOFTMAX took 0 ticks (0 ms).
+DEPTHWISE_CONV_2D took 224622 ticks (8 ms).
+DEPTHWISE_CONV_2D took 175917 ticks (7 ms).
+CONV_2D took 249560 ticks (9 ms).
+DEPTHWISE_CONV_2D took 84958 ticks (3 ms).
+CONV_2D took 145817 ticks (5 ms).
+DEPTHWISE_CONV_2D took 164915 ticks (6 ms).
+CONV_2D took 197283 ticks (7 ms).
+DEPTHWISE_CONV_2D took 41304 ticks (1 ms).
+CONV_2D took 99472 ticks (3 ms).
+DEPTHWISE_CONV_2D took 79969 ticks (3 ms).
+CONV_2D took 151505 ticks (6 ms).
+DEPTHWISE_CONV_2D took 20053 ticks (0 ms).
+CONV_2D took 78521 ticks (3 ms).
+DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
+CONV_2D took 132862 ticks (5 ms).
+DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
+CONV_2D took 132865 ticks (5 ms).
+DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
+CONV_2D took 132859 ticks (5 ms).
+DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
+CONV_2D took 132851 ticks (5 ms).
+DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
+CONV_2D took 132853 ticks (5 ms).
+DEPTHWISE_CONV_2D took 9585 ticks (0 ms).
+CONV_2D took 78470 ticks (3 ms).
+DEPTHWISE_CONV_2D took 17473 ticks (0 ms).
+CONV_2D took 143615 ticks (5 ms).
+AVERAGE_POOL_2D took 2229 ticks (0 ms).
+CONV_2D took 386 ticks (0 ms).
+RESHAPE took 28 ticks (0 ms).
+SOFTMAX took 163 ticks (0 ms).
 
 "Unique Tag","Total ticks across all events with that tag."
-DEPTHWISE_CONV_2D, 0
-CONV_2D, 0
-AVERAGE_POOL_2D, 0
-RESHAPE, 0
-SOFTMAX, 0
-"total number of ticks", 0
+DEPTHWISE_CONV_2D, 1009431
+CONV_2D, 1808919
+AVERAGE_POOL_2D, 2229
+RESHAPE, 28
+SOFTMAX, 163
+"total number of ticks", 2820770
 
 [[ Table ]]: Arena
         Arena   Bytes   % Arena
@@ -398,7 +392,7 @@ NonPersistent | 55296 |    65.49
             Eval tensor data |  0 |  1068 |      1068 |    89 |      1.26
       Persistent tensor data |  1 |    64 |        64 |     2 |      0.08
 Persistent quantization data |  2 |    40 |        40 |     4 |      0.05
-      Persistent buffer data |  3 | 25876 |     25704 |    90 |     30.65
+      Persistent buffer data |  3 | 25872 |     25704 |    90 |     30.64
  Tensor variable buffer data |  4 |     0 |         0 |     0 |      0.00
  Node and registration array |  5 |   992 |       992 |    31 |      1.17
               Operation data |  6 |     0 |         0 |     0 |      0.00
@@ -409,11 +403,12 @@ Info: /OSCI/SystemC: Simulation stopped by user.
 [warning ][main@0][01 ns] Simulation stopped by user
 
 --- FVP_MPS3_Corstone_SSE_300 statistics: -------------------------------------
-Simulated time                          : 5.474678s
-User time                               : 1.609473s
-System time                             : 0.123380s
-Wall time                               : 1.892705s
-Performance index                       : 2.89
-FVP_MPS3_Corstone_SSE_300.cpu0          :  78.98 MIPS (   136866941 Inst)
+Simulated time                          : 2.879993s
+User time                               : 2.027100s
+System time                             : 0.135914s
+Wall time                               : 2.663214s
+Performance index                       : 1.08
+cpu0                                    :  27.03 MIPS (    71999848 Inst)
+Memory highwater mark                   : 0x11919000 bytes ( 0.275 GB )
 -------------------------------------------------------------------------------
 ```
