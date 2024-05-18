@@ -43,9 +43,9 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} build
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN} test
 
-# run generic benchmark
+# Run generic benchmark.
+# Instruction cycle counter not functional in simulator for ethos-u co-processor.
 readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile \
-  CO_PROCESSOR=ethos_u \
   OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
   TARGET=${TARGET} \
   TARGET_ARCH=${TARGET_ARCH} \
