@@ -28,13 +28,13 @@ index 2ffea63..adf08ab 100644
    ----------------
    Returned packed value: 
    scl_rsqrt32x32():
--  bits 23…0 fractional part
--  bits 31…24 exponent
+-  bits 23ï¿½0 fractional part
+-  bits 31ï¿½24 exponent
 +  bits 23ï¿½0 fractional part
 +  bits 31ï¿½24 exponent
    scl_rsqrt16x16():
--  bits 15…0 fractional part
--  bits 31…16 exponent
+-  bits 15ï¿½0 fractional part
+-  bits 31ï¿½16 exponent
 +  bits 15ï¿½0 fractional part
 +  bits 31ï¿½16 exponent
  
@@ -104,27 +104,31 @@ diff --git a/library/include_private/fft_real_twiddles.h b/library/include_priva
 index 10cd4b2..eb5765f 100644
 --- a/library/include_private/fft_real_twiddles.h
 +++ b/library/include_private/fft_real_twiddles.h
-@@ -44,7 +44,9 @@
+@@ -44,7 +44,11 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int16_t twiddleSplit[MAX_RFFT_LEN/2];
 diff --git a/library/include_private/fft_real_twiddles_24x24.h b/library/include_private/fft_real_twiddles_24x24.h
 index 3017c61..fd1e2ba 100644
 --- a/library/include_private/fft_real_twiddles_24x24.h
 +++ b/library/include_private/fft_real_twiddles_24x24.h
-@@ -44,7 +44,9 @@
+@@ -44,7 +44,11 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int32_t twiddleSplit24x24[MAX_RFFT_LEN/2];
