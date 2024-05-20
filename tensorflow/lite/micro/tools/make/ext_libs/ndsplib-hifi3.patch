@@ -101,30 +101,40 @@ index 20206e4..74d4d42 100644
  #ifdef __cplusplus
  #define externC extern "C" 
 diff --git a/library/include_private/fft_real_twiddles.h b/library/include_private/fft_real_twiddles.h
-index 10cd4b2..eb5765f 100644
+old mode 100644
+new mode 100755
+index 10cd4b2..6f5c80b
 --- a/library/include_private/fft_real_twiddles.h
 +++ b/library/include_private/fft_real_twiddles.h
-@@ -44,7 +44,9 @@
+@@ -44,8 +44,12 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int16_t twiddleSplit[MAX_RFFT_LEN/2];
+ 
 diff --git a/library/include_private/fft_real_twiddles_24x24.h b/library/include_private/fft_real_twiddles_24x24.h
-index 3017c61..fd1e2ba 100644
+old mode 100644
+new mode 100755
+index 3017c61..257396e
 --- a/library/include_private/fft_real_twiddles_24x24.h
 +++ b/library/include_private/fft_real_twiddles_24x24.h
-@@ -44,7 +44,9 @@
+@@ -44,8 +44,12 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int32_t twiddleSplit24x24[MAX_RFFT_LEN/2];
+ 
