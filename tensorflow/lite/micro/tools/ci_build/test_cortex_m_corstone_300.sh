@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,4 +51,5 @@ readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET_ARCH=${TARGET_ARCH} \
   TOOLCHAIN=${TOOLCHAIN} \
   GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect.tflite \
+  GENERIC_BENCHMARK_ARENA_SIZE=`expr 150 \* 1024` \
   run_tflm_benchmark
