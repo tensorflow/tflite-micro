@@ -65,9 +65,7 @@ cc_library(
     hdrs = [
         "//tensorflow/lite/micro/models:generated_keyword_scrambled_8bit_model_hdr",
     ],
-    visibility = [
-        ":micro_top_level",
-    ],
+    visibility = ["//visibility:private"],
 )
 
 cc_binary(
