@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstdint>
+
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -128,13 +130,18 @@ TfLiteStatus ExpandDimsEval(TfLiteContext* context, TfLiteNode* node) {
       memCopyN(tflite::micro::GetTensorData<float>(output),
                tflite::micro::GetTensorData<float>(input), flat_size);
     } break;
+    case kTfLiteInt16: {
+      memCopyN(tflite::micro::GetTensorData<int16_t>(output),
+               tflite::micro::GetTensorData<int16_t>(input), flat_size);
+    } break;
     case kTfLiteInt8: {
       memCopyN(tflite::micro::GetTensorData<int8_t>(output),
                tflite::micro::GetTensorData<int8_t>(input), flat_size);
     } break;
     default:
       MicroPrintf(
-          "Expand_Dims only currently supports int8 and float32, got %d.",
+          "Expand_Dims only currently supports int8, int16 and float32, got "
+          "%d.",
           input->type);
       return kTfLiteError;
   }
