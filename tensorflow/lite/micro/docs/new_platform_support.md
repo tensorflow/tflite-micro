@@ -77,7 +77,7 @@ These can be placed anywhere in your directory tree. The only requirement is
 that when linking TFLM into a binary, the implementations of the functions in
 [debug\_log.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.h),
 [micro\_time.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_time.h)
-and [system\_setup.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.h)
+and [system\_setup.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/system_setup.h)
 can be found.
 
 For example, the implementations of these functions for:
