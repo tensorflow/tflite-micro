@@ -390,9 +390,9 @@ class LstmNodeContent {
   int state_size_[3] = {2, batch_size, state_dimension};
 
   // see lstm_shared.h for tensor names, the last tensor is the output tensor
-  TfLiteTensor tensors_[24 + 1];
+  TfLiteTensor tensors_[24 + 1] = {};
   // Use for internel kernel testing
-  TfLiteEvalTensor eval_tensors_[24 + 1];
+  TfLiteEvalTensor eval_tensors_[24 + 1] = {};
   // indices for the tensors inside the node (required by kernel runner)
   int input_tensor_indices_[1 + 24] = {};
   // single output (last in the tensors array)
