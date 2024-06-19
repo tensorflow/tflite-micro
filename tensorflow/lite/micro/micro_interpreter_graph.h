@@ -87,8 +87,8 @@ class MicroInterpreterGraph : public MicroGraph {
   int GetCurrentSubgraphIndex() { return current_subgraph_index_; }
 
   // Get the current operator index inside a subgraph.
-  // The couple GetCurrentSubgraphIndex GetCurrentSubgraphIndex creates a unique identifier 
-  // of the operator inside the subgraph
+  // The couple GetCurrentSubgraphIndex GetCurrentSubgraphIndex creates a unique
+  // identifier of the operator inside the subgraph
   int GetCurrentOperatorIndex() { return current_operator_index_; }
 
   // Gets the list of allocations for each subgraph. This is the source of truth
