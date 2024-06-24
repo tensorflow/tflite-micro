@@ -60,8 +60,7 @@ if [ ! -f ${CONVERTED_PERSON_MODEL_INT8} ]; then
     TEMPFILE=$(mktemp -d)/
     python3 -m venv $TEMPFILE
     source $TEMPFILE/bin/activate
-    python3 -m pip install --upgrade pip >&2
-    pip install --upgrade cython >&2
+    pip install numpy==1.26.4 >&2
     pip install --prefer-binary ethos-u-vela >&2
   fi
 
