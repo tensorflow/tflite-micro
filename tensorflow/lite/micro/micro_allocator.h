@@ -250,6 +250,15 @@ class MicroAllocator {
 
   TfLiteBridgeBuiltinDataAllocator* GetBuiltinDataAllocator();
 
+#if defined(__m5280) && __m5280 == 1
+public:
+  TfLiteIntArray *FlatBufferVectorToTfLiteTypeArray(
+      const flatbuffers::Vector<int32_t>* flatbuffer_array);
+  
+  TfLiteFloatArray *FlatBufferVectorToTfLiteTypeArray(
+      const flatbuffers::Vector<float>* flatbuffer_array);
+#endif
+
  protected:
   MicroAllocator(SingleArenaBufferAllocator* memory_allocator,
                  MicroMemoryPlanner* memory_planner);
