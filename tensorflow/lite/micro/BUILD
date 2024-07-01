@@ -405,6 +405,20 @@ tflm_cc_library(
     ],
 )
 
+tflm_cc_library(
+    name = "hexdump",
+    srcs = [
+        "hexdump.cc",
+    ],
+    hdrs = [
+        "hexdump.h",
+    ],
+    deps = [
+        ":span",
+        ":static_vector",
+    ],
+)
+
 tflm_cc_test(
     name = "micro_log_test",
     srcs = [
@@ -623,6 +637,18 @@ tflm_cc_test(
     ],
     deps = [
         ":static_vector",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "hexdump_test",
+    size = "small",
+    srcs = [
+        "hexdump_test.cc",
+    ],
+    deps = [
+        ":hexdump",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
