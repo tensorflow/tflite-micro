@@ -10,6 +10,7 @@
 
 TARGET_ARCH :=
 XTENSA_USE_LIBC :=
+XTENSA_INCLUDE_FLOAT_OPT := 1
 
 # Allow additional flags on the command line for debugging.
 XTENSA_EXTRA_CFLAGS :=
@@ -28,6 +29,11 @@ endif
 
 ifeq ($(TARGET_ARCH), )
   $(error TARGET_ARCH must be specified on the command line)
+endif
+
+ifeq ($(XTENSA_INCLUDE_FLOAT_OPT), 1)
+  CXXFLAGS += -DFLOAT_OPT_FLAG=1
+  CCFLAGS += -DFLOAT_OPT_FLAG=1
 endif
 
 # Create a cflag based on the specified TARGET_ARCH. For example:

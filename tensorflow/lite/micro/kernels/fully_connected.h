@@ -90,15 +90,16 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT8() {
 
 #endif
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int16.
 TFLMRegistration Register_FULLY_CONNECTED_INT16();
 
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 and int4 packed kernels.
+#if !(defined(XTENSA))
 TFLMRegistration Register_FULLY_CONNECTED_INT4();
-
+#endif
 #else
 // Note that while this block gets used for both reference and optimized kernels
 // that do not have any specialized implementations, the only goal here is to
@@ -113,6 +114,10 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
   return Register_FULLY_CONNECTED();
 }
 
+#endif
+
+#if defined(XTENSA)
+TFLMRegistration Register_FULLY_CONNECTED_FLOAT32();
 #endif
 
 }  // namespace tflite
