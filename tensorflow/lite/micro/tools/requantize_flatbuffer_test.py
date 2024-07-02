@@ -62,6 +62,7 @@ def convert_tfl_converter(keras_model,
   converter.representative_dataset = representative_dataset_gen
   # TODO(b/324385802): Support per-channel quantization for FullyConnected.
   converter._experimental_disable_per_channel_quantization_for_dense_layers = True
+  converter._experimental_disable_per_channel = True
   return converter.convert()
 
 
