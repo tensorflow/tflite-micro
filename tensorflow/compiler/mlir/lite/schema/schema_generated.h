@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,9 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_SCHEMA_SCHEMA_UTILS_H_
-#define TENSORFLOW_LITE_SCHEMA_SCHEMA_UTILS_H_
+#ifndef TENSORFLOW_COMPILER_MLIR_LITE_SCHEMA_SCHEMA_GENERATED_H_
+#define TENSORFLOW_COMPILER_MLIR_LITE_SCHEMA_SCHEMA_GENERATED_H_
 
-#include "tensorflow/compiler/mlir/lite/schema/schema_utils.h"  // IWYU pragma: keep
+// This file should only be used by the make build to redirect schema_utils.cc
+// usage of the generated schema to the proper location.
+#include "tensorflow/lite/schema/schema_generated.h"  // IWYU pragma: keep
 
 #endif  // TENSORFLOW_LITE_SCHEMA_SCHEMA_UTILS_H_

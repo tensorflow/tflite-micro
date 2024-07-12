@@ -7,17 +7,19 @@ package(
     licenses = ["notice"],
 )
 
-# Note: when wanting to generate the schema_generated.h, you must build as:
-# bazel build schema_fbs_srcs.
+exports_files(
+    srcs = ["schema.fbs"],
+)
+
 flatbuffer_cc_library(
     name = "schema_fbs",
-    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
+    srcs = ["schema.fbs"],
 )
 
 # Generic schema for inference on device (but with reflections makes bigger).
 flatbuffer_cc_library(
     name = "schema_fbs_with_reflection",
-    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
+    srcs = ["schema.fbs"],
     flatc_args = [
         "--reflect-types",
         "--reflect-names",
@@ -29,8 +31,11 @@ flatbuffer_cc_library(
 
 cc_library(
     name = "schema_utils",
+    srcs = ["schema_utils.cc"],
     hdrs = ["schema_utils.h"],
     deps = [
-        "//tensorflow/compiler/mlir/lite/schema:schema_utils",
+        ":schema_fbs",
+        "//tensorflow/compiler/mlir/lite/kernels/internal:compatibility_macros",
+        "@flatbuffers//:runtime_cc",
     ],
 )
