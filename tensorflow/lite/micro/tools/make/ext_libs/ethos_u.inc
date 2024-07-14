@@ -67,8 +67,8 @@ else ifeq ($(ETHOSU_ARCH), u65)
 else
   $(error "ETHOSU_ARCH=$(ETHOSU_ARCH) is not supported")
 endif
-CCFLAGS += ${ETHOSU_FLAGS}
-CXXFLAGS += ${ETHOSU_FLAGS}
+CCFLAGS += ${ETHOSU_FLAGS} ${ETHOSU_EXTRA_FLAGS}
+CXXFLAGS += ${ETHOSU_FLAGS} ${ETHOSU_EXTRA_FLAGS}
 
 # Convert downloaded person detect int8 model.
 $(GENERATED_SRCS_DIR)tensorflow/lite/micro/models/person_detect_model_data_vela.cc:
