@@ -30,7 +30,10 @@ endif
 ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH := $(MAKEFILE_DIR)/downloads/ethos_u_core_driver
 ETHOSU_DRIVER_PATH := $(ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH)
 ifeq ($(ETHOSU_DRIVER_PATH), $(ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH))
-  $(call $(or $(shell $(DOWNLOAD_SCRIPT) $(ETHOSU_URL) $(ETHOSU_MD5) $(ETHOSU_DRIVER_PATH) >&2 && echo SUCCESS), $(error $(DOWNLOAD_SCRIPT) failed)))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ethos_u_core_driver_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error $(DOWNLOAD_SCRIPT) failed)
+  endif
 endif
 
 THIRD_PARTY_CC_HDRS += $(shell find $(ETHOSU_DRIVER_PATH)/include -name "*.h")
