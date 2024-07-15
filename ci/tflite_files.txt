@@ -1,3 +1,6 @@
+tensorflow/compiler/mlir/lite/schema/schema.fbs
+tensorflow/compiler/mlir/lite/schema/schema_utils.h
+tensorflow/compiler/mlir/lite/schema/schema_utils.cc
 tensorflow/lite/array.h
 tensorflow/lite/array.cc
 tensorflow/lite/builtin_op_data.h
@@ -12,7 +15,6 @@ tensorflow/lite/kernels/internal/quantization_util.cc
 tensorflow/lite/kernels/internal/tensor_ctypes.cc
 tensorflow/lite/kernels/internal/reference/comparisons.cc
 tensorflow/lite/kernels/kernel_util.cc
-tensorflow/lite/schema/schema_utils.cc
 tensorflow/lite/c/builtin_op_data.h
 tensorflow/lite/c/c_api_types.h
 tensorflow/lite/c/common.h
@@ -108,7 +110,6 @@ tensorflow/lite/kernels/padding.h
 tensorflow/lite/portable_type_to_tflitetype.h
 tensorflow/lite/python/schema_util.py
 tensorflow/lite/schema/schema_utils.h
-tensorflow/lite/schema/schema.fbs
 tensorflow/lite/tools/flatbuffer_utils.py
 tensorflow/lite/tools/flatbuffer_utils_test.py
 tensorflow/lite/tools/randomize_weights.py
