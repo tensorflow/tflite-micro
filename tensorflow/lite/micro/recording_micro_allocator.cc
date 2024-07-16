@@ -78,9 +78,14 @@ RecordedAllocation RecordingMicroAllocator::GetRecordedAllocation(
       return recorded_node_and_registration_array_data_;
     case RecordedAllocationType::kOpData:
       return recorded_op_data_;
+    // the function MicroPrintf was never reached outside the switch, because
+    // each case has a return. As the intention of the MicroPrintf is to be
+    // called when no matching case is found, a default case was added to
+    // contemplate an invalid allocation type
+    default:
+      MicroPrintf("Invalid allocation type supplied: %d", allocation_type);
+      return RecordedAllocation();
   }
-  MicroPrintf("Invalid allocation type supplied: %d", allocation_type);
-  return RecordedAllocation();
 }
 
 const RecordingSingleArenaBufferAllocator*

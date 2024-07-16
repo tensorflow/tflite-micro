@@ -129,7 +129,8 @@ class AllocationInfoBuilder {
 
   const tflite::Model* model_ = nullptr;
   INonPersistentBufferAllocator* non_persistent_allocator_ = nullptr;
-  GraphAllocationInfo info_;
+  GraphAllocationInfo info_ =
+      {};  // Prevents problems caused by accessing uninitialized memory.
   int allocation_scope_count_ = 0;
 };
 
