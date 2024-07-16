@@ -48,8 +48,6 @@ MicroInterpreterGraph::MicroInterpreterGraph(
       resource_variables_(resource_variables) {
   if (model != nullptr) {
     subgraphs_ = model->subgraphs();
-  } else {
-    subgraphs_ = nullptr; // Initialize "subgraphs_" based on the value of "model". If "model" is not null, set "subgraphs_" to point to its subgraphs. Otherwise, set it to null to avoid dereferencing a null pointer.
   }
 }
 

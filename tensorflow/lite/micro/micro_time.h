@@ -28,7 +28,8 @@ uint32_t GetCurrentTimeTicks();
 
 inline uint32_t TicksToMs(int32_t ticks) {
   uint32_t _ticks_per_second = ticks_per_second();
-  _ticks_per_second = _ticks_per_second > 0 ? _ticks_per_second : 1; // zero divide prevention
+  _ticks_per_second =
+      _ticks_per_second > 0 ? _ticks_per_second : 1;  // zero divide prevention
   return static_cast<uint32_t>(1000.0f * static_cast<float>(ticks) /
                                static_cast<float>(_ticks_per_second));
 }
