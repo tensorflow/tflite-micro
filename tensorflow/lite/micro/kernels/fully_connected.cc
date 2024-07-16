@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
       (input->type == kTfLiteInt8 &&
        (filter->type != kTfLiteInt8 && filter->type != kTfLiteInt4)) ||
       (input->type == kTfLiteInt16 && filter->type != kTfLiteInt8)) {
-    MicroPrintf("Input type: %s with filter type : %s not supported.",
+    MicroPrintf("Input type: %s with filter type: %s not supported.",
                 TfLiteTypeGetName(input->type),
                 TfLiteTypeGetName(filter->type));
     return kTfLiteError;
@@ -78,6 +78,23 @@ TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, CalculateOpDataFullyConnected(
                                  context, params->activation, input->type,
                                  input, filter, bias, output, data));
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Compression scratch buffers.
+  // These will only be allocated if the tensor is compressed.
+  if (micro_context->IsTensorCompressed(node, kFullyConnectedWeightsTensor) &&
+      filter->type == kTfLiteInt4) {
+    MicroPrintf("Compression not supported with INT4 tensors");
+    return kTfLiteError;
+  }
+  data->weights_scratch_index =
+      micro_context->AllocateDecompressionScratchBuffer(
+          node, kFullyConnectedWeightsTensor);
+  data->bias_scratch_index = micro_context->AllocateDecompressionScratchBuffer(
+      node, kFullyConnectedBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
@@ -102,8 +119,20 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-  TFLITE_DCHECK(node->user_data != nullptr);
+#ifdef USE_TFLM_COMPRESSION
 
+  // TODO(ddavis-2015): make micro_context a const pointer
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node,
+                                              kFullyConnectedWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
+
+  TFLITE_DCHECK(node->user_data != nullptr);
   const auto& data =
       *(static_cast<const OpDataFullyConnected*>(node->user_data));
 
@@ -115,9 +144,18 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(filter),
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<float>(micro_context, filter,
+                                              weights_comp_td,
+                                              data.weights_scratch_index),
+          tflite::micro::GetTensorShape(bias),
+          tflite::micro::GetTensorData<float>(micro_context, bias, bias_comp_td,
+                                              data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorData<float>(filter),
           tflite::micro::GetTensorShape(bias),
           tflite::micro::GetOptionalTensorData<float>(bias),
+#endif  // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output));
       break;
@@ -149,9 +187,18 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int8_t>(input),
               tflite::micro::GetTensorShape(filter),
+#ifdef USE_TFLM_COMPRESSION
+              tflite::micro::GetTensorData<int8_t>(micro_context, filter,
+                                                   weights_comp_td,
+                                                   data.weights_scratch_index),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetTensorData<int32_t>(
+                  micro_context, bias, bias_comp_td, data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorData<int8_t>(filter),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
+#endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
           break;
@@ -173,9 +220,18 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int16_t>(input),
               tflite::micro::GetTensorShape(filter),
+#ifdef USE_TFLM_COMPRESSION
+              tflite::micro::GetTensorData<int8_t>(micro_context, filter,
+                                                   weights_comp_td,
+                                                   data.weights_scratch_index),
+              tflite::micro::GetTensorShape(bias),
+              tflite::micro::GetTensorData<int64_t>(
+                  micro_context, bias, bias_comp_td, data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorData<int8_t>(filter),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int64_t>(bias),
+#endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int16_t>(output));
           break;

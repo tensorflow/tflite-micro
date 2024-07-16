@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,8 +18,29 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+
+namespace {
+
+#ifdef USE_TFLM_COMPRESSION
+
+int GetInputTensorIndex(const TfLiteNode* node, const int index) {
+  if (index >= 0 && index < node->inputs->size) {
+    const int tensor_index = node->inputs->data[index];
+    if (tensor_index != kTfLiteOptionalTensor) {
+      return tensor_index;
+    }
+  }
+  return -1;
+}
+
+#endif  // USE_TFLM_COMPRESSION
+
+}  // namespace
+
 MicroInterpreterContext::MicroInterpreterContext(MicroAllocator* allocator,
                                                  const Model* model,
                                                  MicroInterpreterGraph* graph)
@@ -105,5 +126,84 @@ MicroInterpreterContext::InterpreterState
 MicroInterpreterContext::GetInterpreterState() const {
   return state_;
 }
+
+#ifdef USE_TFLM_COMPRESSION
+
+// Available during Prepare & Eval. Returns false if tensor is not
+// compressed.
+bool MicroInterpreterContext::IsTensorCompressed(const TfLiteNode* node,
+                                                 int tensor_idx) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
+
+  const SubgraphAllocations* allocations =
+      &graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()];
+  if (allocations->compressed.tensors == nullptr) {
+    return false;
+  }
+  int index = GetInputTensorIndex(node, tensor_idx);
+  if (index == -1) {
+    return false;
+  }
+  return allocations->compressed.tensors[index] != nullptr;
+}
+
+// Only available during Prepare. The kernel is responsible for storing the
+// scratch buffer handle.
+int MicroInterpreterContext::AllocateDecompressionScratchBuffer(
+    const TfLiteNode* node, int tensor_idx) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
+
+  const SubgraphAllocations* allocations =
+      &graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()];
+  if (allocations->compressed.tensors == nullptr) {
+    return -1;
+  }
+  int index = GetInputTensorIndex(node, tensor_idx);
+  if (index == -1 || allocations->compressed.tensors[index] == nullptr) {
+    return -1;
+  }
+  const TfLiteEvalTensor* tensor = &allocations->tensors[index];
+  const size_t byte_count = EvalTensorBytes(tensor);
+  int scratch_index = -1;
+  TfLiteStatus result = RequestScratchBufferInArena(byte_count, &scratch_index);
+  if (result != kTfLiteOk) {
+    return -1;
+  }
+
+  return scratch_index;
+}
+
+// Available during Prepare & Eval. Returns nullptr if tensor is not
+// compressed.
+const CompressionTensorData* MicroInterpreterContext::GetTensorCompressionData(
+    const TfLiteNode* node, int tensor_idx) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
+
+  const SubgraphAllocations* allocations =
+      &graph_.GetAllocations()[graph_.GetCurrentSubgraphIndex()];
+  if (allocations->compressed.tensors == nullptr) {
+    return nullptr;
+  }
+  int index = GetInputTensorIndex(node, tensor_idx);
+  if (index == -1) {
+    return nullptr;
+  }
+  return allocations->compressed.tensors[index];
+}
+
+// Only available during Eval. Returns nullptr on failure, otherwise returns a
+// pointer to the scratch buffer.
+void* MicroInterpreterContext::DecompressTensorToScratchBuffer(
+    const TfLiteEvalTensor& tensor,
+    const CompressionTensorData& compression_data, int scratch_buffer_handle) {
+  TFLITE_DCHECK(state_ == InterpreterState::kInvoke);
+
+  return MicroContext::DecompressTensorToScratchBuffer(tensor, compression_data,
+                                                       scratch_buffer_handle);
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace tflite

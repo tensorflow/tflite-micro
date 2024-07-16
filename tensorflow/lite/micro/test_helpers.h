@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -112,6 +112,15 @@ TfLiteStatus GetTestingOpResolver(TestingOpResolver& op_resolver);
 // 1 layer of weights, 1 output Tensor, and 1 operator.
 const Model* GetSimpleMockModel();
 
+#ifdef USE_TFLM_COMPRESSION
+
+// Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
+// 1 layer of weights, 1 output Tensor, and 1 operator (BroadcastAddOp).  The
+// weights tensor is compressed.
+const Model* GetSimpleMockModelCompressed();
+
+#endif  // USE_TFLM_COMPRESSION
+
 // Returns a flatbuffer TensorFlow Lite model with more inputs, variable
 // tensors, and operators.
 const Model* GetComplexMockModel();
@@ -220,8 +229,6 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
   result.is_variable = is_variable;
   result.allocation_type = kTfLiteMemNone;
   result.data.data = const_cast<T*>(data);
-  result.bytes = ElementCount(*dims) * sizeof(T);
-  result.data.data = const_cast<T*>(data);
 
   if (type == kTfLiteInt4) {
     result.type = kTfLiteInt4;
@@ -233,7 +240,13 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
     // a single CreateTensor method. A Const array should be used for immutable
     // input tensors and non-const array should be used for mutable and output
     // tensors.
-    result.type = typeToTfLiteType<T>();
+    if (type == kTfLiteNoType) {
+      result.type = typeToTfLiteType<T>();
+    } else {
+      result.type = type;
+    }
+
+    result.bytes = ElementCount(*dims) * TfLiteTypeGetSize(result.type);
   }
   return result;
 }
@@ -260,37 +273,106 @@ TfLiteTensor CreateQuantizedTensor(const float* input, T* quantized,
                                type);
 }
 
+// TODO(ddavis-2015): remove
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int16_t* quantized,
                                        TfLiteIntArray* dims, float input_scale,
                                        float weights_scale,
                                        bool is_variable = false);
 
+// TODO(ddavis-2015): remove
 TfLiteTensor CreateQuantizedBiasTensor(const float* data, int32_t* quantized,
                                        TfLiteIntArray* dims, float input_scale,
                                        float weights_scale,
                                        bool is_variable = false);
 
+// TODO(ddavis-2015): remove
 TfLiteTensor CreateQuantizedBiasTensor(const float* data,
                                        std::int64_t* quantized,
                                        TfLiteIntArray* dims, float input_scale,
                                        float weights_scale,
                                        bool is_variable = false);
 
-// Quantizes int32_t bias tensor with per-channel weights determined by input
-// scale multiplied by weight scale for each channel.
+// Creates bias tensor with pre-calculated compressed input data and per-channel
+// weights determined by input scale multiplied by weight scale for each
+// channel.
+template <typename T>
 TfLiteTensor CreatePerChannelQuantizedBiasTensor(
-    const float* input, int32_t* quantized, TfLiteIntArray* dims,
-    float input_scale, float* weight_scales, float* scales, int* zero_points,
-    TfLiteAffineQuantization* affine_quant, int quantized_dimension,
-    bool is_variable = false);
+    const T* input_data, TfLiteIntArray* dims, float input_scale,
+    const TfLiteFloatArray* weight_scales, TfLiteFloatArray* scales,
+    TfLiteIntArray* zero_points, TfLiteAffineQuantization* affine_quant,
+    int quantized_dimension, bool is_variable = false,
+    TfLiteType type = kTfLiteNoType) {
+  int num_channels = dims->data[quantized_dimension];
+  zero_points->size = num_channels;
+  scales->size = num_channels;
+  for (int i = 0; i < num_channels; i++) {
+    scales->data[i] = input_scale * weight_scales->data[i];
+    zero_points->data[i] = 0;
+    MicroPrintf("index %d scales %f zero_point %d input scale %f weight %f", i,
+                (double)scales->data[i], zero_points->data[i],
+                (double)input_scale, (double)weight_scales->data[i]);
+  }
 
-// Quantizes int64_t bias tensor with per-channel weights determined by input
+  affine_quant->scale = scales;
+  affine_quant->zero_point = zero_points;
+  affine_quant->quantized_dimension = quantized_dimension;
+
+  TfLiteTensor result = CreateTensor(input_data, dims, is_variable, type);
+  result.quantization = {kTfLiteAffineQuantization, affine_quant};
+  return result;
+}
+
+// Quantizes bias tensor with per-channel weights determined by input
 // scale multiplied by weight scale for each channel.
+template <typename T>
 TfLiteTensor CreatePerChannelQuantizedBiasTensor(
-    const float* input, std::int64_t* quantized, TfLiteIntArray* dims,
-    float input_scale, float* weight_scales, float* scales, int* zero_points,
+    const float* input, T* quantized, TfLiteIntArray* dims, float input_scale,
+    const float* weight_scales, float* scales, int* zero_points,
     TfLiteAffineQuantization* affine_quant, int quantized_dimension,
-    bool is_variable = false);
+    bool is_variable = false) {
+  int input_size = ElementCount(*dims);
+  int num_channels = dims->data[quantized_dimension];
+  // First element is reserved for array length
+  zero_points[0] = num_channels;
+  scales[0] = static_cast<float>(num_channels);
+  float* scales_array = &scales[1];
+  for (int i = 0; i < num_channels; i++) {
+    scales_array[i] = input_scale * weight_scales[i];
+    zero_points[i + 1] = 0;
+    MicroPrintf("index %d scales %f zero_point %d input scale %f weight %f", i,
+                (double)scales_array[i], zero_points[i + 1],
+                (double)input_scale, (double)weight_scales[i]);
+  }
+
+  SymmetricPerChannelQuantize<T>(input, quantized, input_size, num_channels,
+                                 scales_array);
+
+  affine_quant->scale = FloatArrayFromFloats(scales);
+  affine_quant->zero_point = IntArrayFromInts(zero_points);
+  affine_quant->quantized_dimension = quantized_dimension;
+
+  TfLiteTensor result = CreateTensor(quantized, dims, is_variable);
+  result.quantization = {kTfLiteAffineQuantization, affine_quant};
+  int64_t data0 = quantized[0];
+  MicroPrintf("quantp %p data %f data quantized %lld", affine_quant,
+              (double)input[0], data0);
+  return result;
+}
+
+template <typename T>
+TfLiteTensor CreatePerChannelQuantizedTensor(
+    const T* quantized, TfLiteIntArray* dims, TfLiteFloatArray* scales,
+    TfLiteIntArray* zero_points, TfLiteAffineQuantization* affine_quant,
+    int quantized_dimension, bool is_variable = false,
+    TfLiteType type = kTfLiteNoType) {
+  affine_quant->scale = scales;
+  affine_quant->zero_point = zero_points;
+  affine_quant->quantized_dimension = quantized_dimension;
+
+  TfLiteTensor result = CreateTensor(quantized, dims, is_variable, type);
+  result.quantization = {kTfLiteAffineQuantization, affine_quant};
+  return result;
+}
 
 TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,

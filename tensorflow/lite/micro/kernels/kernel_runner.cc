@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -38,12 +38,22 @@ KernelRunner::KernelRunner(const TFLMRegistration& registration,
                            TfLiteTensor* tensors, int tensors_size,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
                            const void* builtin_data,
-                           TfLiteIntArray* intermediates)
+                           TfLiteIntArray* intermediates
+#ifdef USE_TFLM_COMPRESSION
+                           ,
+                           const CompressedTensorList* compressed_tensors
+#endif  // USE_TFLM_COMPRESSION
+                           )
     : registration_(registration),
       allocator_(SingleArenaBufferAllocator::Create(kKernelRunnerBuffer_,
                                                     kKernelRunnerBufferSize_)),
       mock_micro_graph_(allocator_),
-      fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
+      fake_micro_context_(tensors, allocator_, &mock_micro_graph_
+#ifdef USE_TFLM_COMPRESSION
+                          ,
+                          compressed_tensors
+#endif  // USE_TFLM_COMPRESSION
+      ) {
   // Prepare TfLiteContext:
   context_.impl_ = static_cast<void*>(&fake_micro_context_);
   context_.ReportError = MicroContextReportOpError;
