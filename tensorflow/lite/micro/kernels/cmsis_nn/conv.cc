@@ -67,11 +67,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteType bias_type = bias != nullptr ? bias->type : kTfLiteNoType;
 
   TF_LITE_ENSURE_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_MSG(context,
+                     input->type == kTfLiteFloat32 ||
+                         input->type == kTfLiteInt16 ||
+                         input->type == kTfLiteInt8,
+                     "Input data type not supported");
   TF_LITE_ENSURE_MSG(
       context,
-      input->type == filter->type ||
+      (input->type == kTfLiteFloat32 && filter->type == kTfLiteFloat32) ||
           (input->type == kTfLiteInt16 && filter->type == kTfLiteInt8) ||
-          (input->type == kTfLiteInt8 && filter->type == kTfLiteInt4),
+          (input->type == kTfLiteInt8 &&
+           (filter->type == kTfLiteInt4 || filter->type == kTfLiteInt8)),
       "Hybrid models are not supported on TFLite Micro.");
 
   // Consistency check tensor dims
