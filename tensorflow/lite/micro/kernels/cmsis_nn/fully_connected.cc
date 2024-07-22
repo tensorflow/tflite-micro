@@ -76,7 +76,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_MSG(context,
+                     input->type == kTfLiteFloat32 ||
+                         input->type == kTfLiteInt16 ||
+                         input->type == kTfLiteInt8,
+                     "Input data type not supported");
+  TF_LITE_ENSURE_MSG(
+      context,
+      (input->type == kTfLiteFloat32 && filter->type == kTfLiteFloat32) ||
+          (input->type == kTfLiteInt16 && filter->type == kTfLiteInt8) ||
+          (input->type == kTfLiteInt8 &&
+           (filter->type == kTfLiteInt4 || filter->type == kTfLiteInt8)),
+      "Hybrid models are not supported on TFLite Micro.");
 
   const RuntimeShape filter_shape = GetTensorShape(filter);
   const RuntimeShape output_shape = GetTensorShape(output);
@@ -125,7 +137,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       input_dims.c = data->accum_depth;
 
       buf_size = arm_convolve_1x1_s8_fast_get_buffer_size(&input_dims);
-    } else {
+    } else if (input->type == kTfLiteInt8) {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
 
       int8_t* filter_data = GetTensorData<int8_t>(filter);

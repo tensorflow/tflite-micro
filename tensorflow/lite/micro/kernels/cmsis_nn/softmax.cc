@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -51,6 +51,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumDimensions(input) >= 1);
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_MSG(
+      context,
+      input->type == output->type ||
+          (input->type == kTfLiteInt8 && output->type == kTfLiteInt16),
+      "Input and output data types are not supported together.");
+  TF_LITE_ENSURE_MSG(context,
+                     input->type == kTfLiteFloat32 ||
+                         input->type == kTfLiteInt16 ||
+                         input->type == kTfLiteInt8,
+                     "Input data type not supported");
 
   TF_LITE_ENSURE(context, node->user_data != nullptr);
   CMSISNNSoftmaxParams* op_data =
