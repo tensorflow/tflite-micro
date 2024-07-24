@@ -402,6 +402,12 @@ cc_library(
 )
 
 cc_library(
+    name = "span",
+    hdrs = ["span.h"],
+    copts = micro_copts(),
+)
+
+cc_library(
     name = "system_setup",
     srcs = [
         "system_setup.cc",

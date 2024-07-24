@@ -19,24 +19,9 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/span.h"
 
 namespace tflite {
-
-// A poor man's std::span, we should consider using the Pigweed span instead.
-template <typename T>
-class Span {
- public:
-  constexpr Span(T* data, size_t size) noexcept : data_(data), size_(size) {}
-
-  constexpr T& operator[](size_t idx) const noexcept { return *(data_ + idx); }
-
-  constexpr T* data() const noexcept { return data_; }
-  constexpr size_t size() const noexcept { return size_; }
-
- private:
-  T* data_;
-  size_t size_;
-};
 
 struct Subgraph {
   Span<const size_t> inputs;
