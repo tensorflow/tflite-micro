@@ -40,5 +40,3 @@ EMBARC_MLI_PRE_COMPILED_URL := "https://github.com/foss-for-synopsys-dwc-arc-pro
 EMBARC_MLI_PRE_COMPILED_MD5 := "173990c2dde4efef6a2c95b92d1f0244"
 
 # Skip md5sum-check since ethos-u-core-driver download link is non-deterministic, see  https://github.com/google/gitiles/issues/84
-ETHOSU_URL := "https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-core-driver/+archive/24455eedb9e8939f8a28ca0101a6f2d171e1b2f9.tar.gz"
-ETHOSU_MD5 := "SKIP_MD5_CHECK"
