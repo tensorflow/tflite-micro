@@ -14,5 +14,6 @@ cc_library(
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_graph",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:span",
     ],
 )
