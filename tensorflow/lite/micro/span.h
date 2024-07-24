@@ -13,8 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// A poor man's std::span, we should consider using the Pigweed span instead.
-
 #ifndef TENSORFLOW_LITE_MICRO_SPAN_H_
 #define TENSORFLOW_LITE_MICRO_SPAN_H_
 
@@ -22,6 +20,7 @@ limitations under the License.
 
 namespace tflite {
 
+// A poor man's std::span, we should consider using the Pigweed span instead.
 template <typename T>
 class Span {
  public:
