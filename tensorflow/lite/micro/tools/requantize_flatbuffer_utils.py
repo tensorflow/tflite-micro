@@ -24,7 +24,7 @@ TENSOR_CODE_TYPE = {
     TensorType.INT32: np.int32,
     TensorType.UINT8: np.uint8,
     TensorType.INT64: np.int64,
-    TensorType.STRING: np.string_,
+    TensorType.STRING: np.bytes_,
     TensorType.BOOL: np.bool_,
     TensorType.INT16: np.int16,
     TensorType.COMPLEX64: np.complex64,
