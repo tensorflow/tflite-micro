@@ -264,7 +264,7 @@ def _numpy_from_tensor_type(tensor_type_idx):
       schema_fb.TensorType.INT32: np.int32,
       schema_fb.TensorType.UINT8: np.uint8,
       schema_fb.TensorType.INT64: np.int64,
-      schema_fb.TensorType.STRING: np.string_,
+      schema_fb.TensorType.STRING: np.bytes_,
       schema_fb.TensorType.BOOL: np.bool_,
       schema_fb.TensorType.INT16: np.int16,
       schema_fb.TensorType.COMPLEX64: np.complex64,
