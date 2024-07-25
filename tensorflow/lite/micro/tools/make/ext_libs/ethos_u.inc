@@ -38,7 +38,14 @@ endif
 
 THIRD_PARTY_CC_HDRS += $(shell find $(ETHOSU_DRIVER_PATH)/include -name "*.h")
 ifeq (,$(ETHOSU_DRIVER_LIBS))
-    THIRD_PARTY_CC_SRCS += $(shell find $(ETHOSU_DRIVER_PATH)/src -name "*.c")
+    THIRD_PARTY_CC_SRCS = $(ETHOSU_DRIVER_PATH)/src/ethosu_pmu.c \
+                          $(ETHOSU_DRIVER_PATH)/src/ethosu_driver.c
+    # Add the Ethos-U device-specific driver source.
+    ifeq ($(ETHOSU_ARCH), u85)
+      THIRD_PARTY_CC_SRCS += $(ETHOSU_DRIVER_PATH)/src/ethosu_device_u85.c
+    else
+      THIRD_PARTY_CC_SRCS += $(ETHOSU_DRIVER_PATH)/src/ethosu_device_u55_u65.c
+    endif
 else
     MICROLITE_LIBS += $(ETHOSU_DRIVER_LIBS)
 endif
