@@ -47,7 +47,7 @@ struct LookupTableData {
 };
 
 union CompressionData {
-  LookupTableData* lut_table;
+  LookupTableData* lut_data;
 };
 
 // TODO(ddavis-2015): pack struct

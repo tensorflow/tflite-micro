@@ -439,7 +439,7 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
                 index_bit_width);
     return kTfLiteError;
   }
-  ctd->data.lut_table->compressed_bit_width = index_bit_width;
+  ctd->data.lut_data->compressed_bit_width = index_bit_width;
   const size_t value_buffer_index = lut_tensor.value_buffer();
   if (value_buffer_index >= model.buffers()->size()) {
     MicroPrintf("Compression: invalid value_buffer %u in LutTensor",
@@ -452,7 +452,7 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
                 value_buffer_index);
     return kTfLiteError;
   }
-  ctd->data.lut_table->value_table = value_buffer->data();
+  ctd->data.lut_data->value_table = value_buffer->data();
   auto tensor =
       model.subgraphs()->Get(subgraph_index)->tensors()->Get(tensor_index);
   if (tensor->shape() == nullptr) {
@@ -480,25 +480,25 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
       tensor->quantization()->scale() != nullptr &&
       tensor->quantization()->scale()->size() > 1) {
     const size_t num_channels = tensor->quantization()->scale()->size();
-    ctd->data.lut_table->is_per_channel_quantized = true;
+    ctd->data.lut_data->is_per_channel_quantized = true;
     const TfLiteIntArray* dims =
         FlatBufferVectorToTfLiteTypeArray(tensor->shape());
     int32_t quantized_axis = tensor->quantization()->quantized_dimension();
     if (quantized_axis == 0) {
-      ctd->data.lut_table->use_alternate_axis = false;
+      ctd->data.lut_data->use_alternate_axis = false;
     } else if (quantized_axis == (dims->size - 1)) {
-      ctd->data.lut_table->use_alternate_axis = true;
+      ctd->data.lut_data->use_alternate_axis = true;
     } else {
       MicroPrintf("Compression: unsupported quantization axis %u",
                   quantized_axis);
       return kTfLiteError;
     }
-    ctd->data.lut_table->value_table_channel_stride =
+    ctd->data.lut_data->value_table_channel_stride =
         (value_buffer->size() / tensor_type_size) / num_channels;
   } else {
-    ctd->data.lut_table->is_per_channel_quantized = false;
-    ctd->data.lut_table->use_alternate_axis = false;
-    ctd->data.lut_table->value_table_channel_stride =
+    ctd->data.lut_data->is_per_channel_quantized = false;
+    ctd->data.lut_data->use_alternate_axis = false;
+    ctd->data.lut_data->value_table_channel_stride =
         value_buffer->size() / tensor_type_size;
   }
 
@@ -966,7 +966,7 @@ TfLiteStatus MicroAllocator::AllocateCompressedTensorsList(
           sizeof(LookupTableData));
       return kTfLiteError;
     }
-    ctd->data.lut_table = lut_table;
+    ctd->data.lut_data = lut_table;
 
     TfLiteStatus status =
         internal::InitializeCompressionTensorDataFromFlatbuffer(
