@@ -45,14 +45,14 @@ T* DecompressToBuffer(const uint8_t* compressed_indices,
                       const CompressionTensorData& comp_data,
                       const size_t num_channels) {
   const size_t compressed_bit_width =
-      comp_data.data.bin_quant.compressed_bit_width;
-  TFLITE_DCHECK(compressed_bit_width <= BinQuantData::kMaxBitWidth);
+      comp_data.data.lut_table->compressed_bit_width;
+  TFLITE_DCHECK(compressed_bit_width <= LookupTableData::kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width > 0);
 
   size_t channel = 0;
   size_t index_in_channel = 0;
   const size_t elements_per_channel =
-      comp_data.data.bin_quant.use_alternate_axis
+      comp_data.data.lut_table->use_alternate_axis
           ? 1
           : count_indices / num_channels;
   size_t buffer_index = 0;
@@ -85,9 +85,9 @@ T* DecompressToBuffer(const uint8_t* compressed_indices,
     }
 
     static_cast<T*>(buffer)[buffer_index] =
-        static_cast<const T*>(comp_data.data.bin_quant.value_table)
+        static_cast<const T*>(comp_data.data.lut_table->value_table)
             [table_index +
-             (channel * comp_data.data.bin_quant.value_table_channel_stride)];
+             (channel * comp_data.data.lut_table->value_table_channel_stride)];
     buffer_index++;
     table_index_bits_to_fill = compressed_bit_width;
     table_index = 0;
@@ -158,9 +158,9 @@ void* MicroContext::DecompressTensorToScratchBuffer(
   size_t count = ElementCount(*tensor.dims);
   size_t num_channels = 1;
 
-  if (compression_data.data.bin_quant.is_per_channel_quantized) {
+  if (compression_data.data.lut_table->is_per_channel_quantized) {
     const size_t channel_axis =
-        compression_data.data.bin_quant.use_alternate_axis
+        compression_data.data.lut_table->use_alternate_axis
             ? tensor.dims->size - 1
             : 0;
     num_channels = tensor.dims->data[channel_axis];

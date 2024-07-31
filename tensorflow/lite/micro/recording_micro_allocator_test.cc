@@ -359,6 +359,8 @@ TF_LITE_MICRO_TEST(TestCompressedModel) {
       if (ctl[i] != nullptr) {
         count_compression_allocations++;
         size_compression_allocations += sizeof(tflite::CompressionTensorData);
+        count_compression_allocations++;
+        size_compression_allocations += sizeof(tflite::LookupTableData);
       }
     }
     // Add the CompressionTensorData array

@@ -33,7 +33,7 @@ enum class CompressionScheme : uint8_t {
 };
 
 // TODO(ddavis-2015): pack struct
-struct BinQuantData {
+struct LookupTableData {
   static constexpr size_t kMaxBitWidth = 7;
   static constexpr size_t kMaxValueTableChannelStride = 128;
 
@@ -47,7 +47,7 @@ struct BinQuantData {
 };
 
 union CompressionData {
-  BinQuantData bin_quant;
+  LookupTableData* lut_table;
 };
 
 // TODO(ddavis-2015): pack struct

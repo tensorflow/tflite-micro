@@ -104,7 +104,11 @@ TfLiteStatus ValidateConvGoldens(
 
   CompressionTensorData* compressed_tensors[kMaxTensors] = {};
   CompressionTensorData filter_comp_data = {};
+  LookupTableData filter_lut_table = {};
+  filter_comp_data.data.lut_table = &filter_lut_table;
   CompressionTensorData bias_comp_data = {};
+  LookupTableData bias_lut_table = {};
+  bias_comp_data.data.lut_table = &bias_lut_table;
   CompressedTensorList comp_list = {compressed_tensors};
   CompressedTensorList* comp_list_p = nullptr;
 
@@ -116,15 +120,15 @@ TfLiteStatus ValidateConvGoldens(
             tensors[kConvWeightsTensor].dims->data[kConvQuantizedDimension] > 1;
         compressed_tensors[kConvWeightsTensor] = &filter_comp_data;
         filter_comp_data.scheme = CompressionScheme::kBinQuant;
-        filter_comp_data.data.bin_quant.compressed_bit_width =
+        filter_comp_data.data.lut_table->compressed_bit_width =
             comp_info->filter_bit_width;
-        filter_comp_data.data.bin_quant.value_table =
+        filter_comp_data.data.lut_table->value_table =
             comp_info->filter_value_table;
-        filter_comp_data.data.bin_quant.value_table_channel_stride =
+        filter_comp_data.data.lut_table->value_table_channel_stride =
             comp_info->filter_value_table_stride;
-        filter_comp_data.data.bin_quant.is_per_channel_quantized =
+        filter_comp_data.data.lut_table->is_per_channel_quantized =
             is_per_channel;
-        filter_comp_data.data.bin_quant.use_alternate_axis = false;
+        filter_comp_data.data.lut_table->use_alternate_axis = false;
       }
       if (comp_info->bias_value_table != nullptr) {
         bool is_per_channel =
@@ -132,13 +136,15 @@ TfLiteStatus ValidateConvGoldens(
             tensors[kConvBiasTensor].dims->data[kConvQuantizedDimension] > 1;
         compressed_tensors[kConvBiasTensor] = &bias_comp_data;
         bias_comp_data.scheme = CompressionScheme::kBinQuant;
-        bias_comp_data.data.bin_quant.compressed_bit_width =
+        bias_comp_data.data.lut_table->compressed_bit_width =
             comp_info->bias_bit_width;
-        bias_comp_data.data.bin_quant.value_table = comp_info->bias_value_table;
-        bias_comp_data.data.bin_quant.value_table_channel_stride =
+        bias_comp_data.data.lut_table->value_table =
+            comp_info->bias_value_table;
+        bias_comp_data.data.lut_table->value_table_channel_stride =
             comp_info->bias_value_table_stride;
-        bias_comp_data.data.bin_quant.is_per_channel_quantized = is_per_channel;
-        bias_comp_data.data.bin_quant.use_alternate_axis = false;
+        bias_comp_data.data.lut_table->is_per_channel_quantized =
+            is_per_channel;
+        bias_comp_data.data.lut_table->use_alternate_axis = false;
       }
       comp_list_p = &comp_list;
     } else {
