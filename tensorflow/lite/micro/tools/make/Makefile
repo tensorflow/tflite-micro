@@ -182,7 +182,7 @@ ifeq ($(TARGET), $(HOST_OS))
 endif
 
 CXXFLAGS := \
-  -std=c++11 \
+  -std=c++17 \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
@@ -191,7 +191,7 @@ CXXFLAGS := \
 
 CCFLAGS := \
   -Wimplicit-function-declaration \
-  -std=c11 \
+  -std=c17 \
   $(COMMON_FLAGS)
 
 ARFLAGS := -r
@@ -257,13 +257,6 @@ else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
 	# https://github.com/tensorflow/tensorflow/issues/43076
 	CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
 	CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
-
-	# We are using C++17 for the no_tf_lite_static_memory_build to make it close
-	# to the TfLite bazel build.
-	CXXFLAGS := $(filter-out -std=c++11, $(CXXFLAGS))
-	CXXFLAGS += -std=c++17
-	CCFLAGS := $(filter-out -std=c11, $(CCLAGS))
-	CCFLAGS += -std=c17
 endif
 
 # This library is the main target for this makefile. It will contain a minimal
