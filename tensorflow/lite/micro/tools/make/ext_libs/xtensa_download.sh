@@ -38,11 +38,17 @@ set -e
 source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
 
 DOWNLOADS_DIR=${1}
+PATCH=""
 
-if [[ ${2} == "hifi4" || ${2} == "hifi3" ]]; then
+if [[ ${2} == "hifi3" ]]; then
   LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_05_2023.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
   LIBRARY_MD5="2a54e056aef73a4fcffde4643998501a"
+elif [[ ${2} == "hifi4" ]]; then
+  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_05_2023.zip"
+  LIBRARY_DIRNAME="xa_nnlib_hifi4"
+  LIBRARY_MD5="2a54e056aef73a4fcffde4643998501a"
+  PATCH="../../ext_libs/xa_nnlib_hifi4.patch"
 elif [[ ${2} == "hifi5" ]]; then
   LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_09_05_2023.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
@@ -79,9 +85,9 @@ else
 
   pushd "${LIBRARY_INSTALL_PATH}" > /dev/null
   chmod -R +w ./
-  if [[ -f "../../ext_libs/xa_nnlib_${2}.patch" ]]; then
+  if [ "${PATCH}" ]; then
     create_git_repo ./
-    apply_patch_to_folder ./ "../../ext_libs/xa_nnlib_${2}.patch" "TFLM patch"
+    apply_patch_to_folder ./ ${PATCH} "TFLM patch"
   fi
 fi
 
