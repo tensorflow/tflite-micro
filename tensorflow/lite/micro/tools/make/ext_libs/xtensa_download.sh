@@ -57,6 +57,7 @@ elif [[ ${2} == "vision_p6" ]]; then
   LIBRARY_URL="https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_29.zip"
   LIBRARY_DIRNAME="xi_tflmlib_vision_p6"
   LIBRARY_MD5="fea3720d76fdb3a5a337ace7b6081b56"
+  PATCH="../../ext_libs/xi_tflmlib_vision_p6.patch"
 else
   echo "Attempting to download an unsupported xtensa variant: ${2}"
   exit 1
