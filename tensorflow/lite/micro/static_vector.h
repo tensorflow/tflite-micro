@@ -19,6 +19,8 @@
 #include <cassert>
 #include <cstddef>
 
+#include "tensorflow/lite/kernels/op_macros.h"  // for TF_LITE_ASSERT
+
 namespace tflite {
 
 template <typename T, std::size_t MaxSize>
@@ -67,7 +69,7 @@ class StaticVector {
   }
 
   void push_back(const T& t) {
-    assert(!full());
+    TF_LITE_ASSERT(!full());
     *end() = t;
     ++size_;
   }

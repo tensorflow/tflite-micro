@@ -411,6 +411,9 @@ cc_library(
     name = "static_vector",
     hdrs = ["static_vector.h"],
     copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/kernels:op_macros",
+    ],
 )
 
 cc_library(
