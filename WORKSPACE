@@ -33,12 +33,18 @@ load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_
 
 hedron_compile_commands_setup()
 
+_rules_python_version = "0.26.0"
+
 http_archive(
     name = "rules_python",
-    sha256 = "0a8003b044294d7840ac7d9d73eef05d6ceb682d7516781a4ec62eeb34702578",
-    strip_prefix = "rules_python-0.24.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.24.0.tar.gz",
+    sha256 = "9d04041ac92a0985e344235f5d946f71ac543f1b1565f2cdbc9a2aaee8adf55b",
+    strip_prefix = "rules_python-{}".format(_rules_python_version),
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/{}.tar.gz".format(_rules_python_version),
 )
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
 
 # Read the Python package dependencies of the build environment. To modify
 # them, see //third_party:python_requirements.in.
