@@ -382,6 +382,20 @@ cc_library(
 )
 
 cc_library(
+    name = "hexdump",
+    srcs = [
+        "hexdump.cc",
+    ],
+    hdrs = [
+        "hexdump.h",
+    ],
+    deps = [
+        ":span",
+        ":static_vector",
+    ],
+)
+
+cc_library(
     name = "recording_allocators",
     srcs = [
         "recording_micro_allocator.cc",
@@ -553,6 +567,17 @@ cc_test(
         ":flatbuffer_utils",
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
+    name = "hexdump_test",
+    size = "small",
+    srcs = [
+        "hexdump_test.cc",
+    ],
+    deps = [
+        ":hexdump",
     ],
 )
 
