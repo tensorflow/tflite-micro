@@ -13,6 +13,8 @@ MICROLITE_CC_KERNEL_SRCS += \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int16.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_float32.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int8.cc \
