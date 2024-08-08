@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,6 +25,12 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+
+#ifdef USE_TFLM_COMPRESSION
+
+#include "tensorflow/lite/micro/compression.h"
+
+#endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
 
@@ -91,6 +97,9 @@ struct ScratchBufferHandle {
 struct SubgraphAllocations {
   NodeAndRegistration* node_and_registrations;
   TfLiteEvalTensor* tensors;
+#ifdef USE_TFLM_COMPRESSION
+  CompressedTensorList compressed;
+#endif  // USE_TFLM_COMPRESSION
 };
 
 // Allocator responsible for allocating memory for all intermediate tensors
@@ -257,6 +266,15 @@ class MicroAllocator {
                  INonPersistentBufferAllocator* non_persistent_buffer_allocator,
                  MicroMemoryPlanner* memory_planner);
   virtual ~MicroAllocator();
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Allocates an array in the arena of pointers to the compressions data
+  // required to decompress tensors for each subgraph within the model.
+  virtual TfLiteStatus AllocateCompressedTensorsList(
+      const Model* model, SubgraphAllocations* subgraph_allocations);
+
+#endif  // USE_TFLM_COMPRESSION
 
   // Allocates an array in the arena to hold pointers to the node and
   // registration pointers required to represent the inference graph of the

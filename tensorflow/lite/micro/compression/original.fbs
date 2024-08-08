@@ -1,0 +1,82 @@
+// Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+namespace tflite.micro;
+
+table ValuesInt8 {
+  values:[int8];
+}
+
+table ValuesInt16 {
+  values:[int16];
+}
+
+table ValuesInt32 {
+  values:[int32];
+}
+
+table ValuesInt64 {
+  values:[int64];
+}
+
+table ValuesFloat32 {
+  values:[float32];
+}
+
+union ValuesUnion {
+  ValuesFloat32,
+  ValuesInt8,
+  ValuesInt16,
+  ValuesInt32,
+  ValuesInt64
+}
+
+table Values {
+  values:ValuesUnion;
+}
+
+table BinQuantBufferOptions {
+  value_table_index:int;
+  compressed_bit_width:uint8; // Should be 2 or 4
+}
+
+union CompressedBufferOptions {
+  BinQuantBufferOptions,
+  // HuffmanBufferOptions, // Future
+}
+
+table CompressedBuffer {
+  buffer_index:int; // Buffer index from the top-level Model buffer vector
+  options:CompressedBufferOptions;
+}
+
+table BinQuantCompression {
+  version:uint8;
+  // For a given value table, if the corresponding buffer was per-tensor quantized, there should be 4 or 16 elements (2 bit or 4 bit indexes).
+  // If the buffer was per-channel quantized, there should be 4/16 x number of channels elements. These will be laid out in the table as:
+  // [c0v0, c0v1, c0v2, c0v3, c1v0, c1v1, ... cNv3]
+  value_tables:[Values];
+}
+
+table CompressionMetadata {
+  // List of compressed buffers
+  buffers:[CompressedBuffer];
+  
+  // (Optional) Model-wide Bin & Quant compression parameters. Only needed if a
+  // CompressedBuffer contains BinQuantBufferOptions.
+  bin_quant_compression:BinQuantCompression;
+}
+
+root_type CompressionMetadata;

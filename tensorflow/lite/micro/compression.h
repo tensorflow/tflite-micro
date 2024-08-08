@@ -61,7 +61,7 @@ struct CompressedTensorList {
   // Sparsely populated array with the same number of elements as there are
   // tensors in the Subgraph. An alternative would include a tensor index in
   // the struct for each and walk the list on look up. This could be slow.
-  CompressionTensorData** tensors;
+  const CompressionTensorData** tensors;
 };
 
 }  // namespace tflite
