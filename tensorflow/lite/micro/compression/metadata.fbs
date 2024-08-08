@@ -1,0 +1,38 @@
+// Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Flatbuffer schema describing a TFLM compressed model. Use as the value for
+// the key "TFLM_COMPRESSION" in the metadata table in a .tflite flatbuffer.
+
+namespace tflite.micro.compression;
+
+table Metadata {
+    lut_tensors:[LutTensor];  // list of tensors that are compressed by LUT
+}
+
+struct LutTensor {
+    subgraph:uint16;       // the index of the subgraph
+    tensor:uint16;         // the index of the tensor in its subgraph
+    index_bitwidth:uint8;  // the bit-width of LUT indexes
+    index_buffer:uint16;   // the index of the buffer containing LUT indexes
+    value_buffer:uint16;   // the index of the buffer containing LUT values
+}
+// Look-Up-Table tensors are encoded in two buffers: an index buffer and a
+// value buffer. The indexes are unsigned integers packed into the index buffer
+// in bitwidth-wide bit fields with a big-endian bit order. The data in the
+// value buffer is encoded as usual according to the type of the tensor.
+// Tensors with multiple channels have distinct values tables for each channel,
+// concatinated into one value buffer. (Will elaborate this comment.)
+
+root_type Metadata;

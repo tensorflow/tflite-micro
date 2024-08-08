@@ -95,8 +95,6 @@ const T* GetOptionalTensorData(const TfLiteEvalTensor* tensor) {
 
 // Overloads existing GetTensorData. If not compressed, this will return
 // tensor->data.
-//
-// TODO(ddavis-2015): make micro_context a const pointer
 template <typename T>
 const T* GetTensorData(MicroContext* micro_context,
                        const TfLiteEvalTensor* tensor,

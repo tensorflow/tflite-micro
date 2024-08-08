@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ struct LogAllocationRecord {
 constexpr int kArenaRows = 3;
 constexpr int kArenaColumns = 3;
 
-constexpr int kAllocationTypes = 7;
+constexpr int kAllocationTypes =
+    static_cast<int>(tflite::RecordedAllocationType::kNumAllocationTypes);
 constexpr int kAllocationColumns = 6;
 
 constexpr int kMaxBufSize = 100;
@@ -85,16 +86,25 @@ LogAllocationRecord GetLogAllocationRecord(
       tflite::RecordedAllocationType::kPersistentBufferData,
       tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData,
       tflite::RecordedAllocationType::kNodeAndRegistrationArray,
-      tflite::RecordedAllocationType::kOpData};
+      tflite::RecordedAllocationType::kOpData,
+#ifdef USE_TFLM_COMPRESSION
+      tflite::RecordedAllocationType::kCompressionData,
+#endif  // USE_TFLM_COMPRESSION
+  };
   static_assert(std::extent<decltype(types)>::value == kAllocationTypes,
                 "kAllocationTypes mismatch");
-  const char* titles[] = {"Eval tensor data",
-                          "Persistent tensor data",
-                          "Persistent quantization data",
-                          "Persistent buffer data",
-                          "Tensor variable buffer data",
-                          "Node and registration array",
-                          "Operation data"};
+  const char* titles[] = {
+      "Eval tensor data",
+      "Persistent tensor data",
+      "Persistent quantization data",
+      "Persistent buffer data",
+      "Tensor variable buffer data",
+      "Node and registration array",
+      "Operation data",
+#ifdef USE_TFLM_COMPRESSION
+      "Compression data",
+#endif  // USE_TFLM_COMPRESSION
+  };
   static_assert(std::extent<decltype(titles)>::value == kAllocationTypes,
                 "kAllocationTypes mismatch");
   const size_t total_bytes =
