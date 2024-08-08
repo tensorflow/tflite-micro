@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -107,6 +108,58 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
 
   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MockCustom::freed_, true);
 }
+
+#ifdef USE_TFLM_COMPRESSION
+
+TF_LITE_MICRO_TEST(TestInterpreterCompression) {
+  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  TF_LITE_MICRO_EXPECT(nullptr != model);
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  // Create a new scope so that we can test the destructor.
+  {
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         allocator_buffer_size);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+    TfLiteTensor* input = interpreter.input(0);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt16, input->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), input->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.data);
+    static_cast<int16_t*>(input->data.data)[0] = 42;
+
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+
+    const std::initializer_list<int16_t> kGolden = {
+        43, 44, 45, 46, 47, 41, 40, 39, 38, 37, 43, 44, 45, 46, 47};
+    const int kGoldenCount = kGolden.size();
+    TfLiteTensor* output = interpreter.output(0);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt16, output->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(kGoldenCount, output->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(
+        static_cast<size_t>(kGoldenCount * sizeof(*kGolden.begin())),
+        output->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.data);
+    for (int i = 0; i < kGoldenCount; i++) {
+      TF_LITE_MICRO_EXPECT_EQ(static_cast<int16_t*>(output->data.data)[i],
+                              kGolden.begin()[i]);
+    }
+  }
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 TF_LITE_MICRO_TEST(TestMultiTenantInterpreter) {
   tflite::testing::TestingOpResolver op_resolver;

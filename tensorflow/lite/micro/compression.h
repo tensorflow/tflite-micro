@@ -26,7 +26,8 @@ namespace tflite {
 // Compressed tensors
 //
 
-static constexpr const char* kCompressionMetadataString = "TFLM_COMPRESSION";
+static constexpr const char* kCompressionMetadataString =
+    "COMPRESSION_METADATA";
 
 enum class CompressionScheme : uint8_t {
   kBinQuant,
@@ -61,7 +62,7 @@ struct CompressedTensorList {
   // Sparsely populated array with the same number of elements as there are
   // tensors in the Subgraph. An alternative would include a tensor index in
   // the struct for each and walk the list on look up. This could be slow.
-  CompressionTensorData** tensors;
+  const CompressionTensorData** tensors;
 };
 
 }  // namespace tflite
