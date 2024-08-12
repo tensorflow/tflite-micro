@@ -420,6 +420,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/scatter_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice.cc \

@@ -23,7 +23,9 @@ limitations under the License.
 
 namespace tflite {
 
-#if defined(PROJECT_GENERATION)
+/** @note micro_time fns unused and not implemented **/
+
+// #if defined(PROJECT_GENERATION)
 
 // Stub functions for the project_generation target since these will be replaced
 // by the target-specific implementation in the overall infrastructure that the
@@ -31,51 +33,51 @@ namespace tflite {
 uint32_t ticks_per_second() { return 0; }
 uint32_t GetCurrentTimeTicks() { return 0; }
 
-#else
+// #else
 
-uint32_t ticks_per_second() { return 0; }
+// uint32_t ticks_per_second() { return 0; }
 
-uint32_t GetCurrentTimeTicks() {
-  static bool is_initialized = false;
+// uint32_t GetCurrentTimeTicks() {
+//   static bool is_initialized = false;
 
-  if (!is_initialized) {
-#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
-     !defined(ARMCM0plus))
-#ifdef ARM_MODEL_USE_PMU_COUNTERS
-    ARM_PMU_Enable();
-    DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
+//   if (!is_initialized) {
+// #if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
+//      !defined(ARMCM0plus))
+// #ifdef ARM_MODEL_USE_PMU_COUNTERS
+//     ARM_PMU_Enable();
+//     DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
 
-    ARM_PMU_CYCCNT_Reset();
-    ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
+//     ARM_PMU_CYCCNT_Reset();
+//     ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
 
-#else
-#ifdef ARMCM7
-    DWT->LAR = 0xC5ACCE55;
-#endif
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+// #else
+// #ifdef ARMCM7
+//     DWT->LAR = 0xC5ACCE55;
+// #endif
+//     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 
-    // Reset and DWT cycle counter.
-    DWT->CYCCNT = 0;
-    DWT->CTRL |= 1UL;
+//     // Reset and DWT cycle counter.
+//     DWT->CYCCNT = 0;
+//     DWT->CTRL |= 1UL;
 
-#endif
-#endif
+// #endif
+// #endif
 
-    is_initialized = true;
-  }
+//     is_initialized = true;
+//   }
 
-#if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
-     !defined(ARMCM0plus))
-#ifdef ARM_MODEL_USE_PMU_COUNTERS
-  return ARM_PMU_Get_CCNTR();
-#else
-  return DWT->CYCCNT;
-#endif
-#else
-  return 0;
-#endif
-}
+// #if (!defined(TF_LITE_STRIP_ERROR_STRINGS) && !defined(ARMCM0) && \
+//      !defined(ARMCM0plus))
+// #ifdef ARM_MODEL_USE_PMU_COUNTERS
+//   return ARM_PMU_Get_CCNTR();
+// #else
+//   return DWT->CYCCNT;
+// #endif
+// #else
+//   return 0;
+// #endif
+// }
 
-#endif  // defined(PROJECT_GENERATION)
+// #endif  // defined(PROJECT_GENERATION)
 
 }  // namespace tflite
