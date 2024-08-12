@@ -50,6 +50,7 @@ void DebugLog(const char* format, va_list args) {
   char log_buffer[kMaxLogLen];
 
   vsnprintf(log_buffer, kMaxLogLen, format, args);
+  fprintf(stderr, "%s", log_buffer);
   InvokeDebugLogCallback(log_buffer);
 #endif
 }

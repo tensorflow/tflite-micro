@@ -107,6 +107,7 @@ TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
 TFLMRegistration Register_ROUND();
 TFLMRegistration Register_RSQRT();
+TFLMRegistration Register_SCATTER_ND();
 TFLMRegistration Register_SELECT_V2();
 TFLMRegistration Register_SHAPE();
 TFLMRegistration Register_SIN();

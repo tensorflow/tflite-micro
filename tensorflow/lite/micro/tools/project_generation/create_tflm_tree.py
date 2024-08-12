@@ -60,6 +60,23 @@ def _get_file_list(key, makefile_options, tensorflow_root):
 
   return [bytepath.decode() for bytepath in stdout.split()]
 
+def _rename_flatbuffers_string_h(dest_files):
+  # Rename flatbuffers/string.h to flatbuffers/fb_string.h to prevent namimng conflict with the standard string.h
+  for i in range(len(dest_files)):
+    if "flatbuffers/string.h" in dest_files[i]:
+      dest_files[i] = dest_files[i].replace("flatbuffers/string.h", "flatbuffers/fb_string.h")
+  return dest_files
+
+def _update_include_paths(file_path):
+  # Update include paths in flatbuffers.h and flatbuffer_builder.h for the new flatbuffers/fb_string.h
+
+  with open(file_path, 'r') as file:
+    file_to_update= file.read()
+
+  file_to_update = file_to_update.replace('#include \"flatbuffers/string.h\"', '#include \"flatbuffers/fb_string.h\"')
+
+  with open(file_path, 'w') as file:
+      file.write(file_to_update)
 
 def _third_party_src_and_dest_files(prefix_dir, makefile_options,
                                     tensorflow_root):
@@ -117,11 +134,22 @@ def _get_src_and_dest_files(prefix_dir, makefile_options, tensorflow_root):
 
 
 def _copy(src_files, dest_files):
+
+  # Rename flatbuffers/string.h to flatbuffers/fb_string.h to prevent namimng conflict with the standard string.h
+  dest_files = _rename_flatbuffers_string_h(dest_files)
+
   for dirname in _get_dirs(dest_files):
     os.makedirs(dirname, exist_ok=True)
 
   for src, dst in zip(src_files, dest_files):
     shutil.copy(src, dst)
+
+  file_flatbuffers_h = [ f for f in dest_files if "flatbuffers.h" in f ][0]
+  file_flatbuffer_builder_h = [ f for f in dest_files if "flatbuffer_builder.h" in f ][0]
+
+  # Update include paths in flatbuffers.h and flatbuffer_builder.h for the new flatbuffers/fb_string.h
+  _update_include_paths(file_flatbuffers_h)
+  _update_include_paths(file_flatbuffer_builder_h)
 
 
 def _get_tflm_generator_path(tensorflow_root):

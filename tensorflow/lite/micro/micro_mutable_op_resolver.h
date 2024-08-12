@@ -37,6 +37,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/kernels/internal/reference/scatter_nd.h"
+// #include "tensorflow/lite/micro/kernels/scatter_nd.cpp"
 
 namespace tflite {
 TFLMRegistration* Register_DETECTION_POSTPROCESS();
@@ -533,9 +535,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_RSQRT, Register_RSQRT(), ParseRsqrt);
   }
 
+  TfLiteStatus AddScatterNd() {
+    return AddBuiltin(BuiltinOperator_SCATTER_ND, Register_SCATTER_ND(),
+                      ParseScatterNd);
+  }
+
   TfLiteStatus AddSelectV2() {
-    return AddBuiltin(BuiltinOperator_SELECT_V2, Register_SELECT_V2(),
-                      ParseSelectV2);
+    return AddBuiltin(BuiltinOperator_SCATTER_ND, Register_SELECT_V2(), ParseSelectV2);
   }
 
   TfLiteStatus AddShape() {

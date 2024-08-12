@@ -111,6 +111,10 @@ TfLiteStatus FloorModEval(TfLiteContext* context, TfLiteNode* node) {
       return EvalFloorMod<float>(context, requires_broadcast, input1, input2,
                                  output);
     }
+    case kTfLiteInt32: {
+      return EvalFloorMod<int32_t>(context, requires_broadcast, input1, input2,
+                                   output);
+    }
     default: {
       MicroPrintf("Type '%s' is not supported by FLOOR_MOD.",
                   TfLiteTypeGetName(input1->type));

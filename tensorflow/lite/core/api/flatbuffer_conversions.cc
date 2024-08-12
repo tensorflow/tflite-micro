@@ -2109,6 +2109,10 @@ TfLiteStatus ParseResizeNearestNeighbor(const Operator* op,
   return kTfLiteOk;
 }
 
+TfLiteStatus ParseScatterNd(const Operator*, ErrorReporter*, BuiltinDataAllocator*, void**) {
+  return kTfLiteOk;
+}
+
 TfLiteStatus ParseStablehloReduceWindow(const Operator* op,
                                         ErrorReporter* error_reporter,
                                         BuiltinDataAllocator* allocator,
