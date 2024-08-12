@@ -69,9 +69,12 @@ TfLiteStatus copyToTensor(TfLiteContext* context, const FromT* in,
     case kTfLiteFloat32:
       copyCast(in, tflite::micro::GetTensorData<float>(out), num_elements);
       break;
+    case kTfLiteBool:
+      copyCast(in, out->data.b, num_elements);
+      break;
     default:
       // Unsupported type.
-      MicroPrintf("Output type %s (%d) not supported.",
+      MicroPrintf("Output type %s (%d) not supported by Cast.",
                   TfLiteTypeGetName(out->type), out->type);
   }
   return kTfLiteOk;
