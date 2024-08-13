@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+PLATFORM_ROOT="$SCRIPT_DIR/.."
+
+cd $PLATFORM_ROOT
+
 # Download optimised kernels
 mkdir tensorflow/lite/micro/tools/make/downloads
 ./tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn_download.sh tensorflow/lite/micro/tools/make/downloads
