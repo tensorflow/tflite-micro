@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+TFLM_ROOT="$SCRIPT_DIR/.."
+
+cd $TFLM_ROOT
+
 # Download optimised kernels
 mkdir tensorflow/lite/micro/tools/make/downloads
 ./tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn_download.sh tensorflow/lite/micro/tools/make/downloads
 
 # Build TFLM
 echo "Building TFLM"
-python3 ./tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py _build --makefile_options="TARGET=cortex_m_generic"\ "OPTIMIZED_KERNEL_DIR=cmsis_nn"\ "TARGET_ARCH=cortex-m7" --rename_cc_to_cpp
+pip3 install -r tensorflow/lite/micro/tools/project_generation/requirements.txt
+python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py _build --makefile_options="TARGET=cortex_m_generic"\ "OPTIMIZED_KERNEL_DIR=cmsis_nn"\ "TARGET_ARCH=cortex-m7" --rename_cc_to_cpp
 echo "Done"
 
 cp -r _build/signal _build/tensorflow 

@@ -1,17 +1,26 @@
 <!--ts-->
-   * [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
-   * [Build Status](#build-status)
-      * [Official Builds](#official-builds)
-      * [Community Supported TFLM Examples](#community-supported-tflm-examples)
-      * [Community Supported Kernels and Unit Tests](#community-supported-kernels-and-unit-tests)
-   * [Contributing](#contributing)
-   * [Getting Help](#getting-help)
-   * [Additional Documentation](#additional-documentation)
-   * [RFCs](#rfcs)
+- [Usage (Cortex-M, ARM CMSIS-NN optimised kernels)](#usage-cortex-m-arm-cmsis-nn-optimised-kernels)
+- [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
+- [Build Status](#build-status)
+  - [Official Builds](#official-builds)
+  - [Community Supported TFLM Examples](#community-supported-tflm-examples)
+  - [Community Supported Kernels and Unit Tests](#community-supported-kernels-and-unit-tests)
+- [Contributing](#contributing)
+- [Getting Help](#getting-help)
+- [Additional Documentation](#additional-documentation)
+- [RFCs](#rfcs)
 
 <!-- Added by: advaitjain, at: Mon 04 Oct 2021 11:23:57 AM PDT -->
 
 <!--te-->
+
+# Usage (Cortex-M, ARM CMSIS-NN optimised kernels)
+
+```
+./bin/install-TFLM
+```
+
+This creates `tensorflow` and `third_party` directories at the root of the project, ready for use in Cortex-M applications.
 
 # TensorFlow Lite for Microcontrollers
 
