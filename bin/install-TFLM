@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
-PLATFORM_ROOT="$SCRIPT_DIR/.."
+TFLM_ROOT="$SCRIPT_DIR/.."
 
-cd $PLATFORM_ROOT
+cd $TFLM_ROOT
 
 # Download optimised kernels
 mkdir tensorflow/lite/micro/tools/make/downloads
