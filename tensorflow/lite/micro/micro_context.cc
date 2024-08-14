@@ -180,8 +180,7 @@ void* MicroContext::DecompressTensorToScratchBuffer(
     const CompressionTensorData& compression_data, int scratch_buffer_handle) {
   TFLITE_DCHECK(compression_data.scheme == CompressionScheme::kBinQuant);
   TFLITE_DCHECK(scratch_buffer_handle != -1);
-  uint8_t* scratch_buffer =
-      static_cast<uint8_t*>(GetScratchBuffer(scratch_buffer_handle));
+  void* scratch_buffer = GetScratchBuffer(scratch_buffer_handle);
   TFLITE_DCHECK(scratch_buffer != nullptr);
   size_t count = ElementCount(*tensor.dims);
   size_t num_channels = 1;
