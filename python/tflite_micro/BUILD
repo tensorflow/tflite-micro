@@ -79,6 +79,7 @@ py_library(
     deps = [
         requirement("numpy"),
         "//tensorflow/lite/tools:flatbuffer_utils",
+        "//tensorflow/lite/micro/tools:generate_test_for_model",
     ],
 )
 
@@ -134,6 +135,7 @@ py_package(
         "python.tflite_micro",
         "tensorflow.lite.python",
         "tensorflow.lite.tools.flatbuffer_utils",
+        "tensorflow.lite.micro.tools.generate_test_for_model",
     ],
     deps = [
         ":postinstall_check",
