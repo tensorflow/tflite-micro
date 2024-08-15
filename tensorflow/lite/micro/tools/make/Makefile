@@ -348,20 +348,14 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/assign_variable.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/call_once.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cast.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/concatenation.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
@@ -369,9 +363,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ethosu.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/exp.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/expand_dims.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fill.cc \
@@ -382,22 +373,15 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fully_connected.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fully_connected_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/gather.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/gather_nd.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hard_swish.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hard_swish_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/if.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_runner.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_util.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/l2norm.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/l2_pool_2d.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/leaky_relu.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/leaky_relu_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logical.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logical_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/logistic_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/log_softmax.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/lstm_eval_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/maximum_minimum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/micro_tensor_utils.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \
@@ -408,8 +392,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/prelu.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/prelu_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/quantize.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/quantize_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/read_variable.cc \
@@ -417,8 +399,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reduce.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reduce_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/scatter_nd.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select.cc \
@@ -426,66 +406,15 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_depth.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf_common.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc
 
 MICROLITE_CC_SIGNAL_KERNEL_SRCS := \
-$(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/energy.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_kernel.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/fft_auto_scale_common.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_log.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_square_root_common.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/filter_bank_spectral_subtraction.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/framer.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/irfft.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/rfft.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/stacker.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/overlap_add.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/pcan.cc \
-$(TENSORFLOW_ROOT)signal/micro/kernels/window.cc \
-$(TENSORFLOW_ROOT)signal/src/circular_buffer.cc \
-$(TENSORFLOW_ROOT)signal/src/energy.cc \
-$(TENSORFLOW_ROOT)signal/src/fft_auto_scale.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_log.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_square_root.cc \
-$(TENSORFLOW_ROOT)signal/src/filter_bank_spectral_subtraction.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_float.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_int16.cc \
-$(TENSORFLOW_ROOT)signal/src/irfft_int32.cc \
-$(TENSORFLOW_ROOT)signal/src/log.cc \
-$(TENSORFLOW_ROOT)signal/src/max_abs.cc \
-$(TENSORFLOW_ROOT)signal/src/msb_32.cc \
-$(TENSORFLOW_ROOT)signal/src/msb_64.cc \
-$(TENSORFLOW_ROOT)signal/src/overlap_add.cc \
-$(TENSORFLOW_ROOT)signal/src/pcan_argc_fixed.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_float.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_int16.cc \
-$(TENSORFLOW_ROOT)signal/src/rfft_int32.cc \
-$(TENSORFLOW_ROOT)signal/src/square_root_32.cc \
-$(TENSORFLOW_ROOT)signal/src/square_root_64.cc \
-$(TENSORFLOW_ROOT)signal/src/window.cc
 
 MICROLITE_TEST_HDRS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/*.h)
@@ -516,8 +445,6 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
 $(TFL_CC_SRCS)
 
 MICROLITE_CC_HDRS := \
-$(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
@@ -568,12 +495,6 @@ $(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_neon.h \
 $(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_sse.h \
 $(DOWNLOADS_DIR)/gemmlowp/internal/detect_platform.h \
 $(DOWNLOADS_DIR)/gemmlowp/LICENSE \
-$(DOWNLOADS_DIR)/kissfft/COPYING \
-$(DOWNLOADS_DIR)/kissfft/kiss_fft.c \
-$(DOWNLOADS_DIR)/kissfft/kiss_fft.h \
-$(DOWNLOADS_DIR)/kissfft/_kiss_fft_guts.h \
-$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
-$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
 THIRD_PARTY_CC_SRCS :=

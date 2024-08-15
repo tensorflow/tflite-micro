@@ -38,7 +38,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/kernels/internal/reference/scatter_nd.h"
-// #include "tensorflow/lite/micro/kernels/scatter_nd.cpp"
 
 namespace tflite {
 TFLMRegistration* Register_DETECTION_POSTPROCESS();
@@ -357,12 +356,6 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_IF, tflite::Register_IF(), ParseIf);
   }
 
-  TfLiteStatus AddIrfft(const TFLMRegistration* registration =
-                            tflite::tflm_signal::Register_IRFFT()) {
-    // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalIrfft", registration);
-  }
-
   TfLiteStatus AddL2Normalization() {
     return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
                       Register_L2_NORMALIZATION(), ParseL2Normalization);
@@ -471,11 +464,6 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
   }
 
-  TfLiteStatus AddPCAN() {
-    // TODO(b/286250473): change back name to "PCAN" and remove namespace
-    return AddCustom("SignalPCAN", tflite::tflm_signal::Register_PCAN());
-  }
-
   TfLiteStatus AddPrelu() {
     return AddBuiltin(BuiltinOperator_PRELU, tflite::Register_PRELU(),
                       ParsePrelu);
@@ -519,12 +507,6 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_RESIZE_NEAREST_NEIGHBOR,
                       Register_RESIZE_NEAREST_NEIGHBOR(),
                       ParseResizeNearestNeighbor);
-  }
-
-  TfLiteStatus AddRfft(const TFLMRegistration* registration =
-                           tflite::tflm_signal::Register_RFFT()) {
-    // TODO(b/286250473): change back name and remove namespace
-    return AddCustom("SignalRfft", registration);
   }
 
   TfLiteStatus AddRound() {
@@ -601,11 +583,6 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddStridedSlice() {
     return AddBuiltin(BuiltinOperator_STRIDED_SLICE, Register_STRIDED_SLICE(),
                       ParseStridedSlice);
-  }
-
-  TfLiteStatus AddStacker() {
-    // TODO(b/286250473): change back name to "Stacker" and remove namespace
-    return AddCustom("SignalStacker", tflite::tflm_signal::Register_STACKER());
   }
 
   TfLiteStatus AddSub() {

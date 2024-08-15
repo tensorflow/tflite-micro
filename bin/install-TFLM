@@ -15,7 +15,6 @@ pip3 install -r tensorflow/lite/micro/tools/project_generation/requirements.txt
 python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py _build --makefile_options="TARGET=cortex_m_generic"\ "OPTIMIZED_KERNEL_DIR=cmsis_nn"\ "TARGET_ARCH=cortex-m7" --rename_cc_to_cpp
 echo "Done"
 
-cp -r _build/signal _build/tensorflow 
 cp -r _build/tensorflow ../
 cp -r _build/third_party ../
 
