@@ -1,5 +1,5 @@
 
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
+#include <type_traits>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -32,17 +34,50 @@ constexpr int kOutputTensorIndex = 3;
 constexpr int kMaxFilterChannels = 64;
 constexpr int kMaxBiasChannels = 64;
 
+#ifdef USE_TFLM_COMPRESSION
+
+constexpr size_t kDepthwiseConvMaxTensors = 4;
+constexpr size_t kDepthwiseConvMaxInputTensors = 3;
+
+#endif  // USE_TFLM_COMPRESSION
+
 // Creates a DepthwiseConv opeerator, calls it with the provided input tensors
 // and some defaults parameters, and compares the output with
 // expected_output_data.
 //
 // The tensors parameter contains both the input tensors as well as a
 // preallocated output tensor into which the output is stored.
-template <typename T>
+template <typename T, typename CTF = void, typename CTB = void>
 TfLiteStatus ValidateDepthwiseConvGoldens(
     const T* expected_output_data, int output_length,
     TfLiteDepthwiseConvParams* conv_params, float tolerance, int tensors_size,
-    TfLiteTensor* tensors) {
+    TfLiteTensor* tensors
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+#endif  // USE_TFLM_COMPRESSION
+) {
+#ifdef USE_TFLM_COMPRESSION
+
+  TestCompressedList<kDepthwiseConvMaxInputTensors, CTF, CTB> tcl;
+  const CompressedTensorList* comp_list_p = nullptr;
+
+  if (comp_info != nullptr) {
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddWeight(*comp_info, tensors[kDepthwiseConvWeightsTensor],
+                      kDepthwiseConvWeightsTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddBias(*comp_info, tensors[kDepthwiseConvBiasTensor],
+                    kDepthwiseConvBiasTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
+    comp_list_p = tcl.GetCompressedTensorList();
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 3};
@@ -50,8 +85,12 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
 
   const TFLMRegistration registration = Register_DEPTHWISE_CONV_2D();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
-                             outputs_array,
-                             reinterpret_cast<void*>(conv_params));
+                             outputs_array, reinterpret_cast<void*>(conv_params)
+#ifdef USE_TFLM_COMPRESSION
+                                                ,
+                             nullptr, comp_list_p
+#endif  // USE_TFLM_COMPRESSION
+  );
 
   int input_depth = tensors[0].dims->data[3];
   int output_depth = tensors[1].dims->data[3];
@@ -183,18 +222,89 @@ void TestDepthwiseConvQuantizedPerChannel(
       output_scale, output_zero_point, conv_params, filter_packed_type);
 }
 
+#ifdef USE_TFLM_COMPRESSION
+
+template <typename TIO, typename CTB>
+TfLiteStatus TestDepthwiseConvQuantizedCompressed(
+    int* input_dims_data, const float* input_data, TIO* input_quantized,
+    float input_scale, int input_zero_point, int* output_dims_data,
+    const float* expected_output_data, TIO* expected_output_quantized,
+    TIO* output_quantized, float output_scale, int output_zero_point,
+    const TfLiteConvParams* conv_params, const unsigned int tolerance,
+    const TestCompressionQuantizedInfo<CTB>* comp_info) {
+  // TODO(b/360169306): account for optional bias tensor
+  // bool null_bias = comp_info->bias_data == nullptr ? true : false;
+
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* filter_dims = IntArrayFromInts(comp_info->filter_dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(comp_info->bias_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  TfLiteFloatArray* filter_scales =
+      FloatArrayFromFloats(comp_info->filter_scales);
+  TfLiteIntArray* filter_zero_points =
+      IntArrayFromInts(comp_info->filter_zero_points);
+  TfLiteFloatArray* bias_scales = FloatArrayFromFloats(comp_info->bias_scales);
+  TfLiteIntArray* bias_zero_points =
+      IntArrayFromInts(comp_info->bias_zero_points);
+
+  TfLiteAffineQuantization filter_quant = {};
+  TfLiteTensor filter_tensor = CreatePerChannelQuantizedTensor(
+      comp_info->filter_compressed, filter_dims, filter_scales,
+      filter_zero_points, &filter_quant, kDepthwiseConvQuantizedDimension,
+      false /* is_variable */, kTfLiteInt8);
+  SymmetricPerChannelQuantize(
+      comp_info->filter_data, comp_info->filter_value_table,
+      ElementCount(*filter_dims), filter_scales->size, filter_scales->data,
+      kDepthwiseConvQuantizedDimension);
+
+  TfLiteAffineQuantization bias_quant = {};
+  TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
+      comp_info->bias_compressed, bias_dims, input_scale, filter_scales,
+      bias_scales, bias_zero_points, &bias_quant,
+      kDepthwiseConvQuantizedDimension, false /* is_variable */,
+      typeToTfLiteType<CTB>());
+  SymmetricPerChannelQuantize(comp_info->bias_data, comp_info->bias_value_table,
+                              ElementCount(*bias_dims), bias_scales->size,
+                              bias_scales->data,
+                              kDepthwiseConvQuantizedDimension);
+
+  constexpr int tensors_size = kDepthwiseConvMaxTensors;
+  TfLiteTensor tensors[tensors_size] = {
+      filter_tensor,
+      CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                            input_scale, input_zero_point),
+      bias_tensor,
+      CreateQuantizedTensor(output_quantized, output_dims, output_scale,
+                            output_zero_point),
+  };
+
+  const int output_dims_count = ElementCount(*output_dims);
+  Quantize(expected_output_data, expected_output_quantized, output_dims_count,
+           output_scale, output_zero_point);
+  return ValidateDepthwiseConvGoldens(expected_output_quantized,
+                                      output_dims_count, conv_params, tolerance,
+                                      tensors_size, tensors, comp_info);
+}
+
+#endif  // USE_TFLM_COMPRESSION
+
 // Xtensa kernels do not support float activations., and the corresponding tests
 // are disabled. As a result, helper functions that are only needed for float
 // kernel tests also need to be ifdef'd out to avoid build errors due to unused
 // functions.
 #if !defined(XTENSA)
-void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
-                            int* filter_dims_data, const float* filter_data,
-                            int* bias_dims_data, const float* bias_data,
-                            const float* expected_output_data,
-                            int* output_dims_data,
-                            TfLiteDepthwiseConvParams* conv_params,
-                            float* output_data) {
+template <typename CTF = void, typename CTB = void>
+void TestDepthwiseConvFloat(
+    int* input_dims_data, const float* input_data, int* filter_dims_data,
+    const float* filter_data, int* bias_dims_data, const float* bias_data,
+    const float* expected_output_data, int* output_dims_data,
+    TfLiteDepthwiseConvParams* conv_params, float* output_data
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+#endif  // USE_TFLM_COMPRESSION
+) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -212,7 +322,12 @@ void TestDepthwiseConvFloat(int* input_dims_data, const float* input_data,
   };
 
   ValidateDepthwiseConvGoldens(expected_output_data, output_dims_count,
-                               conv_params, 1e-5, tensors_size, tensors);
+                               conv_params, 1e-5, tensors_size, tensors
+#ifdef USE_TFLM_COMPRESSION
+                               ,
+                               comp_info
+#endif  // USE_TFLM_COMPRESSION
+  );
 }
 
 #endif  // !defined(XTENSA)
@@ -251,6 +366,50 @@ TF_LITE_MICRO_TEST(SimpleTest) {
   tflite::testing::TestDepthwiseConvFloat(
       input_shape, input_values, filter_shape, filter_values, bias_shape,
       bias_values, golden, output_shape, &conv_params, output_data);
+}
+
+TF_LITE_MICRO_TEST(SimpleTestCompressed) {
+  int input_shape[] = {4, 1, 3, 2, 2};
+  const float input_values[] = {1, 2, 7, 8, 3, 4, 9, 10, 5, 6, 11, 12};
+  int filter_shape[] = {4, 1, 2, 2, 4};
+  // Filter values:
+  // {1, 2, 3, 4, -9, 10,  -11, 12, 5, 6, 7, 8, 13, -14, 15,  -16}
+  const uint8_t kBinQuantFilterData[] = {0x01, 0x23, 0xF8, 0xE9,
+                                         0x45, 0x67, 0xAD, 0xBC};
+  const float kBinQuantFilterValueTable[] = {1,  2,  3,  4,  5,   6,   7,   8,
+                                             10, 12, 13, 15, -16, -14, -11, -9};
+  int bias_shape[] = {4, 1, 1, 1, 4};
+  const float bias_values[] = {1, 2, 3, 4};
+  const uint8_t kBinQuantBiasData[] = {0x1B};
+  const float golden[] = {
+      71, -34, 99, -20, 91, -26, 127, -4,
+  };
+  int output_shape[] = {4, 1, 2, 1, 4};
+  const int output_dims_count = std::extent<decltype(golden)>::value;
+  float output_data[output_dims_count];
+
+  tflite::testing::TestCompressionInfo<const float, const float> comp_info = {};
+  comp_info.scheme = tflite::CompressionScheme::kBinQuant;
+  comp_info.filter_value_table = kBinQuantFilterValueTable;
+  comp_info.filter_value_table_stride =
+      std::extent<decltype(kBinQuantFilterValueTable)>::value;
+  comp_info.filter_bit_width = 4;
+  comp_info.bias_value_table = bias_values;
+  comp_info.bias_value_table_stride = std::extent<decltype(bias_values)>::value;
+  comp_info.bias_bit_width = 2;
+
+  TfLiteDepthwiseConvParams conv_params;
+  conv_params.activation = kTfLiteActNone;
+  conv_params.dilation_width_factor = 1;
+  conv_params.dilation_height_factor = 1;
+  conv_params.stride_height = 1;
+  conv_params.stride_width = 1;
+
+  tflite::testing::TestDepthwiseConvFloat(
+      input_shape, input_values, filter_shape,
+      reinterpret_cast<const float*>(kBinQuantFilterData), bias_shape,
+      reinterpret_cast<const float*>(kBinQuantBiasData), golden, output_shape,
+      &conv_params, output_data, &comp_info);
 }
 
 TF_LITE_MICRO_TEST(SimpleTestRelu) {
