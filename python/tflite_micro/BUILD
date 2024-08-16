@@ -78,8 +78,8 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
-        "//tensorflow/lite/tools:flatbuffer_utils",
         "//tensorflow/lite/micro/tools:generate_test_for_model",
+        "//tensorflow/lite/tools:flatbuffer_utils",
     ],
 )
 
@@ -133,9 +133,9 @@ py_package(
     # in the tflm tree.
     packages = [
         "python.tflite_micro",
+        "tensorflow.lite.micro.tools.generate_test_for_model",
         "tensorflow.lite.python",
         "tensorflow.lite.tools.flatbuffer_utils",
-        "tensorflow.lite.micro.tools.generate_test_for_model",
     ],
     deps = [
         ":postinstall_check",
