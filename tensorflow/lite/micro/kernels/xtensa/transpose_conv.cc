@@ -44,7 +44,7 @@ constexpr int kOutputTensor = 0;
 constexpr int kConvQuantizedDimension = 0;
 
 struct OpData {
-  ConvParams params;
+  xConvParams params;
 
   // A scratch buffer is required for quantized implementations.
   int scratch_buffer_index;
