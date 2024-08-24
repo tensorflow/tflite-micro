@@ -210,16 +210,18 @@ TfLiteStatus TestConvQuantizedPerChannelCompressed(
       false /* is_variable */, kTfLiteInt8);
   SymmetricPerChannelQuantize(
       comp_info->filter_data, comp_info->filter_value_table,
-      ElementCount(*filter_dims), filter_scales->size, filter_scales->data);
+      filter_scales->size * comp_info->filter_value_table_stride,
+      filter_scales->size, filter_scales->data);
 
   TfLiteAffineQuantization bias_quant = {};
   TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
       comp_info->bias_compressed, bias_dims, input_scale, filter_scales,
       bias_scales, bias_zero_points, &bias_quant, kConvQuantizedDimension,
       false /* is_variable */, typeToTfLiteType<CTB>());
-  SymmetricPerChannelQuantize(comp_info->bias_data, comp_info->bias_value_table,
-                              ElementCount(*bias_dims), bias_scales->size,
-                              bias_scales->data);
+  SymmetricPerChannelQuantize(
+      comp_info->bias_data, comp_info->bias_value_table,
+      bias_scales->size * comp_info->bias_value_table_stride, bias_scales->size,
+      bias_scales->data);
 
   constexpr int tensors_size = kConvMaxTensors;
   TfLiteTensor tensors[tensors_size] = {

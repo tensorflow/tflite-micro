@@ -587,9 +587,9 @@ const Model* BuildSimpleMockModel() {
 
 #ifdef USE_TFLM_COMPRESSION
 
-const flatbuffers::span<uint8_t> BuildLutMetadata(uint tensor_index,
-                                                  uint value_table_buffer_index,
-                                                  uint bit_width) {
+const flatbuffers::span<uint8_t> BuildLutMetadata(
+    uint32_t tensor_index, uint32_t value_table_buffer_index,
+    uint32_t bit_width) {
   using flatbuffers::Offset;
   namespace compression = tflite::micro::compression;
 
@@ -609,14 +609,14 @@ const Model* BuildSimpleMockModelCompressed() {
   using flatbuffers::Offset;
   using flatbuffers::Vector;
   using tflite::micro::compression::LutTensor;
-  constexpr uint kEmptyBuffer = 0;
-  constexpr uint kMetadataBuffer = 1;
-  constexpr uint kWeightsBuffer = 2;
-  constexpr uint kValueTableBuffer = 3;
-  // constexpr uint kInputTensor = 0;
-  constexpr uint kWeightsTensor = 1;
-  // constexpr uint kOutputTensor = 2;
-  constexpr uint kCompressedBitWidth = 4;
+  constexpr uint32_t kEmptyBuffer = 0;
+  constexpr uint32_t kMetadataBuffer = 1;
+  constexpr uint32_t kWeightsBuffer = 2;
+  constexpr uint32_t kValueTableBuffer = 3;
+  // constexpr uint32_t kInputTensor = 0;
+  constexpr uint32_t kWeightsTensor = 1;
+  // constexpr uint32_t kOutputTensor = 2;
+  constexpr uint32_t kCompressedBitWidth = 4;
 
   auto lut_tensors_span =
       BuildLutMetadata(kWeightsTensor, kValueTableBuffer, kCompressedBitWidth);

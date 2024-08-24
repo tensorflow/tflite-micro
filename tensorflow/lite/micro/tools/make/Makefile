@@ -267,8 +267,8 @@ MICROLITE_LIB_NAME := libtensorflow-microlite.a
 # TFLM optional compression support (default disabled)
 ENABLE_COMPRESSION := no
 ifneq ($(USE_TFLM_COMPRESSION),)
-  # currently only Linux targets supported
-  ifeq ($(TARGET), $(filter $(TARGET), linux))
+  # currently only Linux (x86), Xtensa targets supported
+  ifeq ($(TARGET), $(filter $(TARGET), linux xtensa))
     CXXFLAGS += -DUSE_TFLM_COMPRESSION
     CCFLAGS += -DUSE_TFLM_COMPRESSION
     ENABLE_COMPRESSION := yes

@@ -49,6 +49,8 @@ constexpr uint8_t kBinQuantFilterData[] = {0x01, 0x23, 0x45, 0x67, 0x89,
                                            0x01, 0x23, 0x45, 0x67, 0x89,
                                            0x01, 0x23, 0x45, 0x67, 0x89};
 constexpr float kBinQuantFilterValueTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+constexpr size_t kBinQuantFilterValueTableElements =
+    std::extent<decltype(tflite::testing::kBinQuantFilterValueTable)>::value;
 constexpr int kBinQuantFilterBitWidth = 4;
 // compressed bias data for kBinQuant scheme
 constexpr uint8_t kBinQuantBiasData[] = {0x18};
@@ -69,6 +71,8 @@ const float simple_golden_null_bias_int4_weights[] = {
 #endif
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
+constexpr size_t simple_bias_size =
+    std::extent<decltype(simple_bias_data)>::value;
 const float simple_golden[] = {
     24, 25, 26, 58, 59, 60,
 };
@@ -458,7 +462,8 @@ TfLiteStatus TestFullyConnectedQuantizedCompressed(
       comp_info->filter_compressed, filter_dims, filter_scales->data[0],
       filter_zero_points->data[0], false, kTfLiteInt8);
   SymmetricQuantize(comp_info->filter_data, comp_info->filter_value_table,
-                    ElementCount(*filter_dims), filter_scales->data[0]);
+                    comp_info->filter_value_table_stride,
+                    filter_scales->data[0]);
 
   TfLiteTensor bias_tensor = {};
   if (!null_bias) {
@@ -466,7 +471,8 @@ TfLiteStatus TestFullyConnectedQuantizedCompressed(
                                         input_scale * filter_scales->data[0], 0,
                                         false, typeToTfLiteType<CTB>());
     SymmetricQuantize(comp_info->bias_data, comp_info->bias_value_table,
-                      ElementCount(*bias_dims), bias_tensor.params.scale);
+                      comp_info->bias_value_table_stride,
+                      bias_tensor.params.scale);
   }
 
   TfLiteTensor output_tensor = CreateQuantizedTensor(
@@ -523,11 +529,10 @@ TF_LITE_MICRO_TEST(SimpleTestCompressed) {
   comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   comp_info.filter_value_table = tflite::testing::kBinQuantFilterValueTable;
   comp_info.filter_value_table_stride =
-      std::extent<decltype(tflite::testing::simple_weights_data)>::value;
+      tflite::testing::kBinQuantFilterValueTableElements;
   comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidth;
   comp_info.bias_value_table = tflite::testing::simple_bias_data;
-  comp_info.bias_value_table_stride =
-      std::extent<decltype(tflite::testing::simple_bias_data)>::value;
+  comp_info.bias_value_table_stride = tflite::testing::simple_bias_size;
   comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidth;
 
   TF_LITE_MICRO_EXPECT_EQ(
@@ -597,7 +602,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
   const int output_zero_point = -1;
 
   int8_t input_quantized[tflite::testing::simple_input_size];
-  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int8_t weights_quantized[tflite::testing::kBinQuantFilterValueTableElements];
   int32_t bias_quantized[tflite::testing::simple_output_size];
   int8_t golden_quantized[tflite::testing::simple_output_size];
   int8_t output_data[tflite::testing::simple_output_size];
@@ -606,7 +611,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
   comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   comp_info.filter_value_table = weights_quantized;
   comp_info.filter_value_table_stride =
-      std::extent<decltype(tflite::testing::kBinQuantFilterValueTable)>::value;
+      tflite::testing::kBinQuantFilterValueTableElements;
   comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidth;
   comp_info.filter_compressed = tflite::testing::kBinQuantFilterData;
   comp_info.filter_data = tflite::testing::kBinQuantFilterValueTable;
@@ -614,8 +619,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
   comp_info.filter_scales = weights_scale;
   comp_info.filter_zero_points = weights_zero_point;
   comp_info.bias_value_table = bias_quantized;
-  comp_info.bias_value_table_stride =
-      std::extent<decltype(tflite::testing::simple_bias_data)>::value;
+  comp_info.bias_value_table_stride = tflite::testing::simple_bias_size;
   comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidth;
   comp_info.bias_compressed = tflite::testing::kBinQuantBiasData;
   comp_info.bias_data = tflite::testing::simple_bias_data;
@@ -674,7 +678,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
   const int output_zero_point = 0;
 
   int16_t input_quantized[tflite::testing::simple_input_size];
-  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int8_t weights_quantized[tflite::testing::kBinQuantFilterValueTableElements];
   int64_t bias_quantized[tflite::testing::simple_output_size];
   int16_t golden_quantized[tflite::testing::simple_output_size];
   int16_t output_data[tflite::testing::simple_output_size];
@@ -683,7 +687,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
   comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   comp_info.filter_value_table = weights_quantized;
   comp_info.filter_value_table_stride =
-      std::extent<decltype(tflite::testing::kBinQuantFilterValueTable)>::value;
+      tflite::testing::kBinQuantFilterValueTableElements;
   comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidth;
   comp_info.filter_compressed = tflite::testing::kBinQuantFilterData;
   comp_info.filter_data = tflite::testing::kBinQuantFilterValueTable;
@@ -691,8 +695,7 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
   comp_info.filter_scales = weights_scale;
   comp_info.filter_zero_points = weights_zero_point;
   comp_info.bias_value_table = bias_quantized;
-  comp_info.bias_value_table_stride =
-      std::extent<decltype(tflite::testing::simple_bias_data)>::value;
+  comp_info.bias_value_table_stride = tflite::testing::simple_bias_size;
   comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidth;
   comp_info.bias_compressed = tflite::testing::kBinQuantBiasData;
   comp_info.bias_data = tflite::testing::simple_bias_data;

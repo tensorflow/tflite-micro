@@ -169,7 +169,6 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
-
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
           break;
