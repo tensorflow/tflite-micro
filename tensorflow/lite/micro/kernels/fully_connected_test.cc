@@ -42,6 +42,9 @@ const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
 
+int simple_bias_dims[] = {1, 3};
+const float simple_bias_data[] = {1, 2, 3};
+
 #ifdef USE_TFLM_COMPRESSION
 
 // compressed filter data for kBinQuant scheme
@@ -55,7 +58,8 @@ constexpr int kBinQuantFilterBitWidth = 4;
 // compressed bias data for kBinQuant scheme
 constexpr uint8_t kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
-
+constexpr size_t simple_bias_size =
+    std::extent<decltype(simple_bias_data)>::value;
 #endif  // USE_TFLM_COMPRESSION
 
 // TODO(b/258710417): INT4 isn't currently supported on Hexagon.
@@ -69,10 +73,6 @@ const float simple_golden_null_bias_int4_weights[] = {
     -28, -28, -28, 0, 0, 0,
 };
 #endif
-int simple_bias_dims[] = {1, 3};
-const float simple_bias_data[] = {1, 2, 3};
-constexpr size_t simple_bias_size =
-    std::extent<decltype(simple_bias_data)>::value;
 const float simple_golden[] = {
     24, 25, 26, 58, 59, 60,
 };
