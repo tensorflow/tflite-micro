@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -46,6 +46,10 @@ struct OpDataFullyConnected {
   // tensor is of n-bit precision that cannot be easily processed by kernels.
   int filter_buffer_index;
 #endif
+
+  int32_t* per_channel_output_multiplier;
+  int32_t* per_channel_output_shift;
+  bool is_per_channel;
 };
 
 extern const int kFullyConnectedInputTensor;
