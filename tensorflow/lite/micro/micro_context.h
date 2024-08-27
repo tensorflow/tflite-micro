@@ -117,11 +117,11 @@ class MicroContext {
   virtual const CompressionTensorData* GetTensorCompressionData(
       const TfLiteNode* node, int tensor_idx) = 0;
 
-  // Only available during Eval. Returns nullptr on failure, otherwise returns a
-  // pointer to the scratch buffer.
-  virtual void* DecompressTensorToScratchBuffer(
+  // Only available during Prepare & Eval. Returns nullptr on failure, otherwise
+  // returns a pointer to the buffer.
+  virtual void* DecompressTensorToBuffer(
       const TfLiteEvalTensor& tensor,
-      const CompressionTensorData& compression_data, int scratch_buffer_handle);
+      const CompressionTensorData& compression_data, void* buffer);
 
 #endif  // USE_TFLM_COMPRESSION
 

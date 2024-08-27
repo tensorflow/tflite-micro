@@ -175,13 +175,11 @@ void MicroContextReportOpError(struct TfLiteContext* context,
 
 #ifdef USE_TFLM_COMPRESSION
 
-void* MicroContext::DecompressTensorToScratchBuffer(
+void* MicroContext::DecompressTensorToBuffer(
     const TfLiteEvalTensor& tensor,
-    const CompressionTensorData& compression_data, int scratch_buffer_handle) {
+    const CompressionTensorData& compression_data, void* buffer) {
   TFLITE_DCHECK(compression_data.scheme == CompressionScheme::kBinQuant);
-  TFLITE_DCHECK(scratch_buffer_handle != -1);
-  void* scratch_buffer = GetScratchBuffer(scratch_buffer_handle);
-  TFLITE_DCHECK(scratch_buffer != nullptr);
+  TFLITE_DCHECK(buffer != nullptr);
   size_t count = ElementCount(*tensor.dims);
   size_t num_channels = 1;
 
@@ -198,22 +196,22 @@ void* MicroContext::DecompressTensorToScratchBuffer(
 
   switch (tensor.type) {
     case kTfLiteBool: {
-      return ds.DecompressToBuffer<bool>(scratch_buffer);
+      return ds.DecompressToBuffer<bool>(buffer);
     } break;
     case kTfLiteInt8: {
-      return ds.DecompressToBuffer<int8_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int8_t>(buffer);
     } break;
     case kTfLiteInt16: {
-      return ds.DecompressToBuffer<int16_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int16_t>(buffer);
     } break;
     case kTfLiteInt32: {
-      return ds.DecompressToBuffer<int32_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int32_t>(buffer);
     } break;
     case kTfLiteInt64: {
-      return ds.DecompressToBuffer<int64_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int64_t>(buffer);
     } break;
     case kTfLiteFloat32: {
-      return ds.DecompressToBuffer<float>(scratch_buffer);
+      return ds.DecompressToBuffer<float>(buffer);
     } break;
     default: {
       MicroPrintf("Unsupported decompression tensor type %d", tensor.type);

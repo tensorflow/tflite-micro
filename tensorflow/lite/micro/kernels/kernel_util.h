@@ -107,8 +107,10 @@ const T* GetTensorData(MicroContext* micro_context,
     return reinterpret_cast<const T*>(tensor->data.data);
   }
 
-  void* uncompressed_data = micro_context->DecompressTensorToScratchBuffer(
-      *tensor, *compression_data, scratch_buffer_handle);
+  TFLITE_DCHECK(scratch_buffer_handle != -1);
+  void* scratch_buffer = micro_context->GetScratchBuffer(scratch_buffer_handle);
+  void* uncompressed_data = micro_context->DecompressTensorToBuffer(
+      *tensor, *compression_data, scratch_buffer);
   return reinterpret_cast<const T*>(uncompressed_data);
 }
 
