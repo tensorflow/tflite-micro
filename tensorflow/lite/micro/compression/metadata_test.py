@@ -21,7 +21,7 @@ import flatbuffers
 
 # `.*_generated` is the name of the module created by the Bazel rule
 # `flatbuffer_py_library' based on the schema.
-from tensorflow.lite.micro.compression import metadata_flatbuffer_py_generated as schema
+from tensorflow.lite.micro.compression import metadata_py_generated as schema
 
 
 def main():
@@ -52,11 +52,11 @@ def main():
   print(hexdump.hexdump(buffer, result='return'))
   print(f"length: {len(buffer)}")
 
-  def attrs_equal(a, b):
-    return all(vars(a)[key] == vars(b)[key] for key in vars(a))
-
   read_metadata = schema.MetadataT.InitFromPackedBuf(buffer, 0)
   read_subgraph0 = read_metadata.subgraphs[0]
+
+  def attrs_equal(a, b):
+    return all(vars(a)[key] == vars(b)[key] for key in vars(a))
 
   assert attrs_equal(read_subgraph0.lutTensors[0], lut_tensor0)
   assert attrs_equal(read_subgraph0.lutTensors[1], lut_tensor1)
