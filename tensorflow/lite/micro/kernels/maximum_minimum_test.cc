@@ -238,12 +238,12 @@ TF_LITE_MICRO_TEST(Int16Test) {
 
   int16_t output_data[6];
 
-  tflite::testing::TestMaxMinQuantized(
+  tflite::testing::TestMaxMinQuantizedInt16(
       tflite::Register_MAXIMUM(), dims, data1, input_scale, input_zero_point,
       dims, data2, input_scale, input_zero_point, golden_max, output_scale,
       output_zero_point, dims, output_data);
 
-  tflite::testing::TestMaxMinQuantized(
+  tflite::testing::TestMaxMinQuantizedInt16(
       tflite::Register_MINIMUM(), dims, data1, input_scale, input_zero_point,
       dims, data2, input_scale, input_zero_point, golden_min, output_scale,
       output_zero_point, dims, output_data);
