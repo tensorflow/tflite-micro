@@ -130,8 +130,49 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
 }
 #endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
+uint32_t crctab[256];
+
+void GenCRC32Table() {
+  constexpr uint32_t kPolyN = 0xEDB88320;
+  for (size_t index = 0; index < 256; index++) {
+    crctab[index] = index;
+    for (int i = 0; i < 8; i++) {
+      if (crctab[index] & 1) {
+        crctab[index] = (crctab[index] >> 1) ^ kPolyN;
+      } else {
+        crctab[index] >>= 1;
+      }
+    }
+  }
+}
+
+uint32_t ComputeCRC32(const uint8_t* data, const size_t data_length) {
+  uint32_t crc32 = ~0U;
+
+  for (size_t i = 0; i < data_length; i++) {
+    // crctab is an array of 256 32-bit constants
+    const uint32_t index = (crc32 ^ data[i]) & 0xFF;
+    crc32 = (crc32 >> 8) ^ crctab[index];
+  }
+
+  // invert all bits of result
+  crc32 ^= ~0U;
+  return crc32;
+}
+
+void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
+  GenCRC32Table();
+  for (size_t i = 0; i < interpreter->outputs_size(); ++i) {
+    TfLiteTensor* output = interpreter->output_tensor(i);
+    uint8_t* output_values = tflite::GetTensorData<uint8_t>(output);
+    uint32_t crc32_value = ComputeCRC32(output_values, output->bytes);
+    MicroPrintf("Output CRC32: 0x%X", crc32_value);
+  }
+}
+
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   Profiler profiler;
+  Profiler profiler2;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
@@ -151,6 +192,8 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 
   profiler.Log();
   profiler.ClearEvents();
+
+  TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
@@ -173,6 +216,15 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     profiler.LogTicksPerTagCsv();
     MicroPrintf("");  // null MicroPrintf serves as a newline.
     profiler.ClearEvents();
+
+    profiler2.Log();
+    MicroPrintf("");  // null MicroPrintf serves as a newline.
+    profiler2.LogTicksPerTagCsv();
+    MicroPrintf("");  // null MicroPrintf serves as a newline.
+    profiler2.ClearEvents();
+
+    ShowOutputCRC32(&interpreter);
+    MicroPrintf("");  // null MicroPrintf serves as a newline.
 
     if (status == kTfLiteOk) {
       break;
