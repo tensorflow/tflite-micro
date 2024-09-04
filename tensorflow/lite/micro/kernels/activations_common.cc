@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
                          ReluOpData* data) {
   float act_min = 0.0;
-  float act_max = std::numeric_limits<float>::infinity();
   double real_multiplier =
       static_cast<double>(input->params.scale / output->params.scale);
 
@@ -69,12 +68,7 @@ void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
       output->params.zero_point +
           static_cast<int32_t>(roundf(act_min / output->params.scale)));
   data->params.quantized_activation_max =
-      act_max == std::numeric_limits<float>::infinity()
-          ? static_cast<int32_t>(std::numeric_limits<T>::max())
-          : std::min(static_cast<int32_t>(std::numeric_limits<T>::max()),
-                     output->params.zero_point +
-                         static_cast<int32_t>(
-                             roundf(act_max / output->params.scale)));
+      static_cast<int32_t>(std::numeric_limits<T>::max());
   data->params.input_offset = input->params.zero_point;
   data->params.output_offset = output->params.zero_point;
 }
