@@ -101,14 +101,14 @@ void TestMaxMinQuantized(const TFLMRegistration& registration,
   }
 }
 
-void TestMaxMinQuantizedInt16(const TFLMRegistration& registration,
-                         int* input1_dims_data, const int16_t* input1_data,
-                         float const input1_scale, const int input1_zero_point,
-                         int* input2_dims_data, const int16_t* input2_data,
-                         const float input2_scale, const int input2_zero_point,
-                         const int16_t* expected_output_data,
-                         const float output_scale, const int output_zero_point,
-                         int* output_dims_data, int16_t* output_data) {
+void TestMaxMinQuantizedInt16(
+    const TFLMRegistration& registration, int* input1_dims_data,
+    const int16_t* input1_data, float const input1_scale,
+    const int input1_zero_point, int* input2_dims_data,
+    const int16_t* input2_data, const float input2_scale,
+    const int input2_zero_point, const int16_t* expected_output_data,
+    const float output_scale, const int output_zero_point,
+    int* output_dims_data, int16_t* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
