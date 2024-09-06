@@ -88,6 +88,8 @@ def unpack_subgraphs(subgraphs):
 
 
 def unpack_metadata(metadata):
+  if metadata is None:
+    return None
   return [{
       "name": m.name.decode("utf-8"),
       "buffer": m.buffer
@@ -126,7 +128,7 @@ def unpack_array(a):
 
 
 def is_compressed_buffer(buffer_index, unpacked_metadata):
-  if unpack_metadata is None:
+  if unpacked_metadata is None:
     return False, None, None
   for subgraph in unpacked_metadata["subgraphs"]:
     lut_list = subgraph["lut_tensors"]
@@ -178,11 +180,13 @@ def unpack_buffers(model, compression_metadata=None, unpacked_metadata=None):
 
 def get_compression_metadata_buffer(model):
   # Return the metadata buffer data or None
+  if model.metadata is None:
+    return None
   for item in model.metadata:
     if item.name.decode("utf-8") == "COMPRESSION_METADATA":
       return item.buffer
-  else:
-    return None
+    else:
+      return None
 
 
 def print_model(model, format=None):
