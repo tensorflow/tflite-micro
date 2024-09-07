@@ -126,7 +126,6 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteType output_type = output_tensor->type;
 
   micro_context->DeallocateTempTfLiteTensor(input_tensor);
-  micro_context->DeallocateTempTfLiteTensor(output_tensor);
 
   // Check activation and input type
   TF_LITE_ENSURE_EQ(context, params->activation, kTfLiteActNone);
@@ -136,16 +135,18 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
                      input_type == kTfLiteInt64 || input_type == kTfLiteBool);
 
   // Output type must match input type
-  TF_LITE_ENSURE_EQ(context, output_type, input_type);
+  TF_LITE_ENSURE_TYPES_EQ(context, output_type, input_type);
 
   // This implementation does not support large number of input tensors
   const int num_inputs = NumInputs(node);
   TF_LITE_ENSURE(context, num_inputs <= kMaxInputNum);
 
-  // Shapes with dimensions >4 are not yet supported with static allocation.
+  // Shapes with dimensions > kMaxSmallSize are not yet supported with static
+  // allocation.
   for (int i = 0; i < num_inputs; ++i) {
     TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, i);
     TF_LITE_ENSURE(context, input != nullptr);
+    TF_LITE_ENSURE_TYPES_EQ(context, input->type, input_type);
     int num_dimensions = NumDimensions(input);
 
     if (num_dimensions > RuntimeShape::kMaxSmallSize) {
@@ -155,62 +156,48 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
           RuntimeShape::kMaxSmallSize, num_dimensions);
       return kTfLiteError;
     }
+
+    if (input_type == kTfLiteInt8) {
+      // Make sure there is no re-scaling needed for Int8 quantized kernel. This
+      // is a restriction we introduced to Int8 kernels.
+      TF_LITE_ENSURE_EQ(context, input->params.scale,
+                        output_tensor->params.scale);
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point,
+                        output_tensor->params.zero_point);
+    } else if (input_type == kTfLiteInt16) {
+      // Make sure that all Int16 inputs have a null zero-point.
+      TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+    }
+
     micro_context->DeallocateTempTfLiteTensor(input);
+  }
+
+  if (input_type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, output_tensor->params.zero_point, 0);
   }
 
   // Calculate OpData.
   TFLITE_DCHECK(node->user_data != nullptr);
   OpData* data = static_cast<OpData*>(node->user_data);
 
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-
   switch (output_type) {  // Already know in/outtypes are same.
     case kTfLiteBool:
     case kTfLiteFloat32:
+    case kTfLiteInt8:
     case kTfLiteInt16:
     case kTfLiteInt32:
     case kTfLiteInt64: {
-      data->params.axis = CalculatePositiveAxis(params->axis, output);
+      data->params.axis = CalculatePositiveAxis(params->axis, output_tensor);
       data->params.inputs_count = node->inputs->size;
-      break;
-    }
-    case kTfLiteInt8: {
-      data->params.axis = CalculatePositiveAxis(params->axis, output);
-      data->params.inputs_count = node->inputs->size;
-
-      float* input_scales =
-          reinterpret_cast<float*>(context->AllocatePersistentBuffer(
-              context, node->inputs->size * sizeof(float)));
-
-      int32_t* input_zero_points =
-          reinterpret_cast<int32_t*>(context->AllocatePersistentBuffer(
-              context, node->inputs->size * sizeof(int32_t)));
-
-      // Allocate persistent scale and zeropoint buffers.
-      // Store input scale and zero point values in OpParams:
-      for (int i = 0; i < node->inputs->size; ++i) {
-        TfLiteTensor* t = micro_context->AllocateTempInputTensor(node, i);
-        TF_LITE_ENSURE(context, t != nullptr);
-        input_scales[i] = t->params.scale;
-        input_zero_points[i] = t->params.zero_point;
-        micro_context->DeallocateTempTfLiteTensor(t);
-      }
-
-      data->params.input_scale = input_scales;
-      data->params.input_zeropoint = input_zero_points;
-      data->params.output_zeropoint = output->params.zero_point;
-      data->params.output_scale = output->params.scale;
       break;
     }
     default:
-      MicroPrintf("Op Concatenation does not currently support Type '%s'.",
+      MicroPrintf("Op Concatenation does not currently support type '%s'.",
                   TfLiteTypeGetName(output_type));
       return kTfLiteError;
   }
 
-  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(output_tensor);
 
   return kTfLiteOk;
 }
