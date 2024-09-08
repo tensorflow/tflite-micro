@@ -111,7 +111,7 @@ def lut_compress(tensor: model_facade.Tensor, metadata: MetadataBuilder, *,
     levels.append(channel_levels)
 
   nr_levels = max((len(ch) for ch in levels))
-  index_bitwidth = math.ceil(math.log2(nr_levels))
+  index_bitwidth = math.ceil(math.log2(nr_levels)) if nr_levels > 1 else 1
 
   # create and write value buffer with levels
   value_buffer = tensor.subgraph.model.add_buffer()

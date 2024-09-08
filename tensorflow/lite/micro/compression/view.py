@@ -185,8 +185,7 @@ def get_compression_metadata_buffer(model):
   for item in model.metadata:
     if item.name.decode("utf-8") == "COMPRESSION_METADATA":
       return item.buffer
-    else:
-      return None
+  return None
 
 
 def print_model(model, format=None):
