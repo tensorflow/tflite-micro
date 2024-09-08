@@ -33,6 +33,13 @@ constexpr int kOutputTensor = 0;
 
 struct OpData {
   ConcatenationParams params;
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // scratch buffers for compressed tensors
+  int scratch_indices[kMaxInputNum];
+
+#endif  // USE_TFLM_COMPRESSION
 };
 
 // Handles negative axis index, coerces to positive index value.
@@ -52,8 +59,6 @@ inline int CalculatePositiveAxis(int axis, const TfLiteTensor* output_tensor) {
 inline void GetAllInputTensorShapes(const TfLiteContext* context,
                                     const TfLiteNode* node,
                                     RuntimeShape all_shapes[kMaxInputNum]) {
-  TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(node != nullptr);
   for (int i = 0; i < node->inputs->size; ++i) {
     const TfLiteEvalTensor* t = tflite::micro::GetEvalInput(context, node, i);
     RuntimeShape shape = tflite::micro::GetTensorShape(t);
@@ -73,12 +78,22 @@ inline void GetShapesPointers(const RuntimeShape* shapes, size_t num,
 template <typename T>
 inline void GetAllInputTensorData(const TfLiteContext* context,
                                   const TfLiteNode* node,
-                                  T* all_data[kMaxInputNum]) {
-  TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(node != nullptr);
+                                  const T* all_data[kMaxInputNum]) {
+#ifdef USE_TFLM_COMPRESSION
+  const OpData* data = static_cast<const OpData*>(node->user_data);
+  MicroContext* micro_context = GetMicroContext(context);
+#endif  // USE_TFLM_COMPRESSION
+
   for (int i = 0; i < node->inputs->size; ++i) {
     const TfLiteEvalTensor* t = tflite::micro::GetEvalInput(context, node, i);
+#ifdef USE_TFLM_COMPRESSION
+    const CompressionTensorData* comp_td =
+        micro_context->GetTensorCompressionData(node, i);
+    all_data[i] = tflite::micro::GetTensorData<T>(micro_context, t, comp_td,
+                                                  data->scratch_indices[i]);
+#else   // USE_TFLM_COMPRESSION
     all_data[i] = tflite::micro::GetTensorData<T>(t);
+#endif  // USE_TFLM_COMPRESSION
   }
 }
 
@@ -88,15 +103,16 @@ void EvalUnquantized(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape inputs_shape[kMaxInputNum];
   const RuntimeShape* inputs_shape_ptr[kMaxInputNum];
   const data_type* inputs_data[kMaxInputNum];
+  TFLITE_DCHECK(context != nullptr);
+  TFLITE_DCHECK(node != nullptr);
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData* data = static_cast<const OpData*>(node->user_data);
   GetAllInputTensorShapes(context, node, inputs_shape);
   GetShapesPointers(inputs_shape, node->inputs->size, inputs_shape_ptr);
   GetAllInputTensorData(context, node, inputs_data);
 
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-  const OpData* data = static_cast<const OpData*>(node->user_data);
 
   reference_ops::Concatenation(data->params, inputs_shape_ptr, inputs_data,
                                tflite::micro::GetTensorShape(output),
@@ -141,6 +157,10 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
   const int num_inputs = NumInputs(node);
   TF_LITE_ENSURE(context, num_inputs <= kMaxInputNum);
 
+  // Calculate OpData.
+  TFLITE_DCHECK(node->user_data != nullptr);
+  OpData* data = static_cast<OpData*>(node->user_data);
+
   // Shapes with dimensions > kMaxSmallSize are not yet supported with static
   // allocation.
   for (int i = 0; i < num_inputs; ++i) {
@@ -160,8 +180,8 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
     if (input_type == kTfLiteInt8) {
       // Make sure there is no re-scaling needed for Int8 quantized kernel. This
       // is a restriction we introduced to Int8 kernels.
-      TF_LITE_ENSURE_EQ(context, input->params.scale,
-                        output_tensor->params.scale);
+      TF_LITE_ENSURE_EQ(context, static_cast<double>(input->params.scale),
+                        static_cast<double>(output_tensor->params.scale));
       TF_LITE_ENSURE_EQ(context, input->params.zero_point,
                         output_tensor->params.zero_point);
     } else if (input_type == kTfLiteInt16) {
@@ -169,16 +189,21 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
       TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
     }
 
+#ifdef USE_TFLM_COMPRESSION
+
+    // Compression scratch buffers.
+    // These will only be allocated if the tensor is compressed.
+    data->scratch_indices[i] =
+        micro_context->AllocateDecompressionScratchBuffer(node, i);
+
+#endif  // USE_TFLM_COMPRESSION
+
     micro_context->DeallocateTempTfLiteTensor(input);
   }
 
   if (input_type == kTfLiteInt16) {
     TF_LITE_ENSURE_EQ(context, output_tensor->params.zero_point, 0);
   }
-
-  // Calculate OpData.
-  TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
 
   switch (output_type) {  // Already know in/outtypes are same.
     case kTfLiteBool:

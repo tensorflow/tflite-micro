@@ -409,17 +409,28 @@ inline int ZeroPointFromMinMax(const float min, const float max) {
 
 #ifdef USE_TFLM_COMPRESSION
 
-template <typename TFILTER, typename TBIAS>
+// TODO(ddavis-2015): refactor this
+template <typename TFILTER, typename TBIAS = void>
 struct TestCompressionInfo {
-  TFILTER* filter_value_table;
-  size_t filter_value_table_stride;
-  int filter_bit_width;
-  TBIAS* bias_value_table;
-  size_t bias_value_table_stride;
-  int bias_bit_width;
+  union {
+    struct {
+      TFILTER* filter_value_table;
+      size_t filter_value_table_stride;
+      int filter_bit_width;
+      TBIAS* bias_value_table;
+      size_t bias_value_table_stride;
+      int bias_bit_width;
+    };
+    struct {
+      TFILTER* value_table;
+      size_t value_table_stride;
+      int bit_width;
+    };
+  };
   CompressionScheme scheme;
 };
 
+// TODO(ddavis-2015): refactor this
 template <typename TBIAS>
 struct TestCompressionQuantizedInfo : TestCompressionInfo<int8_t, TBIAS> {
   const uint8_t* filter_compressed;
@@ -435,51 +446,89 @@ struct TestCompressionQuantizedInfo : TestCompressionInfo<int8_t, TBIAS> {
   int* bias_zero_points;      // TfLiteIntArray (computed)
 };
 
-template <int N, typename TW, typename TB>
+template <size_t NTENSORS, typename TW, typename TB = void, size_t NINPUTS = 2>
 class TestCompressedList {
  public:
+  // TODO(ddavis-2015): remove
   TfLiteStatus AddWeight(const TestCompressionInfo<TW, TB>& tci,
                          const TfLiteTensor& tensor,
                          const size_t tensor_index) {
-    filter_comp_data_.data.lut_data = &filter_lut_;
-    filter_comp_data_.scheme = tci.scheme;
-    filter_comp_data_.data.lut_data->compressed_bit_width =
+    TFLITE_DCHECK_LT(next_input_index_, NINPUTS);
+    inputs_comp_data_[next_input_index_].data.lut_data =
+        &inputs_ltd_[next_input_index_];
+    inputs_comp_data_[next_input_index_].scheme = tci.scheme;
+    inputs_comp_data_[next_input_index_].data.lut_data->compressed_bit_width =
         tci.filter_bit_width;
-    filter_comp_data_.data.lut_data->value_table = tci.filter_value_table;
-    filter_comp_data_.data.lut_data->value_table_channel_stride =
+    inputs_comp_data_[next_input_index_].data.lut_data->value_table =
+        tci.filter_value_table;
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->value_table_channel_stride =
         tci.filter_value_table_stride;
-    filter_comp_data_.data.lut_data->is_per_channel_quantized =
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->is_per_channel_quantized =
         IsPerChannelQuantized(tensor);
-    filter_comp_data_.data.lut_data->use_alternate_axis = UsesAltAxis(tensor);
-    return SetCompressionData(tensor_index, filter_comp_data_);
+    inputs_comp_data_[next_input_index_].data.lut_data->use_alternate_axis =
+        UsesAltAxis(tensor);
+    return SetCompressionData(tensor_index,
+                              inputs_comp_data_[next_input_index_++]);
   }
 
+  // TODO(ddavis-2015): remove
   TfLiteStatus AddBias(const TestCompressionInfo<TW, TB>& tci,
                        const TfLiteTensor& tensor, const size_t tensor_index) {
-    bias_comp_data_.data.lut_data = &bias_lut_;
-    bias_comp_data_.scheme = tci.scheme;
-    bias_comp_data_.data.lut_data->compressed_bit_width = tci.bias_bit_width;
-    bias_comp_data_.data.lut_data->value_table = tci.bias_value_table;
-    bias_comp_data_.data.lut_data->value_table_channel_stride =
+    TFLITE_DCHECK_LT(next_input_index_, NINPUTS);
+    inputs_comp_data_[next_input_index_].data.lut_data =
+        &inputs_ltd_[next_input_index_];
+    inputs_comp_data_[next_input_index_].scheme = tci.scheme;
+    inputs_comp_data_[next_input_index_].data.lut_data->compressed_bit_width =
+        tci.bias_bit_width;
+    inputs_comp_data_[next_input_index_].data.lut_data->value_table =
+        tci.bias_value_table;
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->value_table_channel_stride =
         tci.bias_value_table_stride;
-    bias_comp_data_.data.lut_data->is_per_channel_quantized =
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->is_per_channel_quantized =
         IsPerChannelQuantized(tensor);
-    bias_comp_data_.data.lut_data->use_alternate_axis = UsesAltAxis(tensor);
-    return SetCompressionData(tensor_index, bias_comp_data_);
+    inputs_comp_data_[next_input_index_].data.lut_data->use_alternate_axis =
+        UsesAltAxis(tensor);
+    return SetCompressionData(tensor_index,
+                              inputs_comp_data_[next_input_index_++]);
   }
+
+  TfLiteStatus AddInput(const TestCompressionInfo<TW, TB>& tci,
+                        const TfLiteTensor& tensor, const size_t tensor_index) {
+    TFLITE_DCHECK_LT(next_input_index_, NINPUTS);
+    inputs_comp_data_[next_input_index_].data.lut_data =
+        &inputs_ltd_[next_input_index_];
+    inputs_comp_data_[next_input_index_].scheme = tci.scheme;
+    inputs_comp_data_[next_input_index_].data.lut_data->compressed_bit_width =
+        tci.bit_width;
+    inputs_comp_data_[next_input_index_].data.lut_data->value_table =
+        tci.value_table;
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->value_table_channel_stride = tci.value_table_stride;
+    inputs_comp_data_[next_input_index_]
+        .data.lut_data->is_per_channel_quantized =
+        IsPerChannelQuantized(tensor);
+    inputs_comp_data_[next_input_index_].data.lut_data->use_alternate_axis =
+        UsesAltAxis(tensor);
+    return SetCompressionData(tensor_index,
+                              inputs_comp_data_[next_input_index_++]);
+  }
+
   const CompressedTensorList* GetCompressedTensorList() { return &ctl_; }
 
  private:
-  LookupTableData filter_lut_ = {};
-  CompressionTensorData filter_comp_data_ = {};
-  LookupTableData bias_lut_ = {};
-  CompressionTensorData bias_comp_data_ = {};
-  const CompressionTensorData* ctdp_[N] = {};
+  size_t next_input_index_ = 0;
+  LookupTableData inputs_ltd_[NINPUTS] = {};
+  CompressionTensorData inputs_comp_data_[NINPUTS] = {};
+  const CompressionTensorData* ctdp_[NTENSORS] = {};
   const CompressedTensorList ctl_ = {ctdp_};
 
   TfLiteStatus SetCompressionData(const size_t tensor_index,
                                   const CompressionTensorData& cd) {
-    TFLITE_DCHECK_LT(tensor_index, N);
+    TFLITE_DCHECK_LT(tensor_index, NTENSORS);
     TFLITE_DCHECK(cd.data.lut_data->value_table != nullptr);
     TFLITE_DCHECK(cd.data.lut_data->value_table_channel_stride != 0);
 
