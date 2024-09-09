@@ -164,46 +164,6 @@ TfLiteStatus InitializeTemporaries(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-template <typename Scalar>
-void TransposeRowsColumnsImpl(const TfLiteEvalTensor& tensor_in,
-                              TfLiteEvalTensor* tensor_out) {
-  const Scalar* input = tflite::micro::GetTensorData<Scalar>(&tensor_in);
-  Scalar* output = tflite::micro::GetTensorData<Scalar>(tensor_out);
-  RuntimeShape transposed_shape(tflite::micro::GetTensorShape(&tensor_in));
-  RuntimeShape shape(transposed_shape);
-  TransposeParams params;
-  const int rank = shape.DimensionsCount();
-  params.perm_count = rank;
-  for (int i = 0; i < rank - 2; ++i) {
-    params.perm[i] = i;
-  }
-  // Transpose the last two dimensions.
-  params.perm[rank - 2] = rank - 1;
-  params.perm[rank - 1] = rank - 2;
-  transposed_shape.SetDim(rank - 1, shape.Dims(rank - 2));
-  transposed_shape.SetDim(rank - 2, shape.Dims(rank - 1));
-  reference_ops::Transpose(params, shape, input, transposed_shape, output);
-}
-
-TfLiteStatus TransposeRowsColumns(const TfLiteEvalTensor& tensor_in,
-                                  TfLiteEvalTensor* tensor_out) {
-  if (tensor_in.type == kTfLiteFloat32) {
-    TransposeRowsColumnsImpl<float>(tensor_in, tensor_out);
-    return kTfLiteOk;
-  } else if (tensor_in.type == kTfLiteInt8) {
-    TransposeRowsColumnsImpl<int8_t>(tensor_in, tensor_out);
-    return kTfLiteOk;
-  } else if (tensor_in.type == kTfLiteInt16) {
-    TransposeRowsColumnsImpl<int16_t>(tensor_in, tensor_out);
-    return kTfLiteOk;
-  } else {
-    MicroPrintf(
-        "BATCH_MATMUL can only transpose tensors with FLOAT32, INT8, INT16 "
-        "type.");
-  }
-  return kTfLiteError;
-}
-
 void* BatchMatMulInit(TfLiteContext* context, const char* buffer,
                       size_t length) {
   // This is a builtin op, so we don't use the contents in 'buffer', if any.
