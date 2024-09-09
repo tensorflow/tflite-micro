@@ -169,6 +169,10 @@ class Tensor:
     return nhwc
 
   @property
+  def buffer_index(self):
+    return self.tensor.buffer
+
+  @property
   def buffer(self):
     return self.subgraph.model.buffers[self.tensor.buffer]
 

@@ -73,6 +73,15 @@ class MetadataBuilder:
     self.subgraph(subgraph_id).lutTensors.append(tensor)
     return tensor
 
+  def get_lut_by_tensor(self, tensor: model_facade.Tensor):
+    for subgraph_index in range(len(self._metadata.subgraphs)):
+      for item in self.subgraph(subgraph_index).lutTensors:
+        buffer_index = tensor.subgraph.model.subgraphs[subgraph_index].tensors[
+            item.tensor].buffer_index
+        if tensor.buffer_index == buffer_index:
+          return item
+    return None
+
   def _add_subgraph(self):
     subgraph = schema.SubgraphT()
     subgraph.lutTensors = []
@@ -88,6 +97,14 @@ def pack(indices: Sequence[int], bitwidth: int) -> bytes:
   for i in indices:
     bits.extend(bitarray.util.int2ba(i, length=bitwidth, endian=endianness))
   return bits.tobytes()
+
+
+def add_lut_tensor(metadata: MetadataBuilder, *, subgraph_index: int,
+                   tensor_index: int, buffer_index: int, bitwidth: int):
+  lut_tensor = metadata.add_lut_tensor(subgraph_id=subgraph_index)
+  lut_tensor.tensor = tensor_index
+  lut_tensor.valueBuffer = buffer_index
+  lut_tensor.indexBitwidth = bitwidth
 
 
 def lut_compress(tensor: model_facade.Tensor, metadata: MetadataBuilder, *,
@@ -130,11 +147,12 @@ def lut_compress(tensor: model_facade.Tensor, metadata: MetadataBuilder, *,
     indices.append(levels[channel].index(value))
   tensor.buffer.data = pack(indices, index_bitwidth)
 
-  # write metadata
-  lut_tensor = metadata.add_lut_tensor(subgraph_id=tensor.subgraph.index)
-  lut_tensor.tensor = tensor.index
-  lut_tensor.valueBuffer = value_buffer.index
-  lut_tensor.indexBitwidth = index_bitwidth
+  # add metadata
+  add_lut_tensor(metadata,
+                 subgraph_index=tensor.subgraph.index,
+                 tensor_index=tensor.index,
+                 buffer_index=value_buffer.index,
+                 bitwidth=index_bitwidth)
 
 
 @dataclass
@@ -151,7 +169,15 @@ def strategy_lut_listed_tensors(tensors: Sequence[TensorSpec],
   def _strategy(model: model_facade.Model, metadata: MetadataBuilder):
     for spec in tensors:
       tensor = model.subgraphs[spec.subgraph_id].tensors[spec.tensor_id]
-      lut_compress(tensor, metadata, alt_axis=False)
+      lut_data = metadata.get_lut_by_tensor(tensor)
+      if lut_data is not None:
+        add_lut_tensor(metadata,
+                       subgraph_index=spec.subgraph_id,
+                       tensor_index=spec.tensor_id,
+                       buffer_index=lut_data.valueBuffer,
+                       bitwidth=lut_data.indexBitwidth)
+      else:
+        lut_compress(tensor, metadata, alt_axis=False)
     for spec in alt_axis_tensors:
       tensor = model.subgraphs[spec.subgraph_id].tensors[spec.tensor_id]
       lut_compress(tensor, metadata, alt_axis=True)
