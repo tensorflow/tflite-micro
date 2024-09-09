@@ -102,17 +102,6 @@ void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
   }
 }
 
-void Relu6Quantized(int8_t lower, int8_t upper, const RuntimeShape& input_shape,
-                    const int8_t* input_data, const RuntimeShape& output_shape,
-                    int8_t* output_data) {
-  const int flat_size = MatchingFlatSize(input_shape, output_shape);
-  for (int i = 0; i < flat_size; ++i) {
-    const int8_t val = input_data[i];
-    const int8_t clamped = val > upper ? upper : val < lower ? lower : val;
-    output_data[i] = clamped;
-  }
-}
-
 TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   ReluOpData* data = static_cast<ReluOpData*>(node->user_data);
@@ -137,7 +126,6 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  Relu6OpData* data = static_cast<Relu6OpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
@@ -145,9 +133,17 @@ TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, input != nullptr);
 
   if (input->type == kTfLiteInt8) {
-    data->six_int8 = FloatToQuantizedType<int8_t>(6.0f, input->params.scale,
-                                                  input->params.zero_point);
-    data->zero_int8 = input->params.zero_point;
+    Relu6OpData<int8_t>* data =
+        static_cast<Relu6OpData<int8_t>*>(node->user_data);
+    data->six = FloatToQuantizedType<int8_t>(6.0f, input->params.scale,
+                                             input->params.zero_point);
+    data->zero = input->params.zero_point;
+  } else if (input->type == kTfLiteInt16) {
+    Relu6OpData<int16_t>* data =
+        static_cast<Relu6OpData<int16_t>*>(node->user_data);
+    data->six = FloatToQuantizedType<int16_t>(6.0f, input->params.scale,
+                                              input->params.zero_point);
+    data->zero = input->params.zero_point;
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);

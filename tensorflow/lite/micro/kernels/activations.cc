@@ -70,12 +70,15 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
 
 void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(Relu6OpData));
+  // Allocate enough memory to hold Relu6OpData<int16_t>, this is big enough for
+  // int8_t too
+  // TODO: How to improve this? Maybe make Relu6OpData hold int16s by default?
+  return context->AllocatePersistentBuffer(context,
+                                           sizeof(Relu6OpData<int16_t>));
 }
 
 TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-  const Relu6OpData& data = *(static_cast<const Relu6OpData*>(node->user_data));
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kActivationsInputTensor);
@@ -92,11 +95,23 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      Relu6Quantized(data.zero_int8, data.six_int8,
-                     tflite::micro::GetTensorShape(input),
-                     tflite::micro::GetTensorData<int8_t>(input),
-                     tflite::micro::GetTensorShape(output),
-                     tflite::micro::GetTensorData<int8_t>(output));
+      const Relu6OpData<int8_t>& data =
+          *(static_cast<const Relu6OpData<int8_t>*>(node->user_data));
+      Relu6Quantized<int8_t>(data.zero, data.six,
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
+      return kTfLiteOk;
+    }
+    case kTfLiteInt16: {
+      const Relu6OpData<int16_t>& data =
+          *(static_cast<const Relu6OpData<int16_t>*>(node->user_data));
+      Relu6Quantized<int16_t>(data.zero, data.six,
+                              tflite::micro::GetTensorShape(input),
+                              tflite::micro::GetTensorData<int16_t>(input),
+                              tflite::micro::GetTensorShape(output),
+                              tflite::micro::GetTensorData<int16_t>(output));
       return kTfLiteOk;
     }
     default: {
