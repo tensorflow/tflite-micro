@@ -300,6 +300,7 @@ tflm_kernel_cc_library(
     hdrs = [
         "activations.h",
         "add.h",
+        "batch_matmul.h",
         "circular_buffer.h",
         "conv.h",
         "depthwise_conv.h",
