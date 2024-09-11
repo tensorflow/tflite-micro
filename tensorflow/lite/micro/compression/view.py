@@ -60,6 +60,7 @@ def unpack_tensors(tensors):
         "_index": index,
         "name": t.name.decode("utf-8"),
         "type": unpack_TensorType(t.type),
+        "variable": t.isVariable,
         "shape": unpack_array(t.shape),
         "buffer": t.buffer,
     }
