@@ -171,8 +171,8 @@ void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
 }
 
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
-  Profiler profiler;
-  Profiler profiler2;
+  static Profiler profiler;
+  static Profiler profiler2;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
@@ -217,11 +217,13 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     MicroPrintf("");  // null MicroPrintf serves as a newline.
     profiler.ClearEvents();
 
+#ifdef USE_TFLM_COMPRESSION
     profiler2.Log();
     MicroPrintf("");  // null MicroPrintf serves as a newline.
     profiler2.LogTicksPerTagCsv();
     MicroPrintf("");  // null MicroPrintf serves as a newline.
     profiler2.ClearEvents();
+#endif  // USE_TFLM_COMPRESSION
 
     ShowOutputCRC32(&interpreter);
     MicroPrintf("");  // null MicroPrintf serves as a newline.
