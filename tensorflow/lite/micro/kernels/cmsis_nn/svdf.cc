@@ -193,7 +193,9 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
           context->AllocatePersistentBuffer(context, buf_size));
 
       arm_vector_sum_s8(data->kernel_sums, input_size, num_filters,
-                        GetTensorData<int8_t>(weights_feature), 1, nullptr);
+                        GetTensorData<int8_t>(weights_feature),
+                        -data->input_zero_point,
+                        -data->activation_state_zero_point, nullptr);
     }
 
   } else {
