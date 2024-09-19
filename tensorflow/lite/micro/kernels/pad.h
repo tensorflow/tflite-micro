@@ -17,10 +17,18 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 
-TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node);
+TFLMRegistration Register_PAD();
+TFLMRegistration Register_PADV2();
+
+#if defined(CMSIS_NN)
+TFLMRegistration Register_PAD_INT8();
+#else
+inline TFLMRegistration Register_PAD_INT8() { return Register_PAD(); }
+#endif
 
 }  // namespace tflite
 

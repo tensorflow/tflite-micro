@@ -459,6 +459,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
