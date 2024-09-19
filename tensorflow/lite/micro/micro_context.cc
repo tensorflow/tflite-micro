@@ -56,7 +56,9 @@ struct DecompressionState {
   template <typename T>
   T* DecompressToBuffer(void* buffer);
   void DecompressToBufferWidth4_8(int8_t* buffer);
-  void DecompressToBufferWidth4_1(int8_t* buffer);
+  void DecompressToBufferWidth4(int8_t* buffer);
+  template <typename T>
+  void DecompressToBufferWidthAny(T* buffer);
 
   inline size_t GetNextTableIndex();
   inline size_t GetNextTableIndexWidth4();
@@ -85,6 +87,10 @@ struct DecompressionState {
 };
 
 void DecompressionState::DecompressToBufferWidth4_8(int8_t* buffer) {
+  MicroProfiler* profiler =
+      static_cast<MicroProfiler*>(micro_context_->external_context());
+  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+
   const uint32_t* indices =
       reinterpret_cast<const uint32_t*>(compressed_indices_);
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
@@ -112,7 +118,11 @@ void DecompressionState::DecompressToBufferWidth4_8(int8_t* buffer) {
   }
 }
 
-void DecompressionState::DecompressToBufferWidth4_1(int8_t* buffer) {
+void DecompressionState::DecompressToBufferWidth4(int8_t* buffer) {
+  MicroProfiler* profiler =
+      static_cast<MicroProfiler*>(micro_context_->external_context());
+  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
   const int8_t* value_table =
       static_cast<const int8_t*>(comp_data_.data.lut_data->value_table);
@@ -165,30 +175,35 @@ void DecompressionState::DecompressToBufferWidth4_1(int8_t* buffer) {
 }
 
 template <typename T>
-T* DecompressionState::DecompressToBuffer(void* buffer) {
+void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
   MicroProfiler* profiler =
       static_cast<MicroProfiler*>(micro_context_->external_context());
-#ifdef notdef
-  MicroPrintf("DecompressToBuffer: %u %x", count_indices_,
-              elements_per_channel_ & 7);
-#endif  // notdef
   ScopedMicroProfiler scoped_profiler(__func__, profiler);
+
+  while (buffer_index_ < count_indices_) {
+    const size_t table_index = GetNextTableIndex();
+    buffer[buffer_index_] = static_cast<const T*>(value_table_)[table_index];
+    UpdateBufferAndChannelIndex<T>();
+  }
+}
+
+template <typename T>
+T* DecompressionState::DecompressToBuffer(void* buffer) {
+#ifdef notdef
+  MicroPrintf("DecompressToBuffer: %u 0x%x", count_indices_,
+              elements_per_channel_ & 0x1F);
+#endif  // notdef
 
   if (std::is_same<T, int8_t>::value &&
       comp_data_.data.lut_data->compressed_bit_width == 4 &&
       !comp_data_.data.lut_data->use_alternate_axis) {
-    if (!(elements_per_channel_ & 7)) {
+    if (!(elements_per_channel_ & 0x07)) {
       DecompressToBufferWidth4_8(static_cast<int8_t*>(buffer));
     } else {
-      DecompressToBufferWidth4_1(static_cast<int8_t*>(buffer));
+      DecompressToBufferWidth4(static_cast<int8_t*>(buffer));
     }
   } else {
-    while (buffer_index_ < count_indices_) {
-      const size_t table_index = GetNextTableIndex();
-      static_cast<T*>(buffer)[buffer_index_] =
-          static_cast<const T*>(value_table_)[table_index];
-      UpdateBufferAndChannelIndex<T>();
-    }
+    DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
   }
 
   return static_cast<T*>(buffer);
