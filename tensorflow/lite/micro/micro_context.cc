@@ -60,14 +60,14 @@ struct DecompressionState {
   void DecompressToBufferWidth4(int8_t* buffer);
 
   void DecompressToBufferWidth2_16(int8_t* buffer);
-  void DecompressToBufferWidth2(int8_t* buffer);
 
   template <typename T>
   void DecompressToBufferWidthAny(T* buffer);
 
   inline size_t GetNextTableIndex();
   inline size_t GetNextTableIndexWidth4();
-  inline size_t GetNextTableIndexWidth2();
+  inline size_t GetNextTableIndexWidth2(const size_t current_offset);
+
   template <typename T>
   inline void UpdateBufferAndChannelIndex();
 
@@ -195,114 +195,62 @@ void DecompressionState::DecompressToBufferWidth2_16(int8_t* buffer) {
     size_t count = max_count;
 
     while (count > 0 && (current_offset & 0x0F)) {
-      const size_t index = (compressed_indices_[current_offset >> 2] >>
-                            (6 ^ ((current_offset & 0b11) << 1))) &
-                           0x03;
-      current_offset += 1;
+      const size_t index = GetNextTableIndexWidth2(current_offset++);
       *buffer++ = value_table[index];
       count -= 1;
     }
 
-    const uint32_t* indices = reinterpret_cast<const uint32_t*>(
-        &compressed_indices_[current_offset >> 2]);
+    if (count >= 16) {
+      const uint32_t* indices = reinterpret_cast<const uint32_t*>(
+          &compressed_indices_[current_offset >> 2]);
 
-    while (count >= 16) {
-      count -= 16;
-      uint32_t index = *indices++;
-      uint64_t value, value2;
+      while (count >= 16) {
+        count -= 16;
+        uint32_t index = *indices++;
+        uint64_t value, value2;
 
-      value = static_cast<uint64_t>(value_table[(index >> 6) & 0x03]);
-      value |= static_cast<uint64_t>(value_table[(index >> 4) & 0x03]) << 8;
-      value |= static_cast<uint64_t>(value_table[(index >> 2) & 0x03]) << 16;
-      value |= static_cast<uint64_t>(value_table[index & 0x03]) << 24;
-      value |= static_cast<uint64_t>(value_table[(index >> 14) & 0x03]) << 32;
-      value |= static_cast<uint64_t>(value_table[(index >> 12) & 0x03]) << 40;
-      value |= static_cast<uint64_t>(value_table[(index >> 10) & 0x03]) << 48;
-      value |= static_cast<uint64_t>(value_table[(index >> 8) & 0x03]) << 56;
+        value = static_cast<uint64_t>(value_table[(index >> 6) & 0x03]);
+        value |= static_cast<uint64_t>(value_table[(index >> 4) & 0x03]) << 8;
+        value |= static_cast<uint64_t>(value_table[(index >> 2) & 0x03]) << 16;
+        value |= static_cast<uint64_t>(value_table[index & 0x03]) << 24;
+        value |= static_cast<uint64_t>(value_table[(index >> 14) & 0x03]) << 32;
+        value |= static_cast<uint64_t>(value_table[(index >> 12) & 0x03]) << 40;
+        value |= static_cast<uint64_t>(value_table[(index >> 10) & 0x03]) << 48;
+        value |= static_cast<uint64_t>(value_table[(index >> 8) & 0x03]) << 56;
 
-      *reinterpret_cast<uint64_t*>(buffer) = value;
+        *reinterpret_cast<uint64_t*>(buffer) = value;
 
-      value2 = static_cast<uint64_t>(value_table[(index >> 22) & 0x03]);
-      value2 |= static_cast<uint64_t>(value_table[(index >> 20) & 0x03]) << 8;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 18) & 0x03]) << 16;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 16) & 0x03]) << 24;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 30) & 0x03]) << 32;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 28) & 0x03]) << 40;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 26) & 0x03]) << 48;
-      value2 |= static_cast<uint64_t>(value_table[(index >> 24) & 0x03]) << 56;
+        value2 = static_cast<uint64_t>(value_table[(index >> 22) & 0x03]);
+        value2 |= static_cast<uint64_t>(value_table[(index >> 20) & 0x03]) << 8;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 18) & 0x03])
+                  << 16;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 16) & 0x03])
+                  << 24;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 30) & 0x03])
+                  << 32;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 28) & 0x03])
+                  << 40;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 26) & 0x03])
+                  << 48;
+        value2 |= static_cast<uint64_t>(value_table[(index >> 24) & 0x03])
+                  << 56;
 
-      *reinterpret_cast<uint64_t*>(buffer + 8) = value2;
-      buffer += 16;
+        *reinterpret_cast<uint64_t*>(buffer + 8) = value2;
+
+        buffer += 16;
+      }
+
+      current_offset =
+          (reinterpret_cast<const uint8_t*>(indices) - compressed_indices_)
+          << 2;
     }
-
-    current_offset =
-        (reinterpret_cast<const uint8_t*>(indices) - compressed_indices_) << 2;
 
     while (count > 0) {
       count -= 1;
-      const size_t index = (compressed_indices_[current_offset >> 2] >>
-                            (6 ^ ((current_offset & 0b11) << 1))) &
-                           0x03;
-      current_offset += 1;
+      const size_t index = GetNextTableIndexWidth2(current_offset++);
       *buffer++ = value_table[index];
     }
 
-    value_table += stride;
-  }
-}
-
-void DecompressionState::DecompressToBufferWidth2(int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
-
-  const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
-  const int8_t* value_table =
-      static_cast<const int8_t*>(comp_data_.data.lut_data->value_table);
-  const size_t max_count = elements_per_channel_;
-
-  for (size_t channel = 0; channel < num_channels_; channel++) {
-    size_t count = max_count;
-    while (count >= 16) {
-      count -= 16;
-      size_t index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-      index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-    }
-    while (count-- > 0) {
-      size_t index = GetNextTableIndexWidth2();
-      *buffer++ = value_table[index];
-    }
     value_table += stride;
   }
 }
@@ -338,11 +286,7 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
   } else if (std::is_same<T, int8_t>::value &&
              comp_data_.data.lut_data->compressed_bit_width == 2 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
-    if (!(elements_per_channel_ & 0x0F)) {
-      DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
-    } else {
-      DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
-    }
+    DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
   } else {
     DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
   }
@@ -358,18 +302,19 @@ inline size_t DecompressionState::GetNextTableIndexWidth4() {
   }
 }
 
-inline size_t DecompressionState::GetNextTableIndexWidth2() {
-  if (current_offset_ & 0b10) {
-    if (current_offset_ & 1) {
-      return compressed_indices_[current_offset_++ >> 2] & 0x03;
+inline size_t DecompressionState::GetNextTableIndexWidth2(
+    const size_t current_offset) {
+  if (current_offset & 0b10) {
+    if (current_offset & 1) {
+      return compressed_indices_[current_offset >> 2] & 0x03;
     } else {
-      return (compressed_indices_[current_offset_++ >> 2] >> 2) & 0x03;
+      return (compressed_indices_[current_offset >> 2] >> 2) & 0x03;
     }
   } else {
-    if (current_offset_ & 1) {
-      return (compressed_indices_[current_offset_++ >> 2] >> 4) & 0x03;
+    if (current_offset & 1) {
+      return (compressed_indices_[current_offset >> 2] >> 4) & 0x03;
     } else {
-      return (compressed_indices_[current_offset_++ >> 2] >> 6) & 0x03;
+      return (compressed_indices_[current_offset >> 2] >> 6) & 0x03;
     }
   }
 }
