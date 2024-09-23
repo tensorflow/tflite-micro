@@ -99,8 +99,13 @@ void SetRandomInput(const uint32_t random_seed,
 }
 
 #if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+
+struct FileCloser {
+  void operator()(FILE* file) { fclose(file); }
+};
+
 bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
-  std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
+  std::unique_ptr<FILE, FileCloser> file(fopen(file_name, "rb"));
 
   const size_t bytes_read =
       fread(buffer, sizeof(char), buffer_size, file.get());

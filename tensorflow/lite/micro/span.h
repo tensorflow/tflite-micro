@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_SPAN_H_
 #define TENSORFLOW_LITE_MICRO_SPAN_H_
 
+#include <array>
 #include <cstddef>
 
 namespace tflite {
@@ -26,6 +27,13 @@ class Span {
  public:
   constexpr Span(T* data, size_t size) noexcept : data_(data), size_(size) {}
 
+  template <size_t N>
+  constexpr Span(T (&data)[N]) noexcept : data_(data), size_(N) {}
+
+  template <size_t N>
+  constexpr Span(std::array<T, N>& array) noexcept
+      : data_(array.data()), size_(N) {}
+
   constexpr T& operator[](size_t idx) const noexcept { return *(data_ + idx); }
 
   constexpr T* data() const noexcept { return data_; }
@@ -35,6 +43,26 @@ class Span {
   T* data_;
   size_t size_;
 };
+
+template <typename A, typename B>
+bool operator==(const Span<A>& a, const Span<B>& b) {
+  if (a.size() != b.size()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < a.size(); ++i) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+template <typename A, typename B>
+bool operator!=(const Span<A>& a, const Span<B>& b) {
+  return !(a == b);
+}
 
 }  // end namespace tflite
 

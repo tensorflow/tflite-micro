@@ -101,6 +101,47 @@ void TestMaxMinQuantized(const TFLMRegistration& registration,
   }
 }
 
+void TestMaxMinQuantizedInt16(
+    const TFLMRegistration& registration, int* input1_dims_data,
+    const int16_t* input1_data, float const input1_scale,
+    const int input1_zero_point, int* input2_dims_data,
+    const int16_t* input2_data, const float input2_scale,
+    const int input2_zero_point, const int16_t* expected_output_data,
+    const float output_scale, const int output_zero_point,
+    int* output_dims_data, int16_t* output_data) {
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_dims_count = ElementCount(*output_dims);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor(input1_data, input1_dims, input1_scale,
+                            input1_zero_point),
+      CreateQuantizedTensor(input2_data, input2_dims, input2_scale,
+                            input2_zero_point),
+      CreateQuantizedTensor(output_data, output_dims, output_scale,
+                            output_zero_point),
+  };
+
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array,
+                             /*builtin_data=*/nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  for (int i = 0; i < output_dims_count; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+  }
+}
 void TestMaxMinQuantizedInt32(const TFLMRegistration& registration,
                               int* input1_dims_data, const int32_t* input1_data,
                               int* input2_dims_data, const int32_t* input2_data,
@@ -178,6 +219,31 @@ TF_LITE_MICRO_TEST(Int8Test) {
       output_zero_point, dims, output_data);
 
   tflite::testing::TestMaxMinQuantized(
+      tflite::Register_MINIMUM(), dims, data1, input_scale, input_zero_point,
+      dims, data2, input_scale, input_zero_point, golden_min, output_scale,
+      output_zero_point, dims, output_data);
+}
+
+TF_LITE_MICRO_TEST(Int16Test) {
+  int dims[] = {3, 3, 1, 2};
+  const int16_t data1[] = {-30, 0, 2124, -123, -32768, 26236};
+  const int16_t data2[] = {24, 0, 1, -4256, 32767, -577};
+  const int16_t golden_max[] = {24, 0, 2124, -123, 32767, 26236};
+  const int16_t golden_min[] = {-30, 0, 1, -4256, -32768, -577};
+
+  const float input_scale = 1.0;
+  const int input_zero_point = 0;
+  const float output_scale = 1.0;
+  const int output_zero_point = 0;
+
+  int16_t output_data[6];
+
+  tflite::testing::TestMaxMinQuantizedInt16(
+      tflite::Register_MAXIMUM(), dims, data1, input_scale, input_zero_point,
+      dims, data2, input_scale, input_zero_point, golden_max, output_scale,
+      output_zero_point, dims, output_data);
+
+  tflite::testing::TestMaxMinQuantizedInt16(
       tflite::Register_MINIMUM(), dims, data1, input_scale, input_zero_point,
       dims, data2, input_scale, input_zero_point, golden_min, output_scale,
       output_zero_point, dims, output_data);
