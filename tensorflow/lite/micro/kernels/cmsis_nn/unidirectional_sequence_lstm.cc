@@ -53,7 +53,7 @@ LSTMBuffers<int16_t> CMSIS_NN_CreateLSTMBuffers(TfLiteContext* context,
 void CMSIS_NN_VectorSum(int32_t* kernel_sum, const int32_t size1,
                         const int32_t size2, const int8_t* weights,
                         const int32_t offset, const int32_t* biases) {
-  arm_vector_sum_s8(kernel_sum, size1, size2, weights, offset, biases);
+  arm_vector_sum_s8(kernel_sum, size1, size2, weights, offset, 0, biases);
 }
 
 void CMSIS_NN_VectorSum(int64_t* kernel_sum, const int32_t size1,
