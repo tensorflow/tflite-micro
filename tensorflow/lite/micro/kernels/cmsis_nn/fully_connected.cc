@@ -155,8 +155,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         data->kernel_sums = static_cast<int32_t*>(
             context->AllocatePersistentBuffer(context, buf_size));
 
+        int32_t input_offset = -data->reference_op_data.input_zero_point;
+        int32_t filter_offset = -data->reference_op_data.filter_zero_point;
         arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
-                          filter_data, 1, nullptr);
+                          filter_data, input_offset, filter_offset,
+                          tflite::GetTensorData<int32_t>(bias));
 
         // Do not request a scratch buffer since using persistent memory
         buf_size = 0;
@@ -345,7 +348,8 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       // If behaving like batch matmul we calculate kernel sums in eval.
       arm_vector_sum_s8(
           static_cast<int32_t*>(ctx.buf), filter_dims.n, data.output_depth,
-          tflite::micro::GetTensorData<int8_t>(filter), 1, nullptr);
+          tflite::micro::GetTensorData<int8_t>(filter), fc_params.input_offset,
+          fc_params.filter_offset, bias_data);
     }
 
     TF_LITE_ENSURE_EQ(
