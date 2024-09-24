@@ -16,7 +16,7 @@
 
 Run:
 Build the train.py script
-`bazel build tensorflow/lite/micro/examples/hello_world/quantization:train`
+`bazel build tensorflow/lite/micro/examples/hello_world:train`
 
 The following command first creates the trained TF float model that we will quantize later
 `bazel-bin/tensorflow/lite/micro/examples/hello_world/train --save_tf_model --save_dir=/tmp/float_model/`

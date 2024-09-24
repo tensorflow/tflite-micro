@@ -10,7 +10,7 @@ package(
 
 flatbuffer_py_library(
     name = "schema_py",
-    srcs = ["//tensorflow/lite/schema:schema.fbs"],
+    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
 )
 
 py_library(

@@ -25,7 +25,7 @@ hardware to run inference on TfLite models.
 Prior to integrating TFLM with a specific hardware involves tasks that is
 outside the scope of the TFLM project, including:
 
- * Toolchain setup - TFLM requires support for C++11
+ * Toolchain setup - TFLM requires support for C++17
  * Set up and installation of board-specific SDKs and IDEs
  * Compiler flags and Linker setup
  * Integrating peripherals such as cameras, microphones and accelerometers to
@@ -77,7 +77,7 @@ These can be placed anywhere in your directory tree. The only requirement is
 that when linking TFLM into a binary, the implementations of the functions in
 [debug\_log.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.h),
 [micro\_time.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_time.h)
-and [system\_setup.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/debug_log.h)
+and [system\_setup.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/system_setup.h)
 can be found.
 
 For example, the implementations of these functions for:

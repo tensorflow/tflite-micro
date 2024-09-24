@@ -402,6 +402,21 @@ cc_library(
 )
 
 cc_library(
+    name = "span",
+    hdrs = ["span.h"],
+    copts = micro_copts(),
+)
+
+cc_library(
+    name = "static_vector",
+    hdrs = ["static_vector.h"],
+    copts = micro_copts(),
+    deps = [
+        "//tensorflow/lite/kernels:op_macros",
+    ],
+)
+
+cc_library(
     name = "system_setup",
     srcs = [
         "system_setup.cc",
@@ -554,6 +569,18 @@ cc_test(
 )
 
 cc_test(
+    name = "span_test",
+    size = "small",
+    srcs = [
+        "span_test.cc",
+    ],
+    deps = [
+        ":span",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "testing_helpers_test",
     srcs = [
         "testing_helpers_test.cc",
@@ -607,6 +634,18 @@ cc_test(
         "//tensorflow/lite/micro/benchmarks:keyword_scrambled_model_data",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
+    ],
+)
+
+cc_test(
+    name = "static_vector_test",
+    size = "small",
+    srcs = [
+        "static_vector_test.cc",
+    ],
+    deps = [
+        ":static_vector",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 

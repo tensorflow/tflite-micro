@@ -11,13 +11,13 @@ package(
 # bazel build schema_fbs_srcs.
 flatbuffer_cc_library(
     name = "schema_fbs",
-    srcs = ["schema.fbs"],
+    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
 )
 
 # Generic schema for inference on device (but with reflections makes bigger).
 flatbuffer_cc_library(
     name = "schema_fbs_with_reflection",
-    srcs = ["schema.fbs"],
+    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
     flatc_args = [
         "--reflect-types",
         "--reflect-names",
@@ -29,11 +29,8 @@ flatbuffer_cc_library(
 
 cc_library(
     name = "schema_utils",
-    srcs = ["schema_utils.cc"],
     hdrs = ["schema_utils.h"],
     deps = [
-        ":schema_fbs",
-        "//tensorflow/lite/kernels/internal:compatibility",
-        "@flatbuffers//:runtime_cc",
+        "//tensorflow/compiler/mlir/lite/schema:schema_utils",
     ],
 )

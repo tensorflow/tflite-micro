@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -105,6 +105,31 @@ class MicroInterpreterContext : public MicroContext {
   // Not API between TFLM and kernels. Primarily used by the framework for
   // housekeeping in MicroInterpreterContext.
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Available during Prepare & Eval. Returns false if tensor is not
+  // compressed.
+  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override;
+
+  // Only available during Prepare. The kernel is responsible for storing the
+  // scratch buffer handle.
+  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                         int tensor_idx) override;
+
+  // Available during Prepare & Eval. Returns nullptr if tensor is not
+  // compressed.
+  const CompressionTensorData* GetTensorCompressionData(
+      const TfLiteNode* node, int tensor_idx) override;
+
+  // Only available during Eval. Returns nullptr on failure, otherwise returns a
+  // pointer to the scratch buffer.
+  void* DecompressTensorToScratchBuffer(
+      const TfLiteEvalTensor& tensor,
+      const CompressionTensorData& compression_data,
+      int scratch_buffer_handle) override;
+
+#endif  // USE_TFLM_COMPRESSION
 
  private:
   MicroAllocator& allocator_;

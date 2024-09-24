@@ -40,3 +40,10 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile build TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile integration_tests TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+
+# run generic benchmark
+readable_run make -j$(nproc) -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
+  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+  run_tflm_benchmark

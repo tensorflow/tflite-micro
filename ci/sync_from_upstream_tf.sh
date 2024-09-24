@@ -58,8 +58,8 @@ git checkout tensorflow/lite/kernels/internal/tensor_utils.cc
 bazel build tensorflow/lite/python:schema_py
 /bin/cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python/schema_py_generated.py
 
-bazel build tensorflow/lite/schema:schema_fbs_srcs
-/bin/cp ./bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
+bazel build tensorflow/compiler/mlir/lite/schema:schema_fbs_srcs
+/bin/cp ./bazel-bin/tensorflow/compiler/mlir/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
 
 # Must clean the bazel directories out after building as we don't check these in.
 bazel clean

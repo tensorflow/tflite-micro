@@ -86,7 +86,12 @@ class MicroInterpreterGraph : public MicroGraph {
   // to be the subgraph of that operator.
   int GetCurrentSubgraphIndex() { return current_subgraph_index_; }
 
-  // Gets the list of alloctions for each subgraph. This is the source of truth
+  // Get the current operator index inside a subgraph.
+  // The couple GetCurrentSubgraphIndex GetCurrentSubgraphIndex creates a unique
+  // identifier of the operator inside the subgraph
+  int GetCurrentOperatorIndex() { return current_operator_index_; }
+
+  // Gets the list of allocations for each subgraph. This is the source of truth
   // for all per-subgraph allocation data.
   SubgraphAllocations* GetAllocations() { return subgraph_allocations_; }
 
@@ -99,8 +104,11 @@ class MicroInterpreterGraph : public MicroGraph {
   MicroAllocator* allocator_;
   SubgraphAllocations* subgraph_allocations_ = nullptr;
   int current_subgraph_index_;
+  uint32_t current_operator_index_;
   MicroResourceVariables* resource_variables_;
-  const flatbuffers::Vector<flatbuffers::Offset<SubGraph>>* subgraphs_;
+  const flatbuffers::Vector<flatbuffers::Offset<SubGraph>>* subgraphs_ =
+      nullptr;  // Initialized as nullptr to prevent any possible issues
+                // related to accessing uninitialized memory.
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

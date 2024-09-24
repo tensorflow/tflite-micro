@@ -101,7 +101,7 @@ def numpy_from_tensor_type(tensor_type_idx):
       layer_schema_fb.TensorTypes.INT64:
       np.int64,
       layer_schema_fb.TensorTypes.STRING:
-      np.string_,
+      np.bytes_,
       layer_schema_fb.TensorTypes.BOOL:
       np.bool_,
       layer_schema_fb.TensorTypes.INT16:

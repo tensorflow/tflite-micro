@@ -34,24 +34,27 @@ limitations under the License.
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
+#include "tensorflow/lite/micro/tools/benchmarking/show_meta_data.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-#if defined(MODEL_HEADER_PATH)
-#if !defined(MODEL_NAME)
-#error "MODEL_NAME missing from CCFLAGS"
-#endif  // !defined(MODEL_NAME)
+#if defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+#if !defined(GENERIC_BENCHMARK_MODEL_HEADER_PATH)
+#error "GENERIC_BENCHMARK_MODEL_HEADER_PATH missing from CXXFLAGS"
+#endif  // !defined(GENERIC_BENCHMARK_MODEL_HEADER_PATH)
+#if !defined(GENERIC_BENCHMARK_MODEL_NAME)
+#error "GENERIC_BENCHMARK_MODEL_NAME missing from CXXFLAGS"
+#endif  // !defined(GENERIC_BENCHMARK_MODEL_NAME)
 
-#include MODEL_HEADER_PATH
+#include GENERIC_BENCHMARK_MODEL_HEADER_PATH
 
 #define __MODEL_DATA(x) g_##x##_model_data
 #define _MODEL_DATA(x) __MODEL_DATA(x)
-#define MODEL_DATA _MODEL_DATA(MODEL_NAME)
+#define MODEL_DATA _MODEL_DATA(GENERIC_BENCHMARK_MODEL_NAME)
 #define __MODEL_SIZE(x) g_##x##_model_data_size
 #define _MODEL_SIZE(x) __MODEL_SIZE(x)
-#define MODEL_SIZE _MODEL_SIZE(MODEL_NAME)
+#define MODEL_SIZE _MODEL_SIZE(GENERIC_BENCHMARK_MODEL_NAME)
 
-#define USING_BUILTIN_MODEL
-#endif  // defind(MODEL_HEADER_PATH)
+#endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided model
@@ -68,14 +71,14 @@ using Profiler = ::tflite::MicroProfiler;
 // so randomness isn't really needed.
 constexpr uint32_t kRandomSeed = 0xFB;
 
-#if !defined(USING_BUILTIN_MODEL)
+#if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 constexpr size_t kTensorArenaSize = 3e6;
 constexpr size_t kModelSize = 2e6;
-#elif defined(TENSOR_ARENA_SIZE)
-constexpr size_t kTensorArenaSize = TENSOR_ARENA_SIZE;
+#elif defined(GENERIC_BENCHMARK_TENSOR_ARENA_SIZE)
+constexpr size_t kTensorArenaSize = GENERIC_BENCHMARK_TENSOR_ARENA_SIZE;
 #else
 constexpr size_t kTensorArenaSize = 5e6 - MODEL_SIZE;
-#endif  // !defined(USING_BUILTIN_MODEL)
+#endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
 constexpr int kNumResourceVariable = 100;
 
@@ -95,9 +98,14 @@ void SetRandomInput(const uint32_t random_seed,
   }
 }
 
-#if !defined(USING_BUILTIN_MODEL)
+#if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+
+struct FileCloser {
+  void operator()(FILE* file) { fclose(file); }
+};
+
 bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
-  std::unique_ptr<FILE, decltype(&fclose)> file(fopen(file_name, "rb"), fclose);
+  std::unique_ptr<FILE, FileCloser> file(fopen(file_name, "rb"));
 
   const size_t bytes_read =
       fread(buffer, sizeof(char), buffer_size, file.get());
@@ -120,13 +128,11 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
 
   return true;
 }
-#endif  // !defined(USING_BUILTIN_MODEL)
+#endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   Profiler profiler;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
-
-  MicroPrintf("\nConfigured arena size = %d\n", kTensorArenaSize);
 
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
   const tflite::Model* model = tflite::GetModel(model_data);
@@ -180,18 +186,18 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 }  // namespace
 }  // namespace tflite
 
-#if !defined(USING_BUILTIN_MODEL)
+#if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 void usage(const char* prog_name) {
   MicroPrintf("usage: %s filename [--csv]", prog_name);
 }
-#endif  // !defined(USING_BUILTIN_MODEL)
+#endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
 int main(int argc, char** argv) {
   // Which format should be used to output debug information.
   tflite::PrettyPrintType print_type = tflite::PrettyPrintType::kTable;
   tflite::InitializeTarget();
 
-#if !defined(USING_BUILTIN_MODEL)
+#if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
   if (argc < 2 || argc > 3) {
     usage(argv[0]);
     return -1;
@@ -214,7 +220,9 @@ int main(int argc, char** argv) {
   }
 #else
   const uint8_t* model_data = MODEL_DATA;
-#endif  // !defined(USING_BUILTIN_MODEL)
+#endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
+  MicroPrintf("\nConfigured arena size = %d\n", tflite::kTensorArenaSize);
+  tflite::GenericBenchmarkShowMetaData();
   return tflite::Benchmark(model_data, print_type);
 }

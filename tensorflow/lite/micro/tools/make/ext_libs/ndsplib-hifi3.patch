@@ -1,7 +1,45 @@
 diff --git a/library/include/NatureDSP_Signal_math.h b/library/include/NatureDSP_Signal_math.h
-index 2ffea63..eff0e47 100644
+index 2ffea63..adf08ab 100644
 --- a/library/include/NatureDSP_Signal_math.h
 +++ b/library/include/NatureDSP_Signal_math.h
+@@ -38,7 +38,7 @@ extern "C" {
+   vec_log              Logarithm 
+   vec_antilog          Antilogarithm         
+   vec_sqrt             Square Root
+-  vec_rsqrt	           Reciprocal Square Root
++  vec_rsqrt            Reciprocal Square Root
+   vec_sine,vec_cosine  Sine/Cosine
+   vec_tan              Tangent 
+   vec_atan             Arctangent 
+@@ -384,9 +384,9 @@ int32_t scl_sqrt64x32(int64_t x);
+   part left by exponent value.
+ 
+   Mantissa accuracy is 1 LSB, so relative accuracy is:
+-  vec_rsqrt16x16, scl_rsqrt16x16	6.2e-5
+-  scl_rsqrt32x32	                2.4e-7
+-  vec_rsqrt32x32	                9.2e-10
++  vec_rsqrt16x16, scl_rsqrt16x16  6.2e-5
++  scl_rsqrt32x32                  2.4e-7
++  vec_rsqrt32x32                  9.2e-10
+ 
+   Precision: 
+   16x16  16-bit inputs, 16-bit output. Accuracy: 2LSB
+@@ -406,11 +406,11 @@ int32_t scl_sqrt64x32(int64_t x);
+   ----------------
+   Returned packed value: 
+   scl_rsqrt32x32():
+-  bits 23…0 fractional part
+-  bits 31…24 exponent
++  bits 23ï¿½0 fractional part
++  bits 31ï¿½24 exponent
+   scl_rsqrt16x16():
+-  bits 15…0 fractional part
+-  bits 31…16 exponent
++  bits 15ï¿½0 fractional part
++  bits 31ï¿½16 exponent
+ 
+ -------------------------------------------------------------------------*/
+ void vec_rsqrt32x32 ( int32_t * frac, int16_t * exp, const int32_t * x, int N);
 @@ -635,6 +635,7 @@ float32_t scl_atan2f (float32_t y, float32_t x);
    return result, Q16.15 
  -------------------------------------------------------------------------*/
@@ -63,32 +101,40 @@ index 20206e4..74d4d42 100644
  #ifdef __cplusplus
  #define externC extern "C" 
 diff --git a/library/include_private/fft_real_twiddles.h b/library/include_private/fft_real_twiddles.h
-index 10cd4b2..c5fe6b9 100644
+old mode 100644
+new mode 100755
+index 10cd4b2..6f5c80b
 --- a/library/include_private/fft_real_twiddles.h
 +++ b/library/include_private/fft_real_twiddles.h
-@@ -44,7 +44,10 @@
+@@ -44,8 +44,12 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
-+
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int16_t twiddleSplit[MAX_RFFT_LEN/2];
+ 
 diff --git a/library/include_private/fft_real_twiddles_24x24.h b/library/include_private/fft_real_twiddles_24x24.h
-index 3017c61..1e52320 100644
+old mode 100644
+new mode 100755
+index 3017c61..257396e
 --- a/library/include_private/fft_real_twiddles_24x24.h
 +++ b/library/include_private/fft_real_twiddles_24x24.h
-@@ -44,7 +44,10 @@
+@@ -44,8 +44,12 @@
       7               128
  */
  
 +#if !defined MAX_RFFT_PWR
  #define MAX_RFFT_PWR 13
 +#endif
-+
++#if !defined MAX_RFFT_LEN
  #define MAX_RFFT_LEN (1<<MAX_RFFT_PWR)
++#endif
  
  extern const int32_t twiddleSplit24x24[MAX_RFFT_LEN/2];
+ 

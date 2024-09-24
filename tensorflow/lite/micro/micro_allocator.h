@@ -322,7 +322,9 @@ class MicroAllocator {
   IPersistentBufferAllocator* persistent_buffer_allocator_;
 
   // Allocator used to allocate persistent builtin data.
-  TfLiteBridgeBuiltinDataAllocator* builtin_data_allocator_;
+  TfLiteBridgeBuiltinDataAllocator* builtin_data_allocator_ =
+      nullptr;  // Initialized as nullptr to prevent any possible issues related
+                // to accessing uninitialized memory.
 
   // Activation buffer memory planner.
   MicroMemoryPlanner* memory_planner_;

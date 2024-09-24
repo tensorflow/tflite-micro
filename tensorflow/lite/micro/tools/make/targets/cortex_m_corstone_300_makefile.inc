@@ -16,7 +16,13 @@
 # ARM Cortex M makefile targeted for a FVP based on Arm Corstone-300 software.
 # For more info see: tensorflow/lite/micro/cortex_m_corstone_300/README.md
 
-export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_GCC-6.4:$(PATH)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M), aarch64)
+  export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_armv8l_GCC-9.3:$(PATH)
+else
+  export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_GCC-9.3:$(PATH)
+endif
+
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/corstone_300_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the Arm Corstone-300 software download: $(DOWNLOAD_RESULT))
@@ -97,8 +103,7 @@ ifeq ($(TOOLCHAIN), armclang)
   FLAGS_ARMC = \
     --target=arm-arm-none-eabi \
     -Wno-unused-private-field \
-    -mcpu=$(MCPU_OPTION) \
-    -ffp-mode=full
+    -mcpu=$(MCPU_OPTION)
 
   # Pass comma separated linker options to armlink
   ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
