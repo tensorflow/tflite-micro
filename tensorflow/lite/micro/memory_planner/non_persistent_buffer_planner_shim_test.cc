@@ -34,9 +34,10 @@ tflite::BufferPlan* CreateBufferPlan() {
   // Some targets do not support dynamic memory (i.e., no malloc or new), thus,
   // the test need to place non-transitent memories in static variables. This is
   // safe because tests are guarateed to run serially.
-  static int8_t buffer_plan_buffer[tflite::SizeOfBufferPlan(kBufferCnt)];
+  alignas(tflite::BufferPlan) static int8_t
+      buffer_plan_buffer[tflite::SizeOfBufferPlan(kBufferCnt)];
   tflite::BufferPlan* buffer_plan_ptr =
-      reinterpret_cast<tflite::BufferPlan*>(buffer_plan_buffer);
+      new (buffer_plan_buffer) tflite::BufferPlan();
   buffer_plan_ptr->buffer_count = kBufferCnt;
   buffer_plan_ptr->buffer_plan_entries[0].offset = kBuffer0Offset;
   buffer_plan_ptr->buffer_plan_entries[1].offset = kBuffer1Offset;
