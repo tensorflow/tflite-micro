@@ -13,6 +13,8 @@ indices into the tensor lookup table.  The results of the lookup table operation
 are placed into a scratch buffer representing the tensor decompressed data.
 
 Decompression results in increased latency during inference.
+There may also be an increase in the size of non-persistent arena memory, due to
+the use of scratch buffers to temporarily hold the decompressed data.
 
 # Model Schema and Metadata for Compression
 
@@ -49,7 +51,7 @@ Binning of the model tensors will result in a change in model accuracy, but will
 also allow for better control of the compression ratio.  For example, by binning
 a tensor to just four values among the tensor elements, a fixed-width of two bits
 can be used for each element.  This would result in nearly a four-fold decrease
-in the tensor size.
+in the size of an INT8 tensor.
 
 First, align your binned model:
 ```
@@ -72,6 +74,9 @@ The Generic Benchmark Application can only be built using `make`.
 
 The benchmark output includes a CRC32 of the output tensor(s) for comparison
 within the same platform on which the benchmark is run.
+
+For additional information on the Generic Benchmark Application, please refer to
+this [document](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/tools/benchmarking/README.md).
 
 ## Without Compression
 
