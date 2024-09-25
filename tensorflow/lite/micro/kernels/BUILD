@@ -313,6 +313,7 @@ tflm_kernel_cc_library(
         "logistic.h",
         "lstm_eval.h",
         "lstm_shared.h",
+        "maximum_minimum.h",
         "micro_ops.h",
         "mul.h",
         "pad.h",
