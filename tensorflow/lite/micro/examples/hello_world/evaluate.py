@@ -16,6 +16,7 @@ import os
 import tensorflow as tf
 from absl import app
 from absl import flags
+from ai_edge_litert import interpreter as litert_interpreter
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.python.platform import resource_loader
@@ -92,9 +93,9 @@ def get_tflm_prediction(model_path, x_values):
 # returns the prediction of the interpreter.
 def get_tflite_prediction(model_path, x_values):
   # TFLite interpreter
-  tflite_interpreter = tf.lite.Interpreter(
+  tflite_interpreter = litert_interpreter.Interpreter(
       model_path=model_path,
-      experimental_op_resolver_type=tf.lite.experimental.OpResolverType.
+      experimental_op_resolver_type=litert_interpreter.OpResolverType.
       BUILTIN_REF,
   )
   tflite_interpreter.allocate_tensors()
