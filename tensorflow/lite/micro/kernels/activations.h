@@ -31,10 +31,9 @@ struct ReluOpData {
   ReluParams params;
 };
 
-template <typename T>
 struct Relu6OpData {
-  T six;
-  T zero;
+  int32_t six;
+  int32_t zero;
 };
 
 void ReluQuantized(const ReluOpData& data, const RuntimeShape& input_shape,

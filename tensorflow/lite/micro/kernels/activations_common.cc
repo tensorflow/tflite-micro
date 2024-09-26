@@ -127,23 +127,23 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
 
+  Relu6OpData* data = static_cast<Relu6OpData*>(node->user_data);
+
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kActivationsInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
 
   if (input->type == kTfLiteInt8) {
-    Relu6OpData<int8_t>* data =
-        static_cast<Relu6OpData<int8_t>*>(node->user_data);
+    data->zero = input->params.zero_point;
     data->six = FloatToQuantizedType<int8_t>(6.0f, input->params.scale,
                                              input->params.zero_point);
-    data->zero = input->params.zero_point;
+    TF_LITE_ENSURE(context, data->six >= INT8_MIN && data->six <= INT8_MAX);
   } else if (input->type == kTfLiteInt16) {
-    Relu6OpData<int16_t>* data =
-        static_cast<Relu6OpData<int16_t>*>(node->user_data);
+    data->zero = input->params.zero_point;
     data->six = FloatToQuantizedType<int16_t>(6.0f, input->params.scale,
                                               input->params.zero_point);
-    data->zero = input->params.zero_point;
+    TF_LITE_ENSURE(context, data->six >= INT16_MIN && data->six <= INT16_MAX);
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
