@@ -75,6 +75,7 @@ void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
 
 TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
+
   const Relu6OpData& data = *(static_cast<const Relu6OpData*>(node->user_data));
 
   const TfLiteEvalTensor* input =
@@ -92,11 +93,19 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      Relu6Quantized(data.zero_int8, data.six_int8,
-                     tflite::micro::GetTensorShape(input),
-                     tflite::micro::GetTensorData<int8_t>(input),
-                     tflite::micro::GetTensorShape(output),
-                     tflite::micro::GetTensorData<int8_t>(output));
+      Relu6Quantized<int8_t>(data.zero, data.six,
+                             tflite::micro::GetTensorShape(input),
+                             tflite::micro::GetTensorData<int8_t>(input),
+                             tflite::micro::GetTensorShape(output),
+                             tflite::micro::GetTensorData<int8_t>(output));
+      return kTfLiteOk;
+    }
+    case kTfLiteInt16: {
+      Relu6Quantized<int16_t>(data.zero, data.six,
+                              tflite::micro::GetTensorShape(input),
+                              tflite::micro::GetTensorData<int16_t>(input),
+                              tflite::micro::GetTensorShape(output),
+                              tflite::micro::GetTensorData<int16_t>(output));
       return kTfLiteOk;
     }
     default: {
