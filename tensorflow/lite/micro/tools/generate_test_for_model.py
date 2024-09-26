@@ -18,6 +18,7 @@ import csv
 import numpy as np
 import tensorflow as tf
 
+from ai_edge_litert import interpreter as litert_interpreter
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 
 
@@ -103,9 +104,9 @@ class TestDataGenerator:
     if (len(self.model_paths) != 1):
       raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
-    interpreter = tf.lite.Interpreter(model_path=model_path,
+    interpreter = litert_interpreter.Interpreter(model_path=model_path,
                                       experimental_op_resolver_type=\
-                                      tf.lite.experimental.OpResolverType.BUILTIN_REF)
+                                      litert_interpreter.OpResolverType.BUILTIN_REF)
 
     interpreter.allocate_tensors()
 
@@ -140,10 +141,10 @@ class TestDataGenerator:
 
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
-      interpreter = tf.lite.Interpreter(
+      interpreter = litert_interpreter.Interpreter(
           model_path=model_path,
           experimental_op_resolver_type=\
-          tf.lite.experimental.OpResolverType.BUILTIN_REF)
+          litert_interpreter.OpResolverType.BUILTIN_REF)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
           interpreter.get_input_details()[0]['index'])
