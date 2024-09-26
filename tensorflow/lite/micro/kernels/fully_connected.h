@@ -45,11 +45,11 @@ struct OpDataFullyConnected {
   // A buffer used to store unpacked filter values. This is used if the source
   // tensor is of n-bit precision that cannot be easily processed by kernels.
   int filter_buffer_index;
-#endif
 
   int32_t* per_channel_output_multiplier;
   int32_t* per_channel_output_shift;
   bool is_per_channel;
+#endif
 };
 
 extern const int kFullyConnectedInputTensor;
