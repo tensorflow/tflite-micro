@@ -57,12 +57,15 @@ TfLiteStatus CalculateOpDataFullyConnected(
     TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
     const TfLiteTensor* bias, TfLiteTensor* output,
     OpDataFullyConnected* data) {
+#ifndef HEXAGON
   data->is_per_channel = false;
+#endif
 
   if (data_type == kTfLiteFloat32) {
     return kTfLiteOk;
   }
 
+  bool is_per_channel = false;
   if (filter->quantization.type == kTfLiteAffineQuantization &&
       filter->quantization.params != nullptr) {
     const auto* affine_quantization =
@@ -70,10 +73,23 @@ TfLiteStatus CalculateOpDataFullyConnected(
             filter->quantization.params);
     TF_LITE_ENSURE(context, affine_quantization);
     TF_LITE_ENSURE(context, affine_quantization->scale);
-    data->is_per_channel = affine_quantization->scale->size > 1;
+    is_per_channel = affine_quantization->scale->size > 1;
   }
 
-  if (data->is_per_channel) {
+  if (is_per_channel) {
+// Hexagon currently does not support per-channel fully connected, and the
+// existing hexagon support library is intolerant of data members being added to
+// OpDataFullyConnected. As such, we have to be careful not to reference newer
+// data members. This is why we use a local variable is_per_channel in common
+// code, and only reference the data->is_per_channel in non-HEXAGON code.
+#ifdef HEXAGON
+    TF_LITE_ENSURE_MSG(
+        context, !is_per_channel,
+        "FullyConnected per-channel quantization not yet supported on Hexagon. "
+        "Please set converter._experimental_disable_per_channel_quantization_"
+        "for_dense_layers = True.");
+#else
+    data->is_per_channel = is_per_channel;
     const auto* affine_quantization =
         reinterpret_cast<TfLiteAffineQuantization*>(
             filter->quantization.params);
@@ -111,6 +127,7 @@ TfLiteStatus CalculateOpDataFullyConnected(
       data->per_channel_output_multiplier[i] = significand;
       data->per_channel_output_shift[i] = channel_shift;
     }
+#endif
   } else {
     double real_multiplier = 0.0;
     TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
