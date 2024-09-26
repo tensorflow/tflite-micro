@@ -1,4 +1,4 @@
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,6 +74,10 @@ else ifeq ($(ETHOSU_ARCH), u65)
   ETHOSU_FLAGS += \
     -DETHOSU_ARCH=u65 \
     -DETHOSU65
+else ifeq ($(ETHOSU_ARCH), u85)
+  ETHOSU_FLAGS += \
+    -DETHOSU_ARCH=u85 \
+    -DETHOSU85
 else
   $(error "ETHOSU_ARCH=$(ETHOSU_ARCH) is not supported")
 endif
