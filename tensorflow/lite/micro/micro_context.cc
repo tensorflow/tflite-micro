@@ -56,7 +56,7 @@ struct DecompressionState {
   template <typename T>
   T* DecompressToBuffer(void* buffer);
 
-  void DecompressToBufferWidth4_8(int8_t* buffer);
+  void DecompressToBufferWidth4_16(int8_t* buffer);
   void DecompressToBufferWidth3_32(int8_t* buffer);
   void DecompressToBufferWidth2_16(int8_t* buffer);
 
@@ -92,7 +92,7 @@ struct DecompressionState {
   const void* value_table_ = comp_data_.data.lut_data->value_table;
 };
 
-void DecompressionState::DecompressToBufferWidth4_8(int8_t* buffer) {
+void DecompressionState::DecompressToBufferWidth4_16(int8_t* buffer) {
   MicroProfiler* profiler =
       static_cast<MicroProfiler*>(micro_context_->external_context());
   ScopedMicroProfiler scoped_profiler(__func__, profiler);
@@ -406,7 +406,7 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
   if (std::is_same<T, int8_t>::value &&
       comp_data_.data.lut_data->compressed_bit_width == 4 &&
       !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth4_8(static_cast<int8_t*>(buffer));
+    DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
   } else if (std::is_same<T, int8_t>::value &&
              comp_data_.data.lut_data->compressed_bit_width == 2 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
