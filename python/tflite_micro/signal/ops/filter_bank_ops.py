@@ -161,11 +161,13 @@ def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
       den = np.float32(center_mel_freqs[chan] - denom_val)
       weight = num / den
       # Make the float into an integer for the weights (and unweights).
-      weight_index = weight_start + frequency_offset + j
+      # Explicetly cast to int64. Numpy 2.0 introduces downcasting if we don't
+      weight_index = weight_start + np.int64(frequency_offset) + j
       weights[weight_index], unweights[
           weight_index] = _quantize_filterbank_weight(
               weight, FILTER_BANK_WEIGHT_SCALING_BITS)
-      frequency += 1
+      # Explicetly cast to int64. Numpy 2.0 introduces downcasting if we don't
+      frequency = np.int64(frequency) + 1
     if frequency > end_index:
       end_index = frequency
 
