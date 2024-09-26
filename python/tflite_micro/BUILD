@@ -94,6 +94,7 @@ py_test(
     ],
     deps = [
         ":runtime",
+        requirement("ai-edge-litert"),
         requirement("numpy"),
         requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
