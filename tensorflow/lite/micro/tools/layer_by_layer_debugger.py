@@ -20,7 +20,6 @@ import unittest
 from absl import app
 from absl import flags
 from absl import logging
-from ai_edge_litert import interpreter as litert_interpreter
 import numpy as np
 import tensorflow as tf
 
@@ -195,7 +194,7 @@ def main(_) -> None:
       intrepreter_config=runtime.InterpreterConfig.kPreserveAllTensors,
   )
 
-  tflite_interpreter = litert_interpreter.Interpreter(
+  tflite_interpreter = tf.lite.Interpreter(
       model_path=_INPUT_TFLITE_FILE.value,
       experimental_preserve_all_tensors=True,
   )
