@@ -17,6 +17,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
+from ai_edge_litert import interpreter as litert_interpreter
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
@@ -43,10 +44,10 @@ class LSTMFloatModelTest(test_util.TensorFlowTestCase):
       evaluate.predict_image(self.tflm_interpreter, wrong_size_image_path)
 
   def testCompareWithTFLite(self):
-    tflite_interpreter = tf.lite.Interpreter(
+    tflite_interpreter = litert_interpreter.Interpreter(
         model_path=self.model_path,
         experimental_op_resolver_type=\
-        tf.lite.experimental.OpResolverType.BUILTIN_REF)
+        litert_interpreter.OpResolverType.BUILTIN_REF)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]

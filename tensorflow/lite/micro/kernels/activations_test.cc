@@ -169,6 +169,46 @@ void TestRelu6Int8(int* input_dims_data, const float* input_data,
   }
 }
 
+void TestRelu6Int16(int* input_dims_data, const float* input_data,
+                    int16_t* input_data_quantized, const float input_scale,
+                    const int input_zero_point, const float* golden,
+                    int16_t* golden_quantized, int* output_dims_data,
+                    const float output_scale, const int output_zero_point,
+                    int16_t* output_data) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_elements_count = ElementCount(*output_dims);
+  constexpr int inputs_size = 1;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor(input_data, input_data_quantized, input_dims,
+                            input_scale, input_zero_point),
+      CreateQuantizedTensor(output_data, output_dims, output_scale,
+                            output_zero_point),
+  };
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_RELU6();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array,
+                             /*builtin_data=*/nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  Quantize(golden, golden_quantized, output_elements_count, output_scale,
+           output_zero_point);
+
+  for (int i = 0; i < output_elements_count; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(golden_quantized[i], output_data[i]);
+  }
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -245,6 +285,28 @@ TF_LITE_MICRO_TEST(SimpleRelu6TestInt8) {
                                  input_scale, input_zero_point, golden,
                                  golden_quantized, output_shape, output_scale,
                                  output_zero_point, output_data);
+}
+
+TF_LITE_MICRO_TEST(SimpleRelu6TestInt16) {
+  const int elements_count = 10;
+
+  int input_shape[] = {2, 1, 5};
+  const float input_data[] = {4, 5, 6, 7, 8, -1, -2, -3, -4, -5};
+  int16_t input_quantized[elements_count];
+  int output_shape[] = {2, 1, 5};
+  const float golden[] = {4, 5, 6, 6, 6, 0, 0, 0, 0, 0};
+  int16_t golden_quantized[elements_count];
+  int16_t output_data[elements_count];
+
+  const float input_scale = 0.5f;
+  const int input_zero_point = 0;
+  const float output_scale = 0.5f;
+  const int output_zero_point = 0;
+
+  tflite::testing::TestRelu6Int16(input_shape, input_data, input_quantized,
+                                  input_scale, input_zero_point, golden,
+                                  golden_quantized, output_shape, output_scale,
+                                  output_zero_point, output_data);
 }
 
 TF_LITE_MICRO_TESTS_END

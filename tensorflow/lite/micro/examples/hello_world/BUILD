@@ -53,6 +53,7 @@ py_binary(
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
         "@absl_py//absl/logging",
+        requirement("ai-edge-litert"),
         requirement("numpy"),
         requirement("tensorflow"),
         "//python/tflite_micro:runtime",
