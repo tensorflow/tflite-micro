@@ -34,7 +34,6 @@ py_library(
     srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("ai-edge-litert"),
         "//tensorflow/lite/python:schema_py",
     ],
 )
@@ -209,7 +208,6 @@ py_binary(
         ":model_transforms_utils",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
-        requirement("ai-edge-litert"),
         requirement("tensorflow"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
