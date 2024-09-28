@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 namespace {
@@ -63,7 +64,6 @@ struct DecompressionState {
   template <typename T>
   void DecompressToBufferWidthAny(T* buffer);
 
-  inline size_t GetNextTableIndex();
   inline size_t GetNextTableIndexWidth7(const size_t current_offset);
   inline size_t GetNextTableIndexWidth6(const size_t current_offset);
   inline size_t GetNextTableIndexWidth5(const size_t current_offset);
@@ -72,9 +72,6 @@ struct DecompressionState {
   inline size_t GetNextTableIndexWidth2(const size_t current_offset);
   inline size_t GetNextTableIndexWidth1(const size_t current_offset);
 
-  template <typename T>
-  inline void UpdateBufferAndChannelIndex();
-
  private:
   const uint8_t* compressed_indices_;
   const size_t count_indices_;
@@ -82,18 +79,11 @@ struct DecompressionState {
   const size_t num_channels_;
   const size_t compressed_bit_width_ =
       comp_data_.data.lut_data->compressed_bit_width;
-  size_t channel_ = 0;
-  size_t index_in_channel_ = 0;
   const size_t elements_per_channel_ =
       comp_data_.data.lut_data->use_alternate_axis
           ? 1
           : count_indices_ / num_channels_;
-  size_t buffer_index_ = 0;
-  size_t current_offset_ = 0;
-  size_t current_bits_remaining_ = 8;
-  uint8_t current_byte_ = compressed_indices_[0];
   MicroContext* micro_context_;
-  const void* value_table_ = comp_data_.data.lut_data->value_table;
 };
 
 void DecompressionState::DecompressToBufferWidth4_16(int8_t* buffer) {
@@ -389,23 +379,104 @@ void DecompressionState::DecompressToBufferWidth3_32(int8_t* buffer) {
 
 template <typename T>
 void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
+  static char func_name[40];
+  const char* func_name_p = __func__;
   MicroProfiler* profiler =
       static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  if (profiler != nullptr) {
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u_%s", __func__,
+                  compressed_bit_width_,
+                  TfLiteTypeGetName(typeToTfLiteType<T>()));
+    func_name_p = func_name;
+  }
+  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
 
-  while (buffer_index_ < count_indices_) {
-    const size_t table_index = GetNextTableIndex();
-    buffer[buffer_index_] = static_cast<const T*>(value_table_)[table_index];
-    UpdateBufferAndChannelIndex<T>();
+  if (comp_data_.data.lut_data->use_alternate_axis) {
+    const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
+    size_t current_offset = 0;
+    size_t count = count_indices_;
+
+    while (count > 0) {
+      const T* value_table =
+          static_cast<const T*>(comp_data_.data.lut_data->value_table);
+      for (size_t channel = 0; channel < num_channels_; channel++) {
+        size_t index;
+        switch (compressed_bit_width_) {
+          case 1:
+            index = GetNextTableIndexWidth1(current_offset);
+            break;
+          case 2:
+            index = GetNextTableIndexWidth2(current_offset);
+            break;
+          case 3:
+            index = GetNextTableIndexWidth3(current_offset);
+            break;
+          case 4:
+            index = GetNextTableIndexWidth4(current_offset);
+            break;
+          case 5:
+            index = GetNextTableIndexWidth5(current_offset);
+            break;
+          case 6:
+            index = GetNextTableIndexWidth6(current_offset);
+            break;
+          case 7:
+            index = GetNextTableIndexWidth7(current_offset);
+            break;
+        }
+        current_offset++;
+        *buffer++ = value_table[index];
+        value_table += stride;
+      }
+      count -= num_channels_;
+    }
+  } else {
+    const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
+    const T* value_table =
+        static_cast<const T*>(comp_data_.data.lut_data->value_table);
+    const size_t max_count = elements_per_channel_;
+    size_t current_offset = 0;
+
+    for (size_t channel = 0; channel < num_channels_; channel++) {
+      size_t count = max_count;
+
+      while (count-- > 0) {
+        size_t index;
+        switch (compressed_bit_width_) {
+          case 1:
+            index = GetNextTableIndexWidth1(current_offset);
+            break;
+          case 2:
+            index = GetNextTableIndexWidth2(current_offset);
+            break;
+          case 3:
+            index = GetNextTableIndexWidth3(current_offset);
+            break;
+          case 4:
+            index = GetNextTableIndexWidth4(current_offset);
+            break;
+          case 5:
+            index = GetNextTableIndexWidth5(current_offset);
+            break;
+          case 6:
+            index = GetNextTableIndexWidth6(current_offset);
+            break;
+          case 7:
+            index = GetNextTableIndexWidth7(current_offset);
+            break;
+        }
+        current_offset++;
+        *buffer++ = value_table[index];
+      }
+      value_table += stride;
+    }
   }
 }
 
 template <typename T>
 T* DecompressionState::DecompressToBuffer(void* buffer) {
-#ifdef notdef
-  MicroPrintf("DecompressToBuffer: %u 0x%x", count_indices_,
-              elements_per_channel_ & 0x1F);
-#endif  // notdef
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   if (std::is_same<T, int8_t>::value &&
       comp_data_.data.lut_data->compressed_bit_width == 4 &&
@@ -555,52 +626,6 @@ inline size_t DecompressionState::GetNextTableIndexWidth1(
     const size_t current_offset) {
   const size_t shift = ~current_offset & 0b111;
   return (compressed_indices_[current_offset >> 3] >> shift) & 0b1;
-}
-
-inline size_t DecompressionState::GetNextTableIndex() {
-  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
-  TFLITE_DCHECK(compressed_bit_width_ > 0);
-
-  size_t table_index_bits_to_fill = compressed_bit_width_;
-  size_t table_index = 0;
-
-  while (table_index_bits_to_fill > 0) {
-    if (current_bits_remaining_ == 0) {
-      current_offset_++;
-      current_byte_ = compressed_indices_[current_offset_];
-      current_bits_remaining_ = 8;
-    }
-
-    const uint8_t mask_bit_count =
-        std::min(table_index_bits_to_fill,
-                 std::min(compressed_bit_width_, current_bits_remaining_));
-    const uint8_t current_byte_mask = (1 << mask_bit_count) - 1;
-    table_index <<= mask_bit_count;
-    table_index |=
-        (current_byte_ >> (current_bits_remaining_ - mask_bit_count)) &
-        current_byte_mask;
-
-    table_index_bits_to_fill -= mask_bit_count;
-    current_bits_remaining_ -= mask_bit_count;
-  }
-
-  return table_index;
-}
-
-template <typename T>
-inline void DecompressionState::UpdateBufferAndChannelIndex() {
-  buffer_index_++;
-  index_in_channel_++;
-  if (index_in_channel_ == elements_per_channel_) {
-    index_in_channel_ = 0;
-    channel_++;
-    value_table_ = static_cast<const T*>(value_table_) +
-                   comp_data_.data.lut_data->value_table_channel_stride;
-    if (channel_ == num_channels_) {
-      channel_ = 0;
-      value_table_ = comp_data_.data.lut_data->value_table;
-    }
-  }
 }
 
 #endif  // USE_TFLM_COMPRESSION
