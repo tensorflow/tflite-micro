@@ -377,6 +377,9 @@ void DecompressionState::DecompressToBufferWidth3_32(int8_t* buffer) {
   }
 }
 
+// TODO(ddavis-2015): templating GetNextTableIndexWidth<N> makes this method
+// more than 2x faster, but with a large code size increase (and BSS segment
+// increase)
 template <typename T>
 void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
   static char func_name[40];
