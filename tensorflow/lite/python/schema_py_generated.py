@@ -274,6 +274,8 @@ class BuiltinOperator(object):
     STABLEHLO_RNG_BIT_GENERATOR = 204
     REDUCE_WINDOW = 205
     STABLEHLO_COMPOSITE = 206
+    STABLEHLO_SHIFT_LEFT = 207
+    STABLEHLO_CBRT = 208
 
 
 class BuiltinOptions(object):
@@ -687,6 +689,7 @@ class BuiltinOptions2(object):
     StablehloRngBitGeneratorOptions = 19
     ReduceWindowOptions = 20
     StableHLOCompositeOptions = 21
+    StablehloShiftLeftOptions = 22
 
 def BuiltinOptions2Creator(unionType, table):
     from flatbuffers.table import Table
@@ -734,6 +737,8 @@ def BuiltinOptions2Creator(unionType, table):
         return ReduceWindowOptionsT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == BuiltinOptions2().StableHLOCompositeOptions:
         return StableHLOCompositeOptionsT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == BuiltinOptions2().StablehloShiftLeftOptions:
+        return StablehloShiftLeftOptionsT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
 
@@ -16698,6 +16703,71 @@ class StableHLOCompositeOptionsT(object):
         return stableHlocompositeOptions
 
 
+class StablehloShiftLeftOptions(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = StablehloShiftLeftOptions()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsStablehloShiftLeftOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def StablehloShiftLeftOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # StablehloShiftLeftOptions
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+def StablehloShiftLeftOptionsStart(builder):
+    builder.StartObject(0)
+
+def StablehloShiftLeftOptionsEnd(builder):
+    return builder.EndObject()
+
+
+
+class StablehloShiftLeftOptionsT(object):
+
+    # StablehloShiftLeftOptionsT
+    def __init__(self):
+        pass
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        stablehloShiftLeftOptions = StablehloShiftLeftOptions()
+        stablehloShiftLeftOptions.Init(buf, pos)
+        return cls.InitFromObj(stablehloShiftLeftOptions)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, stablehloShiftLeftOptions):
+        x = StablehloShiftLeftOptionsT()
+        x._UnPack(stablehloShiftLeftOptions)
+        return x
+
+    # StablehloShiftLeftOptionsT
+    def _UnPack(self, stablehloShiftLeftOptions):
+        if stablehloShiftLeftOptions is None:
+            return
+
+    # StablehloShiftLeftOptionsT
+    def Pack(self, builder):
+        StablehloShiftLeftOptionsStart(builder)
+        stablehloShiftLeftOptions = StablehloShiftLeftOptionsEnd(builder)
+        return stablehloShiftLeftOptions
+
+
 class Operator(object):
     __slots__ = ['_tab']
 
@@ -16917,8 +16987,15 @@ class Operator(object):
             return obj
         return None
 
+    # Operator
+    def DebugMetadataIndex(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return -1
+
 def OperatorStart(builder):
-    builder.StartObject(13)
+    builder.StartObject(14)
 
 def OperatorAddOpcodeIndex(builder, opcodeIndex):
     builder.PrependUint32Slot(0, opcodeIndex, 0)
@@ -16974,6 +17051,9 @@ def OperatorAddBuiltinOptions2Type(builder, builtinOptions2Type):
 def OperatorAddBuiltinOptions2(builder, builtinOptions2):
     builder.PrependUOffsetTRelativeSlot(12, flatbuffers.number_types.UOffsetTFlags.py_type(builtinOptions2), 0)
 
+def OperatorAddDebugMetadataIndex(builder, debugMetadataIndex):
+    builder.PrependInt32Slot(13, debugMetadataIndex, -1)
+
 def OperatorEnd(builder):
     return builder.EndObject()
 
@@ -16999,7 +17079,8 @@ class OperatorT(object):
         self.largeCustomOptionsOffset = 0  # type: int
         self.largeCustomOptionsSize = 0  # type: int
         self.builtinOptions2Type = 0  # type: int
-        self.builtinOptions2 = None  # type: Union[None, StablehloConcatenateOptionsT, StablehloBroadcastInDimOptionsT, StablehloSliceOptionsT, StablehloConvolutionOptionsT, StablehloCustomCallOptionsT, StablehloReduceOptionsT, StablehloScatterOptionsT, StablehloCompareOptionsT, StablehloDynamicSliceOptionsT, StablehloPadOptionsT, StablehloIotaOptionsT, StablehloDotGeneralOptionsT, StablehloReduceWindowOptionsT, StablehloSortOptionsT, StablehloWhileOptionsT, StablehloGatherOptionsT, StablehloTransposeOptionsT, DilateOptionsT, StablehloRngBitGeneratorOptionsT, ReduceWindowOptionsT, StableHLOCompositeOptionsT]
+        self.builtinOptions2 = None  # type: Union[None, StablehloConcatenateOptionsT, StablehloBroadcastInDimOptionsT, StablehloSliceOptionsT, StablehloConvolutionOptionsT, StablehloCustomCallOptionsT, StablehloReduceOptionsT, StablehloScatterOptionsT, StablehloCompareOptionsT, StablehloDynamicSliceOptionsT, StablehloPadOptionsT, StablehloIotaOptionsT, StablehloDotGeneralOptionsT, StablehloReduceWindowOptionsT, StablehloSortOptionsT, StablehloWhileOptionsT, StablehloGatherOptionsT, StablehloTransposeOptionsT, DilateOptionsT, StablehloRngBitGeneratorOptionsT, ReduceWindowOptionsT, StableHLOCompositeOptionsT, StablehloShiftLeftOptionsT]
+        self.debugMetadataIndex = -1  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -17065,6 +17146,7 @@ class OperatorT(object):
         self.largeCustomOptionsSize = operator.LargeCustomOptionsSize()
         self.builtinOptions2Type = operator.BuiltinOptions2Type()
         self.builtinOptions2 = BuiltinOptions2Creator(self.builtinOptions2Type, operator.BuiltinOptions2())
+        self.debugMetadataIndex = operator.DebugMetadataIndex()
 
     # OperatorT
     def Pack(self, builder):
@@ -17133,6 +17215,7 @@ class OperatorT(object):
         OperatorAddBuiltinOptions2Type(builder, self.builtinOptions2Type)
         if self.builtinOptions2 is not None:
             OperatorAddBuiltinOptions2(builder, builtinOptions2)
+        OperatorAddDebugMetadataIndex(builder, self.debugMetadataIndex)
         operator = OperatorEnd(builder)
         return operator
 
@@ -17268,8 +17351,15 @@ class SubGraph(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
+    # SubGraph
+    def DebugMetadataIndex(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return -1
+
 def SubGraphStart(builder):
-    builder.StartObject(5)
+    builder.StartObject(6)
 
 def SubGraphAddTensors(builder, tensors):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(tensors), 0)
@@ -17298,6 +17388,9 @@ def SubGraphStartOperatorsVector(builder, numElems):
 def SubGraphAddName(builder, name):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
 
+def SubGraphAddDebugMetadataIndex(builder, debugMetadataIndex):
+    builder.PrependInt32Slot(5, debugMetadataIndex, -1)
+
 def SubGraphEnd(builder):
     return builder.EndObject()
 
@@ -17316,6 +17409,7 @@ class SubGraphT(object):
         self.outputs = None  # type: List[int]
         self.operators = None  # type: List[OperatorT]
         self.name = None  # type: str
+        self.debugMetadataIndex = -1  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -17369,6 +17463,7 @@ class SubGraphT(object):
                     operator_ = OperatorT.InitFromObj(subGraph.Operators(i))
                     self.operators.append(operator_)
         self.name = subGraph.Name()
+        self.debugMetadataIndex = subGraph.DebugMetadataIndex()
 
     # SubGraphT
     def Pack(self, builder):
@@ -17417,6 +17512,7 @@ class SubGraphT(object):
             SubGraphAddOperators(builder, operators)
         if self.name is not None:
             SubGraphAddName(builder, name)
+        SubGraphAddDebugMetadataIndex(builder, self.debugMetadataIndex)
         subGraph = SubGraphEnd(builder)
         return subGraph
 

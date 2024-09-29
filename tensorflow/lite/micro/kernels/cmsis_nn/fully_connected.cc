@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -21,10 +21,10 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -35,12 +35,8 @@ namespace {
 struct OpData {
   OpDataFullyConnected reference_op_data;
 
-  // Conv 1x1 that may be invoked in some cases currently need per channel
-  // quantization.
-  int32_t* per_channel_output_multiplier;
-  int32_t* per_channel_output_shift;
-
-  // Index to buffer for optimizations if applicable.
+  // Index to buffers for optimizations if applicable.
+  int buffer_conv_1x1_idx;
   int buffer_idx;
 
   int32_t* kernel_sums;
@@ -94,6 +90,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const RuntimeShape output_shape = GetTensorShape(output);
   const int filter_dim_count = filter_shape.DimensionsCount();
   const int output_dim_count = output_shape.DimensionsCount();
+
+  TFLITE_DCHECK_GE(output_dim_count, 2);
+  TFLITE_DCHECK_LE(output_dim_count, 4);
+
   cmsis_nn_dims filter_dims;
   filter_dims.n = filter_shape.Dims(filter_dim_count - 1);
   filter_dims.h = 1;
@@ -106,9 +106,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Set buffer index to a reset value
   data->buffer_idx = -1;
+  data->buffer_conv_1x1_idx = -1;
+
   TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(
       context, params->activation, input->type, input, filter, bias, output,
       &(data->reference_op_data)));
+
+  //  Currently only Int8 is supported for per channel quantization.
+  TF_LITE_ENSURE(
+      context, !data->reference_op_data.is_per_channel ||
+                   (data->reference_op_data.is_per_channel &&
+                    input->type == kTfLiteInt8 && filter->type != kTfLiteInt4));
 
   int32_t buf_size = 0;
 
@@ -117,25 +125,25 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
     buf_size = arm_fully_connected_s16_get_buffer_size(&filter_dims);
   } else if (input->type == kTfLiteInt8 && filter->type != kTfLiteInt4) {
-    const RuntimeShape input_shape = GetTensorShape(input);
+    const bool is_conv_1x1_possible =
+        output_dim_count > 2 && data->accum_depth % 4 == 0;
 
-    TFLITE_DCHECK_GE(output_dim_count, 2);
-    TFLITE_DCHECK_LE(output_dim_count, 4);
-
-    if (output_dim_count > 2 && data->accum_depth % 4 == 0) {
-      data->per_channel_output_multiplier =
-          static_cast<int32_t*>(context->AllocatePersistentBuffer(
-              context, data->output_depth * sizeof(int32_t)));
-      data->per_channel_output_shift =
-          static_cast<int32_t*>(context->AllocatePersistentBuffer(
-              context, data->output_depth * sizeof(int32_t)));
+    if (is_conv_1x1_possible) {
+      // In case per tensor quantization we use a scratch buffer to fake
+      // conv1x1 per channel quantization.
+      if (!data->reference_op_data.is_per_channel) {
+        const int total_per_channel_quantization_size =
+            data->output_depth * sizeof(int32_t) * 2;
+        TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
+            context, total_per_channel_quantization_size,
+            &data->buffer_conv_1x1_idx));
+      }
 
       cmsis_nn_dims input_dims;
       input_dims.n = data->batches;
       input_dims.h = 1;
       input_dims.w = 1;
       input_dims.c = data->accum_depth;
-
       buf_size = arm_convolve_1x1_s8_fast_get_buffer_size(&input_dims);
     } else if (input->type == kTfLiteInt8) {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
@@ -147,8 +155,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         data->kernel_sums = static_cast<int32_t*>(
             context->AllocatePersistentBuffer(context, buf_size));
 
+        int32_t input_offset = -data->reference_op_data.input_zero_point;
+        int32_t filter_offset = -data->reference_op_data.filter_zero_point;
         arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
-                          filter_data, 1, nullptr);
+                          filter_data, input_offset, filter_offset,
+                          tflite::GetTensorData<int32_t>(bias));
 
         // Do not request a scratch buffer since using persistent memory
         buf_size = 0;
@@ -215,9 +226,6 @@ TfLiteStatus EvalQuantizedInt4(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output) {
   const RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
-  const int output_dim_count = output_shape.DimensionsCount();
-  TFLITE_DCHECK_GE(output_dim_count, 2);
-  TFLITE_DCHECK_LE(output_dim_count, 4);
 
   cmsis_nn_per_tensor_quant_params quant_params;
   cmsis_nn_dims input_dims;
@@ -259,18 +267,16 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                TfLiteEvalTensor* output) {
   const RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
   const int output_dim_count = output_shape.DimensionsCount();
-  TFLITE_DCHECK_GE(output_dim_count, 2);
-  TFLITE_DCHECK_LE(output_dim_count, 4);
 
-  cmsis_nn_per_tensor_quant_params quant_params;
+  cmsis_nn_per_tensor_quant_params per_tensor_quant_params;
   cmsis_nn_dims input_dims;
   cmsis_nn_dims filter_dims;
   cmsis_nn_dims bias_dims;
   cmsis_nn_dims output_dims;
   cmsis_nn_context ctx;
 
-  PopulateCommonParams(context, &quant_params, &input_dims, &filter_dims,
-                       &bias_dims, &output_dims, &ctx, data);
+  PopulateCommonParams(context, &per_tensor_quant_params, &input_dims,
+                       &filter_dims, &bias_dims, &output_dims, &ctx, data);
 
   const int32_t* bias_data =
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
@@ -289,14 +295,23 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     conv_params.activation.max = data.reference_op_data.output_activation_max;
 
     cmsis_nn_per_channel_quant_params per_channel_quant_params;
-    per_channel_quant_params.multiplier =
-        const_cast<int32_t*>(data.per_channel_output_multiplier);
-    per_channel_quant_params.shift =
-        const_cast<int32_t*>(data.per_channel_output_shift);
+    if (data.reference_op_data.is_per_channel) {
+      per_channel_quant_params.multiplier =
+          data.reference_op_data.per_channel_output_multiplier;
+      per_channel_quant_params.shift =
+          data.reference_op_data.per_channel_output_shift;
+    } else {
+      TFLITE_DCHECK_GE(data.buffer_conv_1x1_idx, 4);
+      per_channel_quant_params.multiplier = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, data.buffer_conv_1x1_idx));
+      per_channel_quant_params.shift =
+          per_channel_quant_params.multiplier + data.output_depth;
 
-    for (int i = 0; i < data.output_depth; i++) {
-      per_channel_quant_params.multiplier[i] = quant_params.multiplier;
-      per_channel_quant_params.shift[i] = quant_params.shift;
+      for (int i = 0; i < data.output_depth; i++) {
+        per_channel_quant_params.multiplier[i] =
+            per_tensor_quant_params.multiplier;
+        per_channel_quant_params.shift[i] = per_tensor_quant_params.shift;
+      }
     }
 
     TF_LITE_ENSURE_EQ(
@@ -315,18 +330,31 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
     fc_params.activation.min = data.reference_op_data.output_activation_min;
     fc_params.activation.max = data.reference_op_data.output_activation_max;
 
+    cmsis_nn_quant_params quant_params;
+    quant_params.is_per_channel = data.reference_op_data.is_per_channel;
+
+    if (quant_params.is_per_channel) {
+      quant_params.multiplier =
+          data.reference_op_data.per_channel_output_multiplier;
+      quant_params.shift = data.reference_op_data.per_channel_output_shift;
+    } else {
+      quant_params.multiplier = &per_tensor_quant_params.multiplier;
+      quant_params.shift = &per_tensor_quant_params.shift;
+    }
+
     if (data.kernel_sums != nullptr) {
       ctx.buf = data.kernel_sums;
     } else if (ctx.buf != nullptr) {
       // If behaving like batch matmul we calculate kernel sums in eval.
       arm_vector_sum_s8(
           static_cast<int32_t*>(ctx.buf), filter_dims.n, data.output_depth,
-          tflite::micro::GetTensorData<int8_t>(filter), 1, nullptr);
+          tflite::micro::GetTensorData<int8_t>(filter), fc_params.input_offset,
+          fc_params.filter_offset, bias_data);
     }
 
     TF_LITE_ENSURE_EQ(
         context,
-        arm_fully_connected_s8(
+        arm_fully_connected_wrapper_s8(
             &ctx, &fc_params, &quant_params, &input_dims,
             tflite::micro::GetTensorData<int8_t>(input), &filter_dims,
             tflite::micro::GetTensorData<int8_t>(filter), &bias_dims, bias_data,

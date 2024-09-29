@@ -1,3 +1,5 @@
+tensorflow/compiler/mlir/lite/core/api/error_reporter.h
+tensorflow/compiler/mlir/lite/core/api/error_reporter.cc
 tensorflow/compiler/mlir/lite/schema/schema.fbs
 tensorflow/compiler/mlir/lite/schema/schema_utils.h
 tensorflow/compiler/mlir/lite/schema/schema_utils.cc
@@ -6,7 +8,6 @@ tensorflow/lite/array.cc
 tensorflow/lite/builtin_op_data.h
 tensorflow/lite/builtin_ops.h
 tensorflow/lite/context_util.h
-tensorflow/lite/core/api/error_reporter.cc
 tensorflow/lite/core/api/flatbuffer_conversions.cc
 tensorflow/lite/core/api/tensor_utils.cc
 tensorflow/lite/core/c/common.cc

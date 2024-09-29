@@ -569,6 +569,18 @@ cc_test(
 )
 
 cc_test(
+    name = "span_test",
+    size = "small",
+    srcs = [
+        "span_test.cc",
+    ],
+    deps = [
+        ":span",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+cc_test(
     name = "testing_helpers_test",
     srcs = [
         "testing_helpers_test.cc",

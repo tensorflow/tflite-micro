@@ -110,9 +110,17 @@ typedef enum TfLiteStatus {
   // TODO(b/250636993): Cancellation triggered by `SetCancellationFunction`
   // should also return this status code.
   kTfLiteCancelled = 8,
+
+  // This status is returned by Prepare when the output shape cannot be
+  // determined but the size of the output tensor is known. For example, the
+  // output of reshape is always the same size as the input. This means that
+  // such ops may be
+  // done in place.
+  kTfLiteOutputShapeNotKnown = 9,
 } TfLiteStatus;
 
 /// Types supported by tensor
+// LINT.IfChange
 typedef enum {
   kTfLiteNoType = 0,
   kTfLiteFloat32 = 1,
@@ -135,6 +143,7 @@ typedef enum {
   kTfLiteInt4 = 18,
   kTfLiteBFloat16 = 19,
 } TfLiteType;
+// LINT.ThenChange(//tensorflow/lite/profiling/proto/model_runtime_info.proto:EdgeDataType)
 
 /// Legacy. Will be deprecated in favor of `TfLiteAffineQuantization`.
 /// If per-layer quantization is specified this field will still be populated in

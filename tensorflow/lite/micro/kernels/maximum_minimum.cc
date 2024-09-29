@@ -88,6 +88,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       case kTfLiteInt8:
         TFLiteOperation<int8_t, OpType>(context, node, op_context);
         break;
+      case kTfLiteInt16:
+        TFLiteOperation<int16_t, OpType>(context, node, op_context);
+        break;
       case kTfLiteInt32:
         TFLiteOperation<int32_t, OpType>(context, node, op_context);
         break;

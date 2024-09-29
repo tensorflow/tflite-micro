@@ -35,11 +35,15 @@ cc_library(
 # dependencies without pulling in tensor_utils and flatbuffer_conversions.
 cc_library(
     name = "error_reporter",
-    srcs = ["error_reporter.cc"],
-    hdrs = ["error_reporter.h"],
+    hdrs = [
+        "error_reporter.h",
+        "//tensorflow/compiler/mlir/lite/core/api:error_reporter.h",
+    ],
     copts = tflite_copts() + micro_copts(),
     visibility = [
         "//visibility:public",
     ],
-    deps = [],
+    deps = [
+        "//tensorflow/compiler/mlir/lite/core/api:error_reporter",
+    ],
 )
