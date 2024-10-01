@@ -20,7 +20,7 @@ def tflm_inference_library(
         srcs = [tflite_model],
         outs = [name + ".h", name + ".cc"],
         tools = ["//codegen:code_generator"],
-        cmd = "$(location //codegen:code_generator) " +
+        cmd = "$(location //codegen:code_generator) --quiet " +
               "--model=$< --output_dir=$(RULEDIR) --output_name=%s" % name,
         visibility = ["//visibility:private"],
     )
