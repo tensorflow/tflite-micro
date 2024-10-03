@@ -129,7 +129,7 @@ value:       2  4  4 10  1  7 99 10  2  4
 ### Per-channel Quantized Tensor Value Tables
 
 For per-channel quantized tensors, a `value table` is present for each channel.
-All of the the `value tables` are concatenated together into a single contiguous
+All of the `value tables` are concatenated together into a single contiguous
 set of values. The number of elements in each `value table` is always identical,
 with zero value padding added to the end of a `value table` as necessary.
 
