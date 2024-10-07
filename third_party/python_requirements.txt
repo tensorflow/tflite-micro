@@ -11,6 +11,17 @@ absl-py==2.0.0 \
     #   keras
     #   tensorboard
     #   tensorflow
+ai-edge-litert==1.0.1 \
+    --hash=sha256:25a9b1577941498842bf77630722eda1163026c37abd57af66791a6955551b9d \
+    --hash=sha256:3bcec68832cdbdeb222aea43f31a70f9a3d55c17c1a0e4daf29c59109656c086 \
+    --hash=sha256:48f525fed0af268f4e904b0c9c8ab174e48422f9c2506b679c468a15e6bf64fc \
+    --hash=sha256:766c92511bb06851005454f164f10f4a2ed79f94877b11860c1e14158f948221 \
+    --hash=sha256:8c65c75a5b9f40a050416c62fd068e428848c96ec1873155976af884afac49e5 \
+    --hash=sha256:afa5eaca094f62e0b7c1981a94b1d03389cbc0e4a963eefb82d49053dd97bd73 \
+    --hash=sha256:e31a2aa9b031c42b1534744bbce78ef3fae7a7ac5a07008340554a5589d91003 \
+    --hash=sha256:ed8e7c3b058c2ba4233c1b3a0d59b9ca3197edf19d21be6710c8098472ab1e5b \
+    --hash=sha256:ef15c8cc1c029e047321541fd51932b745fba4ee21da64567c43d862b95687d9
+    # via -r third_party/python_requirements.in
 astunparse==1.6.3 \
     --hash=sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872 \
     --hash=sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8
@@ -505,6 +516,7 @@ numpy==1.26.3 \
     --hash=sha256:f73497e8c38295aaa4741bdfa4fda1a5aedda5473074369eca10626835445511
     # via
     #   -r third_party/python_requirements.in
+    #   ai-edge-litert
     #   h5py
     #   keras
     #   ml-dtypes

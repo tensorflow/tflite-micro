@@ -6,6 +6,7 @@ py_binary(
     srcs = ["train.py"],
     srcs_version = "PY3",
     deps = [
+        requirement("ai-edge-litert"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],
