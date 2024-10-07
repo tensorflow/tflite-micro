@@ -62,5 +62,5 @@ jobs:
           author: TFLM-bot <tflm-github-bot@google.com>
           body: "BUG=automated sync from upstream\nNO_CHECK_TFLITE_FILES=automated sync from upstream"
           labels: bot:sync-tf, ci:run
-          reviewers: rascani
+          reviewers: suleshahid
 
