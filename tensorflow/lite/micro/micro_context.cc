@@ -535,9 +535,17 @@ void DecompressionState::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
 
 template <size_t N>
 void DecompressionState::DecompressToBufferWidthAny_Xtensa(int8_t* buffer) {
+  static char func_name[80];
+  const char* func_name_p = __func__;
   MicroProfiler* profiler =
       static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  if (profiler != nullptr) {
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u_%s", __func__,
+                  compressed_bit_width_,
+                  TfLiteTypeGetName(typeToTfLiteType<int8_t>()));
+    func_name_p = func_name;
+  }
+  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
 
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* value_table =
@@ -579,6 +587,7 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
         comp_data_.data.lut_data->value_table_channel_stride == 16) {
       DecompressToBufferWidth4_Xtensa(static_cast<int8_t*>(buffer));
     } else {
+      //DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
       DecompressToBufferWidthAny_Xtensa<4>(static_cast<int8_t*>(buffer));
     }
 #else   // HIFI5
