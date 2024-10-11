@@ -1,6 +1,6 @@
 """ Build rule for generating ML inference code from TFLite model. """
 
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
+load("//tensorflow/lite/micro:build_def.bzl", "tflm_cc_library")
 
 def tflm_inference_library(
         name,
@@ -25,7 +25,7 @@ def tflm_inference_library(
         visibility = ["//visibility:private"],
     )
 
-    native.cc_library(
+    tflm_cc_library(
         name = name,
         hdrs = [name + ".h"],
         srcs = [name + ".cc"],
@@ -39,6 +39,5 @@ def tflm_inference_library(
             "//tensorflow/lite/micro:micro_common",
             "//tensorflow/lite/micro:micro_context",
         ],
-        copts = micro_copts(),
         visibility = visibility,
     )

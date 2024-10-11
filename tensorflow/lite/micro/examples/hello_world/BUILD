@@ -4,7 +4,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "micro_copts",
+    "tflm_cc_library",
 )
 
 package(
@@ -13,7 +13,7 @@ package(
     licenses = ["notice"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "model",
     srcs = [
         "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_cc",
@@ -23,7 +23,6 @@ cc_library(
         "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_float_model_hdr",
         "//tensorflow/lite/micro/examples/hello_world/models:generated_hello_world_int8_model_hdr",
     ],
-    copts = micro_copts(),
 )
 
 cc_test(

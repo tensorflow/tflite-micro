@@ -1,10 +1,34 @@
-def micro_copts():
+def tflm_copts():
+    """Returns the default copts for targets in TFLM.
+
+    This function returns the default copts used by tflm_cc_* targets in TFLM.
+    It is typically unnecessary to use this function directly; however, it may
+    be useful when additively overriding the defaults for a particular target.
+    """
     return [
         "-Wall",
         "-Wno-unused-parameter",
         "-Wnon-virtual-dtor",
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
     ]
+
+def tflm_cc_binary(copts = tflm_copts(), **kwargs):
+    native.cc_binary(
+        copts = copts,
+        **kwargs
+    )
+
+def tflm_cc_library(copts = tflm_copts(), **kwargs):
+    native.cc_library(
+        copts = copts,
+        **kwargs
+    )
+
+def tflm_cc_test(copts = tflm_copts(), **kwargs):
+    native.cc_test(
+        copts = copts,
+        **kwargs
+    )
 
 def generate_cc_arrays(name, src, out, visibility = None):
     native.genrule(
@@ -70,7 +94,7 @@ def tflm_kernel_cc_library(
 
         all_srcs[target] = all_target_srcs
 
-    native.cc_library(
+    tflm_cc_library(
         name = name,
         srcs = select(all_srcs),
         hdrs = hdrs,
