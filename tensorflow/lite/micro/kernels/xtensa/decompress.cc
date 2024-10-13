@@ -45,8 +45,10 @@ struct DecompressionStateXtensa : DecompressionState {
   void DecompressToBufferWidth4_Xtensa(int8_t* buffer);
   void DecompressToBufferWidth4_Xtensa_Old(int8_t* buffer);
 
-  template <size_t N>
-  void DecompressToBufferWidthAny_Xtensa(int8_t* buffer);
+  void DecompressToBufferWidthAnyInt8_Xtensa(int8_t* buffer);
+  void DecompressToBufferWidthAnyInt16_Xtensa(int16_t* buffer);
+  void DecompressToBufferWidthAnyInt32_Xtensa(int32_t* buffer);
+  void DecompressToBufferWidthAnyInt64_Xtensa(int64_t* buffer);
 };
 
 // TODO(ddavis-2015): unaligned/stride code has error, method not currently
@@ -150,17 +152,15 @@ void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa_Old(
   }
 }
 
-template <size_t N>
-void DecompressionStateXtensa::DecompressToBufferWidthAny_Xtensa(
+void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
   const char* func_name_p = nullptr;
   MicroProfiler* profiler =
       static_cast<MicroProfiler*>(micro_context_->external_context());
   if (profiler != nullptr) {
     static char func_name[42];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u_%s", __func__,
-                  compressed_bit_width_,
-                  TfLiteTypeGetName(typeToTfLiteType<int8_t>()));
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
+                  compressed_bit_width_);
     func_name_p = func_name;
   }
   ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
@@ -169,11 +169,11 @@ void DecompressionStateXtensa::DecompressToBufferWidthAny_Xtensa(
   const uint8_t* __restrict value_table =
       static_cast<const uint8_t*>(comp_data_.data.lut_data->value_table);
 
-  int elements_per_channel_t = elements_per_channel_;
   int num_channels_t = num_channels_;
   short* __restrict p_stream = (short*)compressed_indices_;
   uint32_t index;
   ae_int8* __restrict p_out_tmp = (ae_int8*)buffer;
+  const size_t bw = compressed_bit_width_;
 
   WUR_AE_BITPTR(0);
   WUR_AE_BITHEAD(0);
@@ -181,14 +181,237 @@ void DecompressionStateXtensa::DecompressToBufferWidthAny_Xtensa(
   AE_DBI_IP((const unsigned short*)p_stream, 16);
   AE_DBI_IP((const unsigned short*)p_stream, 16);
 
-  for (int i = 0; i < num_channels_t; i++) {
-    for (int j = 0; j < elements_per_channel_t; j++) {
-      AE_LBI_DBI_IP((unsigned short*)p_stream, index, N);
-      ae_int8x8 d_tmp = AE_L8_X((const ae_int8*)value_table, index);
-      AE_S8_0_IP(d_tmp, p_out_tmp, 1);
-    }
+  if (comp_data_.data.lut_data->use_alternate_axis) {
+    int count = count_indices_;
+    const uint8_t* __restrict value_table_t = value_table;
 
-    value_table += stride;
+    while (count > 0) {
+      value_table = value_table_t;
+
+      for (int channel = 0; channel < num_channels_t; channel++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int8x8 d_tmp = AE_L8_X((const ae_int8*)value_table, index);
+        AE_S8_0_IP(d_tmp, p_out_tmp, 1);
+        value_table += stride;
+      }
+
+      count -= num_channels_t;
+    }
+  } else {
+    int elements_per_channel_t = elements_per_channel_;
+
+    for (int i = 0; i < num_channels_t; i++) {
+      for (int j = 0; j < elements_per_channel_t; j++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int8x8 d_tmp = AE_L8_X((const ae_int8*)value_table, index);
+        AE_S8_0_IP(d_tmp, p_out_tmp, 1);
+      }
+
+      value_table += stride;
+    }
+  }
+}
+
+void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
+    int16_t* buffer) {
+  const char* func_name_p = nullptr;
+  MicroProfiler* profiler =
+      static_cast<MicroProfiler*>(micro_context_->external_context());
+  if (profiler != nullptr) {
+    static char func_name[43];
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
+                  compressed_bit_width_);
+    func_name_p = func_name;
+  }
+  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+
+  const int stride = comp_data_.data.lut_data->value_table_channel_stride;
+  const uint16_t* __restrict value_table =
+      static_cast<const uint16_t*>(comp_data_.data.lut_data->value_table);
+
+  int num_channels_t = num_channels_;
+  short* __restrict p_stream = (short*)compressed_indices_;
+  uint32_t index;
+  ae_int16* __restrict p_out_tmp = (ae_int16*)buffer;
+  const size_t bw = compressed_bit_width_;
+
+  WUR_AE_BITPTR(0);
+  WUR_AE_BITHEAD(0);
+
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+
+  if (comp_data_.data.lut_data->use_alternate_axis) {
+    int count = count_indices_;
+    const uint16_t* __restrict value_table_t = value_table;
+
+    while (count > 0) {
+      value_table = value_table_t;
+
+      for (int channel = 0; channel < num_channels_t; channel++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int16x4 d_tmp = AE_L16_X((const ae_int16*)value_table, index << 1);
+        AE_S16_0_IP(d_tmp, p_out_tmp, 2);
+        value_table += stride;
+      }
+
+      count -= num_channels_t;
+    }
+  } else {
+    int elements_per_channel_t = elements_per_channel_;
+    MicroPrintf("INT16: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
+                value_table, p_out_tmp);
+
+    for (int i = 0; i < num_channels_t; i++) {
+      for (int j = 0; j < elements_per_channel_t; j++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
+        ae_int16x4 d_tmp = AE_L16_X((const ae_int16*)value_table, index << 1);
+        MicroPrintf("value_table %p  index %d", value_table, index);
+        AE_S16_0_IP(d_tmp, p_out_tmp, 2);
+        MicroPrintf("p_out_tmp %p", p_out_tmp);
+      }
+
+      value_table += stride;
+    }
+  }
+}
+
+void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
+    int32_t* buffer) {
+  const char* func_name_p = nullptr;
+  MicroProfiler* profiler =
+      static_cast<MicroProfiler*>(micro_context_->external_context());
+  if (profiler != nullptr) {
+    static char func_name[43];
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
+                  compressed_bit_width_);
+    func_name_p = func_name;
+  }
+  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+
+  const int stride = comp_data_.data.lut_data->value_table_channel_stride;
+  const uint32_t* __restrict value_table =
+      static_cast<const uint32_t*>(comp_data_.data.lut_data->value_table);
+
+  int num_channels_t = num_channels_;
+  short* __restrict p_stream = (short*)compressed_indices_;
+  uint32_t index;
+  ae_int32* __restrict p_out_tmp = (ae_int32*)buffer;
+  const size_t bw = compressed_bit_width_;
+
+  MicroPrintf("INT32: p_stream %p", p_stream);
+
+  WUR_AE_BITPTR(0);
+  WUR_AE_BITHEAD(0);
+
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+
+  if (comp_data_.data.lut_data->use_alternate_axis) {
+    int count = count_indices_;
+    const uint32_t* __restrict value_table_t = value_table;
+    MicroPrintf("ALT INT32: p_stream %p  value_table %p  p_out_tmp %p",
+                p_stream, value_table, p_out_tmp);
+
+    while (count > 0) {
+      value_table = value_table_t;
+
+      for (int channel = 0; channel < num_channels_t; channel++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int32x2 d_tmp = AE_L32_X((const ae_int32*)value_table, index << 2);
+        AE_S32_L_IP(d_tmp, p_out_tmp, 4);
+        value_table += stride;
+      }
+
+      count -= num_channels_t;
+    }
+  } else {
+    int elements_per_channel_t = elements_per_channel_;
+    MicroPrintf("INT32: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
+                value_table, p_out_tmp);
+
+    for (int i = 0; i < num_channels_t; i++) {
+      for (int j = 0; j < elements_per_channel_t; j++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
+        ae_int32x2 d_tmp = AE_L32_X((const ae_int32*)value_table, index << 2);
+        MicroPrintf("value_table %p  index %d", value_table, index);
+        AE_S32_L_IP(d_tmp, p_out_tmp, 4);
+        MicroPrintf("p_out_tmp %p", p_out_tmp);
+      }
+
+      value_table += stride;
+    }
+  }
+}
+
+void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
+    int64_t* buffer) {
+  const char* func_name_p = nullptr;
+  MicroProfiler* profiler =
+      static_cast<MicroProfiler*>(micro_context_->external_context());
+  if (profiler != nullptr) {
+    static char func_name[43];
+    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
+                  compressed_bit_width_);
+    func_name_p = func_name;
+  }
+  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+
+  const int stride = comp_data_.data.lut_data->value_table_channel_stride;
+  const uint64_t* __restrict value_table =
+      static_cast<const uint64_t*>(comp_data_.data.lut_data->value_table);
+
+  int num_channels_t = num_channels_;
+  short* __restrict p_stream = (short*)compressed_indices_;
+  uint32_t index;
+  ae_int64* __restrict p_out_tmp = (ae_int64*)buffer;
+  const size_t bw = compressed_bit_width_;
+
+  MicroPrintf("INT64: p_stream %p", p_stream);
+
+  WUR_AE_BITPTR(0);
+  WUR_AE_BITHEAD(0);
+
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+  AE_DBI_IP((const unsigned short*)p_stream, 16);
+
+  if (comp_data_.data.lut_data->use_alternate_axis) {
+    int count = count_indices_;
+    const uint64_t* __restrict value_table_t = value_table;
+    MicroPrintf("ALT INT64: p_stream %p  value_table %p  p_out_tmp %p",
+                p_stream, value_table, p_out_tmp);
+
+    while (count > 0) {
+      value_table = value_table_t;
+
+      for (int channel = 0; channel < num_channels_t; channel++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int64 d_tmp = AE_L64_X((const ae_int64*)value_table, index << 3);
+        AE_S64_IP(d_tmp, p_out_tmp, 8);
+        value_table += stride;
+      }
+
+      count -= num_channels_t;
+    }
+  } else {
+    int elements_per_channel_t = elements_per_channel_;
+    MicroPrintf("INT64: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
+                value_table, p_out_tmp);
+
+    for (int i = 0; i < num_channels_t; i++) {
+      for (int j = 0; j < elements_per_channel_t; j++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
+        ae_int64 d_tmp = AE_L64_X((const ae_int64*)value_table, index << 3);
+        MicroPrintf("value_table %p  index %d", value_table, index);
+        AE_S64_IP(d_tmp, p_out_tmp, 8);
+        MicroPrintf("p_out_tmp %p", p_out_tmp);
+      }
+
+      value_table += stride;
+    }
   }
 }
 
@@ -198,61 +421,93 @@ void DecompressionStateXtensa::DecompressToBufferWidthAny_Xtensa(
 
 #ifdef HIFI5
 
-template <typename T>
-T* DecompressionState::DecompressToBuffer(void* buffer) {
+template <>
+bool* DecompressionState::DecompressToBuffer<bool>(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   DecompressionStateXtensa dsx(*this);
 
-  if (std::is_same<T, int8_t>::value &&
-      comp_data_.data.lut_data->compressed_bit_width == 4 &&
+  dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
+
+  return static_cast<bool*>(buffer);
+}
+
+template <>
+int8_t* DecompressionState::DecompressToBuffer<int8_t>(void* buffer) {
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
+
+  DecompressionStateXtensa dsx(*this);
+
+  if (comp_data_.data.lut_data->compressed_bit_width == 4 &&
       !comp_data_.data.lut_data->use_alternate_axis) {
     if (!(elements_per_channel_ & 0x0F) &&
         comp_data_.data.lut_data->value_table_channel_stride == 16) {
+      MicroPrintf("Width4_Xtensa_Old");
       dsx.DecompressToBufferWidth4_Xtensa_Old(static_cast<int8_t*>(buffer));
     } else {
-      DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
+      dsx.DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
     }
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 3 &&
+  } else if (comp_data_.data.lut_data->compressed_bit_width == 3 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
-    dsx.DecompressToBufferWidthAny_Xtensa<3>(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 2 &&
+    dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
+  } else if (comp_data_.data.lut_data->compressed_bit_width == 2 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
-    dsx.DecompressToBufferWidthAny_Xtensa<2>(static_cast<int8_t*>(buffer));
+    dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
   } else {
-    if (std::is_same<T, int8_t>::value &&
-        !comp_data_.data.lut_data->use_alternate_axis) {
-      switch (compressed_bit_width_) {
-        case 1:
-          dsx.DecompressToBufferWidthAny_Xtensa<1>(
-              static_cast<int8_t*>(buffer));
-          break;
-        case 4:
-          dsx.DecompressToBufferWidthAny_Xtensa<4>(
-              static_cast<int8_t*>(buffer));
-          break;
-        case 5:
-          dsx.DecompressToBufferWidthAny_Xtensa<5>(
-              static_cast<int8_t*>(buffer));
-          break;
-        case 6:
-          dsx.DecompressToBufferWidthAny_Xtensa<6>(
-              static_cast<int8_t*>(buffer));
-          break;
-        case 7:
-          dsx.DecompressToBufferWidthAny_Xtensa<7>(
-              static_cast<int8_t*>(buffer));
-          break;
-      }
-    } else {
-      DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
-    }
+    dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
   }
 
-  return static_cast<T*>(buffer);
+  return static_cast<int8_t*>(buffer);
+}
+
+template <>
+int16_t* DecompressionState::DecompressToBuffer<int16_t>(void* buffer) {
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
+
+  DecompressionStateXtensa dsx(*this);
+  MicroPrintf("Xtensa INT16");
+  dsx.DecompressToBufferWidthAnyInt16_Xtensa(static_cast<int16_t*>(buffer));
+
+  return static_cast<int16_t*>(buffer);
+}
+
+template <>
+int32_t* DecompressionState::DecompressToBuffer<int32_t>(void* buffer) {
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
+
+  DecompressionStateXtensa dsx(*this);
+  MicroPrintf("Xtensa INT32");
+  dsx.DecompressToBufferWidthAnyInt32_Xtensa(static_cast<int32_t*>(buffer));
+
+  return static_cast<int32_t*>(buffer);
+}
+
+template <>
+float* DecompressionState::DecompressToBuffer<float>(void* buffer) {
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
+
+  DecompressionStateXtensa dsx(*this);
+  MicroPrintf("Xtensa FLOAT32");
+  dsx.DecompressToBufferWidthAnyInt32_Xtensa(static_cast<int32_t*>(buffer));
+
+  return static_cast<float*>(buffer);
+}
+
+template <>
+int64_t* DecompressionState::DecompressToBuffer(void* buffer) {
+  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
+  TFLITE_DCHECK(compressed_bit_width_ > 0);
+
+  DecompressionStateXtensa dsx(*this);
+  MicroPrintf("Xtensa INT64");
+  dsx.DecompressToBufferWidthAnyInt64_Xtensa(static_cast<int64_t*>(buffer));
+
+  return static_cast<int64_t*>(buffer);
 }
 
 #else  // HIFI5
@@ -281,14 +536,14 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
   return static_cast<T*>(buffer);
 }
 
-#endif  // HIFI5
-
 template bool* DecompressionState::DecompressToBuffer<bool>(void*);
 template float* DecompressionState::DecompressToBuffer<float>(void*);
 template int8_t* DecompressionState::DecompressToBuffer<int8_t>(void*);
 template int16_t* DecompressionState::DecompressToBuffer<int16_t>(void*);
 template int32_t* DecompressionState::DecompressToBuffer<int32_t>(void*);
 template int64_t* DecompressionState::DecompressToBuffer<int64_t>(void*);
+
+#endif  // HIFI5
 
 }  // namespace tflite
 
