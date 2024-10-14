@@ -78,10 +78,13 @@ static constexpr float kGoldenDataQ1[] = {43, 48, 21, 22, 3, -4, -30, -36};
 constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
 
 // compressed filter data for kBinQuant scheme, matches kFilterDataQ1
-constexpr uint8_t kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A, 0x60};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A,
+                                                         0x60};
 constexpr int kBinQuantFilterBitWidthQ1 = 2;
 // compressed bias data for kBinQuant scheme, matches kBiasDataQ1
-constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
 constexpr int kBinQuantBiasBitWidthQ1 = 1;
 
 #endif  // USE_TFLM_COMPRESSION
@@ -424,13 +427,15 @@ TF_LITE_MICRO_TEST(SimpleTestCompressed) {
   int filter_shape[] = {4, 1, 2, 2, 4};
   // Filter values:
   // {1, 2, 3, 4, -9, 10,  -11, 12, 5, 6, 7, 8, 13, -14, 15,  -16}
-  const uint8_t kBinQuantFilterData[] = {0x01, 0x23, 0xF8, 0xE9,
-                                         0x45, 0x67, 0xAD, 0xBC};
+  // Align the tensor data the same as a Buffer in the schema
+  alignas(16) const uint8_t kBinQuantFilterData[] = {0x01, 0x23, 0xF8, 0xE9,
+                                                     0x45, 0x67, 0xAD, 0xBC};
   const float kBinQuantFilterValueTable[] = {1,  2,  3,  4,  5,   6,   7,   8,
                                              10, 12, 13, 15, -16, -14, -11, -9};
   int bias_shape[] = {4, 1, 1, 1, 4};
   const float bias_values[] = {1, 2, 3, 4};
-  const uint8_t kBinQuantBiasData[] = {0x1B};
+  // Align the tensor data the same as a Buffer in the schema
+  alignas(16) const uint8_t kBinQuantBiasData[] = {0x1B};
   const float golden[] = {
       71, -34, 99, -20, 91, -26, 127, -4,
   };

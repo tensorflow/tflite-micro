@@ -48,18 +48,21 @@ const float simple_bias_data[] = {1, 2, 3};
 #ifdef USE_TFLM_COMPRESSION
 
 // compressed filter data for kBinQuant scheme
-constexpr uint8_t kBinQuantFilterData[] = {0x01, 0x23, 0x45, 0x67, 0x89,
-                                           0x01, 0x23, 0x45, 0x67, 0x89,
-                                           0x01, 0x23, 0x45, 0x67, 0x89};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterData[] = {
+    0x01, 0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45,
+    0x67, 0x89, 0x01, 0x23, 0x45, 0x67, 0x89};
 constexpr float kBinQuantFilterValueTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 constexpr size_t kBinQuantFilterValueTableElements =
     std::extent<decltype(tflite::testing::kBinQuantFilterValueTable)>::value;
 constexpr int kBinQuantFilterBitWidth = 4;
 // compressed bias data for kBinQuant scheme
-constexpr uint8_t kBinQuantBiasData[] = {0x18};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
 constexpr size_t simple_bias_size =
     std::extent<decltype(simple_bias_data)>::value;
+
 #endif  // USE_TFLM_COMPRESSION
 
 // TODO(b/258710417): INT4 isn't currently supported on Hexagon.

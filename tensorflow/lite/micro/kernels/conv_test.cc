@@ -51,7 +51,8 @@ static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
 #ifdef USE_TFLM_COMPRESSION
 
 // compressed filter data for kBinQuant scheme, matches kFilterData
-constexpr uint8_t kBinQuantFilterData[] = {
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterData[] = {
     0x05, 0x38, 0x20, 0x90, 0x00,
 };
 constexpr float kBinQuantFilterValueTable[] = {
@@ -61,7 +62,8 @@ constexpr size_t kBinQuantFilterValueTableElements =
     std::extent<decltype(kBinQuantFilterValueTable)>::value;
 constexpr int kBinQuantFilterBitWidth = 3;
 // compressed bias data for kBinQuant scheme, matches kBiasData
-constexpr uint8_t kBinQuantBiasData[] = {0x18};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
 
 // Common inputs and outputs for quantized compressed tensor tests.
@@ -103,7 +105,8 @@ constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
 static const float kGoldenDataQ1_16[] = {31, 63.99804688, -57, -46};
 
 // compressed filter data for kBinQuant scheme, matches kFilterDataQ1
-constexpr uint8_t kBinQuantFilterDataQ1[] = {
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterDataQ1[] = {
     0x05, 0x34, 0xE5, 0xDE, 0x54, 0xC1,
 };
 constexpr float kBinQuantFilterValueTableQ1[] = {
@@ -113,7 +116,8 @@ constexpr size_t kBinQuantFilterValueTableElementsQ1 =
     std::extent<decltype(kBinQuantFilterValueTableQ1)>::value;
 constexpr int kBinQuantFilterBitWidthQ1 = 3;
 // compressed bias data for kBinQuant scheme, matches kBiasDataQ1
-constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
 constexpr int kBinQuantBiasBitWidthQ1 = 1;
 
 static TfLiteConvParams common_conv_params_q1 = {

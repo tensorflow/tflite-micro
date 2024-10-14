@@ -341,7 +341,8 @@ TF_LITE_MICRO_TEST(TwoInputsFloatCompressed) {
   int input_shape[] = {2, 2, 3};
   const float input1_value[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
   const float input2_value[] = {7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f};
-  const uint8_t inputs_compressed[] = {0x05, 0x39, 0x40};
+  // Align the tensor data the same as a Buffer in the schema
+  alignas(16) const uint8_t inputs_compressed[] = {0x05, 0x39, 0x40};
   constexpr int kBitWidth = 3;
 
   // expected output when concatenating on axis 0
@@ -409,7 +410,8 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8Compressed) {
   const int8_t input1_values[] = {1, 2, 3, 4};
   const int8_t input2_values[] = {5, 6, 7, 8};
   const int8_t output_value[] = {1, 2, 5, 6, 3, 4, 7, 8};
-  const uint8_t input_compressed[] = {0x1B};
+  // Align the tensor data the same as a Buffer in the schema
+  alignas(16) const uint8_t input_compressed[] = {0x1B};
   constexpr int kBitWidth = 2;
 
   int8_t output_data[std::extent<decltype(output_value)>::value];
@@ -470,7 +472,8 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16Compressed) {
   const int16_t input1_values[] = {1, 2, 3, 4};
   const int16_t input2_values[] = {5, 6, 7, 8};
   const int16_t output_value[] = {1, 2, 5, 6, 3, 4, 7, 8};
-  const uint8_t input_compressed[] = {0x1B};
+  // Align the tensor data the same as a Buffer in the schema
+  alignas(16) const uint8_t input_compressed[] = {0x1B};
   constexpr int kBitWidth = 2;
 
   int16_t output_data[std::extent<decltype(output_value)>::value];
