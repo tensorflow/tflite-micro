@@ -259,17 +259,12 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
     }
   } else {
     int elements_per_channel_t = elements_per_channel_;
-    MicroPrintf("INT16: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
-                value_table, p_out_tmp);
 
     for (int i = 0; i < num_channels_t; i++) {
       for (int j = 0; j < elements_per_channel_t; j++) {
         AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
-        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
         ae_int16x4 d_tmp = AE_L16_X((const ae_int16*)value_table, index << 1);
-        MicroPrintf("value_table %p  index %d", value_table, index);
         AE_S16_0_IP(d_tmp, p_out_tmp, 2);
-        MicroPrintf("p_out_tmp %p", p_out_tmp);
       }
 
       value_table += stride;
@@ -300,8 +295,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
   ae_int32* __restrict p_out_tmp = (ae_int32*)buffer;
   const size_t bw = compressed_bit_width_;
 
-  MicroPrintf("INT32: p_stream %p", p_stream);
-
   WUR_AE_BITPTR(0);
   WUR_AE_BITHEAD(0);
 
@@ -311,8 +304,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
   if (comp_data_.data.lut_data->use_alternate_axis) {
     int count = count_indices_;
     const uint32_t* __restrict value_table_t = value_table;
-    MicroPrintf("ALT INT32: p_stream %p  value_table %p  p_out_tmp %p",
-                p_stream, value_table, p_out_tmp);
 
     while (count > 0) {
       value_table = value_table_t;
@@ -328,17 +319,12 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
     }
   } else {
     int elements_per_channel_t = elements_per_channel_;
-    MicroPrintf("INT32: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
-                value_table, p_out_tmp);
 
     for (int i = 0; i < num_channels_t; i++) {
       for (int j = 0; j < elements_per_channel_t; j++) {
         AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
-        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
         ae_int32x2 d_tmp = AE_L32_X((const ae_int32*)value_table, index << 2);
-        MicroPrintf("value_table %p  index %d", value_table, index);
         AE_S32_L_IP(d_tmp, p_out_tmp, 4);
-        MicroPrintf("p_out_tmp %p", p_out_tmp);
       }
 
       value_table += stride;
@@ -369,8 +355,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
   ae_int64* __restrict p_out_tmp = (ae_int64*)buffer;
   const size_t bw = compressed_bit_width_;
 
-  MicroPrintf("INT64: p_stream %p", p_stream);
-
   WUR_AE_BITPTR(0);
   WUR_AE_BITHEAD(0);
 
@@ -380,8 +364,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
   if (comp_data_.data.lut_data->use_alternate_axis) {
     int count = count_indices_;
     const uint64_t* __restrict value_table_t = value_table;
-    MicroPrintf("ALT INT64: p_stream %p  value_table %p  p_out_tmp %p",
-                p_stream, value_table, p_out_tmp);
 
     while (count > 0) {
       value_table = value_table_t;
@@ -397,17 +379,12 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
     }
   } else {
     int elements_per_channel_t = elements_per_channel_;
-    MicroPrintf("INT64: p_stream %p  value_table %p  p_out_tmp %p", p_stream,
-                value_table, p_out_tmp);
 
     for (int i = 0; i < num_channels_t; i++) {
       for (int j = 0; j < elements_per_channel_t; j++) {
         AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
-        MicroPrintf("p_stream %p  index %d  bw %d", p_stream, index, bw);
         ae_int64 d_tmp = AE_L64_X((const ae_int64*)value_table, index << 3);
-        MicroPrintf("value_table %p  index %d", value_table, index);
         AE_S64_IP(d_tmp, p_out_tmp, 8);
-        MicroPrintf("p_out_tmp %p", p_out_tmp);
       }
 
       value_table += stride;
@@ -444,7 +421,6 @@ int8_t* DecompressionState::DecompressToBuffer<int8_t>(void* buffer) {
       !comp_data_.data.lut_data->use_alternate_axis) {
     if (!(elements_per_channel_ & 0x0F) &&
         comp_data_.data.lut_data->value_table_channel_stride == 16) {
-      MicroPrintf("Width4_Xtensa_Old");
       dsx.DecompressToBufferWidth4_Xtensa_Old(static_cast<int8_t*>(buffer));
     } else {
       dsx.DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
@@ -468,7 +444,7 @@ int16_t* DecompressionState::DecompressToBuffer<int16_t>(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   DecompressionStateXtensa dsx(*this);
-  MicroPrintf("Xtensa INT16");
+
   dsx.DecompressToBufferWidthAnyInt16_Xtensa(static_cast<int16_t*>(buffer));
 
   return static_cast<int16_t*>(buffer);
@@ -480,7 +456,7 @@ int32_t* DecompressionState::DecompressToBuffer<int32_t>(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   DecompressionStateXtensa dsx(*this);
-  MicroPrintf("Xtensa INT32");
+
   dsx.DecompressToBufferWidthAnyInt32_Xtensa(static_cast<int32_t*>(buffer));
 
   return static_cast<int32_t*>(buffer);
@@ -492,7 +468,7 @@ float* DecompressionState::DecompressToBuffer<float>(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   DecompressionStateXtensa dsx(*this);
-  MicroPrintf("Xtensa FLOAT32");
+
   dsx.DecompressToBufferWidthAnyInt32_Xtensa(static_cast<int32_t*>(buffer));
 
   return static_cast<float*>(buffer);
@@ -504,7 +480,7 @@ int64_t* DecompressionState::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
   DecompressionStateXtensa dsx(*this);
-  MicroPrintf("Xtensa INT64");
+
   dsx.DecompressToBufferWidthAnyInt64_Xtensa(static_cast<int64_t*>(buffer));
 
   return static_cast<int64_t*>(buffer);
