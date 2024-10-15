@@ -3,6 +3,7 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
+    "tflm_library",
     "tflm_cc_test",
 )
 
@@ -61,7 +62,7 @@ tflm_cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "gen_micro_op_resolver",
     hdrs = ["gen_micro_mutable_op_resolver.h",],
     visibility = ["//visibility:public"],

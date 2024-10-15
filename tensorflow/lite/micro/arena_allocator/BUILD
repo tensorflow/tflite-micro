@@ -1,6 +1,7 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
+    "tflm_cc_test",
 )
 
 package(
@@ -34,7 +35,7 @@ tflm_cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "non_persistent_arena_buffer_allocator_test",
     srcs = ["non_persistent_arena_buffer_allocator_test.cc"],
     deps = [
@@ -58,7 +59,7 @@ tflm_cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "persistent_arena_buffer_allocator_test",
     srcs = ["persistent_arena_buffer_allocator_test.cc"],
     deps = [
@@ -86,7 +87,7 @@ tflm_cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "simple_memory_allocator_test",
     srcs = [
         "single_arena_buffer_allocator_test.cc",
@@ -114,7 +115,7 @@ tflm_cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "recording_simple_memory_allocator_test",
     srcs = [
         "recording_single_arena_buffer_allocator_test.cc",
