@@ -20,21 +20,40 @@ def micro_copts():
     """
     return tflm_copts()
 
-def tflm_cc_binary(copts = tflm_copts(), **kwargs):
+def tflm_defines():
+    """Returns the default preprocessor defines for targets in TFLM.
+
+    This function returns the default preprocessor defines used by tflm_cc_*
+    targets in TFLM. As with tflm_copts(), it is typically unnecessary to use
+    this function directly; however, it may be useful when additively
+    overriding the defaults for a particular target.
+    """
+    return select({
+        # Include code for the compression feature.
+        "//:with_compression_enabled": ["USE_TFLM_COMPRESSION=1"],
+
+        # By default, don't include code for the compression feature.
+        "//conditions:default": [],
+    })
+
+def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     native.cc_binary(
         copts = copts,
+        defines = defines,
         **kwargs
     )
 
-def tflm_cc_library(copts = tflm_copts(), **kwargs):
+def tflm_cc_library(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     native.cc_library(
         copts = copts,
+        defines = defines,
         **kwargs
     )
 
-def tflm_cc_test(copts = tflm_copts(), **kwargs):
+def tflm_cc_test(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     native.cc_test(
         copts = copts,
+        defines = defines,
         **kwargs
     )
 
