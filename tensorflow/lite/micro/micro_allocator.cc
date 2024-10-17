@@ -65,10 +65,10 @@ class MicroBuiltinDataAllocator : public TfLiteBridgeBuiltinDataAllocator {
     // of the model.
   }
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
  private:
   IPersistentBufferAllocator* persistent_allocator_;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 MicroMemoryPlanner* CreateMemoryPlanner(
