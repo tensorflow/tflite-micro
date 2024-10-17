@@ -15,7 +15,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/compression.h"
+#include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
 
@@ -27,19 +28,20 @@ struct DecompressionState {
   DecompressionState(const uint8_t* compressed_indices,
                      const size_t count_indices,
                      const CompressionTensorData& comp_data,
-                     const size_t num_channels, MicroContext* micro_context)
+                     const size_t num_channels,
+                     MicroProfiler* profiler = nullptr)
       : compressed_indices_(compressed_indices),
         count_indices_(count_indices),
         comp_data_(comp_data),
         num_channels_(num_channels),
-        micro_context_(micro_context) {}
+        micro_profiler_(profiler) {}
 
   DecompressionState(const DecompressionState& other)
       : compressed_indices_(other.compressed_indices_),
         count_indices_(other.count_indices_),
         comp_data_(other.comp_data_),
         num_channels_(other.num_channels_),
-        micro_context_(other.micro_context_) {}
+        micro_profiler_(other.micro_profiler_) {}
 
   template <typename T>
   T* DecompressToBuffer(void* buffer);
@@ -74,7 +76,7 @@ struct DecompressionState {
       comp_data_.data.lut_data->use_alternate_axis
           ? 1
           : count_indices_ / num_channels_;
-  MicroContext* micro_context_;
+  MicroProfiler* micro_profiler_;
 };
 
 #endif  // USE_TFLM_COMPRESSION

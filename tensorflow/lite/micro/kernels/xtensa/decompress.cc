@@ -54,9 +54,7 @@ struct DecompressionStateXtensa : DecompressionState {
 // TODO(ddavis-2015): unaligned/stride code has error, method not currently
 // used.
 void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   ae_int8x8 d_shuffle_t = AE_MOVINT8X8_FROMINT64(0xFB73EA62D951C840LL);
   ae_int8x8 d_shuffle_value_t = AE_MOVINT8X8_FROMINT64(0x08192A3B4C5D6E7FLL);
@@ -112,9 +110,7 @@ void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
 
 void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa_Old(
     int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   char shuffle_pattern_1[8] = {0x08, 0x19, 0x2A, 0x3B, 0x4C, 0x5D, 0x6E, 0x7F};
   ae_int8x8 d_shuffle_t = *(ae_int8x8*)&shuffle_pattern_1[0];
@@ -155,15 +151,13 @@ void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa_Old(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
   const char* func_name_p = nullptr;
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  if (profiler != nullptr) {
+  if (micro_profiler_ != nullptr) {
     static char func_name[42];
     MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
                   compressed_bit_width_);
     func_name_p = func_name;
   }
-  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* __restrict value_table =
@@ -215,15 +209,13 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
     int16_t* buffer) {
   const char* func_name_p = nullptr;
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  if (profiler != nullptr) {
+  if (micro_profiler_ != nullptr) {
     static char func_name[43];
     MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
                   compressed_bit_width_);
     func_name_p = func_name;
   }
-  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint16_t* __restrict value_table =
@@ -275,15 +267,13 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
     int32_t* buffer) {
   const char* func_name_p = nullptr;
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  if (profiler != nullptr) {
+  if (micro_profiler_ != nullptr) {
     static char func_name[43];
     MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
                   compressed_bit_width_);
     func_name_p = func_name;
   }
-  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint32_t* __restrict value_table =
@@ -335,15 +325,13 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
     int64_t* buffer) {
   const char* func_name_p = nullptr;
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  if (profiler != nullptr) {
+  if (micro_profiler_ != nullptr) {
     static char func_name[43];
     MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
                   compressed_bit_width_);
     func_name_p = func_name;
   }
-  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint64_t* __restrict value_table =
@@ -427,9 +415,11 @@ int8_t* DecompressionState::DecompressToBuffer<int8_t>(void* buffer) {
     }
   } else if (comp_data_.data.lut_data->compressed_bit_width == 3 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
+    // TODO(ddavis-2015): placeholder
     dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
   } else if (comp_data_.data.lut_data->compressed_bit_width == 2 &&
              !comp_data_.data.lut_data->use_alternate_axis) {
+    // TODO(ddavis-2015): placeholder
     dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));
   } else {
     dsx.DecompressToBufferWidthAnyInt8_Xtensa(static_cast<int8_t*>(buffer));

@@ -29,9 +29,7 @@ limitations under the License.
 namespace tflite {
 
 void DecompressionState::DecompressToBufferWidth4_16(int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* value_table =
@@ -108,9 +106,7 @@ void DecompressionState::DecompressToBufferWidth4_16(int8_t* buffer) {
 }
 
 void DecompressionState::DecompressToBufferWidth2_16(int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* value_table =
@@ -187,9 +183,7 @@ void DecompressionState::DecompressToBufferWidth2_16(int8_t* buffer) {
 }
 
 void DecompressionState::DecompressToBufferWidth3_32(int8_t* buffer) {
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  ScopedMicroProfiler scoped_profiler(__func__, profiler);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* value_table =
@@ -325,16 +319,14 @@ void DecompressionState::DecompressToBufferWidth3_32(int8_t* buffer) {
 template <typename T>
 void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
   const char* func_name_p = nullptr;
-  MicroProfiler* profiler =
-      static_cast<MicroProfiler*>(micro_context_->external_context());
-  if (profiler != nullptr) {
+  if (micro_profiler_ != nullptr) {
     static char func_name[35];
     MicroSnprintf(func_name, sizeof(func_name), "%s_%u_%s", __func__,
                   compressed_bit_width_,
                   TfLiteTypeGetName(typeToTfLiteType<T>()));
     func_name_p = func_name;
   }
-  ScopedMicroProfiler scoped_profiler(func_name_p, profiler);
+  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
 
   if (comp_data_.data.lut_data->use_alternate_axis) {
     const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
