@@ -417,7 +417,6 @@ template void DecompressionState::DecompressToBufferWidthAny(int16_t*);
 template void DecompressionState::DecompressToBufferWidthAny(int32_t*);
 template void DecompressionState::DecompressToBufferWidthAny(int64_t*);
 
-// TODO(ddavis-2015): untested
 inline size_t DecompressionState::GetNextTableIndexWidth7(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 3) * 7;
@@ -428,7 +427,7 @@ inline size_t DecompressionState::GetNextTableIndexWidth7(
     case 1:
       return ((indices[0] & 0b1) << 6) | (indices[1] >> 2);
     case 2:
-      return ((indices[1] & 0b11) << 4) | (indices[2] >> 3);
+      return ((indices[1] & 0b11) << 5) | (indices[2] >> 3);
     case 3:
       return ((indices[2] & 0b111) << 4) | (indices[3] >> 4);
     case 4:
@@ -444,7 +443,6 @@ inline size_t DecompressionState::GetNextTableIndexWidth7(
   return 0;
 }
 
-// TODO(ddavis-2015): untested
 inline size_t DecompressionState::GetNextTableIndexWidth6(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 2) * 3;
@@ -455,7 +453,7 @@ inline size_t DecompressionState::GetNextTableIndexWidth6(
     case 1:
       return ((indices[0] & 0b11) << 4) | (indices[1] >> 4);
     case 2:
-      return ((indices[1] & 0x0F) << 4) | (indices[2] >> 6);
+      return ((indices[1] & 0x0F) << 2) | (indices[2] >> 6);
     case 3:
       return indices[2] & 0x3F;
   }
@@ -463,7 +461,6 @@ inline size_t DecompressionState::GetNextTableIndexWidth6(
   return 0;
 }
 
-// TODO(ddavis-2015): untested
 inline size_t DecompressionState::GetNextTableIndexWidth5(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 3) * 5;
