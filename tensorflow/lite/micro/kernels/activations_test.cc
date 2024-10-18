@@ -130,11 +130,11 @@ void TestReluInt8(int* input_dims_data, const float* input_data,
 }
 
 void TestReluInt16(int* input_dims_data, const float* input_data,
-                  int16_t* input_data_quantized, const float input_scale,
-                  const int input_zero_point, const float* golden,
-                  int16_t* golden_quantized, int* output_dims_data,
-                  const float output_scale, const int output_zero_point,
-                  int16_t* output_data) {
+                   int16_t* input_data_quantized, const float input_scale,
+                   const int input_zero_point, const float* golden,
+                   int16_t* golden_quantized, int* output_dims_data,
+                   const float output_scale, const int output_zero_point,
+                   int16_t* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_elements_count = ElementCount(*output_dims);
