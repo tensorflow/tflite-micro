@@ -99,8 +99,8 @@ class MicroProfiler : public MicroProfilerInterface {
         for (int i = 0; i < num_events_; ++i) {
           uint32_t ticks = end_ticks_[i] - start_ticks_[i];
           uint64_t us = TicksToUs(ticks);
-          MicroPrintf("%s took %u.%u ms (%u ticks)", tags_[i], us / 1000,
-                      us % 1000, ticks);
+          MicroPrintf("%s took %" PRIu64 ".%" PRIu64 " ms (%u ticks)", tags_[i],
+                      us / 1000, us % 1000, ticks);
         }
         break;
 
@@ -112,8 +112,9 @@ class MicroProfiler : public MicroProfilerInterface {
           MicroPrintf("%d,%s,%u,%d", i, tags_[i], TicksToMs(ticks), ticks);
 #else
           uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-          MicroPrintf("%d,%s,%" PRIu32 ",%" PRIu32, i, tags_[i],
-                      TicksToMs(ticks), ticks);
+          uint64_t us = TicksToUs(ticks);
+          MicroPrintf("%d,%s,%" PRIu64 ".%" PRIu64 ",%" PRIu32, i, tags_[i],
+                      us / 1000, us % 1000, ticks);
 #endif
         }
         break;
@@ -158,8 +159,9 @@ class MicroProfiler : public MicroProfilerInterface {
       case MicroProfilerLogFormat::Csv: {
         MicroPrintf("\"Tag\",\"Total ms\",\"Total ticks\"");
         for (int i = 0; i < num_tag_groups_; ++i) {
-          MicroPrintf("%s, %u, %u", tag_groups_[i].tag,
-                      TicksToMs(tag_groups_[i].ticks), tag_groups_[i].ticks);
+          uint64_t us = TicksToUs(tag_groups_[i].ticks);
+          MicroPrintf("%s, %" PRIu64 ".%" PRIu64 ", %u", tag_groups_[i].tag,
+                      us / 1000, us % 1000, tag_groups_[i].ticks);
         }
         break;
       }
