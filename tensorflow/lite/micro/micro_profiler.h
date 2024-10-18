@@ -146,13 +146,13 @@ class MicroProfiler : public MicroProfilerInterface {
         for (int i = 0; i < num_tag_groups_; ++i) {
           total_ticks += tag_groups_[i].ticks;
           us = TicksToUs(tag_groups_[i].ticks);
-          MicroPrintf("%-8d %-32s %-12d %u.%03u ms", tag_groups_[i].tag_count,
-                      tag_groups_[i].tag, tag_groups_[i].ticks, us / 1000,
-                      us % 1000);
+          MicroPrintf("%-8d %-32s %-12d %" PRIu64 ".%03" PRIu64 " ms",
+                      tag_groups_[i].tag_count, tag_groups_[i].tag,
+                      tag_groups_[i].ticks, us / 1000, us % 1000);
         }
         us = TicksToUs(total_ticks);
-        MicroPrintf("\nTotal time - %-10lld %u.%03u ms", total_ticks, us / 1000,
-                    us % 1000);
+        MicroPrintf("\nTotal time: %" PRIu64 ".%03" PRIu64 " ms (%lld ticks)",
+                    us / 1000, us % 1000, total_ticks);
         break;
       }
       case MicroProfilerLogFormat::Csv: {
