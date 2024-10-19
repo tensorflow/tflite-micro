@@ -172,7 +172,10 @@ void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
 
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
+#ifdef USE_TFLM_COMPRESSION
   static Profiler profiler2;
+#endif  // USE_TFLM_COMPRESSION
+
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
   uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
@@ -193,7 +196,9 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   profiler.Log();
   profiler.ClearEvents();
 
+#ifdef USE_TFLM_COMPRESSION
   TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
+#endif  // USE_TFLM_COMPRESSION
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
