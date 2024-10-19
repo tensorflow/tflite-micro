@@ -1,5 +1,8 @@
 load("//tensorflow/lite:build_def.bzl", "tflite_copts")
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
+load("//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_copts",
+)
 
 package(
     default_visibility = [
@@ -17,7 +20,7 @@ cc_library(
     deps = ["//tensorflow/lite/micro:micro_log"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "kernel_util",
     srcs = [
         "kernel_util.cc",
@@ -25,7 +28,7 @@ cc_library(
     hdrs = [
         "kernel_util.h",
     ],
-    copts = tflite_copts() + micro_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         "//tensorflow/lite:array",
         "//tensorflow/lite:kernel_api",

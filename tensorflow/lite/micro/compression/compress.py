@@ -31,6 +31,9 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import Sequence
 import math
+import os
+import sys
+import textwrap
 
 from tflite_micro.tensorflow.lite.micro.compression import (
     lib,
@@ -246,4 +249,9 @@ def main(argv):
 
 
 if __name__ == "__main__":
+  name = os.path.basename(sys.argv[0])
+  usage = textwrap.dedent(f"""\
+      Usage: {name} <INPUT> <OUTPUT> [--tensors=<SPEC>] [--alt_axis_tensors=<SPEC>]
+      Compress a .tflite model.""")
+  sys.modules['__main__'].__doc__ = usage
   absl.app.run(main)

@@ -2,7 +2,11 @@
 #   TensorFlow Lite microcontroller example.
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
+load("//tensorflow/lite/micro:build_def.bzl",
+    "generate_cc_arrays",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -107,7 +111,7 @@ generate_cc_arrays(
     out = "models/audio_preprocessor_int8_model_data.h",
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_speech_model_data",
     srcs = [
         ":generated_micro_speech_model_cc",
@@ -117,7 +121,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "audio_preprocessor_model_data",
     srcs = [
         ":generated_audio_preprocessor_model_cc",
@@ -127,7 +131,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "audio_sample_test_data_30ms",
     srcs = [
         ":generated_no_30ms_wav_cc",
@@ -139,7 +143,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "audio_sample_test_data_1000ms",
     srcs = [
         ":generated_no_1000ms_wav_cc",
@@ -155,14 +159,14 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_model_settings",
     hdrs = [
         "micro_model_settings.h",
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "micro_speech_test",
     srcs = [
         "micro_speech_test.cc",

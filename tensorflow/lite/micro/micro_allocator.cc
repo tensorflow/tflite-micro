@@ -41,7 +41,7 @@ limitations under the License.
 #include <algorithm>
 #include <cstring>
 
-#include "tensorflow/lite/micro/compression/metadata_generated.h"
+#include "tensorflow/lite/micro/compression/metadata_saved.h"
 
 #endif  // USE_TFLM_COMPRESSION
 
@@ -74,10 +74,10 @@ class MicroBuiltinDataAllocator : public TfLiteBridgeBuiltinDataAllocator {
     // of the model.
   }
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
  private:
   IPersistentBufferAllocator* persistent_allocator_;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 MicroMemoryPlanner* CreateMemoryPlanner(

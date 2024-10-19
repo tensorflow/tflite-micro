@@ -1,5 +1,11 @@
 # Description:
 #   TensorFlow Lite microcontroller benchmarks.
+
+load("//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_binary",
+    "tflm_cc_library",
+)
+
 package(
     # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],
@@ -11,7 +17,7 @@ package_group(
     packages = ["//tensorflow/lite/micro"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_benchmark",
     hdrs = [
         "micro_benchmark.h",
@@ -29,7 +35,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "keyword_scrambled_model_data",
     srcs = [
         "//tensorflow/lite/micro/models:generated_keyword_scrambled_model_cc",
@@ -42,7 +48,7 @@ cc_library(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "keyword_benchmark",
     srcs = ["keyword_benchmark.cc"],
     deps = [
@@ -57,7 +63,7 @@ cc_binary(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "keyword_scrambled_8bit_model_data",
     srcs = [
         "//tensorflow/lite/micro/models:generated_keyword_scrambled_8bit_model_cc",
@@ -68,7 +74,7 @@ cc_library(
     visibility = ["//visibility:private"],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "keyword_benchmark_8bit",
     srcs = ["keyword_benchmark_8bit.cc"],
     deps = [
@@ -82,7 +88,7 @@ cc_binary(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "person_detection_benchmark",
     srcs = ["person_detection_benchmark.cc"],
     deps = [

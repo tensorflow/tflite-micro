@@ -1,5 +1,8 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+)
 
 package(
     default_visibility = ["//tensorflow/lite/micro/kernels:__pkg__"],
@@ -12,14 +15,14 @@ package(
 # C++ libraries
 ####################################
 
-cc_library(
+tflm_cc_library(
     name = "conv_test_data",
     srcs = ["conv_test_data.cc"],
     hdrs = ["conv_test_data.h"],
     deps = ["//tensorflow/lite/c:common"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "lstm_test_data",
     srcs = ["lstm_test_data.cc"],
     hdrs = [

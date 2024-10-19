@@ -1,5 +1,9 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
@@ -26,7 +30,7 @@ package_group(
     packages = tflm_kernel_friends(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_test",
     hdrs = [
         "micro_test.h",
@@ -46,7 +50,7 @@ cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "util_test",
     srcs = [
         "util_test.cc",
@@ -56,7 +60,7 @@ cc_test(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "test_conv_model",
     srcs = [
         "test_conv_model.cc",

@@ -30,6 +30,9 @@ def build(spec: dict) -> bytearray:
     A tflite flatbuffer.
   """
   root = tflite.ModelT()
+  description = spec.get("description")
+  if description is not None:
+    root.description = description
 
   root.operatorCodes = []
   for id, operator_code in spec["operator_codes"].items():
@@ -57,7 +60,7 @@ def build(spec: dict) -> bytearray:
     for id, tensor in subgraph["tensors"].items():
       assert id == len(subgraph_t.tensors)
       tensor_t = tflite.TensorT()
-      tensor_t.name = tensor.get("name", f"tensor{id}")
+      tensor_t.name = tensor.get("name", None)
       tensor_t.shape = tensor["shape"]
       tensor_t.type = tensor["type"]
       tensor_t.buffer = tensor["buffer"]

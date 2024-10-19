@@ -1,6 +1,11 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
-load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
+load("//tensorflow/lite/micro:build_def.bzl",
+    "generate_cc_arrays",
+    "tflm_cc_binary",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -9,7 +14,7 @@ package(
     licenses = ["notice"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "model_settings",
     srcs = [
         "model_settings.cc",
@@ -43,7 +48,7 @@ generate_cc_arrays(
     out = "testdata/person_image_data.h",
 )
 
-cc_library(
+tflm_cc_library(
     name = "person_detect_model_data",
     srcs = [
         "//tensorflow/lite/micro/models:generated_person_detect_model_cc",
@@ -53,7 +58,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "simple_images_test_data",
     srcs = [
         ":generated_no_person_bmp_cc",
@@ -68,7 +73,7 @@ cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "person_detection_test",
     srcs = ["person_detection_test.cc"],
     deps = [
@@ -84,7 +89,7 @@ cc_test(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "image_provider",
     srcs = [
         "image_provider.cc",
@@ -98,7 +103,7 @@ cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "image_provider_test",
     srcs = [
         "image_provider_test.cc",
@@ -111,7 +116,7 @@ cc_test(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "detection_responder",
     srcs = [
         "detection_responder.cc",
@@ -125,7 +130,7 @@ cc_library(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "detection_responder_test",
     srcs = [
         "detection_responder_test.cc",
@@ -136,7 +141,7 @@ cc_test(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "person_detection",
     srcs = [
         "main.cc",

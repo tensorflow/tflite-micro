@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pprint
 import bitarray
 import bitarray.util
+import pprint
+import textwrap
+import os
+import sys
 
 import lib
 from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
@@ -53,22 +56,41 @@ def unpack_TensorType(type):
   return lut[type]
 
 
+def _decode_name(name):
+  """Returns name as a str or 'None'.
+
+  The flatbuffer library returns names as bytes objects or None. This function
+  returns a str, decoded from the bytes object, or None.
+  """
+  if name is None:
+    return None
+  else:
+    return str(name, encoding="utf-8")
+
+
 def unpack_tensors(tensors):
   result = []
   for index, t in enumerate(tensors):
     d = {
-        "_index": index,
-        "name": t.name.decode("utf-8"),
+        "_tensor": index,
+        "name": _decode_name(t.name),
         "type": unpack_TensorType(t.type),
-        "variable": t.isVariable,
         "shape": unpack_array(t.shape),
         "buffer": t.buffer,
     }
-    if t.quantization is not None:
-      d["quantization"] = [
-          unpack_array(t.quantization.scale),
-          unpack_array(t.quantization.zeroPoint)
-      ]
+
+    if t.isVariable:
+      d["is_variable"] = True
+    else:
+      # don't display this unusual field
+      pass
+
+    if t.quantization is not None and t.quantization.scale is not None:
+      d["quantization"] = {
+          "scale": unpack_array(t.quantization.scale),
+          "zero": unpack_array(t.quantization.zeroPoint),
+          "dimension": t.quantization.quantizedDimension,
+      }
     result.append(d)
   return result
 
@@ -78,7 +100,7 @@ def unpack_subgraphs(subgraphs):
   for index, s in enumerate(subgraphs):
     d = {
         "_index": index,
-        "name": s.name,
+        "name": _decode_name(s.name),
         # "inputs": s.inputs,
         # "outputs": s.outputs,
         "operators": unpack_operators(s.operators),
@@ -92,7 +114,7 @@ def unpack_metadata(metadata):
   if metadata is None:
     return None
   return [{
-      "name": m.name.decode("utf-8"),
+      "name": _decode_name(m.name),
       "buffer": m.buffer
   } for m in metadata]
 
@@ -157,8 +179,8 @@ def unpack_buffers(model, compression_metadata=None, unpacked_metadata=None):
   buffers = model.buffers
   result = []
   for index, b in enumerate(buffers):
-    d = {"buffer": index}
-    d = d | {"bytes": len(b.data) if b.data is not None else 0}
+    d = {"_buffer": index}
+    d = d | {"_bytes": len(b.data) if b.data is not None else 0}
     d = d | {"data": unpack_array(b.data)}
     if index == compression_metadata:
       if unpacked_metadata is not None:
@@ -184,12 +206,20 @@ def get_compression_metadata_buffer(model):
   if model.metadata is None:
     return None
   for item in model.metadata:
-    if item.name.decode("utf-8") == "COMPRESSION_METADATA":
+    if _decode_name(item.name) == "COMPRESSION_METADATA":
       return item.buffer
   return None
 
 
-def print_model(model, format=None):
+def create_dictionary(flatbuffer: memoryview) -> dict:
+  """Returns a human-readable dictionary from the provided model flatbuffer.
+
+  This function transforms a .tflite model flatbuffer into a Python dictionary.
+  When pretty-printed, this dictionary offers an easily interpretable view of
+  the model.
+  """
+  model = tflite_schema.ModelT.InitFromPackedBuf(flatbuffer, 0)
+
   comp_metadata_index = get_compression_metadata_buffer(model)
   comp_metadata_unpacked = None
   if comp_metadata_index is not None:
@@ -201,30 +231,33 @@ def print_model(model, format=None):
 
   output = {
       "description":
-          model.description.decode("utf-8"),
+      model.description,
       "version":
-          model.version,
+      model.version,
       "operator_codes":
-          unpack_list(model.operatorCodes),
+      unpack_list(model.operatorCodes),
       "metadata":
-          unpack_metadata(model.metadata),
+      unpack_metadata(model.metadata),
       "subgraphs":
-          unpack_subgraphs(model.subgraphs),
+      unpack_subgraphs(model.subgraphs),
       "buffers":
-          unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
+      unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
   }
 
-  pprint.pprint(output, width=90, sort_dicts=False, compact=True)
+  return output
 
 
 def main(argv):
   path = argv[1]
-  with open(path, 'rb') as file:
-    model = tflite_schema.ModelT.InitFromPackedBuf(file.read(), 0)
-
-  print_model(model)
+  with open(path, 'rb') as flatbuffer:
+    d = create_dictionary(memoryview(flatbuffer.read()))
+    pprint.pprint(d, width=90, sort_dicts=False, compact=True)
 
 
 if __name__ == "__main__":
+  name = os.path.basename(sys.argv[0])
+  usage = textwrap.dedent(f"""\
+      Usage: {name} <MODEL>
+      Print a visualization of a .tflite model.""")
+  sys.modules['__main__'].__doc__ = usage
   absl.app.run(main)
-  sys.exit(rc)
