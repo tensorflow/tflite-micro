@@ -79,6 +79,30 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
+    name = "decompress",
+    srcs = [
+        "decompress.cc",
+        "decompress_common.cc",
+    ],
+    hdrs = [
+        "decompress.h",
+    ],
+    visibility = [
+        ":kernel_friends",
+        ":tflite_micro",
+    ],
+    deps = [
+        "//tensorflow/lite:type_to_tflitetype",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:compression",
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_profiler",
+        "//tensorflow/lite/micro:micro_utils",
+    ],
+)
+
+tflm_cc_library(
     name = "detection_postprocess_flexbuffers_generated_data",
     srcs = [
         "detection_postprocess_flexbuffers_generated_data.cc",
@@ -610,6 +634,24 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+)
+
+tflm_cc_test(
+    name = "decompress_test",
+    srcs = [
+        "decompress_test.cc",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+    target_compatible_with = select({
+        "//conditions:default": ["@platforms//:incompatible"],
+        "//:with_compression_enabled": [],
+    }),
 )
 
 tflm_cc_test(
