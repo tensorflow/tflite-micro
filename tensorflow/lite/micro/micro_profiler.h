@@ -122,11 +122,7 @@ class MicroProfiler : public MicroProfilerInterface {
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
   }
 
-  // Prints the profiling information of each of the events in CSV format.
-  void LogCsv() const { Log(MicroProfilerLogFormat::Csv); }
-
-  // Prints the profiling information of each of the events in human readable
-  // form, grouped per tag, sorted by execution time.
+  // Prints the profiling information of each of the events, grouped by tag.
   void LogGrouped(MicroProfilerLogFormat format) {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
     for (int i = 0; i < num_events_; ++i) {
@@ -172,6 +168,12 @@ class MicroProfiler : public MicroProfilerInterface {
     }
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
   }
+
+  // Convenience function to call Log with CSV format.
+  void LogCsv() const { Log(MicroProfilerLogFormat::Csv); }
+
+  // Convenience function to call LogGrouped with CSV format.
+  void LogTicksPerTagCsv() const { LogGrouped(MicroProfilerLogFormat::Csv); }
 
  private:
   const char* tags_[MAX_EVENTS];
