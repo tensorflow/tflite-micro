@@ -14,15 +14,6 @@ diff --git a/pw_presubmit/py/pw_presubmit/format_code.py b/pw_presubmit/py/pw_pr
 index 19d09546..c1ff6b5a 100755
 --- a/pw_presubmit/py/pw_presubmit/format_code.py
 +++ b/pw_presubmit/py/pw_presubmit/format_code.py
-@@ -142,7 +142,7 @@ def fix_go_format(files: Iterable[Path]) -> None:
- 
- 
- def _yapf(*args, **kwargs) -> subprocess.CompletedProcess:
--    return log_run(['python', '-m', 'yapf', '--parallel', *args],
-+    return log_run(['python', '-m', 'yapf', '--style', '{based_on_style:pep8,indent_width:2}', '--parallel', *args],
-                    capture_output=True,
-                    **kwargs)
- 
 @@ -229,11 +229,6 @@ def print_format_check(errors: Dict[Path, str],
              except ValueError:
                  return Path(path).resolve()

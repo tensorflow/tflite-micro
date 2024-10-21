@@ -190,7 +190,7 @@ Below are some tips that might be useful and improve the development experience.
 
   ```
   pip install yapf
-  yapf log_parser.py -i --style='{based_on_style: pep8, indent_width: 2}'
+  yapf log_parser.py -i'
   ```
 
 * Add a git hook to check for code style etc. prior to creating a pull request:
