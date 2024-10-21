@@ -99,6 +99,10 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   if (input->type == kTfLiteInt8) {
     CalculateReluOpData<int8_t>(input, output, data);
+  } else if (input->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+    CalculateReluOpData<int16_t>(input, output, data);
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
