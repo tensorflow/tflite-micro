@@ -122,12 +122,11 @@ class MicroInterpreterContext : public MicroContext {
   const CompressionTensorData* GetTensorCompressionData(
       const TfLiteNode* node, int tensor_idx) override;
 
-  // Only available during Eval. Returns nullptr on failure, otherwise returns a
-  // pointer to the scratch buffer.
-  void* DecompressTensorToScratchBuffer(
-      const TfLiteEvalTensor& tensor,
-      const CompressionTensorData& compression_data,
-      int scratch_buffer_handle) override;
+  // Only available during Prepare & Eval. Returns nullptr on failure, otherwise
+  // returns a pointer to the buffer.
+  void* DecompressTensorToBuffer(const TfLiteEvalTensor& tensor,
+                                 const CompressionTensorData& compression_data,
+                                 void* buffer) override;
 
 #endif  // USE_TFLM_COMPRESSION
 

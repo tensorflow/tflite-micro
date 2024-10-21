@@ -95,8 +95,6 @@ const T* GetOptionalTensorData(const TfLiteEvalTensor* tensor) {
 
 // Overloads existing GetTensorData. If not compressed, this will return
 // tensor->data.
-//
-// TODO(ddavis-2015): make micro_context a const pointer
 template <typename T>
 const T* GetTensorData(MicroContext* micro_context,
                        const TfLiteEvalTensor* tensor,
@@ -109,8 +107,10 @@ const T* GetTensorData(MicroContext* micro_context,
     return reinterpret_cast<const T*>(tensor->data.data);
   }
 
-  void* uncompressed_data = micro_context->DecompressTensorToScratchBuffer(
-      *tensor, *compression_data, scratch_buffer_handle);
+  TFLITE_DCHECK(scratch_buffer_handle != -1);
+  void* scratch_buffer = micro_context->GetScratchBuffer(scratch_buffer_handle);
+  void* uncompressed_data = micro_context->DecompressTensorToBuffer(
+      *tensor, *compression_data, scratch_buffer);
   return reinterpret_cast<const T*>(uncompressed_data);
 }
 

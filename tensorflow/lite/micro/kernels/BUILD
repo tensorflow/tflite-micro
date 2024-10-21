@@ -1,5 +1,11 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_cc_library")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+    "tflm_copts",
+    "tflm_kernel_cc_library",
+)
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
@@ -37,17 +43,16 @@ package_group(
 # C++ libraries
 ####################################
 
-cc_library(
+tflm_cc_library(
     name = "activation_utils",
     hdrs = ["activation_utils.h"],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "circular_buffer_flexbuffers_generated_data",
     srcs = [
         "circular_buffer_flexbuffers_generated_data.cc",
@@ -55,10 +60,9 @@ cc_library(
     hdrs = [
         "circular_buffer_flexbuffers_generated_data.h",
     ],
-    copts = micro_copts(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "conv_test_common",
     srcs = [
         "conv_test_common.cc",
@@ -66,7 +70,6 @@ cc_library(
     hdrs = [
         "conv_test.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":kernel_runner",
         ":micro_ops",
@@ -76,7 +79,31 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
+    name = "decompress",
+    srcs = [
+        "decompress.cc",
+        "decompress_common.cc",
+    ],
+    hdrs = [
+        "decompress.h",
+    ],
+    visibility = [
+        ":kernel_friends",
+        ":tflite_micro",
+    ],
+    deps = [
+        "//tensorflow/lite:type_to_tflitetype",
+        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:compression",
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_profiler",
+        "//tensorflow/lite/micro:micro_utils",
+    ],
+)
+
+tflm_cc_library(
     name = "detection_postprocess_flexbuffers_generated_data",
     srcs = [
         "detection_postprocess_flexbuffers_generated_data.cc",
@@ -84,16 +111,14 @@ cc_library(
     hdrs = [
         "detection_postprocess_flexbuffers_generated_data.h",
     ],
-    copts = micro_copts(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "kernel_runner",
     srcs = [
         "kernel_runner.cc",
     ],
     hdrs = ["kernel_runner.h"],
-    copts = micro_copts(),
     visibility = [
         "//visibility:public",
     ],
@@ -108,13 +133,12 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "kernel_util",
     srcs = [
         "kernel_util.cc",
     ],
     hdrs = ["kernel_util.h"],
-    copts = micro_copts(),
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
@@ -129,21 +153,19 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "lstm_shared",
     hdrs = [
         "lstm_shared.h",
     ],
-    copts = micro_copts(),
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_test.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":kernel_util",
         ":micro_ops",
@@ -153,13 +175,12 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_tensor_utils",
     srcs = [
         "micro_tensor_utils.cc",
     ],
     hdrs = ["micro_tensor_utils.h"],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
@@ -341,7 +362,7 @@ tflm_kernel_cc_library(
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
-    copts = micro_copts() + select({
+    copts = tflm_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
         xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
@@ -391,7 +412,7 @@ tflm_kernel_cc_library(
 # C++ tests
 ####################################
 
-cc_test(
+tflm_cc_test(
     name = "activations_test",
     srcs = [
         "activations_test.cc",
@@ -405,7 +426,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "add_n_test",
     srcs = [
         "add_n_test.cc",
@@ -420,7 +441,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "add_test",
     srcs = [
         "add_test.cc",
@@ -434,7 +455,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "arg_min_max_test",
     srcs = [
         "arg_min_max_test.cc",
@@ -448,7 +469,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "batch_matmul_test",
     srcs = [
         "batch_matmul_test.cc",
@@ -462,7 +483,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "batch_to_space_nd_test",
     srcs = [
         "batch_to_space_nd_test.cc",
@@ -476,7 +497,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "broadcast_args_test",
     srcs = [
         "broadcast_args_test.cc",
@@ -490,7 +511,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "broadcast_to_test",
     srcs = [
         "broadcast_to_test.cc",
@@ -504,7 +525,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "call_once_test",
     srcs = ["call_once_test.cc"],
     deps = [
@@ -516,7 +537,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "cast_test",
     srcs = ["cast_test.cc"],
     deps = [
@@ -529,7 +550,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "ceil_test",
     srcs = [
         "ceil_test.cc",
@@ -543,7 +564,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "circular_buffer_test",
     srcs = [
         "circular_buffer_test.cc",
@@ -559,7 +580,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "comparisons_test",
     srcs = [
         "comparisons_test.cc",
@@ -572,7 +593,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "concatenation_test",
     srcs = [
         "concatenation_test.cc",
@@ -585,7 +606,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "conv_test",
     srcs = [
         "conv_test.cc",
@@ -601,7 +622,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "cumsum_test",
     srcs = [
         "cumsum_test.cc",
@@ -616,7 +637,25 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
+    name = "decompress_test",
+    srcs = [
+        "decompress_test.cc",
+    ],
+    target_compatible_with = select({
+        "//conditions:default": ["@platforms//:incompatible"],
+        "//:with_compression_enabled": [],
+    }),
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "depth_to_space_test",
     srcs = [
         "depth_to_space_test.cc",
@@ -631,7 +670,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "depthwise_conv_test",
     srcs = [
         "depthwise_conv_test.cc",
@@ -645,7 +684,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "dequantize_test",
     srcs = [
         "dequantize_test.cc",
@@ -658,7 +697,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "detection_postprocess_test",
     srcs = [
         "detection_postprocess_test.cc",
@@ -674,7 +713,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "div_test",
     srcs = [
         "div_test.cc",
@@ -687,7 +726,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "elementwise_test",
     srcs = ["elementwise_test.cc"],
     deps = [
@@ -700,7 +739,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "elu_test",
     srcs = [
         "elu_test.cc",
@@ -715,7 +754,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "embedding_lookup_test",
     srcs = [
         "embedding_lookup_test.cc",
@@ -730,7 +769,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "exp_test",
     srcs = ["exp_test.cc"],
     deps = [
@@ -743,7 +782,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "expand_dims_test",
     srcs = ["expand_dims_test.cc"],
     deps = [
@@ -756,7 +795,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "fill_test",
     srcs = [
         "fill_test.cc",
@@ -770,7 +809,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "floor_div_test",
     srcs = ["floor_div_test.cc"],
     deps = [
@@ -783,7 +822,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "floor_mod_test",
     srcs = ["floor_mod_test.cc"],
     deps = [
@@ -796,7 +835,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "floor_test",
     srcs = [
         "floor_test.cc",
@@ -810,7 +849,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "fully_connected_test",
     srcs = [
         "fully_connected_test.cc",
@@ -825,7 +864,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "gather_test",
     srcs = [
         "gather_test.cc",
@@ -840,7 +879,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "gather_nd_test",
     srcs = [
         "gather_nd_test.cc",
@@ -855,7 +894,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "hard_swish_test",
     srcs = ["hard_swish_test.cc"],
     deps = [
@@ -867,7 +906,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "if_test",
     srcs = ["if_test.cc"],
     deps = [
@@ -881,7 +920,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "l2norm_test",
     srcs = [
         "l2norm_test.cc",
@@ -895,7 +934,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "l2_pool_2d_test",
     srcs = [
         "l2_pool_2d_test.cc",
@@ -910,7 +949,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "leaky_relu_test",
     srcs = [
         "leaky_relu_test.cc",
@@ -925,7 +964,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "logical_test",
     srcs = [
         "logical_test.cc",
@@ -939,7 +978,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "logistic_test",
     srcs = [
         "logistic_test.cc",
@@ -953,7 +992,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "log_softmax_test",
     srcs = [
         "log_softmax_test.cc",
@@ -968,7 +1007,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "lstm_eval_test",
     srcs = [
         "lstm_eval_test.cc",
@@ -980,7 +1019,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "maximum_minimum_test",
     srcs = [
         "maximum_minimum_test.cc",
@@ -994,7 +1033,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "mirror_pad_test",
     srcs = [
         "mirror_pad_test.cc",
@@ -1008,7 +1047,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "mul_test",
     srcs = [
         "mul_test.cc",
@@ -1021,7 +1060,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "neg_test",
     srcs = [
         "neg_test.cc",
@@ -1035,7 +1074,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "pack_test",
     srcs = [
         "pack_test.cc",
@@ -1049,7 +1088,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "pad_test",
     srcs = [
         "pad_test.cc",
@@ -1067,7 +1106,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "pooling_test",
     srcs = [
         "pooling_test.cc",
@@ -1080,7 +1119,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "prelu_test",
     srcs = [
         "prelu_test.cc",
@@ -1093,7 +1132,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "quantization_util_test",
     srcs = [
         "quantization_util_test.cc",
@@ -1105,7 +1144,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "quantize_test",
     srcs = [
         "quantize_test.cc",
@@ -1118,7 +1157,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "reduce_test",
     srcs = [
         "reduce_test.cc",
@@ -1132,7 +1171,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "reshape_test",
     srcs = [
         "reshape_test.cc",
@@ -1147,7 +1186,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "resize_bilinear_test",
     srcs = [
         "resize_bilinear_test.cc",
@@ -1161,7 +1200,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "resize_nearest_neighbor_test",
     srcs = [
         "resize_nearest_neighbor_test.cc",
@@ -1175,7 +1214,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "round_test",
     srcs = [
         "round_test.cc",
@@ -1189,7 +1228,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "select_test",
     srcs = [
         "select_test.cc",
@@ -1203,7 +1242,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "shape_test",
     srcs = ["shape_test.cc"],
     deps = [
@@ -1215,7 +1254,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "slice_test",
     srcs = ["slice_test.cc"],
     deps = [
@@ -1227,7 +1266,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "softmax_test",
     srcs = [
         "softmax_test.cc",
@@ -1241,7 +1280,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "space_to_batch_nd_test",
     srcs = [
         "space_to_batch_nd_test.cc",
@@ -1255,7 +1294,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "space_to_depth_test",
     srcs = [
         "space_to_depth_test.cc",
@@ -1270,7 +1309,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "split_test",
     srcs = [
         "split_test.cc",
@@ -1285,7 +1324,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "split_v_test",
     srcs = [
         "split_v_test.cc",
@@ -1300,7 +1339,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "squared_difference_test",
     srcs = [
         "squared_difference_test.cc",
@@ -1313,7 +1352,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "squeeze_test",
     srcs = ["squeeze_test.cc"],
     deps = [
@@ -1325,7 +1364,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "strided_slice_test",
     srcs = [
         "strided_slice_test.cc",
@@ -1339,7 +1378,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "sub_test",
     srcs = [
         "sub_test.cc",
@@ -1352,7 +1391,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "svdf_test",
     srcs = [
         "svdf_test.cc",
@@ -1365,7 +1404,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "tanh_test",
     srcs = ["tanh_test.cc"],
     deps = [
@@ -1376,7 +1415,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "transpose_test",
     srcs = ["transpose_test.cc"],
     deps = [
@@ -1387,7 +1426,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "transpose_conv_test",
     srcs = [
         "transpose_conv_test.cc",
@@ -1403,7 +1442,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "unidirectional_sequence_lstm_test",
     srcs = [
         "unidirectional_sequence_lstm_test.cc",
@@ -1420,7 +1459,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "unpack_test",
     srcs = [
         "unpack_test.cc",
@@ -1434,7 +1473,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "while_test",
     srcs = [
         "while_test.cc",
@@ -1448,7 +1487,7 @@ cc_test(
     ],
 )
 
-cc_test(
+tflm_cc_test(
     name = "zeros_like_test",
     srcs = ["zeros_like_test.cc"],
     deps = [

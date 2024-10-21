@@ -110,8 +110,6 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   // account any temporary allocations.
   size_t GetUsedBytes() const;
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
  protected:
   // Returns a pointer to the current end of the head buffer.
   uint8_t* head() const;
@@ -137,6 +135,8 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   intptr_t temp_buffer_ptr_check_sum_ = 0;
   // Count of outstanding temp buffers.
   int temp_buffer_count_ = 0;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite

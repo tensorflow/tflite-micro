@@ -50,6 +50,14 @@ struct OpDataFullyConnected {
   int32_t* per_channel_output_shift;
   bool is_per_channel;
 #endif
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // scratch buffers for compressed tensors
+  int weights_scratch_index;
+  int bias_scratch_index;
+
+#endif  // USE_TFLM_COMPRESSION
 };
 
 extern const int kFullyConnectedInputTensor;

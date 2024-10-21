@@ -74,8 +74,6 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   // takes in account any temporary allocations.
   size_t GetAvailableMemory(size_t alignment) const override;
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
  private:
   // The memory arena that this allocator manages.
   uint8_t* const buffer_head_;
@@ -97,6 +95,8 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   // Count of outstanding temp buffers.
   int temp_buffer_count_ = 0;
   bool resizable_buffer_allocated_ = false;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite
