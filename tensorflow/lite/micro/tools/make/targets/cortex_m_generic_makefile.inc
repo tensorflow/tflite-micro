@@ -47,7 +47,6 @@ else ifeq ($(TARGET_ARCH), cortex-m3)
 else ifeq ($(TARGET_ARCH), cortex-m33)
   CORE=M33
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M33
-  CMSIS_ARM_FEATURES := _DSP_FP
   FLOAT=hard
 
 else ifeq ($(TARGET_ARCH), cortex-m33+nodsp)
@@ -62,14 +61,12 @@ else ifeq ($(TARGET_ARCH), cortex-m4)
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
-  CMSIS_ARM_FEATURES := _FP
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m4
 
 else ifeq ($(TARGET_ARCH), cortex-m4+sfp)
   CORE=M4
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M4
-  CMSIS_ARM_FEATURES := _FP
   FLOAT=softfp
   GCC_TARGET_ARCH := cortex-m4
 
@@ -96,7 +93,6 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   ARM_LDFLAGS := -Wl,--cpu=Cortex-M7
   FLOAT=hard
   GCC_TARGET_ARCH := cortex-m7
-  CMSIS_ARM_FEATURES := _DP
 
 else ifeq ($(TARGET_ARCH), cortex-m85)
   CORE=M85
@@ -114,7 +110,7 @@ ARM_CPU := "ARMC$(CORE)"
 CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 INCLUDES += \
-  -I$(CMSIS_PATH)/Device/ARM/$(ARM_CPU)/Include \
+  -I$(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Include \
   -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 ifneq ($(filter cortex-m55%,$(TARGET_ARCH)),)
@@ -187,7 +183,7 @@ PLATFORM_FLAGS = \
   -DCPU_$(CORE)=1
 
 # For DWT/PMU counters. Header file name is depending on target architecture.
-PLATFORM_FLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU)$(CMSIS_ARM_FEATURES).h\"
+PLATFORM_FLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU).h\"
 PLATFORM_FLAGS += -D$(ARM_CPU)
 
 # Arm Cortex-M55 and Cortex-M85 use PMU counters.

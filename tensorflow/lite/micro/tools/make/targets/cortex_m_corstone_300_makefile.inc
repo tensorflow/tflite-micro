@@ -63,7 +63,6 @@ else ifeq ($(TARGET_ARCH), cortex-m4+fp)
   ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M4
   FLOAT=hard
   MCPU_OPTION := cortex-m4
-  CMSIS_ARM_FEATURES := _FP
 
 else ifeq ($(TARGET_ARCH), cortex-m55)
   ARMC6_LDFLAGS += -Wl,--cpu=8.1-M.Main.mve.fp
@@ -77,7 +76,6 @@ else ifeq ($(TARGET_ARCH), cortex-m7+fp)
   ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M7
   FLOAT=hard
   MCPU_OPTION := cortex-m7
-  CMSIS_ARM_FEATURES := _DP
 
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
@@ -110,7 +108,7 @@ ifeq ($(TOOLCHAIN), armclang)
   ARMC6_LDFLAGS += -Wl,--load_addr_map_info,--xref,--callgraph,--symbols
   ARMC6_LDFLAGS += -Wl,--info,sizes,--info,totals,--info,unused,--info,veneers
   ARMC6_LDFLAGS += -Wl,--list=gen/$(TARGET).map
-  ARMC6_LDFLAGS += -Wl,--entry=Reset_Handler  --verbose
+  ARMC6_LDFLAGS += -Wl,--entry=Reset_Handler --verbose
   ARMC6_LDFLAGS += -Wl,--scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
 
   # Pass a hint to the linker where to find the entry point. This needs to be
@@ -182,11 +180,11 @@ PLATFORM_FLAGS = \
 CXXFLAGS += $(PLATFORM_FLAGS)
 CCFLAGS += $(PLATFORM_FLAGS)
 
-CXXFLAGS += -D$(ARM_CPU)$(CMSIS_ARM_FEATURES)
-CCFLAGS += -D$(ARM_CPU)$(CMSIS_ARM_FEATURES)
+CXXFLAGS += -D$(ARM_CPU)
+CCFLAGS += -D$(ARM_CPU)
 
 # For Ethos-U Core Driver. Header file name is depending on target architecture.
-CXXFLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU)$(CMSIS_ARM_FEATURES).h\"
+CXXFLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU).h\"
 
 THIRD_PARTY_CC_SRCS += \
   $(ETHOS_U_CORE_PLATFORM)/retarget.c \
@@ -199,10 +197,10 @@ endif
 CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 THIRD_PARTY_CC_SRCS += \
-  $(CMSIS_PATH)/Device/ARM/$(ARM_CPU)/Source/system_$(ARM_CPU).c \
-  $(CMSIS_PATH)/Device/ARM/$(ARM_CPU)/Source/startup_$(ARM_CPU).c
+  $(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Source/system_$(ARM_CPU).c \
+  $(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Source/startup_$(ARM_CPU).c
 INCLUDES += \
-  -I$(CMSIS_PATH)/Device/ARM/$(ARM_CPU)/Include \
+  -I$(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Include \
   -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 # TODO(#274): Examine why some tests fail here.

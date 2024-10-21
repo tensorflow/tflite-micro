@@ -42,7 +42,7 @@ THIRD_PARTY_CC_HDRS += $(shell find $(CMSIS_NN_PATH)/Include -name "*.h")
 # project generation scripts copy over the compiler specific implementations of
 # the various intrinisics.
 THIRD_PARTY_CC_HDRS += \
-  $(CMSIS_PATH)/LICENSE.txt \
+  $(CMSIS_PATH)/LICENSE \
   $(CMSIS_NN_PATH)/LICENSE \
   $(wildcard $(CMSIS_PATH)/CMSIS/Core/Include/*.h)
 
