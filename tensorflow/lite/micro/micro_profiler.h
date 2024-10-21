@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdint>
 #include <cstring>
@@ -37,7 +38,7 @@ enum class MicroProfilerLogFormat {
 // performance. Bottleneck operators can be identified along with slow code
 // sections. This can be used in conjunction with running the relevant micro
 // benchmark to evaluate end-to-end performance.
-template <int MAX_EVENTS>
+template <int MAX_EVENTS = 4096>
 class MicroProfiler : public MicroProfilerInterface {
  public:
   MicroProfiler() = default;
@@ -46,7 +47,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent. The lifetime of the tag
   // parameter must exceed that of the MicroProfiler.
-  uint32_t BeginEvent(const char* tag) {
+  uint32_t BeginEvent(const char* tag) override {
     if (num_events_ == MAX_EVENTS) {
       MicroPrintf(
           "MicroProfiler errored out because total number of events exceeded "
@@ -68,7 +69,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // If EndEvent is called more than once for the same event_handle, the last
   // call will be used as the end of event marker.If EndEvent is called 0 times
   // for a particular event_handle, the duration of that event will be 0 ticks.
-  void EndEvent(uint32_t event_handle) {
+  void EndEvent(uint32_t event_handle) override {
     TFLITE_DCHECK(event_handle < MAX_EVENTS);
     end_ticks_[event_handle] = GetCurrentTimeTicks();
   }
@@ -90,9 +91,10 @@ class MicroProfiler : public MicroProfilerInterface {
     return ticks;
   }
 
-  // Prints the profiling information of each of the events in human readable
-  // form.
-  void Log(MicroProfilerLogFormat format) const {
+  // Prints the profiling information of each of the events with the
+  // given format (human readable by default).
+  void Log(MicroProfilerLogFormat format =
+               MicroProfilerLogFormat::HumanReadable) const {
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
     switch (format) {
       case MicroProfilerLogFormat::HumanReadable:
@@ -105,22 +107,23 @@ class MicroProfiler : public MicroProfilerInterface {
         break;
 
       case MicroProfilerLogFormat::Csv:
-        MicroPrintf("\"Event\",\"Tag\",\"Ms\",\"Ticks\"");
+        MicroPrintf("\"Event\",\"Tag\",\"Ticks\"");
         for (int i = 0; i < num_events_; ++i) {
 #if defined(HEXAGON) || defined(CMSIS_NN)
           int ticks = end_ticks_[i] - start_ticks_[i];
-          MicroPrintf("%d,%s,%u,%d", i, tags_[i], TicksToMs(ticks), ticks);
+          MicroPrintf("%d,%s,%d", i, tags_[i], ticks);
 #else
           uint32_t ticks = end_ticks_[i] - start_ticks_[i];
-          uint64_t us = TicksToUs(ticks);
-          MicroPrintf("%d,%s,%" PRIu64 ".%" PRIu64 ",%" PRIu32, i, tags_[i],
-                      us / 1000, us % 1000, ticks);
+          MicroPrintf("%d,%s,%" PRIu32, i, tags_[i], ticks);
 #endif
         }
         break;
     }
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
   }
+
+  // Prints the profiling information of each of the events in CSV format.
+  void LogCsv() const { Log(MicroProfilerLogFormat::Csv); }
 
   // Prints the profiling information of each of the events in human readable
   // form, grouped per tag, sorted by execution time.
@@ -136,7 +139,10 @@ class MicroProfiler : public MicroProfilerInterface {
       tag_group.tag_count++;
     }
 
-    SortTagGroups();
+    std::sort(tag_groups_, tag_groups_ + num_tag_groups_,
+              [](const TagGroup& a, const TagGroup& b) {
+                return a.ticks > b.ticks;  // Sort in descending order
+              });
 
     switch (format) {
       case MicroProfilerLogFormat::HumanReadable: {
@@ -157,11 +163,9 @@ class MicroProfiler : public MicroProfilerInterface {
         break;
       }
       case MicroProfilerLogFormat::Csv: {
-        MicroPrintf("\"Tag\",\"Total ms\",\"Total ticks\"");
+        MicroPrintf("\"Tag\",\"Total ticks\"");
         for (int i = 0; i < num_tag_groups_; ++i) {
-          uint64_t us = TicksToUs(tag_groups_[i].ticks);
-          MicroPrintf("%s, %" PRIu64 ".%" PRIu64 ", %u", tag_groups_[i].tag,
-                      us / 1000, us % 1000, tag_groups_[i].ticks);
+          MicroPrintf("%s,%u", tag_groups_[i].tag, tag_groups_[i].ticks);
         }
         break;
       }
@@ -202,20 +206,6 @@ class MicroProfiler : public MicroProfilerInterface {
     tag_groups_[num_tag_groups_].ticks = 0;
     tag_groups_[num_tag_groups_].tag_count = 0;
     return tag_groups_[num_tag_groups_++];
-  }
-
-  // Helper function to sort the tag groups by ticks in descending order
-  // Simple bubble sort implementation
-  void SortTagGroups() {
-    for (int i = 0; i < num_tag_groups_ - 1; ++i) {
-      for (int j = i + 1; j < num_tag_groups_; ++j) {
-        if (tag_groups_[j].ticks > tag_groups_[i].ticks) {
-          TagGroup temp_tag_group = tag_groups_[i];
-          tag_groups_[i] = tag_groups_[j];
-          tag_groups_[j] = temp_tag_group;
-        }
-      }
-    }
   }
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
