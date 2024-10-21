@@ -113,10 +113,7 @@ def unpack_subgraphs(subgraphs):
 def unpack_metadata(metadata):
   if metadata is None:
     return None
-  return [{
-      "name": _decode_name(m.name),
-      "buffer": m.buffer
-  } for m in metadata]
+  return [{"name": _decode_name(m.name), "buffer": m.buffer} for m in metadata]
 
 
 def unpack_lut_tensors(lut_tensors):
@@ -231,17 +228,17 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
 
   output = {
       "description":
-      model.description,
+          model.description,
       "version":
-      model.version,
+          model.version,
       "operator_codes":
-      unpack_list(model.operatorCodes),
+          unpack_list(model.operatorCodes),
       "metadata":
-      unpack_metadata(model.metadata),
+          unpack_metadata(model.metadata),
       "subgraphs":
-      unpack_subgraphs(model.subgraphs),
+          unpack_subgraphs(model.subgraphs),
       "buffers":
-      unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
+          unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
   }
 
   return output

@@ -1,6 +1,7 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
-load("//tensorflow/lite/micro:build_def.bzl",
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
     "tflm_cc_binary",
     "tflm_cc_library",

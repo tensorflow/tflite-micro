@@ -1,4 +1,5 @@
-load("//tensorflow/lite/micro:build_def.bzl",
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_cc_test",
 )

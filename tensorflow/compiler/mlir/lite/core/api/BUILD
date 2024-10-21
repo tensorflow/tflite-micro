@@ -1,5 +1,6 @@
 load("//tensorflow/lite:build_def.bzl", "tflite_copts")
-load("//tensorflow/lite/micro:build_def.bzl",
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_copts",
 )

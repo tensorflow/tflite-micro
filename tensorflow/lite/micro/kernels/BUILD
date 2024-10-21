@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("//tensorflow/lite/micro:build_def.bzl",
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
@@ -641,17 +642,18 @@ tflm_cc_test(
     srcs = [
         "decompress_test.cc",
     ],
-    deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro:micro_arena_constants",
-        "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
     target_compatible_with = select({
         "//conditions:default": ["@platforms//:incompatible"],
         "//:with_compression_enabled": [],
     }),
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+
 )
 
 tflm_cc_test(

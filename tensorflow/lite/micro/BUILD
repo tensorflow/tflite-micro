@@ -78,8 +78,8 @@ tflm_cc_library(
         ":micro_graph",
         ":micro_log",
         ":micro_profiler",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite:type_to_tflitetype",
+        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro/kernels:decompress",
     ],
 )

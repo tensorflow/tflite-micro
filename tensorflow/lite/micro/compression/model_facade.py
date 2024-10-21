@@ -192,8 +192,8 @@ class Tensor:
 
   @property
   def channel_count(self):
-    if (self.tensor.quantization is None or
-        self.tensor.quantization.scale is None):
+    if (self.tensor.quantization is None
+        or self.tensor.quantization.scale is None):
       return 1
     return len(self.tensor.quantization.scale)
 

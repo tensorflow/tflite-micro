@@ -1,7 +1,8 @@
 # Description:
 #   TensorFlow Lite microcontroller benchmarks.
 
-load("//tensorflow/lite/micro:build_def.bzl",
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_binary",
     "tflm_cc_library",
 )
