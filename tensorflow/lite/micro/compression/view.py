@@ -227,18 +227,13 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
       pass
 
   output = {
-      "description":
-          model.description,
-      "version":
-          model.version,
-      "operator_codes":
-          unpack_list(model.operatorCodes),
-      "metadata":
-          unpack_metadata(model.metadata),
-      "subgraphs":
-          unpack_subgraphs(model.subgraphs),
+      "description": model.description,
+      "version": model.version,
+      "operator_codes": unpack_list(model.operatorCodes),
+      "metadata": unpack_metadata(model.metadata),
+      "subgraphs": unpack_subgraphs(model.subgraphs),
       "buffers":
-          unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
+      unpack_buffers(model, comp_metadata_index, comp_metadata_unpacked),
   }
 
   return output

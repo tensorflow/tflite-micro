@@ -653,7 +653,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-
 )
 
 tflm_cc_test(
