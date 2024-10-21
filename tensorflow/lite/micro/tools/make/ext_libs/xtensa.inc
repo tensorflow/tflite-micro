@@ -58,6 +58,10 @@ else ifeq ($(TARGET_ARCH), hifi5)
   CCFLAGS += $(PLATFORM_FLAGS)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
+  # override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
+  # Xtensa intrinsics.
+  KERNEL_OPTIMIZATION_LEVEL := -O3 -LNO:simd
+
   NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi5
   NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-hifi5
 
