@@ -7,7 +7,7 @@ load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "micro_copts",
+    "tflm_cc_library",
 )
 load(
     "//tensorflow:extra_rules.bzl",
@@ -24,7 +24,7 @@ package_group(
     packages = tflm_python_op_resolver_friends(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "python_ops_resolver",
     srcs = [
         "python_ops_resolver.cc",
@@ -32,7 +32,6 @@ cc_library(
     hdrs = [
         "python_ops_resolver.h",
     ],
-    copts = micro_copts(),
     visibility = [
         ":op_resolver_friends",
         "//tensorflow/lite/micro/integration_tests:__subpackages__",

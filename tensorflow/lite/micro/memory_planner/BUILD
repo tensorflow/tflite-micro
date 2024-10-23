@@ -1,6 +1,6 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "micro_copts",
+    "tflm_cc_library",
 )
 
 package(
@@ -10,19 +10,18 @@ package(
     licenses = ["notice"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_memory_planner",
     hdrs = [
         "micro_memory_planner.h",
     ],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "linear_memory_planner",
     srcs = [
         "linear_memory_planner.cc",
@@ -30,7 +29,6 @@ cc_library(
     hdrs = [
         "linear_memory_planner.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":micro_memory_planner",
         "//tensorflow/lite/c:common",
@@ -39,7 +37,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "greedy_memory_planner",
     srcs = [
         "greedy_memory_planner.cc",
@@ -47,7 +45,6 @@ cc_library(
     hdrs = [
         "greedy_memory_planner.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":micro_memory_planner",
         "//tensorflow/lite/micro:micro_compatibility",
@@ -77,12 +74,11 @@ cc_test(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "memory_plan_struct",
     hdrs = [
         "memory_plan_struct.h",
     ],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
@@ -91,13 +87,12 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "non_persistent_buffer_planner_shim",
     srcs = ["non_persistent_buffer_planner_shim.cc"],
     hdrs = [
         "non_persistent_buffer_planner_shim.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":memory_plan_struct",
         ":micro_memory_planner",

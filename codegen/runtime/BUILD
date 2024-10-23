@@ -1,12 +1,11 @@
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts")
+load("//tensorflow/lite/micro:build_def.bzl", "tflm_cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+tflm_cc_library(
     name = "micro_codegen_context",
     srcs = ["micro_codegen_context.cc"],
     hdrs = ["micro_codegen_context.h"],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels:op_macros",

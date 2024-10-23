@@ -52,7 +52,7 @@ function substitute_strings() {
   IFS=${SAVED_IFS}
   replacement=()
   for line in "${lines_array[@]}"; do
-    line=$(sed -e 's/"/\\"/g' <<< "${line}")
+    line=$(sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' <<< "${line}")
     line=$(printf '"%s",\n    ' "${line}")
     replacement+=( "${line}" )
   done

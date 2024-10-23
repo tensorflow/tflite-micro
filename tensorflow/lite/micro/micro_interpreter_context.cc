@@ -192,15 +192,16 @@ const CompressionTensorData* MicroInterpreterContext::GetTensorCompressionData(
   return allocations->compressed.tensors[index];
 }
 
-// Only available during Eval. Returns nullptr on failure, otherwise returns a
-// pointer to the scratch buffer.
-void* MicroInterpreterContext::DecompressTensorToScratchBuffer(
+// Only available during Prepare & Eval. Returns nullptr on failure, otherwise
+// returns a pointer to the buffer.
+void* MicroInterpreterContext::DecompressTensorToBuffer(
     const TfLiteEvalTensor& tensor,
-    const CompressionTensorData& compression_data, int scratch_buffer_handle) {
-  TFLITE_DCHECK(state_ == InterpreterState::kInvoke);
+    const CompressionTensorData& compression_data, void* buffer) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
 
-  return MicroContext::DecompressTensorToScratchBuffer(tensor, compression_data,
-                                                       scratch_buffer_handle);
+  return MicroContext::DecompressTensorToBuffer(tensor, compression_data,
+                                                buffer);
 }
 
 #endif  // USE_TFLM_COMPRESSION

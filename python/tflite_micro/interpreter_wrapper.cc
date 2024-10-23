@@ -104,11 +104,6 @@ bool CheckTensor(const TfLiteTensor* tensor) {
     return false;
   }
 
-  if (tensor->sparsity != nullptr) {
-    PyErr_SetString(PyExc_ValueError, "TFLM doesn't support sparse tensors");
-    return false;
-  }
-
   int py_type_num = TfLiteTypeToPyArrayType(tensor->type);
   if (py_type_num == NPY_NOTYPE) {
     PyErr_SetString(PyExc_ValueError, "Unknown tensor type.");

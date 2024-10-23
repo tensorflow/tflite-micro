@@ -1,7 +1,7 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
-    "micro_copts",
+    "tflm_cc_library",
 )
 
 package(
@@ -20,7 +20,7 @@ generate_cc_arrays(
     out = "models/simple_add_model_model_data.h",
 )
 
-cc_library(
+tflm_cc_library(
     name = "simple_add_model_data",
     srcs = [
         ":generated_simple_add_model_cc",
@@ -28,7 +28,6 @@ cc_library(
     hdrs = [
         ":generated_simple_add_model_hdr",
     ],
-    copts = micro_copts(),
 )
 
 cc_binary(
