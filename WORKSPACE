@@ -86,7 +86,7 @@ load("//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
 
 py_pkg_cc_deps(
     name = "numpy_cc_deps",
-    includes = ["numpy/core/include"],
+    includes = ["numpy/_core/include"],
     pkg = requirement("numpy"),
 )
 
