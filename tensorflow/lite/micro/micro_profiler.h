@@ -101,7 +101,7 @@ class MicroProfiler : public MicroProfilerInterface {
         for (int i = 0; i < num_events_; ++i) {
           uint32_t ticks = end_ticks_[i] - start_ticks_[i];
           uint64_t us = TicksToUs(ticks);
-          MicroPrintf("%s took %" PRIu64 ".%" PRIu64 " ms (%u ticks)", tags_[i],
+          MicroPrintf("%s took %" PRIu64 ".%03" PRIu64 " ms (%u ticks)", tags_[i],
                       us / 1000, us % 1000, ticks);
         }
         break;
