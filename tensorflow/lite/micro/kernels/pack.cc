@@ -87,7 +87,7 @@ TfLiteStatus PackEval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt16: {
       return PackImpl<int16_t>(context, node, output, data->values_count,
-                              data->axis);
+                               data->axis);
     }
     case kTfLiteInt32: {
       return PackImpl<int32_t>(context, node, output, data->values_count,

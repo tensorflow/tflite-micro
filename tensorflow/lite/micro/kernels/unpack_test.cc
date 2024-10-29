@@ -132,13 +132,13 @@ void TestUnpackOneOutputFloat(int* input_dims_data, const float* input_data,
   }
 }
 
-template<typename T>
+template <typename T>
 void TestUnpackThreeOutputsQuantized(
-    int* input_dims_data, const T* input_data, int axis,
-    int* output1_dims_data, const T* expected_output1_data,
-    int* output2_dims_data, const T* expected_output2_data,
-    int* output3_dims_data, const T* expected_output3_data,
-    T* output1_data, T* output2_data, T* output3_data) {
+    int* input_dims_data, const T* input_data, int axis, int* output1_dims_data,
+    const T* expected_output1_data, int* output2_dims_data,
+    const T* expected_output2_data, int* output3_dims_data,
+    const T* expected_output3_data, T* output1_data, T* output2_data,
+    T* output3_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output1_dims = IntArrayFromInts(output1_dims_data);
   TfLiteIntArray* output2_dims = IntArrayFromInts(output2_dims_data);

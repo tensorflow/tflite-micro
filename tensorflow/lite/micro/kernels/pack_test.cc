@@ -110,11 +110,11 @@ void TestPackThreeInputsFloat(int* input1_dims_data, const float* input1_data,
                       1e-5f, output_data);
 }
 
-template<typename T>
-void TestPackTwoInputsQuantized(
-    int* input1_dims_data, const T* input1_data, int* input2_dims_data,
-    const T* input2_data, int axis, int* output_dims_data,
-    const T* expected_output_data, T* output_data) {
+template <typename T>
+void TestPackTwoInputsQuantized(int* input1_dims_data, const T* input1_data,
+                                int* input2_dims_data, const T* input2_data,
+                                int axis, int* output_dims_data,
+                                const T* expected_output_data, T* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
