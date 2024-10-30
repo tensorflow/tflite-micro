@@ -145,6 +145,9 @@ def process_operator_var_handle(context: Context) -> VarHandles:
 
 def process_operator_assign_variable(context: Context) -> VarHandles:
   assign_op = context.current_op()
+  pending_concat_op = context.get_concat_op_by_tensor(
+      assign_op.inputs_indices[1], assign_op.subgraph.index)
+  assert pending_concat_op is None
   read_var_op = context.get_read_var_op_by_tensor(assign_op.inputs_indices[1],
                                                   assign_op.subgraph.index)
   if read_var_op is not None:
