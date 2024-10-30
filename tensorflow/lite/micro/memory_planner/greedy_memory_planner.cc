@@ -387,7 +387,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
     }
     line[kLineWidth] = 0;
 
-    MicroPrintf("%s%d: %s (%dk)", t < 10 ? " " : "", t, (const char*)line,
+    MicroPrintf("%4d: %s (%dk)", t, (const char*)line,
                 (memory_use + 1023) / 1024);
   }
 }

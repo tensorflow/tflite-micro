@@ -206,3 +206,16 @@ py_test(
         requirement("tensorflow"),
     ],
 )
+
+py_binary(
+    name = "relocate_ops",
+    srcs = [
+        "relocate_ops.py",
+    ],
+    deps = [
+        "model_facade",
+        "//tensorflow/lite/python:schema_py",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+    ],
+)

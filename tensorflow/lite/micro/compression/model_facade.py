@@ -138,8 +138,27 @@ class Operator:
     return self.subgraph.model.operatorCodes[self.operator.opcodeIndex]
 
   @property
+  def builtin_opcode(self) -> int:
+    result: int = self.opcode.deprecatedBuiltinCode
+    if result == tflite.BuiltinOperator.PLACEHOLDER_FOR_GREATER_OP_CODES:
+      result = self.opcode.builtinCode
+    return result
+
+  @property
   def inputs(self):
     return IndirectIterator(self.operator.inputs, self.subgraph.tensors)
+
+  @property
+  def outputs(self):
+    return IndirectIterator(self.operator.outputs, self.subgraph.tensors)
+
+  @property
+  def inputs_indices(self):
+    return self.operator.inputs
+
+  @property
+  def outputs_indices(self):
+    return self.operator.outputs
 
 
 class Tensor:
