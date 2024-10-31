@@ -25,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 #ifdef HIFI5
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
@@ -350,14 +349,7 @@ void DecompressionStateXtensa::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
 
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
-  const char* func_name_p = nullptr;
-  if (micro_profiler_ != nullptr) {
-    static char func_name[42];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
-                  compressed_bit_width_);
-    func_name_p = func_name;
-  }
-  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* __restrict value_table =
@@ -408,14 +400,7 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
 
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
     int16_t* buffer) {
-  const char* func_name_p = nullptr;
-  if (micro_profiler_ != nullptr) {
-    static char func_name[43];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
-                  compressed_bit_width_);
-    func_name_p = func_name;
-  }
-  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint16_t* __restrict value_table =
@@ -466,14 +451,7 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
 
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
     int32_t* buffer) {
-  const char* func_name_p = nullptr;
-  if (micro_profiler_ != nullptr) {
-    static char func_name[43];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
-                  compressed_bit_width_);
-    func_name_p = func_name;
-  }
-  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint32_t* __restrict value_table =
@@ -524,14 +502,7 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
 
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
     int64_t* buffer) {
-  const char* func_name_p = nullptr;
-  if (micro_profiler_ != nullptr) {
-    static char func_name[43];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u", __func__,
-                  compressed_bit_width_);
-    func_name_p = func_name;
-  }
-  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint64_t* __restrict value_table =

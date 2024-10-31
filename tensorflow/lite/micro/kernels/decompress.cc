@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 

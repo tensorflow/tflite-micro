@@ -99,7 +99,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
-        "//tensorflow/lite/micro:micro_utils",
     ],
 )
 

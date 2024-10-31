@@ -23,8 +23,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 
@@ -314,19 +312,10 @@ void DecompressionState::DecompressToBufferWidth3_32(int8_t* buffer) {
 }
 
 // TODO(ddavis-2015): templating GetNextTableIndexWidth<N> makes this method
-// more than 2x faster, but with a large code size increase (and BSS segment
-// increase)
+// more than 2x faster, but with a large code size increase
 template <typename T>
 void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
-  const char* func_name_p = nullptr;
-  if (micro_profiler_ != nullptr) {
-    static char func_name[35];
-    MicroSnprintf(func_name, sizeof(func_name), "%s_%u_%s", __func__,
-                  compressed_bit_width_,
-                  TfLiteTypeGetName(typeToTfLiteType<T>()));
-    func_name_p = func_name;
-  }
-  ScopedMicroProfiler scoped_profiler(func_name_p, micro_profiler_);
+  ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   if (comp_data_.data.lut_data->use_alternate_axis) {
     const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
