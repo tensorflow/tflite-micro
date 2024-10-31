@@ -172,8 +172,14 @@ void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
 
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
-#ifdef USE_TFLM_COMPRESSION
   static Profiler profiler2;
+
+// use this to keep the application size stable regardless of whether
+// compression is being used
+#ifdef USE_TFLM_COMPRESSION
+  constexpr bool using_compression = true;
+#else   // USE_TFLM_COMPRESSION
+  constexpr bool using_compression = false;
 #endif  // USE_TFLM_COMPRESSION
 
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
@@ -196,9 +202,9 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   profiler.Log();
   profiler.ClearEvents();
 
-#ifdef USE_TFLM_COMPRESSION
-  TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
-#endif  // USE_TFLM_COMPRESSION
+  if (using_compression) {
+    TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
+  }
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
@@ -222,13 +228,13 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     MicroPrintf("");  // null MicroPrintf serves as a newline.
     profiler.ClearEvents();
 
-#ifdef USE_TFLM_COMPRESSION
-    profiler2.Log();
-    MicroPrintf("");  // null MicroPrintf serves as a newline.
-    profiler2.LogTicksPerTagCsv();
-    MicroPrintf("");  // null MicroPrintf serves as a newline.
-    profiler2.ClearEvents();
-#endif  // USE_TFLM_COMPRESSION
+    if (using_compression) {
+      profiler2.Log();
+      MicroPrintf("");  // null MicroPrintf serves as a newline.
+      profiler2.LogTicksPerTagCsv();
+      MicroPrintf("");  // null MicroPrintf serves as a newline.
+      profiler2.ClearEvents();
+    }
 
     ShowOutputCRC32(&interpreter);
     MicroPrintf("");  // null MicroPrintf serves as a newline.
