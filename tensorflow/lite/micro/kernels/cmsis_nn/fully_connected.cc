@@ -148,15 +148,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     } else if (input->type == kTfLiteInt8) {
       buf_size = arm_fully_connected_s8_get_buffer_size(&filter_dims);
 
-      int8_t* filter_data = GetTensorData<int8_t>(filter);
       data->kernel_sums = nullptr;
 
+#if defined(KERNELS_OPTIMIZED_FOR_SPEED)
+      const int8_t* filter_data = GetTensorData<const int8_t>(filter);
+
       if (buf_size > 0 && filter_data != nullptr) {
+        const int32_t input_offset = -data->reference_op_data.input_zero_point;
+        const int32_t filter_offset =
+            -data->reference_op_data.filter_zero_point;
+
         data->kernel_sums = static_cast<int32_t*>(
             context->AllocatePersistentBuffer(context, buf_size));
 
-        int32_t input_offset = -data->reference_op_data.input_zero_point;
-        int32_t filter_offset = -data->reference_op_data.filter_zero_point;
         arm_vector_sum_s8(data->kernel_sums, filter_dims.n, data->output_depth,
                           filter_data, input_offset, filter_offset,
                           tflite::GetTensorData<int32_t>(bias));
@@ -164,6 +168,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         // Do not request a scratch buffer since using persistent memory
         buf_size = 0;
       }
+#endif
     }
   }
 
