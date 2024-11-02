@@ -182,24 +182,35 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   constexpr bool using_compression = false;
 #endif  // USE_TFLM_COMPRESSION
 
+  [[maybe_unused]]
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
-  uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
+  uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
   const tflite::Model* model = tflite::GetModel(model_data);
   profiler.EndEvent(event_handle);
 
+  event_handle = profiler.BeginEvent("tflite::CreateOpResolver");
   TflmOpResolver op_resolver;
   TF_LITE_ENSURE_STATUS(CreateOpResolver(op_resolver));
+  profiler.EndEvent(event_handle);
 
+  event_handle = profiler.BeginEvent("tflite::RecordingMicroAllocator::Create");
   tflite::RecordingMicroAllocator* allocator(
-      tflite::RecordingMicroAllocator::Create(tensor_arena, kTensorArenaSize));
+      tflite::RecordingMicroAllocator::Create(
+          reinterpret_cast<uint8_t*>(0xe1000000), kTensorArenaSize));
+  profiler.EndEvent(event_handle);
+  event_handle = profiler.BeginEvent("tflite::MicroInterpreter instantiation");
   tflite::RecordingMicroInterpreter interpreter(
       model, op_resolver, allocator,
       tflite::MicroResourceVariables::Create(allocator, kNumResourceVariable),
       &profiler);
+  profiler.EndEvent(event_handle);
+  event_handle =
+      profiler.BeginEvent("tflite::MicroInterpreter::AllocateTensors");
   TF_LITE_ENSURE_STATUS(interpreter.AllocateTensors());
+  profiler.EndEvent(event_handle);
 
-  profiler.Log();
+  profiler.LogTicksPerTagCsv();
   profiler.ClearEvents();
 
   if (using_compression) {
