@@ -196,8 +196,7 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 
   event_handle = profiler.BeginEvent("tflite::RecordingMicroAllocator::Create");
   tflite::RecordingMicroAllocator* allocator(
-      tflite::RecordingMicroAllocator::Create(
-          reinterpret_cast<uint8_t*>(0xe1000000), kTensorArenaSize));
+      tflite::RecordingMicroAllocator::Create(tensor_arena, kTensorArenaSize));
   profiler.EndEvent(event_handle);
   event_handle = profiler.BeginEvent("tflite::MicroInterpreter instantiation");
   tflite::RecordingMicroInterpreter interpreter(
