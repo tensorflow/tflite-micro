@@ -182,7 +182,6 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   constexpr bool using_compression = false;
 #endif  // USE_TFLM_COMPRESSION
 
-  [[maybe_unused]]
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
   uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
