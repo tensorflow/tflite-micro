@@ -14,12 +14,11 @@ limitations under the License.
 ==============================================================================*/
 
 #ifdef ETHOS_U
+#include <ethosu_driver.h>
 #include <inttypes.h>
+#include <pmu_ethosu.h>
 
 #include <algorithm>
-
-#include "ethosu_driver.h"
-#include "pmu_ethosu.h"
 #endif
 
 // This is set in micro/tools/make/targets/cortex_m_corstone_300_makefile.inc.
@@ -133,7 +132,7 @@ void InitializeTarget() {
   ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
 
 #else
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
 
   // Reset and enable DWT cycle counter.
   DWT->CYCCNT = 0;
@@ -154,7 +153,7 @@ void InitializeTarget() {
     return;
   }
   NVIC_SetVector(static_cast<IRQn_Type>(ethosu_irq),
-                 (uint32_t)&ethosuIrqHandler0);
+                 reinterpret_cast<uint32_t>(&ethosuIrqHandler0));
   NVIC_SetPriority(static_cast<IRQn_Type>(ethosu_irq), ethosu_irq_priority);
   NVIC_EnableIRQ(static_cast<IRQn_Type>(ethosu_irq));
 #endif
