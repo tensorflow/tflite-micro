@@ -160,6 +160,14 @@ class Operator:
   def outputs_indices(self):
     return self.operator.outputs
 
+  @property
+  def builtin_options_type(self) -> int:
+    return self.operator.builtinOptionsType
+
+  @property
+  def builtin_options(self):
+    return self.operator.builtinOptions
+
 
 class Tensor:
 
