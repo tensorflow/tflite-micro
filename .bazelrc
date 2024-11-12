@@ -33,6 +33,15 @@ build --cxxopt -std=c++17
 # Treat warnings as errors
 build --copt -Werror
 
+# Common options for --config=ci
+build:ci --curses=no 
+build:ci --color=no 
+build:ci --noshow_progress
+build:ci --noshow_loading_progress
+build:ci --show_timestamps
+build:ci --terminal_columns=0
+build:ci --verbose_failures
+
 # When building with the address sanitizer
 # E.g., bazel build --config asan
 build:asan --repo_env CC=clang

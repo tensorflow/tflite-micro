@@ -86,6 +86,7 @@ _TESTED_SIMPLE_OPS = [
     schema_py_generated.BuiltinOperator.QUANTIZE,
     schema_py_generated.BuiltinOperator.RESHAPE,
     schema_py_generated.BuiltinOperator.RSQRT,
+    schema_py_generated.BuiltinOperator.SQRT,
     schema_py_generated.BuiltinOperator.SQUARED_DIFFERENCE,
     schema_py_generated.BuiltinOperator.STRIDED_SLICE,
     schema_py_generated.BuiltinOperator.SUB,

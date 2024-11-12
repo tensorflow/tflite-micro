@@ -15,6 +15,7 @@
 # ==============================================================================
 
 set -e
+set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
@@ -27,8 +28,11 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # having build_test but that was removed with #194.
 
 CC=clang readable_run bazel build tensorflow/lite/micro/... \
+  --config=ci \
   --config=msan --build_tag_filters=-no_oss,-nomsan
+
 CC=clang readable_run bazel test tensorflow/lite/micro/... \
+  --config=ci \
   --config=msan \
   --test_tag_filters=-no_oss,-nomsan --build_tag_filters=-no_oss,-nomsan \
   --test_output=errors
