@@ -330,6 +330,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_resource_variable_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_time_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_utils_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/recording_micro_allocator_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/span_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/static_vector_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/non_persistent_arena_buffer_allocator_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/persistent_arena_buffer_allocator_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator_test.cc \
