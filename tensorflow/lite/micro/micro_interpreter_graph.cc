@@ -225,9 +225,11 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
     allocator_->ResetTempAllocations();
 
     if (invoke_status != kTfLiteOk) {
-      MicroPrintf("Node %s (number %d) failed to invoke with status %d",
-                  OpNameFromRegistration(registration), current_operator_index_,
-                  invoke_status);
+      if (invoke_status != kTfLiteAbort) {
+        MicroPrintf("Node %s (number %d) failed to invoke with status %d",
+                    OpNameFromRegistration(registration), current_operator_index_,
+                    invoke_status);
+      }
       return invoke_status;
     }
   }
