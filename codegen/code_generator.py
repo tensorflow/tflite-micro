@@ -15,7 +15,6 @@
 """ Generates C/C++ source code capable of performing inference for a model. """
 
 import os
-import pathlib
 
 from absl import app
 from absl import flags
@@ -23,6 +22,7 @@ from collections.abc import Sequence
 
 from tflite_micro.codegen import inference_generator
 from tflite_micro.codegen import graph
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 # Usage information:
 # Default:
@@ -48,33 +48,15 @@ _OUTPUT_NAME = flags.DEFINE_string(
           "'model' basename."),
     required=False)
 
-_QUIET = flags.DEFINE_bool(
-    name="quiet",
-    default=False,
-    help="Suppress informational output (e.g., for use in for build system)",
-    required=False)
-
 
 def main(argv: Sequence[str]) -> None:
-  if _QUIET.value:
-    restore = os.environ.get("TF_CPP_MIN_LOG_LEVEL", "0")
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-    from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = restore
-  else:
-    from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-
   output_dir = _OUTPUT_DIR.value or os.path.dirname(_MODEL_PATH.value)
   output_name = _OUTPUT_NAME.value or os.path.splitext(
       os.path.basename(_MODEL_PATH.value))[0]
 
   model = flatbuffer_utils.read_model(_MODEL_PATH.value)
 
-  if not _QUIET.value:
-    print("Generating inference code for model: {}".format(_MODEL_PATH.value))
-    output_path = pathlib.Path(output_dir) / output_name
-    print(f"Generating {output_path}.h")
-    print(f"Generating {output_path}.cc")
+  print("Generating inference code for model: {}".format(_MODEL_PATH.value))
 
   inference_generator.generate(output_dir, output_name,
                                graph.OpCodeTable([model]), graph.Graph(model))
