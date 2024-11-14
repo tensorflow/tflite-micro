@@ -1,5 +1,10 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("//tensorflow/lite/micro:build_def.bzl", "micro_copts", "tflm_kernel_cc_library")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_copts",
+    "tflm_kernel_cc_library",
+)
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
@@ -37,17 +42,16 @@ package_group(
 # C++ libraries
 ####################################
 
-cc_library(
+tflm_cc_library(
     name = "activation_utils",
     hdrs = ["activation_utils.h"],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/kernels/internal:cppmath",
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "circular_buffer_flexbuffers_generated_data",
     srcs = [
         "circular_buffer_flexbuffers_generated_data.cc",
@@ -55,10 +59,9 @@ cc_library(
     hdrs = [
         "circular_buffer_flexbuffers_generated_data.h",
     ],
-    copts = micro_copts(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "conv_test_common",
     srcs = [
         "conv_test_common.cc",
@@ -66,7 +69,6 @@ cc_library(
     hdrs = [
         "conv_test.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":kernel_runner",
         ":micro_ops",
@@ -76,7 +78,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "detection_postprocess_flexbuffers_generated_data",
     srcs = [
         "detection_postprocess_flexbuffers_generated_data.cc",
@@ -84,16 +86,14 @@ cc_library(
     hdrs = [
         "detection_postprocess_flexbuffers_generated_data.h",
     ],
-    copts = micro_copts(),
 )
 
-cc_library(
+tflm_cc_library(
     name = "kernel_runner",
     srcs = [
         "kernel_runner.cc",
     ],
     hdrs = ["kernel_runner.h"],
-    copts = micro_copts(),
     visibility = [
         "//visibility:public",
     ],
@@ -108,13 +108,12 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "kernel_util",
     srcs = [
         "kernel_util.cc",
     ],
     hdrs = ["kernel_util.h"],
-    copts = micro_copts(),
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
@@ -129,21 +128,19 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "lstm_shared",
     hdrs = [
         "lstm_shared.h",
     ],
-    copts = micro_copts(),
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "lstm_eval_test_lib",
     hdrs = [
         "lstm_eval_test.h",
     ],
-    copts = micro_copts(),
     deps = [
         ":kernel_util",
         ":micro_ops",
@@ -153,13 +150,12 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "micro_tensor_utils",
     srcs = [
         "micro_tensor_utils.cc",
     ],
     hdrs = ["micro_tensor_utils.h"],
-    copts = micro_copts(),
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
@@ -341,7 +337,7 @@ tflm_kernel_cc_library(
         xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
-    copts = micro_copts() + select({
+    copts = tflm_copts() + select({
         xtensa_fusion_f1_config(): HIFI4_COPTS,
         xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,

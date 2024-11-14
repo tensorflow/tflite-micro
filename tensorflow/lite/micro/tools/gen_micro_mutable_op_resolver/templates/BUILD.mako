@@ -3,7 +3,7 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
-    "micro_copts",
+    "tflm_cc_test",
 )
 
 package(
@@ -43,7 +43,7 @@ generate_cc_arrays(
   out = "${target}_golden_${output_dtype}_test_data.h",
 )
 
-cc_library(
+tflm_cc_library(
     name = "models_and_testdata",
     srcs = [
         "generated_${target}_model_data_cc",
@@ -59,7 +59,6 @@ cc_library(
         "generated_${target}_golden_${output_dtype}_test_data_hdr",
 % endif
     ],
-    copts = micro_copts(),
 )
 
 cc_library(
@@ -68,12 +67,11 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-cc_test(
+tflm_cc_test(
     name = "micro_mutable_op_resolver_test",
     srcs = [
         "micro_mutable_op_resolver_test.cc",
     ],
-    copts = micro_copts(),
     deps = [
         ":gen_micro_op_resolver",
         ":models_and_testdata",
