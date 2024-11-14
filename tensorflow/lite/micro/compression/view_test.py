@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from absl.testing import absltest
-
-import test_models
-import view
+import numpy as np
+from tflite_micro.tensorflow.lite.micro.compression import test_models
+from tflite_micro.tensorflow.lite.micro.compression import view
 
 _MODEL = {
     "description": "Test model",
@@ -62,8 +62,8 @@ _MODEL = {
         },
     },
     "buffers": {
-        0: bytes(),
-        1: bytes(i for i in range(1, 16)),
+        0: None,
+        1: np.array(range(16), dtype="<i1")
     }
 }
 

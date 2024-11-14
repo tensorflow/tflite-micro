@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
-from tensorflow.lite.python import schema_py_generated as tflite
-
-import model_facade
-import test_models
+from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.compression import model_facade
+from tflite_micro.tensorflow.lite.micro.compression import test_models
 
 TEST_MODEL = {
     "operator_codes": {
@@ -60,29 +60,29 @@ TEST_MODEL = {
                     "name": "tensor1",
                     "shape": (8, 1),
                     "type": tflite.TensorType.INT16,
-                    "buffer": 1,
+                    "buffer": 2,
                 },
                 2: {
                     "name": "tensor2",
                     "shape": (4, 1),
                     "type": tflite.TensorType.INT32,
-                    "buffer": 1,
+                    "buffer": 3,
                 },
                 3: {
                     "name": "tensor3",
                     "shape": (2, 1),
                     "type": tflite.TensorType.INT64,
-                    "buffer": 1,
+                    "buffer": 4,
                 },
             },
         },
     },
     "buffers": {
-        0:
-        bytes(),
-        1:
-        bytes((206, 185, 109, 109, 212, 205, 25, 47, 42, 209, 94, 138, 182, 3,
-               76, 2)),
+        0: None,
+        1: np.array(range(16), dtype=np.dtype("<i1")),
+        2: np.array(range(8), dtype=np.dtype("<i2")),
+        3: np.array(range(4), dtype=np.dtype("<i4")),
+        4: np.array(range(2), dtype=np.dtype("<i8")),
     }
 }
 
@@ -94,7 +94,7 @@ class TestModelFacade(tf.test.TestCase):
     self.facade = model_facade.read(self.flatbuffer)
 
   def testReadAndWrite(self):
-    self.assertEqual(self.flatbuffer, self.facade.pack())
+    self.assertEqual(self.flatbuffer, self.facade.compile())
 
   def testSubgraphIteration(self):
     self.assertEqual(len(self.facade.subgraphs), len(TEST_MODEL["subgraphs"]))
@@ -107,80 +107,23 @@ class TestTensors(tf.test.TestCase):
   def setUp(self):
     flatbuffer = test_models.build(TEST_MODEL)
     self.facade = model_facade.read(flatbuffer)
+    self.source_tensors = TEST_MODEL["subgraphs"][0]["tensors"].items()
 
   def testName(self):
-    name = TEST_MODEL["subgraphs"][0]["tensors"][0]["name"]
-    self.assertEqual(name, self.facade.subgraphs[0].tensors[0].name)
+    for id, spec in self.source_tensors:
+      expect = spec["name"]
+      self.assertEqual(self.facade.subgraphs[0].tensors[id].name, expect)
 
   def testNameIsString(self):
-    self.assertTrue(type(self.facade.subgraphs[0].tensors[0].name) is str)
+    for id, _ in self.source_tensors:
+      self.assertIsInstance(self.facade.subgraphs[0].tensors[id].name, str)
 
-  def testValuesInt8(self):
-    tensor_id = 0
-    tensor = self.facade.subgraphs[0].tensors[tensor_id]
-    self.assertEqual(tensor.type, tflite.TensorType.INT8)
-
-    expect = []
-    buffer_id = TEST_MODEL["subgraphs"][0]["tensors"][tensor_id]["buffer"]
-    data = TEST_MODEL["buffers"][buffer_id]
-    for octet in data:
-      expect.append((octet - 0x100) if (octet & 0x80) else octet)
-
-    self.assertAllEqual(tensor.values, expect)
-
-  def testValuesInt16(self):
-    tensor_id = 1
-    tensor = self.facade.subgraphs[0].tensors[tensor_id]
-    self.assertEqual(tensor.type, tflite.TensorType.INT16)
-
-    expect = []
-    buffer_id = TEST_MODEL["subgraphs"][0]["tensors"][tensor_id]["buffer"]
-    data = TEST_MODEL["buffers"][buffer_id]
-    for octet in range(0, len(data), 2):
-      value = (data[octet + 1] << 8) + data[octet]
-      expect.append((value - 0x1_0000) if (value & 0x8000) else value)
-
-    self.assertAllEqual(tensor.values, expect)
-
-  def testValuesInt32(self):
-    tensor_id = 2
-    tensor = self.facade.subgraphs[0].tensors[tensor_id]
-    self.assertEqual(tensor.type, tflite.TensorType.INT32)
-
-    expect = []
-    buffer_id = TEST_MODEL["subgraphs"][0]["tensors"][tensor_id]["buffer"]
-    data = TEST_MODEL["buffers"][buffer_id]
-    for octet in range(0, len(data), 4):
-      value = (data[octet + 3] << 24) + (data[octet + 2] << 16) + (
-          data[octet + 1] << 8) + data[octet]
-      expect.append((value - 0x1_0000_0000) if (value
-                                                & 0x8000_0000) else value)
-
-    self.assertAllEqual(tensor.values, expect)
-
-  def testValuesInt64(self):
-    tensor_id = 3
-    tensor = self.facade.subgraphs[0].tensors[tensor_id]
-    self.assertEqual(tensor.type, tflite.TensorType.INT64)
-
-    expect = []
-    buffer_id = TEST_MODEL["subgraphs"][0]["tensors"][tensor_id]["buffer"]
-    data = TEST_MODEL["buffers"][buffer_id]
-    size = 8
-    for octet in range(0, len(data), size):
-      value = sum(data[octet + i] << 8 * i for i in range(0, size))
-      expect.append((value - 0x1_0000_0000_0000_0000) if (
-          value
-          & 0x8000_0000_0000_0000) else value)
-
-    self.assertAllEqual(tensor.values, expect)
-
-  def testNormalizeShape(self):
-    tensor_id = 3
-    tensor = self.facade.subgraphs[0].tensors[tensor_id]
-    expect = [1, 1, 2, 1]
-    self.assertTrue(len(tensor.shape) < 4)
-    self.assertAllEqual(tensor.shape_nhwc, expect)
+  def testTensors(self):
+    for id, spec in self.source_tensors:
+      tensor = self.facade.subgraphs[0].tensors[id]
+      self.assertAllEqual(tensor.shape, spec["shape"])
+      data = TEST_MODEL["buffers"][spec["buffer"]]
+      self.assertAllEqual(tensor.array, data.reshape(tensor.shape))
 
 
 if __name__ == "__main__":

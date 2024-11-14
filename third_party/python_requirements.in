@@ -35,3 +35,4 @@ mako
 pillow
 yapf
 protobuf
+pyyaml

@@ -19,7 +19,6 @@ import textwrap
 import os
 import sys
 
-import lib
 from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
 from tensorflow.lite.python import schema_py_generated as tflite_schema
 
