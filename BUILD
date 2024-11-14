@@ -7,3 +7,17 @@ refresh_compile_commands(
     name = "refresh_compile_commands",
     targets = ["//..."],
 )
+
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
+bool_flag(
+    name = "with_compression",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "with_compression_enabled",
+    flag_values = {
+        ":with_compression": "True",
+    },
+)

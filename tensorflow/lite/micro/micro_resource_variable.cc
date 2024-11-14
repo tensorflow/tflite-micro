@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ TfLiteStatus MicroResourceVariables::Allocate(int id, TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus MicroResourceVariables::Assign(int id,
-                                            const TfLiteEvalTensor* tensor) {
+TfLiteStatus MicroResourceVariables::Assign(int id, size_t count_bytes,
+                                            const void* input_buffer) {
   if (id < 0 || id >= num_resource_variables_) {
     MicroPrintf("Attempting to read non-existent resource variable %d", id);
     return kTfLiteError;
@@ -128,8 +128,9 @@ TfLiteStatus MicroResourceVariables::Assign(int id,
         "with a TfLiteTensor first.");
     return kTfLiteError;
   }
-  TFLITE_DCHECK(EvalTensorBytes(tensor) == variable.bytes);
-  memcpy(variable.resource_buffer, tensor->data.raw, variable.bytes);
+  TFLITE_DCHECK(count_bytes == variable.bytes);
+  TFLITE_DCHECK(input_buffer != nullptr);
+  memcpy(variable.resource_buffer, input_buffer, variable.bytes);
   return kTfLiteOk;
 }
 

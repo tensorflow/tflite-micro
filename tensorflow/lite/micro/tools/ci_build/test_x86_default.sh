@@ -41,6 +41,20 @@ readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/M
 readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile integration_tests TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
+# optional TFLM tensor compression - execute the unit tests
+readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile test \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
+  USE_TFLM_COMPRESSION=yes
+
+# optional TFLM tensor compression - run generic benchmark
+readable_run make -j$(nproc) -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
+  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+  EXTERNAL_DIR=${EXTERNAL_DIR} \
+  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+  USE_TFLM_COMPRESSION=yes \
+  run_tflm_benchmark
+
 # run generic benchmark
 readable_run make -j$(nproc) -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \

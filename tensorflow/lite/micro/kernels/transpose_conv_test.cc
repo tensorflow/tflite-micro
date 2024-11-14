@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/transpose_conv.h"
+
+#include <type_traits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/kernels/conv_test.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -47,20 +50,127 @@ static const float kGoldenData[kOutputElements] = {
     184,  412,  568,  528,  678,  1347, 1689, 1434,
     1494, 2715, 3057, 2442, 1968, 3352, 3652, 2760};
 
+#ifdef USE_TFLM_COMPRESSION
+
+constexpr size_t kTransposeConvMaxTensors = 5;
+constexpr size_t kTransposeConvMaxInputTensors = 4;
+
+// compressed filter data for kBinQuant scheme, matches kFilterData
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterData[] = {
+    0x00, 0x44, 0x32, 0x14, 0xC7, 0x42, 0x54, 0xB6, 0x35, 0xCF, 0x84, 0x40};
+constexpr int kBinQuantFilterBitWidth = 5;
+// compressed bias data for kBinQuant scheme, matches kBiasData
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x00};
+constexpr int kBinQuantBiasBitWidth = 1;
+
+// Common inputs and outputs (quantized single channel).
+// data from TfLite test: SimpleBiasTestQuantizedPerChannelSingleChannel
+static int kInputShapeQ1[] = {4, 1, 4, 4, 1};
+static constexpr float kInputDataQ1[] = {1, 2,  3,  4,  5,  6,  7,  8,
+                                         9, 10, 11, 12, 13, 14, 15, 16};
+constexpr size_t kInputElementsQ1 = std::extent<decltype(kInputDataQ1)>::value;
+
+constexpr int kNumChannelsQ1 = 1;
+static int kFilterShapeQ1[] = {4, 1, 3, 3, 1};
+static constexpr float kFilterDataQ1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+constexpr size_t kFilterElementsQ1 =
+    std::extent<decltype(kFilterDataQ1)>::value;
+
+static int kBiasShapeQ1[] = {1, 1};
+static constexpr float kBiasDataQ1[] = {1};
+constexpr size_t kBiasElementsQ1 = std::extent<decltype(kBiasDataQ1)>::value;
+
+static int kOutputShapeQ1[] = {4, 1, 4, 4, 1};
+static constexpr float kGoldenDataQ1[] = {
+    30, 62, 84, 76, 100, 194, 238, 200, 208, 372, 418, 330, 264, 446, 486, 366};
+constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
+
+// compressed filter data for kBinQuant scheme, matches kFilterDataQ1
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterDataQ1[] = {0x01, 0x23, 0x45, 0x67,
+                                                         0x80};
+constexpr int kBinQuantFilterBitWidthQ1 = 4;
+// compressed bias data for kBinQuant scheme, matches kBiasDataQ1
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
+constexpr int kBinQuantBiasBitWidthQ1 = 1;
+
+// Common inputs and outputs (quantized multi channel).
+// data from TfLite test: SimpleBiasTestQuantizedPerChannel16x8Bias64
+static int kInputShapeQ2[] = {4, 1, 2, 3, 2};
+static constexpr float kInputDataQ2[] = {
+    // [1 * 2 * 3 * 2] as [batch, y, x, input_channel]
+    3,  2,   // batch = 0, y = 0, x = 0
+    1,  -1,  // batch = 0, y = 0, x = 1
+    -2, -3,  // batch = 0, y = 0, x = 2
+    4,  3,   // batch = 0, y = 1, x = 0
+    2,  -2,  // batch = 0, y = 1, x = 1
+    -3, -4,  // batch = 0, y = 1, x = 2
+};
+constexpr size_t kInputElementsQ2 = std::extent<decltype(kInputDataQ2)>::value;
+
+constexpr int kNumChannelsQ2 = 2;
+static int kFilterShapeQ2[] = {4, 2, 2, 2, 2};
+// Original filter data:
+// static constexpr float kFilterDataQ2[] = {
+//     // [2 * 2 * 2 * 2] as [output_channel, y, x, input_channel]
+//     1, 2,  // out channel = 0, y = 0, x = 0
+//     3, 4,  // out channel = 0, y = 0, x = 1
+//     3, 4,  // out channel = 0, y = 1, x = 0
+//     5, 6,  // out channel = 0, y = 1, x = 1
+//     7, 8,  // out channel = 1, y = 0, x = 0
+//     5, 6,  // out channel = 1, y = 0, x = 1
+//     3, 4,  // out channel = 1, y = 1, x = 0
+//     1, 2,  // out channel = 1, y = 1, x = 1
+// };
+
+static int kBiasShapeQ2[] = {1, 2};
+static constexpr float kBiasDataQ2[] = {3, -2};
+constexpr size_t kBiasElementsQ2 = std::extent<decltype(kBiasDataQ2)>::value;
+
+static int kOutputShapeQ2[] = {4, 1, 2, 3, 2};
+static constexpr float kGoldenDataQ2[] = {10, 35, 19, 24, -6,  -41,
+                                          30, 64, 51, 40, -29, -64};
+constexpr int kOutputElementsQ2 = std::extent<decltype(kGoldenDataQ2)>::value;
+
+// compressed filter data for kBinQuant scheme, matches kFilterDataQ2
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantFilterDataQ2[] = {0x05, 0x34, 0xE5,
+                                                         0xDE, 0x54, 0xC1};
+constexpr float kBinQuantFilterValueTableQ2[] = {1, 2, 3, 4, 5, 6, 0, 0,
+                                                 1, 2, 3, 4, 5, 6, 7, 8};
+constexpr size_t kBinQuantFilterValueTableElementsQ2 =
+    std::extent<decltype(kBinQuantFilterValueTableQ2)>::value;
+constexpr int kBinQuantFilterBitWidthQ2 = 3;
+// compressed bias data for kBinQuant scheme, matches kBiasDataQ2
+// Align the tensor data the same as a Buffer in the schema
+alignas(16) constexpr uint8_t kBinQuantBiasDataQ2[] = {0x00};
+constexpr int kBinQuantBiasBitWidthQ2 = 1;
+
+#endif  // USE_TFLM_COMPRESSION
+
 // Transpose conv uses TfLiteConvParams.
-static TfLiteConvParams common_conv_params = {kTfLitePaddingSame,  // padding
-                                              1,  // stride_width
-                                              1,  // stride_height
-                                              kTfLiteActNone,
-                                              1,
-                                              1,
-                                              kTfLiteNoType};
+static const TfLiteConvParams common_conv_params = {
+    kTfLitePaddingSame,  // padding
+    1,                   // stride_width
+    1,                   // stride_height
+    kTfLiteActNone,
+    1,
+    1,
+    kTfLiteNoType};
 
 template <typename T>
-TfLiteStatus InvokeTransposeConv(TfLiteTensor* tensors, int tensors_size,
-                                 int output_length,
-                                 TfLiteConvParams* conv_params,
-                                 T* output_data) {
+TfLiteStatus InvokeTransposeConv(
+    TfLiteTensor* tensors, int tensors_size, int output_length,
+    const TfLiteConvParams* conv_params, T* output_data
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const CompressedTensorList* comp_list_p = nullptr
+#endif  // USE_TFLM_COMPRESSION
+) {
+  // TODO(b/358151309): support optional bias tensor
   int inputs_array_data[] = {4, 0, 1, 2, 3};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 4};
@@ -68,7 +178,12 @@ TfLiteStatus InvokeTransposeConv(TfLiteTensor* tensors, int tensors_size,
 
   const TFLMRegistration registration = tflite::Register_TRANSPOSE_CONV();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
-                             outputs_array, conv_params);
+                             outputs_array, conv_params
+#ifdef USE_TFLM_COMPRESSION
+                             ,
+                             nullptr, comp_list_p
+#endif  // USE_TFLM_COMPRESSION
+  );
 
   const char* init_data = reinterpret_cast<const char*>(conv_params);
   TfLiteStatus status = runner.InitAndPrepare(init_data);
@@ -78,15 +193,44 @@ TfLiteStatus InvokeTransposeConv(TfLiteTensor* tensors, int tensors_size,
   return runner.Invoke();
 }
 
-template <typename T>
-TfLiteStatus ValidateTransposeConvGoldens(TfLiteTensor* tensors,
-                                          int tensors_size,
-                                          const T* expected_output_data,
-                                          int output_length,
-                                          TfLiteConvParams* conv_params,
-                                          T* output_data, float tolerance) {
+template <typename T, typename CTF = void, typename CTB = void>
+TfLiteStatus ValidateTransposeConvGoldens(
+    TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
+    int output_length, const TfLiteConvParams* conv_params, T* output_data,
+    float tolerance = 1e-5f
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+#endif  // USE_TFLM_COMPRESSION
+) {
+#ifdef USE_TFLM_COMPRESSION
+
+  TestCompressedList<kTransposeConvMaxInputTensors, CTF, CTB> tcl;
+  const CompressedTensorList* comp_list_p = nullptr;
+
+  if (comp_info != nullptr) {
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddWeight(*comp_info, tensors[kTransposeConvFilterTensor],
+                      kTransposeConvFilterTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddBias(*comp_info, tensors[kTransposeConvBiasTensor],
+                    kTransposeConvBiasTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
+    comp_list_p = tcl.GetCompressedTensorList();
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
   TfLiteStatus status = InvokeTransposeConv(
-      tensors, tensors_size, output_length, conv_params, output_data);
+      tensors, tensors_size, output_length, conv_params, output_data
+#ifdef USE_TFLM_COMPRESSION
+      ,
+      comp_list_p
+#endif  // USE_TFLM_COMPRESSION
+  );
   if (status != kTfLiteOk) {
     return status;
   }
@@ -97,11 +241,17 @@ TfLiteStatus ValidateTransposeConvGoldens(TfLiteTensor* tensors,
   return kTfLiteOk;
 }
 
+template <typename CTF = void, typename CTB = void>
 TfLiteStatus TestTransposeConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
     const float* filter_data, int* bias_dims_data, const float* bias_data,
     int* output_dims_data, const float* expected_output_data,
-    TfLiteConvParams* conv_params, float* output_data) {
+    const TfLiteConvParams* conv_params, float* output_data
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+#endif  // USE_TFLM_COMPRESSION
+) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -125,7 +275,12 @@ TfLiteStatus TestTransposeConvFloat(
 
   return ValidateTransposeConvGoldens(tensors, tensors_size,
                                       expected_output_data, output_dims_count,
-                                      conv_params, output_data, 0.001f);
+                                      conv_params, output_data
+#ifdef USE_TFLM_COMPRESSION
+                                      ,
+                                      1e-5, comp_info
+#endif  // USE_TFLM_COMPRESSION
+  );
 }
 
 TfLiteStatus TestTransposeConvQuantized(
@@ -135,8 +290,8 @@ TfLiteStatus TestTransposeConvQuantized(
     int* bias_dims_data, const float* bias_data, int32_t* bias_quantized,
     float* bias_scales, int* bias_zero_points, int* output_dims_data,
     const float* expected_output_data, int8_t* expected_output_quantized,
-    float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
-    int8_t* output_data) {
+    float output_scale, int output_zero_point,
+    const TfLiteConvParams* conv_params, int8_t* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -181,8 +336,8 @@ TfLiteStatus TestTransposeConvQuantized(
     int* bias_dims_data, const float* bias_data, T* bias_quantized,
     float* bias_scales, int* bias_zero_points, int* output_dims_data,
     const float* expected_output_data, int16_t* expected_output_quantized,
-    float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
-    int16_t* output_data) {
+    float output_scale, int output_zero_point,
+    const TfLiteConvParams* conv_params, int16_t* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -221,6 +376,78 @@ TfLiteStatus TestTransposeConvQuantized(
       conv_params, output_data, 4.0f);
 }
 
+#ifdef USE_TFLM_COMPRESSION
+
+template <typename TIO, typename CTB>
+TfLiteStatus TestTransposeConvQuantizedCompressed(
+    int* input_dims_data, const float* input_data, TIO* input_quantized,
+    float input_scale, int input_zero_point, int* output_dims_data,
+    const float* expected_output_data, TIO* expected_output_quantized,
+    TIO* output_quantized, float output_scale, int output_zero_point,
+    const TfLiteConvParams* conv_params, const unsigned int tolerance,
+    const TestCompressionQuantizedInfo<CTB>* comp_info) {
+  // TODO(b/358151309): account for optional bias tensor
+  // bool null_bias = comp_info->bias_data == nullptr ? true : false;
+
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* filter_dims = IntArrayFromInts(comp_info->filter_dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(comp_info->bias_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  TfLiteFloatArray* filter_scales =
+      FloatArrayFromFloats(comp_info->filter_scales);
+  TfLiteIntArray* filter_zero_points =
+      IntArrayFromInts(comp_info->filter_zero_points);
+  TfLiteFloatArray* bias_scales = FloatArrayFromFloats(comp_info->bias_scales);
+  TfLiteIntArray* bias_zero_points =
+      IntArrayFromInts(comp_info->bias_zero_points);
+
+  TfLiteAffineQuantization filter_quant = {};
+  TfLiteTensor filter_tensor = CreatePerChannelQuantizedTensor(
+      comp_info->filter_compressed, filter_dims, filter_scales,
+      filter_zero_points, &filter_quant, kTransposeConvQuantizedDimension,
+      false /* is_variable */, kTfLiteInt8);
+  SymmetricPerChannelQuantize(
+      comp_info->filter_data, comp_info->filter_value_table,
+      filter_scales->size * comp_info->filter_value_table_stride,
+      filter_scales->size, filter_scales->data);
+
+  TfLiteAffineQuantization bias_quant = {};
+  TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
+      comp_info->bias_compressed, bias_dims, input_scale, filter_scales,
+      bias_scales, bias_zero_points, &bias_quant,
+      kTransposeConvQuantizedDimension, false /* is_variable */,
+      typeToTfLiteType<CTB>());
+  SymmetricPerChannelQuantize(
+      comp_info->bias_data, comp_info->bias_value_table,
+      bias_scales->size * comp_info->bias_value_table_stride, bias_scales->size,
+      bias_scales->data);
+
+  int output_shape_dims_data[] = {1, 0};
+  int32_t* output_shape = nullptr;
+  TfLiteIntArray* output_shape_dims = IntArrayFromInts(output_shape_dims_data);
+
+  constexpr int tensors_size = kTransposeConvMaxTensors;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(output_shape, output_shape_dims),
+      filter_tensor,
+      CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                            input_scale, input_zero_point),
+      bias_tensor,
+      CreateQuantizedTensor(output_quantized, output_dims, output_scale,
+                            output_zero_point),
+  };
+
+  const int output_dims_count = ElementCount(*output_dims);
+  Quantize(expected_output_data, expected_output_quantized, output_dims_count,
+           output_scale, output_zero_point);
+  return ValidateTransposeConvGoldens(
+      tensors, tensors_size, expected_output_quantized, output_dims_count,
+      conv_params, output_quantized, tolerance, comp_info);
+}
+
+#endif  // USE_TFLM_COMPRESSION
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -239,6 +466,36 @@ TF_LITE_MICRO_TEST(SimpleTestFloat) {
           tflite::testing::kOutputShape, tflite::testing::kGoldenData,
           &tflite::testing::common_conv_params, output_data));
 }
+
+#ifdef USE_TFLM_COMPRESSION
+
+TF_LITE_MICRO_TEST(SimpleTestFloatCompressed) {
+  tflite::testing::TestCompressionInfo<const float, const float> comp_info = {};
+  comp_info.scheme = tflite::CompressionScheme::kBinQuant;
+  comp_info.filter_value_table = tflite::testing::kFilterData;
+  comp_info.filter_value_table_stride =
+      std::extent<decltype(tflite::testing::kFilterData)>::value;
+  comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidth;
+  comp_info.bias_value_table = tflite::testing::kBiasData;
+  comp_info.bias_value_table_stride =
+      std::extent<decltype(tflite::testing::kBiasData)>::value;
+  comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidth;
+
+  float output_data[tflite::testing::kOutputElements];
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvFloat(
+          tflite::testing::kInputShape, tflite::testing::kInputData,
+          tflite::testing::kFilterShape,
+          reinterpret_cast<const float*>(tflite::testing::kBinQuantFilterData),
+          tflite::testing::kBiasShape,
+          reinterpret_cast<const float*>(tflite::testing::kBinQuantBiasData),
+          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+          &tflite::testing::common_conv_params, output_data, &comp_info));
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 TF_LITE_MICRO_TEST(fusedRELUTest) {
   float output_data[tflite::testing::kOutputElements];
@@ -475,5 +732,194 @@ TF_LITE_MICRO_TEST(HybridModeIsError) {
                         tensors, tensors_size, output_dims_count,
                         &tflite::testing::common_conv_params, output_data));
 }
+
+#ifdef USE_TFLM_COMPRESSION
+
+TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelSingleChannelCompressed) {
+  // data from TfLite test: SimpleBiasTestQuantizedPerChannelSingleChannel
+  const float input_scale = 16.0f / 255.0f;
+  const float output_scale = 2.0f;
+  const int input_zero_point = -128;
+  const int output_zero_point = -128;
+  constexpr float filter_scales[] = {
+      tflite::testing::kNumChannelsQ1,
+      9.0f / 127.0f,
+  };
+  constexpr int filter_zero_points[] = {
+      tflite::testing::kNumChannelsQ1,
+      0,
+  };
+  // bias scales and zero points will be computed
+  float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
+  int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
+
+  int8_t input_quantized[tflite::testing::kInputElementsQ1];
+  int8_t filter_quantized[tflite::testing::kFilterElementsQ1];
+  int32_t bias_quantized[tflite::testing::kBiasElementsQ1];
+  int8_t golden_quantized[tflite::testing::kOutputElementsQ1];
+  int8_t output_quantized[tflite::testing::kOutputElementsQ1];
+
+  tflite::testing::TestCompressionQuantizedInfo<int32_t> comp_info = {};
+  comp_info.scheme = tflite::CompressionScheme::kBinQuant;
+
+  comp_info.filter_value_table = filter_quantized;
+  comp_info.filter_value_table_stride =
+      tflite::testing::kFilterElementsQ1 / tflite::testing::kNumChannelsQ1;
+  comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidthQ1;
+  comp_info.filter_compressed = tflite::testing::kBinQuantFilterDataQ1;
+  comp_info.filter_data = tflite::testing::kFilterDataQ1;
+  comp_info.filter_dims_data = tflite::testing::kFilterShapeQ1;
+  comp_info.filter_scales = filter_scales;
+  comp_info.filter_zero_points = filter_zero_points;
+
+  comp_info.bias_value_table = bias_quantized;
+  comp_info.bias_value_table_stride =
+      tflite::testing::kBiasElementsQ1 / tflite::testing::kNumChannelsQ1;
+  comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidthQ1;
+  comp_info.bias_compressed = tflite::testing::kBinQuantBiasDataQ1;
+  comp_info.bias_data = tflite::testing::kBiasDataQ1;
+  comp_info.bias_dims_data = tflite::testing::kBiasShapeQ1;
+  comp_info.bias_scales = bias_scales;
+  comp_info.bias_zero_points = bias_zero_points;
+
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvQuantizedCompressed(
+          tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
+          golden_quantized, output_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, 0, &comp_info));
+}
+
+TF_LITE_MICRO_TEST(
+    SimpleBiasTestQuantizedPerChannelBias16MultiChannelCompressed) {
+  // data from TfLite test: SimpleBiasTestQuantizedPerChannel16x8Bias64
+  const float input_scale = 4.0f / 127.0f;
+  const float output_scale = 128.0f / 65536.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+  constexpr float filter_scales[] = {
+      tflite::testing::kNumChannelsQ2,
+      7.0f / 127.0f,
+      8.0f / 127.0f,
+  };
+  constexpr int filter_zero_points[] = {
+      tflite::testing::kNumChannelsQ2,
+      0,
+      0,
+  };
+  // bias scales and zero points will be computed
+  float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
+  int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
+
+  int16_t input_quantized[tflite::testing::kInputElementsQ2];
+  int8_t filter_quantized[tflite::testing::kBinQuantFilterValueTableElementsQ2];
+  int16_t bias_quantized[tflite::testing::kBiasElementsQ2];
+  int16_t golden_quantized[tflite::testing::kOutputElementsQ2];
+  int16_t output_quantized[tflite::testing::kOutputElementsQ2];
+
+  tflite::testing::TestCompressionQuantizedInfo<int16_t> comp_info = {};
+  comp_info.scheme = tflite::CompressionScheme::kBinQuant;
+
+  comp_info.filter_value_table = filter_quantized;
+  comp_info.filter_value_table_stride =
+      tflite::testing::kBinQuantFilterValueTableElementsQ2 /
+      tflite::testing::kNumChannelsQ2;
+  comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidthQ2;
+  comp_info.filter_compressed = tflite::testing::kBinQuantFilterDataQ2;
+  comp_info.filter_data = tflite::testing::kBinQuantFilterValueTableQ2;
+  comp_info.filter_dims_data = tflite::testing::kFilterShapeQ2;
+  comp_info.filter_scales = filter_scales;
+  comp_info.filter_zero_points = filter_zero_points;
+
+  comp_info.bias_value_table = bias_quantized;
+  comp_info.bias_value_table_stride =
+      tflite::testing::kBiasElementsQ2 / tflite::testing::kNumChannelsQ2;
+  comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidthQ2;
+  comp_info.bias_compressed = tflite::testing::kBinQuantBiasDataQ2;
+  comp_info.bias_data = tflite::testing::kBiasDataQ2;
+  comp_info.bias_dims_data = tflite::testing::kBiasShapeQ2;
+  comp_info.bias_scales = bias_scales;
+  comp_info.bias_zero_points = bias_zero_points;
+
+  // The quantized output is compared to the expected output (quantized).
+  // A tolerance of 81 is approx. 0.1582f which is less than the TfLite
+  // tolerance of 0.19f.
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvQuantizedCompressed(
+          tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
+          golden_quantized, output_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, 81, &comp_info));
+}
+
+TF_LITE_MICRO_TEST(
+    SimpleBiasTestQuantizedPerChannelBias64MultiChannelCompressed) {
+  // data from TfLite test: SimpleBiasTestQuantizedPerChannel16x8Bias64
+  const float input_scale = 4.0f / 127.0f;
+  const float output_scale = 128.0f / 65536.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+  constexpr float filter_scales[] = {
+      tflite::testing::kNumChannelsQ2,
+      7.0f / 127.0f,
+      8.0f / 127.0f,
+  };
+  constexpr int filter_zero_points[] = {
+      tflite::testing::kNumChannelsQ2,
+      0,
+      0,
+  };
+  // bias scales and zero points will be computed
+  float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
+  int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
+
+  int16_t input_quantized[tflite::testing::kInputElementsQ2];
+  int8_t filter_quantized[tflite::testing::kBinQuantFilterValueTableElementsQ2];
+  int64_t bias_quantized[tflite::testing::kBiasElementsQ2];
+  int16_t golden_quantized[tflite::testing::kOutputElementsQ2];
+  int16_t output_quantized[tflite::testing::kOutputElementsQ2];
+
+  tflite::testing::TestCompressionQuantizedInfo<int64_t> comp_info = {};
+  comp_info.scheme = tflite::CompressionScheme::kBinQuant;
+
+  comp_info.filter_value_table = filter_quantized;
+  comp_info.filter_value_table_stride =
+      tflite::testing::kBinQuantFilterValueTableElementsQ2 /
+      tflite::testing::kNumChannelsQ2;
+  comp_info.filter_bit_width = tflite::testing::kBinQuantFilterBitWidthQ2;
+  comp_info.filter_compressed = tflite::testing::kBinQuantFilterDataQ2;
+  comp_info.filter_data = tflite::testing::kBinQuantFilterValueTableQ2;
+  comp_info.filter_dims_data = tflite::testing::kFilterShapeQ2;
+  comp_info.filter_scales = filter_scales;
+  comp_info.filter_zero_points = filter_zero_points;
+
+  comp_info.bias_value_table = bias_quantized;
+  comp_info.bias_value_table_stride =
+      tflite::testing::kBiasElementsQ2 / tflite::testing::kNumChannelsQ2;
+  comp_info.bias_bit_width = tflite::testing::kBinQuantBiasBitWidthQ2;
+  comp_info.bias_compressed = tflite::testing::kBinQuantBiasDataQ2;
+  comp_info.bias_data = tflite::testing::kBiasDataQ2;
+  comp_info.bias_dims_data = tflite::testing::kBiasShapeQ2;
+  comp_info.bias_scales = bias_scales;
+  comp_info.bias_zero_points = bias_zero_points;
+
+  // The quantized output is compared to the expected output (quantized).
+  // A tolerance of 81 is approx. 0.1582f which is less than the TfLite
+  // tolerance of 0.19f.
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk,
+      tflite::testing::TestTransposeConvQuantizedCompressed(
+          tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
+          input_quantized, input_scale, input_zero_point,
+          tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
+          golden_quantized, output_quantized, output_scale, output_zero_point,
+          &tflite::testing::common_conv_params, 81, &comp_info));
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 TF_LITE_MICRO_TESTS_END
