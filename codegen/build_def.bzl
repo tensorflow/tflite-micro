@@ -18,10 +18,24 @@ def tflm_inference_library(
     native.genrule(
         name = generated_target,
         srcs = [tflite_model],
-        outs = [name + ".h", name + ".cc"],
+        outs = [
+            name + ".h",
+            name + ".cc",
+            name + ".log",
+        ],
         tools = ["//codegen:code_generator"],
-        cmd = "$(location //codegen:code_generator) --quiet " +
-              "--model=$< --output_dir=$(RULEDIR) --output_name=%s" % name,
+        cmd = """
+            # code_generator (partially because it uses Tensorflow) outputs
+            # much noise to the console. Intead, write output to a logfile to
+            # prevent noise in the error-free bazel output.
+            NAME=%s
+            LOGFILE=$(RULEDIR)/$$NAME.log
+            $(location //codegen:code_generator) \
+                    --model=$< \
+                    --output_dir=$(RULEDIR) \
+                    --output_name=$$NAME \
+                    >$$LOGFILE 2>&1
+        """ % name,
         visibility = ["//visibility:private"],
     )
 
