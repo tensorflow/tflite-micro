@@ -12,6 +12,14 @@ def tflm_copts():
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
     ]
 
+def micro_copts():
+    """A deprecated alias for tflm_copts, kept for out-of-tree users.
+
+    This deprecated function serves as an alias for tflm_copts(). It is retained
+    for the benefit of code outside the open-source TFLM repository.
+    """
+    return tflm_copts()
+
 def tflm_cc_binary(copts = tflm_copts(), **kwargs):
     native.cc_binary(
         copts = copts,
