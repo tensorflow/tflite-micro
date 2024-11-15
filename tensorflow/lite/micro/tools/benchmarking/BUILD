@@ -1,11 +1,17 @@
-cc_library(
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_binary",
+    "tflm_cc_library",
+)
+
+tflm_cc_library(
     name = "op_resolver",
     hdrs = ["op_resolver.h"],
     visibility = ["//tensorflow/lite/micro/tools:__subpackages__"],
     deps = ["//tensorflow/lite/micro:op_resolvers"],
 )
 
-cc_library(
+tflm_cc_library(
     name = "metrics",
     srcs = ["metrics.cc"],
     hdrs = ["metrics.h"],
@@ -17,7 +23,7 @@ cc_library(
     ],
 )
 
-cc_library(
+tflm_cc_library(
     name = "generic_benchmark_lib",
     srcs = ["generic_model_benchmark.cc"],
     hdrs = ["show_meta_data.h"],
@@ -37,7 +43,7 @@ cc_library(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "tflm_benchmark",
     deps = [":generic_benchmark_lib"],
 )
