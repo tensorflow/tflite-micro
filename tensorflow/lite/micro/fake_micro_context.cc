@@ -181,13 +181,4 @@ const CompressionTensorData* FakeMicroContext::GetTensorCompressionData(
 
 #endif  // USE_TFLM_COMPRESSION
 
-TfLiteStatus FakeMicroContext::SetAlternateProfiler(
-    MicroProfilerInterface* alt_profiler) {
-  return kTfLiteError;
-}
-
-MicroProfilerInterface* FakeMicroContext::GetAlternateProfiler() const {
-  return nullptr;
-}
-
 }  // namespace tflite

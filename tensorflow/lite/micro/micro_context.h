@@ -132,14 +132,18 @@ class MicroContext {
   // The alternate MicroProfilerInterface is currently used by the tensor
   // decompression subsystem.
   virtual TfLiteStatus SetAlternateProfiler(
-      MicroProfilerInterface* alt_profiler) = 0;
+      MicroProfilerInterface* alt_profiler) {
+    return kTfLiteError;
+  }
 
   // Get the alternate MicroProfilerInterface.
   // This can be used to profile subsystems simultaneously with the profiling
   // of kernels during the Eval phase.  See (b/379584353).
   // The alternate MicroProfilerInterface is currently used by the tensor
   // decompression subsystem.
-  virtual MicroProfilerInterface* GetAlternateProfiler() const = 0;
+  virtual MicroProfilerInterface* GetAlternateProfiler() const {
+    return nullptr;
+  }
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE
