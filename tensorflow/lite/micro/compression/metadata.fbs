@@ -22,7 +22,7 @@ table Metadata {
     // should accept models with versions less than or equal the version for
     // which the code is built. I.e., code should accept older models, but not
     // necessarily newer ones.
-    schema_version:int = 1;
+    schema_version:uint = 1;
 
     // Compression data indexed by subgraph index.
     subgraphs:[Subgraph];
