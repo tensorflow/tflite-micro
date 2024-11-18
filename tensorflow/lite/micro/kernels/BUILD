@@ -311,6 +311,7 @@ tflm_kernel_cc_library(
         "svdf_common.cc",
         "tanh.cc",
         "transpose.cc",
+        "transpose_common.cc",
         "transpose_conv.cc",
         "unidirectional_sequence_lstm.cc",
         "unpack.cc",

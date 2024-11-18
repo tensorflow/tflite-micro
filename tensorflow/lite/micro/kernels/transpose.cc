@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/transpose.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -45,32 +46,6 @@ struct TransposeContext {
   TfLiteTensor* perm;
   TfLiteTensor* output;
 };
-
-TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-
-  TransposeContext op_context(context, node);
-
-  // Ensure validity of input tensor.
-  TF_LITE_ENSURE_MSG(context, NumDimensions(op_context.input) <= 5,
-                     "Transpose op only supports 1D-5D input arrays.");
-  TF_LITE_ENSURE_TYPES_EQ(context, op_context.input->type,
-                          op_context.output->type);
-
-  int dims = NumDimensions(op_context.input);
-  const int32_t* perm_data = GetTensorData<int32_t>(op_context.perm);
-
-  // Ensure validity of the permutations tensor as a 1D tensor.
-  TF_LITE_ENSURE_EQ(context, NumDimensions(op_context.perm), 1);
-  TF_LITE_ENSURE_EQ(context, op_context.perm->dims->data[0], dims);
-  for (int idx = 0; idx < dims; ++idx) {
-    TF_LITE_ENSURE_MSG(context, (perm_data[idx] >= 0 && perm_data[idx] < dims),
-                       "Transpose op permutations array is out of bounds.");
-  }
-
-  return kTfLiteOk;
-}
 
 TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* perm_tensor =
