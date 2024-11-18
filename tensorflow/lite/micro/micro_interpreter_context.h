@@ -130,6 +130,21 @@ class MicroInterpreterContext : public MicroContext {
 
 #endif  // USE_TFLM_COMPRESSION
 
+  // Set the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  TfLiteStatus SetAlternateProfiler(
+      MicroProfilerInterface* alt_profiler) override;
+
+  // Get the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  MicroProfilerInterface* GetAlternateProfiler() const override;
+
  private:
   MicroAllocator& allocator_;
   MicroInterpreterGraph& graph_;
@@ -138,6 +153,7 @@ class MicroInterpreterContext : public MicroContext {
 
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
+  MicroProfilerInterface* alt_profiler_ = nullptr;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

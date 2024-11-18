@@ -212,7 +212,7 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   profiler.ClearEvents();
 
   if (using_compression) {
-    TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
+    TF_LITE_ENSURE_STATUS(interpreter.SetAlternateProfiler(&profiler2));
   }
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.

@@ -206,4 +206,14 @@ void* MicroInterpreterContext::DecompressTensorToBuffer(
 
 #endif  // USE_TFLM_COMPRESSION
 
+TfLiteStatus MicroInterpreterContext::SetAlternateProfiler(
+    tflite::MicroProfilerInterface* alt_profiler) {
+  alt_profiler_ = alt_profiler;
+  return kTfLiteOk;
+}
+
+MicroProfilerInterface* MicroInterpreterContext::GetAlternateProfiler() const {
+  return alt_profiler_;
+}
+
 }  // namespace tflite

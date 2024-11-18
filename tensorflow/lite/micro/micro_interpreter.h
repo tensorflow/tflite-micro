@@ -146,6 +146,14 @@ class MicroInterpreter {
     return allocator_.preserves_all_tensor();
   }
 
+  // Set the alternate MicroProfilerInterface.
+  // This value is passed through to the MicroContext.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  TfLiteStatus SetAlternateProfiler(MicroProfilerInterface* alt_profiler);
+
  protected:
   const MicroAllocator& allocator() const { return allocator_; }
   const TfLiteContext& context() const { return context_; }

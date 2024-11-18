@@ -73,6 +73,21 @@ class FakeMicroContext : public MicroContext {
 
 #endif  // USE_TFLM_COMPRESSION
 
+  // Set the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  TfLiteStatus SetAlternateProfiler(
+      MicroProfilerInterface* alt_profiler) override;
+
+  // Get the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  MicroProfilerInterface* GetAlternateProfiler() const override;
+
  private:
   static constexpr int kNumScratchBuffers_ = 12;
 
