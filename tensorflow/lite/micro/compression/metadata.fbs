@@ -37,13 +37,26 @@ table Subgraph {
 }
 
 table LutTensor {
-    // Look-Up-Table Tensor: a tensor representation where elements are
-    // compressed into indices into a table of values. The indices are unsigned
-    // integers, index_bitwidth-wide, in big-endian bit order, packed into the
-    // buffer identified by the corresponding tflite.Tensor's buffer field. The
-    // values are located in a newly-created buffer, encoded according to the
-    // tflite.Tensor.type. Tensors with multiple channels have distinct value
-    // tables for each channel, typically along their quantization axis,
+    // Look-Up-Table Tensor: A tensor representation where elements are indices
+    // into a table of values.
+    //
+    // The indices are unsigned integer bit-fields, index_bitwidth wide, packed
+    // into an array of bytes from high-order bits toward low-order bits, with
+    // no padding in-between.  The array is stored in the buffer identified by
+    // the corresponding tflite.Tensor's buffer field.
+    //
+    // E.g.:
+    //     byte:  0       1       
+    //     bit:   7654321076543210
+    //     field: 0  1  2 |3  padding
+    //            |  |  | ||  |
+    //     data:  1110000110100000
+    //            |  |  |  |  |
+    //     index: 7  0  3  2  x
+    //
+    // The values are located in a newly-created buffer, encoded according to
+    // the tflite.Tensor.type. Tensors with multiple channels have distinct
+    // value tables for each channel, typically along their quantization axis,
     // concatenated one after another. An element's index must be looked up in
     // the value table corresponding to its channel.
 
