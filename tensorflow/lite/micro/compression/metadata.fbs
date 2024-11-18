@@ -18,23 +18,22 @@ table Metadata {
     // Compression data root, to be used in a tflite.Model.metadata field with
     // the key "COMPRESSION_METADATA".
 
+    // Incremented whenever there are backward-incompatible changes. Code
+    // should accept models with versions less than or equal the version for
+    // which the code is built. I.e., code should accept older models, but not
+    // necessarily newer ones.
     schema_version:int = 1;
-        // ^ Incremented whenever there are backward-incompatible changes. Code
-        // should accept models with versions less than or equal the version
-        // for which the code is built. I.e., code should accept older models,
-        // but not necessarily newer ones.
 
+    // Compression data indexed by subgraph index.
     subgraphs:[Subgraph];
-        // ^ Compression data indexed by subgraph index.
 }
 
 table Subgraph {
     // Per-subgraph compression metadata.
 
+    // A list of tensors which are compressed using the (L)ook-(U)p-(T)able
+    // method. The indices of this vector are not significant.
     lut_tensors:[LutTensor];
-        // ^ A list of tensors which are compressed using the
-        // (L)ook-(U)p-(T)able method. The indices of this vector are not
-        // significant.
 }
 
 table LutTensor {
