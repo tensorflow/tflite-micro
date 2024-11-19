@@ -251,6 +251,9 @@ sh_test(
         ":whl",
     ],
     tags = [
+        "noasan",
+        "nomsan",
         "notap",  # See http://b/294278650#comment4 for more details.
+        "noubsan",
     ],
 )

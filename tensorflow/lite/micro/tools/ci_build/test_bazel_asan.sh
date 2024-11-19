@@ -17,22 +17,8 @@
 set -e
 set -x
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
-
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
-
-# We are using a bazel build followed by bazel test to make sure that the CI
-# covers non-test binary targets as well. These were previousbly covered by
-# having build_test but that was removed with #194.
-
-CC=clang readable_run bazel build tensorflow/lite/micro/... \
-  --config=ci \
-  --config=asan --build_tag_filters=-no_oss,-noasan
-
-CC=clang readable_run bazel test tensorflow/lite/micro/... \
+bazel test ... \
   --config=ci \
   --config=asan \
-  --test_tag_filters=-no_oss,-noasan --build_tag_filters=-no_oss,-noasan \
-  --test_output=errors
+  --build_tag_filters=-noasan \
+  --test_tag_filters=-noasan
