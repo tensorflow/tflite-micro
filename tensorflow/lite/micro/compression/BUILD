@@ -97,6 +97,43 @@ py_test(
     ],
 )
 
+py_binary(
+    name = "compress",
+    srcs = [
+        "compress.py",
+    ],
+    deps = [
+        ":metadata_py",
+        ":model_facade",
+        ":spec",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+        "@flatbuffers//:runtime_py",
+        requirement("bitarray"),
+        requirement("flatbuffers"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "compress_test",
+    size = "small",
+    srcs = [
+        "compress_test.py",
+    ],
+    deps = [
+        ":compress",
+        ":metadata_py",
+        ":model_facade",
+        ":spec",
+        ":test_models",
+        "//tensorflow/lite/python:schema_py",
+        requirement("bitarray"),
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
 py_library(
     name = "model_facade",
     srcs = ["model_facade.py"],
