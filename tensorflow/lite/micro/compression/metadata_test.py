@@ -11,58 +11,102 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Test validity of the flatbuffer schema and illustrate the use of the
+flatbuffer machinery with Python.
+"""
 
-# Test validity of the flatbuffer schema and illustrate use of the flatbuffer
-# machinery with Python
-
-import sys
+from dataclasses import dataclass
 import hexdump
 import flatbuffers
+import tensorflow as tf
 
 # `.*_generated` is the name of the module created by the Bazel rule
 # `flatbuffer_py_library' based on the schema.
-from tensorflow.lite.micro.compression import metadata_py_generated as schema
+from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
 
 
-def main():
-  # The classes with a `T` suffix provide an object-oriented representation of
-  # the object tree in the flatbuffer using native data structures.
-  lut_tensor0 = schema.LutTensorT()
-  lut_tensor0.tensor = 63
-  lut_tensor0.valueBuffer = 128
-  lut_tensor0.indexBitwidth = 2
+@dataclass
+class _LutTensor:
+  tensor: int
+  valueBuffer: int
+  indexBitwidth: int
 
-  lut_tensor1 = schema.LutTensorT()
-  lut_tensor1.tensor = 64
-  lut_tensor1.valueBuffer = 129
-  lut_tensor1.indexBitwidth = 4
 
-  subgraph0 = schema.SubgraphT()
-  subgraph0.lutTensors = [lut_tensor0, lut_tensor1]
+_EXPECTED_0 = _LutTensor(
+    tensor=63,
+    valueBuffer=128,
+    indexBitwidth=2,
+)
 
-  metadata = schema.MetadataT()
-  metadata.subgraphs = [subgraph0]
+_EXPECTED_1 = _LutTensor(
+    tensor=64,
+    valueBuffer=129,
+    indexBitwidth=4,
+)
 
-  # Build the flatbuffer itself using the flatbuffers runtime module.
-  builder = flatbuffers.Builder(32)
-  root = metadata.Pack(builder)
-  builder.Finish(root)
-  buffer: bytearray = builder.Output()
+# This is set in the schema definition.
+_EXPECTED_SCHEMA_VERSION = 1
 
-  print(hexdump.hexdump(buffer, result='return'))
-  print(f"length: {len(buffer)}")
 
-  read_metadata = schema.MetadataT.InitFromPackedBuf(buffer, 0)
-  read_subgraph0 = read_metadata.subgraphs[0]
+class TestReadEqualsWrite(tf.test.TestCase):
 
-  def attrs_equal(a, b):
-    return all(vars(a)[key] == vars(b)[key] for key in vars(a))
+  def setUp(self):
+    """Sets up the test by creating a flatbuffer using the metadata schema.
+    """
+    # The classes with a `T` suffix provide an object-oriented representation of
+    # the object tree in the flatbuffer using native data structures.
+    lut_tensor0 = schema.LutTensorT()
+    lut_tensor0.tensor = _EXPECTED_0.tensor
+    lut_tensor0.valueBuffer = _EXPECTED_0.valueBuffer
+    lut_tensor0.indexBitwidth = _EXPECTED_0.indexBitwidth
 
-  assert attrs_equal(read_subgraph0.lutTensors[0], lut_tensor0)
-  assert attrs_equal(read_subgraph0.lutTensors[1], lut_tensor1)
+    lut_tensor1 = schema.LutTensorT()
+    lut_tensor1.tensor = _EXPECTED_1.tensor
+    lut_tensor1.valueBuffer = _EXPECTED_1.valueBuffer
+    lut_tensor1.indexBitwidth = _EXPECTED_1.indexBitwidth
 
-  sys.exit()
+    subgraph0 = schema.SubgraphT()
+    subgraph0.lutTensors = [lut_tensor0, lut_tensor1]
+
+    metadata = schema.MetadataT()
+    metadata.subgraphs = [subgraph0]
+
+    # Write the flatbuffer itself using the flatbuffers runtime module.
+    builder = flatbuffers.Builder(32)
+    root = metadata.Pack(builder)
+    builder.Finish(root)
+    self.flatbuffer: bytearray = builder.Output()
+
+  def testLutTensors(self):
+    """Reads back the LutTensors and ensures they match expected values.
+    """
+    # Read the flatbuffer using the flatbuffers runtime module.
+    metadata = schema.MetadataT.InitFromPackedBuf(self.flatbuffer, 0)
+
+    read_tensor0 = metadata.subgraphs[0].lutTensors[0]
+    self.assertEqual(read_tensor0.tensor, _EXPECTED_0.tensor)
+    self.assertEqual(read_tensor0.valueBuffer, _EXPECTED_0.valueBuffer)
+    self.assertEqual(read_tensor0.indexBitwidth, _EXPECTED_0.indexBitwidth)
+
+    read_tensor1 = metadata.subgraphs[0].lutTensors[1]
+    self.assertEqual(read_tensor1.tensor, _EXPECTED_1.tensor)
+    self.assertEqual(read_tensor1.valueBuffer, _EXPECTED_1.valueBuffer)
+    self.assertEqual(read_tensor1.indexBitwidth, _EXPECTED_1.indexBitwidth)
+
+  def testSchemaVersion(self):
+    """Reads back the LutTensors and ensures they match expected values.
+    """
+    # Read the flatbuffer using the flatbuffers runtime module.
+    metadata = schema.MetadataT.InitFromPackedBuf(self.flatbuffer, 0)
+
+    self.assertEqual(metadata.schemaVersion, _EXPECTED_SCHEMA_VERSION)
+
+  def testPrintFlatbuffer(self):
+    # Print a representation of the binary flatbuffer for debugging purposes.
+    print(hexdump.hexdump(self.flatbuffer, result='return'))
+    print(f"length: {len(self.flatbuffer)}")
 
 
 if __name__ == "__main__":
-  main()
+  tf.test.main()

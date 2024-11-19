@@ -93,5 +93,6 @@ py_test(
         "metadata_py",
         "@flatbuffers//:runtime_py",
         requirement("hexdump"),
+        requirement("tensorflow"),
     ],
 )
