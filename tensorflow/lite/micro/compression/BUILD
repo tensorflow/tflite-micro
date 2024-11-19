@@ -114,3 +114,24 @@ py_test(
         requirement("tensorflow"),
     ],
 )
+
+py_library(
+    name = "test_models",
+    srcs = ["test_models.py"],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        requirement("flatbuffers"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "test_models_test",
+    size = "small",
+    srcs = ["test_models_test.py"],
+    deps = [
+        ":test_models",
+        "//tensorflow/lite/python:schema_py",
+        requirement("tensorflow"),
+    ],
+)
