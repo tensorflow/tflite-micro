@@ -96,3 +96,21 @@ py_test(
         requirement("tensorflow"),
     ],
 )
+
+py_library(
+    name = "spec",
+    srcs = ["spec.py"],
+    deps = [
+        requirement("pyyaml"),
+    ],
+)
+
+py_test(
+    name = "spec_test",
+    size = "small",
+    srcs = ["spec_test.py"],
+    deps = [
+        ":spec",
+        requirement("tensorflow"),
+    ],
+)
