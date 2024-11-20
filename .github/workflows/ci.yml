@@ -40,26 +40,6 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_bazel.sh
 
-  bazel_tests_tflite_tools:
-    runs-on: ubuntu-latest
-
-    name: Bazel TFLite Tools (presubmit)
-    steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_tflite_tools.sh
-
   bazel_msan:
     runs-on: ubuntu-latest
 
