@@ -385,14 +385,33 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
     }
   } else {
     int elements_per_channel_t = elements_per_channel_;
+    uint32_t index_1, index_2;
+    uint32_t mask_bits = (1 << compressed_bit_width_) - 1;
 
     for (int i = 0; i < num_channels_t; i++) {
-      for (int j = 0; j < elements_per_channel_t; j++) {
+      elements_per_channel_t = elements_per_channel_;
+      /* if output pointer is not 2 byte aligned */
+      if ((unsigned int)p_out_tmp & 0x1) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
+        ae_int8x8 d_tmp = AE_L8_X((const ae_int8*)value_table, index);
+        AE_S8_0_IP(d_tmp, p_out_tmp, 1);
+        elements_per_channel_t = elements_per_channel_t - 1;
+      }
+      for (int j = 0; j < (elements_per_channel_t >> 1); j++) {
+        AE_LB_DB_IP((unsigned short*)p_stream, index, 2 * bw);
+        index_1 = (index >> compressed_bit_width_) & mask_bits;
+        index_2 = (index)&mask_bits;
+        ae_int8x8 d_tmp1 = AE_L8_X((const ae_int8*)value_table, index_1);
+        ae_int8x8 d_tmp2 = AE_L8_X((const ae_int8*)value_table, index_2);
+        ae_int16x4 d_tmp =
+            AE_MOVINT16X4_FROMINT8X8(AE_SEL8X8I(d_tmp2, d_tmp1, 21));
+        AE_S16_0_IP(d_tmp, (ae_int16*)p_out_tmp, 2);
+      }
+      if (elements_per_channel_t & 0x1) {
         AE_LB_DB_IP((unsigned short*)p_stream, index, bw);
         ae_int8x8 d_tmp = AE_L8_X((const ae_int8*)value_table, index);
         AE_S8_0_IP(d_tmp, p_out_tmp, 1);
       }
-
       value_table += stride;
     }
   }
