@@ -8,8 +8,6 @@ name: Cortex-M
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
-  schedule:
-    - cron: '0 4 * * *'
 
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
@@ -44,7 +42,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.trigger-sha }}
+
       - name: Install dependencies
         run: |
           pip3 install Pillow
@@ -68,7 +70,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.trigger-sha }}
+
       - name: Install dependencies
         run: |
           pip3 install Pillow
