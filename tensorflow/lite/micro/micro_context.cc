@@ -96,8 +96,7 @@ void* MicroContext::DecompressTensorToBuffer(
   }
 
   DecompressionState ds(static_cast<uint8_t*>(tensor.data.data), count,
-                        compression_data, num_channels,
-                        static_cast<MicroProfiler*>(external_context()));
+                        compression_data, num_channels, GetAlternateProfiler());
 
   switch (tensor.type) {
     case kTfLiteBool: {

@@ -32,7 +32,7 @@ struct DecompressionState {
                      const size_t count_indices,
                      const CompressionTensorData& comp_data,
                      const size_t num_channels,
-                     MicroProfiler* profiler = nullptr)
+                     MicroProfilerInterface* profiler = nullptr)
       : compressed_indices_(compressed_indices),
         count_indices_(count_indices),
         comp_data_(comp_data),
@@ -79,7 +79,7 @@ struct DecompressionState {
       comp_data_.data.lut_data->use_alternate_axis
           ? 1
           : count_indices_ / num_channels_;
-  MicroProfiler* micro_profiler_;
+  MicroProfilerInterface* micro_profiler_;
 };
 
 #endif  // USE_TFLM_COMPRESSION

@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 #ifdef USE_TFLM_COMPRESSION
 
@@ -124,6 +125,25 @@ class MicroContext {
       const CompressionTensorData& compression_data, void* buffer);
 
 #endif  // USE_TFLM_COMPRESSION
+
+  // Set the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  virtual TfLiteStatus SetAlternateProfiler(
+      MicroProfilerInterface* alt_profiler) {
+    return kTfLiteError;
+  }
+
+  // Get the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  virtual MicroProfilerInterface* GetAlternateProfiler() const {
+    return nullptr;
+  }
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE

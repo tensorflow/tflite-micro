@@ -334,4 +334,9 @@ TfLiteStatus MicroInterpreter::SetMicroExternalContext(
   return micro_context_.set_external_context(external_context_payload);
 }
 
+TfLiteStatus MicroInterpreter::SetAlternateProfiler(
+    MicroProfilerInterface* alt_profiler) {
+  return micro_context_.SetAlternateProfiler(alt_profiler);
+}
+
 }  // namespace tflite

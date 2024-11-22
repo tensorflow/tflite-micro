@@ -170,6 +170,16 @@ void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
   }
 }
 
+void ShowInputCRC32(tflite::MicroInterpreter* interpreter) {
+  GenCRC32Table();
+  for (size_t i = 0; i < interpreter->inputs_size(); ++i) {
+    TfLiteTensor* input = interpreter->input_tensor(i);
+    uint8_t* input_values = tflite::GetTensorData<uint8_t>(input);
+    uint32_t crc32_value = ComputeCRC32(input_values, input->bytes);
+    MicroPrintf("Input CRC32: 0x%X", crc32_value);
+  }
+}
+
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
   static Profiler profiler2;
@@ -184,26 +194,35 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
-  uint32_t event_handle = profiler.BeginEvent("TfliteGetModel");
+  uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
   const tflite::Model* model = tflite::GetModel(model_data);
   profiler.EndEvent(event_handle);
 
+  event_handle = profiler.BeginEvent("tflite::CreateOpResolver");
   TflmOpResolver op_resolver;
   TF_LITE_ENSURE_STATUS(CreateOpResolver(op_resolver));
+  profiler.EndEvent(event_handle);
 
+  event_handle = profiler.BeginEvent("tflite::RecordingMicroAllocator::Create");
   tflite::RecordingMicroAllocator* allocator(
       tflite::RecordingMicroAllocator::Create(tensor_arena, kTensorArenaSize));
+  profiler.EndEvent(event_handle);
+  event_handle = profiler.BeginEvent("tflite::MicroInterpreter instantiation");
   tflite::RecordingMicroInterpreter interpreter(
       model, op_resolver, allocator,
       tflite::MicroResourceVariables::Create(allocator, kNumResourceVariable),
       &profiler);
+  profiler.EndEvent(event_handle);
+  event_handle =
+      profiler.BeginEvent("tflite::MicroInterpreter::AllocateTensors");
   TF_LITE_ENSURE_STATUS(interpreter.AllocateTensors());
+  profiler.EndEvent(event_handle);
 
-  profiler.Log();
+  profiler.LogTicksPerTagCsv();
   profiler.ClearEvents();
 
   if (using_compression) {
-    TF_LITE_ENSURE_STATUS(interpreter.SetMicroExternalContext(&profiler2));
+    TF_LITE_ENSURE_STATUS(interpreter.SetAlternateProfiler(&profiler2));
   }
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
@@ -216,6 +235,9 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   uint32_t seed = kRandomSeed;
   while (true) {
     SetRandomInput(seed++, interpreter);
+    ShowInputCRC32(&interpreter);
+    MicroPrintf("");  // null MicroPrintf serves as a newline.
+
     TfLiteStatus status = interpreter.Invoke();
     if ((status != kTfLiteOk) && (static_cast<int>(status) != kTfLiteAbort)) {
       MicroPrintf("Model interpreter invocation failed: %d\n", status);
