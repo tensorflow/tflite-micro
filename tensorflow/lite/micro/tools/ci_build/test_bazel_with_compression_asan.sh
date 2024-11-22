@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
 bazel test //... \
+  --//:with_compression \
   --config=ci \
-  --config=msan \
-  --build_tag_filters=-nomsan \
-  --test_tag_filters=-nomsan
+  --config=asan \
+  --build_tag_filters=-noasan \
+  --test_tag_filters=-noasan

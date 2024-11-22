@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+#!/bin/sh
+
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
+
+# Run this script outside of bazel to regenerate the header-only C++ library
+# used for reading the metadata flatbuffer and copy it to the source tree as
+# $saved. See the bazel target $label.
 
 set -e
-set -x
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR=${SCRIPT_DIR}/../../../../..
-cd "${ROOT_DIR}"
+workspace=$(bazel info workspace)
+package=tensorflow/lite/micro/compression
+label=//$package:metadata_cc
+generated=$workspace/bazel-bin/$package/metadata_generated.h
+saved=$workspace/$package/metadata_saved.h
 
-bazel test //... \
-  --config=ci \
-  --config=msan \
-  --build_tag_filters=-nomsan \
-  --test_tag_filters=-nomsan
+bazel build $label
+cp $generated $saved
+chmod 664 $saved
