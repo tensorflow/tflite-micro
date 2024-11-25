@@ -14,16 +14,23 @@
 
 import tensorflow as tf
 
-from tflite_micro.tensorflow.lite.micro.compression import test_models
+from tflite_micro.tensorflow.lite.micro.compression import spec
+
+EXPECTED_PYTHON_SPEC = [
+    spec.Tensor(subgraph=0,
+                tensor=42,
+                compression=[spec.LookUpTableCompression(index_bitwidth=4)]),
+    spec.Tensor(subgraph=0,
+                tensor=55,
+                compression=[spec.LookUpTableCompression(index_bitwidth=2)]),
+]
 
 
-class TestBuild(tf.test.TestCase):
+class TestLoadYaml(tf.test.TestCase):
 
-  def setUp(self):
-    self.flatbuffer = test_models.build(test_models.EXAMPLE_MODEL)
-
-  def testNotDegenerate(self):
-    self.assertTrue(len(self.flatbuffer) > 50)
+  def testLoad(self):
+    result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
+    self.assertEqual(result, EXPECTED_PYTHON_SPEC)
 
 
 if __name__ == "__main__":

@@ -41,8 +41,8 @@ int TfLiteTypeToPyArrayType(TfLiteType tf_lite_type) {
     case kTfLiteFloat16:
       return NPY_FLOAT16;
     case kTfLiteBFloat16:
-      // TODO(b/329491949): NPY_BFLOAT16 currently doesn't exist
-      return NPY_FLOAT16;
+      // TODO(b/329491949): Supports other ml_dtypes user-defined types.
+      return NPY_USERDEF;
     case kTfLiteFloat64:
       return NPY_FLOAT64;
     case kTfLiteInt32:
@@ -114,6 +114,10 @@ TfLiteType TfLiteTypeFromPyType(int py_type) {
       return kTfLiteComplex64;
     case NPY_COMPLEX128:
       return kTfLiteComplex128;
+    case NPY_USERDEF:
+      // User-defined types are defined in ml_dtypes. (bfloat16, float8, etc.)
+      // Fow now, we only support bfloat16.
+      return kTfLiteBFloat16;
       // Avoid default so compiler errors created when new types are made.
   }
   return kTfLiteNoType;

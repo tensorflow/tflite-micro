@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Utilities for building test models"""
 
 import flatbuffers
+import numpy as np
 
 from tensorflow.lite.python import schema_py_generated as tflite
 
 
 def build(spec: dict) -> bytearray:
-  """Build a tflite flatbuffer from a model spec.
+  """Builds a tflite flatbuffer from a model spec.
 
   Args:
     spec: A dictionary representation of the model, a prototype of which
@@ -70,7 +70,15 @@ def build(spec: dict) -> bytearray:
   for id, data in spec["buffers"].items():
     assert id == len(root.buffers)
     buffer_t = tflite.BufferT()
-    buffer_t.data = data
+
+    if data is None:
+      buffer_t.data = []
+    elif isinstance(data, np.ndarray):
+      array = data.astype(data.dtype.newbyteorder("<"))  # ensure little-endian
+      buffer_t.data = list(array.tobytes())
+    else:
+      raise TypeError(f"buffer_id {id} has invalid data {data}")
+
     root.buffers.append(buffer_t)
 
   size_hint = 1 * 2**20
@@ -78,15 +86,6 @@ def build(spec: dict) -> bytearray:
   builder.Finish(root.Pack(builder))
   flatbuffer = builder.Output()
   return flatbuffer
-
-
-def get_buffer(spec: dict, subgraph: int, tensor: int) -> bytearray:
-  """Return the buffer for a given tensor in a model spec.
-  """
-  tensor_spec = spec["subgraphs"][subgraph]["tensors"][tensor]
-  buffer_id = tensor_spec["buffer"]
-  buffer = spec["buffers"][buffer_id]
-  return buffer
 
 
 EXAMPLE_MODEL = {
@@ -143,10 +142,10 @@ EXAMPLE_MODEL = {
         },
     },
     "buffers": {
-        0: bytes(),
-        1: bytes((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
-        2: bytes((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
-        3: bytes((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
-        4: bytes((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
+        0: None,
+        1: np.array(range(16), dtype=np.dtype("<i1")),
+        2: np.array(range(16), dtype=np.dtype("<i1")),
+        3: np.array(range(16), dtype=np.dtype("<i1")),
+        4: np.array(range(16), dtype=np.dtype("<i1")),
     }
 }

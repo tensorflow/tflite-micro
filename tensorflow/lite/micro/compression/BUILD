@@ -73,8 +73,9 @@ py_binary(
         "compress.py",
     ],
     deps = [
-        ":lib",
         ":metadata_py",
+        ":model_facade",
+        ":spec",
         "//tensorflow/lite/python:schema_py",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -93,6 +94,7 @@ py_test(
     ],
     deps = [
         ":compress",
+        ":model_facade",
         requirement("tensorflow"),
     ],
 )
@@ -151,24 +153,6 @@ sh_test(
 )
 
 py_library(
-    name = "lib",
-    srcs = ["lib.py"],
-    deps = [
-        "model_facade",
-    ],
-)
-
-py_test(
-    name = "lib_test",
-    size = "small",
-    srcs = ["lib_test.py"],
-    deps = [
-        "lib",
-        requirement("tensorflow"),
-    ],
-)
-
-py_library(
     name = "model_facade",
     srcs = ["model_facade.py"],
     deps = [
@@ -183,6 +167,7 @@ py_library(
     deps = [
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
+        requirement("numpy"),
     ],
 )
 
@@ -217,5 +202,23 @@ py_binary(
         "//tensorflow/lite/python:schema_py",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
+    ],
+)
+
+py_library(
+    name = "spec",
+    srcs = ["spec.py"],
+    deps = [
+        requirement("pyyaml"),
+    ],
+)
+
+py_test(
+    name = "spec_test",
+    size = "small",
+    srcs = ["spec_test.py"],
+    deps = [
+        ":spec",
+        requirement("tensorflow"),
     ],
 )

@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ uint32_t GetCurrentTimeTicks() {
 #ifdef ARMCM7
     DWT->LAR = 0xC5ACCE55;
 #endif
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
 
     // Reset and DWT cycle counter.
     DWT->CYCCNT = 0;

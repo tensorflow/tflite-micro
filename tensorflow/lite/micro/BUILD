@@ -177,6 +177,7 @@ tflm_cc_library(
 tflm_cc_library(
     name = "micro_allocator",
     srcs = [
+        "compression.h",
         "micro_allocation_info.cc",
         "micro_allocator.cc",
     ],

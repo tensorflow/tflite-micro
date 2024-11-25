@@ -337,6 +337,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
   for (int i = 0; i < buffer_count_; ++i) {
     char c = '*';
     if (requirements_[i].first_time_used != requirements_[i].last_time_used) {
+      // not a scratch buffer nor subgraph output tensor
       c = GetOrdinalCharacter(i);
     }
     MicroPrintf("%c (id=%d): size=%d, offset=%d, first_used=%d last_used=%d", c,
@@ -384,6 +385,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
       for (int n = line_start; n < line_end; ++n) {
         if (line[n] == '.') {
           if (requirements->first_time_used == requirements->last_time_used) {
+            // scratch buffer or subgraph output tensor
             line[n] = '*';
           } else {
             line[n] = GetOrdinalCharacter(i);

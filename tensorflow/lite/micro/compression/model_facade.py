@@ -12,121 +12,82 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""A facade for manipulating tflite.Model.
+"""A facade for working with tflite.Model.
+
+Provide convenient navigation and data types for working with tflite.Model,
+which can be tedious and verbose to working with directly.
 
 Usage:
-  model = model_facade.read_file(path)
-  # manipulate model
-  model.write_file(path)
-
-A tflite.Model can be tedious and verbose to navigate.
+  model = model_facade.read(flatbuffer)
+  # manipulate
+  new_flatbuffer = model.compile()
 """
 
-# TODO: make a better distinction between object representation objects
-# and facade objects.
-
-from typing import Sequence
-
-from tensorflow.lite.python import schema_py_generated as tflite
-
 import flatbuffers
-import struct
+import numpy as np
+from numpy.typing import NDArray
+from typing import ByteString, Generic, TypeVar
+
+from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+
+_IteratorTo = TypeVar("_IteratorTo")
 
 
-def read(buffer: bytes):
-  """Read a tflite.Model from a buffer and return a model facade."""
-  schema_model = tflite.ModelT.InitFromPackedBuf(buffer, 0)
-  return Model(schema_model)
-
-
-class Model:
-  """A facade for manipulating tflite.Model."""
-
-  def __init__(self, representation: tflite.ModelT):
-    self.root = representation
-
-  def pack(self) -> bytearray:
-    """Pack and return the tflite.Model as a flatbuffer."""
-    size_hint = 4 * 2**10
-    builder = flatbuffers.Builder(size_hint)
-    builder.Finish(self.root.Pack(builder))
-    return builder.Output()
-
-  def add_buffer(self):
-    """Add a buffer to the model and return a Buffer facade."""
-    buffer = tflite.BufferT()
-    buffer.data = []
-    self.root.buffers.append(buffer)
-    index = len(self.root.buffers) - 1
-    return Buffer(buffer, index, self.root)
-
-  def add_metadata(self, key, value):
-    """Add a key-value pair, writing value to newly created tflite.Buffer."""
-    metadata = tflite.MetadataT()
-    metadata.name = key
-    buffer = self.add_buffer()
-    buffer.data = value
-    metadata.buffer = buffer.index
-    self.root.metadata.append(metadata)
-
-  @property
-  def operatorCodes(self):
-    return self.root.operatorCodes
-
-  @property
-  def subgraphs(self):
-    return Iterator(self.root.subgraphs, Subgraph, parent=self)
-
-  @property
-  def buffers(self):
-    return Iterator(self.root.buffers, Buffer, parent=self)
-
-
-class Iterator:
+class _Iterator(Generic[_IteratorTo]):
 
   def __init__(self, sequence, cls, parent):
     self._sequence = sequence
     self._cls = cls
+    self._index = 0
     self._parent = parent
 
-  def __getitem__(self, key):
+  def __getitem__(self, key) -> _IteratorTo:
     return self._cls(self._sequence[key], key, self._parent)
 
   def __len__(self):
     return len(self._sequence)
 
+  def __iter__(self):
+    self._index = 0
+    return self
 
-class IndirectIterator:
+  def __next__(self):
+    try:
+      result = self[self._index]
+      self._index += 1
+      return result
+    except IndexError:
+      raise StopIteration
+
+
+class _IndirectIterator(Generic[_IteratorTo]):
 
   def __init__(self, indices, sequence):
     self._indices = indices
+    self._index = 0
     self._sequence = sequence
 
-  def __getitem__(self, key):
+  def __getitem__(self, key) -> _IteratorTo:
     index = self._indices[key]
     return self._sequence[index]
 
   def __len__(self):
     return len(self._indices)
 
+  def __iter__(self):
+    self._index = 0
+    return self
 
-class Subgraph:
-
-  def __init__(self, subgraph, index, model):
-    self.subgraph = subgraph
-    self.index = index
-    self.model = model
-
-  @property
-  def operators(self):
-    return Iterator(self.subgraph.operators, Operator, parent=self)
-
-  @property
-  def tensors(self):
-    return Iterator(self.subgraph.tensors, Tensor, parent=self)
+  def __next__(self):
+    try:
+      result = self[self._index]
+      self._index += 1
+      return result
+    except IndexError:
+      raise StopIteration
 
 
-class Operator:
+class _Operator:
 
   def __init__(self, operator, index, subgraph):
     self.operator = operator
@@ -146,11 +107,11 @@ class Operator:
 
   @property
   def inputs(self):
-    return IndirectIterator(self.operator.inputs, self.subgraph.tensors)
+    return _IndirectIterator(self.operator.inputs, self.subgraph.tensors)
 
   @property
   def outputs(self):
-    return IndirectIterator(self.operator.outputs, self.subgraph.tensors)
+    return _IndirectIterator(self.operator.outputs, self.subgraph.tensors)
 
   @property
   def inputs_indices(self):
@@ -169,79 +130,76 @@ class Operator:
     return self.operator.builtinOptions
 
 
-class Tensor:
+_NP_DTYPES = {
+    tflite.TensorType.FLOAT16: np.dtype("<f2"),
+    tflite.TensorType.FLOAT32: np.dtype("<f4"),
+    tflite.TensorType.FLOAT64: np.dtype("<f8"),
+    tflite.TensorType.INT8: np.dtype("<i1"),
+    tflite.TensorType.INT16: np.dtype("<i2"),
+    tflite.TensorType.INT32: np.dtype("<i4"),
+    tflite.TensorType.INT64: np.dtype("<i8"),
+    tflite.TensorType.UINT8: np.dtype("<u1"),
+    tflite.TensorType.UINT16: np.dtype("<u2"),
+    tflite.TensorType.UINT32: np.dtype("<u4"),
+    tflite.TensorType.UINT64: np.dtype("<u8"),
+}
 
-  def __init__(self, tensor, index, subgraph):
-    self.tensor = tensor
+
+class _Tensor:
+
+  def __init__(self, tensor: tflite.TensorT, index, subgraph):
+    self._tensor = tensor
     self.index = index
     self.subgraph = subgraph
 
   @property
   def name(self):
-    return self.tensor.name.decode('utf-8')
+    n = self._tensor.name
+    if isinstance(n, bytes):
+      return n.decode("utf-8")
+    else:
+      return n
 
   @property
   def shape(self):
     """Return the shape as specified in the model.
     """
-    return self.tensor.shape
-
-  @property
-  def shape_nhwc(self):
-    """Return the shape normalized to a full (N,H,W,C) vector.
-    """
-    n_missing_dims = 4 - len(self.tensor.shape)
-    nhwc = [1 for _ in range(0, n_missing_dims)]
-    nhwc.extend(self.tensor.shape)
-    return nhwc
+    return self._tensor.shape
 
   @property
   def buffer_index(self):
-    return self.tensor.buffer
+    return self._tensor.buffer
 
   @property
   def buffer(self):
-    return self.subgraph.model.buffers[self.tensor.buffer]
+    return self.subgraph.model.buffers[self._tensor.buffer]
 
   @property
   def data(self):
     return self.buffer.data
 
   @property
-  def type(self):
-    return self.tensor.type
+  def dtype(self) -> np.dtype:
+    return _NP_DTYPES[self._tensor.type]
 
   @property
-  def values(self):
-    reader = struct.iter_unpack(_struct_formats[self.type], self.data)
-    # iter_unpack yields tuples of length 1, unpack the tuples
-    return [value[0] for value in reader]
+  def array(self) -> np.ndarray:
+    """Returns an array created from the Tensor's data, type, and shape.
+
+    Note the bytes in the data buffer and the Tensor's type and shape may be
+    inconsistent, and thus the returned array invalid, if the data buffer has
+    been altered according to the compression schema, in which the data buffer
+    is an array of fixed-width, integer fields.
+    """
+    return np.frombuffer(self.data,
+                         dtype=self.dtype).reshape(self._tensor.shape)
 
   @property
-  def channel_count(self):
-    if (self.tensor.quantization is None
-        or self.tensor.quantization.scale is None):
-      return 1
-    return len(self.tensor.quantization.scale)
+  def quantization(self):
+    return self._tensor.quantization
 
 
-_struct_formats = {
-    tflite.TensorType.FLOAT32: "<f",
-    tflite.TensorType.FLOAT16: "<e",
-    tflite.TensorType.FLOAT64: "<d",
-    tflite.TensorType.INT8: "<b",
-    tflite.TensorType.INT16: "<h",
-    tflite.TensorType.INT32: "<i",
-    tflite.TensorType.INT64: "<q",
-    tflite.TensorType.UINT8: "<B",
-    tflite.TensorType.UINT16: "<H",
-    tflite.TensorType.UINT32: "<I",
-    tflite.TensorType.UINT64: "<Q",
-    tflite.TensorType.BOOL: "<?",
-}
-
-
-class Buffer:
+class _Buffer:
 
   def __init__(self, buffer, index, model):
     self.buffer = buffer
@@ -257,7 +215,75 @@ class Buffer:
     self.buffer.data = value
     return self.data
 
-  def extend_values(self, values: Sequence, type: int):
-    for v in values:
-      octets = struct.pack(_struct_formats[type], v)
-      self.buffer.data.extend(octets)
+  def extend(self, values: NDArray):
+    self.buffer.data.extend(values.tobytes())
+
+
+class _Subgraph:
+
+  def __init__(self, subgraph, index, model):
+    self.subgraph = subgraph
+    self.index = index
+    self.model = model
+
+  @property
+  def operators(self) -> _Iterator[_Operator]:
+    return _Iterator(self.subgraph.operators, _Operator, parent=self)
+
+  @property
+  def tensors(self) -> _Iterator[_Tensor]:
+    return _Iterator(self.subgraph.tensors, _Tensor, parent=self)
+
+
+class _Model:
+  """A facade for manipulating tflite.Model.
+  """
+
+  def __init__(self, representation: tflite.ModelT):
+    self.root = representation
+
+  def compile(self) -> bytearray:
+    """Returns a tflite.Model flatbuffer.
+    """
+    size_hint = 4 * 2**10
+    builder = flatbuffers.Builder(size_hint)
+    builder.Finish(self.root.Pack(builder))
+    return builder.Output()
+
+  def add_buffer(self) -> _Buffer:
+    """Adds a buffer to the model.
+    """
+    buffer = tflite.BufferT()
+    buffer.data = []
+    self.root.buffers.append(buffer)
+    index = len(self.root.buffers) - 1
+    return _Buffer(buffer, index, self.root)
+
+  def add_metadata(self, key, value):
+    """Adds a key-value pair, writing value to a newly created buffer.
+    """
+    metadata = tflite.MetadataT()
+    metadata.name = key
+    buffer = self.add_buffer()
+    buffer.data = value
+    metadata.buffer = buffer.index
+    self.root.metadata.append(metadata)
+
+  @property
+  def operatorCodes(self):
+    return self.root.operatorCodes
+
+  @property
+  def subgraphs(self) -> _Iterator[_Subgraph]:
+    return _Iterator(self.root.subgraphs, _Subgraph, parent=self)
+
+  @property
+  def buffers(self) -> _Iterator[_Buffer]:
+    return _Iterator(self.root.buffers, _Buffer, parent=self)
+
+
+def read(buffer: ByteString):
+  """Reads a tflite.Model and returns a model facade.
+  """
+  schema_model = tflite.ModelT.InitFromPackedBuf(buffer, 0)
+  return _Model(schema_model)
