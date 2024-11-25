@@ -94,6 +94,46 @@ TfLiteStatus EvalMaximum(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus EvalMaximumInt8(TfLiteContext* context, TfLiteNode* node) {
+  OpContext op_context(context, node);
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+
+  RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
+  RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
+  RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
+
+  cmsis_nn_dims input_1_dims = FillVariableShape(
+      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
+  cmsis_nn_dims input_2_dims = FillVariableShape(
+      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
+                                                output_shape.DimsData());
+
+  switch (op_context.output->type) {
+    case kTfLiteInt8:
+      cmsis_nn_context ctx;
+      ctx.buf = nullptr;
+      ctx.size = 0;
+
+      arm_maximum_s8(
+          &ctx, tflite::micro::GetTensorData<int8_t>(input1), &input_1_dims,
+          tflite::micro::GetTensorData<int8_t>(input2), &input_2_dims,
+          tflite::micro::GetTensorData<int8_t>(output), &output_dims);
+      break;
+    default:
+      MicroPrintf("Type %s (%d) is not supported by Maximum Int8 Registration.",
+                  TfLiteTypeGetName(op_context.output->type),
+                  op_context.output->type);
+      return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
 TfLiteStatus EvalMinimum(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
   const TfLiteEvalTensor* input1 =
@@ -146,6 +186,46 @@ TfLiteStatus EvalMinimum(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+TfLiteStatus EvalMinimumInt8(TfLiteContext* context, TfLiteNode* node) {
+  OpContext op_context(context, node);
+  const TfLiteEvalTensor* input1 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+  const TfLiteEvalTensor* input2 =
+      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+
+  RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
+  RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
+  RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
+
+  cmsis_nn_dims input_1_dims = FillVariableShape(
+      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
+  cmsis_nn_dims input_2_dims = FillVariableShape(
+      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
+                                                output_shape.DimsData());
+
+  switch (op_context.output->type) {
+    case kTfLiteInt8:
+      cmsis_nn_context ctx;
+      ctx.buf = nullptr;
+      ctx.size = 0;
+
+      arm_minimum_s8(
+          &ctx, tflite::micro::GetTensorData<int8_t>(input1), &input_1_dims,
+          tflite::micro::GetTensorData<int8_t>(input2), &input_2_dims,
+          tflite::micro::GetTensorData<int8_t>(output), &output_dims);
+      break;
+    default:
+      MicroPrintf("Type %s (%d) is not supported by Minimum Int8 registration.",
+                  TfLiteTypeGetName(op_context.output->type),
+                  op_context.output->type);
+      return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
 }  // namespace
 
 TFLMRegistration Register_MAXIMUM() {
@@ -154,6 +234,14 @@ TFLMRegistration Register_MAXIMUM() {
 
 TFLMRegistration Register_MINIMUM() {
   return tflite::micro::RegisterOp(nullptr, nullptr, EvalMinimum);
+}
+
+TFLMRegistration Register_MAXIMUM_INT8() {
+  return tflite::micro::RegisterOp(nullptr, nullptr, EvalMaximumInt8);
+}
+
+TFLMRegistration Register_MINIMUM_INT8() {
+  return tflite::micro::RegisterOp(nullptr, nullptr, EvalMinimumInt8);
 }
 
 }  // namespace tflite

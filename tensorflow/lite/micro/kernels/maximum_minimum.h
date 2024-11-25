@@ -80,6 +80,26 @@ TFLMRegistration Register_MAXIMUM();
 
 TFLMRegistration Register_MINIMUM();
 
+#if defined(CMSIS_NN)
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// int8.
+TFLMRegistration Register_MAXIMUM_INT8();
+
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// int8.
+TFLMRegistration Register_MINIMUM_INT8();
+
+#else
+// Note that while this block gets used for both reference and optimized kernels
+// that do not have any specialized implementations, the only goal here is to
+// define fallback implementation that allow reference kernels to still be used
+// from applications that call a more specific kernel variant.
+inline TFLMRegistration Register_MAXIMUM_INT8() { return Register_MAXIMUM(); }
+
+inline TFLMRegistration Register_MINIMUM_INT8() { return Register_MINIMUM(); }
+
+#endif
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_MAXIMUM_MINIMUM_H_
