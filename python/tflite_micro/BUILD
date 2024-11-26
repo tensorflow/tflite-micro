@@ -250,6 +250,7 @@ sh_test(
     data = [
         ":whl",
     ],
+    size = "large",
     tags = [
         "noasan",
         "nomsan",
