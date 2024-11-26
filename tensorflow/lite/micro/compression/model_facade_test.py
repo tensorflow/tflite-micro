@@ -27,6 +27,16 @@ TEST_MODEL = {
             "builtin_code": tflite.BuiltinOperator.ADD,
         },
     },
+    "metadata": {
+        0: {
+            "name": "metadata0",
+            "buffer": 0
+        },
+        1: {
+            "name": "metadata1",
+            "buffer": 0
+        },
+    },
     "subgraphs": {
         0: {
             "operators": {
@@ -99,6 +109,11 @@ class TestModelFacade(tf.test.TestCase):
     self.assertEqual(len(self.facade.subgraphs), len(TEST_MODEL["subgraphs"]))
     for i, subgraph in enumerate(self.facade.subgraphs):
       self.assertEqual(i, subgraph.index)
+
+  def testMetadata(self):
+    self.assertIn("metadata0", self.facade.metadata)
+    self.assertIn("metadata1", self.facade.metadata)
+    self.assertNotIn("metadata2", self.facade.metadata)
 
 
 class TestTensors(tf.test.TestCase):

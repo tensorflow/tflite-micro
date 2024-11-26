@@ -40,6 +40,12 @@ EXAMPLE_MODEL = {
             "builtin_code": tflite.BuiltinOperator.ADD,
         },
     },
+    "metadata": {
+        0: {
+            "name": "metadata0",
+            "buffer": 0
+        },
+    },
     "subgraphs": {
         0: {
             "operators": {
@@ -80,6 +86,9 @@ EXAMPLE_MODEL = {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT8,
                     "buffer": 1,
+                    "quantization": {
+                        "quantized_dimension": 0,
+                    },
                 },
             },
         },
@@ -116,6 +125,14 @@ def build(model_definition: dict) -> bytearray:
     root.operatorCodes.append(opcode_t)
     opcode_t.builtinCode = operator_code["builtin_code"]
 
+  root.metadata = []
+  if "metadata" in model_definition:
+    for _, metadata in model_definition["metadata"].items():
+      metadata_t = tflite.MetadataT()
+      metadata_t.name = metadata["name"]
+      metadata_t.buffer = metadata["buffer"]
+      root.metadata.append(metadata_t)
+
   root.subgraphs = []
   for id, subgraph in model_definition["subgraphs"].items():
     assert id == len(root.subgraphs)
@@ -139,6 +156,14 @@ def build(model_definition: dict) -> bytearray:
       tensor_t.shape = tensor["shape"]
       tensor_t.type = tensor["type"]
       tensor_t.buffer = tensor["buffer"]
+
+      try:
+        d = tensor["quantization"]["quantized_dimension"]
+        tensor_t.quantization = tflite.QuantizationParametersT()
+        tensor_t.quantization.quantizedDimension = d
+      except KeyError:
+        tensor_t.quantization = None
+
       subgraph_t.tensors.append(tensor_t)
 
   root.buffers = []
