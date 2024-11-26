@@ -110,7 +110,6 @@ py_binary(
         "@absl_py//absl/flags",
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
-        requirement("flatbuffers"),
         requirement("numpy"),
     ],
 )
