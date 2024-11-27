@@ -2,6 +2,7 @@ load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_binary",
     "tflm_cc_library",
+    "tflm_defines",
 )
 
 tflm_cc_library(
@@ -27,7 +28,7 @@ tflm_cc_library(
     name = "generic_benchmark_lib",
     srcs = ["generic_model_benchmark.cc"],
     hdrs = ["show_meta_data.h"],
-    defines = ["GENERIC_BENCHMARK_NO_META_DATA"],
+    defines = tflm_defines() + ["GENERIC_BENCHMARK_NO_META_DATA"],
     deps = [
         ":metrics",
         ":op_resolver",
