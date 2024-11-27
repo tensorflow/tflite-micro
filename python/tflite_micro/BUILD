@@ -241,6 +241,7 @@ py_wheel(
 
 sh_test(
     name = "whl_test",
+    size = "large",
     srcs = [
         "whl_test.sh",
     ],
