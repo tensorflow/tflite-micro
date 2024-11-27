@@ -92,7 +92,6 @@ py_test(
     deps = [
         "metadata_py",
         "@flatbuffers//:runtime_py",
-        requirement("hexdump"),
         requirement("tensorflow"),
     ],
 )

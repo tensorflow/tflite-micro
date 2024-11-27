@@ -17,7 +17,6 @@ flatbuffer machinery with Python.
 """
 
 from dataclasses import dataclass
-import hexdump
 import flatbuffers
 import tensorflow as tf
 
@@ -102,9 +101,9 @@ class TestReadEqualsWrite(tf.test.TestCase):
 
     self.assertEqual(metadata.schemaVersion, _EXPECTED_SCHEMA_VERSION)
 
-  def testPrintFlatbuffer(self):
-    # Print a representation of the binary flatbuffer for debugging purposes.
-    print(hexdump.hexdump(self.flatbuffer, result='return'))
+  def testPrintFlatbufferLen(self):
+    """Print the flatbuffer length for the log.
+    """
     print(f"length: {len(self.flatbuffer)}")
 
 
