@@ -125,6 +125,18 @@ void* MicroContext::DecompressTensorToBuffer(
   return nullptr;
 }
 
+TfLiteStatus MicroContext::SetDecompressionMemory(
+    const std::initializer_list<AlternateMemoryRegion>& regions) {
+  return kTfLiteError;
+}
+
+void* MicroContext::AllocateDecompressionMemory(size_t bytes,
+                                                size_t alignment) {
+  return nullptr;
+}
+
+void MicroContext::ResetDecompressionMemoryAllocations() {}
+
 #endif  // USE_TFLM_COMPRESSION
 
 }  // namespace tflite
