@@ -25,6 +25,13 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
+#ifdef USE_TFLM_COMPRESSION
+
+#include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_utils.h"
+
+#endif  // USE_TFLM_COMPRESSION
+
 namespace tflite {
 namespace micro {
 
@@ -107,8 +114,15 @@ const T* GetTensorData(MicroContext* micro_context,
     return reinterpret_cast<const T*>(tensor->data.data);
   }
 
-  TFLITE_DCHECK(scratch_buffer_handle != -1);
-  void* scratch_buffer = micro_context->GetScratchBuffer(scratch_buffer_handle);
+  void* scratch_buffer = nullptr;
+  if (scratch_buffer_handle != -1) {
+    scratch_buffer = micro_context->GetScratchBuffer(scratch_buffer_handle);
+  } else {
+    size_t bytes_to_allocate = EvalTensorBytes(tensor);
+    scratch_buffer = micro_context->AllocateDecompressionMemory(
+        bytes_to_allocate, MicroArenaBufferAlignment());
+  }
+  TFLITE_DCHECK(scratch_buffer != nullptr);
   void* uncompressed_data = micro_context->DecompressTensorToBuffer(
       *tensor, *compression_data, scratch_buffer);
   return reinterpret_cast<const T*>(uncompressed_data);

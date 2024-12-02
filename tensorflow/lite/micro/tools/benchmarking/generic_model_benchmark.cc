@@ -18,6 +18,7 @@ limitations under the License.
 #include <sys/types.h>
 
 #include <cstring>
+#include <initializer_list>
 #include <memory>
 #include <random>
 #include <type_traits>
@@ -56,19 +57,37 @@ limitations under the License.
 
 #endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
+#if defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) && \
+    !defined(GENERIC_BENCHMARK_ALT_MEM_SIZE)
+#error "GENERIC_BENCHMARK_ALT_MEM_SIZE missing from CXXFLAGS"
+#endif  // defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) &&
+        // !defined(GENERIC_BENCHMARK_ALT_MEM_SIZE)
+
+#if defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) && \
+    !defined(GENERIC_BENCHMARK_ALT_MEM_ATTR)
+#error "GENERIC_BENCHMARK_ALT_MEM_ATTR missing from CXXFLAGS"
+#endif  // defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) &&
+        // !defined(GENERIC_BENCHMARK_ALT_MEM_ATTR)
+
+#if defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) && \
+    defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) && defined(USE_TFLM_COMPRESSION)
+#define USE_ALT_DECOMPRESSION_MEM
+#endif  // defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) &&
+        // defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) &&
+        // defined(USE_TFLM_COMPRESSION)
+
 /*
- * Generic model benchmark.  Evaluates runtime performance of a provided model
- * with random inputs.
+ * Generic model benchmark.  Evaluates runtime performance of a provided
+ * model with random inputs.
  */
 
 namespace tflite {
-
 namespace {
 
 using Profiler = ::tflite::MicroProfiler;
 
-// Seed used for the random input. Input data shouldn't affect invocation timing
-// so randomness isn't really needed.
+// Seed used for the random input. Input data shouldn't affect invocation
+// timing so randomness isn't really needed.
 constexpr uint32_t kRandomSeed = 0xFB;
 
 #if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
@@ -79,6 +98,11 @@ constexpr size_t kTensorArenaSize = GENERIC_BENCHMARK_TENSOR_ARENA_SIZE;
 #else
 constexpr size_t kTensorArenaSize = 5e6 - MODEL_SIZE;
 #endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+
+#if defined(USE_ALT_DECOMPRESSION_MEM)
+constexpr size_t kAltMemorySize = GENERIC_BENCHMARK_ALT_MEM_SIZE;
+alignas(16) GENERIC_BENCHMARK_ALT_MEM_ATTR uint8_t g_alt_memory[kAltMemorySize];
+#endif  // defined(USE_ALT_DECOMPRESSION_MEM)
 
 constexpr int kNumResourceVariable = 100;
 
@@ -183,6 +207,7 @@ void ShowInputCRC32(tflite::MicroInterpreter* interpreter) {
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
   static Profiler profiler2;
+  TfLiteStatus status;
 
 // use this to keep the application size stable regardless of whether
 // compression is being used
@@ -194,13 +219,22 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
+#ifdef USE_ALT_DECOMPRESSION_MEM
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
+#endif  // USE_ALT_DECOMPRESSION_MEM
+
   uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
   const tflite::Model* model = tflite::GetModel(model_data);
   profiler.EndEvent(event_handle);
 
   event_handle = profiler.BeginEvent("tflite::CreateOpResolver");
   TflmOpResolver op_resolver;
-  TF_LITE_ENSURE_STATUS(CreateOpResolver(op_resolver));
+  status = CreateOpResolver(op_resolver);
+  if (status != kTfLiteOk) {
+    MicroPrintf("tflite::CreateOpResolver failed");
+    return -1;
+  }
   profiler.EndEvent(event_handle);
 
   event_handle = profiler.BeginEvent("tflite::RecordingMicroAllocator::Create");
@@ -213,32 +247,52 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
       tflite::MicroResourceVariables::Create(allocator, kNumResourceVariable),
       &profiler);
   profiler.EndEvent(event_handle);
+
+#ifdef USE_ALT_DECOMPRESSION_MEM
+  event_handle =
+      profiler.BeginEvent("tflite::MicroInterpreter::SetDecompressionMemory");
+  status = interpreter.SetDecompressionMemory(alt_memory_region);
+  if (status != kTfLiteOk) {
+    MicroPrintf("tflite::MicroInterpreter::SetDecompressionMemory failed");
+    return -1;
+  }
+  profiler.EndEvent(event_handle);
+#endif  // USE_ALT_DECOMPRESSION_MEM
+
   event_handle =
       profiler.BeginEvent("tflite::MicroInterpreter::AllocateTensors");
-  TF_LITE_ENSURE_STATUS(interpreter.AllocateTensors());
+  status = interpreter.AllocateTensors();
+  if (status != kTfLiteOk) {
+    MicroPrintf("tflite::MicroInterpreter::AllocateTensors failed");
+    return -1;
+  }
   profiler.EndEvent(event_handle);
 
   profiler.LogTicksPerTagCsv();
   profiler.ClearEvents();
 
   if (using_compression) {
-    TF_LITE_ENSURE_STATUS(interpreter.SetAlternateProfiler(&profiler2));
+    status = interpreter.SetAlternateProfiler(&profiler2);
+    if (status != kTfLiteOk) {
+      MicroPrintf("tflite::MicroInterpreter::SetAlternateProfiler failed");
+      return -1;
+    }
   }
 
   MicroPrintf("");  // null MicroPrintf serves as a newline.
 
-  // For streaming models, the interpreter will return kTfLiteAbort if the model
-  // does not yet have enough data to make an inference. As such, we need to
-  // invoke the interpreter multiple times until we either receive an error or
-  // kTfLiteOk. This loop also works for non-streaming models, as they'll just
-  // return kTfLiteOk after the first invocation.
+  // For streaming models, the interpreter will return kTfLiteAbort if the
+  // model does not yet have enough data to make an inference. As such, we
+  // need to invoke the interpreter multiple times until we either receive an
+  // error or kTfLiteOk. This loop also works for non-streaming models, as
+  // they'll just return kTfLiteOk after the first invocation.
   uint32_t seed = kRandomSeed;
   while (true) {
     SetRandomInput(seed++, interpreter);
     ShowInputCRC32(&interpreter);
     MicroPrintf("");  // null MicroPrintf serves as a newline.
 
-    TfLiteStatus status = interpreter.Invoke();
+    status = interpreter.Invoke();
     if ((status != kTfLiteOk) && (static_cast<int>(status) != kTfLiteAbort)) {
       MicroPrintf("Model interpreter invocation failed: %d\n", status);
       return -1;

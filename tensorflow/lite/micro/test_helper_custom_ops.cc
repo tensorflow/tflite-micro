@@ -174,9 +174,7 @@ TfLiteStatus BroadcastAddOp::Prepare(TfLiteContext* context, TfLiteNode* node) {
   // These will only be allocated if the tensor is compressed.
   weight_scratch_index_ =
       micro_context->AllocateDecompressionScratchBuffer(node, 1);
-  if (micro_context->IsTensorCompressed(node, 1)) {
-    TF_LITE_ENSURE(context, weight_scratch_index_ != -1);
-  } else {
+  if (!micro_context->IsTensorCompressed(node, 1)) {
     TF_LITE_ENSURE(context, weight_scratch_index_ == -1);
   }
 

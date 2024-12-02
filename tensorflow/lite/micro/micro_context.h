@@ -22,6 +22,8 @@ limitations under the License.
 
 #ifdef USE_TFLM_COMPRESSION
 
+#include <initializer_list>
+
 #include "tensorflow/lite/micro/compression.h"
 
 #endif  // USE_TFLM_COMPRESSION
@@ -123,6 +125,26 @@ class MicroContext {
   virtual void* DecompressTensorToBuffer(
       const TfLiteEvalTensor& tensor,
       const CompressionTensorData& compression_data, void* buffer);
+
+  // Used for configuring alternate decompression memory
+  struct AlternateMemoryRegion {
+    void* address;
+    size_t bytes;
+  };
+
+  // Set the alternate decompression memory regions.
+  // Can only be called during the MicroInterpreter kInit state.
+  virtual TfLiteStatus SetDecompressionMemory(
+      const std::initializer_list<AlternateMemoryRegion>& regions);
+
+  // Return a pointer to memory that can be used for decompression.
+  // The pointer will be aligned to the <alignment> value.
+  // Return nullptr if the requested size is not available.
+  // Can be called during kPrepare and kInvoke states.
+  virtual void* AllocateDecompressionMemory(size_t bytes, size_t alignment);
+
+  // reset all allocation tracking
+  virtual void ResetDecompressionMemoryAllocations();
 
 #endif  // USE_TFLM_COMPRESSION
 
