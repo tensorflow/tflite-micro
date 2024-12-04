@@ -53,5 +53,9 @@ def tflm_inference_library(
             "//tensorflow/lite/micro:micro_common",
             "//tensorflow/lite/micro:micro_context",
         ],
+        target_compatible_with = select({
+            "//conditions:default": [],
+            "//:with_compression_enabled": ["@platforms//:incompatible"],
+        }),
         visibility = visibility,
     )
