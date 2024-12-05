@@ -167,6 +167,7 @@ endif
 COMMON_FLAGS := \
   -Werror \
   -fno-unwind-tables \
+  -fno-asynchronous-unwind-tables \
   -ffunction-sections \
   -fdata-sections \
   -fmessage-length=0 \
