@@ -1,3 +1,5 @@
+"""TfLite Micro BUILD options."""
+
 def tflm_copts():
     """Returns the default copts for targets in TFLM.
 
