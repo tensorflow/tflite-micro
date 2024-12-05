@@ -35,6 +35,7 @@ class ModelData(TypedDict):
 
 def _render(output_file: pathlib.Path, template_file: pathlib.Path,
             model_data: ModelData) -> None:
+  print("Generating {}".format(output_file))
   t = template.Template(filename=str(template_file))
   with output_file.open('w+') as file:
     file.write(t.render(**model_data))

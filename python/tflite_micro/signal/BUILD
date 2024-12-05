@@ -68,6 +68,11 @@ py_test(
     srcs = ["ops/delay_op_test.py"],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":delay_op",
         requirement("numpy"),
@@ -96,6 +101,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":energy_op",
         requirement("numpy"),
@@ -124,6 +134,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":fft_ops",
         requirement("numpy"),
@@ -158,6 +173,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
@@ -186,6 +206,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":framer_op",
         requirement("numpy"),
@@ -211,6 +236,11 @@ py_test(
     srcs = ["ops/overlap_add_op_test.py"],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":overlap_add_op",
         "@absl_py//absl/testing:parameterized",
@@ -273,6 +303,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":stacker_op",
         requirement("numpy"),
@@ -300,6 +335,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
         ":window_op",
         requirement("numpy"),

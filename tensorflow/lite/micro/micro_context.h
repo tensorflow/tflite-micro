@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,12 +18,6 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
-
-#ifdef USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/micro/compression.h"
-
-#endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
@@ -100,30 +94,6 @@ class MicroContext {
   virtual void* external_context() = 0;
 
   virtual MicroGraph& graph() = 0;
-
-#ifdef USE_TFLM_COMPRESSION
-
-  // Available during Prepare & Eval. Returns false if tensor is not
-  // compressed.
-  virtual bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) = 0;
-
-  // Only available during Prepare. The kernel is responsible for storing the
-  // scratch buffer handle.
-  virtual int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
-                                                 int tensor_idx) = 0;
-
-  // Available during Prepare & Eval. Returns nullptr if tensor is not
-  // compressed.
-  virtual const CompressionTensorData* GetTensorCompressionData(
-      const TfLiteNode* node, int tensor_idx) = 0;
-
-  // Only available during Eval. Returns nullptr on failure, otherwise returns a
-  // pointer to the scratch buffer.
-  virtual void* DecompressTensorToScratchBuffer(
-      const TfLiteEvalTensor& tensor,
-      const CompressionTensorData& compression_data, int scratch_buffer_handle);
-
-#endif  // USE_TFLM_COMPRESSION
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE
