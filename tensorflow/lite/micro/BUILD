@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_binary",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
@@ -414,6 +413,7 @@ tflm_cc_library(
         "hexdump.h",
     ],
     deps = [
+        ":debug_log",
         ":span",
         ":static_vector",
     ],
