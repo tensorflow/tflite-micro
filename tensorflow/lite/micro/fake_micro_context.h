@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +30,12 @@ class FakeMicroContext : public MicroContext {
   ~FakeMicroContext() = default;
 
   FakeMicroContext(TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
-                   MicroGraph* micro_graph);
+                   MicroGraph* micro_graph
+#ifdef USE_TFLM_COMPRESSION
+                   ,
+                   const CompressedTensorList* compressed_tensors = nullptr
+#endif  // USE_TFLM_COMPRESSION
+  );
 
   void* AllocatePersistentBuffer(size_t bytes) override;
   TfLiteStatus RequestScratchBufferInArena(size_t bytes,
@@ -50,6 +55,24 @@ class FakeMicroContext : public MicroContext {
   void* external_context() override;
   MicroGraph& graph() override;
 
+#ifdef USE_TFLM_COMPRESSION
+
+  // Available during Prepare & Eval. Returns false if tensor is not
+  // compressed.
+  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override;
+
+  // Only available during Prepare. The kernel is responsible for storing the
+  // scratch buffer handle.
+  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                         int tensor_idx) override;
+
+  // Available during Prepare & Eval. Returns nullptr if tensor is not
+  // compressed.
+  const CompressionTensorData* GetTensorCompressionData(
+      const TfLiteNode* node, int tensor_idx) override;
+
+#endif  // USE_TFLM_COMPRESSION
+
  private:
   static constexpr int kNumScratchBuffers_ = 12;
 
@@ -61,6 +84,15 @@ class FakeMicroContext : public MicroContext {
   int allocated_temp_count_ = 0;
 
   SingleArenaBufferAllocator* allocator_;
+
+#ifdef USE_TFLM_COMPRESSION
+
+  //
+  // Compression
+  //
+  const CompressedTensorList* compressed_tensors_;
+
+#endif  // USE_TFLM_COMPRESSION
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

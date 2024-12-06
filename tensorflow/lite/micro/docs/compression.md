@@ -276,7 +276,7 @@ bazel run --cache_test_results=no --test_output=all -s  tensorflow/lite/micro/to
 
 The Generic Benchmark Application can be used to see the size of the model, the
 amount of arena memory used, and the size of the interpreter data structures
-including those involved with tensor conpression.
+including those involved with tensor compression.
 
 The benchmark also reports total inference time, as well as time taken for
 tensor decompression.  Timing data may be either wall-clock time or processor
