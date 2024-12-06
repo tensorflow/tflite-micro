@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_binary",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
@@ -150,6 +149,7 @@ tflm_cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_common",
+        ":micro_context",
         ":micro_graph",
         ":micro_log",
         ":micro_profiler",
@@ -383,20 +383,6 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
-    name = "hexdump",
-    srcs = [
-        "hexdump.cc",
-    ],
-    hdrs = [
-        "hexdump.h",
-    ],
-    deps = [
-        ":span",
-        ":static_vector",
-    ],
-)
-
-tflm_cc_library(
     name = "recording_allocators",
     srcs = [
         "recording_micro_allocator.cc",
@@ -435,6 +421,21 @@ tflm_cc_library(
     ],
     hdrs = [
         "system_setup.h",
+    ],
+)
+
+tflm_cc_library(
+    name = "hexdump",
+    srcs = [
+        "hexdump.cc",
+    ],
+    hdrs = [
+        "hexdump.h",
+    ],
+    deps = [
+        ":debug_log",
+        ":span",
+        ":static_vector",
     ],
 )
 
@@ -568,18 +569,6 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
-    name = "hexdump_test",
-    size = "small",
-    srcs = [
-        "hexdump_test.cc",
-    ],
-    deps = [
-        ":hexdump",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-tflm_cc_test(
     name = "memory_helpers_test",
     srcs = [
         "memory_helpers_test.cc",
@@ -668,6 +657,18 @@ tflm_cc_test(
     ],
     deps = [
         ":static_vector",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "hexdump_test",
+    size = "small",
+    srcs = [
+        "hexdump_test.cc",
+    ],
+    deps = [
+        ":hexdump",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

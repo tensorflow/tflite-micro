@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from tflite_micro.tensorflow.lite.micro.compression import test_models
+from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
 class TestBuild(tf.test.TestCase):
@@ -23,7 +23,9 @@ class TestBuild(tf.test.TestCase):
     self.flatbuffer = test_models.build(test_models.EXAMPLE_MODEL)
 
   def testNotDegenerate(self):
-    self.assertTrue(len(self.flatbuffer) > 50)
+    model = tflite.ModelT.InitFromPackedBuf(self.flatbuffer, 0)
+    self.assertEqual(model.operatorCodes[0].builtinCode,
+                     tflite.BuiltinOperator.FULLY_CONNECTED)
 
 
 if __name__ == "__main__":

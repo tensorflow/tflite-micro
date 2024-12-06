@@ -599,8 +599,9 @@ const flatbuffers::span<uint8_t> BuildLutMetadata(
       *builder, tensor_index, value_table_buffer_index, bit_width);
   auto subgraph = compression::CreateSubgraph(
       *builder, builder->CreateVector(&lut_tensor, 1));
+  constexpr uint32_t schema_version = 1;
   auto metadata = compression::CreateMetadata(
-      *builder, builder->CreateVector(&subgraph, 1));
+      *builder, schema_version, builder->CreateVector(&subgraph, 1));
   compression::FinishMetadataBuffer(*builder, metadata);
   return builder->GetBufferSpan();
 }

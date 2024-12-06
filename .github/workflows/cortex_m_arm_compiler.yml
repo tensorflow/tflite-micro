@@ -4,9 +4,7 @@
 # Helpful YAML parser to clarify YAML syntax:
 # https://yaml-online-parser.appspot.com/
 
-name: Cortex-M
-
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+name: Cortex-M / Arm Compiler 6 
 on:
 
   # Allow manually triggering of the workflow.
@@ -39,21 +37,31 @@ jobs:
 
     name: Cortex-M Generic
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.trigger-sha }}
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.trigger-sha }}
 
       - name: Install dependencies
         run: |
           pip3 install Pillow
           pip3 install numpy
+
+      - name: Install Arm tools
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with: 
+          config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
+
+      - name: Activate Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@v1
+
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang
 
   cortex_m_corstone_300:
     runs-on: ubuntu-latest
@@ -67,21 +75,39 @@ jobs:
 
     name: Cortex-M Corstone 300 (FVP)
     steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.trigger-sha }}
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.trigger-sha }}
 
       - name: Install dependencies
         run: |
           pip3 install Pillow
           pip3 install numpy
+
+      - name: Install Arm tools
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with: 
+          config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
+  
+      - name: Activate Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@v1
+
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: |
+            tensorflow/
+            gen/
 
   issue-on-error:
     needs: [cortex_m_generic, cortex_m_corstone_300]
@@ -95,3 +121,4 @@ jobs:
       flag_label: ci:bot_issue
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
+  

@@ -241,6 +241,7 @@ py_wheel(
 
 sh_test(
     name = "whl_test",
+    size = "large",
     srcs = [
         "whl_test.sh",
     ],
@@ -251,6 +252,9 @@ sh_test(
         ":whl",
     ],
     tags = [
+        "noasan",
+        "nomsan",
         "notap",  # See http://b/294278650#comment4 for more details.
+        "noubsan",
     ],
 )

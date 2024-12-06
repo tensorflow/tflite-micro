@@ -12,81 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""Tools for constructing flatbuffers for testing.
+
+This module provides tools for constructing .tflite flatbuffers from a Python
+dictionary representation of a model, a prototype of which can be found in
+EXAMPLE_MODEL.
+
+Example usage:
+  model_definition = {...}  # use EXAMPLE_MODEL as prototype
+  flatbuffer: bytearray = test_models.build(model_definition)
+"""
+
+# This module must remain low-level and independent from any helpers in this
+# project which make constructing model and flatbuffers easier, because this
+# module is used to define tests for those helpers.
 
 import flatbuffers
 import numpy as np
-
-from tensorflow.lite.python import schema_py_generated as tflite
-
-
-def build(spec: dict) -> bytearray:
-  """Builds a tflite flatbuffer from a model spec.
-
-  Args:
-    spec: A dictionary representation of the model, a prototype of which
-      can be found in the EXAMPLE_MODEL attribute of this module.
-
-  Returns:
-    A tflite flatbuffer.
-  """
-  root = tflite.ModelT()
-  description = spec.get("description")
-  if description is not None:
-    root.description = description
-
-  root.operatorCodes = []
-  for id, operator_code in spec["operator_codes"].items():
-    assert id == len(root.operatorCodes)
-    opcode_t = tflite.OperatorCodeT()
-    root.operatorCodes.append(opcode_t)
-    opcode_t.builtinCode = operator_code["builtin_code"]
-
-  root.subgraphs = []
-  for id, subgraph in spec["subgraphs"].items():
-    assert id == len(root.subgraphs)
-    subgraph_t = tflite.SubGraphT()
-    root.subgraphs.append(subgraph_t)
-
-    subgraph_t.operators = []
-    for id, operator in subgraph["operators"].items():
-      assert id == len(subgraph_t.operators)
-      operator_t = tflite.OperatorT()
-      operator_t.opcodeIndex = operator["opcode_index"]
-      operator_t.inputs = operator["inputs"]
-      operator_t.outputs = operator["outputs"]
-      subgraph_t.operators.append(operator_t)
-
-    subgraph_t.tensors = []
-    for id, tensor in subgraph["tensors"].items():
-      assert id == len(subgraph_t.tensors)
-      tensor_t = tflite.TensorT()
-      tensor_t.name = tensor.get("name", None)
-      tensor_t.shape = tensor["shape"]
-      tensor_t.type = tensor["type"]
-      tensor_t.buffer = tensor["buffer"]
-      subgraph_t.tensors.append(tensor_t)
-
-  root.buffers = []
-  for id, data in spec["buffers"].items():
-    assert id == len(root.buffers)
-    buffer_t = tflite.BufferT()
-
-    if data is None:
-      buffer_t.data = []
-    elif isinstance(data, np.ndarray):
-      array = data.astype(data.dtype.newbyteorder("<"))  # ensure little-endian
-      buffer_t.data = list(array.tobytes())
-    else:
-      raise TypeError(f"buffer_id {id} has invalid data {data}")
-
-    root.buffers.append(buffer_t)
-
-  size_hint = 1 * 2**20
-  builder = flatbuffers.Builder(size_hint)
-  builder.Finish(root.Pack(builder))
-  flatbuffer = builder.Output()
-  return flatbuffer
-
+from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 EXAMPLE_MODEL = {
     "operator_codes": {
@@ -95,6 +38,12 @@ EXAMPLE_MODEL = {
         },
         1: {
             "builtin_code": tflite.BuiltinOperator.ADD,
+        },
+    },
+    "metadata": {
+        0: {
+            "name": "metadata0",
+            "buffer": 0
         },
     },
     "subgraphs": {
@@ -137,6 +86,9 @@ EXAMPLE_MODEL = {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT8,
                     "buffer": 1,
+                    "quantization": {
+                        "quantized_dimension": 0,
+                    },
                 },
             },
         },
@@ -149,3 +101,88 @@ EXAMPLE_MODEL = {
         4: np.array(range(16), dtype=np.dtype("<i1")),
     }
 }
+
+
+def build(model_definition: dict) -> bytearray:
+  """Builds a .tflite flatbuffer from a model definition.
+
+  Args:
+    model_definition: A dictionary representation of the model, a prototype of
+      which can be found in the EXAMPLE_MODEL attribute of this module.
+
+  Returns:
+    A tflite flatbuffer.
+  """
+  root = tflite.ModelT()
+  description = model_definition.get("description")
+  if description is not None:
+    root.description = description
+
+  root.operatorCodes = []
+  for id, operator_code in model_definition["operator_codes"].items():
+    assert id == len(root.operatorCodes)
+    opcode_t = tflite.OperatorCodeT()
+    root.operatorCodes.append(opcode_t)
+    opcode_t.builtinCode = operator_code["builtin_code"]
+
+  root.metadata = []
+  if "metadata" in model_definition:
+    for _, metadata in model_definition["metadata"].items():
+      metadata_t = tflite.MetadataT()
+      metadata_t.name = metadata["name"]
+      metadata_t.buffer = metadata["buffer"]
+      root.metadata.append(metadata_t)
+
+  root.subgraphs = []
+  for id, subgraph in model_definition["subgraphs"].items():
+    assert id == len(root.subgraphs)
+    subgraph_t = tflite.SubGraphT()
+    root.subgraphs.append(subgraph_t)
+
+    subgraph_t.operators = []
+    for id, operator in subgraph["operators"].items():
+      assert id == len(subgraph_t.operators)
+      operator_t = tflite.OperatorT()
+      operator_t.opcodeIndex = operator["opcode_index"]
+      operator_t.inputs = operator["inputs"]
+      operator_t.outputs = operator["outputs"]
+      subgraph_t.operators.append(operator_t)
+
+    subgraph_t.tensors = []
+    for id, tensor in subgraph["tensors"].items():
+      assert id == len(subgraph_t.tensors)
+      tensor_t = tflite.TensorT()
+      tensor_t.name = tensor.get("name", None)
+      tensor_t.shape = tensor["shape"]
+      tensor_t.type = tensor["type"]
+      tensor_t.buffer = tensor["buffer"]
+
+      try:
+        d = tensor["quantization"]["quantized_dimension"]
+        tensor_t.quantization = tflite.QuantizationParametersT()
+        tensor_t.quantization.quantizedDimension = d
+      except KeyError:
+        tensor_t.quantization = None
+
+      subgraph_t.tensors.append(tensor_t)
+
+  root.buffers = []
+  for id, data in model_definition["buffers"].items():
+    assert id == len(root.buffers)
+    buffer_t = tflite.BufferT()
+
+    if data is None:
+      buffer_t.data = []
+    elif isinstance(data, np.ndarray):
+      array = data.astype(data.dtype.newbyteorder("<"))  # ensure little-endian
+      buffer_t.data = list(array.tobytes())
+    else:
+      raise TypeError(f"buffer_id {id} must be None or an np.ndarray")
+
+    root.buffers.append(buffer_t)
+
+  size_hint = 1 * 2**20
+  builder = flatbuffers.Builder(size_hint)
+  builder.Finish(root.Pack(builder))
+  flatbuffer = builder.Output()
+  return flatbuffer

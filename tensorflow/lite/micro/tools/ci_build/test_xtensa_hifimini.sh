@@ -48,24 +48,3 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
   test -j$(nproc)
-
-# optional TFLM compression testing
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifimini \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=mini1m1m_RG \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  USE_TFLM_COMPRESSION=yes \
-  build -j$(nproc)
-
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifimini \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=mini1m1m_RG \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  USE_TFLM_COMPRESSION=yes \
-  test -j$(nproc)

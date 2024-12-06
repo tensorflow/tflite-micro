@@ -40,16 +40,6 @@ readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
   EXTERNAL_DIR=${EXTERNAL_DIR} \
   build -j$(nproc)
 
-# optional TFLM compression testing
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=vision_p6 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=P6_200528 \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  USE_TFLM_COMPRESSION=yes \
-  build -j$(nproc)
 
 # Since we currently do not have optimized kernel implementations for vision_p6,
 # running the tests (in particular person_detection_int8) takes a very long
@@ -74,28 +64,5 @@ if [[ ${1} == "RUN_TESTS" ]]; then
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    run_tflm_benchmark -j$(nproc)
-
-  # optional TFLM compression testing
-  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-    TARGET=xtensa \
-    TARGET_ARCH=vision_p6 \
-    OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P6_200528 \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    USE_TFLM_COMPRESSION=yes \
-    test -j$(nproc)
-
-  # run generic benchmark
-  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-    TARGET=xtensa \
-    TARGET_ARCH=vision_p6 \
-    OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P6_200528 \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    USE_TFLM_COMPRESSION=yes \
     run_tflm_benchmark -j$(nproc)
 fi

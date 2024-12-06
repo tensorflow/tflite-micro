@@ -27,7 +27,6 @@
 # it is run.
 
 bitarray
-hexdump
 tensorflow
 twine
 numpy

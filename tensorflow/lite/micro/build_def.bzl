@@ -1,3 +1,5 @@
+"""TfLite Micro BUILD options."""
+
 def tflm_copts():
     """Returns the default copts for targets in TFLM.
 
@@ -6,6 +8,7 @@ def tflm_copts():
     be useful when additively overriding the defaults for a particular target.
     """
     return [
+        "-fno-asynchronous-unwind-tables",
         "-fno-exceptions",
         "-Wall",
         "-Wno-unused-parameter",
@@ -13,13 +16,36 @@ def tflm_copts():
         "-DFLATBUFFERS_LOCALE_INDEPENDENT=0",
     ]
 
+def micro_copts():
+    """A deprecated alias for tflm_copts, kept for out-of-tree users.
+
+    This deprecated function serves as an alias for tflm_copts(). It is retained
+    for the benefit of code outside the open-source TFLM repository.
+    """
+    return tflm_copts()
+
 def tflm_defines():
-    return [
+    """Returns the default preprocessor defines for targets in TFLM.
+
+    This function returns the default preprocessor defines used by tflm_cc_*
+    targets in TFLM. As with tflm_copts(), it is typically unnecessary to use
+    this function directly; however, it may be useful when additively
+    overriding the defaults for a particular target.
+    """
+    defines = [
+        # Exclude dynamic memory use in shared TFLite code.
         "TF_LITE_STATIC_MEMORY=1",
-    ] + select({
+    ]
+
+    defines += select({
+        # Include code for the compression feature.
         "//:with_compression_enabled": ["USE_TFLM_COMPRESSION=1"],
+
+        # By default, don't include code for the compression feature.
         "//conditions:default": [],
     })
+
+    return defines
 
 def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     native.cc_binary(

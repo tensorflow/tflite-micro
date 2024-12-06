@@ -14,8 +14,9 @@
 #
 """A facade for working with tflite.Model.
 
-Provide convenient navigation and data types for working with tflite.Model,
-which can be tedious and verbose to working with directly.
+This module provides convenient navigation, data type conversions, and
+utilities for working with a tflite.Model, which can be tedious and verbose to
+work with directly.
 
 Usage:
   model = model_facade.read(flatbuffer)
@@ -23,12 +24,13 @@ Usage:
   new_flatbuffer = model.compile()
 """
 
+from __future__ import annotations
+
 import flatbuffers
 import numpy as np
 from numpy.typing import NDArray
-from typing import ByteString, Generic, TypeVar
-
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from typing import ByteString, Generic, TypeVar
 
 _IteratorTo = TypeVar("_IteratorTo")
 
@@ -147,14 +149,14 @@ _NP_DTYPES = {
 
 class _Tensor:
 
-  def __init__(self, tensor: tflite.TensorT, index, subgraph):
-    self._tensor = tensor
+  def __init__(self, tensor_t: tflite.TensorT, index, subgraph: _Subgraph):
+    self._tensor_t = tensor_t
     self.index = index
     self.subgraph = subgraph
 
   @property
   def name(self):
-    n = self._tensor.name
+    n = self._tensor_t.name
     if isinstance(n, bytes):
       return n.decode("utf-8")
     else:
@@ -164,23 +166,23 @@ class _Tensor:
   def shape(self):
     """Return the shape as specified in the model.
     """
-    return self._tensor.shape
+    return self._tensor_t.shape
 
   @property
   def buffer_index(self):
-    return self._tensor.buffer
+    return self._tensor_t.buffer
 
   @property
-  def buffer(self):
-    return self.subgraph.model.buffers[self._tensor.buffer]
+  def buffer(self) -> _Buffer:
+    return self.subgraph.model.buffers[self._tensor_t.buffer]
 
   @property
-  def data(self):
+  def data(self) -> bytes:
     return self.buffer.data
 
   @property
   def dtype(self) -> np.dtype:
-    return _NP_DTYPES[self._tensor.type]
+    return _NP_DTYPES[self._tensor_t.type]
 
   @property
   def array(self) -> np.ndarray:
@@ -192,62 +194,61 @@ class _Tensor:
     is an array of fixed-width, integer fields.
     """
     return np.frombuffer(self.data,
-                         dtype=self.dtype).reshape(self._tensor.shape)
+                         dtype=self.dtype).reshape(self._tensor_t.shape)
 
   @property
-  def quantization(self):
-    return self._tensor.quantization
+  def quantization(self) -> tflite.QuantizationParametersT | None:
+    return self._tensor_t.quantization
 
 
 class _Buffer:
 
-  def __init__(self, buffer, index, model):
-    self.buffer = buffer
+  def __init__(self, buffer_t: tflite.BufferT, index, model):
+    self._buffer_t = buffer_t
     self.index = index
     self.model = model
 
   @property
-  def data(self):
-    return self.buffer.data
+  def data(self) -> bytes:
+    return bytes(self._buffer_t.data)
 
   @data.setter
-  def data(self, value):
-    self.buffer.data = value
-    return self.data
+  def data(self, value: ByteString):
+    self._buffer_t.data = list(value)
 
   def extend(self, values: NDArray):
-    self.buffer.data.extend(values.tobytes())
+    self._buffer_t.data.extend(values.tobytes())
 
 
 class _Subgraph:
 
-  def __init__(self, subgraph, index, model):
-    self.subgraph = subgraph
+  def __init__(self, subgraph_t: tflite.SubGraphT, index: int, model: _Model):
+    self._subgraph_t = subgraph_t
     self.index = index
     self.model = model
 
   @property
   def operators(self) -> _Iterator[_Operator]:
-    return _Iterator(self.subgraph.operators, _Operator, parent=self)
+    return _Iterator(self._subgraph_t.operators, _Operator, parent=self)
 
   @property
   def tensors(self) -> _Iterator[_Tensor]:
-    return _Iterator(self.subgraph.tensors, _Tensor, parent=self)
+    return _Iterator(self._subgraph_t.tensors, _Tensor, parent=self)
 
 
 class _Model:
   """A facade for manipulating tflite.Model.
   """
 
-  def __init__(self, representation: tflite.ModelT):
-    self.root = representation
+  def __init__(self, model_t: tflite.ModelT):
+    self._model_t = model_t
 
   def compile(self) -> bytearray:
     """Returns a tflite.Model flatbuffer.
     """
     size_hint = 4 * 2**10
     builder = flatbuffers.Builder(size_hint)
-    builder.Finish(self.root.Pack(builder))
+    builder.Finish(self._model_t.Pack(builder))
     return builder.Output()
 
   def add_buffer(self) -> _Buffer:
@@ -255,9 +256,9 @@ class _Model:
     """
     buffer = tflite.BufferT()
     buffer.data = []
-    self.root.buffers.append(buffer)
-    index = len(self.root.buffers) - 1
-    return _Buffer(buffer, index, self.root)
+    self._model_t.buffers.append(buffer)
+    index = len(self._model_t.buffers) - 1
+    return _Buffer(buffer, index, self._model_t)
 
   def add_metadata(self, key, value):
     """Adds a key-value pair, writing value to a newly created buffer.
@@ -267,19 +268,32 @@ class _Model:
     buffer = self.add_buffer()
     buffer.data = value
     metadata.buffer = buffer.index
-    self.root.metadata.append(metadata)
+    self._model_t.metadata.append(metadata)
+
+  @property
+  def metadata(self) -> dict[str, _Buffer]:
+    """Returns the model's metadata as a dictionary to Buffer objects.
+    """
+    result = {}
+    for m in self._model_t.metadata:
+      name = m.name.decode("utf-8")  # type: ignore (fb library is wrong)
+      buffer = _Buffer(self._model_t.buffers[m.buffer], m.buffer,
+                       self._model_t)
+      result[name] = buffer
+
+    return result
 
   @property
   def operatorCodes(self):
-    return self.root.operatorCodes
+    return self._model_t.operatorCodes
 
   @property
   def subgraphs(self) -> _Iterator[_Subgraph]:
-    return _Iterator(self.root.subgraphs, _Subgraph, parent=self)
+    return _Iterator(self._model_t.subgraphs, _Subgraph, parent=self)
 
   @property
   def buffers(self) -> _Iterator[_Buffer]:
-    return _Iterator(self.root.buffers, _Buffer, parent=self)
+    return _Iterator(self._model_t.buffers, _Buffer, parent=self)
 
 
 def read(buffer: ByteString):

@@ -31,6 +31,7 @@ struct LutTensorT;
 
 struct MetadataT : public ::flatbuffers::NativeTable {
   typedef Metadata TableType;
+  uint32_t schema_version = 1;
   std::vector<std::unique_ptr<tflite::micro::compression::SubgraphT>> subgraphs{};
   MetadataT() = default;
   MetadataT(const MetadataT &o);
@@ -42,13 +43,18 @@ struct Metadata FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MetadataT NativeTableType;
   typedef MetadataBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SUBGRAPHS = 4
+    VT_SCHEMA_VERSION = 4,
+    VT_SUBGRAPHS = 6
   };
+  uint32_t schema_version() const {
+    return GetField<uint32_t>(VT_SCHEMA_VERSION, 1);
+  }
   const ::flatbuffers::Vector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>> *subgraphs() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>> *>(VT_SUBGRAPHS);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<uint32_t>(verifier, VT_SCHEMA_VERSION, 4) &&
            VerifyOffset(verifier, VT_SUBGRAPHS) &&
            verifier.VerifyVector(subgraphs()) &&
            verifier.VerifyVectorOfTables(subgraphs()) &&
@@ -63,6 +69,9 @@ struct MetadataBuilder {
   typedef Metadata Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_schema_version(uint32_t schema_version) {
+    fbb_.AddElement<uint32_t>(Metadata::VT_SCHEMA_VERSION, schema_version, 1);
+  }
   void add_subgraphs(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>>> subgraphs) {
     fbb_.AddOffset(Metadata::VT_SUBGRAPHS, subgraphs);
   }
@@ -79,18 +88,22 @@ struct MetadataBuilder {
 
 inline ::flatbuffers::Offset<Metadata> CreateMetadata(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t schema_version = 1,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>>> subgraphs = 0) {
   MetadataBuilder builder_(_fbb);
   builder_.add_subgraphs(subgraphs);
+  builder_.add_schema_version(schema_version);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Metadata> CreateMetadataDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    uint32_t schema_version = 1,
     const std::vector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>> *subgraphs = nullptr) {
   auto subgraphs__ = subgraphs ? _fbb.CreateVector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>>(*subgraphs) : 0;
   return tflite::micro::compression::CreateMetadata(
       _fbb,
+      schema_version,
       subgraphs__);
 }
 
@@ -237,12 +250,14 @@ inline ::flatbuffers::Offset<LutTensor> CreateLutTensor(
 
 ::flatbuffers::Offset<LutTensor> CreateLutTensor(::flatbuffers::FlatBufferBuilder &_fbb, const LutTensorT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-inline MetadataT::MetadataT(const MetadataT &o) {
+inline MetadataT::MetadataT(const MetadataT &o)
+      : schema_version(o.schema_version) {
   subgraphs.reserve(o.subgraphs.size());
   for (const auto &subgraphs_ : o.subgraphs) { subgraphs.emplace_back((subgraphs_) ? new tflite::micro::compression::SubgraphT(*subgraphs_) : nullptr); }
 }
 
 inline MetadataT &MetadataT::operator=(MetadataT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(schema_version, o.schema_version);
   std::swap(subgraphs, o.subgraphs);
   return *this;
 }
@@ -256,6 +271,7 @@ inline MetadataT *Metadata::UnPack(const ::flatbuffers::resolver_function_t *_re
 inline void Metadata::UnPackTo(MetadataT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
+  { auto _e = schema_version(); _o->schema_version = _e; }
   { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraphs[_i]) { _e->Get(_i)->UnPackTo(_o->subgraphs[_i].get(), _resolver); } else { _o->subgraphs[_i] = std::unique_ptr<tflite::micro::compression::SubgraphT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->subgraphs.resize(0); } }
 }
 
@@ -267,9 +283,11 @@ inline ::flatbuffers::Offset<Metadata> CreateMetadata(::flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MetadataT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _schema_version = _o->schema_version;
   auto _subgraphs = _o->subgraphs.size() ? _fbb.CreateVector<::flatbuffers::Offset<tflite::micro::compression::Subgraph>> (_o->subgraphs.size(), [](size_t i, _VectorArgs *__va) { return CreateSubgraph(*__va->__fbb, __va->__o->subgraphs[i].get(), __va->__rehasher); }, &_va ) : 0;
   return tflite::micro::compression::CreateMetadata(
       _fbb,
+      _schema_version,
       _subgraphs);
 }
 

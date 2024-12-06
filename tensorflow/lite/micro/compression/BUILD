@@ -48,11 +48,21 @@ tflm_cc_library(
     hdrs = ["metadata_saved.h"],
 )
 
-flatbuffer_py_library(
-    # Generates the Python module "metadata_py_generated", used to read the
-    # metadata flatbuffer.
-    name = "metadata_py",
-    srcs = ["metadata.fbs"],
+sh_test(
+    # Ensures consistency bewteen the schema and the saved generated header.
+    # Fails if they mismatch, in which case, ./metadata_saved_update.sh should
+    # be run. See :metadata_saved above.
+    name = "metadata_saved_test",
+    size = "small",
+    srcs = ["metadata_saved_test.sh"],
+    args = [
+        "$(location metadata_saved.h)",
+        "$(location :metadata_cc_srcs)",
+    ],
+    data = [
+        "metadata_saved.h",
+        ":metadata_cc_srcs",
+    ],
 )
 
 tflm_cc_test(
@@ -67,6 +77,25 @@ tflm_cc_test(
     ],
 )
 
+flatbuffer_py_library(
+    # Generates the Python module "metadata_py_generated", used to read the
+    # metadata flatbuffer.
+    name = "metadata_py",
+    srcs = ["metadata.fbs"],
+)
+
+py_test(
+    name = "metadata_test_py",
+    size = "small",
+    srcs = ["metadata_test.py"],
+    main = "metadata_test.py",
+    deps = [
+        "metadata_py",
+        "@flatbuffers//:runtime_py",
+        requirement("tensorflow"),
+    ],
+)
+
 py_binary(
     name = "compress",
     srcs = [
@@ -76,10 +105,8 @@ py_binary(
         ":metadata_py",
         ":model_facade",
         ":spec",
-        "//tensorflow/lite/python:schema_py",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
-        "@absl_py//absl/logging",
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
         requirement("numpy"),
@@ -94,61 +121,14 @@ py_test(
     ],
     deps = [
         ":compress",
-        ":model_facade",
-        requirement("tensorflow"),
-    ],
-)
-
-py_binary(
-    name = "view",
-    srcs = [
-        "view.py",
-    ],
-    deps = [
         ":metadata_py",
-        "//tensorflow/lite/python:schema_py",
-        "@absl_py//absl:app",
-        requirement("bitarray"),
-    ],
-)
-
-py_test(
-    name = "view_test",
-    size = "small",
-    srcs = [
-        "view_test.py",
-    ],
-    deps = [
+        ":model_facade",
+        ":spec",
         ":test_models",
-        ":view",
-        "@absl_py//absl/testing:absltest",
-    ],
-)
-
-py_test(
-    name = "metadata_test_py",
-    size = "small",
-    srcs = ["metadata_test.py"],
-    main = "metadata_test.py",
-    deps = [
-        "metadata_py",
-        "@flatbuffers//:runtime_py",
-        requirement("hexdump"),
-    ],
-)
-
-sh_test(
-    # Ensure consistency bewteen the schema and the saved generated header.
-    name = "metadata_saved_test",
-    size = "small",
-    srcs = ["metadata_saved_test.sh"],
-    args = [
-        "$(location metadata_saved.h)",
-        "$(location :metadata_cc_srcs)",
-    ],
-    data = [
-        "metadata_saved.h",
-        ":metadata_cc_srcs",
+        "//tensorflow/lite/python:schema_py",
+        requirement("bitarray"),
+        requirement("numpy"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -161,33 +141,13 @@ py_library(
     ],
 )
 
-py_library(
-    name = "test_models",
-    srcs = ["test_models.py"],
-    deps = [
-        "//tensorflow/lite/python:schema_py",
-        requirement("flatbuffers"),
-        requirement("numpy"),
-    ],
-)
-
-py_test(
-    name = "test_models_test",
-    size = "small",
-    srcs = ["test_models_test.py"],
-    deps = [
-        "test_models",
-        requirement("tensorflow"),
-    ],
-)
-
 py_test(
     name = "model_facade_test",
     size = "small",
     srcs = ["model_facade_test.py"],
     deps = [
-        "model_facade",
-        "test_models",
+        ":model_facade",
+        ":test_models",
         requirement("tensorflow"),
     ],
 )
@@ -206,6 +166,27 @@ py_test(
     srcs = ["spec_test.py"],
     deps = [
         ":spec",
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "test_models",
+    srcs = ["test_models.py"],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        requirement("flatbuffers"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "test_models_test",
+    size = "small",
+    srcs = ["test_models_test.py"],
+    deps = [
+        ":test_models",
+        "//tensorflow/lite/python:schema_py",
         requirement("tensorflow"),
     ],
 )

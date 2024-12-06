@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.micro.compression import spec
 
+# This corresponds to spec.EXAMPLE_YAML_SPEC
 EXPECTED_PYTHON_SPEC = [
     spec.Tensor(subgraph=0,
                 tensor=42,
@@ -28,8 +29,24 @@ EXPECTED_PYTHON_SPEC = [
 
 class TestLoadYaml(tf.test.TestCase):
 
-  def testLoad(self):
+  def testExampleSpec(self):
     result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
+    self.assertEqual(result, EXPECTED_PYTHON_SPEC)
+
+  def testMalformedYAML(self):
+    bad = spec.EXAMPLE_YAML_SPEC + "  & foobar: 0"
+    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+
+  def testUnexpectedType(self):
+    bad = spec.EXAMPLE_YAML_SPEC + "  - subgraph: 'foobar'"
+    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+
+  def testMissingFields(self):
+    bad = spec.EXAMPLE_YAML_SPEC + "  - foobar: 0"
+    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+
+  def testIgnoreExtraKeys(self):
+    result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC + "foobar: 0")
     self.assertEqual(result, EXPECTED_PYTHON_SPEC)
 
 

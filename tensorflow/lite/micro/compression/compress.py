@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Model compression library and CLI.
+
+See USAGE.
+"""
 
 import bitarray
 import bitarray.util
-from collections.abc import ByteString
 from dataclasses import dataclass, field
 import sys
-from typing import Iterable
+from typing import ByteString, Iterable
 
 import absl.app
 import absl.flags
@@ -52,6 +55,9 @@ model has been trained or preprocessed in a way that the tensor values
 are binned into a meaningful, limited set.
 """
 
+# A compressed model augments the usual .tflite flatbuffer with a flatbuffer of
+# its own containing compression metadata, stored at the buffer index stored at
+# the following key in the .tflite flatbuffer's metadata map.
 TFLITE_METADATA_KEY = "COMPRESSION_METADATA"
 
 
@@ -64,6 +70,7 @@ class CompressionError(Exception):
 
 
 class _MetadataBuilder:
+  """Builder for the compression metadata flatbuffer."""
 
   def __init__(self):
     self._metadata = schema.MetadataT()
@@ -99,7 +106,7 @@ class _MetadataBuilder:
 
 
 @dataclass
-class LutCompressedArray:
+class _LutCompressedArray:
   compression_axis: int = 0
   lookup_tables: list[np.ndarray] = field(default_factory=list)
   indices: np.ndarray = field(default_factory=lambda: np.array([]))
@@ -110,18 +117,18 @@ class LutCompressedArray:
     if self.indices is None:
       raise ValueError
 
-    max_index = np.max(self.indices)
-    return int(np.ceil(np.log2(max_index) or 1))
+    max_index = int(np.max(self.indices))
+    return max_index.bit_length() or 1
 
 
-def _lut_compress_array(tensor: np.ndarray, axis: int) -> LutCompressedArray:
+def _lut_compress_array(tensor: np.ndarray, axis: int) -> _LutCompressedArray:
   """Compresses using a lookup table per subarray along the given axis.
 
   Compressing a tensor with a lookup table per subarray along a particular axis
   is analogous to quantizing a tensor with different quantization parameters
   per subarray along a particular axis (dimension).
   """
-  compressed = LutCompressedArray()
+  compressed = _LutCompressedArray()
   compressed.compression_axis = axis
 
   # Iterate over subarrays along the compression axis
@@ -139,11 +146,13 @@ def _lut_compress_array(tensor: np.ndarray, axis: int) -> LutCompressedArray:
   return compressed
 
 
-def _assert_lut_only(compression):
+def _check_lut_compression(compression) -> spec.LookUpTableCompression:
   if len(compression) != 1:
     raise CompressionError("Each tensor must have exactly one compression")
   if not isinstance(compression[0], spec.LookUpTableCompression):
     raise CompressionError('Only "lut" compression may be specified')
+
+  return compression[0]
 
 
 def _identify_compression_axis(tensor: model_facade._Tensor) -> int:
@@ -207,16 +216,25 @@ def _pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytearray:
 
 
 def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
+  """Compresses a model .tflite flatbuffer.
+
+  Args:
+    model_in: the original, uncompressed .tflite flatbuffer
+    specs: an iterable of compression specs, see module spec.py
+
+  Returns:
+    A compressed flatbuffer.
+  """
   model = model_facade.read(model_in)
   metadata = _MetadataBuilder()
 
   for spec in specs:
     try:
       tensor = model.subgraphs[spec.subgraph].tensors[spec.tensor]
-      _assert_lut_only(spec.compression)
+      lut_compression = _check_lut_compression(spec.compression)
+      spec_bitwidth = lut_compression.index_bitwidth
       axis = _identify_compression_axis(tensor)
       compressed = _lut_compress_array(tensor.array, axis)
-      spec_bitwidth = spec.compression[0].index_bitwidth
       _check_bitwidth(compressed.index_bitwidth, spec_bitwidth, spec)
 
       # overwrite tensor data with indices
@@ -241,19 +259,20 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
   return model.compile()
 
 
-FLAGS = absl.flags.FLAGS
-absl.flags.DEFINE_string("input", None, None)
-absl.flags.DEFINE_string("spec", None, None)
-absl.flags.DEFINE_string("output", None, None)
-
-
 def _fail_w_usage() -> int:
   absl.app.usage()
   return 1
 
 
+FLAGS = absl.flags.FLAGS
+absl.flags.DEFINE_string("input", None, help="uncompressed .tflite flatbuffer")
+absl.flags.DEFINE_string("spec", None, help="specfile (see module spec.py)")
+absl.flags.DEFINE_string("output", None, help="compressed .tflite flatbuffer")
+
+
 def main(argv):
   if len(argv) > 1:
+    # no positional arguments accepted
     return _fail_w_usage()
 
   in_path = FLAGS.input
@@ -267,7 +286,7 @@ def main(argv):
   if spec_path is None:
     return _fail_w_usage()
   else:
-    with open(spec_path, "rb") as spec_file:
+    with open(spec_path, "r") as spec_file:
       specs = spec.parse_yaml(spec_file.read())
 
   out_path = FLAGS.output
@@ -283,5 +302,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-  sys.modules['__main__'].__doc__ = USAGE
+  sys.modules['__main__'].__doc__ = USAGE  # for absl's use
   absl.app.run(main)

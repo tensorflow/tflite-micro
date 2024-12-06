@@ -14,7 +14,6 @@
 
 import numpy as np
 import tensorflow as tf
-
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 from tflite_micro.tensorflow.lite.micro.compression import model_facade
 from tflite_micro.tensorflow.lite.micro.compression import test_models
@@ -26,6 +25,16 @@ TEST_MODEL = {
         },
         1: {
             "builtin_code": tflite.BuiltinOperator.ADD,
+        },
+    },
+    "metadata": {
+        0: {
+            "name": "metadata0",
+            "buffer": 0
+        },
+        1: {
+            "name": "metadata1",
+            "buffer": 0
         },
     },
     "subgraphs": {
@@ -93,7 +102,7 @@ class TestModelFacade(tf.test.TestCase):
     self.flatbuffer = test_models.build(TEST_MODEL)
     self.facade = model_facade.read(self.flatbuffer)
 
-  def testReadAndWrite(self):
+  def testLoopback(self):
     self.assertEqual(self.flatbuffer, self.facade.compile())
 
   def testSubgraphIteration(self):
@@ -101,28 +110,33 @@ class TestModelFacade(tf.test.TestCase):
     for i, subgraph in enumerate(self.facade.subgraphs):
       self.assertEqual(i, subgraph.index)
 
+  def testMetadata(self):
+    self.assertIn("metadata0", self.facade.metadata)
+    self.assertIn("metadata1", self.facade.metadata)
+    self.assertNotIn("metadata2", self.facade.metadata)
+
 
 class TestTensors(tf.test.TestCase):
 
   def setUp(self):
     flatbuffer = test_models.build(TEST_MODEL)
     self.facade = model_facade.read(flatbuffer)
-    self.source_tensors = TEST_MODEL["subgraphs"][0]["tensors"].items()
+    self.test_tensors = TEST_MODEL["subgraphs"][0]["tensors"].items()
 
   def testName(self):
-    for id, spec in self.source_tensors:
-      expect = spec["name"]
+    for id, attrs in self.test_tensors:
+      expect = attrs["name"]
       self.assertEqual(self.facade.subgraphs[0].tensors[id].name, expect)
 
   def testNameIsString(self):
-    for id, _ in self.source_tensors:
+    for id, _ in self.test_tensors:
       self.assertIsInstance(self.facade.subgraphs[0].tensors[id].name, str)
 
   def testTensors(self):
-    for id, spec in self.source_tensors:
+    for id, attrs in self.test_tensors:
       tensor = self.facade.subgraphs[0].tensors[id]
-      self.assertAllEqual(tensor.shape, spec["shape"])
-      data = TEST_MODEL["buffers"][spec["buffer"]]
+      self.assertAllEqual(tensor.shape, attrs["shape"])
+      data = TEST_MODEL["buffers"][attrs["buffer"]]
       self.assertAllEqual(tensor.array, data.reshape(tensor.shape))
 
 
