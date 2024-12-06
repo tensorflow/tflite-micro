@@ -78,7 +78,7 @@ void TestConcatenateTwoInputs(
 
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<tensors_size, const T> tcl;
+  TestCompressedList<tensors_size> tcl;
   const CompressedTensorList* comp_list_p = nullptr;
 
   if (comp_info != nullptr) {
@@ -211,7 +211,7 @@ void TestConcatenateQuantizedTwoInputsCompressed(
 
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<tensors_size, const T> tcl;
+  TestCompressedList<tensors_size> tcl;
   const CompressedTensorList* comp_list_p = nullptr;
 
   TF_LITE_MICRO_EXPECT_EQ(tcl.AddInput(comp_info[0], tensors[0], 0), kTfLiteOk);
