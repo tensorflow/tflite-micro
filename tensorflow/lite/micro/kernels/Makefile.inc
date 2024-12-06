@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -179,6 +179,10 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like_test.cc
+
+ifeq ($(ENABLE_COMPRESSION), yes)
+MICROLITE_KERNEL_SIMPLE_TEST_SRCS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_test.cc
+endif
 
 # Generate simple kernel test targets in a common way
 $(foreach TEST_TARGET,$(MICROLITE_KERNEL_SIMPLE_TEST_SRCS),\
