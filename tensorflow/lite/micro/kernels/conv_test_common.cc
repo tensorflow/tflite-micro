@@ -18,6 +18,43 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
+TfLiteStatus TestConvFloat(
+    int* input_dims_data, const float* input_data, int* filter_dims_data,
+    const float* filter_data, int* bias_dims_data, const float* bias_data,
+    int* output_dims_data, const float* expected_output_data,
+    TfLiteConvParams* conv_params, TFLMRegistration registration,
+    float* output_data
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const TestCompressionInfo<const float>* filter_comp_info,
+    const TestCompressionInfo<const float>* bias_comp_info
+#endif  // USE_TFLM_COMPRESSION
+) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_dims_count = ElementCount(*output_dims);
+  constexpr int inputs_size = 3;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(filter_data, filter_dims),
+      CreateTensor(bias_data, bias_dims),
+      CreateTensor(output_data, output_dims),
+  };
+
+  return ValidateConvGoldens(tensors, tensors_size, expected_output_data,
+                             output_dims_count, conv_params, registration,
+                             output_data
+#ifdef USE_TFLM_COMPRESSION
+                             ,
+                             1e-5f, filter_comp_info, bias_comp_info
+#endif  // USE_TFLM_COMPRESSION
+  );
+}
+
 template <typename T, typename BiasT>
 TfLiteStatus TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, T* input_quantized,
