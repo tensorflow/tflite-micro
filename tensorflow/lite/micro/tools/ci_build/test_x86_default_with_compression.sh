@@ -23,14 +23,40 @@
 set -e
 set -x
 
-export TENSORFLOW_ROOT=${1}
-export EXTERNAL_DIR=${2}
-export USE_TFLM_COMPRESSION=yes
-export GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite
+TENSORFLOW_ROOT=${1}
+EXTERNAL_DIR=${2}
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile 
 
-make -f ${MAKEFILE} third_party_downloads  # TODO(b/143715361): first to allow parallel builds.
-make -f ${MAKEFILE} -j$(nproc) build
-make -f ${MAKEFILE} -j$(nproc) test
-make -f ${MAKEFILE} -j$(nproc) integration_tests
-make -f ${MAKEFILE} -j$(nproc) run_tflm_benchmark
+make -f ${MAKEFILE} \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    third_party_downloads  # TODO(b/143715361): download first to allow parallel builds.
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    USE_TFLM_COMPRESSION=yes \
+    build
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    USE_TFLM_COMPRESSION=yes \
+    test
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    USE_TFLM_COMPRESSION=yes \
+    integration_tests
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+    USE_TFLM_COMPRESSION=yes \
+    run_tflm_benchmark
