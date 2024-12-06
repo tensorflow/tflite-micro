@@ -61,33 +61,35 @@ TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
   return runner.Invoke();
 }
 
-template <typename T, typename CTF = void, typename CTB = void>
+template <typename T, typename TF = void, typename TB = void>
 TfLiteStatus ValidateConvGoldens(
     TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
     int output_length, const TfLiteConvParams* conv_params,
     TFLMRegistration registration, T* output_data, float tolerance = 1e-5
 #ifdef USE_TFLM_COMPRESSION
     ,
-    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+    const TestCompressionInfo<TF>* filter_comp_info = nullptr,
+    const TestCompressionInfo<TB>* bias_comp_info = nullptr
 #endif  // USE_TFLM_COMPRESSION
 ) {
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<kConvMaxInputTensors, CTF, CTB> tcl;
-  const CompressedTensorList* comp_list_p = nullptr;
-
-  if (comp_info != nullptr) {
+  TestCompressedList<kConvMaxInputTensors, TF, TB> tcl;
+  if (filter_comp_info != nullptr) {
     TF_LITE_MICRO_EXPECT_EQ(
-        tcl.AddWeight(*comp_info, tensors[kConvWeightsTensor],
-                      kConvWeightsTensor),
+        tcl.AddInput(*filter_comp_info, tensors[kConvWeightsTensor],
+                     kConvWeightsTensor),
         kTfLiteOk);
     TF_LITE_MICRO_CHECK_FAIL();
-    TF_LITE_MICRO_EXPECT_EQ(
-        tcl.AddBias(*comp_info, tensors[kConvBiasTensor], kConvBiasTensor),
-        kTfLiteOk);
-    TF_LITE_MICRO_CHECK_FAIL();
-    comp_list_p = tcl.GetCompressedTensorList();
   }
+  if (bias_comp_info) {
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddInput(*bias_comp_info, tensors[kConvBiasTensor],
+                     kConvBiasTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
+  }
+  const CompressedTensorList* comp_list_p = tcl.GetCompressedTensorList();
 
 #endif  // USE_TFLM_COMPRESSION
 
@@ -108,7 +110,6 @@ TfLiteStatus ValidateConvGoldens(
   return kTfLiteOk;
 }
 
-template <typename CTF = void, typename CTB = void>
 TfLiteStatus TestConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
     const float* filter_data, int* bias_dims_data, const float* bias_data,
@@ -117,7 +118,8 @@ TfLiteStatus TestConvFloat(
     float* output_data
 #ifdef USE_TFLM_COMPRESSION
     ,
-    const TestCompressionInfo<CTF, CTB>* comp_info = nullptr
+    const TestCompressionInfo<const float>* filter_comp_info = nullptr,
+    const TestCompressionInfo<const float>* bias_comp_info = nullptr
 #endif  // USE_TFLM_COMPRESSION
 ) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
@@ -140,7 +142,7 @@ TfLiteStatus TestConvFloat(
                              output_data
 #ifdef USE_TFLM_COMPRESSION
                              ,
-                             1e-5f, comp_info
+                             1e-5f, filter_comp_info, bias_comp_info
 #endif  // USE_TFLM_COMPRESSION
   );
 }
@@ -179,48 +181,49 @@ TfLiteStatus TestConvQuantizedPerChannel(
 
 #ifdef USE_TFLM_COMPRESSION
 
-template <typename TIO, typename CTB>
+template <typename TIO, typename TBIAS>
 TfLiteStatus TestConvQuantizedPerChannelCompressed(
     int* input_dims_data, const float* input_data, TIO* input_quantized,
     float input_scale, int input_zero_point, int* output_dims_data,
     const float* expected_output_data, TIO* expected_output_quantized,
     TIO* output_quantized, float output_scale, int output_zero_point,
     const TfLiteConvParams* conv_params, TFLMRegistration registration,
-    const TestCompressionQuantizedInfo<CTB>* comp_info) {
+    const TestCompressionQuantizedInfo2<int8_t>* filter_comp_info,
+    const TestCompressionQuantizedInfo2<TBIAS>* bias_comp_info) {
   // TODO(b/358165875): account for optional bias tensor
   // bool null_bias = comp_info->bias_data == nullptr ? true : false;
 
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
-  TfLiteIntArray* filter_dims = IntArrayFromInts(comp_info->filter_dims_data);
-  TfLiteIntArray* bias_dims = IntArrayFromInts(comp_info->bias_dims_data);
+  TfLiteIntArray* filter_dims = IntArrayFromInts(filter_comp_info->dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_comp_info->dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
 
   TfLiteFloatArray* filter_scales =
-      FloatArrayFromFloats(comp_info->filter_scales);
+      FloatArrayFromFloats(filter_comp_info->scales);
   TfLiteIntArray* filter_zero_points =
-      IntArrayFromInts(comp_info->filter_zero_points);
-  TfLiteFloatArray* bias_scales = FloatArrayFromFloats(comp_info->bias_scales);
+      IntArrayFromInts(filter_comp_info->zero_points);
+  TfLiteFloatArray* bias_scales = FloatArrayFromFloats(bias_comp_info->scales);
   TfLiteIntArray* bias_zero_points =
-      IntArrayFromInts(comp_info->bias_zero_points);
+      IntArrayFromInts(bias_comp_info->zero_points);
 
   TfLiteAffineQuantization filter_quant = {};
   TfLiteTensor filter_tensor = CreatePerChannelQuantizedTensor(
-      comp_info->filter_compressed, filter_dims, filter_scales,
+      filter_comp_info->compressed, filter_dims, filter_scales,
       filter_zero_points, &filter_quant, kConvQuantizedDimension,
       false /* is_variable */, kTfLiteInt8);
   SymmetricPerChannelQuantize(
-      comp_info->filter_data, comp_info->filter_value_table,
-      filter_scales->size * comp_info->filter_value_table_stride,
+      filter_comp_info->data, filter_comp_info->value_table,
+      filter_scales->size * filter_comp_info->value_table_stride,
       filter_scales->size, filter_scales->data);
 
   TfLiteAffineQuantization bias_quant = {};
   TfLiteTensor bias_tensor = CreatePerChannelQuantizedBiasTensor(
-      comp_info->bias_compressed, bias_dims, input_scale, filter_scales,
+      bias_comp_info->compressed, bias_dims, input_scale, filter_scales,
       bias_scales, bias_zero_points, &bias_quant, kConvQuantizedDimension,
-      false /* is_variable */, typeToTfLiteType<CTB>());
+      false /* is_variable */, typeToTfLiteType<TBIAS>());
   SymmetricPerChannelQuantize(
-      comp_info->bias_data, comp_info->bias_value_table,
-      bias_scales->size * comp_info->bias_value_table_stride, bias_scales->size,
+      bias_comp_info->data, bias_comp_info->value_table,
+      bias_scales->size * bias_comp_info->value_table_stride, bias_scales->size,
       bias_scales->data);
 
   constexpr int tensors_size = kConvMaxTensors;
@@ -239,7 +242,7 @@ TfLiteStatus TestConvQuantizedPerChannelCompressed(
   return ValidateConvGoldens(tensors, tensors_size, expected_output_quantized,
                              output_dims_count, conv_params, registration,
                              output_quantized, 1.0e-5f /* tolerance */,
-                             comp_info);
+                             filter_comp_info, bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
