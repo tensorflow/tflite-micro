@@ -24,8 +24,8 @@ set -e
 set -x
 pwd
 
-TENSORFLOW_ROOT=${2}
-EXTERNAL_DIR=${3}
+TENSORFLOW_ROOT=${1}
+EXTERNAL_DIR=${2}
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile 
 
 TARGET=xtensa 
