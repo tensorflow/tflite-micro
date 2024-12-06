@@ -206,7 +206,7 @@ TfLiteStatus ValidateTransposeConvGoldens(
 ) {
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<kTransposeConvMaxInputTensors, TF, TB> tcl;
+  TestCompressedList<kTransposeConvMaxInputTensors> tcl;
   if (filter_comp_info != nullptr) {
     TF_LITE_MICRO_EXPECT_EQ(
         tcl.AddInput(*filter_comp_info, tensors[kTransposeConvFilterTensor],
@@ -386,8 +386,8 @@ TfLiteStatus TestTransposeConvQuantizedCompressed(
     const float* expected_output_data, TIO* expected_output_quantized,
     TIO* output_quantized, float output_scale, int output_zero_point,
     const TfLiteConvParams* conv_params, const unsigned int tolerance,
-    const TestCompressionQuantizedInfo2<int8_t>* filter_comp_info,
-    const TestCompressionQuantizedInfo2<TBIAS>* bias_comp_info) {
+    const TestCompressionQuantizedInfo<int8_t>* filter_comp_info,
+    const TestCompressionQuantizedInfo<TBIAS>* bias_comp_info) {
   // TODO(b/358151309): account for optional bias tensor
   // bool null_bias = comp_info->bias_data == nullptr ? true : false;
 
@@ -767,8 +767,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelSingleChannelCompressed) {
   int8_t golden_quantized[tflite::testing::kOutputElementsQ1];
   int8_t output_quantized[tflite::testing::kOutputElementsQ1];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int32_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int32_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;
@@ -830,8 +830,8 @@ TF_LITE_MICRO_TEST(
   int16_t golden_quantized[tflite::testing::kOutputElementsQ2];
   int16_t output_quantized[tflite::testing::kOutputElementsQ2];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int16_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int16_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;
@@ -897,8 +897,8 @@ TF_LITE_MICRO_TEST(
   int16_t golden_quantized[tflite::testing::kOutputElementsQ2];
   int16_t output_quantized[tflite::testing::kOutputElementsQ2];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int64_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int64_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;

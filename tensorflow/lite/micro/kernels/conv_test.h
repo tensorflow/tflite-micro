@@ -74,7 +74,7 @@ TfLiteStatus ValidateConvGoldens(
 ) {
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<kConvMaxInputTensors, TF, TB> tcl;
+  TestCompressedList<kConvMaxInputTensors> tcl;
   if (filter_comp_info != nullptr) {
     TF_LITE_MICRO_EXPECT_EQ(
         tcl.AddInput(*filter_comp_info, tensors[kConvWeightsTensor],
@@ -188,8 +188,8 @@ TfLiteStatus TestConvQuantizedPerChannelCompressed(
     const float* expected_output_data, TIO* expected_output_quantized,
     TIO* output_quantized, float output_scale, int output_zero_point,
     const TfLiteConvParams* conv_params, TFLMRegistration registration,
-    const TestCompressionQuantizedInfo2<int8_t>* filter_comp_info,
-    const TestCompressionQuantizedInfo2<TBIAS>* bias_comp_info) {
+    const TestCompressionQuantizedInfo<int8_t>* filter_comp_info,
+    const TestCompressionQuantizedInfo<TBIAS>* bias_comp_info) {
   // TODO(b/358165875): account for optional bias tensor
   // bool null_bias = comp_info->bias_data == nullptr ? true : false;
 

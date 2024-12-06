@@ -264,15 +264,15 @@ int representative_64x16_output_dims[] = {2, 1, 16};
 
 constexpr int kMaxTensors = 4;
 
-template <typename T, typename CTW = void, typename CTB = void>
+template <typename T, typename TW = void, typename TB = void>
 TfLiteStatus ValidateFullyConnectedGoldens(
     TfLiteTensor* tensors, const int tensors_size, bool null_bias,
     const TfLiteFusedActivation activation, const float tolerance,
     const int output_len, const T* golden, T* output_data
 #ifdef USE_TFLM_COMPRESSION
     ,
-    const TestCompressionInfo<CTW>* weight_comp_info = nullptr,
-    const TestCompressionInfo<CTB>* bias_comp_info = nullptr
+    const TestCompressionInfo<TW>* weight_comp_info = nullptr,
+    const TestCompressionInfo<TB>* bias_comp_info = nullptr
 #endif  // USE_TFLM_COMPRESSION
 ) {
   TfLiteFullyConnectedParams builtin_data = {
@@ -303,7 +303,7 @@ TfLiteStatus ValidateFullyConnectedGoldens(
 
 #ifdef USE_TFLM_COMPRESSION
 
-  TestCompressedList<kMaxTensors, CTW, CTB> tcl;
+  TestCompressedList<kMaxTensors> tcl;
 
   if (weight_comp_info != nullptr) {
     TF_LITE_MICRO_EXPECT_EQ(
@@ -448,8 +448,8 @@ TfLiteStatus TestFullyConnectedQuantizedCompressed(
     const float* expected_output_data, TIO* expected_output_quantized,
     TIO* output_quantized, float output_scale, int output_zero_point,
     const TfLiteFusedActivation activation,
-    const TestCompressionQuantizedInfo2<TW>* weight_comp_info,
-    const TestCompressionQuantizedInfo2<TB>* bias_comp_info) {
+    const TestCompressionQuantizedInfo<TW>* weight_comp_info,
+    const TestCompressionQuantizedInfo<TB>* bias_comp_info) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* weight_dims = IntArrayFromInts(weight_comp_info->dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_comp_info->dims_data);
@@ -615,8 +615,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
   int8_t golden_quantized[tflite::testing::simple_output_size];
   int8_t output_data[tflite::testing::simple_output_size];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> weight_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int32_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> weight_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int32_t> bias_comp_info = {};
 
   weight_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   weight_comp_info.value_table = weights_quantized;
@@ -696,8 +696,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
   int16_t golden_quantized[tflite::testing::simple_output_size];
   int16_t output_data[tflite::testing::simple_output_size];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> weight_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int64_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> weight_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int64_t> bias_comp_info = {};
 
   weight_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   weight_comp_info.value_table = weights_quantized;

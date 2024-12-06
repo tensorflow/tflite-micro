@@ -228,8 +228,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelCompressed) {
   int8_t golden_quantized[tflite::testing::kOutputElementsQ1];
   int8_t output_quantized[tflite::testing::kOutputElementsQ1];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int32_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int32_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;
@@ -445,8 +445,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel64bBiasCompressed) {
   int16_t golden_quantized[tflite::testing::kOutputElementsQ1];
   int16_t output_quantized[tflite::testing::kOutputElementsQ1];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int64_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int64_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;
@@ -534,8 +534,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantized16x8PerChannel32bBiasCompressed) {
   int16_t golden_quantized[tflite::testing::kOutputElementsQ1];
   int16_t output_quantized[tflite::testing::kOutputElementsQ1];
 
-  tflite::testing::TestCompressionQuantizedInfo2<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo2<int32_t> bias_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
+  tflite::testing::TestCompressionQuantizedInfo<int32_t> bias_comp_info = {};
 
   filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
   filter_comp_info.value_table = filter_quantized;
