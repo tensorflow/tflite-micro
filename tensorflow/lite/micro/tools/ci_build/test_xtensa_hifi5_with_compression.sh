@@ -24,17 +24,54 @@ set -e
 set -x
 pwd
 
-export TENSORFLOW_ROOT=${2}
-export EXTERNAL_DIR=${3}
-export TARGET=xtensa 
-export TARGET_ARCH=hifi5
-export OPTIMIZED_KERNEL_DIR=xtensa
-export XTENSA_CORE=PRD_H5_RDO_07_01_2022
-export GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite
-export USE_TFLM_COMPRESSION=yes
+TENSORFLOW_ROOT=${2}
+EXTERNAL_DIR=${3}
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile 
 
-make -f ${MAKEFILE} third_party_downloads  # TODO(b/143904317): first to allow parallel builds
-make -f ${MAKEFILE} -j$(nproc) build
-make -f ${MAKEFILE} -j$(nproc) test
-make -f ${MAKEFILE} -j$(nproc) run_tflm_benchmark
+TARGET=xtensa 
+TARGET_ARCH=hifi5 
+OPTIMIZED_KERNEL_DIR=xtensa
+XTENSA_CORE=PRD_H5_RDO_07_01_2022
+
+make -f ${MAKEFILE} \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    TARGET=${TARGET} \
+    TARGET_ARCH=${TARGET_ARCH} \
+    OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+    XTENSA_CORE=${XTENSA_CORE} \
+    third_party_downloads  # TODO(b/143904317): first to allow parallel builds
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    TARGET=${TARGET} \
+    TARGET_ARCH=${TARGET_ARCH} \
+    OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+    XTENSA_CORE=${XTENSA_CORE} \
+    USE_TFLM_COMPRESSION=yes \
+    build
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    TARGET=${TARGET} \
+    TARGET_ARCH=${TARGET_ARCH} \
+    OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+    XTENSA_CORE=${XTENSA_CORE} \
+    USE_TFLM_COMPRESSION=yes \
+    test
+
+make -f ${MAKEFILE} \
+    -j$(nproc) \
+    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+    EXTERNAL_DIR=${EXTERNAL_DIR} \
+    TARGET=${TARGET} \
+    TARGET_ARCH=${TARGET_ARCH} \
+    OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
+    XTENSA_CORE=${XTENSA_CORE} \
+    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+    USE_TFLM_COMPRESSION=yes \
+    run_tflm_benchmark
