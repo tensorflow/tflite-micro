@@ -9,6 +9,7 @@ def tflm_copts():
     """
     return [
         "-fno-asynchronous-unwind-tables",
+        "-fno-exceptions",
         "-Wall",
         "-Wno-unused-parameter",
         "-Wnon-virtual-dtor",
@@ -31,13 +32,20 @@ def tflm_defines():
     this function directly; however, it may be useful when additively
     overriding the defaults for a particular target.
     """
-    return select({
+    defines = [
+        # Exclude dynamic memory use in shared TFLite code.
+        "TF_LITE_STATIC_MEMORY=1",
+    ]
+
+    defines += select({
         # Include code for the compression feature.
         "//:with_compression_enabled": ["USE_TFLM_COMPRESSION=1"],
 
         # By default, don't include code for the compression feature.
         "//conditions:default": [],
     })
+
+    return defines
 
 def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     native.cc_binary(
