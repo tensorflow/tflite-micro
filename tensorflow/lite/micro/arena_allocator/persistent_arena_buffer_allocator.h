@@ -39,7 +39,6 @@ class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
   // Returns the size of all persistent allocations in bytes.
   size_t GetPersistentUsedBytes() const override;
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
  private:
   // The memory arena that this allocator manages.
   uint8_t* const buffer_head_;
@@ -51,6 +50,8 @@ class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
   // So in essence, the allocated region grows from the bottom and emulates
   // SingleArenaBufferAllocator's persistent part.
   uint8_t* tail_temp_;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 }  // namespace tflite

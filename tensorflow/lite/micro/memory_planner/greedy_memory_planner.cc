@@ -31,7 +31,7 @@ char GetOrdinalCharacter(int i) {
   } else if (i < 62) {
     return 'A' + (i - 36);
   }
-  return '*';
+  return GetOrdinalCharacter(i % 62);
 }
 
 }  // namespace
@@ -335,9 +335,14 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
   CalculateOffsetsIfNeeded();
 
   for (int i = 0; i < buffer_count_; ++i) {
-    MicroPrintf("%c (id=%d): size=%d, offset=%d, first_used=%d last_used=%d",
-                GetOrdinalCharacter(i), i, requirements_[i].size,
-                buffer_offsets_[i], requirements_[i].first_time_used,
+    char c = '*';
+    if (requirements_[i].first_time_used != requirements_[i].last_time_used) {
+      // not a scratch buffer nor subgraph output tensor
+      c = GetOrdinalCharacter(i);
+    }
+    MicroPrintf("%c (id=%d): size=%d, offset=%d, first_used=%d last_used=%d", c,
+                i, requirements_[i].size, buffer_offsets_[i],
+                requirements_[i].first_time_used,
                 requirements_[i].last_time_used);
   }
 
@@ -379,7 +384,12 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
       const int line_end = ((offset + size) * kLineWidth) / max_size;
       for (int n = line_start; n < line_end; ++n) {
         if (line[n] == '.') {
-          line[n] = GetOrdinalCharacter(i);
+          if (requirements->first_time_used == requirements->last_time_used) {
+            // scratch buffer or subgraph output tensor
+            line[n] = '*';
+          } else {
+            line[n] = GetOrdinalCharacter(i);
+          }
         } else {
           line[n] = '!';
         }
@@ -387,7 +397,7 @@ void GreedyMemoryPlanner::PrintMemoryPlan() {
     }
     line[kLineWidth] = 0;
 
-    MicroPrintf("%s%d: %s (%dk)", t < 10 ? " " : "", t, (const char*)line,
+    MicroPrintf("%4d: %s (%dk)", t, (const char*)line,
                 (memory_use + 1023) / 1024);
   }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,15 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
+
+#ifdef USE_TFLM_COMPRESSION
+
+#include <initializer_list>
+
+#include "tensorflow/lite/micro/compression.h"
+
+#endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
@@ -94,6 +103,69 @@ class MicroContext {
   virtual void* external_context() = 0;
 
   virtual MicroGraph& graph() = 0;
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Available during Prepare & Eval. Returns false if tensor is not
+  // compressed.
+  virtual bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) = 0;
+
+  // Only available during Prepare. The kernel is responsible for storing the
+  // scratch buffer handle.
+  virtual int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                                 int tensor_idx) = 0;
+
+  // Available during Prepare & Eval. Returns nullptr if tensor is not
+  // compressed.
+  virtual const CompressionTensorData* GetTensorCompressionData(
+      const TfLiteNode* node, int tensor_idx) = 0;
+
+  // Only available during Prepare & Eval. Returns nullptr on failure, otherwise
+  // returns a pointer to the buffer.
+  virtual void* DecompressTensorToBuffer(
+      const TfLiteEvalTensor& tensor,
+      const CompressionTensorData& compression_data, void* buffer);
+
+  // Used for configuring alternate decompression memory
+  struct AlternateMemoryRegion {
+    void* address;
+    size_t bytes;
+  };
+
+  // Set the alternate decompression memory regions.
+  // Can only be called during the MicroInterpreter kInit state.
+  virtual TfLiteStatus SetDecompressionMemory(
+      const std::initializer_list<AlternateMemoryRegion>& regions);
+
+  // Return a pointer to memory that can be used for decompression.
+  // The pointer will be aligned to the <alignment> value.
+  // Return nullptr if the requested size is not available.
+  // Can be called during kPrepare and kInvoke states.
+  virtual void* AllocateDecompressionMemory(size_t bytes, size_t alignment);
+
+  // reset all allocation tracking
+  virtual void ResetDecompressionMemoryAllocations();
+
+#endif  // USE_TFLM_COMPRESSION
+
+  // Set the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  virtual TfLiteStatus SetAlternateProfiler(
+      MicroProfilerInterface* alt_profiler) {
+    return kTfLiteError;
+  }
+
+  // Get the alternate MicroProfilerInterface.
+  // This can be used to profile subsystems simultaneously with the profiling
+  // of kernels during the Eval phase.  See (b/379584353).
+  // The alternate MicroProfilerInterface is currently used by the tensor
+  // decompression subsystem.
+  virtual MicroProfilerInterface* GetAlternateProfiler() const {
+    return nullptr;
+  }
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE

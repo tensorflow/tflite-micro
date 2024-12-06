@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class MicroProfiler : public MicroProfilerInterface {
   virtual void EndEvent(uint32_t event_handle) override;
 
   // Clears all the events that have been currently profiled.
-  void ClearEvents() { num_events_ = 0; }
+  void ClearEvents();
 
   // Returns the sum of the ticks taken across all the events. This number
   // is only meaningful if all of the events are disjoint (the end time of
@@ -83,7 +83,7 @@ class MicroProfiler : public MicroProfilerInterface {
   // In practice, the number of tags will be much lower than the number of
   // events. But it is theoretically possible that each event to be unique and
   // hence we allow total_ticks_per_tag to have kMaxEvents entries.
-  TicksPerTag total_ticks_per_tag[kMaxEvents] = {};
+  TicksPerTag total_ticks_per_tag_[kMaxEvents] = {};
 
   int FindExistingOrNextPosition(const char* tag_name);
 

@@ -20,6 +20,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/tools/benchmarking/show_meta_data.h"
 
+#ifndef XTENSA
+#undef HIFI3
+#undef HIFI4
+#undef HIFI5
+#undef VISION_P6
+#endif // XTENSA
+
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 #include "NatureDSP_Signal_id.h"
 #include "xa_nnlib_standards.h"

@@ -44,8 +44,6 @@ TFLMRegistration* Register_DETECTION_POSTPROCESS();
 template <unsigned int tOpCount>
 class MicroMutableOpResolver : public MicroOpResolver {
  public:
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
   explicit MicroMutableOpResolver() {}
 
   const TFLMRegistration* FindOp(tflite::BuiltinOperator op) const override {
@@ -704,6 +702,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   BuiltinOperator builtin_codes_[tOpCount];
   TfLiteBridgeBuiltinParseFunction builtin_parsers_[tOpCount];
   unsigned int num_buitin_ops_ = 0;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 };  // namespace tflite
