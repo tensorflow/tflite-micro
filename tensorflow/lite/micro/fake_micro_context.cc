@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,10 +23,23 @@ limitations under the License.
 
 namespace tflite {
 
-FakeMicroContext::FakeMicroContext(TfLiteTensor* tensors,
-                                   SingleArenaBufferAllocator* allocator,
-                                   MicroGraph* micro_graph)
-    : graph_(*micro_graph), tensors_(tensors), allocator_(allocator) {}
+FakeMicroContext::FakeMicroContext(
+    TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
+    MicroGraph* micro_graph
+#ifdef USE_TFLM_COMPRESSION
+    ,
+    const CompressedTensorList* compressed_tensors
+#endif  // USE_TFLM_COMPRESSION
+    )
+    : graph_(*micro_graph),
+      tensors_(tensors),
+      allocator_(allocator)
+#ifdef USE_TFLM_COMPRESSION
+      ,
+      compressed_tensors_(compressed_tensors)
+#endif  // USE_TFLM_COMPRESSION
+{
+}
 
 TfLiteTensor* FakeMicroContext::AllocateTempTfLiteTensor(int tensor_index) {
   allocated_temp_count_++;
@@ -111,5 +124,61 @@ TfLiteStatus FakeMicroContext::set_external_context(
 void* FakeMicroContext::external_context() { return nullptr; }
 
 MicroGraph& FakeMicroContext::graph() { return graph_; }
+
+#ifdef USE_TFLM_COMPRESSION
+
+// Available during Prepare & Eval. Returns false if tensor is not
+// compressed.
+bool FakeMicroContext::IsTensorCompressed(const TfLiteNode* node,
+                                          int tensor_idx) {
+  if (compressed_tensors_ != nullptr && tensor_idx < node->inputs->size) {
+    int index = node->inputs->data[tensor_idx];
+    if (index >= 0 && compressed_tensors_->tensors[index] != nullptr) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Only available during Prepare. The kernel is responsible for storing the
+// scratch buffer handle.
+int FakeMicroContext::AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                                         int tensor_idx) {
+  if (compressed_tensors_ == nullptr || tensor_idx >= node->inputs->size) {
+    return -1;
+  }
+  int index = node->inputs->data[tensor_idx];
+  if (index < 0 || compressed_tensors_->tensors[index] == nullptr) {
+    return -1;
+  }
+  TfLiteTensor* tensor = &tensors_[index];
+  int scratch_index = -1;
+  TfLiteStatus result =
+      RequestScratchBufferInArena(tensor->bytes, &scratch_index);
+  if (result != kTfLiteOk) {
+    return -1;
+  }
+
+  return scratch_index;
+}
+
+// Available during Prepare & Eval. Returns nullptr if tensor is not
+// compressed.
+const CompressionTensorData* FakeMicroContext::GetTensorCompressionData(
+    const TfLiteNode* node, int tensor_idx) {
+  if (compressed_tensors_ == nullptr || tensor_idx >= node->inputs->size) {
+    return nullptr;
+  }
+
+  int index = node->inputs->data[tensor_idx];
+  if (index < 0) {
+    return nullptr;
+  }
+
+  return compressed_tensors_->tensors[index];
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace tflite
