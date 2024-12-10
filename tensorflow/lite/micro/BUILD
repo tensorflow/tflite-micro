@@ -28,6 +28,16 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
+    name = "compression",
+    hdrs = [
+        "compression.h",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
+    ],
+)
+
+tflm_cc_library(
     # TODO(b/187093492): Rename to micro_interpreter.
     name = "micro_framework",
     srcs = [
