@@ -19,6 +19,10 @@ struct CustomQuantization;
 struct CustomQuantizationBuilder;
 struct CustomQuantizationT;
 
+struct BlockwiseQuantization;
+struct BlockwiseQuantizationBuilder;
+struct BlockwiseQuantizationT;
+
 struct QuantizationParameters;
 struct QuantizationParametersBuilder;
 struct QuantizationParametersT;
@@ -118,6 +122,10 @@ struct StablehloConvolutionOptionsT;
 struct StablehloScatterOptions;
 struct StablehloScatterOptionsBuilder;
 struct StablehloScatterOptionsT;
+
+struct StablehloCaseOptions;
+struct StablehloCaseOptionsBuilder;
+struct StablehloCaseOptionsT;
 
 struct StablehloRngBitGeneratorOptions;
 struct StablehloRngBitGeneratorOptionsBuilder;
@@ -759,29 +767,32 @@ inline const char *EnumNameTensorType(TensorType e) {
 enum QuantizationDetails : uint8_t {
   QuantizationDetails_NONE = 0,
   QuantizationDetails_CustomQuantization = 1,
+  QuantizationDetails_BlockwiseQuantization = 2,
   QuantizationDetails_MIN = QuantizationDetails_NONE,
-  QuantizationDetails_MAX = QuantizationDetails_CustomQuantization
+  QuantizationDetails_MAX = QuantizationDetails_BlockwiseQuantization
 };
 
-inline const QuantizationDetails (&EnumValuesQuantizationDetails())[2] {
+inline const QuantizationDetails (&EnumValuesQuantizationDetails())[3] {
   static const QuantizationDetails values[] = {
     QuantizationDetails_NONE,
-    QuantizationDetails_CustomQuantization
+    QuantizationDetails_CustomQuantization,
+    QuantizationDetails_BlockwiseQuantization
   };
   return values;
 }
 
 inline const char * const *EnumNamesQuantizationDetails() {
-  static const char * const names[3] = {
+  static const char * const names[4] = {
     "NONE",
     "CustomQuantization",
+    "BlockwiseQuantization",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameQuantizationDetails(QuantizationDetails e) {
-  if (::flatbuffers::IsOutRange(e, QuantizationDetails_NONE, QuantizationDetails_CustomQuantization)) return "";
+  if (::flatbuffers::IsOutRange(e, QuantizationDetails_NONE, QuantizationDetails_BlockwiseQuantization)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesQuantizationDetails()[index];
 }
@@ -794,12 +805,20 @@ template<> struct QuantizationDetailsTraits<tflite::CustomQuantization> {
   static const QuantizationDetails enum_value = QuantizationDetails_CustomQuantization;
 };
 
+template<> struct QuantizationDetailsTraits<tflite::BlockwiseQuantization> {
+  static const QuantizationDetails enum_value = QuantizationDetails_BlockwiseQuantization;
+};
+
 template<typename T> struct QuantizationDetailsUnionTraits {
   static const QuantizationDetails enum_value = QuantizationDetails_NONE;
 };
 
 template<> struct QuantizationDetailsUnionTraits<tflite::CustomQuantizationT> {
   static const QuantizationDetails enum_value = QuantizationDetails_CustomQuantization;
+};
+
+template<> struct QuantizationDetailsUnionTraits<tflite::BlockwiseQuantizationT> {
+  static const QuantizationDetails enum_value = QuantizationDetails_BlockwiseQuantization;
 };
 
 struct QuantizationDetailsUnion {
@@ -839,6 +858,14 @@ struct QuantizationDetailsUnion {
   const tflite::CustomQuantizationT *AsCustomQuantization() const {
     return type == QuantizationDetails_CustomQuantization ?
       reinterpret_cast<const tflite::CustomQuantizationT *>(value) : nullptr;
+  }
+  tflite::BlockwiseQuantizationT *AsBlockwiseQuantization() {
+    return type == QuantizationDetails_BlockwiseQuantization ?
+      reinterpret_cast<tflite::BlockwiseQuantizationT *>(value) : nullptr;
+  }
+  const tflite::BlockwiseQuantizationT *AsBlockwiseQuantization() const {
+    return type == QuantizationDetails_BlockwiseQuantization ?
+      reinterpret_cast<const tflite::BlockwiseQuantizationT *>(value) : nullptr;
   }
 };
 
@@ -1212,11 +1239,12 @@ enum BuiltinOperator : int32_t {
   BuiltinOperator_STABLEHLO_COMPOSITE = 206,
   BuiltinOperator_STABLEHLO_SHIFT_LEFT = 207,
   BuiltinOperator_STABLEHLO_CBRT = 208,
+  BuiltinOperator_STABLEHLO_CASE = 209,
   BuiltinOperator_MIN = BuiltinOperator_ADD,
-  BuiltinOperator_MAX = BuiltinOperator_STABLEHLO_CBRT
+  BuiltinOperator_MAX = BuiltinOperator_STABLEHLO_CASE
 };
 
-inline const BuiltinOperator (&EnumValuesBuiltinOperator())[209] {
+inline const BuiltinOperator (&EnumValuesBuiltinOperator())[210] {
   static const BuiltinOperator values[] = {
     BuiltinOperator_ADD,
     BuiltinOperator_AVERAGE_POOL_2D,
@@ -1426,13 +1454,14 @@ inline const BuiltinOperator (&EnumValuesBuiltinOperator())[209] {
     BuiltinOperator_REDUCE_WINDOW,
     BuiltinOperator_STABLEHLO_COMPOSITE,
     BuiltinOperator_STABLEHLO_SHIFT_LEFT,
-    BuiltinOperator_STABLEHLO_CBRT
+    BuiltinOperator_STABLEHLO_CBRT,
+    BuiltinOperator_STABLEHLO_CASE
   };
   return values;
 }
 
 inline const char * const *EnumNamesBuiltinOperator() {
-  static const char * const names[210] = {
+  static const char * const names[211] = {
     "ADD",
     "AVERAGE_POOL_2D",
     "CONCATENATION",
@@ -1642,13 +1671,14 @@ inline const char * const *EnumNamesBuiltinOperator() {
     "STABLEHLO_COMPOSITE",
     "STABLEHLO_SHIFT_LEFT",
     "STABLEHLO_CBRT",
+    "STABLEHLO_CASE",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameBuiltinOperator(BuiltinOperator e) {
-  if (::flatbuffers::IsOutRange(e, BuiltinOperator_ADD, BuiltinOperator_STABLEHLO_CBRT)) return "";
+  if (::flatbuffers::IsOutRange(e, BuiltinOperator_ADD, BuiltinOperator_STABLEHLO_CASE)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBuiltinOperator()[index];
 }
@@ -4141,11 +4171,12 @@ enum BuiltinOptions2 : uint8_t {
   BuiltinOptions2_ReduceWindowOptions = 20,
   BuiltinOptions2_StableHLOCompositeOptions = 21,
   BuiltinOptions2_StablehloShiftLeftOptions = 22,
+  BuiltinOptions2_StablehloCaseOptions = 23,
   BuiltinOptions2_MIN = BuiltinOptions2_NONE,
-  BuiltinOptions2_MAX = BuiltinOptions2_StablehloShiftLeftOptions
+  BuiltinOptions2_MAX = BuiltinOptions2_StablehloCaseOptions
 };
 
-inline const BuiltinOptions2 (&EnumValuesBuiltinOptions2())[23] {
+inline const BuiltinOptions2 (&EnumValuesBuiltinOptions2())[24] {
   static const BuiltinOptions2 values[] = {
     BuiltinOptions2_NONE,
     BuiltinOptions2_StablehloConcatenateOptions,
@@ -4169,13 +4200,14 @@ inline const BuiltinOptions2 (&EnumValuesBuiltinOptions2())[23] {
     BuiltinOptions2_StablehloRngBitGeneratorOptions,
     BuiltinOptions2_ReduceWindowOptions,
     BuiltinOptions2_StableHLOCompositeOptions,
-    BuiltinOptions2_StablehloShiftLeftOptions
+    BuiltinOptions2_StablehloShiftLeftOptions,
+    BuiltinOptions2_StablehloCaseOptions
   };
   return values;
 }
 
 inline const char * const *EnumNamesBuiltinOptions2() {
-  static const char * const names[24] = {
+  static const char * const names[25] = {
     "NONE",
     "StablehloConcatenateOptions",
     "StablehloBroadcastInDimOptions",
@@ -4199,13 +4231,14 @@ inline const char * const *EnumNamesBuiltinOptions2() {
     "ReduceWindowOptions",
     "StableHLOCompositeOptions",
     "StablehloShiftLeftOptions",
+    "StablehloCaseOptions",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameBuiltinOptions2(BuiltinOptions2 e) {
-  if (::flatbuffers::IsOutRange(e, BuiltinOptions2_NONE, BuiltinOptions2_StablehloShiftLeftOptions)) return "";
+  if (::flatbuffers::IsOutRange(e, BuiltinOptions2_NONE, BuiltinOptions2_StablehloCaseOptions)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesBuiltinOptions2()[index];
 }
@@ -4302,6 +4335,10 @@ template<> struct BuiltinOptions2Traits<tflite::StablehloShiftLeftOptions> {
   static const BuiltinOptions2 enum_value = BuiltinOptions2_StablehloShiftLeftOptions;
 };
 
+template<> struct BuiltinOptions2Traits<tflite::StablehloCaseOptions> {
+  static const BuiltinOptions2 enum_value = BuiltinOptions2_StablehloCaseOptions;
+};
+
 template<typename T> struct BuiltinOptions2UnionTraits {
   static const BuiltinOptions2 enum_value = BuiltinOptions2_NONE;
 };
@@ -4392,6 +4429,10 @@ template<> struct BuiltinOptions2UnionTraits<tflite::StableHLOCompositeOptionsT>
 
 template<> struct BuiltinOptions2UnionTraits<tflite::StablehloShiftLeftOptionsT> {
   static const BuiltinOptions2 enum_value = BuiltinOptions2_StablehloShiftLeftOptions;
+};
+
+template<> struct BuiltinOptions2UnionTraits<tflite::StablehloCaseOptionsT> {
+  static const BuiltinOptions2 enum_value = BuiltinOptions2_StablehloCaseOptions;
 };
 
 struct BuiltinOptions2Union {
@@ -4599,6 +4640,14 @@ struct BuiltinOptions2Union {
   const tflite::StablehloShiftLeftOptionsT *AsStablehloShiftLeftOptions() const {
     return type == BuiltinOptions2_StablehloShiftLeftOptions ?
       reinterpret_cast<const tflite::StablehloShiftLeftOptionsT *>(value) : nullptr;
+  }
+  tflite::StablehloCaseOptionsT *AsStablehloCaseOptions() {
+    return type == BuiltinOptions2_StablehloCaseOptions ?
+      reinterpret_cast<tflite::StablehloCaseOptionsT *>(value) : nullptr;
+  }
+  const tflite::StablehloCaseOptionsT *AsStablehloCaseOptions() const {
+    return type == BuiltinOptions2_StablehloCaseOptions ?
+      reinterpret_cast<const tflite::StablehloCaseOptionsT *>(value) : nullptr;
   }
 };
 
@@ -5115,6 +5164,80 @@ inline ::flatbuffers::Offset<CustomQuantization> CreateCustomQuantizationDirect(
 
 ::flatbuffers::Offset<CustomQuantization> CreateCustomQuantization(::flatbuffers::FlatBufferBuilder &_fbb, const CustomQuantizationT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct BlockwiseQuantizationT : public ::flatbuffers::NativeTable {
+  typedef BlockwiseQuantization TableType;
+  int32_t scales = 0;
+  int32_t zero_points = 0;
+  int32_t block_size = 0;
+};
+
+struct BlockwiseQuantization FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef BlockwiseQuantizationT NativeTableType;
+  typedef BlockwiseQuantizationBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SCALES = 4,
+    VT_ZERO_POINTS = 6,
+    VT_BLOCK_SIZE = 8
+  };
+  int32_t scales() const {
+    return GetField<int32_t>(VT_SCALES, 0);
+  }
+  int32_t zero_points() const {
+    return GetField<int32_t>(VT_ZERO_POINTS, 0);
+  }
+  int32_t block_size() const {
+    return GetField<int32_t>(VT_BLOCK_SIZE, 0);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_SCALES, 4) &&
+           VerifyField<int32_t>(verifier, VT_ZERO_POINTS, 4) &&
+           VerifyField<int32_t>(verifier, VT_BLOCK_SIZE, 4) &&
+           verifier.EndTable();
+  }
+  BlockwiseQuantizationT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(BlockwiseQuantizationT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<BlockwiseQuantization> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BlockwiseQuantizationT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct BlockwiseQuantizationBuilder {
+  typedef BlockwiseQuantization Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_scales(int32_t scales) {
+    fbb_.AddElement<int32_t>(BlockwiseQuantization::VT_SCALES, scales, 0);
+  }
+  void add_zero_points(int32_t zero_points) {
+    fbb_.AddElement<int32_t>(BlockwiseQuantization::VT_ZERO_POINTS, zero_points, 0);
+  }
+  void add_block_size(int32_t block_size) {
+    fbb_.AddElement<int32_t>(BlockwiseQuantization::VT_BLOCK_SIZE, block_size, 0);
+  }
+  explicit BlockwiseQuantizationBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<BlockwiseQuantization> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<BlockwiseQuantization>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<BlockwiseQuantization> CreateBlockwiseQuantization(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t scales = 0,
+    int32_t zero_points = 0,
+    int32_t block_size = 0) {
+  BlockwiseQuantizationBuilder builder_(_fbb);
+  builder_.add_block_size(block_size);
+  builder_.add_zero_points(zero_points);
+  builder_.add_scales(scales);
+  return builder_.Finish();
+}
+
+::flatbuffers::Offset<BlockwiseQuantization> CreateBlockwiseQuantization(::flatbuffers::FlatBufferBuilder &_fbb, const BlockwiseQuantizationT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct QuantizationParametersT : public ::flatbuffers::NativeTable {
   typedef QuantizationParameters TableType;
   std::vector<float> min{};
@@ -5159,6 +5282,9 @@ struct QuantizationParameters FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const tflite::CustomQuantization *details_as_CustomQuantization() const {
     return details_type() == tflite::QuantizationDetails_CustomQuantization ? static_cast<const tflite::CustomQuantization *>(details()) : nullptr;
   }
+  const tflite::BlockwiseQuantization *details_as_BlockwiseQuantization() const {
+    return details_type() == tflite::QuantizationDetails_BlockwiseQuantization ? static_cast<const tflite::BlockwiseQuantization *>(details()) : nullptr;
+  }
   int32_t quantized_dimension() const {
     return GetField<int32_t>(VT_QUANTIZED_DIMENSION, 0);
   }
@@ -5185,6 +5311,10 @@ struct QuantizationParameters FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
 
 template<> inline const tflite::CustomQuantization *QuantizationParameters::details_as<tflite::CustomQuantization>() const {
   return details_as_CustomQuantization();
+}
+
+template<> inline const tflite::BlockwiseQuantization *QuantizationParameters::details_as<tflite::BlockwiseQuantization>() const {
+  return details_as_BlockwiseQuantization();
 }
 
 struct QuantizationParametersBuilder {
@@ -7686,6 +7816,68 @@ inline ::flatbuffers::Offset<StablehloScatterOptions> CreateStablehloScatterOpti
 }
 
 ::flatbuffers::Offset<StablehloScatterOptions> CreateStablehloScatterOptions(::flatbuffers::FlatBufferBuilder &_fbb, const StablehloScatterOptionsT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct StablehloCaseOptionsT : public ::flatbuffers::NativeTable {
+  typedef StablehloCaseOptions TableType;
+  std::vector<int32_t> branch_subgraph_indices{};
+};
+
+struct StablehloCaseOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StablehloCaseOptionsT NativeTableType;
+  typedef StablehloCaseOptionsBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_BRANCH_SUBGRAPH_INDICES = 4
+  };
+  const ::flatbuffers::Vector<int32_t> *branch_subgraph_indices() const {
+    return GetPointer<const ::flatbuffers::Vector<int32_t> *>(VT_BRANCH_SUBGRAPH_INDICES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_BRANCH_SUBGRAPH_INDICES) &&
+           verifier.VerifyVector(branch_subgraph_indices()) &&
+           verifier.EndTable();
+  }
+  StablehloCaseOptionsT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(StablehloCaseOptionsT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<StablehloCaseOptions> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StablehloCaseOptionsT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct StablehloCaseOptionsBuilder {
+  typedef StablehloCaseOptions Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_branch_subgraph_indices(::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> branch_subgraph_indices) {
+    fbb_.AddOffset(StablehloCaseOptions::VT_BRANCH_SUBGRAPH_INDICES, branch_subgraph_indices);
+  }
+  explicit StablehloCaseOptionsBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<StablehloCaseOptions> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<StablehloCaseOptions>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<StablehloCaseOptions> CreateStablehloCaseOptions(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> branch_subgraph_indices = 0) {
+  StablehloCaseOptionsBuilder builder_(_fbb);
+  builder_.add_branch_subgraph_indices(branch_subgraph_indices);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<StablehloCaseOptions> CreateStablehloCaseOptionsDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<int32_t> *branch_subgraph_indices = nullptr) {
+  auto branch_subgraph_indices__ = branch_subgraph_indices ? _fbb.CreateVector<int32_t>(*branch_subgraph_indices) : 0;
+  return tflite::CreateStablehloCaseOptions(
+      _fbb,
+      branch_subgraph_indices__);
+}
+
+::flatbuffers::Offset<StablehloCaseOptions> CreateStablehloCaseOptions(::flatbuffers::FlatBufferBuilder &_fbb, const StablehloCaseOptionsT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct StablehloRngBitGeneratorOptionsT : public ::flatbuffers::NativeTable {
   typedef StablehloRngBitGeneratorOptions TableType;
@@ -15328,6 +15520,9 @@ struct Operator FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const tflite::StablehloShiftLeftOptions *builtin_options_2_as_StablehloShiftLeftOptions() const {
     return builtin_options_2_type() == tflite::BuiltinOptions2_StablehloShiftLeftOptions ? static_cast<const tflite::StablehloShiftLeftOptions *>(builtin_options_2()) : nullptr;
   }
+  const tflite::StablehloCaseOptions *builtin_options_2_as_StablehloCaseOptions() const {
+    return builtin_options_2_type() == tflite::BuiltinOptions2_StablehloCaseOptions ? static_cast<const tflite::StablehloCaseOptions *>(builtin_options_2()) : nullptr;
+  }
   int32_t debug_metadata_index() const {
     return GetField<int32_t>(VT_DEBUG_METADATA_INDEX, -1);
   }
@@ -15951,6 +16146,10 @@ template<> inline const tflite::StableHLOCompositeOptions *Operator::builtin_opt
 
 template<> inline const tflite::StablehloShiftLeftOptions *Operator::builtin_options_2_as<tflite::StablehloShiftLeftOptions>() const {
   return builtin_options_2_as_StablehloShiftLeftOptions();
+}
+
+template<> inline const tflite::StablehloCaseOptions *Operator::builtin_options_2_as<tflite::StablehloCaseOptions>() const {
+  return builtin_options_2_as_StablehloCaseOptions();
 }
 
 struct OperatorBuilder {
@@ -16775,6 +16974,38 @@ inline ::flatbuffers::Offset<CustomQuantization> CreateCustomQuantization(::flat
   return tflite::CreateCustomQuantization(
       _fbb,
       _custom);
+}
+
+inline BlockwiseQuantizationT *BlockwiseQuantization::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<BlockwiseQuantizationT>(new BlockwiseQuantizationT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void BlockwiseQuantization::UnPackTo(BlockwiseQuantizationT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = scales(); _o->scales = _e; }
+  { auto _e = zero_points(); _o->zero_points = _e; }
+  { auto _e = block_size(); _o->block_size = _e; }
+}
+
+inline ::flatbuffers::Offset<BlockwiseQuantization> BlockwiseQuantization::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BlockwiseQuantizationT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateBlockwiseQuantization(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<BlockwiseQuantization> CreateBlockwiseQuantization(::flatbuffers::FlatBufferBuilder &_fbb, const BlockwiseQuantizationT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const BlockwiseQuantizationT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _scales = _o->scales;
+  auto _zero_points = _o->zero_points;
+  auto _block_size = _o->block_size;
+  return tflite::CreateBlockwiseQuantization(
+      _fbb,
+      _scales,
+      _zero_points,
+      _block_size);
 }
 
 inline QuantizationParametersT *QuantizationParameters::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -17691,6 +17922,32 @@ inline ::flatbuffers::Offset<StablehloScatterOptions> CreateStablehloScatterOpti
       _index_vector_dim,
       _unique_indices,
       _update_computation_subgraph_index);
+}
+
+inline StablehloCaseOptionsT *StablehloCaseOptions::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<StablehloCaseOptionsT>(new StablehloCaseOptionsT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void StablehloCaseOptions::UnPackTo(StablehloCaseOptionsT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = branch_subgraph_indices(); if (_e) { _o->branch_subgraph_indices.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->branch_subgraph_indices[_i] = _e->Get(_i); } } else { _o->branch_subgraph_indices.resize(0); } }
+}
+
+inline ::flatbuffers::Offset<StablehloCaseOptions> StablehloCaseOptions::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StablehloCaseOptionsT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateStablehloCaseOptions(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<StablehloCaseOptions> CreateStablehloCaseOptions(::flatbuffers::FlatBufferBuilder &_fbb, const StablehloCaseOptionsT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const StablehloCaseOptionsT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _branch_subgraph_indices = _o->branch_subgraph_indices.size() ? _fbb.CreateVector(_o->branch_subgraph_indices) : 0;
+  return tflite::CreateStablehloCaseOptions(
+      _fbb,
+      _branch_subgraph_indices);
 }
 
 inline StablehloRngBitGeneratorOptionsT *StablehloRngBitGeneratorOptions::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -21560,6 +21817,10 @@ inline bool VerifyQuantizationDetails(::flatbuffers::Verifier &verifier, const v
       auto ptr = reinterpret_cast<const tflite::CustomQuantization *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case QuantizationDetails_BlockwiseQuantization: {
+      auto ptr = reinterpret_cast<const tflite::BlockwiseQuantization *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     default: return true;
   }
 }
@@ -21583,6 +21844,10 @@ inline void *QuantizationDetailsUnion::UnPack(const void *obj, QuantizationDetai
       auto ptr = reinterpret_cast<const tflite::CustomQuantization *>(obj);
       return ptr->UnPack(resolver);
     }
+    case QuantizationDetails_BlockwiseQuantization: {
+      auto ptr = reinterpret_cast<const tflite::BlockwiseQuantization *>(obj);
+      return ptr->UnPack(resolver);
+    }
     default: return nullptr;
   }
 }
@@ -21594,6 +21859,10 @@ inline ::flatbuffers::Offset<void> QuantizationDetailsUnion::Pack(::flatbuffers:
       auto ptr = reinterpret_cast<const tflite::CustomQuantizationT *>(value);
       return CreateCustomQuantization(_fbb, ptr, _rehasher).Union();
     }
+    case QuantizationDetails_BlockwiseQuantization: {
+      auto ptr = reinterpret_cast<const tflite::BlockwiseQuantizationT *>(value);
+      return CreateBlockwiseQuantization(_fbb, ptr, _rehasher).Union();
+    }
     default: return 0;
   }
 }
@@ -21602,6 +21871,10 @@ inline QuantizationDetailsUnion::QuantizationDetailsUnion(const QuantizationDeta
   switch (type) {
     case QuantizationDetails_CustomQuantization: {
       value = new tflite::CustomQuantizationT(*reinterpret_cast<tflite::CustomQuantizationT *>(u.value));
+      break;
+    }
+    case QuantizationDetails_BlockwiseQuantization: {
+      value = new tflite::BlockwiseQuantizationT(*reinterpret_cast<tflite::BlockwiseQuantizationT *>(u.value));
       break;
     }
     default:
@@ -21613,6 +21886,11 @@ inline void QuantizationDetailsUnion::Reset() {
   switch (type) {
     case QuantizationDetails_CustomQuantization: {
       auto ptr = reinterpret_cast<tflite::CustomQuantizationT *>(value);
+      delete ptr;
+      break;
+    }
+    case QuantizationDetails_BlockwiseQuantization: {
+      auto ptr = reinterpret_cast<tflite::BlockwiseQuantizationT *>(value);
       delete ptr;
       break;
     }
@@ -24524,6 +24802,10 @@ inline bool VerifyBuiltinOptions2(::flatbuffers::Verifier &verifier, const void 
       auto ptr = reinterpret_cast<const tflite::StablehloShiftLeftOptions *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case BuiltinOptions2_StablehloCaseOptions: {
+      auto ptr = reinterpret_cast<const tflite::StablehloCaseOptions *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     default: return true;
   }
 }
@@ -24631,6 +24913,10 @@ inline void *BuiltinOptions2Union::UnPack(const void *obj, BuiltinOptions2 type,
       auto ptr = reinterpret_cast<const tflite::StablehloShiftLeftOptions *>(obj);
       return ptr->UnPack(resolver);
     }
+    case BuiltinOptions2_StablehloCaseOptions: {
+      auto ptr = reinterpret_cast<const tflite::StablehloCaseOptions *>(obj);
+      return ptr->UnPack(resolver);
+    }
     default: return nullptr;
   }
 }
@@ -24726,6 +25012,10 @@ inline ::flatbuffers::Offset<void> BuiltinOptions2Union::Pack(::flatbuffers::Fla
       auto ptr = reinterpret_cast<const tflite::StablehloShiftLeftOptionsT *>(value);
       return CreateStablehloShiftLeftOptions(_fbb, ptr, _rehasher).Union();
     }
+    case BuiltinOptions2_StablehloCaseOptions: {
+      auto ptr = reinterpret_cast<const tflite::StablehloCaseOptionsT *>(value);
+      return CreateStablehloCaseOptions(_fbb, ptr, _rehasher).Union();
+    }
     default: return 0;
   }
 }
@@ -24818,6 +25108,10 @@ inline BuiltinOptions2Union::BuiltinOptions2Union(const BuiltinOptions2Union &u)
     }
     case BuiltinOptions2_StablehloShiftLeftOptions: {
       value = new tflite::StablehloShiftLeftOptionsT(*reinterpret_cast<tflite::StablehloShiftLeftOptionsT *>(u.value));
+      break;
+    }
+    case BuiltinOptions2_StablehloCaseOptions: {
+      value = new tflite::StablehloCaseOptionsT(*reinterpret_cast<tflite::StablehloCaseOptionsT *>(u.value));
       break;
     }
     default:
@@ -24934,6 +25228,11 @@ inline void BuiltinOptions2Union::Reset() {
     }
     case BuiltinOptions2_StablehloShiftLeftOptions: {
       auto ptr = reinterpret_cast<tflite::StablehloShiftLeftOptionsT *>(value);
+      delete ptr;
+      break;
+    }
+    case BuiltinOptions2_StablehloCaseOptions: {
+      auto ptr = reinterpret_cast<tflite::StablehloCaseOptionsT *>(value);
       delete ptr;
       break;
     }
