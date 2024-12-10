@@ -32,6 +32,7 @@ class TensorType(object):
 class QuantizationDetails(object):
     NONE = 0
     CustomQuantization = 1
+    BlockwiseQuantization = 2
 
 def QuantizationDetailsCreator(unionType, table):
     from flatbuffers.table import Table
@@ -39,6 +40,8 @@ def QuantizationDetailsCreator(unionType, table):
         return None
     if unionType == QuantizationDetails().CustomQuantization:
         return CustomQuantizationT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == QuantizationDetails().BlockwiseQuantization:
+        return BlockwiseQuantizationT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
 
@@ -276,6 +279,7 @@ class BuiltinOperator(object):
     STABLEHLO_COMPOSITE = 206
     STABLEHLO_SHIFT_LEFT = 207
     STABLEHLO_CBRT = 208
+    STABLEHLO_CASE = 209
 
 
 class BuiltinOptions(object):
@@ -690,6 +694,7 @@ class BuiltinOptions2(object):
     ReduceWindowOptions = 20
     StableHLOCompositeOptions = 21
     StablehloShiftLeftOptions = 22
+    StablehloCaseOptions = 23
 
 def BuiltinOptions2Creator(unionType, table):
     from flatbuffers.table import Table
@@ -739,6 +744,8 @@ def BuiltinOptions2Creator(unionType, table):
         return StableHLOCompositeOptionsT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == BuiltinOptions2().StablehloShiftLeftOptions:
         return StablehloShiftLeftOptionsT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == BuiltinOptions2().StablehloCaseOptions:
+        return StablehloCaseOptionsT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
 
@@ -943,6 +950,109 @@ class CustomQuantizationT(object):
             CustomQuantizationAddCustom(builder, custom)
         customQuantization = CustomQuantizationEnd(builder)
         return customQuantization
+
+
+class BlockwiseQuantization(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = BlockwiseQuantization()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsBlockwiseQuantization(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def BlockwiseQuantizationBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # BlockwiseQuantization
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # BlockwiseQuantization
+    def Scales(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # BlockwiseQuantization
+    def ZeroPoints(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # BlockwiseQuantization
+    def BlockSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+def BlockwiseQuantizationStart(builder):
+    builder.StartObject(3)
+
+def BlockwiseQuantizationAddScales(builder, scales):
+    builder.PrependInt32Slot(0, scales, 0)
+
+def BlockwiseQuantizationAddZeroPoints(builder, zeroPoints):
+    builder.PrependInt32Slot(1, zeroPoints, 0)
+
+def BlockwiseQuantizationAddBlockSize(builder, blockSize):
+    builder.PrependInt32Slot(2, blockSize, 0)
+
+def BlockwiseQuantizationEnd(builder):
+    return builder.EndObject()
+
+
+
+class BlockwiseQuantizationT(object):
+
+    # BlockwiseQuantizationT
+    def __init__(self):
+        self.scales = 0  # type: int
+        self.zeroPoints = 0  # type: int
+        self.blockSize = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        blockwiseQuantization = BlockwiseQuantization()
+        blockwiseQuantization.Init(buf, pos)
+        return cls.InitFromObj(blockwiseQuantization)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, blockwiseQuantization):
+        x = BlockwiseQuantizationT()
+        x._UnPack(blockwiseQuantization)
+        return x
+
+    # BlockwiseQuantizationT
+    def _UnPack(self, blockwiseQuantization):
+        if blockwiseQuantization is None:
+            return
+        self.scales = blockwiseQuantization.Scales()
+        self.zeroPoints = blockwiseQuantization.ZeroPoints()
+        self.blockSize = blockwiseQuantization.BlockSize()
+
+    # BlockwiseQuantizationT
+    def Pack(self, builder):
+        BlockwiseQuantizationStart(builder)
+        BlockwiseQuantizationAddScales(builder, self.scales)
+        BlockwiseQuantizationAddZeroPoints(builder, self.zeroPoints)
+        BlockwiseQuantizationAddBlockSize(builder, self.blockSize)
+        blockwiseQuantization = BlockwiseQuantizationEnd(builder)
+        return blockwiseQuantization
 
 
 class QuantizationParameters(object):
@@ -1153,7 +1263,7 @@ class QuantizationParametersT(object):
         self.scale = None  # type: List[float]
         self.zeroPoint = None  # type: List[int]
         self.detailsType = 0  # type: int
-        self.details = None  # type: Union[None, CustomQuantizationT]
+        self.details = None  # type: Union[None, CustomQuantizationT, BlockwiseQuantizationT]
         self.quantizedDimension = 0  # type: int
 
     @classmethod
@@ -5923,6 +6033,125 @@ class StablehloScatterOptionsT(object):
         StablehloScatterOptionsAddUpdateComputationSubgraphIndex(builder, self.updateComputationSubgraphIndex)
         stablehloScatterOptions = StablehloScatterOptionsEnd(builder)
         return stablehloScatterOptions
+
+
+class StablehloCaseOptions(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = StablehloCaseOptions()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsStablehloCaseOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def StablehloCaseOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # StablehloCaseOptions
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # StablehloCaseOptions
+    def BranchSubgraphIndices(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # StablehloCaseOptions
+    def BranchSubgraphIndicesAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int32Flags, o)
+        return 0
+
+    # StablehloCaseOptions
+    def BranchSubgraphIndicesLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # StablehloCaseOptions
+    def BranchSubgraphIndicesIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        return o == 0
+
+def StablehloCaseOptionsStart(builder):
+    builder.StartObject(1)
+
+def StablehloCaseOptionsAddBranchSubgraphIndices(builder, branchSubgraphIndices):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(branchSubgraphIndices), 0)
+
+def StablehloCaseOptionsStartBranchSubgraphIndicesVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def StablehloCaseOptionsEnd(builder):
+    return builder.EndObject()
+
+
+try:
+    from typing import List
+except:
+    pass
+
+class StablehloCaseOptionsT(object):
+
+    # StablehloCaseOptionsT
+    def __init__(self):
+        self.branchSubgraphIndices = None  # type: List[int]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        stablehloCaseOptions = StablehloCaseOptions()
+        stablehloCaseOptions.Init(buf, pos)
+        return cls.InitFromObj(stablehloCaseOptions)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, stablehloCaseOptions):
+        x = StablehloCaseOptionsT()
+        x._UnPack(stablehloCaseOptions)
+        return x
+
+    # StablehloCaseOptionsT
+    def _UnPack(self, stablehloCaseOptions):
+        if stablehloCaseOptions is None:
+            return
+        if not stablehloCaseOptions.BranchSubgraphIndicesIsNone():
+            if np is None:
+                self.branchSubgraphIndices = []
+                for i in range(stablehloCaseOptions.BranchSubgraphIndicesLength()):
+                    self.branchSubgraphIndices.append(stablehloCaseOptions.BranchSubgraphIndices(i))
+            else:
+                self.branchSubgraphIndices = stablehloCaseOptions.BranchSubgraphIndicesAsNumpy()
+
+    # StablehloCaseOptionsT
+    def Pack(self, builder):
+        if self.branchSubgraphIndices is not None:
+            if np is not None and type(self.branchSubgraphIndices) is np.ndarray:
+                branchSubgraphIndices = builder.CreateNumpyVector(self.branchSubgraphIndices)
+            else:
+                StablehloCaseOptionsStartBranchSubgraphIndicesVector(builder, len(self.branchSubgraphIndices))
+                for i in reversed(range(len(self.branchSubgraphIndices))):
+                    builder.PrependInt32(self.branchSubgraphIndices[i])
+                branchSubgraphIndices = builder.EndVector()
+        StablehloCaseOptionsStart(builder)
+        if self.branchSubgraphIndices is not None:
+            StablehloCaseOptionsAddBranchSubgraphIndices(builder, branchSubgraphIndices)
+        stablehloCaseOptions = StablehloCaseOptionsEnd(builder)
+        return stablehloCaseOptions
 
 
 class StablehloRngBitGeneratorOptions(object):
@@ -17079,7 +17308,7 @@ class OperatorT(object):
         self.largeCustomOptionsOffset = 0  # type: int
         self.largeCustomOptionsSize = 0  # type: int
         self.builtinOptions2Type = 0  # type: int
-        self.builtinOptions2 = None  # type: Union[None, StablehloConcatenateOptionsT, StablehloBroadcastInDimOptionsT, StablehloSliceOptionsT, StablehloConvolutionOptionsT, StablehloCustomCallOptionsT, StablehloReduceOptionsT, StablehloScatterOptionsT, StablehloCompareOptionsT, StablehloDynamicSliceOptionsT, StablehloPadOptionsT, StablehloIotaOptionsT, StablehloDotGeneralOptionsT, StablehloReduceWindowOptionsT, StablehloSortOptionsT, StablehloWhileOptionsT, StablehloGatherOptionsT, StablehloTransposeOptionsT, DilateOptionsT, StablehloRngBitGeneratorOptionsT, ReduceWindowOptionsT, StableHLOCompositeOptionsT, StablehloShiftLeftOptionsT]
+        self.builtinOptions2 = None  # type: Union[None, StablehloConcatenateOptionsT, StablehloBroadcastInDimOptionsT, StablehloSliceOptionsT, StablehloConvolutionOptionsT, StablehloCustomCallOptionsT, StablehloReduceOptionsT, StablehloScatterOptionsT, StablehloCompareOptionsT, StablehloDynamicSliceOptionsT, StablehloPadOptionsT, StablehloIotaOptionsT, StablehloDotGeneralOptionsT, StablehloReduceWindowOptionsT, StablehloSortOptionsT, StablehloWhileOptionsT, StablehloGatherOptionsT, StablehloTransposeOptionsT, DilateOptionsT, StablehloRngBitGeneratorOptionsT, ReduceWindowOptionsT, StableHLOCompositeOptionsT, StablehloShiftLeftOptionsT, StablehloCaseOptionsT]
         self.debugMetadataIndex = -1  # type: int
 
     @classmethod
