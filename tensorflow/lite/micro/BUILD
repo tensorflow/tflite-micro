@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_binary",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
@@ -25,6 +24,16 @@ tflm_cc_library(
     name = "micro_compatibility",
     hdrs = [
         "compatibility.h",
+    ],
+)
+
+tflm_cc_library(
+    name = "compression",
+    hdrs = [
+        "compression.h",
+    ],
+    deps = [
+        "//tensorflow/lite/c:common",
     ],
 )
 
@@ -63,10 +72,14 @@ tflm_cc_library(
         "micro_context.h",
     ],
     deps = [
+        ":compression",
         ":micro_common",
         ":micro_graph",
         ":micro_log",
+        ":micro_profiler",
+        "//tensorflow/lite:type_to_tflitetype",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/kernels:decompress",
     ],
 )
 
@@ -136,6 +149,7 @@ tflm_cc_library(
         ":memory_helpers",
         ":micro_allocator",
         ":micro_common",
+        ":micro_context",
         ":micro_graph",
         ":micro_log",
         ":micro_profiler",
@@ -171,6 +185,7 @@ tflm_cc_library(
         "micro_allocator.h",
     ],
     deps = [
+        ":compression",
         ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_arena_constants",
@@ -183,6 +198,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
+        "//tensorflow/lite/micro/compression:metadata_saved",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
@@ -236,7 +252,9 @@ tflm_cc_library(
         "test_helpers.h",
     ],
     deps = [
+        ":compression",
         ":memory_helpers",
+        ":micro_log",
         ":micro_utils",
         ":op_resolvers",
         "//tensorflow/lite:type_to_tflitetype",
@@ -414,6 +432,7 @@ tflm_cc_library(
         "hexdump.h",
     ],
     deps = [
+        ":debug_log",
         ":span",
         ":static_vector",
     ],

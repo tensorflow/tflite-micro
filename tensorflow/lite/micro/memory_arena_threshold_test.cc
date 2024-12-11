@@ -136,10 +136,6 @@ void EnsureAllocatedSizeThreshold(const char* allocation_type, size_t actual,
     // 64-bit systems should check floor and ceiling to catch memory savings:
     TF_LITE_MICRO_EXPECT_NEAR(actual, expected,
                               expected * kAllocationThreshold);
-    if (actual != expected) {
-      MicroPrintf("%s threshold failed: %d != %d", allocation_type, actual,
-                  expected);
-    }
   } else {
     // Non-64 bit systems should just expect allocation does not exceed the
     // ceiling:
