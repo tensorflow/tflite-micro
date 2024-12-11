@@ -1,4 +1,4 @@
-# Generic Benchmarking Tool build/run instructions
+# Generic Benchmarking Tool
 This tool can be used to benchmark any TfLite format model.  The tool can be
 compiled in one of two ways:
 1. Such that it takes command line arguments, allowing the path to the model
@@ -6,21 +6,68 @@ file to be specified as a program argument
 2. With a model compiled into the tool, allowing use in any simulator or on
 any hardware platform
 
-Building the tool with the model compiled in uses two additional Makefile
+All tool output is prefaced with metadata.  The metadata consists of compiler
+version and flags, and the target information supplied on the `make` command
+line.  For some targets, version information for external libraries used with
+optimized kernels is available.
+
+If the model is compiled into the tool, additional model analysis information
+is added to the metadata.  This includes data usage within the model, each model
+subgraph and operation in inference execution order, and information on all
+tensors in the model.
+
+The tool will output a CRC32 of all input tensors, followed by the profiling
+times for the pre-inference phase of the MicroInterpreter.  Next is the output
+of the inference profiling times for each operator, and a summary total for
+all inference operations.  Finally a CRC32 of all output tensors and the
+MicroInterpreter arena memory usage are output.
+
+# Generic Benchmarking Tool build/run instructions
+Building the tool with the model compiled in uses two additional `make`
 variables:
-* `GENERIC_BENCHMARK_MODEL_PATH`: the path to the TfLite format model file.  This
-can be a relative or absolute path.  This variable is required.
+* `GENERIC_BENCHMARK_MODEL_PATH`: the path to the TfLite format model file.
+The model path can be an abolute path, or relative to your local TFLM repository.
+This variable is required.
 * `GENERIC_BENCHMARK_ARENA_SIZE`: the size of the TFLM interpreter arena, in bytes.
 This variable is optional.
 
-## Tested, working targets
+## Tested targets
 * x86
 * cortex_m_qemu (no timing data)
-* Xtensa (p6, hifi3)
+* Xtensa (p6, hifi3, hifi5)
 * cortex_m_corstone_300
 
-## Tested, non-working targets
-* none currently
+## Use with compressed models
+When the tool is used with compressed models, additional profiling timing will
+be output.  This will consist of profiling timing for each tensor decompressed
+during inference,
+and a summary total.  While this profiling timing is output separately, the
+timing for decompression is also included in the normal inference profiling
+timing and summary total.
+
+To use the tool with a compressed model, the `make` variables must include:
+```
+USE_TFLM_COMPRESSION=1
+```
+
+The tensor decompression operation can occur with an alternate destination
+memory region.  This allows specialized memory to be used as the decompressed
+data destination.  The tool supports a single alternate decompression region.
+Use the following `make` variables to specify an alternate decompression region:
+* `GENERIC_BENCHMARK_ALT_MEM_ATTR`: a C++ attribute specifying the alternate
+memory as mapped through a linker script.
+* `GENERIC_BENCHMARK_ALT_MEM_SIZE`: the alternate memory region size in bytes.
+
+Both `make` variables are required (along with `USE_TFLM_COMPRESSION=1`) for the
+tool to use the alternate decompression region.
+
+An example build and run command line for Xtensa with alternate decompression memory:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=HIFI_190304_swupgrade USE_TFLM_COMPRESSION=1 GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
+```
+
+For more information on model compression, please see the
+[compression document](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/compression.md).
 
 ## Build and run for x86
 Build for command line arguments:
@@ -43,6 +90,11 @@ Build and run with model compiled into tool:
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P6_200528 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024`
 ```
 
+Build and run with a compressed model compiled into the tool:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P6_200528 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024` USE_TFLM_COMPRESSION=1
+```
+
 ## Build and run for Cortex-M using Corstone 300 simulator
 Build and run with model compiled into tool:
 ```
@@ -51,13 +103,13 @@ make -f tensorflow/lite/micro/tools/make/Makefile   TARGET=cortex_m_corstone_300
 
 ## Build and run using Bazel
 
-This is only for the x86 command line argument build, and does not contain meta-data:
+This is only for the x86 command line argument build, and does not contain metadata:
 ```
 bazel build tensorflow/lite/micro/tools/benchmarking:tflm_benchmark
 bazel-bin/tensorflow/lite/micro/tools/benchmarking/tflm_benchmark tensorflow/lite/micro/models/person_detect.tflite
 ```
 
-## Example output with meta-data and built-in model layer information
+## Example output with metadata and built-in model layer information
 
 This sample output is for Cortex-M using Corstone 300:
 ```
