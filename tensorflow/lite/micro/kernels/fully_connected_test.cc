@@ -349,7 +349,6 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   return kTfLiteOk;
 }
 
-template <typename CTF = void, typename CTB = void>
 TfLiteStatus TestFullyConnectedFloat(
     int* input_dims_data, const float* input_data, int* weights_dims_data,
     const float* weights_data, int* bias_dims_data, const float* bias_data,

@@ -242,7 +242,6 @@ TfLiteStatus ValidateTransposeConvGoldens(
   return kTfLiteOk;
 }
 
-template <typename CTF = void, typename CTB = void>
 TfLiteStatus TestTransposeConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
     const float* filter_data, int* bias_dims_data, const float* bias_data,
