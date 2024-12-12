@@ -32,6 +32,7 @@ class TensorType(object):
 class QuantizationDetails(object):
     NONE = 0
     CustomQuantization = 1
+    BlockwiseQuantization = 2
 
 def QuantizationDetailsCreator(unionType, table):
     from flatbuffers.table import Table
@@ -39,6 +40,8 @@ def QuantizationDetailsCreator(unionType, table):
         return None
     if unionType == QuantizationDetails().CustomQuantization:
         return CustomQuantizationT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == QuantizationDetails().BlockwiseQuantization:
+        return BlockwiseQuantizationT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
 
@@ -949,6 +952,109 @@ class CustomQuantizationT(object):
         return customQuantization
 
 
+class BlockwiseQuantization(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = BlockwiseQuantization()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsBlockwiseQuantization(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def BlockwiseQuantizationBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # BlockwiseQuantization
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # BlockwiseQuantization
+    def Scales(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # BlockwiseQuantization
+    def ZeroPoints(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # BlockwiseQuantization
+    def BlockSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+def BlockwiseQuantizationStart(builder):
+    builder.StartObject(3)
+
+def BlockwiseQuantizationAddScales(builder, scales):
+    builder.PrependInt32Slot(0, scales, 0)
+
+def BlockwiseQuantizationAddZeroPoints(builder, zeroPoints):
+    builder.PrependInt32Slot(1, zeroPoints, 0)
+
+def BlockwiseQuantizationAddBlockSize(builder, blockSize):
+    builder.PrependInt32Slot(2, blockSize, 0)
+
+def BlockwiseQuantizationEnd(builder):
+    return builder.EndObject()
+
+
+
+class BlockwiseQuantizationT(object):
+
+    # BlockwiseQuantizationT
+    def __init__(self):
+        self.scales = 0  # type: int
+        self.zeroPoints = 0  # type: int
+        self.blockSize = 0  # type: int
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        blockwiseQuantization = BlockwiseQuantization()
+        blockwiseQuantization.Init(buf, pos)
+        return cls.InitFromObj(blockwiseQuantization)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, blockwiseQuantization):
+        x = BlockwiseQuantizationT()
+        x._UnPack(blockwiseQuantization)
+        return x
+
+    # BlockwiseQuantizationT
+    def _UnPack(self, blockwiseQuantization):
+        if blockwiseQuantization is None:
+            return
+        self.scales = blockwiseQuantization.Scales()
+        self.zeroPoints = blockwiseQuantization.ZeroPoints()
+        self.blockSize = blockwiseQuantization.BlockSize()
+
+    # BlockwiseQuantizationT
+    def Pack(self, builder):
+        BlockwiseQuantizationStart(builder)
+        BlockwiseQuantizationAddScales(builder, self.scales)
+        BlockwiseQuantizationAddZeroPoints(builder, self.zeroPoints)
+        BlockwiseQuantizationAddBlockSize(builder, self.blockSize)
+        blockwiseQuantization = BlockwiseQuantizationEnd(builder)
+        return blockwiseQuantization
+
+
 class QuantizationParameters(object):
     __slots__ = ['_tab']
 
@@ -1157,7 +1263,7 @@ class QuantizationParametersT(object):
         self.scale = None  # type: List[float]
         self.zeroPoint = None  # type: List[int]
         self.detailsType = 0  # type: int
-        self.details = None  # type: Union[None, CustomQuantizationT]
+        self.details = None  # type: Union[None, CustomQuantizationT, BlockwiseQuantizationT]
         self.quantizedDimension = 0  # type: int
 
     @classmethod
