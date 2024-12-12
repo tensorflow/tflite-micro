@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
   TF_LITE_ENSURE(context, filter != nullptr);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kDepthwiseConvBiasTensor);
-  TF_LITE_ENSURE(context, filter != nullptr);
+  TF_LITE_ENSURE(context, bias != nullptr);
 
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels =
@@ -135,18 +135,81 @@ TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
     filter_int8 = *filter;
   }
 
+#ifdef USE_TFLM_COMPRESSION
+
+  uint8_t* filter_data = nullptr;
+  int32_t* bias_data = nullptr;
+
+  const CompressionTensorData* filter_comp_td =
+      micro_context->GetTensorCompressionData(node,
+                                              kDepthwiseConvWeightsTensor);
+  if (filter_comp_td != nullptr) {
+    const size_t filter_data_size =
+        NumElements(&filter_int8) * TfLiteTypeGetSize(kTfLiteInt8);
+    filter_data =
+        micro_context->AllocateTempBuffer(filter_data_size, sizeof(int8_t));
+    if (filter_data == nullptr) {
+      return kTfLiteError;
+    }
+    const TfLiteEvalTensor* filter_eval =
+        tflite::micro::GetEvalInput(context, node, kDepthwiseConvWeightsTensor);
+    filter_data = static_cast<uint8_t*>(micro_context->DecompressTensorToBuffer(
+        *filter_eval, *filter_comp_td, filter_data));
+  } else {
+    filter_data = GetTensorData<uint8_t>(&filter_int8);
+  }
+
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kDepthwiseConvBiasTensor);
+  if (bias_comp_td != nullptr) {
+    const size_t bias_data_size =
+        NumElements(bias) * TfLiteTypeGetSize(kTfLiteInt32);
+    bias_data = reinterpret_cast<int32_t*>(
+        micro_context->AllocateTempBuffer(bias_data_size, sizeof(int32_t)));
+    if (bias_data == nullptr) {
+      return kTfLiteError;
+    }
+    const TfLiteEvalTensor* bias_eval =
+        tflite::micro::GetEvalInput(context, node, kDepthwiseConvBiasTensor);
+    bias_data = static_cast<int32_t*>(micro_context->DecompressTensorToBuffer(
+        *bias_eval, *bias_comp_td, bias_data));
+  } else {
+    bias_data = GetTensorData<int32_t>(bias);
+  }
+
+  if (filter_data == nullptr || bias_data == nullptr) {
+    return kTfLiteError;
+  }
+
+#else  // USE_TFLM_COMPRESSION
+
+  uint8_t* filter_data = GetTensorData<uint8_t>(&filter_int8);
+  int32_t* bias_data = GetTensorData<int32_t>(bias);
+
+#endif  // USE_TFLM_COMPRESSION
+
   status = xiDepthwiseConvDoCoeffReorder(
       data->p_context, data->context_size,
       reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
-      data->reorder_coefficient_bias_size,
-      const_cast<uint8_t*>(GetTensorData<uint8_t>(&filter_int8)),
-      const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
+      data->reorder_coefficient_bias_size, filter_data, bias_data);
   if (status) {
     return kTfLiteError;
   }
   if (filter->type == kTfLiteInt4) {
     micro_context->DeallocateTempBuffer(GetTensorData<uint8_t>(&filter_int8));
   }
+
+#ifdef USE_TFLM_COMPRESSION
+
+  if (filter_comp_td) {
+    micro_context->DeallocateTempBuffer(filter_data);
+  }
+  if (bias_comp_td) {
+    micro_context->DeallocateTempBuffer(reinterpret_cast<uint8_t*>(bias_data));
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
