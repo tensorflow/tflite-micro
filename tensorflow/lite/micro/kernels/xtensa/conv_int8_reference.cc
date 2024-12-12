@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,6 +45,17 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
           ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
           : nullptr;
 
+#ifdef USE_TFLM_COMPRESSION
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
+
   const int8_t* filter_data;
   if (filter->type == kTfLiteInt4) {
     int8_t* unpacked_filter_data = static_cast<int8_t*>(
@@ -54,7 +65,12 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
   } else {
+#ifdef USE_TFLM_COMPRESSION
+    filter_data = tflite::micro::GetTensorData<int8_t>(
+        micro_context, filter, weights_comp_td, op_data.weights_scratch_index);
+#else   // USE_TFLM_COMPRESSION
     filter_data = tflite::micro::GetTensorData<int8_t>(filter);
+#endif  // USE_TFLM_COMPRESSION
   }
 
   reference_integer_ops::ConvPerChannel(
@@ -64,7 +80,12 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetTensorData<int8_t>(input),
       tflite::micro::GetTensorShape(filter), filter_data,
       tflite::micro::GetTensorShape(bias),
+#ifdef USE_TFLM_COMPRESSION
+      tflite::micro::GetOptionalTensorData<int32_t>(
+          micro_context, bias, bias_comp_td, op_data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
       tflite::micro::GetOptionalTensorData<int32_t>(bias),
+#endif  // USE_TFLM_COMPRESSION
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
 
