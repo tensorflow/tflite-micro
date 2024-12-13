@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -119,6 +119,23 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   TF_LITE_ENSURE_OK(context, XtensaCalculateOpDataFullyConnected(
                                  context, params->activation, input->type,
                                  input, filter, bias, output, data));
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Compression scratch buffers.
+  // These will only be allocated if the tensor is compressed.
+  if (micro_context->IsTensorCompressed(node, kFullyConnectedWeightsTensor) &&
+      filter->type == kTfLiteInt4) {
+    MicroPrintf("Compression not supported with INT4 tensors");
+    return kTfLiteError;
+  }
+  data->weights_scratch_index =
+      micro_context->AllocateDecompressionScratchBuffer(
+          node, kFullyConnectedWeightsTensor);
+  data->bias_scratch_index = micro_context->AllocateDecompressionScratchBuffer(
+      node, kFullyConnectedBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);

@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,12 +32,37 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
     const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
 #if !defined(VISION_P6)
+
+#ifdef USE_TFLM_COMPRESSION
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node,
+                                              kFullyConnectedWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
+
   const int32_t* bias_data =
+#ifdef USE_TFLM_COMPRESSION
+      tflite::micro::GetOptionalTensorData<int32_t>(
+          micro_context, bias, bias_comp_td, data.bias_scratch_index);
+#else   // USE_TFLM_COMPRESSION
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
+#endif  // USE_TFLM_COMPRESSION
+
+  const int8_t* filter_data =
+#ifdef USE_TFLM_COMPRESSION
+      tflite::micro::GetTensorData<int8_t>(
+          micro_context, filter, weights_comp_td, data.weights_scratch_index);
+#else   // USE_TFLM_COMPRESSION
+      tflite::micro::GetTensorData<int8_t>(filter);
+#endif  // USE_TFLM_COMPRESSION
 
   // P6 Vision will handle INT4 filters as a reference operation.
   // For all other architectures, unpack INT4 here.
-  const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
   if (filter->type == kTfLiteInt4) {
     int8_t* unpacked_filter_data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
@@ -47,6 +72,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
   }
+
 #endif  // !defined(VISION_P6)
 
 #if defined(HIFIMINI)
