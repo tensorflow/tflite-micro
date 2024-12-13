@@ -94,8 +94,7 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   if ((params->dilation_width_factor == 1) &&
       (params->dilation_height_factor == 1)) {
     if (input->type == kTfLiteInt8) {
-      if (input_height == 1 && filter_height == 1 && output_height == 1)
-      {
+      if (input_height == 1 && filter_height == 1 && output_height == 1) {
         int inp_h, filt_h, filt_w, str_h, pad_h, out_h;
         inp_h = input_width;
         filt_h = filter_width;
@@ -104,20 +103,18 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         pad_h = pad_width;
         out_h = output_width;
         required_scratch = xa_nn_conv2d_std_getsize(
-            inp_h, input_depth, filt_h, filt_w, str_h,
-            pad_h, out_h, output_channels, PREC_ASYM8S);
-      }
-      else
-      {
+            inp_h, input_depth, filt_h, filt_w, str_h, pad_h, out_h,
+            output_channels, PREC_ASYM8S);
+      } else {
         required_scratch = xa_nn_conv2d_std_getsize(
-            input_height, input_depth, filter_height, filter_width, stride_height,
-            pad_height, output_height, output_channels, PREC_ASYM8S);
+            input_height, input_depth, filter_height, filter_width,
+            stride_height, pad_height, output_height, output_channels,
+            PREC_ASYM8S);
       }
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
     if (input->type == kTfLiteInt16) {
-      if (input_height == 1 && filter_height == 1 && output_height == 1)
-      {
+      if (input_height == 1 && filter_height == 1 && output_height == 1) {
         int inp_h, filt_h, filt_w, str_h, pad_h, out_h;
         inp_h = input_width;
         filt_h = filter_width;
@@ -126,14 +123,13 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
         pad_h = pad_width;
         out_h = output_width;
         required_scratch = xa_nn_conv2d_std_getsize(
-            inp_h, input_depth, filt_h, filt_w, str_h,
-            pad_h, out_h, output_channels, PREC_SYM16S);
-      }
-      else
-      {
+            inp_h, input_depth, filt_h, filt_w, str_h, pad_h, out_h,
+            output_channels, PREC_SYM16S);
+      } else {
         required_scratch = xa_nn_conv2d_std_getsize(
-            input_height, input_depth, filter_height, filter_width, stride_height,
-            pad_height, output_height, output_channels, PREC_SYM16S);
+            input_height, input_depth, filter_height, filter_width,
+            stride_height, pad_height, output_height, output_channels,
+            PREC_SYM16S);
       }
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
