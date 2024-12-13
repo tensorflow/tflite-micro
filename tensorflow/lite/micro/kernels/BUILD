@@ -641,6 +641,10 @@ tflm_cc_test(
     srcs = [
         "decompress_test.cc",
     ],
+    tags = [
+        "nobuilder",
+        "notap",
+    ],
     target_compatible_with = select({
         "//conditions:default": ["@platforms//:incompatible"],
         "//:with_compression_enabled": [],
