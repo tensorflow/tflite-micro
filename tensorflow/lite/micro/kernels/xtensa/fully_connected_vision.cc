@@ -135,6 +135,7 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
   const CompressionTensorData* bias_comp_td =
       micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
   if (bias_comp_td != nullptr) {
+    TFLITE_DCHECK(bias != nullptr);
     const size_t bias_data_size =
         NumElements(bias) * TfLiteTypeGetSize(kTfLiteInt32);
     bias_data = reinterpret_cast<int32_t*>(
@@ -144,6 +145,7 @@ TfLiteStatus FullyConnectedPrepareVision(TfLiteContext* context,
     }
     const TfLiteEvalTensor* bias_eval =
         tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
+    TFLITE_DCHECK(bias_eval != nullptr);
     bias_data = static_cast<int32_t*>(micro_context->DecompressTensorToBuffer(
         *bias_eval, *bias_comp_td, bias_data));
   } else {

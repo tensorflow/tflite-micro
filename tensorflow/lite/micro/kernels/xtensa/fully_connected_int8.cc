@@ -47,8 +47,8 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
 
   const int32_t* bias_data =
 #ifdef USE_TFLM_COMPRESSION
-      tflite::micro::GetTensorData<int32_t>(micro_context, bias, bias_comp_td,
-                                            data.bias_scratch_index);
+      tflite::micro::GetOptionalTensorData<int32_t>(
+          micro_context, bias, bias_comp_td, data.bias_scratch_index);
 #else   // USE_TFLM_COMPRESSION
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
 #endif  // USE_TFLM_COMPRESSION
