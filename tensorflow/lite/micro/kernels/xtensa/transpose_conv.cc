@@ -343,8 +343,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<float>(
               micro_context, filter, filter_comp_td, data.filter_scratch_index),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<float>(micro_context, bias, bias_comp_td,
-                                              data.bias_scratch_index),
+          tflite::micro::GetOptionalTensorData<float>(
+              micro_context, bias, bias_comp_td, data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorData<float>(filter),
           tflite::micro::GetTensorShape(bias),
@@ -419,7 +419,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                                  filter_comp_td,
                                                  data.filter_scratch_index),
             tflite::micro::GetTensorShape(bias),
-            tflite::micro::GetTensorData<int32_t>(
+            tflite::micro::GetOptionalTensorData<int32_t>(
                 micro_context, bias, bias_comp_td, data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorData<int8_t>(filter),
@@ -440,7 +440,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int8_t>(
               micro_context, filter, filter_comp_td, data.filter_scratch_index),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<int32_t>(
+          tflite::micro::GetOptionalTensorData<int32_t>(
               micro_context, bias, bias_comp_td, data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorData<int8_t>(filter),
@@ -558,7 +558,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #else   // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorData<int8_t>(filter),
             tflite::micro::GetTensorShape(bias),
-            tflite::micro::GetOptionalTensorData<int64_t>(bias),
+            tflite::micro::GetTensorData<int64_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output),
