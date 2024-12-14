@@ -72,7 +72,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               micro_context, filter, weights_comp_td,
               op_data.reference_op_data.weights_scratch_index),
           tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetTensorData<float>(
+          tflite::micro::GetOptionalTensorData<float>(
               micro_context, bias, bias_comp_td,
               op_data.reference_op_data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
