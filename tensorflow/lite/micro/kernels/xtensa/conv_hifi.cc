@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -161,12 +161,13 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
   const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(
       micro_context, filter, weights_comp_td,
       data.reference_op_data.weights_scratch_index);
-  const int64_t* bias_data = tflite::micro::GetTensorData<int64_t>(
+  const int64_t* bias_data = tflite::micro::GetOptionalTensorData<int64_t>(
       micro_context, bias, bias_comp_td,
       data.reference_op_data.bias_scratch_index);
 #else   // USE_TFLM_COMPRESSION
   const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
-  const int64_t* bias_data = tflite::micro::GetTensorData<int64_t>(bias);
+  const int64_t* bias_data =
+      tflite::micro::GetOptionalTensorData<int64_t>(bias);
 #endif  // USE_TFLM_COMPRESSION
   int16_t* output_data = tflite::micro::GetTensorData<int16_t>(output);
 
@@ -275,11 +276,12 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
 
   const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
 #ifdef USE_TFLM_COMPRESSION
-  const int32_t* bias_data = tflite::micro::GetTensorData<int32_t>(
+  const int32_t* bias_data = tflite::micro::GetOptionalTensorData<int32_t>(
       micro_context, bias, bias_comp_td,
       data.reference_op_data.bias_scratch_index);
 #else   // USE_TFLM_COMPRESSION
-  const int32_t* bias_data = tflite::micro::GetTensorData<int32_t>(bias);
+  const int32_t* bias_data =
+      tflite::micro::GetOptionalTensorData<int32_t>(bias);
 #endif  // USE_TFLM_COMPRESSION
   int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 

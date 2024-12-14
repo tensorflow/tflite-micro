@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,8 +68,8 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
                                              weights_comp_td,
                                              op_data.weights_scratch_index),
         tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetTensorData<int32_t>(micro_context, bias, bias_comp_td,
-                                              op_data.bias_scratch_index),
+        tflite::micro::GetOptionalTensorData<int32_t>(
+            micro_context, bias, bias_comp_td, op_data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(bias),
@@ -94,7 +94,7 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 #else   // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<std::int64_t>(bias),
+        tflite::micro::GetTensorData<std::int64_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));

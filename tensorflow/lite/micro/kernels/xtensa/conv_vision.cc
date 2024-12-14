@@ -36,8 +36,10 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kConvBiasTensor);
+  TF_LITE_ENSURE(context, bias != nullptr);
   const uint32_t input_height = SizeOfDimension(input, 1);
   const uint32_t input_width = SizeOfDimension(input, 2);
 
@@ -47,8 +49,10 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
 
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
   TfLiteTensor* filter =
       micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+  TF_LITE_ENSURE(context, filter != nullptr);
 
   const uint32_t output_height = SizeOfDimension(output, 1);
   const uint32_t output_width = SizeOfDimension(output, 2);
@@ -212,9 +216,7 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
-  if (bias != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(bias);
-  }
+  micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }
 
