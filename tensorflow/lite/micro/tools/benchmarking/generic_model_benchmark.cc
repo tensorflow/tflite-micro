@@ -154,11 +154,12 @@ bool ReadFile(const char* file_name, void* buffer, size_t buffer_size) {
 }
 #endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
-uint32_t crctab[256];
+constexpr uint32_t kCrctabLen = 256;
+uint32_t crctab[kCrctabLen];
 
 void GenCRC32Table() {
   constexpr uint32_t kPolyN = 0xEDB88320;
-  for (size_t index = 0; index < 256; index++) {
+  for (size_t index = 0; index < kCrctabLen; index++) {
     crctab[index] = index;
     for (int i = 0; i < 8; i++) {
       if (crctab[index] & 1) {
@@ -175,7 +176,7 @@ uint32_t ComputeCRC32(const uint8_t* data, const size_t data_length) {
 
   for (size_t i = 0; i < data_length; i++) {
     // crctab is an array of 256 32-bit constants
-    const uint32_t index = (crc32 ^ data[i]) & 0xFF;
+    const uint32_t index = (crc32 ^ data[i]) & (kCrctabLen - 1);
     crc32 = (crc32 >> 8) ^ crctab[index];
   }
 
