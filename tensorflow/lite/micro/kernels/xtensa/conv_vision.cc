@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,8 +36,10 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kConvInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* bias =
       micro_context->AllocateTempInputTensor(node, kConvBiasTensor);
+  TF_LITE_ENSURE(context, bias != nullptr);
   const uint32_t input_height = SizeOfDimension(input, 1);
   const uint32_t input_width = SizeOfDimension(input, 2);
 
@@ -47,8 +49,10 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
 
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kConvOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
   TfLiteTensor* filter =
       micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
+  TF_LITE_ENSURE(context, filter != nullptr);
 
   const uint32_t output_height = SizeOfDimension(output, 1);
   const uint32_t output_width = SizeOfDimension(output, 2);
@@ -104,6 +108,58 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
     filter_int8 = *filter;
   }
 
+#ifdef USE_TFLM_COMPRESSION
+
+  uint8_t* filter_data = nullptr;
+  int32_t* bias_data = nullptr;
+
+  const CompressionTensorData* filter_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+  if (filter_comp_td != nullptr) {
+    const size_t filter_data_size =
+        NumElements(&filter_int8) * TfLiteTypeGetSize(kTfLiteInt8);
+    filter_data =
+        micro_context->AllocateTempBuffer(filter_data_size, sizeof(int8_t));
+    if (filter_data == nullptr) {
+      return kTfLiteError;
+    }
+    const TfLiteEvalTensor* filter_eval =
+        tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+    filter_data = static_cast<uint8_t*>(micro_context->DecompressTensorToBuffer(
+        *filter_eval, *filter_comp_td, filter_data));
+  } else {
+    filter_data = GetTensorData<uint8_t>(&filter_int8);
+  }
+
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
+  if (bias_comp_td != nullptr) {
+    const size_t bias_data_size =
+        NumElements(bias) * TfLiteTypeGetSize(kTfLiteInt32);
+    bias_data = reinterpret_cast<int32_t*>(
+        micro_context->AllocateTempBuffer(bias_data_size, sizeof(int32_t)));
+    if (bias_data == nullptr) {
+      return kTfLiteError;
+    }
+    const TfLiteEvalTensor* bias_eval =
+        tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
+    bias_data = static_cast<int32_t*>(micro_context->DecompressTensorToBuffer(
+        *bias_eval, *bias_comp_td, bias_data));
+  } else {
+    bias_data = GetTensorData<int32_t>(bias);
+  }
+
+  if (filter_data == nullptr || bias_data == nullptr) {
+    return kTfLiteError;
+  }
+
+#else  // USE_TFLM_COMPRESSION
+
+  uint8_t* filter_data = GetTensorData<uint8_t>(&filter_int8);
+  int32_t* bias_data = GetTensorData<int32_t>(bias);
+
+#endif  // USE_TFLM_COMPRESSION
+
   status = xiConvSetContext(
       data->p_context, data->context_size, input_depth, input_width,
       input_height, output_depth, output_width, output_height, filter_width,
@@ -112,8 +168,7 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
       data->reference_op_data.output_multiplier,
       data->reference_op_data.output_shift,
       data->reference_op_data.output_activation_min,
-      data->reference_op_data.output_activation_max,
-      (uint8_t*)GetTensorData<uint8_t>(&filter_int8),
+      data->reference_op_data.output_activation_max, filter_data,
       data->reference_op_data.padding.width,
       data->reference_op_data.padding.height);
   if (status) {
@@ -138,9 +193,7 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
   status = xiConvDoCoeffReorder(
       data->p_context, data->context_size,
       reinterpret_cast<uint8_t*>(data->reorder_coefficient_bias),
-      data->reorder_coefficient_bias_size,
-      const_cast<uint8_t*>(GetTensorData<uint8_t>(&filter_int8)),
-      const_cast<int32_t*>(GetTensorData<int32_t>(bias)));
+      data->reorder_coefficient_bias_size, filter_data, bias_data);
   if (status) {
     return kTfLiteError;
   }
@@ -149,12 +202,21 @@ TfLiteStatus ConvPrepareVision(TfLiteContext* context, TfLiteNode* node) {
     micro_context->DeallocateTempBuffer(GetTensorData<uint8_t>(&filter_int8));
   }
 
+#ifdef USE_TFLM_COMPRESSION
+
+  if (filter_comp_td) {
+    micro_context->DeallocateTempBuffer(filter_data);
+  }
+  if (bias_comp_td) {
+    micro_context->DeallocateTempBuffer(reinterpret_cast<uint8_t*>(bias_data));
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(filter);
-  if (bias != nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(bias);
-  }
+  micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }
 
