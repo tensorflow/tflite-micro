@@ -101,8 +101,35 @@ class _Operator:
     return self.subgraph.model.operatorCodes[self.operator.opcodeIndex]
 
   @property
+  def builtin_opcode(self) -> int:
+    result: int = self.opcode.deprecatedBuiltinCode
+    if result == tflite.BuiltinOperator.PLACEHOLDER_FOR_GREATER_OP_CODES:
+      result = self.opcode.builtinCode
+    return result
+
+  @property
   def inputs(self):
     return _IndirectIterator(self.operator.inputs, self.subgraph.tensors)
+
+  @property
+  def outputs(self):
+    return _IndirectIterator(self.operator.outputs, self.subgraph.tensors)
+
+  @property
+  def inputs_indices(self):
+    return self.operator.inputs
+
+  @property
+  def outputs_indices(self):
+    return self.operator.outputs
+
+  @property
+  def builtin_options_type(self) -> int:
+    return self.operator.builtinOptionsType
+
+  @property
+  def builtin_options(self):
+    return self.operator.builtinOptions
 
 
 _NP_DTYPES = {
@@ -267,6 +294,10 @@ class _Model:
   @property
   def buffers(self) -> _Iterator[_Buffer]:
     return _Iterator(self._model_t.buffers, _Buffer, parent=self)
+
+  @property
+  def root(self) -> tflite.ModelT:
+    return self._model_t
 
 
 def read(buffer: ByteString):
