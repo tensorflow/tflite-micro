@@ -44,6 +44,11 @@ TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
                                 static_cast<OpDataReduce*>(node->user_data));
 }
 
+TfLiteStatus PrepareProd(TfLiteContext* context, TfLiteNode* node) {
+  return PrepareProdHelper(context, node,
+                                static_cast<OpDataReduce*>(node->user_data));
+}
+
 TfLiteStatus EvalMean(TfLiteContext* context, TfLiteNode* node) {
   return EvalMeanHelper(context, node,
                         static_cast<OpDataReduce*>(node->user_data));
@@ -59,6 +64,11 @@ TfLiteStatus EvalSum(TfLiteContext* context, TfLiteNode* node) {
                        static_cast<OpDataReduce*>(node->user_data));
 }
 
+TfLiteStatus EvalProd(TfLiteContext* context, TfLiteNode* node) {
+  return EvalProdHelper(context, node,
+                        static_cast<OpDataReduce*>(node->user_data));
+}
+
 TFLMRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalMean);
 }
@@ -69,6 +79,10 @@ TFLMRegistration Register_REDUCE_MAX() {
 
 TFLMRegistration Register_SUM() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalSum);
+}
+
+TFLMRegistration Register_PROD() {
+  return tflite::micro::RegisterOp(InitReduce, PrepareProd, EvalProd);
 }
 
 }  // namespace tflite
