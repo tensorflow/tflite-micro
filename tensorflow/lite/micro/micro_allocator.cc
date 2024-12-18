@@ -409,6 +409,14 @@ const tflite::micro::compression::Metadata* GetCompressionMetadata(
         MicroPrintf("Compression: verification failure");
         return nullptr;
       } else {
+        tflite::micro::compression::MetadataT schema;
+        if (compression_metadata->schema_version() > schema.schema_version) {
+          MicroPrintf("Compression: schema version mismatch (using %d got %d)",
+                      schema.schema_version,
+                      compression_metadata->schema_version());
+          return nullptr;
+        }
+
         return compression_metadata;
       }
     }
