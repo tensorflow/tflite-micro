@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ limitations under the License.
 
 namespace tflite {
 
+#ifdef TFLITE_EMULATE_FLOAT
 namespace {
 // These constants are used to manipulate the binary representation of doubles.
 // Double-precision binary64 floating point format is:
@@ -49,6 +50,7 @@ constexpr uint32_t kFractionShift = 22;
 constexpr uint32_t kFractionRoundingMask = 0x003fffff;
 constexpr uint32_t kFractionRoundingThreshold = 0x00200000;
 }  // namespace
+#endif
 
 void QuantizeMultiplier(double double_multiplier, int32_t* quantized_multiplier,
                         int* shift) {
@@ -122,6 +124,7 @@ void QuantizeMultiplierSmallerThanOneExp(double double_multiplier,
   *left_shift = shift;
 }
 
+#ifdef TFLITE_EMULATE_FLOAT
 int64_t IntegerFrExp(double input, int* shift) {
   // Make sure our assumptions about the double layout hold.
   TFLITE_CHECK_EQ(8, sizeof(double));
@@ -278,6 +281,7 @@ int IntegerDoubleCompare(double a, double b) {
     return 0;
   }
 }
+#endif
 
 void PreprocessSoftmaxScaling(double beta, double input_scale,
                               int input_integer_bits,
