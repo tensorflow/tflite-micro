@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/kernels/internal/reference/transpose.h"
 
+#include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
@@ -25,31 +26,40 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-constexpr int kInputTensor = 0;
-constexpr int kPermTensor = 1;
-constexpr int kOutputTensor = 0;
+TfLiteStatus TransposeEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* perm_tensor =
+      tflite::micro::GetEvalInput(context, node, kTransposePermTensor);
+  const int size = perm_tensor->dims->data[0];
+  TF_LITE_ENSURE(context, size <= 4);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kTransposeOutputTensor);
+  const cmsis_nn_transpose_params transpose_params = {
+      size, reinterpret_cast<const uint32_t*>(perm_tensor->data.i32)};
+  cmsis_nn_dims input_dims = {
+      tflite::micro::GetTensorShape(input).DimsData()[0],
+      tflite::micro::GetTensorShape(input).DimsData()[1],
+      tflite::micro::GetTensorShape(input).DimsData()[2],
+      tflite::micro::GetTensorShape(input).DimsData()[3]};
+  cmsis_nn_dims output_dims = {
+      tflite::micro::GetTensorShape(output).DimsData()[0],
+      tflite::micro::GetTensorShape(output).DimsData()[1],
+      tflite::micro::GetTensorShape(output).DimsData()[2],
+      tflite::micro::GetTensorShape(output).DimsData()[3]};
 
-struct TransposeContext {
-  TransposeContext(TfLiteContext* context, TfLiteNode* node) {
-    micro_context = GetMicroContext(context);
-    input = micro_context->AllocateTempInputTensor(node, kInputTensor);
-    perm = micro_context->AllocateTempInputTensor(node, kPermTensor);
-    output = micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  }
-  ~TransposeContext() {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(perm);
-    micro_context->DeallocateTempTfLiteTensor(output);
-  }
-  MicroContext* micro_context;
-  TfLiteTensor* input;
-  TfLiteTensor* perm;
-  TfLiteTensor* output;
-};
+  TFLITE_DCHECK_EQ(
+      arm_transpose_s8(tflite::micro::GetTensorData<int8_t>(input),
+                       tflite::micro::GetTensorData<int8_t>(output),
+                       &input_dims, &output_dims, &transpose_params),
+      ARM_CMSIS_NN_SUCCESS);
+
+  return kTfLiteOk;
+}
 
 TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* perm_tensor =
-      tflite::micro::GetEvalInput(context, node, kPermTensor);
+      tflite::micro::GetEvalInput(context, node, kTransposePermTensor);
   const int32_t* perm_data = perm_tensor->data.i32;
   const int size = perm_tensor->dims->data[0];
   TransposeParams params;
@@ -62,9 +72,9 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   // on each cell. It's safe to implement per size of scalar type and this
   // trick keeps the total code size in a reasonable range.
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kTransposeOutputTensor);
   switch (input->type) {
     case kTfLiteFloat32:
       reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
@@ -72,12 +82,9 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
                                tflite::micro::GetTensorShape(output),
                                tflite::micro::GetTensorData<float>(output));
       break;
-    case kTfLiteInt8:
-      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
-                               tflite::micro::GetTensorData<int8_t>(input),
-                               tflite::micro::GetTensorShape(output),
-                               tflite::micro::GetTensorData<int8_t>(output));
-      break;
+    case kTfLiteInt8: {
+      TransposeEvalInt8(context, node);
+    } break;
     default:
       MicroPrintf(
           "Type %s is currently not supported by Transpose. "
@@ -94,4 +101,9 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
 TFLMRegistration Register_TRANSPOSE() {
   return tflite::micro::RegisterOp(nullptr, TransposePrepare, TransposeEval);
 }
+TFLMRegistration Register_TRANSPOSE_INT8() {
+  return tflite::micro::RegisterOp(nullptr, TransposePrepare,
+                                   TransposeEvalInt8);
+}
+
 }  // namespace tflite

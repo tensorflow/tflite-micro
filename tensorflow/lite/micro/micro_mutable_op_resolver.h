@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,9 +30,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/kernels/mul.h"
+#include "tensorflow/lite/micro/kernels/pad.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/kernels/transpose.h"
 #include "tensorflow/lite/micro/kernels/transpose_conv.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -465,8 +467,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_PAD, registration, ParsePad);
   }
 
-  TfLiteStatus AddPadV2() {
-    return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
+  TfLiteStatus AddPadV2(
+      const TFLMRegistration& registration = Register_PADV2()) {
+    return AddBuiltin(BuiltinOperator_PADV2, registration, ParsePadV2);
   }
 
   TfLiteStatus AddPCAN() {
@@ -624,9 +627,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseTransposeConv);
   }
 
-  TfLiteStatus AddTranspose() {
-    return AddBuiltin(BuiltinOperator_TRANSPOSE, Register_TRANSPOSE(),
-                      ParseTranspose);
+  TfLiteStatus AddTranspose(
+      const TFLMRegistration& registration = Register_TRANSPOSE()) {
+    return AddBuiltin(BuiltinOperator_TRANSPOSE, registration, ParseTranspose);
   }
 
   TfLiteStatus AddUnpack() {
