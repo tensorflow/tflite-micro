@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -232,6 +232,7 @@ TF_LITE_MICRO_TEST(
   TF_LITE_MICRO_EXPECT_EQ(qp.zero_point, 255);
 }
 
+#ifdef TFLITE_EMULATE_FLOAT
 TF_LITE_MICRO_TEST(QuantizationUtilTest_IntegerFrExp) {
   int shift;
   int64_t result = tflite::IntegerFrExp(0.0, &shift);
@@ -412,6 +413,7 @@ TF_LITE_MICRO_TEST(QuantizationUtilTest_CalculateInputRadius) {
   TF_LITE_MICRO_EXPECT_EQ(tflite::CalculateInputRadius(3, 28), 7);
   TF_LITE_MICRO_EXPECT_EQ(tflite::CalculateInputRadius(4, 2), 503316480);
 }
+#endif
 
 TF_LITE_MICRO_TEST(QuantizationUtilTest_QuantizeMultiplierArray) {
   const double weights[] = {-4,    -2,   -1,  -0.5, -0.25, -0.125, 0,
