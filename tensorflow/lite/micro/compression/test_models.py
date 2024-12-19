@@ -157,12 +157,14 @@ def build(model_definition: dict) -> bytearray:
       tensor_t.type = tensor["type"]
       tensor_t.buffer = tensor["buffer"]
 
-      try:
-        d = tensor["quantization"]["quantized_dimension"]
+      if "quantization" in tensor:
         tensor_t.quantization = tflite.QuantizationParametersT()
-        tensor_t.quantization.quantizedDimension = d
-      except KeyError:
-        tensor_t.quantization = None
+        tensor_t.quantization.quantizedDimension = \
+            tensor["quantization"].get("quantized_dimension", None)
+        tensor_t.quantization.scale = \
+            tensor["quantization"].get("scale", None)
+        tensor_t.quantization.zeroPoint = \
+            tensor["quantization"].get("zero_point", None)
 
       subgraph_t.tensors.append(tensor_t)
 

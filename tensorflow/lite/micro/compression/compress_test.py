@@ -200,31 +200,61 @@ TEST_MODEL = {
                     "shape": (16, 1),
                     "type": tflite.TensorType.UINT8,
                     "buffer": 1,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
                 },
                 1: {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT8,
                     "buffer": 2,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
                 },
                 2: {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT16,
                     "buffer": 3,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
                 },
                 3: {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT32,
                     "buffer": 4,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
                 },
                 4: {
                     "shape": (16, 1),
                     "type": tflite.TensorType.INT32,
                     "buffer": 5,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
                 },
                 5: {
                     "shape": (4, 5),
                     "type": tflite.TensorType.INT16,
                     "buffer": 6,
+                    "quantization": {
+                        "quantized_dimension": 1,
+                        "scale": (1, 1, 1, 1, 1),
+                        "zero_point": (0, 0, 0, 0, 0),
+                    },
                 },
                 6: {
                     "shape": (5, 4),
@@ -232,7 +262,24 @@ TEST_MODEL = {
                     "buffer": 7,
                     "quantization": {
                         "quantized_dimension": 0,
+                        "scale": (1, 1, 1, 1, 1),
+                        "zero_point": (0, 0, 0, 0, 0),
                     },
+                },
+                7: {
+                    "shape": (5, 4),
+                    "type": tflite.TensorType.INT16,
+                    "buffer": 8,
+                    "quantization": {
+                        "quantized_dimension": 0,
+                        "scale": (1,),
+                        "zero_point": (0,),
+                    },
+                },
+                8: {
+                    "shape": (16, 1),
+                    "type": tflite.TensorType.UINT8,
+                    "buffer": 9,
                 },
             },
         },
@@ -260,6 +307,14 @@ TEST_MODEL = {
                      (9,  10, 11, 12),
                      (13, 14, 15, 16),
                      (17, 18, 19, 20)), dtype=np.dtype("<i2")),
+
+        8: np.array(((1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4)), dtype=np.dtype("<i2")),
+
+        9: np.array(range(16), dtype=np.dtype("<u1")),
     },
 }
 
@@ -295,6 +350,11 @@ TEST_COMPRESSION_SPEC = [
     spec.Tensor(  # spec 5
         subgraph=0,
         tensor=6,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+    ),
+    spec.Tensor(  # spec 6
+        subgraph=0,
+        tensor=7,
         compression=[spec.LookUpTableCompression(index_bitwidth=2)],
     ),
 ]
@@ -356,6 +416,18 @@ class TestsCompression(tf.test.TestCase):
         spec.Tensor(
             subgraph=0,
             tensor=666,
+            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+        ),
+    ]
+    self.assertRaises(compress.CompressionError,
+                      lambda: compress.compress(self.flatbuffer, specs))
+
+  def test_no_axis(self):
+    """Raises if no quantization from which to infer compression axis."""
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=8,
             compression=[spec.LookUpTableCompression(index_bitwidth=4)],
         ),
     ]
@@ -519,8 +591,8 @@ class TestCompressedModel(tf.test.TestCase):
     expected_values = np.array(range(-160_016, -160_000), dtype="<i4")
     self.assertAllEqual(values, expected_values)
 
-  def test_channel_axis(self):
-    """Compression along the NWHC channel axis when no quanitzation axis."""
+  def test_axis_1(self):
+    """Compression along quanitzation_dimension == 1."""
     bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=5)
     self.assertEqual(bitwidth, 2)
 
@@ -537,8 +609,8 @@ class TestCompressedModel(tf.test.TestCase):
     expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
     self.assertAllEqual(values, expected_values)
 
-  def test_quantization_axis(self):
-    """Compression along the quanitzation axis."""
+  def test_axis_0(self):
+    """Compression along quanitzation_dimension == 0."""
     bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=6)
     self.assertEqual(bitwidth, 2)
 
@@ -554,6 +626,25 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
+    self.assertAllEqual(values, expected_values)
+
+  def test_per_tensor(self):
+    """Compression with one value table per tensor."""
+    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=7)
+    self.assertEqual(bitwidth, 2)
+
+    # yapf: disable
+    expected_indices = self._make_indices("""
+      00 01 10 11
+      00 01 10 11
+      00 01 10 11
+      00 01 10 11
+      00 01 10 11
+    """)
+    # yapf: enable
+    self.assertEqual(indices, expected_indices)
+
+    expected_values = np.array(range(1, 5), dtype=np.dtype("<i2"))
     self.assertAllEqual(values, expected_values)
 
 
