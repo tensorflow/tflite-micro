@@ -46,11 +46,16 @@ TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
 TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data);
 
+TfLiteStatus PrepareProdHelper(TfLiteContext* context, TfLiteNode* node,
+                                    OpDataReduce* op_data);
+
 TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
                             OpDataReduce* op_data);
 TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
+                           OpDataReduce* op_data);
+TfLiteStatus EvalProdHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 
 void ReduceResolveAxis(const int* axis_data, int axis_count,
@@ -59,6 +64,7 @@ void ReduceResolveAxis(const int* axis_data, int axis_count,
 TFLMRegistration Register_MEAN();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_SUM();
+TFLMRegistration Register_PROD();
 
 }  // namespace tflite
 
