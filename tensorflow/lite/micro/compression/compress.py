@@ -20,7 +20,7 @@ import bitarray
 import bitarray.util
 from dataclasses import dataclass, field
 import sys
-from typing import ByteString, Iterable
+from typing import ByteString, Iterable, Optional
 
 import absl.app
 import absl.flags
@@ -107,7 +107,7 @@ class _MetadataBuilder:
 
 @dataclass
 class _LutCompressedArray:
-  compression_axis: int = 0
+  compression_axis: Optional[int] = None
   lookup_tables: list[np.ndarray] = field(default_factory=list)
   indices: np.ndarray = field(default_factory=lambda: np.array([]))
 
@@ -121,27 +121,46 @@ class _LutCompressedArray:
     return max_index.bit_length() or 1
 
 
-def _lut_compress_array(tensor: np.ndarray, axis: int) -> _LutCompressedArray:
-  """Compresses using a lookup table per subarray along the given axis.
+def _lut_compress_array(tensor: np.ndarray,
+                        axis: Optional[int]) -> _LutCompressedArray:
+  """Compresses the given tensor using lookup tables.
 
-  Compressing a tensor with a lookup table per subarray along a particular axis
-  is analogous to quantizing a tensor with different quantization parameters
-  per subarray along a particular axis (dimension).
+  Args:
+      tensor (np.ndarray): The tensor to be compressed.
+
+      axis (Optional[int]): The axis along which to compress the tensor. If an
+          axis is given, a lookup table is created for each slice along the
+          axis. If axis is None, a single lookup table is used for the entire
+          tensor.
+
+          Compressing a tensor with a lookup table per slice along a
+          particular axis is analogous to quantizing a tensor with different
+          quantization parameters per slice along a particular axis (dimension).
+
+  Returns:
+      _LutCompressedArray: An object containing the compressed tensor data,
+      including the lookup tables and indices.
   """
   compressed = _LutCompressedArray()
   compressed.compression_axis = axis
 
-  # Iterate over subarrays along the compression axis
-  subarray_indices = []
-  for subarray in np.moveaxis(tensor, axis, 0):
-    values, indices = np.unique(subarray, return_inverse=True)
+  if axis is None:
+    # Compute unique values and indices for the entire tensor
+    values, indices = np.unique(tensor, return_inverse=True)
     compressed.lookup_tables.append(values)
-    indices = indices.reshape(subarray.shape)
-    subarray_indices.append(indices)
+    compressed.indices = indices.reshape(tensor.shape)
+  else:
+    # Iterate over slices along the compression axis
+    slice_indices = []
+    for slice in np.moveaxis(tensor, axis, 0):
+      values, indices = np.unique(slice, return_inverse=True)
+      compressed.lookup_tables.append(values)
+      indices = indices.reshape(slice.shape)
+      slice_indices.append(indices)
 
-  # Reconstruct a tensor of indices from the subarrays
-  stacked = np.stack(subarray_indices, axis=0)
-  compressed.indices = np.moveaxis(stacked, 0, axis)
+    # Reconstruct a tensor of indices from the slices
+    stacked = np.stack(slice_indices, axis=0)
+    compressed.indices = np.moveaxis(stacked, 0, axis)
 
   return compressed
 
@@ -155,18 +174,34 @@ def _check_lut_compression(compression) -> spec.LookUpTableCompression:
   return compression[0]
 
 
-def _identify_compression_axis(tensor: model_facade._Tensor) -> int:
-  """Finds the axis along which to compress.
+def _identify_compression_axis(tensor: model_facade._Tensor) -> Optional[int]:
+  """Determines the axis along which to compress.
 
-  Use the quantization axis, else the NWHC channel dimension. If necessary,
-  an user-specified override could be added to the compression spec schema.
+  The axis along which to compress is inferred from the tensor's quantization
+  parameters.
+
+  Returns:
+    The axis along which to compress, or None to indicate one value table for
+    the entire tensor.
+
+  Raises:
+    CompressionError: If the axis cannot be determined.
   """
-  if tensor.quantization is not None:
-    axis = tensor.quantization.quantizedDimension
-  else:
-    axis = tensor.array.ndim - 1
+  q = tensor.quantization
+  if q is not None \
+      and q.scale is not None \
+      and q.quantizedDimension < len(tensor.shape):
+    quantization_channels = len(q.scale)
+    if quantization_channels == 1:
+      # Use one value table for the entire tensor
+      return None
 
-  return axis
+    if quantization_channels == tensor.shape[q.quantizedDimension]:
+      return q.quantizedDimension
+
+  raise CompressionError(
+      f"Invalid or no quanitzation parameters from which to "
+      f"infer the axis along which tensor should be compressed.")
 
 
 def _check_bitwidth(compressed: int, specified: int, spec: spec.Tensor):
@@ -204,7 +239,7 @@ def _pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytearray:
 
   Pack the value tables of a LutCompressedArray into a bytes object in the
   format writable to a value_table buffer in the .tflite flatbuffer. The
-  tables, one per subarray, are concatinated.
+  tables are concatinated.
   """
   buffer = bytearray()
   for t in tables:
