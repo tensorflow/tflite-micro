@@ -152,19 +152,6 @@ py_test(
     ],
 )
 
-py_binary(
-    name = "relocate_ops",
-    srcs = [
-        "relocate_ops.py",
-    ],
-    deps = [
-        "model_facade",
-        "//tensorflow/lite/python:schema_py",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
-    ],
-)
-
 py_library(
     name = "spec",
     srcs = ["spec.py"],

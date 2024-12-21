@@ -30,7 +30,7 @@ import flatbuffers
 import numpy as np
 from numpy.typing import NDArray
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
-from typing import ByteString, Generic, TypeVar
+from typing import ByteString, Generic, TypeVar, List
 
 _IteratorTo = TypeVar("_IteratorTo")
 
@@ -116,11 +116,11 @@ class _Operator:
     return _IndirectIterator(self.operator.outputs, self.subgraph.tensors)
 
   @property
-  def inputs_indices(self):
+  def inputs_indices(self) -> List[int]:
     return self.operator.inputs
 
   @property
-  def outputs_indices(self):
+  def outputs_indices(self) -> List[int]:
     return self.operator.outputs
 
   @property
@@ -234,6 +234,10 @@ class _Subgraph:
   @property
   def tensors(self) -> _Iterator[_Tensor]:
     return _Iterator(self._subgraph_t.tensors, _Tensor, parent=self)
+
+  @property
+  def outputs_indices(self) -> List[int]:
+    return self._subgraph_t.outputs
 
 
 class _Model:
