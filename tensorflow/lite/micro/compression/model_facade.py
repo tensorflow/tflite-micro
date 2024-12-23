@@ -30,7 +30,7 @@ import flatbuffers
 import numpy as np
 from numpy.typing import NDArray
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
-from typing import ByteString, Generic, TypeVar
+from typing import ByteString, Generic, TypeVar, List
 
 _IteratorTo = TypeVar("_IteratorTo")
 
@@ -101,8 +101,35 @@ class _Operator:
     return self.subgraph.model.operatorCodes[self.operator.opcodeIndex]
 
   @property
+  def builtin_opcode(self) -> int:
+    result: int = self.opcode.deprecatedBuiltinCode
+    if result == tflite.BuiltinOperator.PLACEHOLDER_FOR_GREATER_OP_CODES:
+      result = self.opcode.builtinCode
+    return result
+
+  @property
   def inputs(self):
     return _IndirectIterator(self.operator.inputs, self.subgraph.tensors)
+
+  @property
+  def outputs(self):
+    return _IndirectIterator(self.operator.outputs, self.subgraph.tensors)
+
+  @property
+  def inputs_indices(self) -> List[int]:
+    return self.operator.inputs
+
+  @property
+  def outputs_indices(self) -> List[int]:
+    return self.operator.outputs
+
+  @property
+  def builtin_options_type(self) -> int:
+    return self.operator.builtinOptionsType
+
+  @property
+  def builtin_options(self):
+    return self.operator.builtinOptions
 
 
 _NP_DTYPES = {
@@ -208,6 +235,10 @@ class _Subgraph:
   def tensors(self) -> _Iterator[_Tensor]:
     return _Iterator(self._subgraph_t.tensors, _Tensor, parent=self)
 
+  @property
+  def outputs_indices(self) -> List[int]:
+    return self._subgraph_t.outputs
+
 
 class _Model:
   """A facade for manipulating tflite.Model.
@@ -267,6 +298,10 @@ class _Model:
   @property
   def buffers(self) -> _Iterator[_Buffer]:
     return _Iterator(self._model_t.buffers, _Buffer, parent=self)
+
+  @property
+  def root(self) -> tflite.ModelT:
+    return self._model_t
 
 
 def read(buffer: ByteString):

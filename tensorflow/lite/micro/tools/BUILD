@@ -223,3 +223,17 @@ flatbuffer_py_library(
     name = "layer_by_layer_schema_py",
     srcs = ["layer_by_layer_schema.fbs"],
 )
+
+py_binary(
+    name = "reorder_ops",
+    srcs = [
+        "reorder_ops.py",
+    ],
+    deps = [
+        ":model_transforms_utils",
+        "//tensorflow/lite/micro/compression:model_facade",
+        "//tensorflow/lite/python:schema_py",
+        "@absl_py//absl:app",
+        "@absl_py//absl/flags",
+    ],
+)
