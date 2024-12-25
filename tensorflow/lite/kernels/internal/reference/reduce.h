@@ -484,6 +484,20 @@ inline bool QuantizedReduceProd(const T* input_data, int32_t input_zero_point,
   return true;
 }
 
+template <typename T, typename U>
+inline bool QuantizedProdExtraArgs(
+    const T* input_data, int32_t input_zero_point, float input_scale,
+    const int* input_dims, const int input_num_dims, T* output_data,
+    float output_scale, int32_t output_multiplier, int output_shift,
+    int32_t output_zero_point, const int* output_dims,
+    const int output_num_dims, const int* axis, const int num_axis_dimensions,
+    bool keep_dims, int* temp_index, int* resolved_axis, U* temp_prod) {
+
+  return QuantizedReduceProd<T> (input_data, input_zero_point, RuntimeShape(input_num_dims, input_dims), output_data,
+  output_zero_point, RuntimeShape(output_num_dims, output_dims), axis, num_axis_dimensions, keep_dims, temp_index,
+      resolved_axis, temp_prod, output_multiplier, output_shift);
+}
+
 }  // namespace reference_ops
 
 }  // namespace tflite
