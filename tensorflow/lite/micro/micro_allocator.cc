@@ -875,7 +875,8 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
   // Populate any fields from the flatbuffer, since this TfLiteTensor struct is
   // allocated in the temp section of the arena, ensure that additional
   // allocations also take place in that section of the arena.
-  if (PopulateTfLiteTensorFromFlatbuffer(model, tensor, tensor_index,
+  if (nullptr == tensor ||
+      PopulateTfLiteTensorFromFlatbuffer(model, tensor, tensor_index,
                                          subgraph_index,
                                          /*allocate_temp=*/true) != kTfLiteOk) {
     MicroPrintf(
