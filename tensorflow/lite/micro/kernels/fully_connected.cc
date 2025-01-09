@@ -250,7 +250,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
                       tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
                       tflite::micro::GetTensorData<int8_t>(
-		          micro_context, filter, weights_comp_td,
+                          micro_context, filter, weights_comp_td,
                           data.weights_scratch_index),
                       tflite::micro::GetTensorShape(bias),
                       tflite::micro::GetOptionalTensorData<int32_t>(
@@ -270,7 +270,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
                       tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
                       tflite::micro::GetTensorData<int8_t>(
-		          micro_context, filter, weights_comp_td,
+                          micro_context, filter, weights_comp_td,
                           data.weights_scratch_index),
                       tflite::micro::GetTensorShape(bias),
                       tflite::micro::GetOptionalTensorData<int32_t>(
@@ -289,13 +289,13 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
                       FullyConnectedParamsQuantized(data),
                       data.per_channel_output_multiplier,
                       reinterpret_cast<const int*>(
-		          data.per_channel_output_shift),
+                          data.per_channel_output_shift),
                       tflite::micro::GetTensorShape(input),
                       tflite::micro::GetTensorData<int16_t>(input),
                       tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
                       tflite::micro::GetTensorData<int8_t>(
-			  micro_context, filter, weights_comp_td,
+                          micro_context, filter, weights_comp_td,
                           data.weights_scratch_index),
                       tflite::micro::GetTensorShape(bias),
                       tflite::micro::GetOptionalTensorData<int64_t>(
@@ -315,7 +315,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
                       tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
                       tflite::micro::GetTensorData<int8_t>(
-			  micro_context, filter, weights_comp_td,
+                          micro_context, filter, weights_comp_td,
                           data.weights_scratch_index),
                       tflite::micro::GetTensorShape(bias),
                       tflite::micro::GetOptionalTensorData<int64_t>(
