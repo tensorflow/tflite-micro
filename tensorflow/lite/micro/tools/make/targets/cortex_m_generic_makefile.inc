@@ -183,9 +183,9 @@ PLATFORM_FLAGS = \
   -DCPU_$(CORE)=1
 
 ifeq ($(SIGNED_CHAR), false)
-  PLATFORM_FLAGS += ' -funsigned-char'
+  PLATFORM_FLAGS += -funsigned-char
 else
-  PLATFORM_FLAGS += ' -fsigned-char'
+  PLATFORM_FLAGS += -fsigned-char
 endif
 
 # For DWT/PMU counters. Header file name is depending on target architecture.
