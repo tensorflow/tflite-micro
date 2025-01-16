@@ -28,6 +28,7 @@ endif
 
 FLOAT := soft
 GCC_TARGET_ARCH := $(TARGET_ARCH)
+SIGNED_CHAR := false
 
 # Explicitly set this to true to include the kissfft symbols.
 INCLUDE_MICRO_SPEECH := false
@@ -174,13 +175,18 @@ PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
   -mthumb \
   -mfloat-abi=$(FLOAT) \
-  -funsigned-char \
   -mlittle-endian \
   -Wno-type-limits \
   -Wno-unused-private-field \
   -fomit-frame-pointer \
   -MD \
   -DCPU_$(CORE)=1
+
+ifeq ($(SIGNED_CHAR), false)
+  PLATFORM_FLAGS += -funsigned-char
+else
+  PLATFORM_FLAGS += -fsigned-char
+endif
 
 # For DWT/PMU counters. Header file name is depending on target architecture.
 PLATFORM_FLAGS += -DCMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE=\"$(ARM_CPU).h\"
