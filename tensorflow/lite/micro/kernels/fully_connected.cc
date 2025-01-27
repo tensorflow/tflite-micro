@@ -238,13 +238,13 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       switch (filter->type) {
         case kTfLiteInt8: {
-	  if (bias == nullptr || bias->type == kTfLiteInt32) {
+          if (bias == nullptr || bias->type == kTfLiteInt32) {
             data.is_per_channel
                 ? tflite::reference_integer_ops::FullyConnectedPerChannel(
                       FullyConnectedParamsQuantized(data),
                       data.per_channel_output_multiplier,
                       reinterpret_cast<const int*>(
-		          data.per_channel_output_shift),
+                          data.per_channel_output_shift),
                       tflite::micro::GetTensorShape(input),
                       tflite::micro::GetTensorData<int16_t>(input),
                       tflite::micro::GetTensorShape(filter),
