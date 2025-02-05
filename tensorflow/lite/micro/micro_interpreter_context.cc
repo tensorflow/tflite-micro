@@ -17,6 +17,15 @@ limitations under the License.
 
 #include <cstdint>
 
+#ifdef USE_TFLM_COMPRESSION
+
+#include <algorithm>
+
+#include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
+
+#endif  // USE_TFLM_COMPRESSION
+
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
@@ -164,11 +173,17 @@ int MicroInterpreterContext::AllocateDecompressionScratchBuffer(
   }
   const TfLiteEvalTensor* tensor = &allocations->tensors[index];
   const size_t byte_count = EvalTensorBytes(tensor);
-  int scratch_index = -1;
-  TfLiteStatus result = RequestScratchBufferInArena(byte_count, &scratch_index);
-  if (result != kTfLiteOk) {
+
+  if (AllocateDecompressionMemory(byte_count, MicroArenaBufferAlignment()) !=
+      nullptr) {
+    // Tensor fits in alternate decompression memory, no need to allocate
+    // scratch buffer.
     return -1;
   }
+
+  int scratch_index = -1;
+  TfLiteStatus result = RequestScratchBufferInArena(byte_count, &scratch_index);
+  TFLITE_DCHECK(scratch_index != -1 && result == kTfLiteOk);
 
   return scratch_index;
 }
@@ -192,17 +207,74 @@ const CompressionTensorData* MicroInterpreterContext::GetTensorCompressionData(
   return allocations->compressed.tensors[index];
 }
 
-// Only available during Eval. Returns nullptr on failure, otherwise returns a
-// pointer to the scratch buffer.
-void* MicroInterpreterContext::DecompressTensorToScratchBuffer(
+// Only available during Prepare & Eval. Returns nullptr on failure, otherwise
+// returns a pointer to the buffer.
+void* MicroInterpreterContext::DecompressTensorToBuffer(
     const TfLiteEvalTensor& tensor,
-    const CompressionTensorData& compression_data, int scratch_buffer_handle) {
-  TFLITE_DCHECK(state_ == InterpreterState::kInvoke);
+    const CompressionTensorData& compression_data, void* buffer) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
 
-  return MicroContext::DecompressTensorToScratchBuffer(tensor, compression_data,
-                                                       scratch_buffer_handle);
+  return MicroContext::DecompressTensorToBuffer(tensor, compression_data,
+                                                buffer);
+}
+
+TfLiteStatus MicroInterpreterContext::SetDecompressionMemory(
+    const std::initializer_list<MicroContext::AlternateMemoryRegion>& regions) {
+  if (state_ != InterpreterState::kInit) {
+    return kTfLiteError;
+  }
+
+  decompress_regions_ = &regions;
+  decompress_regions_allocations_ = static_cast<size_t*>(
+      AllocatePersistentBuffer(sizeof(size_t) * regions.size()));
+  if (decompress_regions_allocations_ == nullptr) {
+    return kTfLiteError;
+  }
+  ResetDecompressionMemoryAllocations();
+
+  return kTfLiteOk;
+}
+
+void* MicroInterpreterContext::AllocateDecompressionMemory(size_t bytes,
+                                                           size_t alignment) {
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+                state_ == InterpreterState::kInvoke);
+  if (decompress_regions_ != nullptr) {
+    for (size_t i = 0; i < decompress_regions_->size(); i++) {
+      const AlternateMemoryRegion* region = &decompress_regions_->begin()[i];
+      uint8_t* start = static_cast<uint8_t*>(region->address) +
+                       decompress_regions_allocations_[i];
+      uint8_t* aligned_start = AlignPointerUp(start, alignment);
+      size_t total = bytes + (aligned_start - start);
+      if (total + decompress_regions_allocations_[i] <= region->bytes) {
+        decompress_regions_allocations_[i] += total;
+        return aligned_start;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+void MicroInterpreterContext::ResetDecompressionMemoryAllocations() {
+  if (decompress_regions_ == nullptr) {
+    return;
+  }
+  TFLITE_DCHECK(decompress_regions_allocations_ != nullptr);
+  std::fill_n(decompress_regions_allocations_, decompress_regions_->size(), 0);
 }
 
 #endif  // USE_TFLM_COMPRESSION
+
+TfLiteStatus MicroInterpreterContext::SetAlternateProfiler(
+    tflite::MicroProfilerInterface* alt_profiler) {
+  alt_profiler_ = alt_profiler;
+  return kTfLiteOk;
+}
+
+MicroProfilerInterface* MicroInterpreterContext::GetAlternateProfiler() const {
+  return alt_profiler_;
+}
 
 }  // namespace tflite

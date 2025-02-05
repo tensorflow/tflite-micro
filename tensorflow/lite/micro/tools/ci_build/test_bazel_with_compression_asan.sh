@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
 # ==============================================================================
 
 set -e
+set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
-
-readable_run bazel test tensorflow/lite/tools/... \
-  --test_output=errors
+bazel test //... \
+  --//:with_compression \
+  --config=ci \
+  --config=asan \
+  --build_tag_filters=-noasan \
+  --test_tag_filters=-noasan

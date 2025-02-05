@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -77,28 +77,60 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   }
 
   const int input_height = input_shape.Dims(1);
+  const int input_width = input_shape.Dims(2);
   const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
   const int filter_height = filter_shape.Dims(1);
   const int filter_width = filter_shape.Dims(2);
   const int output_height = output_shape.Dims(1);
+  const int output_width = output_shape.Dims(2);
   const int output_channels = output_shape.Dims(3);
   const int stride_height = params->stride_height;
+  const int stride_width = params->stride_width;
   const int pad_height = data->reference_op_data.padding.height;
+  const int pad_width = data->reference_op_data.padding.width;
 
   int required_scratch = 0;
   // TODO(b/277112516): Dilation is currently not supported on HiFi 4 NN Library
   if ((params->dilation_width_factor == 1) &&
       (params->dilation_height_factor == 1)) {
     if (input->type == kTfLiteInt8) {
-      required_scratch = xa_nn_conv2d_std_getsize(
-          input_height, input_depth, filter_height, filter_width, stride_height,
-          pad_height, output_height, output_channels, PREC_ASYM8S);
+      if (input_height == 1 && filter_height == 1 && output_height == 1) {
+        int inp_h, filt_h, filt_w, str_h, pad_h, out_h;
+        inp_h = input_width;
+        filt_h = filter_width;
+        filt_w = filter_height;
+        str_h = stride_width;
+        pad_h = pad_width;
+        out_h = output_width;
+        required_scratch = xa_nn_conv2d_std_getsize(
+            inp_h, input_depth, filt_h, filt_w, str_h, pad_h, out_h,
+            output_channels, PREC_ASYM8S);
+      } else {
+        required_scratch = xa_nn_conv2d_std_getsize(
+            input_height, input_depth, filter_height, filter_width,
+            stride_height, pad_height, output_height, output_channels,
+            PREC_ASYM8S);
+      }
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
     if (input->type == kTfLiteInt16) {
-      required_scratch = xa_nn_conv2d_std_getsize(
-          input_height, input_depth, filter_height, filter_width, stride_height,
-          pad_height, output_height, output_channels, PREC_SYM16S);
+      if (input_height == 1 && filter_height == 1 && output_height == 1) {
+        int inp_h, filt_h, filt_w, str_h, pad_h, out_h;
+        inp_h = input_width;
+        filt_h = filter_width;
+        filt_w = filter_height;
+        str_h = stride_width;
+        pad_h = pad_width;
+        out_h = output_width;
+        required_scratch = xa_nn_conv2d_std_getsize(
+            inp_h, input_depth, filt_h, filt_w, str_h, pad_h, out_h,
+            output_channels, PREC_SYM16S);
+      } else {
+        required_scratch = xa_nn_conv2d_std_getsize(
+            input_height, input_depth, filter_height, filter_width,
+            stride_height, pad_height, output_height, output_channels,
+            PREC_SYM16S);
+      }
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
   }
@@ -145,9 +177,30 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
 
+#ifdef USE_TFLM_COMPRESSION
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
+
   const int16_t* input_data = tflite::micro::GetTensorData<int16_t>(input);
+#ifdef USE_TFLM_COMPRESSION
+  const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(
+      micro_context, filter, weights_comp_td,
+      data.reference_op_data.weights_scratch_index);
+  const int64_t* bias_data = tflite::micro::GetOptionalTensorData<int64_t>(
+      micro_context, bias, bias_comp_td,
+      data.reference_op_data.bias_scratch_index);
+#else   // USE_TFLM_COMPRESSION
   const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
-  const int64_t* bias_data = tflite::micro::GetTensorData<int64_t>(bias);
+  const int64_t* bias_data =
+      tflite::micro::GetOptionalTensorData<int64_t>(bias);
+#endif  // USE_TFLM_COMPRESSION
   int16_t* output_data = tflite::micro::GetTensorData<int16_t>(output);
 
   int output_data_format = 0;
@@ -179,7 +232,6 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
   } else {
     void* p_scratch = static_cast<void*>(
         context->GetScratchBuffer(context, data.scratch_tensor_index));
-
     for (int batch = 0; batch < batches; ++batch) {
       int16_t* p_out_temp;
       p_out_temp = &output_data[batch * out_length];
@@ -243,8 +295,26 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
 
+#ifdef USE_TFLM_COMPRESSION
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
+
   const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
-  const int32_t* bias_data = tflite::micro::GetTensorData<int32_t>(bias);
+#ifdef USE_TFLM_COMPRESSION
+  const int32_t* bias_data = tflite::micro::GetOptionalTensorData<int32_t>(
+      micro_context, bias, bias_comp_td,
+      data.reference_op_data.bias_scratch_index);
+#else   // USE_TFLM_COMPRESSION
+  const int32_t* bias_data =
+      tflite::micro::GetOptionalTensorData<int32_t>(bias);
+#endif  // USE_TFLM_COMPRESSION
   int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 
   const int8_t* filter_data;
@@ -257,7 +327,13 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
   } else {
+#ifdef USE_TFLM_COMPRESSION
+    filter_data = tflite::micro::GetTensorData<int8_t>(
+        micro_context, filter, weights_comp_td,
+        data.reference_op_data.weights_scratch_index);
+#else   // USE_TFLM_COMPRESSION
     filter_data = tflite::micro::GetTensorData<int8_t>(filter);
+#endif  // USE_TFLM_COMPRESSION
   }
 
   int output_data_format = 0;

@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -41,6 +41,23 @@ class PackerOp {
 
  private:
   static bool freed_;
+};
+
+// This op optionally supports compressed weights
+class BroadcastAddOp {
+ public:
+  static const TFLMRegistration* getRegistration();
+  static TFLMRegistration* GetMutableRegistration();
+  static void* Init(TfLiteContext* context, const char* buffer, size_t length);
+  static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
+  static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
+
+ private:
+#ifdef USE_TFLM_COMPRESSION
+
+  static int weight_scratch_index_;  // decompression scratch buffer index
+
+#endif  // USE_TFLM_COMPRESSION
 };
 
 }  // namespace testing

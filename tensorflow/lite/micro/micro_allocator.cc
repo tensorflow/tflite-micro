@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,6 +36,15 @@ limitations under the License.
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+#ifdef USE_TFLM_COMPRESSION
+
+#include <algorithm>
+#include <cstring>
+
+#include "tensorflow/lite/micro/compression/metadata_saved.h"
+
+#endif  // USE_TFLM_COMPRESSION
+
 namespace tflite {
 
 namespace {
@@ -65,10 +74,10 @@ class MicroBuiltinDataAllocator : public TfLiteBridgeBuiltinDataAllocator {
     // of the model.
   }
 
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-
  private:
   IPersistentBufferAllocator* persistent_allocator_;
+
+  TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
 MicroMemoryPlanner* CreateMemoryPlanner(
@@ -355,6 +364,150 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
   return kTfLiteOk;
 }
 
+#ifdef USE_TFLM_COMPRESSION
+
+const tflite::micro::compression::Metadata* GetCompressionMetadata(
+    const Model& model) {
+  const auto metadata_vector = model.metadata();
+  if (metadata_vector == nullptr) {
+    return nullptr;
+  }
+  auto buffers = model.buffers();
+  if (buffers == nullptr) {
+    return nullptr;
+  }
+  const size_t metadata_string_length = std::strlen(kCompressionMetadataString);
+  for (size_t metadata_index = 0; metadata_index < metadata_vector->size();
+       metadata_index++) {
+    auto metadata = metadata_vector->Get(metadata_index);
+    if (metadata->name() == nullptr || metadata->name()->size() == 0) {
+      continue;
+    }
+    const char* s = metadata->name()->c_str();
+    if ((metadata->name()->size() == metadata_string_length) &&
+        (std::strncmp(s, kCompressionMetadataString, metadata_string_length) ==
+         0)) {
+      auto buffer_index = metadata->buffer();
+      if (buffer_index == 0 || buffer_index >= buffers->size()) {
+        MicroPrintf("Compression: Invalid buffer index %u", buffer_index);
+        continue;
+      }
+      auto vp = buffers->Get(buffer_index)->data();
+      if (vp == nullptr || vp->data() == nullptr) {
+        MicroPrintf("Compression: Invalid data for buffer index %u",
+                    buffer_index);
+        continue;
+      }
+      // TODO(ddavis-2015): support multiple compression methods, possibly
+      // through multiple verification checks.
+      // Then return a pair<void*, compression_scheme>.
+      auto compression_metadata =
+          tflite::micro::compression::GetSizePrefixedMetadata(vp);
+      flatbuffers::Verifier verifier(vp->data(), vp->size(),
+                                     flatbuffers::Verifier::Options());
+      if (!tflite::micro::compression::VerifyMetadataBuffer(verifier)) {
+        MicroPrintf("Compression: verification failure");
+        return nullptr;
+      } else {
+        tflite::micro::compression::MetadataT schema;
+        if (compression_metadata->schema_version() > schema.schema_version) {
+          MicroPrintf("Compression: schema version mismatch (using %d got %d)",
+                      schema.schema_version,
+                      compression_metadata->schema_version());
+          return nullptr;
+        }
+
+        return compression_metadata;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
+    const Model& model, const size_t subgraph_index,
+    const tflite::micro::compression::LutTensor& lut_tensor,
+    CompressionTensorData* ctd) {
+  // TODO(ddavis-2015): support multiple compression schemes
+  ctd->scheme = CompressionScheme::kBinQuant;
+
+  const size_t tensor_index = lut_tensor.tensor();
+  auto tensors = model.subgraphs()->Get(subgraph_index)->tensors();
+  if (tensor_index >= tensors->size()) {
+    MicroPrintf("Compression: invalid tensor index %u in LutTensor",
+                tensor_index);
+    return kTfLiteError;
+  }
+  const size_t index_bit_width = lut_tensor.index_bitwidth();
+  if (index_bit_width > LookupTableData::kMaxBitWidth) {
+    MicroPrintf("Compression: invalid bit width %u in LutTensor",
+                index_bit_width);
+    return kTfLiteError;
+  }
+  ctd->data.lut_data->compressed_bit_width = index_bit_width;
+  const size_t value_buffer_index = lut_tensor.value_buffer();
+  if (value_buffer_index >= model.buffers()->size()) {
+    MicroPrintf("Compression: invalid value_buffer %u in LutTensor",
+                value_buffer_index);
+    return kTfLiteError;
+  }
+  auto value_buffer = model.buffers()->Get(value_buffer_index)->data();
+  if (value_buffer == nullptr || value_buffer->data() == nullptr) {
+    MicroPrintf("Compression: invalid value table for value_buffer %u",
+                value_buffer_index);
+    return kTfLiteError;
+  }
+  ctd->data.lut_data->value_table = value_buffer->data();
+  auto tensor =
+      model.subgraphs()->Get(subgraph_index)->tensors()->Get(tensor_index);
+  if (tensor->shape() == nullptr) {
+    MicroPrintf("Compression: scalar tensors not supported");
+    return kTfLiteError;
+  }
+  TfLiteType tensor_type = kTfLiteNoType;
+  TfLiteStatus status = ConvertTensorType(tensor->type(), &tensor_type);
+  if (status != kTfLiteOk) {
+    MicroPrintf("Compression: failed to convert tensor type");
+    return kTfLiteError;
+  }
+  size_t tensor_type_size = 0;
+  status = TfLiteTypeSizeOf(tensor_type, &tensor_type_size);
+  if (status != kTfLiteOk) {
+    MicroPrintf("Compression: failed to get tensor type size");
+    return kTfLiteError;
+  }
+  if (tensor->quantization() != nullptr &&
+      tensor->quantization()->scale() != nullptr &&
+      tensor->quantization()->scale()->size() > 1) {
+    const size_t num_channels = tensor->quantization()->scale()->size();
+    ctd->data.lut_data->is_per_channel_quantized = true;
+    const TfLiteIntArray* dims =
+        FlatBufferVectorToTfLiteTypeArray(tensor->shape());
+    int32_t quantized_axis = tensor->quantization()->quantized_dimension();
+    if (quantized_axis == 0) {
+      ctd->data.lut_data->use_alternate_axis = false;
+    } else if (quantized_axis == (dims->size - 1)) {
+      ctd->data.lut_data->use_alternate_axis = true;
+    } else {
+      MicroPrintf("Compression: unsupported quantization axis %u",
+                  quantized_axis);
+      return kTfLiteError;
+    }
+    ctd->data.lut_data->value_table_channel_stride =
+        (value_buffer->size() / tensor_type_size) / num_channels;
+  } else {
+    ctd->data.lut_data->is_per_channel_quantized = false;
+    ctd->data.lut_data->use_alternate_axis = false;
+    ctd->data.lut_data->value_table_channel_stride =
+        value_buffer->size() / tensor_type_size;
+  }
+
+  return kTfLiteOk;
+}
+
+#endif  // USE_TFLM_COMPRESSION
+
 }  // namespace internal
 
 size_t MicroAllocator::GetDefaultTailUsage(bool is_memory_planner_given) {
@@ -502,7 +655,11 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
     return nullptr;
   }
 
-  if (AllocateTfLiteEvalTensors(model, output) != kTfLiteOk ||
+  if (
+#ifdef USE_TFLM_COMPRESSION
+      AllocateCompressedTensorsList(model, output) != kTfLiteOk ||
+#endif  // USE_TFLM_COMPRESSION
+      AllocateTfLiteEvalTensors(model, output) != kTfLiteOk ||
       AllocateNodeAndRegistrations(model, output) != kTfLiteOk) {
     return nullptr;
   }
@@ -756,6 +913,121 @@ TfLiteStatus MicroAllocator::ResetTempAllocations() {
 bool MicroAllocator::IsAllTempDeallocated() {
   return non_persistent_buffer_allocator_->IsAllTempDeallocated();
 }
+
+#ifdef USE_TFLM_COMPRESSION
+
+TfLiteStatus MicroAllocator::AllocateCompressedTensorsList(
+    const Model* model, SubgraphAllocations* subgraph_allocations) {
+  TFLITE_DCHECK(subgraph_allocations != nullptr);
+
+  for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+       subgraph_idx++) {
+    subgraph_allocations[subgraph_idx].compressed.tensors = nullptr;
+  }
+
+  const tflite::micro::compression::Metadata* compression_metadata =
+      internal::GetCompressionMetadata(*model);
+  if (compression_metadata == nullptr) {
+    // no compression metadata is available
+    return kTfLiteOk;
+  }
+  if (compression_metadata->subgraphs() == nullptr) {
+    MicroPrintf("Compression: invalid Subgraph vector");
+    return kTfLiteError;
+  }
+  if (compression_metadata->subgraphs()->size() == 0) {
+    MicroPrintf("Compression: zero length Subgraph vector");
+    return kTfLiteError;
+  }
+
+  for (size_t subgraph_index = 0;
+       subgraph_index < compression_metadata->subgraphs()->size();
+       subgraph_index++) {
+    auto subgraph = compression_metadata->subgraphs()->Get(subgraph_index);
+
+    if (subgraph->lut_tensors() == nullptr) {
+      MicroPrintf("Compression: invalid LutTensor vector");
+      return kTfLiteError;
+    }
+    if (subgraph->lut_tensors()->size() == 0) {
+      MicroPrintf("Compression: zero length LutTensor vector");
+      return kTfLiteError;
+    }
+
+    for (size_t lut_tensors_index = 0;
+         lut_tensors_index < subgraph->lut_tensors()->size();
+         lut_tensors_index++) {
+      auto lut_tensor = subgraph->lut_tensors()->Get(lut_tensors_index);
+
+      CompressionTensorData* ctd = reinterpret_cast<CompressionTensorData*>(
+          persistent_buffer_allocator_->AllocatePersistentBuffer(
+              sizeof(CompressionTensorData), alignof(CompressionTensorData)));
+      if (ctd == nullptr) {
+        MicroPrintf(
+            "Compressions: failed to allocate memory for "
+            "CompressionTensorData, %d bytes required",
+            sizeof(CompressionTensorData));
+        return kTfLiteError;
+      }
+
+      LookupTableData* lut_table = reinterpret_cast<LookupTableData*>(
+          persistent_buffer_allocator_->AllocatePersistentBuffer(
+              sizeof(LookupTableData), alignof(LookupTableData)));
+      if (lut_table == nullptr) {
+        MicroPrintf(
+            "Compressions: failed to allocate memory for LookupTableData, "
+            "%d bytes required",
+            sizeof(LookupTableData));
+        return kTfLiteError;
+      }
+      ctd->data.lut_data = lut_table;
+
+      TfLiteStatus status =
+          internal::InitializeCompressionTensorDataFromFlatbuffer(
+              *model, subgraph_index, *lut_tensor, ctd);
+      if (status != kTfLiteOk) {
+        MicroPrintf("Compression: failed to initialize data for LutTensor %u",
+                    lut_tensors_index);
+        return kTfLiteError;
+      }
+
+      if (subgraph_allocations[subgraph_index].compressed.tensors == nullptr) {
+        size_t alloc_count =
+            model->subgraphs()->Get(subgraph_index)->tensors()->size();
+        const CompressionTensorData** tensors =
+            reinterpret_cast<const CompressionTensorData**>(
+                persistent_buffer_allocator_->AllocatePersistentBuffer(
+                    sizeof(CompressionTensorData*) * alloc_count,
+                    alignof(CompressionTensorData*)));
+        if (tensors == nullptr) {
+          MicroPrintf(
+              "Compression: failed to allocate memory for compression tensor "
+              "list, %d bytes required",
+              sizeof(CompressionTensorData*) * alloc_count);
+          return kTfLiteError;
+        }
+
+        subgraph_allocations[subgraph_index].compressed.tensors = tensors;
+        std::fill(tensors, tensors + alloc_count, nullptr);
+      }
+
+      const size_t tensor_index = lut_tensor->tensor();
+      if (subgraph_allocations[subgraph_index]
+              .compressed.tensors[tensor_index] != nullptr) {
+        MicroPrintf("Compression: duplicate LutTensor subgraph %u tensor %u",
+                    subgraph_index, tensor_index);
+        return kTfLiteError;
+      } else {
+        subgraph_allocations[subgraph_index].compressed.tensors[tensor_index] =
+            ctd;
+      }
+    }
+  }
+
+  return kTfLiteOk;
+}
+
+#endif  // USE_TFLM_COMPRESSION
 
 TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
     const Model* model, SubgraphAllocations* subgraph_allocations) {
