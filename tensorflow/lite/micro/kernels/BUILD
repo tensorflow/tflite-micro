@@ -222,6 +222,7 @@ tflm_kernel_cc_library(
         "arg_min_max.cc",
         "assign_variable.cc",
         "batch_matmul.cc",
+        "batch_matmul_common.cc",
         "batch_to_space_nd.cc",
         "broadcast_args.cc",
         "broadcast_to.cc",
@@ -347,6 +348,7 @@ tflm_kernel_cc_library(
         "sub.h",
         "svdf.h",
         "transpose_conv.h",
+        "unidirectional_sequence_lstm.h",
     ] + select({
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
         xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
