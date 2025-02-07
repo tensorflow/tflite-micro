@@ -46,6 +46,7 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e kernels/internal/reference/reference_ops.h \
   -e python/schema_py_generated.py \
   -e python_requirements.in \
+  -e tensorflow/lite/micro/compression/metadata_saved.h \
   -e tools/make/downloads \
   -e tools/make/targets/ecm3531 \
   -e BUILD\
@@ -97,6 +98,7 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e experimental \
   -e schema/schema_generated.h \
   -e schema/schema_utils.h \
+  -e tensorflow/lite/micro/compression/metadata_saved.h \
   -e tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h \
   -e "\.inc" \
   -e "\.md" \

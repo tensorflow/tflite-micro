@@ -1,4 +1,5 @@
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+#!/usr/bin/env bash
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +14,13 @@
 # limitations under the License.
 # ==============================================================================
 
-#! YAML file to drive client for Arm Virtual Hardware on AWS  
-# Schema https://raw.githubusercontent.com/ARM-software/avhclient/main/schema/avh.schema.json
+set -e
+set -x
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR=${SCRIPT_DIR}/../../../../..
+cd "${ROOT_DIR}"
 
-name: "TensorFlow Lite Micro Corstone-300 ArmClang"
-workdir: ./
-backend:
-  aws:
-    ami-version: ~=1.1
-    instance-type: t2.xlarge
-steps:
-  - run: |
-      git clone https://github.com/tensorflow/tflite-micro.git 
-      mv ./tflite-micro/tensorflow/ .
-      tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang &> ./corstone300.log
-download:
-  - corstone300.log
+bazel test //... \
+  --//:with_compression \
+  --config=ci

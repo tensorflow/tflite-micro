@@ -1,10 +1,15 @@
 # standalone BUILD file used to test project generation with bazel.
+#
+load("//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_copts",
+)
 
-cc_library(
+tflm_cc_library(
   name = "libtflm",
   srcs = glob(["tensorflow/**/*.cc", "tensorflow/**/*.c", "third_party/**/*.cc", "third_party/**/*.c"]),
   hdrs = glob(["tensorflow/**/*.h", "third_party/**/*.h"]),
-  copts = [
+  copts = tflm_copts() + [
     "-Ithird_party/gemmlowp",
     "-Ithird_party/flatbuffers/include",
     "-Ithird_party/kissfft",

@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,14 +52,34 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
+#ifdef USE_TFLM_COMPRESSION
+
+      MicroContext* micro_context = GetMicroContext(context);
+
+      const CompressionTensorData* weights_comp_td =
+          micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+      const CompressionTensorData* bias_comp_td =
+          micro_context->GetTensorCompressionData(node, kConvBiasTensor);
+
+#endif  // USE_TFLM_COMPRESSION
       tflite::reference_ops::Conv(
           ConvParamsFloat(params, op_data.reference_op_data),
           tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(filter),
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<float>(
+              micro_context, filter, weights_comp_td,
+              op_data.reference_op_data.weights_scratch_index),
+          tflite::micro::GetTensorShape(bias),
+          tflite::micro::GetOptionalTensorData<float>(
+              micro_context, bias, bias_comp_td,
+              op_data.reference_op_data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorData<float>(filter),
           tflite::micro::GetTensorShape(bias),
           tflite::micro::GetOptionalTensorData<float>(bias),
+#endif  // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output),
           tflite::micro::GetTensorShape(nullptr), nullptr);
