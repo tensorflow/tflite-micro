@@ -36,31 +36,68 @@ void* SubInit(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpDataSub));
 }
 
-void EvalSub(TfLiteContext* context, TfLiteNode* node, TfLiteSubParams* params,
-             const OpDataSub* data, const TfLiteEvalTensor* input1,
-             const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
-  float output_activation_min, output_activation_max;
-  CalculateActivationRange(params->activation, &output_activation_min,
-                           &output_activation_max);
-  tflite::ArithmeticParams op_params;
-  SetActivationParams(output_activation_min, output_activation_max, &op_params);
-  if (data->requires_broadcast) {
-    tflite::reference_ops::BroadcastSubSlow(
-        op_params, tflite::micro::GetTensorShape(input1),
-        tflite::micro::GetTensorData<float>(input1),
-        tflite::micro::GetTensorShape(input2),
-        tflite::micro::GetTensorData<float>(input2),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<float>(output));
-  } else {
-    tflite::reference_ops::SubWithActivation(
-        op_params, tflite::micro::GetTensorShape(input1),
-        tflite::micro::GetTensorData<float>(input1),
-        tflite::micro::GetTensorShape(input2),
-        tflite::micro::GetTensorData<float>(input2),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<float>(output));
+TfLiteStatus EvalSub(TfLiteContext* context, TfLiteNode* node,
+                     TfLiteSubParams* params, const OpDataSub* data,
+                     const TfLiteEvalTensor* input1,
+                     const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
+  switch (output->type) {
+    case kTfLiteFloat32: {
+      float output_activation_min, output_activation_max;
+      CalculateActivationRange(params->activation, &output_activation_min,
+                               &output_activation_max);
+      tflite::ArithmeticParams op_params;
+      SetActivationParams(output_activation_min, output_activation_max,
+                          &op_params);
+      if (data->requires_broadcast) {
+        tflite::reference_ops::BroadcastSubSlow(
+            op_params, tflite::micro::GetTensorShape(input1),
+            tflite::micro::GetTensorData<float>(input1),
+            tflite::micro::GetTensorShape(input2),
+            tflite::micro::GetTensorData<float>(input2),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<float>(output));
+      } else {
+        tflite::reference_ops::SubWithActivation(
+            op_params, tflite::micro::GetTensorShape(input1),
+            tflite::micro::GetTensorData<float>(input1),
+            tflite::micro::GetTensorShape(input2),
+            tflite::micro::GetTensorData<float>(input2),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<float>(output));
+      }
+    } break;
+    case kTfLiteInt32: {
+      int32_t output_activation_min, output_activation_max;
+      CalculateActivationRange(params->activation, &output_activation_min,
+                               &output_activation_max);
+      tflite::ArithmeticParams op_params;
+      SetActivationParams(output_activation_min, output_activation_max,
+                          &op_params);
+      if (data->requires_broadcast) {
+        tflite::reference_ops::BroadcastSubSlow(
+            op_params, tflite::micro::GetTensorShape(input1),
+            tflite::micro::GetTensorData<int32_t>(input1),
+            tflite::micro::GetTensorShape(input2),
+            tflite::micro::GetTensorData<int32_t>(input2),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int32_t>(output));
+      } else {
+        tflite::reference_ops::SubWithActivation(
+            op_params, tflite::micro::GetTensorShape(input1),
+            tflite::micro::GetTensorData<int32_t>(input1),
+            tflite::micro::GetTensorShape(input2),
+            tflite::micro::GetTensorData<int32_t>(input2),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<int32_t>(output));
+      }
+    } break;
+    default:
+      MicroPrintf("Type %s (%d) not supported.",
+                  TfLiteTypeGetName(output->type), output->type);
+      return kTfLiteError;
   }
+
+  return kTfLiteOk;
 }
 
 TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
@@ -68,7 +105,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* input1,
                               const TfLiteEvalTensor* input2,
                               TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params;
+  tflite::ArithmeticParams op_params = {};
   op_params.left_shift = data->left_shift;
   op_params.input1_offset = data->input1_offset;
   op_params.input1_multiplier = data->input1_multiplier;
@@ -147,7 +184,7 @@ TfLiteStatus SubEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpDataSub& data = *(static_cast<const OpDataSub*>(node->user_data));
 
-  if (output->type == kTfLiteFloat32) {
+  if (output->type == kTfLiteFloat32 || output->type == kTfLiteInt32) {
     EvalSub(context, node, params, &data, input1, input2, output);
   } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     TF_LITE_ENSURE_OK(context, EvalSubQuantized(context, node, params, &data,
