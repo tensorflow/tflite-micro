@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,16 +24,20 @@ limitations under the License.
 #include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/add.h"
+#include "tensorflow/lite/micro/kernels/batch_matmul.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/kernels/mul.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/kernels/svdf.h"
 #include "tensorflow/lite/micro/kernels/transpose_conv.h"
+#include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -145,9 +149,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D, registration, ParsePool);
   }
 
-  TfLiteStatus AddBatchMatMul() {
-    return AddBuiltin(BuiltinOperator_BATCH_MATMUL,
-                      tflite::Register_BATCH_MATMUL(), ParseBatchMatMul);
+  TfLiteStatus AddBatchMatMul(
+      const TFLMRegistration& registration = Register_BATCH_MATMUL()) {
+    return AddBuiltin(BuiltinOperator_BATCH_MATMUL, registration,
+                      ParseBatchMatMul);
   }
 
   TfLiteStatus AddBatchToSpaceNd() {
@@ -414,9 +419,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       tflite::Register_LOG_SOFTMAX(), ParseLogSoftmax);
   }
 
-  TfLiteStatus AddMaximum() {
-    return AddBuiltin(BuiltinOperator_MAXIMUM, Register_MAXIMUM(),
-                      ParseMaximum);
+  TfLiteStatus AddMaximum(
+      const TFLMRegistration& registration = Register_MAXIMUM()) {
+    return AddBuiltin(BuiltinOperator_MAXIMUM, registration, ParseMaximum);
   }
 
   TfLiteStatus AddMaxPool2D(
@@ -433,9 +438,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_MEAN, Register_MEAN(), ParseReducer);
   }
 
-  TfLiteStatus AddMinimum() {
-    return AddBuiltin(BuiltinOperator_MINIMUM, Register_MINIMUM(),
-                      ParseMinimum);
+  TfLiteStatus AddMinimum(
+      const TFLMRegistration& registration = Register_MINIMUM()) {
+    return AddBuiltin(BuiltinOperator_MINIMUM, registration, ParseMinimum);
   }
 
   TfLiteStatus AddMul(const TFLMRegistration& registration = Register_MUL()) {
@@ -452,7 +457,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
   }
 
   TfLiteStatus AddOverlapAdd() {
-    // TODO(b/286250473): change back name to "OverlapAdd" and remove namespace
+    // TODO(b/286250473): change back name to "OverlapAdd" and remove
+    // namespace
     return AddCustom("SignalOverlapAdd",
                      tflite::tflm_signal::Register_OVERLAP_ADD());
   }
@@ -684,8 +690,8 @@ class MicroMutableOpResolver : public MicroOpResolver {
     }
 
     registrations_[registrations_len_] = registration;
-    // Strictly speaking, the builtin_code is not necessary for TFLM but filling
-    // it in regardless.
+    // Strictly speaking, the builtin_code is not necessary for TFLM but
+    // filling it in regardless.
     registrations_[registrations_len_].builtin_code = op;
     registrations_len_++;
 
