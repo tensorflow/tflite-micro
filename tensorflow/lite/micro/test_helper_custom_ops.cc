@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -34,6 +35,18 @@ limitations under the License.
 
 namespace tflite {
 namespace testing {
+
+namespace {
+
+template <typename T>
+void BroadcastAdd(const T input_scalar, const T* weights, T* output,
+                  const size_t count) {
+  for (size_t i = 0; i < count; i++) {
+    output[i] = input_scalar + weights[i];
+  }
+}
+
+}  // namespace
 
 const TFLMRegistration* PackerOp::getRegistration() {
   return GetMutableRegistration();
@@ -106,6 +119,179 @@ TfLiteStatus PackerOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
 }
 
 bool PackerOp::freed_ = false;
+
+const TFLMRegistration* BroadcastAddOp::getRegistration() {
+  return GetMutableRegistration();
+}
+
+TFLMRegistration* BroadcastAddOp::GetMutableRegistration() {
+  static TFLMRegistration r;
+  r.init = Init;
+  r.prepare = Prepare;
+  r.invoke = Invoke;
+  return &r;
+}
+
+void* BroadcastAddOp::Init(TfLiteContext* context, const char* buffer,
+                           size_t length) {
+#ifdef USE_TFLM_COMPRESSION
+
+  weight_scratch_index_ = -1;
+
+#endif  // USE_TFLM_COMPRESSION
+
+  // Do nothing.
+  return nullptr;
+}
+
+TfLiteStatus BroadcastAddOp::Prepare(TfLiteContext* context, TfLiteNode* node) {
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* weights = micro_context->AllocateTempInputTensor(node, 1);
+  TF_LITE_ENSURE(context, weights != nullptr);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, weights->type);
+  TF_LITE_ENSURE(
+      context, input->type == kTfLiteFloat32 || input->type == kTfLiteInt8 ||
+                   input->type == kTfLiteInt16 || input->type == kTfLiteInt32 ||
+                   input->type == kTfLiteInt64);
+  TF_LITE_ENSURE(context, input->quantization.type == kTfLiteNoQuantization);
+  TF_LITE_ENSURE(context, weights->quantization.type == kTfLiteNoQuantization);
+  TF_LITE_ENSURE(context, output->quantization.type == kTfLiteNoQuantization);
+  TF_LITE_ENSURE(context,
+                 ElementCount(*weights->dims) == ElementCount(*output->dims));
+  TF_LITE_ENSURE(context, ElementCount(*input->dims) == 1);
+  TF_LITE_ENSURE(context, input->dims->size == 1);
+  TF_LITE_ENSURE(context, weights->dims->size == 1);
+
+#ifdef USE_TFLM_COMPRESSION
+
+  // Compression scratch buffers.
+  // These will only be allocated if the tensor is compressed.
+  weight_scratch_index_ =
+      micro_context->AllocateDecompressionScratchBuffer(node, 1);
+  if (!micro_context->IsTensorCompressed(node, 1)) {
+    TF_LITE_ENSURE(context, weight_scratch_index_ == -1);
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(weights);
+  micro_context->DeallocateTempTfLiteTensor(output);
+
+  return kTfLiteOk;
+}
+
+TfLiteStatus BroadcastAddOp::Invoke(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TF_LITE_ENSURE(context, input != nullptr);
+  const TfLiteEvalTensor* weights =
+      tflite::micro::GetEvalInput(context, node, 1);
+  TF_LITE_ENSURE(context, weights != nullptr);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE(context, output != nullptr);
+
+#ifdef USE_TFLM_COMPRESSION
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node, 1);
+  if (micro_context->IsTensorCompressed(node, 1)) {
+    TF_LITE_ENSURE(context, weights_comp_td != nullptr);
+  } else {
+    TF_LITE_ENSURE(context, weights_comp_td == nullptr);
+  }
+
+#endif  // USE_TFLM_COMPRESSION
+
+  switch (input->type) {
+    case kTfLiteFloat32: {
+      BroadcastAdd(
+          tflite::micro::GetTensorData<float>(input)[0],
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<float>(
+              micro_context, weights, weights_comp_td, weight_scratch_index_),
+#else   // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<float>(weights),
+#endif  // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<float>(output),
+          ElementCount(*output->dims));
+    } break;
+
+    case kTfLiteInt8: {
+      BroadcastAdd(
+          tflite::micro::GetTensorData<int8_t>(input)[0],
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int8_t>(
+              micro_context, weights, weights_comp_td, weight_scratch_index_),
+#else   // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int8_t>(weights),
+#endif  // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int8_t>(output),
+          ElementCount(*output->dims));
+    } break;
+
+    case kTfLiteInt16: {
+      BroadcastAdd(
+          tflite::micro::GetTensorData<int16_t>(input)[0],
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int16_t>(
+              micro_context, weights, weights_comp_td, weight_scratch_index_),
+#else   // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int16_t>(weights),
+#endif  // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int16_t>(output),
+          ElementCount(*output->dims));
+    } break;
+
+    case kTfLiteInt32: {
+      BroadcastAdd(
+          tflite::micro::GetTensorData<int32_t>(input)[0],
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int32_t>(
+              micro_context, weights, weights_comp_td, weight_scratch_index_),
+#else   // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int32_t>(weights),
+#endif  // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int32_t>(output),
+          ElementCount(*output->dims));
+    } break;
+
+    case kTfLiteInt64: {
+      BroadcastAdd(
+          tflite::micro::GetTensorData<int64_t>(input)[0],
+#ifdef USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int64_t>(
+              micro_context, weights, weights_comp_td, weight_scratch_index_),
+#else   // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int64_t>(weights),
+#endif  // USE_TFLM_COMPRESSION
+          tflite::micro::GetTensorData<int64_t>(output),
+          ElementCount(*output->dims));
+    } break;
+
+    default: {
+      MicroPrintf("Input type %s (%d) not supported.",
+                  TfLiteTypeGetName(input->type), input->type);
+      return kTfLiteError;
+    }
+  }
+
+  return kTfLiteOk;
+}
+
+#ifdef USE_TFLM_COMPRESSION
+
+int BroadcastAddOp::weight_scratch_index_ = -1;
+
+#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace testing
 }  // namespace tflite

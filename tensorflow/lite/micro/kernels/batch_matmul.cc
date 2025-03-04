@@ -24,7 +24,9 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/transpose.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/batch_matmul.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {

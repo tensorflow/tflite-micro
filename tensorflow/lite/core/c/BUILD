@@ -18,6 +18,7 @@ cc_library(
     copts = tflite_copts(),
     deps = [
         ":c_api_types",
+        "//tensorflow/compiler/mlir/lite/core/c:tflite_common",
     ],
 )
 
@@ -25,4 +26,7 @@ cc_library(
     name = "c_api_types",
     hdrs = ["c_api_types.h"],
     copts = tflite_copts(),
+    deps = [
+        "//tensorflow/compiler/mlir/lite/core/c:tflite_common",
+    ],
 )

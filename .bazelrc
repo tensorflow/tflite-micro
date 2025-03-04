@@ -33,9 +33,22 @@ build --cxxopt -std=c++17
 # Treat warnings as errors
 build --copt -Werror
 
+# Common options for --config=ci
+build:ci --action_env=CC=clang
+build:ci --action_env=CXX=clang++
+build:ci --curses=no 
+build:ci --color=no 
+build:ci --noshow_progress
+build:ci --noshow_loading_progress
+build:ci --show_timestamps
+build:ci --terminal_columns=0
+build:ci --verbose_failures
+build:ci --test_output=errors
+
 # When building with the address sanitizer
 # E.g., bazel build --config asan
-build:asan --repo_env CC=clang
+build:asan --action_env=CC=clang
+build:asan --action_env=CXX=clang++
 build:asan --strip=never
 build:asan --copt -fsanitize=address
 build:asan --copt -DADDRESS_SANITIZER
@@ -46,7 +59,8 @@ build:asan --linkopt -fsanitize=address
 
 # When building with the memory sanitizer
 # E.g., bazel build --config msan
-build:msan --repo_env CC=clang
+build:msan --action_env=CC=clang
+build:msan --action_env=CXX=clang++
 build:msan --strip=never
 build:msan --copt -fsanitize=memory
 build:msan --copt -DADDRESS_SANITIZER
@@ -57,7 +71,8 @@ build:msan --linkopt -fsanitize=memory
 
 # When building with the undefined behavior sanitizer
 # E.g., bazel build --config ubsan
-build:ubsan --repo_env CC=clang
+build:ubsan --action_env=CC=clang
+build:ubsan --action_env=CXX=clang++
 build:ubsan --strip=never
 build:ubsan --copt -fsanitize=undefined
 build:ubsan --copt -g
@@ -65,3 +80,7 @@ build:ubsan --copt -O3
 build:ubsan --copt -fno-omit-frame-pointer
 build:ubsan --linkopt -fsanitize=undefined
 build:ubsan --linkopt -lubsan
+
+# Hooks for defining local configuration
+try-import ../bazelrc.local
+try-import bazelrc.local
