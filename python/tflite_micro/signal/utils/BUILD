@@ -18,6 +18,11 @@ py_test(
     ],
     python_version = "PY3",
     srcs_version = "PY3",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
 )
 
 py_library(

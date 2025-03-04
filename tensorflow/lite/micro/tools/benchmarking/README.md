@@ -1,4 +1,4 @@
-# Generic Benchmarking Tool build/run instructions
+# Generic Benchmarking Tool
 This tool can be used to benchmark any TfLite format model.  The tool can be
 compiled in one of two ways:
 1. Such that it takes command line arguments, allowing the path to the model
@@ -6,21 +6,68 @@ file to be specified as a program argument
 2. With a model compiled into the tool, allowing use in any simulator or on
 any hardware platform
 
-Building the tool with the model compiled in uses two additional Makefile
+All tool output is prefaced with metadata.  The metadata consists of compiler
+version and flags, and the target information supplied on the `make` command
+line.  For some targets, version information for external libraries used with
+optimized kernels is available.
+
+If the model is compiled into the tool, additional model analysis information
+is added to the metadata.  This includes data usage within the model, each model
+subgraph and operation in inference execution order, and information on all
+tensors in the model.
+
+The tool will output a CRC32 of all input tensors, followed by the profiling
+times for the pre-inference phase of the MicroInterpreter.  Next is the output
+of the inference profiling times for each operator, and a summary total for
+all inference operations.  Finally a CRC32 of all output tensors and the
+MicroInterpreter arena memory usage are output.
+
+# Generic Benchmarking Tool build/run instructions
+Building the tool with the model compiled in uses two additional `make`
 variables:
-* `GENERIC_BENCHMARK_MODEL_PATH`: the path to the TfLite format model file.  This
-can be a relative or absolute path.  This variable is required.
+* `GENERIC_BENCHMARK_MODEL_PATH`: the path to the TfLite format model file.
+The model path can be an abolute path, or relative to your local TFLM repository.
+This variable is required.
 * `GENERIC_BENCHMARK_ARENA_SIZE`: the size of the TFLM interpreter arena, in bytes.
 This variable is optional.
 
-## Tested, working targets
+## Tested targets
 * x86
 * cortex_m_qemu (no timing data)
-* Xtensa (p6, hifi3)
+* Xtensa (p6, hifi3, hifi5)
 * cortex_m_corstone_300
 
-## Tested, non-working targets
-* none currently
+## Use with compressed models
+When the tool is used with compressed models, additional profiling timing will
+be output.  This will consist of profiling timing for each tensor decompressed
+during inference,
+and a summary total.  While this profiling timing is output separately, the
+timing for decompression is also included in the normal inference profiling
+timing and summary total.
+
+To use the tool with a compressed model, the `make` variables must include:
+```
+USE_TFLM_COMPRESSION=1
+```
+
+The tensor decompression operation can occur with an alternate destination
+memory region.  This allows specialized memory to be used as the decompressed
+data destination.  The tool supports a single alternate decompression region.
+Use the following `make` variables to specify an alternate decompression region:
+* `GENERIC_BENCHMARK_ALT_MEM_ATTR`: a C++ attribute specifying the alternate
+memory as mapped through a linker script.
+* `GENERIC_BENCHMARK_ALT_MEM_SIZE`: the alternate memory region size in bytes.
+
+Both `make` variables are required (along with `USE_TFLM_COMPRESSION=1`) for the
+tool to use the alternate decompression region.
+
+An example build and run command line for Xtensa with alternate decompression memory:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=HIFI_190304_swupgrade USE_TFLM_COMPRESSION=1 GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
+```
+
+For more information on model compression, please see the
+[compression document](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/compression.md).
 
 ## Build and run for x86
 Build for command line arguments:
@@ -43,6 +90,11 @@ Build and run with model compiled into tool:
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P6_200528 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024`
 ```
 
+Build and run with a compressed model compiled into the tool:
+```
+make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P6_200528 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024` USE_TFLM_COMPRESSION=1
+```
+
 ## Build and run for Cortex-M using Corstone 300 simulator
 Build and run with model compiled into tool:
 ```
@@ -51,13 +103,13 @@ make -f tensorflow/lite/micro/tools/make/Makefile   TARGET=cortex_m_corstone_300
 
 ## Build and run using Bazel
 
-This is only for the x86 command line argument build, and does not contain meta-data:
+This is only for the x86 command line argument build, and does not contain metadata:
 ```
 bazel build tensorflow/lite/micro/tools/benchmarking:tflm_benchmark
 bazel-bin/tensorflow/lite/micro/tools/benchmarking/tflm_benchmark tensorflow/lite/micro/models/person_detect.tflite
 ```
 
-## Example output with meta-data and built-in model layer information
+## Example output with metadata and built-in model layer information
 
 This sample output is for Cortex-M using Corstone 300:
 ```
@@ -66,14 +118,14 @@ Configured arena size = 153600
 --------------------
 Compiled on:
 
-Fri May 17 03:36:59 PM PDT 2024
+Tue Dec 17 12:01:44 PM PST 2024
 --------------------
-Git SHA: a4390a1d73edf5a8d3affa1da60e1eba88e0cb13
+Git SHA: aa47932ea602f72705cefe3fb9fc7fa2a651e205
 
 Git status:
 
-On branch main
-Your branch is up to date with 'origin/main'.
+On branch your-test-branch
+
 --------------------
 C compiler: tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin/arm-none-eabi-gcc
 Version:
@@ -85,11 +137,11 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Flags:
 
--Wimplicit-function-declaration -std=c11 -Werror -fno-unwind-tables -ffunction-sections 
--fdata-sections -fmessage-length=0 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON 
--DCMSIS_NN -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto 
--DTF_LITE_MCU_DEBUG_LOG -mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian 
--fomit-frame-pointer -MD -DARMCM4
+-Wimplicit-function-declaration -std=c17 -Werror -fno-unwind-tables 
+-fno-asynchronous-unwind-tables -ffunction-sections -fdata-sections -fmessage-length=0 
+-DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -DCMSIS_NN 
+-DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG 
+-mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian -fomit-frame-pointer -MD -DARMCM4
 
 C++ compiler: tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin/arm-none-eabi-g++
 Version:
@@ -101,10 +153,10 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Flags:
 
--std=c++11 -fno-rtti -fno-exceptions -fno-threadsafe-statics -Wnon-virtual-dtor -Werror 
--fno-unwind-tables -ffunction-sections -fdata-sections -fmessage-length=0 
--DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -Wsign-compare -Wdouble-promotion 
--Wunused-variable -Wunused-function -Wswitch -Wvla -Wall -Wextra 
+-std=c++17 -fno-rtti -fno-exceptions -fno-threadsafe-statics -Wnon-virtual-dtor -Werror 
+-fno-unwind-tables -fno-asynchronous-unwind-tables -ffunction-sections -fdata-sections 
+-fmessage-length=0 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -Wsign-compare 
+-Wdouble-promotion -Wunused-variable -Wunused-function -Wswitch -Wvla -Wall -Wextra 
 -Wmissing-field-initializers -Wstrict-aliasing -Wno-unused-parameter -DCMSIS_NN 
 -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG 
 -mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian -fomit-frame-pointer -MD 
@@ -125,12 +177,12 @@ BUILD_TYPE=default
 --------------------
 NN library download URLs:
 
-http://github.com/ARM-software/CMSIS-NN/archive/01dee38e6d6bfbbf202f0cd425bbea1731747d51.z
+http://github.com/ARM-software/CMSIS-NN/archive/22080c68d040c98139e6cb1549473e3149735f4d.z
 ip
 
 NN library MD5 checksums:
 
-f20be93ededf42bb704c19f699a24313
+32aa69692541060a76b18bd5d2d98956
 --------------------
 Model SHA1:
 
@@ -339,23 +391,31 @@ RO 512 bytes, buffer: 17, data:[-2063, 10755, -12037, -6417, 2147, ...]
   You can find more details from 
 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/schema/schema.fbs
 --------------------
-TfliteGetModel took 4 ticks (0 ms).
+"Unique Tag","Total ticks across all events with that tag."
+tflite::GetModel, 4
+tflite::CreateOpResolver, 8090
+tflite::RecordingMicroAllocator::Create, 40
+tflite::MicroInterpreter instantiation, 59
+tflite::MicroInterpreter::AllocateTensors, 363531
+"total number of ticks", 371724
+
+Input CRC32: 0x14F6A510
 
 DEPTHWISE_CONV_2D took 224622 ticks (8 ms).
 DEPTHWISE_CONV_2D took 175917 ticks (7 ms).
-CONV_2D took 249560 ticks (9 ms).
+CONV_2D took 249561 ticks (9 ms).
 DEPTHWISE_CONV_2D took 84958 ticks (3 ms).
 CONV_2D took 145817 ticks (5 ms).
-DEPTHWISE_CONV_2D took 164915 ticks (6 ms).
+DEPTHWISE_CONV_2D took 164914 ticks (6 ms).
 CONV_2D took 197283 ticks (7 ms).
 DEPTHWISE_CONV_2D took 41304 ticks (1 ms).
-CONV_2D took 99472 ticks (3 ms).
+CONV_2D took 99473 ticks (3 ms).
 DEPTHWISE_CONV_2D took 79969 ticks (3 ms).
 CONV_2D took 151505 ticks (6 ms).
 DEPTHWISE_CONV_2D took 20053 ticks (0 ms).
 CONV_2D took 78521 ticks (3 ms).
 DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
-CONV_2D took 132862 ticks (5 ms).
+CONV_2D took 132863 ticks (5 ms).
 DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
 CONV_2D took 132865 ticks (5 ms).
 DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
@@ -365,8 +425,8 @@ CONV_2D took 132851 ticks (5 ms).
 DEPTHWISE_CONV_2D took 38127 ticks (1 ms).
 CONV_2D took 132853 ticks (5 ms).
 DEPTHWISE_CONV_2D took 9585 ticks (0 ms).
-CONV_2D took 78470 ticks (3 ms).
-DEPTHWISE_CONV_2D took 17473 ticks (0 ms).
+CONV_2D took 78471 ticks (3 ms).
+DEPTHWISE_CONV_2D took 17474 ticks (0 ms).
 CONV_2D took 143615 ticks (5 ms).
 AVERAGE_POOL_2D took 2229 ticks (0 ms).
 CONV_2D took 386 ticks (0 ms).
@@ -374,12 +434,14 @@ RESHAPE took 28 ticks (0 ms).
 SOFTMAX took 163 ticks (0 ms).
 
 "Unique Tag","Total ticks across all events with that tag."
-DEPTHWISE_CONV_2D, 1009431
-CONV_2D, 1808919
-AVERAGE_POOL_2D, 2229
-RESHAPE, 28
-SOFTMAX, 163
-"total number of ticks", 2820770
+DEPTHWISE_CONV_2D, 1009435
+CONV_2D, 1817013
+AVERAGE_POOL_2D, 2269
+RESHAPE, 87
+SOFTMAX, 363694
+"total number of ticks", 2820774
+
+Output CRC32: 0xA4A6A6BE
 
 [[ Table ]]: Arena
         Arena   Bytes   % Arena
@@ -403,12 +465,12 @@ Info: /OSCI/SystemC: Simulation stopped by user.
 [warning ][main@0][01 ns] Simulation stopped by user
 
 --- FVP_MPS3_Corstone_SSE_300 statistics: -------------------------------------
-Simulated time                          : 2.879993s
-User time                               : 2.027100s
-System time                             : 0.135914s
-Wall time                               : 2.663214s
-Performance index                       : 1.08
-cpu0                                    :  27.03 MIPS (    71999848 Inst)
-Memory highwater mark                   : 0x11919000 bytes ( 0.275 GB )
+Simulated time                          : 2.958458s
+User time                               : 1.768731s
+System time                             : 0.227094s
+Wall time                               : 2.022361s
+Performance index                       : 1.46
+cpu0                                    :  36.57 MIPS (    73961463 Inst)
+Memory highwater mark                   : 0x11935000 bytes ( 0.275 GB )
 -------------------------------------------------------------------------------
 ```
