@@ -100,8 +100,8 @@ The optimized kernel architecture is composed of the following three modules:
 
 This library uses knowledge of the hardware and compiler to implement the
 underlying operations. Examples of this are
-[CMSIS-NN](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) from
-ARM and [NNLib](https://github.com/foss-xtensa/nnlib-hifi4) from Cadence.
+[CMSIS-NN](https://github.com/ARM-software/CMSIS-NN) from Arm and
+[NNLib](https://github.com/foss-xtensa/nnlib-hifi4) from Cadence.
 
 The benefits of having this API separation are:
 

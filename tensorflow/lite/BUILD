@@ -8,6 +8,7 @@ cc_library(
     srcs = ["array.cc"],
     hdrs = ["array.h"],
     deps = [
+        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/c:common",
     ],
 )

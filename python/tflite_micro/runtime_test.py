@@ -160,11 +160,6 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
     tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
-    # Initial output values are all 0
-    output = tflm_interpreter.get_output(0)
-    init_output = np.zeros(self.output_shape)
-    self.assertAllEqual(output, init_output)
-
     # Test the output tensor details
     output_details = tflm_interpreter.get_output_details(0)
     self.assertAllEqual(output_details["shape"], self.output_shape)

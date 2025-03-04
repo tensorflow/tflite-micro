@@ -39,6 +39,9 @@ struct CmsisNnOpDataSvdf {
   int effective_scale_1_b;
   int effective_scale_2_b;
   int scratch_tensor_index;
+#if defined(KERNELS_OPTIMIZED_FOR_SIZE)
+  int scratch_weight_tensor_index;
+#endif
   int scratch_output_tensor_index;
 
   // Cached tensor zero point values for quantized operations.
@@ -189,6 +192,7 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     const int32_t buf_size = arm_svdf_s8_get_buffer_size(&weights_feature_dims);
 
     if (buf_size > 0) {
+#if defined(KERNELS_OPTIMIZED_FOR_SPEED)
       data->kernel_sums = static_cast<int32_t*>(
           context->AllocatePersistentBuffer(context, buf_size));
 
@@ -196,6 +200,17 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
                         GetTensorData<int8_t>(weights_feature),
                         -data->input_zero_point,
                         -data->activation_state_zero_point, nullptr);
+#elif defined(KERNELS_OPTIMIZED_FOR_SIZE)
+      const TfLiteStatus scratch_kernel_status =
+          context->RequestScratchBufferInArena(
+              context, buf_size, &(data->scratch_weight_tensor_index));
+      TF_LITE_ENSURE_OK(context, scratch_kernel_status);
+#else
+      MicroPrintf(
+          "Either KERNELS_OPTIMIZED_FOR_SIZE or KERNELS_OPTIMIZED_FOR_SPEED "
+          "must be defined");
+      return kTfLiteError;
+#endif
     }
 
   } else {
@@ -291,7 +306,21 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
   switch (weights_time_tensor->type) {
     case kTfLiteInt8: {
       cmsis_nn_context ctx;
+
+#if defined(KERNELS_OPTIMIZED_FOR_SPEED)
       ctx.buf = data.kernel_sums;
+#elif defined(KERNELS_OPTIMIZED_FOR_SIZE)
+      ctx.buf = static_cast<int32_t*>(
+          context->GetScratchBuffer(context, data.scratch_weight_tensor_index));
+
+      const int input_size = input_tensor->dims->data[1];
+      const int num_filters = weights_feature_tensor->dims->data[0];
+
+      arm_vector_sum_s8(
+          static_cast<int32_t*>(ctx.buf), input_size, num_filters,
+          tflite::micro::GetTensorData<int8_t>(weights_feature_tensor),
+          -data.input_zero_point, -data.activation_state_zero_point, nullptr);
+#endif
 
       arm_svdf_s8(
           &ctx, &scratch_ctx, &scratch_output_ctx, &svdf_params,

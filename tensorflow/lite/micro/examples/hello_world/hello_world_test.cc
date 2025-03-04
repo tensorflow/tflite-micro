@@ -136,7 +136,7 @@ TfLiteStatus LoadQuantModelAndPerformInference() {
   float golden_inputs_float[kNumTestValues] = {0.77, 1.57, 2.3, 3.14};
 
   // The int8 values are calculated using the following formula
-  // (golden_inputs_float[i] / input->params.scale + input->params.scale)
+  // (golden_inputs_float[i] / input->params.scale + input->params.zero_point)
   int8_t golden_inputs_int8[kNumTestValues] = {-96, -63, -34, 0};
 
   for (int i = 0; i < kNumTestValues; ++i) {

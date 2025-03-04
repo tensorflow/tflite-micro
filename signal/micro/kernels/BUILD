@@ -1,11 +1,11 @@
 load(
     "//tensorflow/lite/micro:build_def.bzl",
-    "micro_copts",
+    "tflm_cc_library",
 )
 
 package(licenses = ["notice"])
 
-cc_library(
+tflm_cc_library(
     name = "register_signal_ops",
     srcs = [
         "delay.cc",
@@ -31,7 +31,6 @@ cc_library(
         "irfft.h",
         "rfft.h",
     ],
-    copts = micro_copts(),
     visibility = [
         "//tensorflow/lite/micro",
     ],
