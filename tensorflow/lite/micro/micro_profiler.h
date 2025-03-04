@@ -75,7 +75,10 @@ class MicroProfiler : public MicroProfilerInterface {
   }
 
   // Clears all the events that have been currently profiled.
-  void ClearEvents();
+  void ClearEvents() {
+    num_events_ = 0;
+    num_tag_groups_ = 0;
+  }
 
   // Returns the sum of the ticks taken across all the events. This number
   // is only meaningful if all of the events are disjoint (the end time of
