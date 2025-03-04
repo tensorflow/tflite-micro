@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -111,10 +111,10 @@ void TestPackThreeInputsFloat(int* input1_dims_data, const float* input1_data,
 }
 
 template <typename T>
-void TestPackTwoInputsQuantized(int* input1_dims_data, const T* input1_data,
-                                int* input2_dims_data, const T* input2_data,
-                                int axis, int* output_dims_data,
-                                const T* expected_output_data, T* output_data) {
+void TestPackTwoInputs(int* input1_dims_data, const T* input1_data,
+                       int* input2_dims_data, const T* input2_data, int axis,
+                       int* output_dims_data, const T* expected_output_data,
+                       T* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -209,7 +209,7 @@ TF_LITE_MICRO_TEST(PackFloatMultiDimensions) {
                                           output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackQuantizedInt8MultiDimensions) {
+TF_LITE_MICRO_TEST(PackInt8MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int8_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -219,12 +219,12 @@ TF_LITE_MICRO_TEST(PackQuantizedInt8MultiDimensions) {
   constexpr int output_dims_count = 12;
   int8_t output_data[output_dims_count];
 
-  tflite::testing::TestPackTwoInputsQuantized<int8_t>(
-      input_shape, input1_values, input_shape, input2_values, axis,
-      output_shape, golden, output_data);
+  tflite::testing::TestPackTwoInputs<int8_t>(input_shape, input1_values,
+                                             input_shape, input2_values, axis,
+                                             output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackQuantizedInt16MultiDimensions) {
+TF_LITE_MICRO_TEST(PackInt16MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int16_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -234,12 +234,12 @@ TF_LITE_MICRO_TEST(PackQuantizedInt16MultiDimensions) {
   constexpr int output_dims_count = 12;
   int16_t output_data[output_dims_count];
 
-  tflite::testing::TestPackTwoInputsQuantized<int16_t>(
+  tflite::testing::TestPackTwoInputs<int16_t>(
       input_shape, input1_values, input_shape, input2_values, axis,
       output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackQuantizedInt32MultiDimensions) {
+TF_LITE_MICRO_TEST(PackInt32MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int32_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -249,7 +249,7 @@ TF_LITE_MICRO_TEST(PackQuantizedInt32MultiDimensions) {
   constexpr int output_dims_count = 12;
   int32_t output_data[output_dims_count];
 
-  tflite::testing::TestPackTwoInputsQuantized<int32_t>(
+  tflite::testing::TestPackTwoInputs<int32_t>(
       input_shape, input1_values, input_shape, input2_values, axis,
       output_shape, golden, output_data);
 }
