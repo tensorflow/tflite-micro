@@ -1,0 +1,68 @@
+// Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+namespace tflite.micro.compression;
+
+table Metadata {
+    // Compression data root, to be used in a tflite.Model.metadata field with
+    // the key "COMPRESSION_METADATA".
+
+    // Incremented whenever there are backward-incompatible changes. Code
+    // should accept models with versions less than or equal the version for
+    // which the code is built. I.e., code should accept older models, but not
+    // necessarily newer ones.
+    schema_version:uint = 1;
+
+    // Compression data indexed by subgraph index.
+    subgraphs:[Subgraph];
+}
+
+table Subgraph {
+    // Per-subgraph compression metadata.
+
+    // A list of tensors which are compressed using the (L)ook-(U)p-(T)able
+    // method. The indices of this vector are not significant.
+    lut_tensors:[LutTensor];
+}
+
+table LutTensor {
+    // Look-Up-Table Tensor: A tensor representation where elements are indices
+    // into a table of values.
+    //
+    // The indices are unsigned integer bit-fields, index_bitwidth wide, packed
+    // into an array of bytes from high-order bits toward low-order bits, with
+    // no padding in-between.  The array is stored in the buffer identified by
+    // the corresponding tflite.Tensor's buffer field.
+    //
+    // E.g.:
+    //     byte:  0       1       
+    //     bit:   7654321076543210
+    //     field: 0  1  2 |3  padding
+    //            |  |  | ||  |
+    //     data:  1110000110100000
+    //            |  |  |  |  |
+    //     index: 7  0  3  2  x
+    //
+    // The values are located in a newly-created buffer, encoded according to
+    // the tflite.Tensor.type. Tensors with multiple channels have distinct
+    // value tables for each channel, typically along their quantization axis,
+    // concatenated one after another. An element's index must be looked up in
+    // the value table corresponding to its channel.
+
+    tensor:int;            // index of the corresponding tflite.Tensor
+    value_buffer:uint;     // index of the buffer containing LUT values
+    index_bitwidth:uint8;  // bit-width of LUT indexes
+}
+
+root_type Metadata;

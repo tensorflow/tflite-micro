@@ -25,6 +25,13 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
+#ifdef USE_TFLM_COMPRESSION
+
+#include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_utils.h"
+
+#endif  // USE_TFLM_COMPRESSION
+
 namespace tflite {
 namespace micro {
 
@@ -93,15 +100,13 @@ const T* GetOptionalTensorData(const TfLiteEvalTensor* tensor) {
 
 #ifdef USE_TFLM_COMPRESSION
 
-// Overloads existing GetTensorData. If not compressed, this will return
+// Overloads existing GetOptionalTensorData. If not compressed, this will return
 // tensor->data.
-//
-// TODO(ddavis-2015): make micro_context a const pointer
 template <typename T>
-const T* GetTensorData(MicroContext* micro_context,
-                       const TfLiteEvalTensor* tensor,
-                       const CompressionTensorData* compression_data,
-                       int scratch_buffer_handle) {
+const T* GetOptionalTensorData(MicroContext* micro_context,
+                               const TfLiteEvalTensor* tensor,
+                               const CompressionTensorData* compression_data,
+                               int scratch_buffer_handle) {
   if (tensor == nullptr) {
     return nullptr;
   }
@@ -109,9 +114,30 @@ const T* GetTensorData(MicroContext* micro_context,
     return reinterpret_cast<const T*>(tensor->data.data);
   }
 
-  void* uncompressed_data = micro_context->DecompressTensorToScratchBuffer(
-      *tensor, *compression_data, scratch_buffer_handle);
+  void* scratch_buffer = nullptr;
+  if (scratch_buffer_handle != -1) {
+    scratch_buffer = micro_context->GetScratchBuffer(scratch_buffer_handle);
+  } else {
+    size_t bytes_to_allocate = EvalTensorBytes(tensor);
+    scratch_buffer = micro_context->AllocateDecompressionMemory(
+        bytes_to_allocate, MicroArenaBufferAlignment());
+  }
+  TFLITE_DCHECK(scratch_buffer != nullptr);
+  void* uncompressed_data = micro_context->DecompressTensorToBuffer(
+      *tensor, *compression_data, scratch_buffer);
   return reinterpret_cast<const T*>(uncompressed_data);
+}
+
+// Overloads existing GetTensorData. If not compressed, this will return
+// tensor->data.
+template <typename T>
+const T* GetTensorData(MicroContext* micro_context,
+                       const TfLiteEvalTensor* tensor,
+                       const CompressionTensorData* compression_data,
+                       int scratch_buffer_handle) {
+  TFLITE_DCHECK(tensor != nullptr);
+  return GetOptionalTensorData<T>(micro_context, tensor, compression_data,
+                                  scratch_buffer_handle);
 }
 
 #endif  // USE_TFLM_COMPRESSION

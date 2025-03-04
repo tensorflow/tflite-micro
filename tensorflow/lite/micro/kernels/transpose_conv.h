@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,6 +22,19 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+
+// For the TfLite transpose_conv implementation, input tensor 0 corresponds to
+// the OutputShapeTensor. However, since TFLM does not support dynamic tensors,
+// the TFLM implementation ignores input tensor 0 and the only inputs we care
+// about are kFilterTensor, kInputTensor and kBiasTensor.
+constexpr int kTransposeConvFilterTensor = 1;
+constexpr int kTransposeConvInputTensor = 2;
+constexpr int kTransposeConvBiasTensor = 3;
+constexpr int kTransposeConvOutputTensor = 0;
+
+// Conv is quantized along dimension 0:
+// https://www.tensorflow.org/lite/performance/quantization_spec
+constexpr int kTransposeConvQuantizedDimension = 0;
 
 // This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every

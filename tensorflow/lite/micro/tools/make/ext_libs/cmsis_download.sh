@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,14 +42,15 @@ if [ ! -d ${DOWNLOADS_DIR} ]; then
 fi
 
 DOWNLOADED_CMSIS_PATH=${DOWNLOADS_DIR}/cmsis
+DOWNLOADED_CORTEX_DFP_PATH=${DOWNLOADS_DIR}/cmsis/Cortex_DFP
 
 if [ -d ${DOWNLOADED_CMSIS_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_PATH} already exists, skipping the download."
 else
 
-  ZIP_PREFIX="e94a96201a97be3e84d3d6ef081d2f0f7db9b5fd"
-  CMSIS_URL="http://github.com/ARM-software/CMSIS_5/archive/${ZIP_PREFIX}.zip"
-  CMSIS_MD5="e72a40716ca8adca690b91819c69d83e"
+  ZIP_PREFIX="5782d6f8057906d360f4b95ec08a2354afe5c9b9"
+  CMSIS_URL="http://github.com/ARM-software/CMSIS_6/archive/${ZIP_PREFIX}.zip"
+  CMSIS_MD5="563e7c6465f63bdc034359e9b536b366"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
@@ -57,7 +58,19 @@ else
   check_md5 /tmp/${ZIP_PREFIX}.zip ${CMSIS_MD5}
 
   unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
-  mv /tmp/CMSIS_5-${ZIP_PREFIX} ${DOWNLOADED_CMSIS_PATH}
+  mv /tmp/CMSIS_6-${ZIP_PREFIX} ${DOWNLOADED_CMSIS_PATH}
+
+  # Also pull the related CMSIS Cortex_DFP component for generic Arm Cortex-M device support
+  ZIP_PREFIX="c2c70a97a20fb355815e2ead3d4a40e35a4a3cdf"
+  CMSIS_DFP_URL="http://github.com/ARM-software/Cortex_DFP/archive/${ZIP_PREFIX}.zip"
+  CMSIS_DFP_MD5="3cbb6955b6d093a2fe078ef2341f6b89"
+
+  wget ${CMSIS_DFP_URL} -O /tmp/${ZIP_PREFIX}.zip >&2
+  check_md5 /tmp/${ZIP_PREFIX}.zip ${CMSIS_DFP_MD5}
+
+  unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
+  mv /tmp/Cortex_DFP-${ZIP_PREFIX} ${DOWNLOADED_CORTEX_DFP_PATH}
+
 fi
 
 echo "SUCCESS"

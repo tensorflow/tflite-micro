@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstddef>
 
 #include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/decompress.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
@@ -35,103 +36,6 @@ int GetTensorIndex(int index, int max_size, const int* tensor_indices) {
   }
   return -1;
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-struct DecompressionState {
-  DecompressionState() = delete;
-
-  DecompressionState(const uint8_t* compressed_indices,
-                     const size_t count_indices,
-                     const CompressionTensorData& comp_data,
-                     const size_t num_channels)
-      : compressed_indices_(compressed_indices),
-        count_indices_(count_indices),
-        comp_data_(comp_data),
-        num_channels_(num_channels) {}
-
-  template <typename T>
-  T* DecompressToBuffer(void* buffer);
-
-  size_t GetNextTableIndex();
-  void UpdateBufferAndChannelIndex();
-
- private:
-  const uint8_t* compressed_indices_;
-  const size_t count_indices_;
-  const CompressionTensorData& comp_data_;
-  const size_t num_channels_;
-  const size_t compressed_bit_width_ =
-      comp_data_.data.lut_data->compressed_bit_width;
-  size_t channel_ = 0;
-  size_t index_in_channel_ = 0;
-  const size_t elements_per_channel_ =
-      comp_data_.data.lut_data->use_alternate_axis
-          ? 1
-          : count_indices_ / num_channels_;
-  size_t buffer_index_ = 0;
-  size_t current_offset_ = 0;
-  size_t current_bits_remaining_ = 8;
-  uint8_t current_byte_ = compressed_indices_[0];
-};
-
-template <typename T>
-T* DecompressionState::DecompressToBuffer(void* buffer) {
-  while (buffer_index_ < count_indices_) {
-    const size_t table_index = GetNextTableIndex();
-    static_cast<T*>(buffer)[buffer_index_] =
-        static_cast<const T*>(comp_data_.data.lut_data->value_table)
-            [table_index +
-             (channel_ * comp_data_.data.lut_data->value_table_channel_stride)];
-    UpdateBufferAndChannelIndex();
-  }
-
-  return static_cast<T*>(buffer);
-}
-
-size_t DecompressionState::GetNextTableIndex() {
-  TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
-  TFLITE_DCHECK(compressed_bit_width_ > 0);
-
-  size_t table_index_bits_to_fill = compressed_bit_width_;
-  size_t table_index = 0;
-
-  while (table_index_bits_to_fill > 0) {
-    if (current_bits_remaining_ == 0) {
-      current_offset_++;
-      current_byte_ = compressed_indices_[current_offset_];
-      current_bits_remaining_ = 8;
-    }
-
-    const uint8_t mask_bit_count =
-        std::min(table_index_bits_to_fill,
-                 std::min(compressed_bit_width_, current_bits_remaining_));
-    const uint8_t current_byte_mask = (1 << mask_bit_count) - 1;
-    table_index <<= mask_bit_count;
-    table_index |=
-        (current_byte_ >> (current_bits_remaining_ - mask_bit_count)) &
-        current_byte_mask;
-
-    table_index_bits_to_fill -= mask_bit_count;
-    current_bits_remaining_ -= mask_bit_count;
-  }
-
-  return table_index;
-}
-
-void DecompressionState::UpdateBufferAndChannelIndex() {
-  buffer_index_++;
-  index_in_channel_++;
-  if (index_in_channel_ == elements_per_channel_) {
-    index_in_channel_ = 0;
-    channel_++;
-    if (channel_ == num_channels_) {
-      channel_ = 0;
-    }
-  }
-}
-
-#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace
 
@@ -175,13 +79,11 @@ void MicroContextReportOpError(struct TfLiteContext* context,
 
 #ifdef USE_TFLM_COMPRESSION
 
-void* MicroContext::DecompressTensorToScratchBuffer(
+void* MicroContext::DecompressTensorToBuffer(
     const TfLiteEvalTensor& tensor,
-    const CompressionTensorData& compression_data, int scratch_buffer_handle) {
+    const CompressionTensorData& compression_data, void* buffer) {
   TFLITE_DCHECK(compression_data.scheme == CompressionScheme::kBinQuant);
-  TFLITE_DCHECK(scratch_buffer_handle != -1);
-  void* scratch_buffer = GetScratchBuffer(scratch_buffer_handle);
-  TFLITE_DCHECK(scratch_buffer != nullptr);
+  TFLITE_DCHECK(buffer != nullptr);
   size_t count = ElementCount(*tensor.dims);
   size_t num_channels = 1;
 
@@ -194,26 +96,26 @@ void* MicroContext::DecompressTensorToScratchBuffer(
   }
 
   DecompressionState ds(static_cast<uint8_t*>(tensor.data.data), count,
-                        compression_data, num_channels);
+                        compression_data, num_channels, GetAlternateProfiler());
 
   switch (tensor.type) {
     case kTfLiteBool: {
-      return ds.DecompressToBuffer<bool>(scratch_buffer);
+      return ds.DecompressToBuffer<bool>(buffer);
     } break;
     case kTfLiteInt8: {
-      return ds.DecompressToBuffer<int8_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int8_t>(buffer);
     } break;
     case kTfLiteInt16: {
-      return ds.DecompressToBuffer<int16_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int16_t>(buffer);
     } break;
     case kTfLiteInt32: {
-      return ds.DecompressToBuffer<int32_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int32_t>(buffer);
     } break;
     case kTfLiteInt64: {
-      return ds.DecompressToBuffer<int64_t>(scratch_buffer);
+      return ds.DecompressToBuffer<int64_t>(buffer);
     } break;
     case kTfLiteFloat32: {
-      return ds.DecompressToBuffer<float>(scratch_buffer);
+      return ds.DecompressToBuffer<float>(buffer);
     } break;
     default: {
       MicroPrintf("Unsupported decompression tensor type %d", tensor.type);
@@ -222,6 +124,18 @@ void* MicroContext::DecompressTensorToScratchBuffer(
 
   return nullptr;
 }
+
+TfLiteStatus MicroContext::SetDecompressionMemory(
+    const std::initializer_list<AlternateMemoryRegion>& regions) {
+  return kTfLiteError;
+}
+
+void* MicroContext::AllocateDecompressionMemory(size_t bytes,
+                                                size_t alignment) {
+  return nullptr;
+}
+
+void MicroContext::ResetDecompressionMemoryAllocations() {}
 
 #endif  // USE_TFLM_COMPRESSION
 
