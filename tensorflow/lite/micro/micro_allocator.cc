@@ -871,6 +871,11 @@ TfLiteTensor* MicroAllocator::AllocateTempTfLiteTensor(
   TfLiteTensor* tensor = reinterpret_cast<TfLiteTensor*>(
       non_persistent_buffer_allocator_->AllocateTemp(sizeof(TfLiteTensor),
                                                      alignof(TfLiteTensor)));
+  if (tensor == nullptr) {
+    MicroPrintf("Failed to allocate temp. memory for tensor %d, subgraph %d",
+                tensor_index, subgraph_index);
+    return nullptr;
+  }
 
   // Populate any fields from the flatbuffer, since this TfLiteTensor struct is
   // allocated in the temp section of the arena, ensure that additional
