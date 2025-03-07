@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -185,7 +185,8 @@ TfLiteStatus SubEval(TfLiteContext* context, TfLiteNode* node) {
   const OpDataSub& data = *(static_cast<const OpDataSub*>(node->user_data));
 
   if (output->type == kTfLiteFloat32 || output->type == kTfLiteInt32) {
-    EvalSub(context, node, params, &data, input1, input2, output);
+    TF_LITE_ENSURE_OK(
+        context, EvalSub(context, node, params, &data, input1, input2, output));
   } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
     TF_LITE_ENSURE_OK(context, EvalSubQuantized(context, node, params, &data,
                                                 input1, input2, output));

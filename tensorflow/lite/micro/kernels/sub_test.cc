@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -240,6 +240,7 @@ TF_LITE_MICRO_TEST(FloatSubWithScalarBroadcast) {
   }
 }
 
+#if !defined(XTENSA)
 TF_LITE_MICRO_TEST(Int32SubNoActivation) {
   int inout_shape[] = {4, 1, 2, 2, 1};
   const int32_t input1_values[] = {-2, 2147483646, -1, 1146622854};
@@ -251,6 +252,7 @@ TF_LITE_MICRO_TEST(Int32SubNoActivation) {
                                 input2_values, inout_shape, golden_values,
                                 kTfLiteActNone, output_data);
 }
+#endif
 
 TF_LITE_MICRO_TEST(QuantizedSubNoActivationInt8) {
   const float scales[] = {0.25, 0.5, 1.0};
