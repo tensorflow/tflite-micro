@@ -105,6 +105,7 @@ void TestSubFloat(int* input1_dims_data, const float* input1_data,
                      ElementCount(*output_dims), activation);
 }
 
+#if !defined(XTENSA)
 void TestSubInt32(int* input1_dims_data, const int32_t* input1_data,
                   int* input2_dims_data, const int32_t* input2_data,
                   int* output_dims_data, const int32_t* expected_output,
@@ -125,6 +126,7 @@ void TestSubInt32(int* input1_dims_data, const int32_t* input1_data,
   ValidateSubGoldens(tensors, tensors_size, expected_output, output_data,
                      ElementCount(*output_dims), activation);
 }
+#endif
 
 template <typename T>
 void TestSubQuantized(int* input1_dims_data, const float* input1_data,
