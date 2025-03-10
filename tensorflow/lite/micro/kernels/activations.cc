@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,14 +54,23 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      tflite::ReluQuantized(data, tflite::micro::GetTensorShape(input),
-                            tflite::micro::GetTensorShape(output),
-                            tflite::micro::GetTensorData<int8_t>(input),
-                            tflite::micro::GetTensorData<int8_t>(output));
+      tflite::ReluQuantized<int8_t>(
+          data, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int8_t>(input),
+          tflite::micro::GetTensorData<int8_t>(output));
+      return kTfLiteOk;
+    }
+    case kTfLiteInt16: {
+      tflite::ReluQuantized<int16_t>(
+          data, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(input),
+          tflite::micro::GetTensorData<int16_t>(output));
       return kTfLiteOk;
     }
     default: {
-      MicroPrintf("Only float32 is supported currently, got %s",
+      MicroPrintf("Only float32/int8/int16 is supported currently, got %s",
                   TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
@@ -109,7 +118,7 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     }
     default: {
-      MicroPrintf("Only float32 is supported currently, got %s",
+      MicroPrintf("Only float32/int8/int16 is supported currently, got %s",
                   TfLiteTypeGetName(input->type));
       return kTfLiteError;
     }
