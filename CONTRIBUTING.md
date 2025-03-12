@@ -293,7 +293,7 @@ Below are some tips that might be useful and improve the development experience.
 
     And a sketch of the steps:
 
-    ```
+    ```bash
     git remote add <remote_name> git@github.com:<PR author>/tflite-micro.git
     git fetch <remote_name>
 
