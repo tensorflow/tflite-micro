@@ -181,20 +181,20 @@ Below are some tips that might be useful and improve the development experience.
 * Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
   the TFLM continuous integration Docker container.
 
-  ```
+  ```bash
   pip install cpplint
   ```
 
 * [yapf](https://github.com/google/yapf/) should be used for formatting Python
   code. For example:
 
-  ```
+  ```bash
   pip install yapf
   yapf log_parser.py -i'
   ```
 
 * Add a git hook to check for code style etc. prior to creating a pull request:
-  ```
+  ```bash
   cp tensorflow/lite/micro/tools/dev_setup/pre-push.tflm .git/hooks/pre-push
   ```
 
@@ -205,20 +205,20 @@ Below are some tips that might be useful and improve the development experience.
 1.  Run in-place clang-format on all the files that are modified in your git
     tree with
 
-    ```
+    ```bash
     clang-format -i -style=google `git ls-files -m | grep "\.cc"`
     clang-format -i -style=google `git ls-files -m | grep "\.h"`
     ```
 
 1.  Make sure your code is lint-free.
 
-    ```
+    ```bash
     cpplint `git ls-files -m`
     ```
 
 1.  Run all the tests for x86, and any other platform that you are modifying.
 
-    ```
+    ```bash
     tensorflow/lite/micro/tools/ci_build/test_x86_default.sh
     ```
 
@@ -230,7 +230,7 @@ Below are some tips that might be useful and improve the development experience.
     following commands (replace `micro_interpreter_test` with the target that you
     want to test:
 
-    ```
+    ```bash
     CC=clang bazel run --config=asan tensorflow/lite/micro:micro_interpreter_test
     CC=clang bazel run --config=msan tensorflow/lite/micro:micro_interpreter_test
     CC=clang bazel run --config=ubsan tensorflow/lite/micro:micro_interpreter_test
@@ -248,20 +248,20 @@ Below are some tips that might be useful and improve the development experience.
 
     Assuming that you forked tensorflow and added a remote called upstream with:
 
-    ```
+    ```bash
     git remote add upstream https://github.com/tensorflow/tflite-micro.git
     ```
 
     Fetch the latest changes from upstream and merge into your local branch.
 
-    ```
+    ```bash
     git fetch upstream
     git merge upstream/main
     ```
 
     In case of a merge conflict, resolve via:
 
-    ```
+    ```bash
     git mergetool
 
     # Use your favorite diff tools (e.g. meld) to resolve the conflicts.
