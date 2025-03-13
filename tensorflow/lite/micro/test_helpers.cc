@@ -2059,7 +2059,6 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensorWithoutScaleEstimation(
     const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
     int* zero_points, TfLiteAffineQuantization* affine_quant,
     int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type) {
-
   int input_size = ElementCount(*dims);
   int channel_count = dims->data[quantized_dimension];
   scales[0] = static_cast<float>(channel_count);
