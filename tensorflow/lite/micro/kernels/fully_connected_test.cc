@@ -43,6 +43,7 @@ const float simple_weights_data[] = {
 };
 
 int simple_bias_dims[] = {1, 3};
+const int simple_bias_size = 3;
 const float simple_bias_data[] = {1, 2, 3};
 
 #ifdef USE_TFLM_COMPRESSION
@@ -504,6 +505,59 @@ TfLiteStatus TestFullyConnectedQuantizedCompressed(
 
 #endif  // USE_TFLM_COMPRESSION
 
+template <typename dataT, typename weightT, typename biasT>
+TfLiteStatus TestFullyConnectedQuantizedPerChannel(
+    int* input_dims_data, const float* input_data, dataT* input_quantized,
+    const float input_scale, const int input_zero_point, int* weights_dims_data,
+    const float* weights_data, weightT* weights_quantized,
+    float* weights_scales, int* weights_zero_points, int* bias_dims_data,
+    const float* bias_data, biasT* bias_quantized, const float* golden,
+    dataT* golden_quantized, int* output_dims_data, const float output_scale,
+    const int output_zero_point, TfLiteFusedActivation activation,
+    dataT* output_data, TfLiteType weights_packed_type = kTfLiteNoType) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* weights_dims = IntArrayFromInts(weights_dims_data);
+  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+  const int output_dims_count = ElementCount(*output_dims);
+  bool null_bias = bias_data == nullptr ? true : false;
+
+  constexpr int array_size = 4;  // Avoid variable length array warning.
+  const int inputs_size = null_bias ? 2 : 3;
+  constexpr int outputs_size = 1;
+  const int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[array_size];
+  TfLiteAffineQuantization weights_quant, bias_quant;
+  float bias_scales[5];
+  int bias_zero_points[5];
+
+  tensors[0] = CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                                     input_scale, input_zero_point);
+  tensors[1] = CreateSymmetricPerChannelQuantizedTensorWithoutScaleEstimation(
+      weights_data, weights_quantized, weights_dims, weights_scales,
+      weights_zero_points, &weights_quant, 0 /* quantized dimension */, false,
+      weights_packed_type);
+
+  if (null_bias) {
+    tensors[2] = CreateQuantizedTensor(output_data, output_dims,
+                                       output_scale, output_zero_point);
+  } else {
+    tensors[2] = CreatePerChannelQuantizedBiasTensor(
+        bias_data, bias_quantized, bias_dims, input_scale, &weights_scales[1],
+        bias_scales, bias_zero_points, &bias_quant,
+        0 /* quantized dimension */);
+    tensors[3] = CreateQuantizedTensor(output_data, output_dims,
+                                       output_scale, output_zero_point);
+  }
+
+  Quantize(golden, golden_quantized, output_dims_count, output_scale,
+           output_zero_point);
+  return ValidateFullyConnectedGoldens(tensors, tensors_size, null_bias,
+                                       activation, 1.0f /* tolerance */,
+                                       output_dims_count, golden_quantized,
+                                       output_data);
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -651,6 +705,36 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
+TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelInt8) {
+  const float input_scale = 0.5f;
+  const int input_zero_point = -1;
+  const float output_scale = 1.0f;
+  const int output_zero_point = -1;
+  int weights_zero_points[tflite::testing::simple_bias_size + 1] = {
+      tflite::testing::simple_bias_size, 0, 0, 0};
+  float weights_scales[tflite::testing::simple_bias_size + 1] = {
+      tflite::testing::simple_bias_size, 0.2f, 0.25f, 0.5f};
+  
+  int8_t input_quantized[tflite::testing::simple_input_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int32_t bias_quantized[tflite::testing::simple_output_size];
+  int8_t golden_quantized[tflite::testing::simple_output_size];
+  int8_t output_data[tflite::testing::simple_output_size];
+  
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantizedPerChannel(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, weights_quantized,
+          weights_scales, weights_zero_points,
+          tflite::testing::simple_bias_dims, tflite::testing::simple_bias_data,
+          bias_quantized, tflite::testing::simple_golden, golden_quantized,
+          tflite::testing::simple_output_dims, output_scale, output_zero_point,
+          kTfLiteActNone, output_data),
+      kTfLiteOk);
+}
+
 #if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
@@ -731,6 +815,36 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
 }
 
 #endif  // USE_TFLM_COMPRESSION
+
+TF_LITE_MICRO_TEST(SimpleTestPerChannelQuantizedInt16) {
+  const float input_scale = 128.0 / 65536;
+  const int input_zero_point = 0;
+  const float output_scale = 128.0 / 65536;
+  const int output_zero_point = 0;
+  int weights_zero_points[tflite::testing::simple_bias_size + 1] = {
+      tflite::testing::simple_bias_size, 0, 0, 0};
+  float weights_scales[tflite::testing::simple_bias_size + 1] = {
+      tflite::testing::simple_bias_size, 0.2f, 0.25f, 0.5f};
+  
+  int16_t input_quantized[tflite::testing::simple_input_size];
+  int8_t weights_quantized[tflite::testing::simple_weights_size];
+  int64_t bias_quantized[tflite::testing::simple_output_size];
+  int16_t golden_quantized[tflite::testing::simple_output_size];
+  int16_t output_data[tflite::testing::simple_output_size];
+  
+  TF_LITE_MICRO_EXPECT_EQ(
+      tflite::testing::TestFullyConnectedQuantizedPerChannel(
+          tflite::testing::simple_input_dims,
+          tflite::testing::simple_input_data, input_quantized, input_scale,
+          input_zero_point, tflite::testing::simple_weights_dims,
+          tflite::testing::simple_weights_data, weights_quantized,
+          weights_scales, weights_zero_points,
+          tflite::testing::simple_bias_dims, tflite::testing::simple_bias_data,
+          bias_quantized, tflite::testing::simple_golden, golden_quantized,
+          tflite::testing::simple_output_dims, output_scale, output_zero_point,
+          kTfLiteActNone, output_data),
+      kTfLiteOk);
+}
 
 #endif  // !defined(HEXAGON)
 
