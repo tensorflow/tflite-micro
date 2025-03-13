@@ -15,12 +15,9 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/transpose.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/transpose.h"
-#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -28,24 +25,6 @@ namespace {
 constexpr int kInputTensor = 0;
 constexpr int kPermTensor = 1;
 constexpr int kOutputTensor = 0;
-
-struct TransposeContext {
-  TransposeContext(TfLiteContext* context, TfLiteNode* node) {
-    micro_context = GetMicroContext(context);
-    input = micro_context->AllocateTempInputTensor(node, kInputTensor);
-    perm = micro_context->AllocateTempInputTensor(node, kPermTensor);
-    output = micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  }
-  ~TransposeContext() {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(perm);
-    micro_context->DeallocateTempTfLiteTensor(output);
-  }
-  MicroContext* micro_context;
-  TfLiteTensor* input;
-  TfLiteTensor* perm;
-  TfLiteTensor* output;
-};
 
 TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* perm_tensor =

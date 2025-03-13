@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@ limitations under the License.
 
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/transpose.h"
-#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
@@ -85,10 +82,16 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
       TransposeEvalInt8(context, node);
     } break;
+    case kTfLiteInt16:
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<int16_t>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<int16_t>(output));
+      break;
     default:
       MicroPrintf(
           "Type %s is currently not supported by Transpose. "
-          "Only float32 and int8 is supported",
+          "Only float32, int8 and int16 is supported",
           TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }

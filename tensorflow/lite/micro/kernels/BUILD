@@ -277,6 +277,7 @@ tflm_kernel_cc_library(
         "mul_common.cc",
         "neg.cc",
         "pack.cc",
+        "pad_common.cc",
         "pad.cc",
         "pooling.cc",
         "pooling_common.cc",
@@ -348,6 +349,7 @@ tflm_kernel_cc_library(
         "strided_slice.h",
         "sub.h",
         "svdf.h",
+        "transpose.h",
         "transpose_conv.h",
         "unidirectional_sequence_lstm.h",
     ] + select({
