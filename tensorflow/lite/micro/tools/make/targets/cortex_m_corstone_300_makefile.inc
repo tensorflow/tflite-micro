@@ -1,4 +1,4 @@
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ endif
 # This target has dependencies to CMSIS-Device so just in case running without OPTIMIZED_KERNEL_DIR=cmsis_nn.
 CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
+CORTEX_DFP_PATH := $(CMSIS_PATH)/Cortex_DFP
 ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -194,13 +195,11 @@ ifeq ($(CO_PROCESSOR), ethos_u)
   ETHOSU_ARCH=u55
 endif
 
-CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
-CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 THIRD_PARTY_CC_SRCS += \
-  $(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Source/system_$(ARM_CPU).c \
-  $(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Source/startup_$(ARM_CPU).c
+  $(CORTEX_DFP_PATH)/Device/$(ARM_CPU)/Source/system_$(ARM_CPU).c \
+  $(CORTEX_DFP_PATH)/Device/$(ARM_CPU)/Source/startup_$(ARM_CPU).c
 INCLUDES += \
-  -I$(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Include \
+  -I$(CORTEX_DFP_PATH)/Device/$(ARM_CPU)/Include \
   -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 # TODO(#274): Examine why some tests fail here.
