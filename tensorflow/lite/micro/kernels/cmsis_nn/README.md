@@ -16,6 +16,11 @@ CMSIS_PATH=<../path> and CMSIS_NN_PATH=<../path>. Note that both CMSIS_PATH and 
 since CMSIS-NN has a dependency to CMSIS-Core. As a third option CMSIS-NN can be provided manually as an external library.
 The examples below will illustrate this.
 
+# Specifying path to Cortex_DFP
+
+The Cortex_DFP path used can be specified using an additional flag `CORTEX_DFP_PATH=<path/to>cmsis/Cortex_DFP`.
+Default is the Cortex_DFP contained in the downloaded CMSIS version.
+
 ## Example - FVP based on Arm Corstone-300 software.
 In this example, the kernel conv unit test is built. For more information about
 this specific target, check out the [Corstone-300 readme](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/cortex_m_corstone_300/README.md).
