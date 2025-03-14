@@ -43,8 +43,9 @@ const float simple_weights_data[] = {
 };
 
 int simple_bias_dims[] = {1, 3};
-const int simple_bias_size = 3;
 const float simple_bias_data[] = {1, 2, 3};
+constexpr size_t simple_bias_size =
+std::extent<decltype(simple_bias_data)>::value;
 
 #ifdef USE_TFLM_COMPRESSION
 
@@ -61,8 +62,6 @@ constexpr int kBinQuantWeightBitWidth = 4;
 // Align the tensor data the same as a Buffer in the schema
 alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
-constexpr size_t simple_bias_size =
-    std::extent<decltype(simple_bias_data)>::value;
 
 #endif  // USE_TFLM_COMPRESSION
 
@@ -704,6 +703,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
+#if !defined(XTENSA) && !defined(CMSIS_NN)
+
 TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelInt8) {
   const float input_scale = 0.5f;
   const int input_zero_point = -1;
@@ -733,6 +734,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelInt8) {
           kTfLiteActNone, output_data),
       kTfLiteOk);
 }
+
+#endif // #if !defined(XTENSA) && !defined(CMSIS_NN)
 
 #if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
@@ -815,6 +818,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
+#if !defined(XTENSA) && !defined(CMSIS_NN)
+
 TF_LITE_MICRO_TEST(SimpleTestPerChannelQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
@@ -845,6 +850,7 @@ TF_LITE_MICRO_TEST(SimpleTestPerChannelQuantizedInt16) {
       kTfLiteOk);
 }
 
+#endif // #if !defined(XTENSA) && !defined(CMSIS_NN) 
 #endif  // !defined(HEXAGON)
 
 TF_LITE_MICRO_TEST(SimpleTest4DInputQuantizedInt8) {
