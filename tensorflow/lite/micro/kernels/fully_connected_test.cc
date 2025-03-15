@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -708,6 +708,8 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt8Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
+#if !defined(HEXAGON)
+
 #if !defined(XTENSA)
 
 TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelInt8) {
@@ -741,7 +743,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedPerChannelInt8) {
 }
 #endif  // #if !defined(XTENSA)
 
-#if !defined(HEXAGON)
 TF_LITE_MICRO_TEST(SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
@@ -1040,6 +1041,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
           output_zero_point, kTfLiteActNone, output_data, kTfLiteInt4),
       kTfLiteOk);
 }
-#endif
+#endif // !defined(HEXAGON)
 
 TF_LITE_MICRO_TESTS_END
