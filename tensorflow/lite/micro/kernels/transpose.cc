@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -103,10 +103,16 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
                                tflite::micro::GetTensorShape(output),
                                tflite::micro::GetTensorData<int8_t>(output));
       break;
+    case kTfLiteInt16:
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<int16_t>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<int16_t>(output));
+      break;
     default:
       MicroPrintf(
           "Type %s is currently not supported by Transpose. "
-          "Only float32 and int8 is supported",
+          "Only float32, int8 and int16 are supported",
           TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
