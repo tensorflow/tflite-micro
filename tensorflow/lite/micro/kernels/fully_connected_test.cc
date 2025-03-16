@@ -45,12 +45,13 @@ const float simple_weights_data[] = {
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 
-#if (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA)))
+#if (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) && !defined(HEXAGON)))
 
 constexpr size_t simple_bias_size =
     std::extent<decltype(simple_bias_data)>::value;
 
-#endif  // (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA)))
+#endif  // (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) &&
+        // !defined(HEXAGON)))
 
 #ifdef USE_TFLM_COMPRESSION
 
@@ -855,7 +856,7 @@ TF_LITE_MICRO_TEST(SimpleTestPerChannelQuantizedInt16) {
       kTfLiteOk);
 }
 
-#endif  // #if !defined(XTENSA) && !defined(CMSIS_NN)
+#endif  // !defined(XTENSA) && !defined(CMSIS_NN)
 
 #endif  // !defined(HEXAGON)
 
@@ -1041,6 +1042,6 @@ TF_LITE_MICRO_TEST(SimpleTestQuantizedInt4Weights) {
           output_zero_point, kTfLiteActNone, output_data, kTfLiteInt4),
       kTfLiteOk);
 }
-#endif // !defined(HEXAGON)
+#endif  // !defined(HEXAGON)
 
 TF_LITE_MICRO_TESTS_END
