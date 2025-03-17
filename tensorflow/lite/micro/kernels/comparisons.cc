@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -284,6 +284,19 @@ TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
                 data->params, input1_shape,
                 tflite::micro::GetTensorData<int8_t>(input1), input2_shape,
                 tflite::micro::GetTensorData<int8_t>(input2), output_shape,
+                output_data);
+      break;
+    case kTfLiteInt16:
+      requires_broadcast
+          ? reference_ops::Broadcast4DSlowGreaterWithScaling(
+                data->params, input1_shape,
+                tflite::micro::GetTensorData<int16_t>(input1), input2_shape,
+                tflite::micro::GetTensorData<int16_t>(input2), output_shape,
+                output_data)
+          : reference_ops::GreaterWithScaling(
+                data->params, input1_shape,
+                tflite::micro::GetTensorData<int16_t>(input1), input2_shape,
+                tflite::micro::GetTensorData<int16_t>(input2), output_shape,
                 output_data);
       break;
     default:
