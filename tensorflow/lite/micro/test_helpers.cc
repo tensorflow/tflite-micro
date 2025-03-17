@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -2053,6 +2053,31 @@ size_t GetModelTensorCount(const Model* model) {
     return (*subgraphs)[0]->tensors()->size();
   }
   return 0;
+}
+
+TfLiteTensor CreateSymmetricPerChannelQuantizedTensorWithoutScaleEstimation(
+    const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
+    int* zero_points, TfLiteAffineQuantization* affine_quant,
+    int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type) {
+  int input_size = ElementCount(*dims);
+  int channel_count = dims->data[quantized_dimension];
+  scales[0] = static_cast<float>(channel_count);
+  zero_points[0] = channel_count;
+
+  SymmetricPerChannelQuantize<int8_t>(input, quantized, input_size,
+                                      channel_count, &scales[1]);
+
+  for (int i = 0; i < channel_count; i++) {
+    zero_points[i + 1] = 0;
+  }
+
+  affine_quant->scale = FloatArrayFromFloats(scales);
+  affine_quant->zero_point = IntArrayFromInts(zero_points);
+  affine_quant->quantized_dimension = quantized_dimension;
+  TfLiteTensor result =
+      CreateTensor(quantized, dims, is_variable, tensor_weight_type);
+  result.quantization = {kTfLiteAffineQuantization, affine_quant};
+  return result;
 }
 
 void PackInt4ValuesDenselyInPlace(uint8_t* src_buffer, int buffer_size) {
