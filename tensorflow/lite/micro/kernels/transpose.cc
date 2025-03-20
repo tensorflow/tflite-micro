@@ -22,13 +22,9 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-constexpr int kInputTensor = 0;
-constexpr int kPermTensor = 1;
-constexpr int kOutputTensor = 0;
-
 TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* perm_tensor =
-      tflite::micro::GetEvalInput(context, node, kPermTensor);
+      tflite::micro::GetEvalInput(context, node, kTransposePermTensor);
   const int32_t* perm_data = perm_tensor->data.i32;
   const int size = perm_tensor->dims->data[0];
   TransposeParams params;
@@ -41,9 +37,9 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
   // on each cell. It's safe to implement per size of scalar type and this
   // trick keeps the total code size in a reasonable range.
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kTransposeOutputTensor);
   switch (input->type) {
     case kTfLiteFloat32:
       reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
