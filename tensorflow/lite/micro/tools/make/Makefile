@@ -1,4 +1,4 @@
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -426,6 +426,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/prelu.cc \
@@ -459,6 +460,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
