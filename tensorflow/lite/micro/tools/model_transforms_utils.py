@@ -246,7 +246,7 @@ def clear_resource_variable_buffers(model):
     buffer_idx = tensor.buffer
     if (tensor.type != schema_fb.TensorType.RESOURCE
         and buffer_idx not in multi_subgraph_resource_buffers
-        and model.buffers[buffer_idx].data != []):
+        and np.array(model.buffers[buffer_idx].data).size != 0):
       # if the entire initialization subgraph has not been cleared, we cannot
       # make any additional changes to the flatbuffer
       return
