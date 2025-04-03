@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
@@ -36,9 +37,23 @@ struct Relu6OpData {
   int32_t zero;
 };
 
+template <typename T>
 void ReluQuantized(const ReluOpData& data, const RuntimeShape& input_shape,
-                   const RuntimeShape& output_shape, const int8_t* input_data,
-                   int8_t* output_data);
+                   const RuntimeShape& output_shape, const T* input_data,
+                   T* output_data) {
+  const int flat_size = MatchingFlatSize(input_shape, output_shape);
+  for (int i = 0; i < flat_size; ++i) {
+    const int32_t val = static_cast<int32_t>(input_data[i]);
+    int32_t clamped =
+        data.params.output_offset +
+        MultiplyByQuantizedMultiplier(val - data.params.input_offset,
+                                      data.params.output_multiplier,
+                                      data.params.output_shift);
+    clamped = std::max(data.params.quantized_activation_min, clamped);
+    clamped = std::min(data.params.quantized_activation_max, clamped);
+    output_data[i] = static_cast<T>(clamped);
+  }
+}
 
 template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,

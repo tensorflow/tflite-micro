@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -149,6 +149,20 @@ TF_LITE_MICRO_TEST(1D) {
                                  expected_output_data, output_data, &params);
 }
 
+TF_LITE_MICRO_TEST(1DInt16) {
+  int input_dims_data[] = {1, 3};
+  int output_dims_data[] = {1, 3};
+
+  int16_t input_data[3];
+  int16_t output_data[3];
+  const int16_t expected_output_data[] = {0, 1, 2};
+
+  tflite::TransposeParams params = {1, {0}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
 TF_LITE_MICRO_TEST(2DPerm1) {
   int input_dims_data[] = {2, 3, 2};
   int output_dims_data[] = {2, 3, 2};
@@ -156,6 +170,20 @@ TF_LITE_MICRO_TEST(2DPerm1) {
   int8_t input_data[6];
   int8_t output_data[6];
   const int8_t expected_output_data[] = {0, 2, 4, 1, 3, 5};
+
+  tflite::TransposeParams params = {2, {1, 0}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
+TF_LITE_MICRO_TEST(2DPerm1Int16) {
+  int input_dims_data[] = {2, 3, 2};
+  int output_dims_data[] = {2, 3, 2};
+
+  int16_t input_data[6];
+  int16_t output_data[6];
+  const int16_t expected_output_data[] = {0, 2, 4, 1, 3, 5};
 
   tflite::TransposeParams params = {2, {1, 0}};
 
@@ -179,6 +207,22 @@ TF_LITE_MICRO_TEST(2D4x4KernelLeftOverRightSide) {
                                  expected_output_data, output_data, &params);
 }
 
+TF_LITE_MICRO_TEST(2D4x4KernelLeftOverRightSideInt16) {
+  int input_dims_data[] = {2, 4, 6};
+  int output_dims_data[] = {2, 4, 6};
+
+  int16_t input_data[24];
+  int16_t output_data[24];
+  const int16_t expected_output_data[] = {0, 6,  12, 18, 1, 7,  13, 19,
+                                          2, 8,  14, 20, 3, 9,  15, 21,
+                                          4, 10, 16, 22, 5, 11, 17, 23};
+
+  tflite::TransposeParams params = {2, {1, 0}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
 TF_LITE_MICRO_TEST(2D4x4KernelLeftOverBottomSide) {
   int input_dims_data[] = {2, 6, 4};
   int output_dims_data[] = {2, 4, 6};
@@ -195,6 +239,22 @@ TF_LITE_MICRO_TEST(2D4x4KernelLeftOverBottomSide) {
                                  expected_output_data, output_data, &params);
 }
 
+TF_LITE_MICRO_TEST(2D4x4KernelLeftOverBottomSideInt16) {
+  int input_dims_data[] = {2, 6, 4};
+  int output_dims_data[] = {2, 4, 6};
+
+  int16_t input_data[24];
+  int16_t output_data[24];
+  const int16_t expected_output_data[] = {0,  4,  8,  12, 16, 20, 1,  5,
+                                          9,  13, 17, 21, 2,  6,  10, 14,
+                                          18, 22, 3,  7,  11, 15, 19, 23};
+
+  tflite::TransposeParams params = {2, {1, 0}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
 TF_LITE_MICRO_TEST(3D) {
   int input_dims_data[] = {3, 2, 3, 4};
   int output_dims_data[] = {3, 2, 3, 4};
@@ -204,6 +264,22 @@ TF_LITE_MICRO_TEST(3D) {
   const int8_t expected_output_data[] = {0,  4,  8,  12, 16, 20, 1,  5,
                                          9,  13, 17, 21, 2,  6,  10, 14,
                                          18, 22, 3,  7,  11, 15, 19, 23};
+
+  tflite::TransposeParams params = {3, {2, 0, 1}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
+TF_LITE_MICRO_TEST(3DInt16) {
+  int input_dims_data[] = {3, 2, 3, 4};
+  int output_dims_data[] = {3, 2, 3, 4};
+
+  int16_t input_data[24];
+  int16_t output_data[24];
+  const int16_t expected_output_data[] = {0,  4,  8,  12, 16, 20, 1,  5,
+                                          9,  13, 17, 21, 2,  6,  10, 14,
+                                          18, 22, 3,  7,  11, 15, 19, 23};
 
   tflite::TransposeParams params = {3, {2, 0, 1}};
 

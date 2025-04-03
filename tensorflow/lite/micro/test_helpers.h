@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -375,6 +375,13 @@ TfLiteTensor CreateSymmetricPerChannelQuantizedTensor(
     int* zero_points, TfLiteAffineQuantization* affine_quant,
     int quantized_dimension, bool is_variable = false,
     TfLiteType tensor_weight_type = kTfLiteNoType);
+
+// This function uses the scales provided to it and quantize based on the
+// provided scale values
+TfLiteTensor CreateSymmetricPerChannelQuantizedTensorWithoutScaleEstimation(
+    const float* input, int8_t* quantized, TfLiteIntArray* dims, float* scales,
+    int* zero_points, TfLiteAffineQuantization* affine_quant,
+    int quantized_dimension, bool is_variable, TfLiteType tensor_weight_type);
 
 // Returns the number of tensors in the default subgraph for a tflite::Model.
 size_t GetModelTensorCount(const Model* model);
