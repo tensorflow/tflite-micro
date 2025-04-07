@@ -129,6 +129,15 @@ inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
 inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
 #endif  // defined(CMSIS_NN) || defined(XTENSA)
 
+#if defined(XTENSA)
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// float32 activations and float32 weights and uses the latency optimized
+// implementations.
+TFLMRegistration Register_CONV_2D_FLOAT32();
+#else
+inline TFLMRegistration Register_CONV_2D_FLOAT32() { return Register_CONV_2D(); }
+#endif
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_CONV_H_
