@@ -56,7 +56,6 @@ py_test(
     name = "lstm_test_data_generator_test",
     srcs = ["lstm_test_data_generator_test.py"],
     main = "lstm_test_data_generator_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols

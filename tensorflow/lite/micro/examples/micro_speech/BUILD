@@ -237,7 +237,6 @@ py_test(
         ":samples_1000ms",
     ],
     main = "evaluate_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols
@@ -256,7 +255,6 @@ py_test(
         ":samples_30ms",
     ],
     main = "audio_preprocessor_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols

@@ -19,7 +19,6 @@ py_test(
         ":test_resources",
     ],
     main = "flatbuffer_size_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols from flatbuffer_size_wrapper_pybind.so
