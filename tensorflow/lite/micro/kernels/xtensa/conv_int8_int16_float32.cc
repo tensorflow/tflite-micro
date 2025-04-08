@@ -75,6 +75,28 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
 #endif
 }
 
+TfLiteStatus EvalFloat32(TfLiteContext* context, TfLiteNode* node) {
+#if HIFI_VFPU && (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  const auto& params =
+      *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
+
+  return ConvEvalHifiFloat32(context, node, params, op_data, input, filter, bias,
+                           output);
+#else
+  return ConvReferenceEvalFloat32(context, node);
+#endif
+}
+
 }  // namespace
 
 TFLMRegistration Register_CONV_2D_INT8() {
@@ -84,6 +106,11 @@ TFLMRegistration Register_CONV_2D_INT8() {
 TFLMRegistration Register_CONV_2D_INT16() {
   return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa,
                                    EvalInt16);
+}
+
+TFLMRegistration Register_CONV_2D_FLOAT32() {
+  return tflite::micro::RegisterOp(ConvInitXtensa, ConvPrepareXtensa,
+                                   EvalFloat32);
 }
 
 }  // namespace tflite
