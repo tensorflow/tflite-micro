@@ -59,8 +59,6 @@ py_binary(
     srcs = [
         "code_generator.py",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":graph",
         ":inference_generator",

@@ -31,7 +31,6 @@ py_library(
 py_library(
     name = "generate_test_for_model",
     srcs = ["generate_test_for_model.py"],
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         "//tensorflow/lite/python:schema_py",
@@ -53,7 +52,6 @@ py_binary(
         "requantize_flatbuffer.py",
         "requantize_flatbuffer_utils.py",
     ],
-    srcs_version = "PY3",
     deps = [
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
@@ -65,7 +63,6 @@ py_test(
     name = "requantize_flatbuffer_test",
     srcs = ["requantize_flatbuffer_test.py"],
     main = "requantize_flatbuffer_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols
@@ -109,7 +106,6 @@ py_library(
     data = [
         ":tflite_flatbuffer_align_wrapper.so",
     ],
-    srcs_version = "PY3",
     visibility = [
         ":application_friends",
         ":tflm_tools",
@@ -126,7 +122,6 @@ py_library(
     data = [
         ":tflite_flatbuffer_align",
     ],
-    srcs_version = "PY3",
     visibility = [
         ":application_friends",
         ":tflm_tools",
@@ -167,8 +162,6 @@ cc_binary(
 py_binary(
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":tflm_model_transforms_lib",
         "@absl_py//absl:app",
@@ -184,7 +177,6 @@ py_test(
         "//tensorflow/lite/micro/models",
     ],
     main = "tflm_model_transforms_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -201,8 +193,6 @@ py_test(
 py_binary(
     name = "layer_by_layer_debugger",
     srcs = ["layer_by_layer_debugger.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",

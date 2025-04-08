@@ -16,8 +16,6 @@ py_test(
     data = [
         ":freq_to_mel_wrapper.so",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -69,8 +67,6 @@ py_test(
     data = [
         ":wide_dynamic_func_lut_wrapper.so",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
