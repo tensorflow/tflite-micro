@@ -46,7 +46,6 @@ py_library(
     data = [
         ":flatbuffer_size_wrapper_pybind.so",
     ],
-    srcs_version = "PY3",
 )
 
 py_binary(
@@ -54,7 +53,6 @@ py_binary(
     srcs = [
         "flatbuffer_size.py",
     ],
-    srcs_version = "PY3",
     deps = [
         ":flatbuffer_size_lib",
     ],

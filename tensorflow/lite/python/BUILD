@@ -16,7 +16,6 @@ flatbuffer_py_library(
 py_library(
     name = "schema_util",
     srcs = ["schema_util.py"],
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),

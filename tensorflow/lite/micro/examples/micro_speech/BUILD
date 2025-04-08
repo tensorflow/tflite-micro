@@ -207,8 +207,6 @@ py_binary(
     data = [
         ":samples_30ms",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -226,8 +224,6 @@ py_binary(
     data = [
         ":models_tflite",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":audio_preprocessor",
     ],

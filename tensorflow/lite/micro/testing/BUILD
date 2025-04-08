@@ -89,8 +89,6 @@ py_library(
 py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],
-    python_version = "PY3",
-    srcs_version = "PY3ONLY",
     tags = [
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.

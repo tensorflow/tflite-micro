@@ -47,8 +47,6 @@ py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
     data = ["//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -66,8 +64,6 @@ py_binary(
         "//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite",
         "//tensorflow/lite/micro/examples/hello_world/models:hello_world_int8.tflite",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":evaluate",
     ],
@@ -76,7 +72,6 @@ py_binary(
 py_binary(
     name = "train",
     srcs = ["train.py"],
-    srcs_version = "PY3",
     deps = [
         requirement("numpy"),
         requirement("tensorflow"),

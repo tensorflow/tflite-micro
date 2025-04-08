@@ -45,7 +45,6 @@ py_binary(
         "lstm_test_data_generator.py",
         "lstm_test_data_utils.py",
     ],
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         requirement("numpy"),
