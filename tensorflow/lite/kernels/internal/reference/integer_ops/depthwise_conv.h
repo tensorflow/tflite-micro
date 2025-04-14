@@ -21,6 +21,8 @@ limitations under the License.
 
 namespace tflite {
 namespace reference_integer_ops {
+
+// [PEANUT] It seems like the only difference between these are the data types and formats
 inline void DepthwiseConvPerChannel(
     const DepthwiseParams& params, const int32_t* output_multiplier,
     const int32_t* output_shift, const RuntimeShape& input_shape,
@@ -30,13 +32,19 @@ inline void DepthwiseConvPerChannel(
     int8_t* output_data) {
   // Get parameters.
   // TODO(b/141565753): Re-introduce ScopedProfilingLabel on Micro.
+  // [PEANUT] Lots of Offset() calls. These map multi-dimensional indices to a one-dimensional index in the data buffers. More details in types.h
   const int stride_width = params.stride_width;
   const int stride_height = params.stride_height;
+  // [PEANUT] I think dilation refers to this: https://towardsdatascience.com/a-primer-on-atrous-convolutions-and-depth-wise-separable-convolutions-443b106919f5/
   const int dilation_width_factor = params.dilation_width_factor;
   const int dilation_height_factor = params.dilation_height_factor;
+  // [PEANUT] Amount to 0-pad the input. This affects low pixel indices. High indices beyond input height and width are always treated as 0.
   const int pad_width = params.padding_values.width;
   const int pad_height = params.padding_values.height;
+  // [PEANUT] It seems like each input channel maps to "depth_multiplier" consecutive output channels
   const int depth_multiplier = params.depth_multiplier;
+
+  // [PEANUT] Activation clamping
   const int32_t input_offset = params.input_offset;
   const int32_t output_offset = params.output_offset;
   const int32_t output_activation_min = params.quantized_activation_min;
@@ -47,6 +55,10 @@ inline void DepthwiseConvPerChannel(
   TFLITE_DCHECK_EQ(filter_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 4);
 
+  // [PEANUT] Input/output/filter dimensions
+  // [PEANUT] Input shape (batches, height, width, in-depth)
+  // [PEANUT] Output shape (batches, height, width, out-depth)
+  // [PEANUT] Filter shape (1?, height, width, out-depth)
   TFLITE_DCHECK_LE(output_activation_min, output_activation_max);
   const int batches = MatchingDim(input_shape, 0, output_shape, 0);
   const int output_depth = MatchingDim(filter_shape, 3, output_shape, 3);
