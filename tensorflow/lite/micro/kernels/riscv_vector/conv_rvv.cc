@@ -68,7 +68,6 @@ void ConvPerChannelRVV(
     const int output_h_stride = output_width * output_w_stride;
     const int output_b_stride = output_height * output_h_stride;
 
-
     for (int batch = 0; batch < batches; ++batch) {
       const int8_t* input_batch_base = input_data + batch * input_b_stride;
       int8_t* output_batch_base = output_data + batch * output_b_stride;
@@ -104,39 +103,48 @@ void ConvPerChannelRVV(
 
                 const int input_offset_addr = (in_y * input_h_stride) + (in_x * input_w_stride) + (group_start_input_channel * input_ch_stride);
                 const int8_t* input_ptr = input_batch_base + input_offset_addr;
-
                 const int8_t* filter_ptr = filter_x_base;
-
 
                 size_t channels_remaining = filter_input_depth;
                 int32_t patch_acc = 0;
 
-                vint32m1_t v_zero_for_reduction = __riscv_vmv_s_x_i32m1(0, 1);
-                vint32m1_t v_sum_reduction = v_zero_for_reduction;
+                if (channels_remaining > 0) {
+                    size_t vlmax_for_acc = __riscv_vsetvlmax_e32m4();
+                    vint32m4_t v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vlmax_for_acc);
 
-                while (channels_remaining > 0) {
-                    size_t current_vl = __riscv_vsetvl_e16m4(channels_remaining);
+                    while (channels_remaining > 0) {
+                        // Use LMUL=1 for 8-bit loads
+                        size_t current_vl = __riscv_vsetvl_e8m1(channels_remaining);
 
-                    vint8m2_t v_input_s8 = __riscv_vle8_v_i8m2(input_ptr, current_vl);
-                    vint8m2_t v_filter_s8 = __riscv_vle8_v_i8m2(filter_ptr, current_vl);
+                        // Load 8-bit data into m1 vectors
+                        vint8m1_t v_input_s8 = __riscv_vle8_v_i8m1(input_ptr, current_vl);
+                        vint8m1_t v_filter_s8 = __riscv_vle8_v_i8m1(filter_ptr, current_vl);
 
-                    vint16m4_t v_input_s16 = __riscv_vsext_vf2_i16m4(v_input_s8, current_vl);
-                    vint16m4_t v_filter_s16 = __riscv_vsext_vf2_i16m4(v_filter_s8, current_vl);
+                        // Widen 8m1 -> 16m2
+                        vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2(v_input_s8, current_vl);
+                        vint16m2_t v_filter_s16 = __riscv_vsext_vf2_i16m2(v_filter_s8, current_vl);
 
-                    v_input_s16 = __riscv_vadd_vx_i16m4(v_input_s16, input_offset_s16, current_vl);
+                        // Perform add on 16m2 vectors
+                        v_input_s16 = __riscv_vadd_vx_i16m2(v_input_s16, input_offset_s16, current_vl);
 
-                    vint32m8_t v_prod_s32 = __riscv_vwmul_vv_i32m8(v_filter_s16, v_input_s16, current_vl);
+                        // Widening multiply-accumulate: 16m2 * 16m2 + 32m4 -> 32m4
+                        // Pass current_vl, the number of elements processed in this iteration
+                        v_acc_s32 = __riscv_vwmacc_vv_i32m4(v_acc_s32, v_filter_s16, v_input_s16, current_vl);
 
-                    v_sum_reduction = __riscv_vredsum_vs_i32m8_i32m1(
-                                                v_prod_s32,
-                                                v_zero_for_reduction,
-                                                current_vl);
+                        input_ptr += current_vl;
+                        filter_ptr += current_vl;
+                        channels_remaining -= current_vl;
+                    }
 
-                    patch_acc += __riscv_vmv_x_s_i32m1_i32(v_sum_reduction);
+                    // Reduce the final 32m4 accumulator
+                    size_t vl_for_reduce = __riscv_vsetvl_e32m4(filter_input_depth); // Set VL for the reduction source type
+                    vint32m1_t v_zero_reduction = __riscv_vmv_s_x_i32m1(0, 1);
+                    vint32m1_t v_sum_reduction = __riscv_vredsum_vs_i32m4_i32m1(
+                                                    v_acc_s32,
+                                                    v_zero_reduction,
+                                                    vl_for_reduce); // Use the VL corresponding to the accumulator length
 
-                    input_ptr += current_vl;
-                    filter_ptr += current_vl;
-                    channels_remaining -= current_vl;
+                    patch_acc = __riscv_vmv_x_s_i32m1_i32(v_sum_reduction);
                 }
                 acc += patch_acc;
               }
