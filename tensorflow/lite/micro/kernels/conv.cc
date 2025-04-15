@@ -24,6 +24,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#if defined(TFLM_USE_RISCV_VECTOR)
+#include "tensorflow/lite/micro/kernels/riscv_vector/conv_rvv.h"
+#endif
+
 namespace tflite {
 namespace {
 
@@ -151,6 +155,85 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
           break;
         }
         case kTfLiteInt8: {
+#if defined(TFLM_USE_RISCV_VECTOR)
+#ifdef USE_TFLM_COMPRESSION
+          TFLITE_DCHECK(weights_comp_td == nullptr && bias_comp_td == nullptr);
+          if (weights_comp_td != nullptr || bias_comp_td != nullptr) 
+          {
+              MicroPrintf("ERROR: RVV path does not support compressed weights/bias yet.");
+              return kTfLiteError;
+          }
+#endif // USE_TFLM_COMPRESSION
+          const TfLiteConvParams* conv_params_rvv = // Use different name to avoid shadowing
+              static_cast<const TfLiteConvParams*>(node->builtin_data);
+          const TfLiteEvalTensor* input_rvv =
+              tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+          const TfLiteEvalTensor* filter_rvv =
+              tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+          const TfLiteEvalTensor* bias_rvv =
+              (NumInputs(node) == 3)
+                  ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
+                  : nullptr;
+          TfLiteEvalTensor* output_rvv =
+              tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+
+          if (bias_rvv != nullptr && bias_rvv->type != kTfLiteInt32) {
+             MicroPrintf("RVV kernel requires Int32 bias, got %s", TfLiteTypeGetName(bias_rvv->type));
+             return kTfLiteError;
+          }
+
+          const int8_t* input_data_ptr = tflite::micro::GetTensorData<int8_t>(input_rvv);
+          const int8_t* filter_data_ptr = tflite::micro::GetTensorData<int8_t>(filter_rvv);
+          const int32_t* bias_data_ptr =
+              (bias_rvv) ? tflite::micro::GetTensorData<int32_t>(bias_rvv) : nullptr;
+          int8_t* output_data_ptr = tflite::micro::GetTensorData<int8_t>(output_rvv);
+
+          const int32_t input_zero_point_arg = data.input_zero_point;
+          const int32_t output_zero_point_arg = data.output_zero_point;
+          const int32_t* output_multiplier_ptr = data.per_channel_output_multiplier;
+          const int32_t* output_shift_ptr = data.per_channel_output_shift;
+
+          const uint16_t input_height = static_cast<uint16_t>(input_rvv->dims->data[1]);
+          const uint16_t input_width = static_cast<uint16_t>(input_rvv->dims->data[2]);
+          const uint16_t input_channels = static_cast<uint16_t>(input_rvv->dims->data[3]);
+
+          const uint16_t filter_height = static_cast<uint16_t>(filter_rvv->dims->data[1]);
+          const uint16_t filter_width = static_cast<uint16_t>(filter_rvv->dims->data[2]);
+
+          const uint16_t output_channels = static_cast<uint16_t>(output_rvv->dims->data[3]);
+
+          const uint16_t output_height = static_cast<uint16_t>(output_rvv->dims->data[1]);
+          const uint16_t output_width = static_cast<uint16_t>(output_rvv->dims->data[2]);
+
+          const uint16_t stride_height = static_cast<uint16_t>(conv_params_rvv->stride_height);
+          const uint16_t stride_width = static_cast<uint16_t>(conv_params_rvv->stride_width);
+          const uint16_t pad_height = static_cast<uint16_t>(data.padding.height);
+          const uint16_t pad_width = static_cast<uint16_t>(data.padding.width);
+
+          // Call the optimized RVV kernel
+          convolution_hwc_ohwi_rvv(
+            input_data_ptr,
+            input_height,
+            input_width,
+            input_channels,
+            input_zero_point_arg,
+            filter_data_ptr,
+            filter_height,
+            filter_width,
+            bias_data_ptr, // Pass bias pointer (can be null)
+            output_data_ptr,
+            output_height,
+            output_width,
+            output_channels,
+            output_zero_point_arg,
+            output_multiplier_ptr,
+            output_shift_ptr,
+            stride_height,
+            stride_width,
+            pad_height,
+            pad_width
+           );
+#else // defined(TFLM_USE_RISCV_VECTOR)
           reference_integer_ops::ConvPerChannel(
               ConvParamsQuantized(params, data),
               data.per_channel_output_multiplier, data.per_channel_output_shift,
@@ -171,6 +254,7 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
+#endif
           break;
         }
         default:
