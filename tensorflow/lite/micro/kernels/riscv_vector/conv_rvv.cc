@@ -19,7 +19,7 @@ void ConvPerChannelRVV(
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data)
 {
-    MicroPrintf("[PEANUT MICROSYSTEM] ConvPerChannelRVV");
+    MicroPrintf("[PEANUT MICROSYSTEMS] ConvPerChannelRVV");
 
     // Extract convolution parameters
     const int32_t input_offset = params.input_offset;
