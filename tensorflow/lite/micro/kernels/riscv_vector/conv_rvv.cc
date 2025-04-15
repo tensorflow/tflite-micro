@@ -19,6 +19,8 @@ void ConvPerChannelRVV(
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data)
 {
+    MicroPrintf("[PEANUT MICROSYSTEM] ConvPerChannelRVV");
+
     // Extract convolution parameters
     const int32_t input_offset = params.input_offset;
     const int stride_width = params.stride_width;
@@ -159,7 +161,14 @@ void ConvPerChannelRVV(
 
                         // Perform widening multiply-accumulate: 16m2 * 16m2 -> 32m4, accumulating into v_acc_s32
                         v_acc_s32 = __riscv_vwmacc_vv_i32m4(v_acc_s32, v_filter_s16, v_input_s16, current_vl);
-                        , processing up to LMUL=1 (m1) 8-bit elements
+
+                        // Advance input and filter pointers and decrement remaining channel count
+                        input_ptr += current_vl;
+                        filter_ptr += current_vl;
+                        channels_remaining -= current_vl;
+                    }
+
+                    // Reduce the final 32-bit vector accumulator to a scalar sum
                     size_t vl_for_reduce = __riscv_vsetvl_e32m4(filter_input_depth);
                     vint32m1_t v_zero_reduction = __riscv_vmv_s_x_i32m1(0, 1);
                     vint32m1_t v_sum_reduction = __riscv_vredsum_vs_i32m4_i32m1(
@@ -187,8 +196,8 @@ void ConvPerChannelRVV(
             const int64_t total_shift = 31 - current_shift;
             const int64_t round_val = (total_shift > 0) ? (static_cast<int64_t>(1) << (total_shift - 1)) : 0LL;
             int64_t result64 = static_cast<int64_t>(acc) * static_cast<int64_t>(current_multiplier);
-            result64 += round_val;
-            result64 = result64 >> total_shift;
+            result64 += round_val; // Add rounding value
+            result64 = result64 >> total_shift; // Perform the shift
             result64 = std::max(result64, static_cast<int64_t>(std::numeric_limits<int32_t>::min()));
             result64 = std::min(result64, static_cast<int64_t>(std::numeric_limits<int32_t>::max()));
             acc = static_cast<int32_t>(result64);
