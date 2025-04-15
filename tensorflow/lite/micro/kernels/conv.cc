@@ -164,79 +164,26 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
               return kTfLiteError;
           }
 #endif // USE_TFLM_COMPRESSION
-          const TfLiteConvParams* conv_params_rvv = // Use different name to avoid shadowing
-              static_cast<const TfLiteConvParams*>(node->builtin_data);
-          const TfLiteEvalTensor* input_rvv =
-              tflite::micro::GetEvalInput(context, node, kConvInputTensor);
-          const TfLiteEvalTensor* filter_rvv =
-              tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
-          const TfLiteEvalTensor* bias_rvv =
-              (NumInputs(node) == 3)
-                  ? tflite::micro::GetEvalInput(context, node, kConvBiasTensor)
-                  : nullptr;
-          TfLiteEvalTensor* output_rvv =
-              tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+          // Check bias type is compatible (as per your original check)
+          if (bias != nullptr && bias->type != kTfLiteInt32) {
+            MicroPrintf("RVV kernel requires Int32 bias, got %s", TfLiteTypeGetName(bias->type));
+            return kTfLiteError;
+         }
 
-          if (bias_rvv != nullptr && bias_rvv->type != kTfLiteInt32) {
-             MicroPrintf("RVV kernel requires Int32 bias, got %s", TfLiteTypeGetName(bias_rvv->type));
-             return kTfLiteError;
-          }
-
-          const int8_t* input_data_ptr = tflite::micro::GetTensorData<int8_t>(input_rvv);
-          const int8_t* filter_data_ptr = tflite::micro::GetTensorData<int8_t>(filter_rvv);
-          const int32_t* bias_data_ptr =
-              (bias_rvv) ? tflite::micro::GetTensorData<int32_t>(bias_rvv) : nullptr;
-          int8_t* output_data_ptr = tflite::micro::GetTensorData<int8_t>(output_rvv);
-
-          const int32_t input_zero_point_arg = data.input_zero_point;
-          const int32_t output_zero_point_arg = data.output_zero_point;
-          const int32_t* output_multiplier_ptr = data.per_channel_output_multiplier;
-          const int32_t* output_shift_ptr = data.per_channel_output_shift;
-
-          const uint16_t input_height = static_cast<uint16_t>(input_rvv->dims->data[1]);
-          const uint16_t input_width = static_cast<uint16_t>(input_rvv->dims->data[2]);
-          const uint16_t input_channels = static_cast<uint16_t>(input_rvv->dims->data[3]);
-
-          const uint16_t filter_height = static_cast<uint16_t>(filter_rvv->dims->data[1]);
-          const uint16_t filter_width = static_cast<uint16_t>(filter_rvv->dims->data[2]);
-
-          const uint16_t output_channels = static_cast<uint16_t>(output_rvv->dims->data[3]);
-
-          const uint16_t output_height = static_cast<uint16_t>(output_rvv->dims->data[1]);
-          const uint16_t output_width = static_cast<uint16_t>(output_rvv->dims->data[2]);
-
-          const uint16_t stride_height = static_cast<uint16_t>(conv_params_rvv->stride_height);
-          const uint16_t stride_width = static_cast<uint16_t>(conv_params_rvv->stride_width);
-          const uint16_t pad_height = static_cast<uint16_t>(data.padding.height);
-          const uint16_t pad_width = static_cast<uint16_t>(data.padding.width);
-
-          // Call the optimized RVV kernel
-          convolution_hwc_ohwi_rvv(
-            input_data_ptr,
-            input_height,
-            input_width,
-            input_channels,
-            input_zero_point_arg,
-            filter_data_ptr,
-            filter_height,
-            filter_width,
-            bias_data_ptr,
-            output_data_ptr,
-            output_height,
-            output_width,
-            output_channels,
-            output_zero_point_arg,
-            output_multiplier_ptr,
-            output_shift_ptr,
-            stride_height,
-            stride_width,
-            pad_height,
-            pad_width,
-            data.output_activation_min,
-            data.output_activation_max,
-            data.dilation_height_factor,
-            data.dilation_width_factor
-           );
+         // Call the optimized RVV kernel with the *new* correct parameters
+         ConvPerChannelRVV(
+             ConvParamsQuantized(params, data),          // const ConvParams& params
+             data.per_channel_output_multiplier,         // const int32_t* output_multiplier
+             data.per_channel_output_shift,              // const int32_t* output_shift
+             tflite::micro::GetTensorShape(input),       // const RuntimeShape& input_shape
+             tflite::micro::GetTensorData<int8_t>(input), // const int8_t* input_data
+             tflite::micro::GetTensorShape(filter),      // const RuntimeShape& filter_shape
+             tflite::micro::GetTensorData<int8_t>(filter),// const int8_t* filter_data
+             tflite::micro::GetTensorShape(bias),        // const RuntimeShape& bias_shape
+             tflite::micro::GetOptionalTensorData<int32_t>(bias), // const int32_t* bias_data
+             tflite::micro::GetTensorShape(output),      // const RuntimeShape& output_shape
+             tflite::micro::GetTensorData<int8_t>(output) // int8_t* output_data
+         );
 #else // defined(TFLM_USE_RISCV_VECTOR)
           reference_integer_ops::ConvPerChannel(
               ConvParamsQuantized(params, data),
