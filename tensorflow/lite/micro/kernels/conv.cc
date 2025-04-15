@@ -220,7 +220,7 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
             filter_data_ptr,
             filter_height,
             filter_width,
-            bias_data_ptr, // Pass bias pointer (can be null)
+            bias_data_ptr,
             output_data_ptr,
             output_height,
             output_width,
@@ -231,7 +231,11 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
             stride_height,
             stride_width,
             pad_height,
-            pad_width
+            pad_width,
+            data.output_activation_min,
+            data.output_activation_max,
+            data.dilation_height_factor,
+            data.dilation_width_factor
            );
 #else // defined(TFLM_USE_RISCV_VECTOR)
           reference_integer_ops::ConvPerChannel(
