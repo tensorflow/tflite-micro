@@ -382,6 +382,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_common.cc \
@@ -597,15 +598,13 @@ $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
 THIRD_PARTY_CC_SRCS :=
-THIRD_PARTY_KERNEL_CC_SRCS := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/riscv_vector/depthwise_conv.cc
+THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
 include $(MAKEFILE_DIR)/additional_kernels.inc
 
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
-
-
 
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
