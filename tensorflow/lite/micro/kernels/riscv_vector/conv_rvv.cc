@@ -182,27 +182,21 @@ void convolution_hwc_ohwi_rvv(
 
     for (int out_c = 0; out_c < output_channels; ++out_c)
     {
-
-
         const int32_t current_bias = (bias_data != nullptr) ? bias_data[out_c] : 0;
         const int32_t current_output_multiplier = output_multiplier[out_c];
         const int32_t current_output_shift = output_shift[out_c];
-
 
         const int32_t left_shift = std::max((int32_t)0, current_output_shift);
         const int32_t right_shift = std::max((int32_t)0, -current_output_shift);
 
         const int32_t rounding_offset = (right_shift > 0) ? (1 << (right_shift - 1)) : 0;
 
-
         const int32_t add_rounding_limit = INT32_MAX - rounding_offset;
-
         const int32_t add_offset_limit_pos = INT32_MAX - output_offset;
         const int32_t add_offset_limit_neg = INT32_MIN - output_offset;
 
         const int32_t left_shift_limit_pos = (left_shift < 31) ? (INT32_MAX >> left_shift) : 0;
         const int32_t left_shift_limit_neg = (left_shift < 31) ? (INT32_MIN >> left_shift) : -1;
-
 
         for (int out_y = 0; out_y < output_height; ++out_y)
         {
