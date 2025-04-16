@@ -52,9 +52,8 @@ tflite::Span<char> output(const tflite::Span<char>& buf, const char* format,
 
 }  // end anonymous namespace
 
-tflite::Span<char> tflite::hexdump(
-    const tflite::Span<const uint8_t> region,
-    const tflite::Span<char> out) {
+tflite::Span<char> tflite::hexdump(const tflite::Span<const uint8_t> region,
+                                   const tflite::Span<char> out) {
   tflite::Span<char> buffer{out};
   std::size_t byte_nr = 0;
   constexpr int per_line = 16;
