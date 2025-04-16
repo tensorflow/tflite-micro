@@ -16,8 +16,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdarg>
 
-#include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/static_vector.h"
 
 namespace {
@@ -35,10 +36,10 @@ tflite::Span<char> output(const tflite::Span<char>& buf, const char* format,
   va_start(args, format);
 
   if (buf.data() == nullptr) {
-    DebugLog(format, args);
+    VMicroPrintf(format, args);
     result = {nullptr, 0};
   } else {
-    size_t len = DebugVsnprintf(buf.data(), buf.size(), format, args);
+    size_t len = MicroVsnprintf(buf.data(), buf.size(), format, args);
     // Returns the number of characters that would have been written if
     // there were enough room, so cap it at the size of the buffer in order to
     // know how much was actually written.

@@ -333,6 +333,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/hexdump_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_helpers_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
