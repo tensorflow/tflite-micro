@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdarg>
 
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/static_vector.h"
