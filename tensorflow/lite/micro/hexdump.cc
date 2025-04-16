@@ -18,7 +18,6 @@
 #include <cctype>
 
 #include "tensorflow/lite/micro/debug_log.h"
-#include "tensorflow/lite/micro/static_vector.h"
 
 namespace {
 
@@ -52,7 +51,7 @@ tflite::Span<char> output(const tflite::Span<char>& buf, const char* format,
 
 }  // end anonymous namespace
 
-tflite::Span<char> tflite::hexdump(const tflite::Span<const std::byte> region,
+tflite::Span<char> tflite::hexdump(const tflite::Span<const unsigned char> region,
                                    const tflite::Span<char> out) {
   tflite::Span<char> buffer{out};
   std::size_t byte_nr = 0;
@@ -60,7 +59,8 @@ tflite::Span<char> tflite::hexdump(const tflite::Span<const std::byte> region,
   const int lines = (region.size() + per_line - 1) / per_line;  // round up
 
   for (int line = 0; line < lines; ++line) {
-    tflite::StaticVector<char, per_line> ascii;
+    char ascii[per_line];
+    int ascii_nr = 0;
 
     // print address
     buffer = output(buffer, "%08X:", line);
@@ -76,7 +76,7 @@ tflite::Span<char> tflite::hexdump(const tflite::Span<const std::byte> region,
         if (std::isprint(as_int)) {
           c = static_cast<char>(as_int);
         }
-        ascii.push_back(c);
+        ascii[ascii_nr++] = c;
       } else {
         buffer = output(buffer, "   ");
       }
@@ -89,8 +89,8 @@ tflite::Span<char> tflite::hexdump(const tflite::Span<const std::byte> region,
 
     // print the ascii value
     buffer = output(buffer, "  ");
-    for (const auto& c : ascii) {
-      buffer = output(buffer, "%c", c);
+    for (int ascii_index = 0; ascii_index < ascii_nr; ascii_index++) {
+      buffer = output(buffer, "%c", ascii[ascii_index]);
     }
     buffer = output(buffer, "%c", '\n');
   }
@@ -98,6 +98,6 @@ tflite::Span<char> tflite::hexdump(const tflite::Span<const std::byte> region,
   return {out.data(), out.size() - buffer.size()};
 }
 
-void tflite::hexdump(const tflite::Span<const std::byte> region) {
+void tflite::hexdump(const tflite::Span<const unsigned char> region) {
   hexdump(region, {nullptr, 0});
 }

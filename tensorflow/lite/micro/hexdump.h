@@ -23,12 +23,12 @@ namespace tflite {
 
 // Displays the contents of a memory region, formatted in hexadecimal and ASCII
 // in a style matching Python's hexdump module, using DebugLog().
-void hexdump(Span<const std::byte> region);
+void hexdump(Span<const unsigned char> region);
 
 // Writes the contents of a memory region, formatted in hexadecimal and ASCII
 // in a style matching Python's hexdump module, to a buffer. Returns the portion
 // of the buffer written.
-Span<char> hexdump(Span<const std::byte> region, Span<char> buffer);
+Span<char> hexdump(Span<const unsigned char> region, Span<char> buffer);
 
 }  // end namespace tflite
 
