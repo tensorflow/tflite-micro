@@ -57,6 +57,8 @@ inline void DepthwiseConvPerChannel(
   TFLITE_DCHECK_EQ(filter_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 4);
 
+  MicroPrintf("[PEANUT MICROSYSTEMS] Using base depthwise conv");
+
   // [PEANUT] Input/output/filter dimensions
   // [PEANUT] Input shape (batches, height, width, in-depth)
   // [PEANUT] Output shape (batches, height, width, out-depth)
