@@ -426,7 +426,6 @@ tflm_cc_library(
     deps = [
         ":debug_log",
         ":span",
-        ":static_vector",
     ],
 )
 
@@ -637,18 +636,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro/benchmarks:keyword_scrambled_model_data",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/micro/testing:test_conv_model",
-    ],
-)
-
-tflm_cc_test(
-    name = "static_vector_test",
-    size = "small",
-    srcs = [
-        "static_vector_test.cc",
-    ],
-    deps = [
-        ":static_vector",
-        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 
