@@ -22,8 +22,8 @@
 constexpr tflite::Span<const char> input{
     "This is an input string for testing."};
 
-const tflite::Span<const std::byte> region{
-    reinterpret_cast<const std::byte*>(input.data()), input.size()};
+const tflite::Span<const unsigned char> region{
+    reinterpret_cast<const unsigned char*>(input.data()), input.size()};
 
 // clang-format off
 constexpr tflite::Span<const char> expected{
